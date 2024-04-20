@@ -1,6 +1,4 @@
-FROM pudding/github-action-app:puppeteer-python-14-action-rss-ut-20230903-0240
-RUN npm link axios@1.4.0
-
+FROM pudding/github-action-app:puppeteer-python-14-action-rss-ut-20240420-2353
 #RUN pip install youtube_transcript_api
 
 # RUN pip install git+https://github.com/openai/whisper.git
