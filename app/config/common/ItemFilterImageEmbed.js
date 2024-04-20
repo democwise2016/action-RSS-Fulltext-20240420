@@ -1,7 +1,7 @@
 const cheerio = require('cheerio')
 const FileCache = require('./../../file-cache/FileCache.js');
 
-const he = require('he');
+// const he = require('he');
 
 const ItemFilterThumbnailCache = require('./ItemFilterThumbnailCache.js')
 
