@@ -3,9 +3,9 @@
 // const feedList = require('./config-list.js')
 
 let CONFIG = {
-  publicURL: `https://democwise2016.github.io/action-RSS-Fulltext/`,
+  publicURL: `https://democwise2016.github.io/action-RSS-Fulltext-20240420/`,
   // publicURL: `https://dangerous-lizard-99.telebit.io/`,
-  publicURLShorten: `https://ppt.cc/f6Ddzx`,
+  publicURLShorten: `https://ppt.cc/fy93nx`,
   thumbnailBorderColor: 'CC3333',
   // titleAppend: '[RSS+] 20230827-' + test,
   // idAppend: '20230827-' + test,
