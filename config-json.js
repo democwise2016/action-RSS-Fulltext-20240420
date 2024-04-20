@@ -21,7 +21,7 @@ let CONFIG = {
 
   maxFileCache: 2000,
 
-  proxy: 'https://script.google.com/macros/s/AKfycbxvQlZuQNHnxAcEmzJI9GxuiEAWYs3uPq2BmCvpkbpABKNKoc-Ahdqo6mqh8zzl-4nc/exec?proxy=',
+  proxy: 'https://script.google.com/macros/s/AKfycbzvvbn-FepcAJl1Ro3tgo0P4dXotOl81d4hcp4n4fNu_2RASYtO1idg6uxi0m7SXWtOMw/exec?proxy=',
   // feedList
   debug: false
 }
