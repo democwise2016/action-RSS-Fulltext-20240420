@@ -1,4 +1,4 @@
-FROM pudding/github-action-app:puppeteer-python-14-action-rss-ut-20230808-2246
+FROM pudding/github-action-app:puppeteer-python-14-action-rss-ut-20230903-0240
 RUN npm link axios@1.4.0
 
 #RUN pip install youtube_transcript_api
