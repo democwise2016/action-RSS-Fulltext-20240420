@@ -1,4 +1,5 @@
 FROM pudding/github-action-app:puppeteer-python-14-action-rss-ut-20240420-2353
+RUN npm link he@1.2.0
 #RUN pip install youtube_transcript_api
 
 # RUN pip install git+https://github.com/openai/whisper.git
