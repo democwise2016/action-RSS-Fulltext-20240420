@@ -272,6 +272,7 @@ let feedList = [
     ],
     options: {
       selector: 'body > article',
+      proxy: true,
     }
   },
 ]
