@@ -275,9 +275,17 @@ let feedList = [
       proxy: true,
     }
   },
+  {
+    title: 'Ivon的部落格',
+    feedID: 'ivon-huang-blog',
+    feedURL: 'https://ivonblog.com/index.xml',
+    itemFilters: [
+      ItemFilters['sites'].ItemFilterBlog,
+    ],
+  },
 ]
 
-// 22 / 30
+// 23 / 30
 
 // ----------------------------------------------------------------
 
