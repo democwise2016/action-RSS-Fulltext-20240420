@@ -281,7 +281,11 @@ let feedList = [
     feedURL: 'https://ivonblog.com/index.xml',
     itemFilters: [
       ItemFilters['sites'].ItemFilterBlog,
+      ItemFilters['common'].ItemFilterImageEmbed,
     ],
+    options: {
+      selector: 'body main#main-content article .article-content',
+    }
   },
 ]
 
@@ -290,17 +294,16 @@ let feedList = [
 // ----------------------------------------------------------------
 
 // feedList = [
-//   { // <outline type="rss" text="學不完．教不停．用不盡 :: 痞客邦 PIXNET ::" title="學不完．教不停．用不盡 :: 痞客邦 PIXNET ::" xmlUrl="http://feeds.feedburner.com/pixnetisvincent"/>
-//     title: '公視新聞網',
-//     feedID: 'pts-news',
-//     feedURL: 'https://news.pts.org.tw/xml/newsfeed.xml',
+//   {
+//     title: 'Ivon的部落格',
+//     feedID: 'ivon-huang-blog',
+//     feedURL: 'https://ivonblog.com/index.xml',
 //     itemFilters: [
 //       ItemFilters['sites'].ItemFilterBlog,
-//       ItemFilters['sites'].ItemFilterPTSNews,
+//       ItemFilters['common'].ItemFilterImageEmbed,
 //     ],
 //     options: {
-//       selector: 'body > article',
-//       proxy: true,
+//       selector: 'body main#main-content article .article-content',
 //     }
 //   },
 // ]
