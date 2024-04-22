@@ -30,6 +30,579 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[打造支援 OpenAPI 標準的 Minimal API]]></title>
+    <link>https://blog.darkthread.net/blog/min-api-openapi/</link>
+    <itunes:title><![CDATA[打造支援 OpenAPI 標準的 Minimal API]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://learn.microsoft.com/zh-tw/microsoft-cloud/dev/dev-proxy/concepts/what-is-openapi-spec?WT.mc_id=DOP-MVP-37580">OpenAPI</a> 已成 Web API 的業界標準，背後有強大的生態體系，豐富的文件/程式碼產生器以測試工具，這些好處過去我已有所體會。(參考：<a href="/blog/swagger-codegen-survey/">再探 WebAPI 客戶端自動產生器 - AutoRest、NSwag 與 .NET 3.5 支援問題</a>) 而隨著我的專案大多改用 <a href="/blog/minimal-api/">ASP.NET Core Minimal API</a> 開發，這篇就來看看如何讓 Minimal API 也支援 OpenAPI 規格。</p> <p>MS Learn 有篇<a href="https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/minimal-apis/openapi?WT.mc_id=DOP-MVP-37580">官方教學</a>是最權威的指南，這裡簡單整理重點。</p> <p>程式庫方面，.NET 7 起有官方提供的 <a href="https://www.nuget.org/packages/Microsoft.AspNetCore.OpenApi/">Microsoft.AspNetCore.OpenApi</a>，另外一般會搭配 <a href="https://www.nuget.org/packages/Swashbuckle.AspNetCore/">Swashbuckle.AspNetCore</a>(6.4+) 提供 API 文件產生、API 檢視及測試網頁功能。</p> <p>參考文件，我用 Minimal API 實作一個支援 OpenAI 規格及 Swagger 介面的 Web API。練習自訂 Swagger 文件標題及說明、用 ExcludeFromDescription() 排除非 Web API 方法、WithName()/OperationId 指定作業識別碼、WitTags() 分群、定義參數說明、Produces() 指定回應型別、檢核錯誤回傳 HTTP 400 及錯誤訊息物件... 等技巧。</p> <pre><code>using Microsoft.OpenApi.Models;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(opt =&gt; {
+opt.SwaggerDoc("v1", new OpenApiInfo {
+Title = "Minimal API Demo",
+Description = "Minimal API OpenAPI 整合範例"
+});
+});
+var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+app.UseSwagger(); // 開發環境下使用 Swagger
+app.UseSwaggerUI(); // 啟用 Swagger 網頁介面
+}
+app.UseFileServer(); // 啟用 wwwroot 靜態檔案伺服器
+app.MapGet("/", () =&gt; "Hello World!")
+.ExcludeFromDescription(); // 從 OpenAPI 文件排除
+app.MapGet("/guid", () =&gt; {
+return Guid.NewGuid();
+}).WithName("NewGuid").WithOpenApi()
+// 指定作業識別碼為 NewGuid，並用預設值產生 OpenAPI 文件
+.WithTags("生成函數");
+app.MapGet("/randoms", (int count, int range = int.MaxValue) =&gt; {
+var random = new Random();
+var randoms = Enumerable.Range(0, count).Select(_ =&gt; random.Next(range));
+return randoms;
+}).WithOpenApi(op =&gt; {
+op.OperationId = "GetRandoms"; // 另一種指定作業識別碼的方式
+op.Summary = "產生隨機數"; // 摘要說明
+op.Description = "產生指定數量的隨機數"; // 詳細說明
+// 提供參數說明
+var pCount = op.Parameters[0];
+pCount.Description = "隨機數的數量";
+var pRange = op.Parameters[1];
+pRange.Description = "隨機數範圍(0 ~ range-1)";
+return op;
+}).WithTags("數學").WithTags("生成函數"); // 指定標籤
+// 複雜一點的範例
+// 參數及回應皆為自訂型別，檢核失敗回應 HTTP 400 並回傳 ApiError 物件
+app.MapPost("workdays", (DateRange range) =&gt; {
+if (range.Start &gt; range.End)
+{
+return Results.BadRequest(new ApiError {
+Code = 1487,
+Message = "起始日期不可大於結束日期"
+});
+}
+var workDays = new List&lt;DateTime&gt;();
+for (var date = range.Start.Date; date &lt;= range.End.Date; date = date.AddDays(1))
+{
+if (date.DayOfWeek != DayOfWeek.Saturday &amp;&amp; date.DayOfWeek != DayOfWeek.Sunday)
+{
+workDays.Add(date);
+}
+}
+// 傳回 HTTP 200 並回傳 WorkDaysInfo 物件
+return Results.Ok(new WorkDaysInfo
+{
+Start = range.Start,
+End = range.End,
+WorkDays = workDays.ToArray()
+});
+})
+// 列舉回應的型別
+.Produces&lt;WorkDaysInfo&gt;()
+.Produces&lt;ApiError&gt;(StatusCodes.Status400BadRequest)
+.WithOpenApi(op =&gt; {
+op.OperationId = "GetWorkDays";
+op.Summary = "取得工作日";
+op.Description = "取得指定日期區間內的工作日";
+// 提供參數說明
+op.RequestBody.Description = "日期區間";
+// 提供回應說明
+var r200 = op.Responses["200"];
+r200.Description = "成功取得工作日";
+var r400 = op.Responses["400"];
+r400.Description = "請求失敗";
+return op;
+}).WithTags("生成函數");
+app.Run();
+public class DateRange {
+public DateTime Start { get; set; }
+public DateTime End { get; set; }
+}
+public class WorkDaysInfo : DateRange {
+public DateTime[] WorkDays { get; set; } = [];
+}
+public class ApiError {
+public int Code { get; set;}
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> <p>就醬，就算是用 Minimal API 寫 WebAPI，照樣能產生有模有樣的 Swagger 介面，半點不馬虎。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638493947264944342.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638493947266647554.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638493947268323627.png"></p> <p>另外值得一提是 .NET 7 起加入 <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/responses?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580#typedresults-vs-results">TypedResults</a>。主打自動依回傳型別產生 OpenAPI Metadata (可省去 Produces&lt;T&gt;())，並且能在編譯階段檢核回傳型別是否吻合。因此 <code>app.MapPost("workdays",...)</code> 可改寫如下：</p> <pre><code>// 宣告回應型別共有 Ok&lt;WorkDaysInfo&gt; 及 BadRequest&lt;ApiError&gt; 兩種
+app.MapPost("workdays", Results&lt;Ok&lt;WorkDaysInfo&gt;, BadRequest&lt;ApiError&gt;&gt; (DateRange range) =&gt; {
+if (range.Start &gt; range.End)
+{
+// 改 TypedRequests.BadRequest
+return TypedResults.BadRequest(new ApiError {
+Code = 1487,
+Message = "起始日期不可大於結束日期"
+});
+}
+var workDays = new List&lt;DateTime&gt;();
+for (var date = range.Start.Date; date &lt;= range.End.Date; date = date.AddDays(1))
+{
+if (date.DayOfWeek != DayOfWeek.Saturday &amp;&amp; date.DayOfWeek != DayOfWeek.Sunday)
+{
+workDays.Add(date);
+}
+}
+// 改
+return TypedResults.Ok(new WorkDaysInfo
+{
+Start = range.Start,
+End = range.End,
+WorkDays = workDays.ToArray()
+});
+})
+// 此處省略 Produces() 回應型別宣告
+.WithOpenApi(op =&gt; {
+//...
+}).WithTags("生成函數");
+</code></pre> <p>如此，若回傳型別與宣告不一致，編譯時就會出錯。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638493947269950563.png"></p> <p>第一次在 API 端嘗試 <code>return TypedResults.BadRequest(new ApiError { Code = 1487, Message = "起始日期不可大於結束日期" });</code>，伺服器端會得到 HTTP Status 400，但 Content-Type application/json 且 Response 內容為 JSON 的回應。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638493947271628779.png"></p> <p>試寫了用 JavaScript fetch 接收回應的做法。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Api Test&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div&gt;
+&lt;input type="date" v-model="start" placeholder="start date" /&gt;
+&lt;input type="date" v-model="end" placeholder="end date" /&gt;
+&lt;button @click="getWorkDays"&gt;Get Workdays&lt;/button&gt;
+&lt;/div&gt;
+&lt;div&gt;
+&lt;ul&gt;
+&lt;li v-for="workday in workdays" :key="workday"&gt;{{ workday }}&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div v-if="apiError"&gt;
+&lt;p&gt;Error: {{ apiError.code }} - {{ apiError.message }}&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;script&gt;
+const start = new Date();
+const end = new Date();
+end.setDate(new Date().getDate() + 7);
+const app = Vue.createApp({
+data() {
+return {
+start: start.toISOString().split('T')[0],
+end: end.toISOString().split('T')[0],
+workdays: [],
+apiError: null
+}
+},
+methods: {
+async getWorkDays() {
+this.apiError = null;
+try {
+const response = await fetch('workdays', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ start: this.start, end: this.end })
+});
+if (!response.headers.get('content-type')?.includes('application/json')) {
+throw { code: response.status, message: await response.text() }
+}
+const data = await response.json();
+if (!response.ok) throw data;
+this.workdays = data.workDays;
+} catch (error) {
+this.workdays = [];
+this.apiError = error.code &amp;&amp; error.message ? error :
+{ code: '?', message: error.toString() };
+}
+}
+}
+});
+app.mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638493947274812450.gif"></p> <p>練習完畢。</p> <p>範例專案我上傳到 <a href="https://github.com/darkthread/min-api-openapi">Github</a> 了，想動手玩看看的同學可自取。</p> <p data-slug="min-api-openapi" data-title-en="How to make minimal API support OpenAPI/Swagger?" data-catg="Web Development" data-fbimg="https://i.imgur.com/RifbnAn.jpg#1024#576">Through examples, this article introduces how to enable Minimal API to support OpenAPI and Swagger.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://learn.microsoft.com/zh-tw/microsoft-cloud/dev/dev-proxy/concepts/what-is-openapi-spec?WT.mc_id=DOP-MVP-37580">OpenAPI</a> 已成 Web API 的業界標準，背後有強大的生態體系，豐富的文件/程式碼產生器以測試工具，這些好處過去我已有所體會。(參考：<a href="/blog/swagger-codegen-survey/">再探 WebAPI 客戶端自動產生器 - AutoRest、NSwag 與 .NET 3.5 支援問題</a>) 而隨著我的專案大多改用 <a href="/blog/minimal-api/">ASP.NET Core Minimal API</a> 開發，這篇就來看看如何讓 Minimal API 也支援 OpenAPI 規格。</p> <p>MS Learn 有篇<a href="https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/minimal-apis/openapi?WT.mc_id=DOP-MVP-37580">官方教學</a>是最權威的指南，這裡簡單整理重點。</p> <p>程式庫方面，.NET 7 起有官方提供的 <a href="https://www.nuget.org/packages/Microsoft.AspNetCore.OpenApi/">Microsoft.AspNetCore.OpenApi</a>，另外一般會搭配 <a href="https://www.nuget.org/packages/Swashbuckle.AspNetCore/">Swashbuckle.AspNetCore</a>(6.4+) 提供 API 文件產生、API 檢視及測試網頁功能。</p> <p>參考文件，我用 Minimal API 實作一個支援 OpenAI 規格及 Swagger 介面的 Web API。練習自訂 Swagger 文件標題及說明、用 ExcludeFromDescription() 排除非 Web API 方法、WithName()/OperationId 指定作業識別碼、WitTags() 分群、定義參數說明、Produces() 指定回應型別、檢核錯誤回傳 HTTP 400 及錯誤訊息物件... 等技巧。</p> <pre><code>using Microsoft.OpenApi.Models;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(opt =&gt; {
+opt.SwaggerDoc("v1", new OpenApiInfo {
+Title = "Minimal API Demo",
+Description = "Minimal API OpenAPI 整合範例"
+});
+});
+var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+app.UseSwagger(); // 開發環境下使用 Swagger
+app.UseSwaggerUI(); // 啟用 Swagger 網頁介面
+}
+app.UseFileServer(); // 啟用 wwwroot 靜態檔案伺服器
+app.MapGet("/", () =&gt; "Hello World!")
+.ExcludeFromDescription(); // 從 OpenAPI 文件排除
+app.MapGet("/guid", () =&gt; {
+return Guid.NewGuid();
+}).WithName("NewGuid").WithOpenApi()
+// 指定作業識別碼為 NewGuid，並用預設值產生 OpenAPI 文件
+.WithTags("生成函數");
+app.MapGet("/randoms", (int count, int range = int.MaxValue) =&gt; {
+var random = new Random();
+var randoms = Enumerable.Range(0, count).Select(_ =&gt; random.Next(range));
+return randoms;
+}).WithOpenApi(op =&gt; {
+op.OperationId = "GetRandoms"; // 另一種指定作業識別碼的方式
+op.Summary = "產生隨機數"; // 摘要說明
+op.Description = "產生指定數量的隨機數"; // 詳細說明
+// 提供參數說明
+var pCount = op.Parameters[0];
+pCount.Description = "隨機數的數量";
+var pRange = op.Parameters[1];
+pRange.Description = "隨機數範圍(0 ~ range-1)";
+return op;
+}).WithTags("數學").WithTags("生成函數"); // 指定標籤
+// 複雜一點的範例
+// 參數及回應皆為自訂型別，檢核失敗回應 HTTP 400 並回傳 ApiError 物件
+app.MapPost("workdays", (DateRange range) =&gt; {
+if (range.Start &gt; range.End)
+{
+return Results.BadRequest(new ApiError {
+Code = 1487,
+Message = "起始日期不可大於結束日期"
+});
+}
+var workDays = new List&lt;DateTime&gt;();
+for (var date = range.Start.Date; date &lt;= range.End.Date; date = date.AddDays(1))
+{
+if (date.DayOfWeek != DayOfWeek.Saturday &amp;&amp; date.DayOfWeek != DayOfWeek.Sunday)
+{
+workDays.Add(date);
+}
+}
+// 傳回 HTTP 200 並回傳 WorkDaysInfo 物件
+return Results.Ok(new WorkDaysInfo
+{
+Start = range.Start,
+End = range.End,
+WorkDays = workDays.ToArray()
+});
+})
+// 列舉回應的型別
+.Produces&lt;WorkDaysInfo&gt;()
+.Produces&lt;ApiError&gt;(StatusCodes.Status400BadRequest)
+.WithOpenApi(op =&gt; {
+op.OperationId = "GetWorkDays";
+op.Summary = "取得工作日";
+op.Description = "取得指定日期區間內的工作日";
+// 提供參數說明
+op.RequestBody.Description = "日期區間";
+// 提供回應說明
+var r200 = op.Responses["200"];
+r200.Description = "成功取得工作日";
+var r400 = op.Responses["400"];
+r400.Description = "請求失敗";
+return op;
+}).WithTags("生成函數");
+app.Run();
+public class DateRange {
+public DateTime Start { get; set; }
+public DateTime End { get; set; }
+}
+public class WorkDaysInfo : DateRange {
+public DateTime[] WorkDays { get; set; } = [];
+}
+public class ApiError {
+public int Code { get; set;}
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> <p>就醬，就算是用 Minimal API 寫 WebAPI，照樣能產生有模有樣的 Swagger 介面，半點不馬虎。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638493947264944342.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638493947266647554.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638493947268323627.png"></p> <p>另外值得一提是 .NET 7 起加入 <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/responses?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580#typedresults-vs-results">TypedResults</a>。主打自動依回傳型別產生 OpenAPI Metadata (可省去 Produces&lt;T&gt;())，並且能在編譯階段檢核回傳型別是否吻合。因此 <code>app.MapPost("workdays",...)</code> 可改寫如下：</p> <pre><code>// 宣告回應型別共有 Ok&lt;WorkDaysInfo&gt; 及 BadRequest&lt;ApiError&gt; 兩種
+app.MapPost("workdays", Results&lt;Ok&lt;WorkDaysInfo&gt;, BadRequest&lt;ApiError&gt;&gt; (DateRange range) =&gt; {
+if (range.Start &gt; range.End)
+{
+// 改 TypedRequests.BadRequest
+return TypedResults.BadRequest(new ApiError {
+Code = 1487,
+Message = "起始日期不可大於結束日期"
+});
+}
+var workDays = new List&lt;DateTime&gt;();
+for (var date = range.Start.Date; date &lt;= range.End.Date; date = date.AddDays(1))
+{
+if (date.DayOfWeek != DayOfWeek.Saturday &amp;&amp; date.DayOfWeek != DayOfWeek.Sunday)
+{
+workDays.Add(date);
+}
+}
+// 改
+return TypedResults.Ok(new WorkDaysInfo
+{
+Start = range.Start,
+End = range.End,
+WorkDays = workDays.ToArray()
+});
+})
+// 此處省略 Produces() 回應型別宣告
+.WithOpenApi(op =&gt; {
+//...
+}).WithTags("生成函數");
+</code></pre> <p>如此，若回傳型別與宣告不一致，編譯時就會出錯。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638493947269950563.png"></p> <p>第一次在 API 端嘗試 <code>return TypedResults.BadRequest(new ApiError { Code = 1487, Message = "起始日期不可大於結束日期" });</code>，伺服器端會得到 HTTP Status 400，但 Content-Type application/json 且 Response 內容為 JSON 的回應。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638493947271628779.png"></p> <p>試寫了用 JavaScript fetch 接收回應的做法。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Api Test&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div&gt;
+&lt;input type="date" v-model="start" placeholder="start date" /&gt;
+&lt;input type="date" v-model="end" placeholder="end date" /&gt;
+&lt;button @click="getWorkDays"&gt;Get Workdays&lt;/button&gt;
+&lt;/div&gt;
+&lt;div&gt;
+&lt;ul&gt;
+&lt;li v-for="workday in workdays" :key="workday"&gt;{{ workday }}&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div v-if="apiError"&gt;
+&lt;p&gt;Error: {{ apiError.code }} - {{ apiError.message }}&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;script&gt;
+const start = new Date();
+const end = new Date();
+end.setDate(new Date().getDate() + 7);
+const app = Vue.createApp({
+data() {
+return {
+start: start.toISOString().split('T')[0],
+end: end.toISOString().split('T')[0],
+workdays: [],
+apiError: null
+}
+},
+methods: {
+async getWorkDays() {
+this.apiError = null;
+try {
+const response = await fetch('workdays', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ start: this.start, end: this.end })
+});
+if (!response.headers.get('content-type')?.includes('application/json')) {
+throw { code: response.status, message: await response.text() }
+}
+const data = await response.json();
+if (!response.ok) throw data;
+this.workdays = data.workDays;
+} catch (error) {
+this.workdays = [];
+this.apiError = error.code &amp;&amp; error.message ? error :
+{ code: '?', message: error.toString() };
+}
+}
+}
+});
+app.mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638493947274812450.gif"></p> <p>練習完畢。</p> <p>範例專案我上傳到 <a href="https://github.com/darkthread/min-api-openapi">Github</a> 了，想動手玩看看的同學可自取。</p> <p data-slug="min-api-openapi" data-title-en="How to make minimal API support OpenAPI/Swagger?" data-catg="Web Development" data-fbimg="https://i.imgur.com/RifbnAn.jpg#1024#576">Through examples, this article introduces how to enable Minimal API to support OpenAPI and Swagger.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://learn.microsoft.com/zh-tw/microsoft-cloud/dev/dev-proxy/concepts/what-is-openapi-spec?WT.mc_id=DOP-MVP-37580">OpenAPI</a> 已成 Web API 的業界標準，背後有強大的生態體系，豐富的文件/程式碼產生器以測試工具，這些好處過去我已有所體會。(參考：<a href="/blog/swagger-codegen-survey/">再探 WebAPI 客戶端自動產生器 - AutoRest、NSwag 與 .NET 3.5 支援問題</a>) 而隨著我的專案大多改用 <a href="/blog/minimal-api/">ASP.NET Core Minimal API</a> 開發，這篇就來看看如何讓 Minimal API 也支援 OpenAPI 規格。</p> <p>MS Learn 有篇<a href="https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/minimal-apis/openapi?WT.mc_id=DOP-MVP-37580">官方教學</a>是最權威的指南，這裡簡單整理重點。</p> <p>程式庫方面，.NET 7 起有官方提供的 <a href="https://www.nuget.org/packages/Microsoft.AspNetCore.OpenApi/">Microsoft.AspNetCore.OpenApi</a>，另外一般會搭配 <a href="https://www.nuget.org/packages/Swashbuckle.AspNetCore/">Swashbuckle.AspNetCore</a>(6.4+) 提供 API 文件產生、API 檢視及測試網頁功能。</p> <p>參考文件，我用 Minimal API 實作一個支援 OpenAI 規格及 Swagger 介面的 Web API。練習自訂 Swagger 文件標題及說明、用 ExcludeFromDescription() 排除非 Web API 方法、WithName()/OperationId 指定作業識別碼、WitTags() 分群、定義參數說明、Produces() 指定回應型別、檢核錯誤回傳 HTTP 400 及錯誤訊息物件... 等技巧。</p> <pre><code>using Microsoft.OpenApi.Models;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(opt =&gt; {
+opt.SwaggerDoc("v1", new OpenApiInfo {
+Title = "Minimal API Demo",
+Description = "Minimal API OpenAPI 整合範例"
+});
+});
+var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+app.UseSwagger(); // 開發環境下使用 Swagger
+app.UseSwaggerUI(); // 啟用 Swagger 網頁介面
+}
+app.UseFileServer(); // 啟用 wwwroot 靜態檔案伺服器
+app.MapGet("/", () =&gt; "Hello World!")
+.ExcludeFromDescription(); // 從 OpenAPI 文件排除
+app.MapGet("/guid", () =&gt; {
+return Guid.NewGuid();
+}).WithName("NewGuid").WithOpenApi()
+// 指定作業識別碼為 NewGuid，並用預設值產生 OpenAPI 文件
+.WithTags("生成函數");
+app.MapGet("/randoms", (int count, int range = int.MaxValue) =&gt; {
+var random = new Random();
+var randoms = Enumerable.Range(0, count).Select(_ =&gt; random.Next(range));
+return randoms;
+}).WithOpenApi(op =&gt; {
+op.OperationId = "GetRandoms"; // 另一種指定作業識別碼的方式
+op.Summary = "產生隨機數"; // 摘要說明
+op.Description = "產生指定數量的隨機數"; // 詳細說明
+// 提供參數說明
+var pCount = op.Parameters[0];
+pCount.Description = "隨機數的數量";
+var pRange = op.Parameters[1];
+pRange.Description = "隨機數範圍(0 ~ range-1)";
+return op;
+}).WithTags("數學").WithTags("生成函數"); // 指定標籤
+// 複雜一點的範例
+// 參數及回應皆為自訂型別，檢核失敗回應 HTTP 400 並回傳 ApiError 物件
+app.MapPost("workdays", (DateRange range) =&gt; {
+if (range.Start &gt; range.End)
+{
+return Results.BadRequest(new ApiError {
+Code = 1487,
+Message = "起始日期不可大於結束日期"
+});
+}
+var workDays = new List&lt;DateTime&gt;();
+for (var date = range.Start.Date; date &lt;= range.End.Date; date = date.AddDays(1))
+{
+if (date.DayOfWeek != DayOfWeek.Saturday &amp;&amp; date.DayOfWeek != DayOfWeek.Sunday)
+{
+workDays.Add(date);
+}
+}
+// 傳回 HTTP 200 並回傳 WorkDaysInfo 物件
+return Results.Ok(new WorkDaysInfo
+{
+Start = range.Start,
+End = range.End,
+WorkDays = workDays.ToArray()
+});
+})
+// 列舉回應的型別
+.Produces&lt;WorkDaysInfo&gt;()
+.Produces&lt;ApiError&gt;(StatusCodes.Status400BadRequest)
+.WithOpenApi(op =&gt; {
+op.OperationId = "GetWorkDays";
+op.Summary = "取得工作日";
+op.Description = "取得指定日期區間內的工作日";
+// 提供參數說明
+op.RequestBody.Description = "日期區間";
+// 提供回應說明
+var r200 = op.Responses["200"];
+r200.Description = "成功取得工作日";
+var r400 = op.Responses["400"];
+r400.Description = "請求失敗";
+return op;
+}).WithTags("生成函數");
+app.Run();
+public class DateRange {
+public DateTime Start { get; set; }
+public DateTime End { get; set; }
+}
+public class WorkDaysInfo : DateRange {
+public DateTime[] WorkDays { get; set; } = [];
+}
+public class ApiError {
+public int Code { get; set;}
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> <p>就醬，就算是用 Minimal API 寫 WebAPI，照樣能產生有模有樣的 Swagger 介面，半點不馬虎。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638493947264944342.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638493947266647554.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638493947268323627.png"></p> <p>另外值得一提是 .NET 7 起加入 <a href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/responses?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580#typedresults-vs-results">TypedResults</a>。主打自動依回傳型別產生 OpenAPI Metadata (可省去 Produces&lt;T&gt;())，並且能在編譯階段檢核回傳型別是否吻合。因此 <code>app.MapPost("workdays",...)</code> 可改寫如下：</p> <pre><code>// 宣告回應型別共有 Ok&lt;WorkDaysInfo&gt; 及 BadRequest&lt;ApiError&gt; 兩種
+app.MapPost("workdays", Results&lt;Ok&lt;WorkDaysInfo&gt;, BadRequest&lt;ApiError&gt;&gt; (DateRange range) =&gt; {
+if (range.Start &gt; range.End)
+{
+// 改 TypedRequests.BadRequest
+return TypedResults.BadRequest(new ApiError {
+Code = 1487,
+Message = "起始日期不可大於結束日期"
+});
+}
+var workDays = new List&lt;DateTime&gt;();
+for (var date = range.Start.Date; date &lt;= range.End.Date; date = date.AddDays(1))
+{
+if (date.DayOfWeek != DayOfWeek.Saturday &amp;&amp; date.DayOfWeek != DayOfWeek.Sunday)
+{
+workDays.Add(date);
+}
+}
+// 改
+return TypedResults.Ok(new WorkDaysInfo
+{
+Start = range.Start,
+End = range.End,
+WorkDays = workDays.ToArray()
+});
+})
+// 此處省略 Produces() 回應型別宣告
+.WithOpenApi(op =&gt; {
+//...
+}).WithTags("生成函數");
+</code></pre> <p>如此，若回傳型別與宣告不一致，編譯時就會出錯。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638493947269950563.png"></p> <p>第一次在 API 端嘗試 <code>return TypedResults.BadRequest(new ApiError { Code = 1487, Message = "起始日期不可大於結束日期" });</code>，伺服器端會得到 HTTP Status 400，但 Content-Type application/json 且 Response 內容為 JSON 的回應。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638493947271628779.png"></p> <p>試寫了用 JavaScript fetch 接收回應的做法。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Api Test&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div&gt;
+&lt;input type="date" v-model="start" placeholder="start date" /&gt;
+&lt;input type="date" v-model="end" placeholder="end date" /&gt;
+&lt;button @click="getWorkDays"&gt;Get Workdays&lt;/button&gt;
+&lt;/div&gt;
+&lt;div&gt;
+&lt;ul&gt;
+&lt;li v-for="workday in workdays" :key="workday"&gt;{{ workday }}&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div v-if="apiError"&gt;
+&lt;p&gt;Error: {{ apiError.code }} - {{ apiError.message }}&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;script&gt;
+const start = new Date();
+const end = new Date();
+end.setDate(new Date().getDate() + 7);
+const app = Vue.createApp({
+data() {
+return {
+start: start.toISOString().split('T')[0],
+end: end.toISOString().split('T')[0],
+workdays: [],
+apiError: null
+}
+},
+methods: {
+async getWorkDays() {
+this.apiError = null;
+try {
+const response = await fetch('workdays', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ start: this.start, end: this.end })
+});
+if (!response.headers.get('content-type')?.includes('application/json')) {
+throw { code: response.status, message: await response.text() }
+}
+const data = await response.json();
+if (!response.ok) throw data;
+this.workdays = data.workDays;
+} catch (error) {
+this.workdays = [];
+this.apiError = error.code &amp;&amp; error.message ? error :
+{ code: '?', message: error.toString() };
+}
+}
+}
+});
+app.mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638493947274812450.gif"></p> <p>練習完畢。</p> <p>範例專案我上傳到 <a href="https://github.com/darkthread/min-api-openapi">Github</a> 了，想動手玩看看的同學可自取。</p> <p data-slug="min-api-openapi" data-title-en="How to make minimal API support OpenAPI/Swagger?" data-catg="Web Development" data-fbimg="https://i.imgur.com/RifbnAn.jpg#1024#576">Through examples, this article introduces how to enable Minimal API to support OpenAPI and Swagger.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638493947264944342.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638493947264944342.png" medium="image"/>
+    <pubDate>Mon, 22 Apr 2024 14:55:28 GMT</pubDate>
+  </item><item>
     <title><![CDATA[網頁排版與可讀性 - 字型大小與行高]]></title>
     <link>https://blog.darkthread.net/blog/font-size-n-line-height/</link>
     <itunes:title><![CDATA[網頁排版與可讀性 - 字型大小與行高]]></itunes:title>
@@ -995,20 +1568,5 @@ capabilities: [gpu]
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638483506884360655.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638483506884360655.png" medium="image"/>
     <pubDate>Wed, 10 Apr 2024 12:49:22 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[YT 筆記：向量資料庫概念科普]]></title>
-    <link>https://blog.darkthread.net/blog/vector-db-concept/</link>
-    <itunes:title><![CDATA[YT 筆記：向量資料庫概念科普]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>在 RAG 架構中，ChatGPT 等 LLM 之所以能回答專屬領域問題，其關鍵在於已事先將相關文件、影像、資訊消化後存進資料庫並建立索引，當使用者詢問時，先透過索引找到資料，再由 LLM 彙整查詢結果給出答案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638482642192514144.png"><br> <a href="https://areganti.notion.site/Week-4-Retrieval-Augmented-Generation-1a0754b1ccc645b78edcaf42e9137d86">來源</a></p> <p>文字甚至影像之所以能被搜尋，是因為它先經 <a href="/blog/text-embedding-ada-002-lab/">Embedding</a> 轉為量並存進向量資料庫。文字轉為向量後，可跳脫單純的關鍵字比對，實現語意上比對，例如：查詢"狗"時，講到"Dog"的英文資料也能被篩選出來。而影像資料向量化後，則能實現用顏色、形狀以圖找圖的神奇效果。</p> <p>在這套機制中，專為儲存及索引向量資料設計的向量資料庫是不可或缺的成員。向量資料庫的概念有點深奧，充斥 ANN、HNSW 之的神祕術語，不太好懂。YouTuber「Ele 實驗室」向來擅長用視覺呈現及淺顯比喻科普複雜資工理論(例如這部：<a href="/blog/why-md5-not-safe/">YT 筆記 - 資安科普：為什麼 MD5 不再安全？</a>，大推)，最近發現這部：</p> <p><a href="https://www.youtube.com/watch?v=W_ZUUDJsUtA">【上集】向量数据库技术鉴赏</a></p> <p>再次把向量資料庫原理解釋到國中生都能懂，是很好的科普教材，搞懂餘弦相似性、KNN、ANN、量化、PQ、HNSW 等專業術語是深入 RAG 開發的基礎，故循例筆記備忘兼分享。</p> <ol><li>為什麼要用高維度向量表示資料？<br> 想像一下，如果我們要區分數以百種的狗，最簡單的方法用體型、長短毛、毛色、嘴巴長度... 等特徵區別，每一個特徵可想成一個維度，維度愈高，愈能精細區別不同項目。此一概念可轉化為多維量向量，特徵變為一串數字後，後續便可進行數學運算，用演算法完成我們想要的任務。<br> 將高維空間映對成 2D 平面方便說明，我們可觀察到一些有趣特性： <ol><li>性質相近者會群聚<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638482642198656526.png"></li> <li>向量關係可以用來類推二者關係，例如：貓到老鼠的線與警察到小偷的線呈現平行<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638482642202455139.png"></li> <li>兩段語意相近的文字轉換成的向量數據也會有相似性，從而讓我們找出相關的文字</li></ol> </li> <li>為什麼需要向量資料庫？<br> 基於資料特性差異，傳統資料庫不適合儲存向量資料，改用向量資料庫更能滿足效能及效率要求。</li> <li>如何比對向量資料？<br> 向量資料是透過比較相似性找尋相關內容，主要靠<a href="https://zh.wikipedia.org/zh-tw/%E6%9C%80%E9%82%BB%E8%BF%91%E6%90%9C%E7%B4%A2">最鄰近搜索（Nearest Neighbor Search, NNS）</a>演算法。無腦做法是將查詢對象的向量跟所有資料的向量全部比對一次，用餘弦相似性(<a href="https://zh.wikipedia.org/zh-tw/%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E6%80%A7">https://zh.wikipedia.org/zh-tw/%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E6%80%A7</a>)或<a href="https://zh.wikipedia.org/zh-tw/%E6%AC%A7%E5%87%A0%E9%87%8C%E5%BE%97%E8%B7%9D%E7%A6%BB">歐幾里得距離</a>找出最近者，此法雖精準但耗時無效率。<br> 一個改良思維是先縮小範圍，例如用 <a href="https://zh.wikipedia.org/wiki/K-%E5%B9%B3%E5%9D%87%E7%AE%97%E6%B3%95">K-Means (k-平均演算法，K-Nearest Neighbors/KNN)</a>將點分類，每次只查找所屬類別的點：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638482642204600347.png"><br> 只找所屬分類極有可能出現「最近的點隸屬另一分類」的狀況，此問題可透過增加分類數量，及連帶搜索相近分類改善，雖能提升精準度卻勢必拖慢速度。<br> 另一種做法是 Locality Sensitive Hashing (位置敏感雜湊法)，使用位置愈近碰撞機率愈高的雜湊演算法，將相近的點集合在一起放入同一個 Bucket。實踐方式是用隨機線或隨機超平面將所有點劃分為 0 或 1，每條線/每個平面決定一個位元組成一串編碼，則位置愈近的點編碼相同的位數愈多，再用分段比對提高找到相近點的機率。<br> 以上方法都必須在品質與速度間取捨，沒有絕對精準的解法，故這些演算法也被稱為 Approximate Nearest Neighbors (ANN) 近似最鄰近搜索。</li> <li>向量資料庫如何減少記憶體耗用量？<br> 高維度向量資料佔用記憶體空間十分驚人。以 128 維資料為例，浮點數 FP32 = 4 Bytes，一個向量需要 512 Bytes，一千萬筆就會佔用 4.77GB，而實務的維度常大於 128 維，資料遠超過一千萬筆，耗用空間可觀。一個有效減量做法是 Product Quantization 乘積量化，例如以 K-Means 質心座標當成該群所有點的座標(類似有損壓縮)：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638482642207067698.png"><br> 如此只需記錄質心向量值給編碼值，並用對照表保存質心向量。實務上高維度需切割的聚落數及質心數將爆炸成長(例如：2<sup>64</sup>)，記錄質心向量所需空間遠大於量化節省空間，得不償失，稱之「<a href="https://zh.wikipedia.org/zh-tw/%E7%BB%B4%E6%95%B0%E7%81%BE%E9%9A%BE">維度災難</a>」。解法是將高維向量分割成多個低維子向量，在子向量進行 K-Mean 訓練及量化。例如：把 128 維分割成 8 個 16 維子向量空間，子向量只需 256 個聚落，將八個子空間編碼值合在一起表示 128 維的點(Cartesian Product 笛卡爾積)，這個做法稱為 Product Quantization (積量化，PQ)。如此可將資料量由 4.77GB 降到 76 MB。</li> <li>主流向量資料庫常採用什麼方法加快搜索？<br> 使用者對速度與查詢品質敏感，用記憶體換取二者提升很值得。基於圖論的 Hierachical Navigable Small World (HNSW) 即是一例。<br> 直覺做法是用德勞內三角剖分法(Delaunay Triangulation Algorithm)建立所有點的圖結構，但此法有路徑效率不佳的問題。NSW 改良做法是將點一一放回去時跟最近的三個點建立連線，之後將線區分為長連結跟短連結，先用長連結快速度跳到目標附近，再走短連結到達目的節點。(先粗快，後細慢)<br> 改良版 HNSW 將路徑分層，確保可以穩定先長路徑再短路徑走到目的，雖然會多耗用記憶體記錄多層路徑，卻能有效提升搜尋速度及品質。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638482642209068717.png"><br> 現代向量資料量會綜合上述各種演算法達成最佳效果。</li></ol> <p data-slug="vector-db-concept" data-fbimg="https://i.imgur.com/J10KXIT.png#640#360"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>在 RAG 架構中，ChatGPT 等 LLM 之所以能回答專屬領域問題，其關鍵在於已事先將相關文件、影像、資訊消化後存進資料庫並建立索引，當使用者詢問時，先透過索引找到資料，再由 LLM 彙整查詢結果給出答案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638482642192514144.png"><br> <a href="https://areganti.notion.site/Week-4-Retrieval-Augmented-Generation-1a0754b1ccc645b78edcaf42e9137d86">來源</a></p> <p>文字甚至影像之所以能被搜尋，是因為它先經 <a href="/blog/text-embedding-ada-002-lab/">Embedding</a> 轉為量並存進向量資料庫。文字轉為向量後，可跳脫單純的關鍵字比對，實現語意上比對，例如：查詢"狗"時，講到"Dog"的英文資料也能被篩選出來。而影像資料向量化後，則能實現用顏色、形狀以圖找圖的神奇效果。</p> <p>在這套機制中，專為儲存及索引向量資料設計的向量資料庫是不可或缺的成員。向量資料庫的概念有點深奧，充斥 ANN、HNSW 之的神祕術語，不太好懂。YouTuber「Ele 實驗室」向來擅長用視覺呈現及淺顯比喻科普複雜資工理論(例如這部：<a href="/blog/why-md5-not-safe/">YT 筆記 - 資安科普：為什麼 MD5 不再安全？</a>，大推)，最近發現這部：</p> <p><a href="https://www.youtube.com/watch?v=W_ZUUDJsUtA">【上集】向量数据库技术鉴赏</a></p> <p>再次把向量資料庫原理解釋到國中生都能懂，是很好的科普教材，搞懂餘弦相似性、KNN、ANN、量化、PQ、HNSW 等專業術語是深入 RAG 開發的基礎，故循例筆記備忘兼分享。</p> <ol><li>為什麼要用高維度向量表示資料？<br> 想像一下，如果我們要區分數以百種的狗，最簡單的方法用體型、長短毛、毛色、嘴巴長度... 等特徵區別，每一個特徵可想成一個維度，維度愈高，愈能精細區別不同項目。此一概念可轉化為多維量向量，特徵變為一串數字後，後續便可進行數學運算，用演算法完成我們想要的任務。<br> 將高維空間映對成 2D 平面方便說明，我們可觀察到一些有趣特性： <ol><li>性質相近者會群聚<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638482642198656526.png"></li> <li>向量關係可以用來類推二者關係，例如：貓到老鼠的線與警察到小偷的線呈現平行<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638482642202455139.png"></li> <li>兩段語意相近的文字轉換成的向量數據也會有相似性，從而讓我們找出相關的文字</li></ol> </li> <li>為什麼需要向量資料庫？<br> 基於資料特性差異，傳統資料庫不適合儲存向量資料，改用向量資料庫更能滿足效能及效率要求。</li> <li>如何比對向量資料？<br> 向量資料是透過比較相似性找尋相關內容，主要靠<a href="https://zh.wikipedia.org/zh-tw/%E6%9C%80%E9%82%BB%E8%BF%91%E6%90%9C%E7%B4%A2">最鄰近搜索（Nearest Neighbor Search, NNS）</a>演算法。無腦做法是將查詢對象的向量跟所有資料的向量全部比對一次，用餘弦相似性(<a href="https://zh.wikipedia.org/zh-tw/%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E6%80%A7">https://zh.wikipedia.org/zh-tw/%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E6%80%A7</a>)或<a href="https://zh.wikipedia.org/zh-tw/%E6%AC%A7%E5%87%A0%E9%87%8C%E5%BE%97%E8%B7%9D%E7%A6%BB">歐幾里得距離</a>找出最近者，此法雖精準但耗時無效率。<br> 一個改良思維是先縮小範圍，例如用 <a href="https://zh.wikipedia.org/wiki/K-%E5%B9%B3%E5%9D%87%E7%AE%97%E6%B3%95">K-Means (k-平均演算法，K-Nearest Neighbors/KNN)</a>將點分類，每次只查找所屬類別的點：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638482642204600347.png"><br> 只找所屬分類極有可能出現「最近的點隸屬另一分類」的狀況，此問題可透過增加分類數量，及連帶搜索相近分類改善，雖能提升精準度卻勢必拖慢速度。<br> 另一種做法是 Locality Sensitive Hashing (位置敏感雜湊法)，使用位置愈近碰撞機率愈高的雜湊演算法，將相近的點集合在一起放入同一個 Bucket。實踐方式是用隨機線或隨機超平面將所有點劃分為 0 或 1，每條線/每個平面決定一個位元組成一串編碼，則位置愈近的點編碼相同的位數愈多，再用分段比對提高找到相近點的機率。<br> 以上方法都必須在品質與速度間取捨，沒有絕對精準的解法，故這些演算法也被稱為 Approximate Nearest Neighbors (ANN) 近似最鄰近搜索。</li> <li>向量資料庫如何減少記憶體耗用量？<br> 高維度向量資料佔用記憶體空間十分驚人。以 128 維資料為例，浮點數 FP32 = 4 Bytes，一個向量需要 512 Bytes，一千萬筆就會佔用 4.77GB，而實務的維度常大於 128 維，資料遠超過一千萬筆，耗用空間可觀。一個有效減量做法是 Product Quantization 乘積量化，例如以 K-Means 質心座標當成該群所有點的座標(類似有損壓縮)：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638482642207067698.png"><br> 如此只需記錄質心向量值給編碼值，並用對照表保存質心向量。實務上高維度需切割的聚落數及質心數將爆炸成長(例如：2<sup>64</sup>)，記錄質心向量所需空間遠大於量化節省空間，得不償失，稱之「<a href="https://zh.wikipedia.org/zh-tw/%E7%BB%B4%E6%95%B0%E7%81%BE%E9%9A%BE">維度災難</a>」。解法是將高維向量分割成多個低維子向量，在子向量進行 K-Mean 訓練及量化。例如：把 128 維分割成 8 個 16 維子向量空間，子向量只需 256 個聚落，將八個子空間編碼值合在一起表示 128 維的點(Cartesian Product 笛卡爾積)，這個做法稱為 Product Quantization (積量化，PQ)。如此可將資料量由 4.77GB 降到 76 MB。</li> <li>主流向量資料庫常採用什麼方法加快搜索？<br> 使用者對速度與查詢品質敏感，用記憶體換取二者提升很值得。基於圖論的 Hierachical Navigable Small World (HNSW) 即是一例。<br> 直覺做法是用德勞內三角剖分法(Delaunay Triangulation Algorithm)建立所有點的圖結構，但此法有路徑效率不佳的問題。NSW 改良做法是將點一一放回去時跟最近的三個點建立連線，之後將線區分為長連結跟短連結，先用長連結快速度跳到目標附近，再走短連結到達目的節點。(先粗快，後細慢)<br> 改良版 HNSW 將路徑分層，確保可以穩定先長路徑再短路徑走到目的，雖然會多耗用記憶體記錄多層路徑，卻能有效提升搜尋速度及品質。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638482642209068717.png"><br> 現代向量資料量會綜合上述各種演算法達成最佳效果。</li></ol> <p data-slug="vector-db-concept" data-fbimg="https://i.imgur.com/J10KXIT.png#640#360"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>在 RAG 架構中，ChatGPT 等 LLM 之所以能回答專屬領域問題，其關鍵在於已事先將相關文件、影像、資訊消化後存進資料庫並建立索引，當使用者詢問時，先透過索引找到資料，再由 LLM 彙整查詢結果給出答案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638482642192514144.png"><br> <a href="https://areganti.notion.site/Week-4-Retrieval-Augmented-Generation-1a0754b1ccc645b78edcaf42e9137d86">來源</a></p> <p>文字甚至影像之所以能被搜尋，是因為它先經 <a href="/blog/text-embedding-ada-002-lab/">Embedding</a> 轉為量並存進向量資料庫。文字轉為向量後，可跳脫單純的關鍵字比對，實現語意上比對，例如：查詢"狗"時，講到"Dog"的英文資料也能被篩選出來。而影像資料向量化後，則能實現用顏色、形狀以圖找圖的神奇效果。</p> <p>在這套機制中，專為儲存及索引向量資料設計的向量資料庫是不可或缺的成員。向量資料庫的概念有點深奧，充斥 ANN、HNSW 之的神祕術語，不太好懂。YouTuber「Ele 實驗室」向來擅長用視覺呈現及淺顯比喻科普複雜資工理論(例如這部：<a href="/blog/why-md5-not-safe/">YT 筆記 - 資安科普：為什麼 MD5 不再安全？</a>，大推)，最近發現這部：</p> <p><a href="https://www.youtube.com/watch?v=W_ZUUDJsUtA">【上集】向量数据库技术鉴赏</a></p> <p>再次把向量資料庫原理解釋到國中生都能懂，是很好的科普教材，搞懂餘弦相似性、KNN、ANN、量化、PQ、HNSW 等專業術語是深入 RAG 開發的基礎，故循例筆記備忘兼分享。</p> <ol><li>為什麼要用高維度向量表示資料？<br> 想像一下，如果我們要區分數以百種的狗，最簡單的方法用體型、長短毛、毛色、嘴巴長度... 等特徵區別，每一個特徵可想成一個維度，維度愈高，愈能精細區別不同項目。此一概念可轉化為多維量向量，特徵變為一串數字後，後續便可進行數學運算，用演算法完成我們想要的任務。<br> 將高維空間映對成 2D 平面方便說明，我們可觀察到一些有趣特性： <ol><li>性質相近者會群聚<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638482642198656526.png"></li> <li>向量關係可以用來類推二者關係，例如：貓到老鼠的線與警察到小偷的線呈現平行<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638482642202455139.png"></li> <li>兩段語意相近的文字轉換成的向量數據也會有相似性，從而讓我們找出相關的文字</li></ol> </li> <li>為什麼需要向量資料庫？<br> 基於資料特性差異，傳統資料庫不適合儲存向量資料，改用向量資料庫更能滿足效能及效率要求。</li> <li>如何比對向量資料？<br> 向量資料是透過比較相似性找尋相關內容，主要靠<a href="https://zh.wikipedia.org/zh-tw/%E6%9C%80%E9%82%BB%E8%BF%91%E6%90%9C%E7%B4%A2">最鄰近搜索（Nearest Neighbor Search, NNS）</a>演算法。無腦做法是將查詢對象的向量跟所有資料的向量全部比對一次，用餘弦相似性(<a href="https://zh.wikipedia.org/zh-tw/%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E6%80%A7">https://zh.wikipedia.org/zh-tw/%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E6%80%A7</a>)或<a href="https://zh.wikipedia.org/zh-tw/%E6%AC%A7%E5%87%A0%E9%87%8C%E5%BE%97%E8%B7%9D%E7%A6%BB">歐幾里得距離</a>找出最近者，此法雖精準但耗時無效率。<br> 一個改良思維是先縮小範圍，例如用 <a href="https://zh.wikipedia.org/wiki/K-%E5%B9%B3%E5%9D%87%E7%AE%97%E6%B3%95">K-Means (k-平均演算法，K-Nearest Neighbors/KNN)</a>將點分類，每次只查找所屬類別的點：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638482642204600347.png"><br> 只找所屬分類極有可能出現「最近的點隸屬另一分類」的狀況，此問題可透過增加分類數量，及連帶搜索相近分類改善，雖能提升精準度卻勢必拖慢速度。<br> 另一種做法是 Locality Sensitive Hashing (位置敏感雜湊法)，使用位置愈近碰撞機率愈高的雜湊演算法，將相近的點集合在一起放入同一個 Bucket。實踐方式是用隨機線或隨機超平面將所有點劃分為 0 或 1，每條線/每個平面決定一個位元組成一串編碼，則位置愈近的點編碼相同的位數愈多，再用分段比對提高找到相近點的機率。<br> 以上方法都必須在品質與速度間取捨，沒有絕對精準的解法，故這些演算法也被稱為 Approximate Nearest Neighbors (ANN) 近似最鄰近搜索。</li> <li>向量資料庫如何減少記憶體耗用量？<br> 高維度向量資料佔用記憶體空間十分驚人。以 128 維資料為例，浮點數 FP32 = 4 Bytes，一個向量需要 512 Bytes，一千萬筆就會佔用 4.77GB，而實務的維度常大於 128 維，資料遠超過一千萬筆，耗用空間可觀。一個有效減量做法是 Product Quantization 乘積量化，例如以 K-Means 質心座標當成該群所有點的座標(類似有損壓縮)：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638482642207067698.png"><br> 如此只需記錄質心向量值給編碼值，並用對照表保存質心向量。實務上高維度需切割的聚落數及質心數將爆炸成長(例如：2<sup>64</sup>)，記錄質心向量所需空間遠大於量化節省空間，得不償失，稱之「<a href="https://zh.wikipedia.org/zh-tw/%E7%BB%B4%E6%95%B0%E7%81%BE%E9%9A%BE">維度災難</a>」。解法是將高維向量分割成多個低維子向量，在子向量進行 K-Mean 訓練及量化。例如：把 128 維分割成 8 個 16 維子向量空間，子向量只需 256 個聚落，將八個子空間編碼值合在一起表示 128 維的點(Cartesian Product 笛卡爾積)，這個做法稱為 Product Quantization (積量化，PQ)。如此可將資料量由 4.77GB 降到 76 MB。</li> <li>主流向量資料庫常採用什麼方法加快搜索？<br> 使用者對速度與查詢品質敏感，用記憶體換取二者提升很值得。基於圖論的 Hierachical Navigable Small World (HNSW) 即是一例。<br> 直覺做法是用德勞內三角剖分法(Delaunay Triangulation Algorithm)建立所有點的圖結構，但此法有路徑效率不佳的問題。NSW 改良做法是將點一一放回去時跟最近的三個點建立連線，之後將線區分為長連結跟短連結，先用長連結快速度跳到目標附近，再走短連結到達目的節點。(先粗快，後細慢)<br> 改良版 HNSW 將路徑分層，確保可以穩定先長路徑再短路徑走到目的，雖然會多耗用記憶體記錄多層路徑，卻能有效提升搜尋速度及品質。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638482642209068717.png"><br> 現代向量資料量會綜合上述各種演算法達成最佳效果。</li></ol> <p data-slug="vector-db-concept" data-fbimg="https://i.imgur.com/J10KXIT.png#640#360"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638482642192514144.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638482642192514144.png" medium="image"/>
-    <pubDate>Tue, 09 Apr 2024 12:56:09 GMT</pubDate>
   </item></channel>
 </rss>
