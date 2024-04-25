@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/678/800/800.jpg?hmac=GjijFyYCyK7571v3hI1VVlmtdNCaC5HwnzFhcDmpBm0</url>
+      <url>https://fastly.picsum.photos/id/824/800/800.jpg?hmac=aWTweRH53N8Bub1dfX57GVu9h-LXFpQGtq95NDREE6w</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,407 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/678/800/800.jpg?hmac=GjijFyYCyK7571v3hI1VVlmtdNCaC5HwnzFhcDmpBm0"/>
+    <itunes:image href="https://fastly.picsum.photos/id/824/800/800.jpg?hmac=aWTweRH53N8Bub1dfX57GVu9h-LXFpQGtq95NDREE6w"/>
 <item>
+    <title><![CDATA[Termux Proot安裝Box64與Box86，Android手機執行Windows exe]]></title>
+    <link>https://ivonblog.com/posts/termux-proot-box86-box64/</link>
+    <itunes:title><![CDATA[Termux Proot安裝Box64與Box86，Android手機執行Windows exe]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/termux-proot-box86-box64/featured.png" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1d5152a67b.png"></a></p>
+<p><a href="https://ivonblog.com/en-us/posts/termux-proot-box86-box64/" target="_blank">🇺🇸 English version</a></p><p>如果想在Android手機跑Windows exe程式，在Termux中用Box86/Box64轉譯x86架構的Wine，再用來跑Windows程式會是個好方法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8ed999cc4b.png"><p>我們知道Linux平台有Wine能跑Windows遊戲，且幾乎沒有效能損失。但是Wine只能轉譯x86/x64架構的Windows程式，在以ARM架構為主的Android裝置無法使用。</p><p>所以我們需要一個轉譯器，那就是Box86和Box64。Box86用於轉譯32位元的x86指令集為ARM；Box64則是將64位元的x64指令集轉為ARM64，二者可以共存。</p><p>相較於閉源的Exagear，Box86是開源免費的技術，並且<a href="https://github.com/ptitSeb/box86" target="_blank">
+Github</a>每週都有更新，作者正在積極完善各類功能。</p><h2>1. 安裝Termux Proot發行版<span><a href="#1-%E5%AE%89%E8%A3%9Dtermux-proot%E7%99%BC%E8%A1%8C%E7%89%88" aria-label="定位點">#</a></span></h2><p>首先，安裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
+Termux</a></p><p>再安裝<a href="https://ivonblog.com/posts/termux-proot-distro-debian/" target="_blank">
+Proot Debian</a>。</p><p>再安裝<a href="https://ivonblog.com/posts/termux-x11/" target="_blank">
+Termux X11</a>存取桌面環境。</p><h2>2. 編譯Box86和Box64<span><a href="#2-%E7%B7%A8%E8%AD%AFbox86%E5%92%8Cbox64" aria-label="定位點">#</a></span></h2><ol><li>以一般帳戶登入Proot Debian</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro login debian --user user shared-tmp
+</span></span></code></pre></div><ol start="2"><li>啟用armhf套件庫支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>dpkg --add-architecture armhf
+</span></span></code></pre></div><ol start="3"><li>新增第三方套件庫</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo wget https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -O /etc/apt/sources.list.d/box86.list
+</span></span><span><span>
+</span></span><span><span>wget -qO- https://itai-nelken.github.io/weekly-box86-debs/debian/KEY.gpg <span>|</span> sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/box86-debs-archive-keyring.gpg
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span></code></pre></div><ol start="4"><li>安裝Box86</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install box86
+</span></span></code></pre></div><ol start="5"><li>新增第三方套件庫，安裝Box64</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo wget https://ryanfortner.github.io/box64-debs/box64.list -O /etc/apt/sources.list.d/box64.list
+</span></span><span><span>
+</span></span><span><span>wget -qO- https://ryanfortner.github.io/box64-debs/KEY.gpg <span>|</span> sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/box64-debs-archive-keyring.gpg
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install box64-arm64
+</span></span></code></pre></div><h2>3. 安裝Wine和Wine64<span><a href="#3-%E5%AE%89%E8%A3%9Dwine%E5%92%8Cwine64" aria-label="定位點">#</a></span></h2><p>Wine用於執行32位元(x86)的exe；Wine64則是執行64位元exe。</p><p>ARM環境下，i386架構的Wine用套件管理員是裝不起來的。此處是直接下載Wine的執行檔，並用符號連結的模式安裝。</p><ol><li>安裝Wine的依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install nano cabextract libfreetype6 libfreetype6:armhf libfontconfig libfontconfig:armhf libxext6 libxext6:armhf libxinerama-dev libxinerama-dev:armhf libxxf86vm1 libxxf86vm1:armhf libxrender1 libxrender1:armhf libxcomposite1 libxcomposite1:armhf libxrandr2 libxrandr2:armhf libxi6 libxi6:armhf libxcursor1 libxcursor1:armhf libvulkan-dev libvulkan-dev:armhf zenity
+</span></span></code></pre></div><ol start="2"><li>從<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
+Kron4ek’s Wine-Builds</a>下載Wine和Wine64。目前最新版是Wine 9.7。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>
+</span></span><span><span><span>cd</span> ~/
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/9.7/wine-9.7-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/9.7/wine-9.7-x86.tar.xz
+</span></span></code></pre></div><ol start="3"><li>解壓縮檔案，刪除多餘檔案</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>tar xvf wine-9.7-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>tar xvf wine-9.7-x86.tar.xz
+</span></span><span><span>
+</span></span><span><span>rm wine-9.7-amd64.tar.xz wine-9.7-x86.tar.xz
+</span></span><span><span>
+</span></span><span><span>mv wine-9.7-amd64 wine64
+</span></span><span><span>
+</span></span><span><span>mv wine-89.7-x86 wine
+</span></span></code></pre></div><ol start="4"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>$HOME/wine/bin/wine</code>。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export WINEPREFIX=~/.wine32
+</span></span></span><span><span><span>box86 '</span><span>"</span><span>$HOME</span><span>/wine/bin/wine "</span><span>'"$@"'</span> &gt; /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export WINEPREFIX=~/.wine64
+</span></span></span><span><span><span>box64 '</span><span>"</span><span>$HOME</span><span>/wine64/bin/wine64 "</span><span>'"$@"'</span> &gt; /usr/local/bin/wine64
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/wine64
+</span></span></code></pre></div><ol start="5"><li>將Box86和Box64的PATH加入到<code>~/.bashrc</code></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'export DISPLAY=:0
+</span></span></span><span><span><span>export BOX86_PATH=~/wine/bin/
+</span></span></span><span><span><span>export BOX86_LD_LIBRARY_PATH=~/wine/lib/wine/i386-unix/:/lib/i386-linux-gnu/:/lib/aarch64-linux-gnu/:/lib/arm-linux-gnueabihf/:/usr/lib/aarch64-linux-gnu/:/usr/lib/arm-linux-gnueabihf/:/usr/lib/i386-linux-gnu/
+</span></span></span><span><span><span>export BOX64_PATH=~/wine64/bin/
+</span></span></span><span><span><span>export BOX64_LD_LIBRARY_PATH=~/wine64/lib/i386-unix/:~/wine64/lib/wine/x86_64-unix/:/lib/i386-linux-gnu/:/lib/x86_64-linux-gnu:/lib/aarch64-linux-gnu/:/lib/arm-linux-gnueabihf/:/usr/lib/aarch64-linux-gnu/:/usr/lib/arm-linux-gnueabihf/:/usr/lib/i386-linux-gnu/:/usr/lib/x86_64-linux-gnu'</span> &gt;&gt; ~/.bashrc
+</span></span><span><span>
+</span></span><span><span><span>source</span> ~/.bashrc
+</span></span></code></pre></div><ol start="6"><li>安裝Winetricks</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/
+</span></span><span><span>
+</span></span><span><span>wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+</span></span><span><span>
+</span></span><span><span>chmod +x winetricks
+</span></span><span><span>
+</span></span><span><span>mv winetricks /usr/local/bin/
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export BOX86_NOBANNER=1 WINE=wine WINEPREFIX=~/.wine32 WINESERVER=~/wine/bin/wineserver
+</span></span></span><span><span><span>wine '</span><span>"/usr/local/bin/winetricks "</span><span>'"$@"'</span> &gt; /usr/local/bin/winetricks32
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/winetricks32
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export BOX64_NOBANNER=1 WINE=wine64 WINEPREFIX=~/.wine64 WINESERVER=~/wine64/bin/wineserver
+</span></span></span><span><span><span>wine64 '</span><span>"/usr/local/bin/winetricks "</span><span>'"$@"'</span> &gt; /usr/local/bin/winetricks64
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/winetricks64
+</span></span></code></pre></div><ol start="7"><li>在Linux桌面建立Wine檔案總管的捷徑，這樣就可以直接點選exe啟動：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/Desktop
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'[Desktop Entry]
+</span></span></span><span><span><span>Name=Wine32 Explorer
+</span></span></span><span><span><span>Exec=bash -c "wine explorer"
+</span></span></span><span><span><span>Icon=wine
+</span></span></span><span><span><span>Type=Application'</span> &gt; ~/Desktop/Wine32_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>chmod +x ~/Desktop/Wine32_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>cp ~/Desktop/Wine32_Explorer.desktop /usr/share/applications/
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/Desktop
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'[Desktop Entry]
+</span></span></span><span><span><span>Name=Wine64 Explorer
+</span></span></span><span><span><span>Exec=bash -c "wine64 explorer"
+</span></span></span><span><span><span>Icon=wine
+</span></span></span><span><span><span>Type=Application'</span> &gt; ~/Desktop/Wine64_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>chmod +x ~/Desktop/Wine64_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>cp ~/Desktop/Wine64_Explorer.desktop /usr/share/applications/
+</span></span></code></pre></div><h2>4. 安裝DXVK<span><a href="#4-%E5%AE%89%E8%A3%9Ddxvk" aria-label="定位點">#</a></span></h2><p>DXVK為將DirectX轉譯成Vulkan的工具，可以提昇部份Windows程式的效能。</p><ol><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install mesa-vulkan-drivers mesa-vulkan-drivers:armhf libvulkan1 libvulkan1:armhf
+</span></span></code></pre></div><ol start="2"><li>從<a href="https://github.com/doitsujin/dxvk/releases" target="_blank">
+Github</a>下載最新版DXVK，目前是2.3.1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://github.com/doitsujin/dxvk/releases/download/v2.3.1/dxvk-2.3.1.tar.gz
+</span></span></code></pre></div><ol start="3"><li>解壓縮，將dxvk的檔案移動到Wine的目錄下</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>tar xvf dxvk-2.3.1.tar.gz
+</span></span><span><span>
+</span></span><span><span><span>cd</span> dxvk-2.3.1
+</span></span><span><span>cp x32/* ~/.wine32/drive_c/windows/system32
+</span></span><span><span>cp x32/* ~/.wine64/drive_c/windows/system32
+</span></span><span><span>cp x64/* ~/.wine64/drive_c/windows/syswow64
+</span></span></code></pre></div><ol start="2"><li>開啟Wine設定，切換到函式庫頁面，覆寫d3d11, d3d10core, dxgi, d3d9的DLL檔案。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wine winecfg
+</span></span><span><span>wine64 winecfg
+</span></span></code></pre></div><h2>5. Box86＋Wine的使用方式<span><a href="#5-box86wine%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>您可以開啟Proot的瀏覽器下載Windows exe，或者複製手機的檔案到Proot Linux裡面。</p><p>Linux開啟檔案管理員 → 檔案系統的<code>/sdcard</code>目錄便是手機內部儲存空間的目錄。</p><p>注意有些程式可能需要<a href="https://ivonblog.com/posts/termux-virglrenderer/" target="_blank">
+GPU硬體加速</a>才能正常開啟。</p><p>執行程式前可以到<a href="https://appdb.winehq.org/" target="_blank">
+WineDB</a>看該程式是否需要裝其他套件才能跑，並透過<code>winetricks</code>指令安裝額外的exe。</p><hr><ol><li><p>Wine的指令用法<a href="/posts/linux-wine-introduction">
+見此</a>。</p></li><li><p>執行程式前要確認你的exe是32位元或64位元版。</p></li><li><p>例如下載了<a href="https://notepad-plus-plus.org" target="_blank">
+Notepad++</a>32位元版，在含有exe的目錄按右鍵開啟終端機：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>box86 wine notepad++.exe
+</span></span></code></pre></div><ol start="4"><li><p>等待幾秒後Notepad++的視窗便會開啟。</p></li><li><p>以此類推，如果是64位元版程式：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 notepad++.exe
+</span></span></code></pre></div><ol start="6"><li>你可以在執行Wine64指令前先宣告<code>WINEPREFIX</code>，這樣會新建一個目錄，將不同位元的執行環境區隔開來：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>WINEPREFIX</span><span>=</span>~/.wine64
+</span></span><span><span><span>export</span> <span>WINEARCH</span><span>=</span>win64
+</span></span><span><span>box64 wine64 notepad++.exe
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.winehq.org/Wine_User%27s_Guide" target="_blank">Wine User’s Guide - WineHQ Wiki</a></li><li><a href="https://github.com/ptitSeb/box86/blob/master/docs/USAGE.md" target="_blank">Box86 usage - Github</a></li><li><a href="https://github.com/cheadrian/termux-chroot-proot-wine-box86_64/blob/main/Setup_Wine_Box86_64.md" target="_blank">Wine32, Wine64, Box86 and Box64 installation on Android using Termux Ubuntu 22.04 proot / chroot - Github</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/termux-proot-box86-box64/featured.png" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1d5152a67b.png"></a></p>
+<p><a href="https://ivonblog.com/en-us/posts/termux-proot-box86-box64/" target="_blank">🇺🇸 English version</a></p><p>如果想在Android手機跑Windows exe程式，在Termux中用Box86/Box64轉譯x86架構的Wine，再用來跑Windows程式會是個好方法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8ed999cc4b.png"><p>我們知道Linux平台有Wine能跑Windows遊戲，且幾乎沒有效能損失。但是Wine只能轉譯x86/x64架構的Windows程式，在以ARM架構為主的Android裝置無法使用。</p><p>所以我們需要一個轉譯器，那就是Box86和Box64。Box86用於轉譯32位元的x86指令集為ARM；Box64則是將64位元的x64指令集轉為ARM64，二者可以共存。</p><p>相較於閉源的Exagear，Box86是開源免費的技術，並且<a href="https://github.com/ptitSeb/box86" target="_blank">
+Github</a>每週都有更新，作者正在積極完善各類功能。</p><h2>1. 安裝Termux Proot發行版<span><a href="#1-%E5%AE%89%E8%A3%9Dtermux-proot%E7%99%BC%E8%A1%8C%E7%89%88" aria-label="定位點">#</a></span></h2><p>首先，安裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
+Termux</a></p><p>再安裝<a href="https://ivonblog.com/posts/termux-proot-distro-debian/" target="_blank">
+Proot Debian</a>。</p><p>再安裝<a href="https://ivonblog.com/posts/termux-x11/" target="_blank">
+Termux X11</a>存取桌面環境。</p><h2>2. 編譯Box86和Box64<span><a href="#2-%E7%B7%A8%E8%AD%AFbox86%E5%92%8Cbox64" aria-label="定位點">#</a></span></h2><ol><li>以一般帳戶登入Proot Debian</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro login debian --user user shared-tmp
+</span></span></code></pre></div><ol start="2"><li>啟用armhf套件庫支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>dpkg --add-architecture armhf
+</span></span></code></pre></div><ol start="3"><li>新增第三方套件庫</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo wget https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -O /etc/apt/sources.list.d/box86.list
+</span></span><span><span>
+</span></span><span><span>wget -qO- https://itai-nelken.github.io/weekly-box86-debs/debian/KEY.gpg <span>|</span> sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/box86-debs-archive-keyring.gpg
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span></code></pre></div><ol start="4"><li>安裝Box86</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install box86
+</span></span></code></pre></div><ol start="5"><li>新增第三方套件庫，安裝Box64</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo wget https://ryanfortner.github.io/box64-debs/box64.list -O /etc/apt/sources.list.d/box64.list
+</span></span><span><span>
+</span></span><span><span>wget -qO- https://ryanfortner.github.io/box64-debs/KEY.gpg <span>|</span> sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/box64-debs-archive-keyring.gpg
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install box64-arm64
+</span></span></code></pre></div><h2>3. 安裝Wine和Wine64<span><a href="#3-%E5%AE%89%E8%A3%9Dwine%E5%92%8Cwine64" aria-label="定位點">#</a></span></h2><p>Wine用於執行32位元(x86)的exe；Wine64則是執行64位元exe。</p><p>ARM環境下，i386架構的Wine用套件管理員是裝不起來的。此處是直接下載Wine的執行檔，並用符號連結的模式安裝。</p><ol><li>安裝Wine的依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install nano cabextract libfreetype6 libfreetype6:armhf libfontconfig libfontconfig:armhf libxext6 libxext6:armhf libxinerama-dev libxinerama-dev:armhf libxxf86vm1 libxxf86vm1:armhf libxrender1 libxrender1:armhf libxcomposite1 libxcomposite1:armhf libxrandr2 libxrandr2:armhf libxi6 libxi6:armhf libxcursor1 libxcursor1:armhf libvulkan-dev libvulkan-dev:armhf zenity
+</span></span></code></pre></div><ol start="2"><li>從<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
+Kron4ek’s Wine-Builds</a>下載Wine和Wine64。目前最新版是Wine 9.7。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>
+</span></span><span><span><span>cd</span> ~/
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/9.7/wine-9.7-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/9.7/wine-9.7-x86.tar.xz
+</span></span></code></pre></div><ol start="3"><li>解壓縮檔案，刪除多餘檔案</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>tar xvf wine-9.7-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>tar xvf wine-9.7-x86.tar.xz
+</span></span><span><span>
+</span></span><span><span>rm wine-9.7-amd64.tar.xz wine-9.7-x86.tar.xz
+</span></span><span><span>
+</span></span><span><span>mv wine-9.7-amd64 wine64
+</span></span><span><span>
+</span></span><span><span>mv wine-89.7-x86 wine
+</span></span></code></pre></div><ol start="4"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>$HOME/wine/bin/wine</code>。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export WINEPREFIX=~/.wine32
+</span></span></span><span><span><span>box86 '</span><span>"</span><span>$HOME</span><span>/wine/bin/wine "</span><span>'"$@"'</span> &gt; /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export WINEPREFIX=~/.wine64
+</span></span></span><span><span><span>box64 '</span><span>"</span><span>$HOME</span><span>/wine64/bin/wine64 "</span><span>'"$@"'</span> &gt; /usr/local/bin/wine64
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/wine64
+</span></span></code></pre></div><ol start="5"><li>將Box86和Box64的PATH加入到<code>~/.bashrc</code></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'export DISPLAY=:0
+</span></span></span><span><span><span>export BOX86_PATH=~/wine/bin/
+</span></span></span><span><span><span>export BOX86_LD_LIBRARY_PATH=~/wine/lib/wine/i386-unix/:/lib/i386-linux-gnu/:/lib/aarch64-linux-gnu/:/lib/arm-linux-gnueabihf/:/usr/lib/aarch64-linux-gnu/:/usr/lib/arm-linux-gnueabihf/:/usr/lib/i386-linux-gnu/
+</span></span></span><span><span><span>export BOX64_PATH=~/wine64/bin/
+</span></span></span><span><span><span>export BOX64_LD_LIBRARY_PATH=~/wine64/lib/i386-unix/:~/wine64/lib/wine/x86_64-unix/:/lib/i386-linux-gnu/:/lib/x86_64-linux-gnu:/lib/aarch64-linux-gnu/:/lib/arm-linux-gnueabihf/:/usr/lib/aarch64-linux-gnu/:/usr/lib/arm-linux-gnueabihf/:/usr/lib/i386-linux-gnu/:/usr/lib/x86_64-linux-gnu'</span> &gt;&gt; ~/.bashrc
+</span></span><span><span>
+</span></span><span><span><span>source</span> ~/.bashrc
+</span></span></code></pre></div><ol start="6"><li>安裝Winetricks</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/
+</span></span><span><span>
+</span></span><span><span>wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+</span></span><span><span>
+</span></span><span><span>chmod +x winetricks
+</span></span><span><span>
+</span></span><span><span>mv winetricks /usr/local/bin/
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export BOX86_NOBANNER=1 WINE=wine WINEPREFIX=~/.wine32 WINESERVER=~/wine/bin/wineserver
+</span></span></span><span><span><span>wine '</span><span>"/usr/local/bin/winetricks "</span><span>'"$@"'</span> &gt; /usr/local/bin/winetricks32
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/winetricks32
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export BOX64_NOBANNER=1 WINE=wine64 WINEPREFIX=~/.wine64 WINESERVER=~/wine64/bin/wineserver
+</span></span></span><span><span><span>wine64 '</span><span>"/usr/local/bin/winetricks "</span><span>'"$@"'</span> &gt; /usr/local/bin/winetricks64
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/winetricks64
+</span></span></code></pre></div><ol start="7"><li>在Linux桌面建立Wine檔案總管的捷徑，這樣就可以直接點選exe啟動：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/Desktop
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'[Desktop Entry]
+</span></span></span><span><span><span>Name=Wine32 Explorer
+</span></span></span><span><span><span>Exec=bash -c "wine explorer"
+</span></span></span><span><span><span>Icon=wine
+</span></span></span><span><span><span>Type=Application'</span> &gt; ~/Desktop/Wine32_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>chmod +x ~/Desktop/Wine32_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>cp ~/Desktop/Wine32_Explorer.desktop /usr/share/applications/
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/Desktop
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'[Desktop Entry]
+</span></span></span><span><span><span>Name=Wine64 Explorer
+</span></span></span><span><span><span>Exec=bash -c "wine64 explorer"
+</span></span></span><span><span><span>Icon=wine
+</span></span></span><span><span><span>Type=Application'</span> &gt; ~/Desktop/Wine64_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>chmod +x ~/Desktop/Wine64_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>cp ~/Desktop/Wine64_Explorer.desktop /usr/share/applications/
+</span></span></code></pre></div><h2>4. 安裝DXVK<span><a href="#4-%E5%AE%89%E8%A3%9Ddxvk" aria-label="定位點">#</a></span></h2><p>DXVK為將DirectX轉譯成Vulkan的工具，可以提昇部份Windows程式的效能。</p><ol><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install mesa-vulkan-drivers mesa-vulkan-drivers:armhf libvulkan1 libvulkan1:armhf
+</span></span></code></pre></div><ol start="2"><li>從<a href="https://github.com/doitsujin/dxvk/releases" target="_blank">
+Github</a>下載最新版DXVK，目前是2.3.1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://github.com/doitsujin/dxvk/releases/download/v2.3.1/dxvk-2.3.1.tar.gz
+</span></span></code></pre></div><ol start="3"><li>解壓縮，將dxvk的檔案移動到Wine的目錄下</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>tar xvf dxvk-2.3.1.tar.gz
+</span></span><span><span>
+</span></span><span><span><span>cd</span> dxvk-2.3.1
+</span></span><span><span>cp x32/* ~/.wine32/drive_c/windows/system32
+</span></span><span><span>cp x32/* ~/.wine64/drive_c/windows/system32
+</span></span><span><span>cp x64/* ~/.wine64/drive_c/windows/syswow64
+</span></span></code></pre></div><ol start="2"><li>開啟Wine設定，切換到函式庫頁面，覆寫d3d11, d3d10core, dxgi, d3d9的DLL檔案。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wine winecfg
+</span></span><span><span>wine64 winecfg
+</span></span></code></pre></div><h2>5. Box86＋Wine的使用方式<span><a href="#5-box86wine%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>您可以開啟Proot的瀏覽器下載Windows exe，或者複製手機的檔案到Proot Linux裡面。</p><p>Linux開啟檔案管理員 → 檔案系統的<code>/sdcard</code>目錄便是手機內部儲存空間的目錄。</p><p>注意有些程式可能需要<a href="https://ivonblog.com/posts/termux-virglrenderer/" target="_blank">
+GPU硬體加速</a>才能正常開啟。</p><p>執行程式前可以到<a href="https://appdb.winehq.org/" target="_blank">
+WineDB</a>看該程式是否需要裝其他套件才能跑，並透過<code>winetricks</code>指令安裝額外的exe。</p><hr><ol><li><p>Wine的指令用法<a href="/posts/linux-wine-introduction">
+見此</a>。</p></li><li><p>執行程式前要確認你的exe是32位元或64位元版。</p></li><li><p>例如下載了<a href="https://notepad-plus-plus.org" target="_blank">
+Notepad++</a>32位元版，在含有exe的目錄按右鍵開啟終端機：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>box86 wine notepad++.exe
+</span></span></code></pre></div><ol start="4"><li><p>等待幾秒後Notepad++的視窗便會開啟。</p></li><li><p>以此類推，如果是64位元版程式：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 notepad++.exe
+</span></span></code></pre></div><ol start="6"><li>你可以在執行Wine64指令前先宣告<code>WINEPREFIX</code>，這樣會新建一個目錄，將不同位元的執行環境區隔開來：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>WINEPREFIX</span><span>=</span>~/.wine64
+</span></span><span><span><span>export</span> <span>WINEARCH</span><span>=</span>win64
+</span></span><span><span>box64 wine64 notepad++.exe
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.winehq.org/Wine_User%27s_Guide" target="_blank">Wine User’s Guide - WineHQ Wiki</a></li><li><a href="https://github.com/ptitSeb/box86/blob/master/docs/USAGE.md" target="_blank">Box86 usage - Github</a></li><li><a href="https://github.com/cheadrian/termux-chroot-proot-wine-box86_64/blob/main/Setup_Wine_Box86_64.md" target="_blank">Wine32, Wine64, Box86 and Box64 installation on Android using Termux Ubuntu 22.04 proot / chroot - Github</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/termux-proot-box86-box64/featured.png" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1d5152a67b.png"></a></p>
+<p><a href="https://ivonblog.com/en-us/posts/termux-proot-box86-box64/" target="_blank">🇺🇸 English version</a></p><p>如果想在Android手機跑Windows exe程式，在Termux中用Box86/Box64轉譯x86架構的Wine，再用來跑Windows程式會是個好方法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8ed999cc4b.png"><p>我們知道Linux平台有Wine能跑Windows遊戲，且幾乎沒有效能損失。但是Wine只能轉譯x86/x64架構的Windows程式，在以ARM架構為主的Android裝置無法使用。</p><p>所以我們需要一個轉譯器，那就是Box86和Box64。Box86用於轉譯32位元的x86指令集為ARM；Box64則是將64位元的x64指令集轉為ARM64，二者可以共存。</p><p>相較於閉源的Exagear，Box86是開源免費的技術，並且<a href="https://github.com/ptitSeb/box86" target="_blank">
+Github</a>每週都有更新，作者正在積極完善各類功能。</p><h2>1. 安裝Termux Proot發行版<span><a href="#1-%E5%AE%89%E8%A3%9Dtermux-proot%E7%99%BC%E8%A1%8C%E7%89%88" aria-label="定位點">#</a></span></h2><p>首先，安裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
+Termux</a></p><p>再安裝<a href="https://ivonblog.com/posts/termux-proot-distro-debian/" target="_blank">
+Proot Debian</a>。</p><p>再安裝<a href="https://ivonblog.com/posts/termux-x11/" target="_blank">
+Termux X11</a>存取桌面環境。</p><h2>2. 編譯Box86和Box64<span><a href="#2-%E7%B7%A8%E8%AD%AFbox86%E5%92%8Cbox64" aria-label="定位點">#</a></span></h2><ol><li>以一般帳戶登入Proot Debian</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro login debian --user user shared-tmp
+</span></span></code></pre></div><ol start="2"><li>啟用armhf套件庫支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>dpkg --add-architecture armhf
+</span></span></code></pre></div><ol start="3"><li>新增第三方套件庫</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo wget https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -O /etc/apt/sources.list.d/box86.list
+</span></span><span><span>
+</span></span><span><span>wget -qO- https://itai-nelken.github.io/weekly-box86-debs/debian/KEY.gpg <span>|</span> sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/box86-debs-archive-keyring.gpg
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span></code></pre></div><ol start="4"><li>安裝Box86</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install box86
+</span></span></code></pre></div><ol start="5"><li>新增第三方套件庫，安裝Box64</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo wget https://ryanfortner.github.io/box64-debs/box64.list -O /etc/apt/sources.list.d/box64.list
+</span></span><span><span>
+</span></span><span><span>wget -qO- https://ryanfortner.github.io/box64-debs/KEY.gpg <span>|</span> sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/box64-debs-archive-keyring.gpg
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install box64-arm64
+</span></span></code></pre></div><h2>3. 安裝Wine和Wine64<span><a href="#3-%E5%AE%89%E8%A3%9Dwine%E5%92%8Cwine64" aria-label="定位點">#</a></span></h2><p>Wine用於執行32位元(x86)的exe；Wine64則是執行64位元exe。</p><p>ARM環境下，i386架構的Wine用套件管理員是裝不起來的。此處是直接下載Wine的執行檔，並用符號連結的模式安裝。</p><ol><li>安裝Wine的依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install nano cabextract libfreetype6 libfreetype6:armhf libfontconfig libfontconfig:armhf libxext6 libxext6:armhf libxinerama-dev libxinerama-dev:armhf libxxf86vm1 libxxf86vm1:armhf libxrender1 libxrender1:armhf libxcomposite1 libxcomposite1:armhf libxrandr2 libxrandr2:armhf libxi6 libxi6:armhf libxcursor1 libxcursor1:armhf libvulkan-dev libvulkan-dev:armhf zenity
+</span></span></code></pre></div><ol start="2"><li>從<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
+Kron4ek’s Wine-Builds</a>下載Wine和Wine64。目前最新版是Wine 9.7。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>
+</span></span><span><span><span>cd</span> ~/
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/9.7/wine-9.7-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/9.7/wine-9.7-x86.tar.xz
+</span></span></code></pre></div><ol start="3"><li>解壓縮檔案，刪除多餘檔案</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>tar xvf wine-9.7-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>tar xvf wine-9.7-x86.tar.xz
+</span></span><span><span>
+</span></span><span><span>rm wine-9.7-amd64.tar.xz wine-9.7-x86.tar.xz
+</span></span><span><span>
+</span></span><span><span>mv wine-9.7-amd64 wine64
+</span></span><span><span>
+</span></span><span><span>mv wine-89.7-x86 wine
+</span></span></code></pre></div><ol start="4"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>$HOME/wine/bin/wine</code>。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export WINEPREFIX=~/.wine32
+</span></span></span><span><span><span>box86 '</span><span>"</span><span>$HOME</span><span>/wine/bin/wine "</span><span>'"$@"'</span> &gt; /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export WINEPREFIX=~/.wine64
+</span></span></span><span><span><span>box64 '</span><span>"</span><span>$HOME</span><span>/wine64/bin/wine64 "</span><span>'"$@"'</span> &gt; /usr/local/bin/wine64
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/wine64
+</span></span></code></pre></div><ol start="5"><li>將Box86和Box64的PATH加入到<code>~/.bashrc</code></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'export DISPLAY=:0
+</span></span></span><span><span><span>export BOX86_PATH=~/wine/bin/
+</span></span></span><span><span><span>export BOX86_LD_LIBRARY_PATH=~/wine/lib/wine/i386-unix/:/lib/i386-linux-gnu/:/lib/aarch64-linux-gnu/:/lib/arm-linux-gnueabihf/:/usr/lib/aarch64-linux-gnu/:/usr/lib/arm-linux-gnueabihf/:/usr/lib/i386-linux-gnu/
+</span></span></span><span><span><span>export BOX64_PATH=~/wine64/bin/
+</span></span></span><span><span><span>export BOX64_LD_LIBRARY_PATH=~/wine64/lib/i386-unix/:~/wine64/lib/wine/x86_64-unix/:/lib/i386-linux-gnu/:/lib/x86_64-linux-gnu:/lib/aarch64-linux-gnu/:/lib/arm-linux-gnueabihf/:/usr/lib/aarch64-linux-gnu/:/usr/lib/arm-linux-gnueabihf/:/usr/lib/i386-linux-gnu/:/usr/lib/x86_64-linux-gnu'</span> &gt;&gt; ~/.bashrc
+</span></span><span><span>
+</span></span><span><span><span>source</span> ~/.bashrc
+</span></span></code></pre></div><ol start="6"><li>安裝Winetricks</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/
+</span></span><span><span>
+</span></span><span><span>wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+</span></span><span><span>
+</span></span><span><span>chmod +x winetricks
+</span></span><span><span>
+</span></span><span><span>mv winetricks /usr/local/bin/
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export BOX86_NOBANNER=1 WINE=wine WINEPREFIX=~/.wine32 WINESERVER=~/wine/bin/wineserver
+</span></span></span><span><span><span>wine '</span><span>"/usr/local/bin/winetricks "</span><span>'"$@"'</span> &gt; /usr/local/bin/winetricks32
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/winetricks32
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'#!/bin/bash
+</span></span></span><span><span><span>export BOX64_NOBANNER=1 WINE=wine64 WINEPREFIX=~/.wine64 WINESERVER=~/wine64/bin/wineserver
+</span></span></span><span><span><span>wine64 '</span><span>"/usr/local/bin/winetricks "</span><span>'"$@"'</span> &gt; /usr/local/bin/winetricks64
+</span></span><span><span>
+</span></span><span><span>chmod +x /usr/local/bin/winetricks64
+</span></span></code></pre></div><ol start="7"><li>在Linux桌面建立Wine檔案總管的捷徑，這樣就可以直接點選exe啟動：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/Desktop
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'[Desktop Entry]
+</span></span></span><span><span><span>Name=Wine32 Explorer
+</span></span></span><span><span><span>Exec=bash -c "wine explorer"
+</span></span></span><span><span><span>Icon=wine
+</span></span></span><span><span><span>Type=Application'</span> &gt; ~/Desktop/Wine32_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>chmod +x ~/Desktop/Wine32_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>cp ~/Desktop/Wine32_Explorer.desktop /usr/share/applications/
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/Desktop
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>'[Desktop Entry]
+</span></span></span><span><span><span>Name=Wine64 Explorer
+</span></span></span><span><span><span>Exec=bash -c "wine64 explorer"
+</span></span></span><span><span><span>Icon=wine
+</span></span></span><span><span><span>Type=Application'</span> &gt; ~/Desktop/Wine64_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>chmod +x ~/Desktop/Wine64_Explorer.desktop
+</span></span><span><span>
+</span></span><span><span>cp ~/Desktop/Wine64_Explorer.desktop /usr/share/applications/
+</span></span></code></pre></div><h2>4. 安裝DXVK<span><a href="#4-%E5%AE%89%E8%A3%9Ddxvk" aria-label="定位點">#</a></span></h2><p>DXVK為將DirectX轉譯成Vulkan的工具，可以提昇部份Windows程式的效能。</p><ol><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install mesa-vulkan-drivers mesa-vulkan-drivers:armhf libvulkan1 libvulkan1:armhf
+</span></span></code></pre></div><ol start="2"><li>從<a href="https://github.com/doitsujin/dxvk/releases" target="_blank">
+Github</a>下載最新版DXVK，目前是2.3.1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://github.com/doitsujin/dxvk/releases/download/v2.3.1/dxvk-2.3.1.tar.gz
+</span></span></code></pre></div><ol start="3"><li>解壓縮，將dxvk的檔案移動到Wine的目錄下</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>tar xvf dxvk-2.3.1.tar.gz
+</span></span><span><span>
+</span></span><span><span><span>cd</span> dxvk-2.3.1
+</span></span><span><span>cp x32/* ~/.wine32/drive_c/windows/system32
+</span></span><span><span>cp x32/* ~/.wine64/drive_c/windows/system32
+</span></span><span><span>cp x64/* ~/.wine64/drive_c/windows/syswow64
+</span></span></code></pre></div><ol start="2"><li>開啟Wine設定，切換到函式庫頁面，覆寫d3d11, d3d10core, dxgi, d3d9的DLL檔案。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wine winecfg
+</span></span><span><span>wine64 winecfg
+</span></span></code></pre></div><h2>5. Box86＋Wine的使用方式<span><a href="#5-box86wine%E7%9A%84%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>您可以開啟Proot的瀏覽器下載Windows exe，或者複製手機的檔案到Proot Linux裡面。</p><p>Linux開啟檔案管理員 → 檔案系統的<code>/sdcard</code>目錄便是手機內部儲存空間的目錄。</p><p>注意有些程式可能需要<a href="https://ivonblog.com/posts/termux-virglrenderer/" target="_blank">
+GPU硬體加速</a>才能正常開啟。</p><p>執行程式前可以到<a href="https://appdb.winehq.org/" target="_blank">
+WineDB</a>看該程式是否需要裝其他套件才能跑，並透過<code>winetricks</code>指令安裝額外的exe。</p><hr><ol><li><p>Wine的指令用法<a href="/posts/linux-wine-introduction">
+見此</a>。</p></li><li><p>執行程式前要確認你的exe是32位元或64位元版。</p></li><li><p>例如下載了<a href="https://notepad-plus-plus.org" target="_blank">
+Notepad++</a>32位元版，在含有exe的目錄按右鍵開啟終端機：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>box86 wine notepad++.exe
+</span></span></code></pre></div><ol start="4"><li><p>等待幾秒後Notepad++的視窗便會開啟。</p></li><li><p>以此類推，如果是64位元版程式：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 notepad++.exe
+</span></span></code></pre></div><ol start="6"><li>你可以在執行Wine64指令前先宣告<code>WINEPREFIX</code>，這樣會新建一個目錄，將不同位元的執行環境區隔開來：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>WINEPREFIX</span><span>=</span>~/.wine64
+</span></span><span><span><span>export</span> <span>WINEARCH</span><span>=</span>win64
+</span></span><span><span>box64 wine64 notepad++.exe
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.winehq.org/Wine_User%27s_Guide" target="_blank">Wine User’s Guide - WineHQ Wiki</a></li><li><a href="https://github.com/ptitSeb/box86/blob/master/docs/USAGE.md" target="_blank">Box86 usage - Github</a></li><li><a href="https://github.com/cheadrian/termux-chroot-proot-wine-box86_64/blob/main/Setup_Wine_Box86_64.md" target="_blank">Wine32, Wine64, Box86 and Box64 installation on Android using Termux Ubuntu 22.04 proot / chroot - Github</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1d5152a67b.png"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1d5152a67b.png" medium="image"/>
+    <pubDate>Thu, 25 Apr 2024 19:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[我反對塔綠班，也反對藍腦中華膠，更反對共匪。論民眾黨人如何尋找友柯社群]]></title>
+    <link>https://ivonblog.com/posts/2024042501/</link>
+    <itunes:title><![CDATA[我反對塔綠班，也反對藍腦中華膠，更反對共匪。論民眾黨人如何尋找友柯社群]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/2024042501/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4580d4bbf0.webp"></a></p>
+<p>台派（民進黨光譜）和華腦（國民黨光譜）都欠屠，不是嗎？一個說台灣民族好棒棒，一個說中國人是最屌的。</p><p>作為民眾黨支持者，便是落得常常被兩頭罵的下場，一邊說你不夠愛台灣，一邊說你不愛中國。</p><p>說說我個人的看法，以及民眾黨人如何尋找真正的友柯戰友。還請注意，這只是我個人看法而已，我在民眾黨內沒有任何職位，不要求民眾黨支持者照做。</p><p>何不先聽首歌呢？</p><iframe src="https://www.youtube.com/embed/bc0QHKSXP_M?si=5inRhlNQf4zSMO5d" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe><h2>太長不看系列<span><a href="#%E5%A4%AA%E9%95%B7%E4%B8%8D%E7%9C%8B%E7%B3%BB%E5%88%97" aria-label="定位點">#</a></span></h2><ul><li>個人大於國家</li><li>我支持台獨</li><li>肯定中華文化在台灣的影響力</li><li>反共不反中</li><li>支持中國民主化，或者成立諸夏</li><li>反對支黑，反對塔綠班，反對華腦，反對兩岸統一</li><li>柯文哲不總是對的，善意的批評要接受</li><li>中美等距三角形</li></ul><p>在對各種觀點的接受度上，從最能接受的到最不能接受的順序：</p><p>主張個人自由大於國家 &gt; 主張事實大於意識形態 &gt; 支持台灣主體意識 &gt; 支持台灣獨立 &gt; 柯粉 &gt; 狂柯粉 &gt; 主張反共不反中 &gt; 對民眾黨善意的批評（貓貓頭社長） &gt; 台派 &gt; 支持中華民國 &gt; 民國派 &gt; 支黑 &gt; 惡意抹黑民眾黨的柯黑（486先生） &gt; 塔綠班 &gt; 支持大中華主義 &gt; 支持共產黨 &gt; 仇日反美 &gt; 支持兩岸統一</p><h2>名詞定義<span><a href="#%E5%90%8D%E8%A9%9E%E5%AE%9A%E7%BE%A9" aria-label="定位點">#</a></span></h2><p>我明白不能用二分法來斷定某一個黨的人都跟黨中央意志高度相似，並非所有人都是無可救藥的黨棍。所以，這裡我只對各黨派的意識形態做以下粗略的假定：</p><p>民進黨：支持台獨，支持台灣主體意識，支持者主體為台派和深綠，蔑稱為塔綠班，不論民進黨做什麼都是對的。主張反中、親日親美。</p><p>國民黨：反對台獨，支持大中華主義，支持主體為深藍，蔑稱為華腦、大中華膠。不論國民黨做什麼都是對的。就算中國被中共統治，但基於大家都是中國人的想法，所以被統一也無妨。主張親中、仇日疑美。</p><p>民眾黨：維持現狀派，主張與中國互相理解，支持者主體為柯粉和小草，以及淺藍淺綠人士，蔑稱為雜草。認為民眾黨柯主席做什麼都是對的。主張中美關係等距，聚焦實務議題，包牌能手。</p><p>中國：中華人民共和國政權，統治中國大陸的領土。</p><p>我國：中華民國 = 中華民國台灣 = 台灣，實際治理區域為台澎金馬。</p><h2>反對塔綠班<span><a href="#%E5%8F%8D%E5%B0%8D%E5%A1%94%E7%B6%A0%E7%8F%AD" aria-label="定位點">#</a></span></h2><p>從一件事開始說起。</p><p><a href="https://tw.news.yahoo.com/%E9%A6%AC%E7%BF%92%E4%BA%8C%E6%9C%83%E7%9D%BD%E9%81%959%E5%B9%B4-%E9%A6%AC%E8%8B%B1%E4%B9%9D%E5%9C%A8%E7%BF%92%E8%BF%91%E5%B9%B3%E9%9D%A2%E5%89%8D%E8%AA%AA%E5%87%BA%E3%80%8C%E4%B8%AD%E8%8F%AF%E6%B0%91%E5%9C%8B%E3%80%8D%E5%BE%8C%E5%8F%88%E6%94%B9%E5%8F%A3-092302184.html" target="_blank">馬習二會睽違9年 馬英九在習近平面前說出「中華民國」後又改口</a></p><p>馬英九他真的我哭死，台獨教父在匪酋習近平面前講中華民國，又使出死亡之握繼續加速。反觀躲在賴皮寮的狗男狗女（這裡借用李敖以前的比喻），躲在台獨吉娃娃的卵翼下的統一教母。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dc726ed9e8.webp"><p>唉，抗中保台隨便騙，不輸閃電五連鞭。</p><p>技術上我還是支持台獨，但不支持台獨龜孫ㄛ。</p><p>民進黨的人常常說台灣好棒棒啊，好事都台派，壞事都華國。台灣的建築風格變成今天這樣，不只是民國美學的錯，閩國美學也有責任（這個觀點來自貓貓頭社長）。閩南沙文主義，沒有一個無辜的。現在仍有人留戀過去殖民日治時代！那若他們認為現在台灣是被中華民國殖民，這就沒跳脫殖人思維嘛。還有吃中華民國豆腐，宣稱台灣已經獨立的！再用正名制憲當蘿蔔的，純純騙選票而已。</p><p>在民眾黨立委想要做實事的時候，塔綠班就只會追著毀憲亂政的說法，無的放矢的抹黑、貼標籤，認為不支持民進黨的就是舔共親中！</p><p>一個親民進黨的KOL在Twitter一發文，馬上就有塔綠班千呼百應的轉貼跟進。</p><p>當塔綠班指責你是中共同路人的時候，你最好真的是。</p><p>不過，台派的台獨理念勉強跟諸夏沾上邊這我還能接受，研讀諸夏主義對破除大中華主義很有幫助。我並不反對台獨，但我對民進黨要獨不獨的樣子很是不爽。</p><h2>反對藍腦中華膠<span><a href="#%E5%8F%8D%E5%B0%8D%E8%97%8D%E8%85%A6%E4%B8%AD%E8%8F%AF%E8%86%A0" aria-label="定位點">#</a></span></h2><p>即使我不喜歡現在的綠營民進黨，也不代表支持國民黨藍腦的大中華膠思維，甚或是共產黨紅統派。</p><p>支持中華民族精神、中國人最棒、漢族崛起的，其危害性不亞於無端自信的台派。其保守迂腐之程度，胡適、孫中山等人看了也會搖頭。</p><p>從對太陽花事件的態度可以看出一個人真正的想法。</p><p>本質上我還是肯定太陽花運動的效果，證明台灣年輕人出來反對政府黑箱的努力。所以我不會像國民黨、新黨支持者一樣徹底的否定這個運動，比方說前日子<a href="https://youtu.be/Xntj6_eVceU" target="_blank">
+反反服貿的侯漢廷的男盜女娼評論</a>我就很不能認同，他是在學<a href="https://www.youtube.com/watch?v=9ITq3bhn0cE" target="_blank">
+李敖拷打228事件</a>嗎？</p><p>很多國民黨保守派便會認為年輕人不受教，是叛亂份子。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bb70e26ddf.webp"><p>我恨的是當年的訴求到現在都沒有達成，甚至對中貿易額依存度也沒下降，變成太陽花學運只剩下民進黨政治利用的價值，選舉到了就當成雞血用，說沒有民進黨就沒有新台灣，變成純粹反中活動，這就不對了，讓人厭惡。</p><p>服貿協定已經變成民進黨不能碰的政治正確，當初上街頭的一些人把反黑箱和反中情緒湊在一起傻傻分不清楚。使得好好的太陽花運動淪為暴民奪權的工具，並只有民進黨及其黨羽有話語解釋權，甚至指責不聽黨的話的人是「背叛」運動。</p><p>現在希望能由新一代的民眾黨立法委員打破，讓跳票多時的兩岸協議監督條例做為解決擱置服貿爭議的作法。並非立監督條例就等同重啟服貿，也並非是舔中。</p><p>公民運動應該促使一代人的政治意識覺醒，不是集體成為一個黨的附庸。</p><hr><p>民眾黨的支持者有藍有綠的，很多都跳槽過來的。偏綠的還好，如果偏藍，那麼意識形態和敘事方式難免會偏向大中華主義，比如重視表面上的禮義廉恥，反對刪改文言文，普遍仇日等，認為凡是中國人都和日本有深仇大恨，並會質疑民進黨為什麼只關心白色恐怖，不關心日本在台殺了多少台灣人。</p><p>台灣的課本最好是沒有提及日本人屠殺的歷史啦！而且把日治台灣當作是被搶走的，國民黨就不是強佔台灣了嗎？可悲！被吃豆腐劃分為中國人的台灣殖民地人。</p><hr><p>我承認中華文化在台灣的影響力，並不主張全面廢除。</p><h2>反對共匪<span><a href="#%E5%8F%8D%E5%B0%8D%E5%85%B1%E5%8C%AA" aria-label="定位點">#</a></span></h2><p>除了藍腦外，最讓人不能忍受的是讚揚共產黨和現在的中國好棒棒的！</p><p>台灣人需要搞清楚誰才是最大的敵人。</p><p>論「綠共」跟「紅共」誰比較恐怖，那我想還是紅共，千萬不要因為民進黨很爛，就說給共產黨統治還不是一樣的話，這是地獄梗ㄟ不要當真。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd2307af30.webp"><p>就拿最近Facebook遇到的統派對話紀錄來說吧。塔綠班喜歡貼乳包照片來攻擊咱反對民進黨的人士，可是我們又不是共產黨派來的，貼這張是有什麼殺傷力？於是我表示：在批評民進黨的時候也要知道共產黨才是台灣人敵人的立場，結果就有人罵我是日本人雜種後代，我：？？？？</p><p>啊，這個罵我的大概就是小粉紅吧，或者住在台灣的激進統派，兩者常常合流。</p><p>莫因反民進黨陷入中共的敘事陷阱中。前些日子唐鳳被攻擊最激烈的時候，有柯粉引用了很明顯是中國五毛寫的黑料，指出數發部贊助的資安戰隊私生活淫亂 <a href="https://medium.com/@usadf878/%E5%8F%B0%E8%B3%87%E5%AE%89%E6%88%B0%E9%9A%8Atsj%E9%9A%8A%E9%95%B7%E6%9E%97%E8%A9%A0%E7%BF%94-%E8%A2%AB%E7%88%86%E7%A7%81%E7%94%9F%E6%B4%BB%E6%B7%B7%E4%BA%82-bb44caaf708c" target="_blank">台資安戰隊TSJ隊長林詠翔被爆私生活混亂- Usadf</a>，台灣國內完全沒有報導的新聞，連八卦週刊都沒報的，我說要黑也不是這種尬黑模式好不。</p><p>然後，民進黨幹不好的事情，也會成為五毛的黑料，比如Twitter著名的「徐芳麗」帳號所發布內容，這就導致有柯粉會反過來跟五毛沆瀣一氣。不要這樣，要看內幕就看黃國昌講的，可信度要高多了。</p><p>就拿上面遇到的統派來說，他們反民進黨的方式卻是支持統一，並且擁護大中華主義，這真的想讓人走向「屠支派」。華腦的味就真的太大了，常常大到洗不掉，標準9.2華腦是無法溝通的，縫合共產黨思維的更是沒救，莫名仇日和強調中華民族情節，這些人卻混入民眾黨的群組。韓粉轉柯粉的必然結果是嗎？</p><p>呼，避免如此的方法是多吸收一些反共民小的材料，知道如何理性與其辯駁。還有把整天強調中國崛起的當成獄友（畢竟你不知道匿名網友是不是翻牆的，還是真的住在台灣），可憐他們，搞不好是發帖減刑的。</p><p>最後，還有一種知乎上中國自由派教的辦法：放下助人情節，尊重他人命運。那麼愛給共產黨統治就去，被鐵拳了不要哭著回來。</p><h2>民眾黨如何取得自己的定位<span><a href="#%E6%B0%91%E7%9C%BE%E9%BB%A8%E5%A6%82%E4%BD%95%E5%8F%96%E5%BE%97%E8%87%AA%E5%B7%B1%E7%9A%84%E5%AE%9A%E4%BD%8D" aria-label="定位點">#</a></span></h2><p>堅持科學、理性、務實精神。</p><p>過份在意識型態競爭上，可能背離了柯文哲主席的想法。雖然柯文哲自己也蠻懂包牌的，一下說中華民國又說自己是深綠……</p><p>現在雖然我支持台獨，但我的主張是反共不反中，儘管實務上難以做到，因為許多中國人都被黨國不分的概念綁架太久了。但至少，支持台獨的同時，不要當純純的支黑。</p><p>那麼，如何讓喜歡大中華主義的藍營人士願意合作，這又是個大問題。民生議題或許有合作空間，但在國家主權問題上又會遇到一堆中國膠的對抗。</p><p>再講民進黨方面的問題，除了深綠派以外，其實還是有合作空間。</p><p>我覺得柯文哲主張「台灣自主，兩岸和平」，且很多民眾黨支持者既然是前817成員，那麼我有個大膽的想法：其實反而是我們要跟民進黨合作，對抗真正的親共政黨才對。小草和塔綠班本來就是綠的，起碼不是藍的，也不是紅的。</p><p>但是，現在暫時沒有合作的跡象，雙方都拉不下臉來，我們得要先向塔綠班算八年來跳票的總帳，解決民生議題。</p><p>我傾向相信，現階段民眾黨選擇跟國民黨合作，改革國會，不教訓國民黨也只是暫時而已。如果哪天國民黨爆出弊案，或是通共了，那也得追查。</p><hr><p><a href="https://www.youtube.com/watch?v=BjeRb6LR8cw" target="_blank">歷史課｜回顧過去 和解台灣</a> 柯主席演講反思：每次台灣政權更替，都要消滅上一代人…從以前的華腦反日，到現在的綠共反中…台灣的流行歌曲如此悲傷，他少講了亞細亞孤兒，未來又該怎麼做。</p><p>其實我們可以試著理解各方想法，不論是台獨派還是民國派。</p><p>台灣自主，才能兩岸和平。現階段，就是整合所有可以合作的力量。</p><h2>民眾黨人如何尋找友柯社群<span><a href="#%E6%B0%91%E7%9C%BE%E9%BB%A8%E4%BA%BA%E5%A6%82%E4%BD%95%E5%B0%8B%E6%89%BE%E5%8F%8B%E6%9F%AF%E7%A4%BE%E7%BE%A4" aria-label="定位點">#</a></span></h2><p>事實就是，台灣流行的中文社群網站，Facebook、Instagram、PTT、Dcard比較多挺柯的人士。Twitter、Threads較少。</p><p>尤其Facebook在台灣仍然是很受歡迎的網站，所以在這裡也可以找到更多淺藍淺綠的受眾。</p><p>如果想找友柯的社群，可以反過來用塔綠班去年<a href="https://drive.google.com/file/d/1Qj77dhFtSsusxqcmqow6l_SA0F-bKosQ/" target="_blank">
+柯文哲症績落落長「黑柯文件」</a>所列出的名單去找：裡面真的有不少是出錢出力，打空戰也打陸戰，死忠挺民眾黨的。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cf183ecf2d.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-748db2b33a.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-748a515251.webp"><p>誠然，我不要求找一定要狂柯粉的社群，淺藍淺綠的人士是民眾黨也要爭取對象。所以不必堅持所有人都必須無條件服從柯文哲的說法。</p><hr><p>除此之外，也要小心不要追蹤到深藍或統派社群。Facebook不時會看到有趣反民進黨粉絲專頁名稱：反吱者聯盟2：暗綠紀元、反吱者情報局主任、政客爽、鎖綠鴉…等等。看到偽基百科有完整<a href="https://zh.uncyclopedia.info/wiki/%E5%A1%94%E7%B6%A0%E7%8F%AD" target="_blank">
+塔綠班宇宙</a>的頁面就知道這些人多恨民進黨XD</p><p>但是，會取這種名字的有機率是國民黨，也就是說反民進黨的同時，他們會自視甚高的瞧不起民眾黨，如同趙少康的態度一般，參見<a href="https://www.facebook.com/photo?fbid=968538231945646&amp;set=a.385637186902423&amp;locale=zh_TW" target="_blank">
+民眾黨成麻煩製造者？</a></p><p>所以我只能笑笑但不追蹤。還有些疑似挺藍的專頁但甚少嘴民眾黨，還在觀察中。</p><p>對於潛藏在支持民眾黨中的統派與藍營支持，究竟要怎麼界定呢？我提出一個意識形態光譜量表尋找戰友的作法，你也可以自己畫一個。</p><p>使用意識形態光譜量表作為尋找依據：這個表作為我個人選取戰友的意識形態、政治觀點的參考。</p><p>越往左越可以接受，越往右越不能接受。</p><p>主張個人自由大於國家 &gt; 主張事實大於意識形態 &gt; 支持台灣主體意識 &gt; 支持台灣獨立 &gt; 柯粉 &gt; 狂柯粉 &gt; 主張反共不反中 &gt; 對民眾黨善意的批評（貓貓頭社長） &gt; 台派 &gt; 支持中華民國 &gt; 民國派 &gt; 支黑 &gt; 惡意抹黑民眾黨的柯黑（486先生） &gt; 塔綠班 &gt; 支持大中華主義 &gt; 支持共產黨 &gt; 仇日反美 &gt; 支持兩岸統一</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/2024042501/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4580d4bbf0.webp"></a></p>
+<p>台派（民進黨光譜）和華腦（國民黨光譜）都欠屠，不是嗎？一個說台灣民族好棒棒，一個說中國人是最屌的。</p><p>作為民眾黨支持者，便是落得常常被兩頭罵的下場，一邊說你不夠愛台灣，一邊說你不愛中國。</p><p>說說我個人的看法，以及民眾黨人如何尋找真正的友柯戰友。還請注意，這只是我個人看法而已，我在民眾黨內沒有任何職位，不要求民眾黨支持者照做。</p><p>何不先聽首歌呢？</p><iframe src="https://www.youtube.com/embed/bc0QHKSXP_M?si=5inRhlNQf4zSMO5d" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe><h2>太長不看系列<span><a href="#%E5%A4%AA%E9%95%B7%E4%B8%8D%E7%9C%8B%E7%B3%BB%E5%88%97" aria-label="定位點">#</a></span></h2><ul><li>個人大於國家</li><li>我支持台獨</li><li>肯定中華文化在台灣的影響力</li><li>反共不反中</li><li>支持中國民主化，或者成立諸夏</li><li>反對支黑，反對塔綠班，反對華腦，反對兩岸統一</li><li>柯文哲不總是對的，善意的批評要接受</li><li>中美等距三角形</li></ul><p>在對各種觀點的接受度上，從最能接受的到最不能接受的順序：</p><p>主張個人自由大於國家 &gt; 主張事實大於意識形態 &gt; 支持台灣主體意識 &gt; 支持台灣獨立 &gt; 柯粉 &gt; 狂柯粉 &gt; 主張反共不反中 &gt; 對民眾黨善意的批評（貓貓頭社長） &gt; 台派 &gt; 支持中華民國 &gt; 民國派 &gt; 支黑 &gt; 惡意抹黑民眾黨的柯黑（486先生） &gt; 塔綠班 &gt; 支持大中華主義 &gt; 支持共產黨 &gt; 仇日反美 &gt; 支持兩岸統一</p><h2>名詞定義<span><a href="#%E5%90%8D%E8%A9%9E%E5%AE%9A%E7%BE%A9" aria-label="定位點">#</a></span></h2><p>我明白不能用二分法來斷定某一個黨的人都跟黨中央意志高度相似，並非所有人都是無可救藥的黨棍。所以，這裡我只對各黨派的意識形態做以下粗略的假定：</p><p>民進黨：支持台獨，支持台灣主體意識，支持者主體為台派和深綠，蔑稱為塔綠班，不論民進黨做什麼都是對的。主張反中、親日親美。</p><p>國民黨：反對台獨，支持大中華主義，支持主體為深藍，蔑稱為華腦、大中華膠。不論國民黨做什麼都是對的。就算中國被中共統治，但基於大家都是中國人的想法，所以被統一也無妨。主張親中、仇日疑美。</p><p>民眾黨：維持現狀派，主張與中國互相理解，支持者主體為柯粉和小草，以及淺藍淺綠人士，蔑稱為雜草。認為民眾黨柯主席做什麼都是對的。主張中美關係等距，聚焦實務議題，包牌能手。</p><p>中國：中華人民共和國政權，統治中國大陸的領土。</p><p>我國：中華民國 = 中華民國台灣 = 台灣，實際治理區域為台澎金馬。</p><h2>反對塔綠班<span><a href="#%E5%8F%8D%E5%B0%8D%E5%A1%94%E7%B6%A0%E7%8F%AD" aria-label="定位點">#</a></span></h2><p>從一件事開始說起。</p><p><a href="https://tw.news.yahoo.com/%E9%A6%AC%E7%BF%92%E4%BA%8C%E6%9C%83%E7%9D%BD%E9%81%959%E5%B9%B4-%E9%A6%AC%E8%8B%B1%E4%B9%9D%E5%9C%A8%E7%BF%92%E8%BF%91%E5%B9%B3%E9%9D%A2%E5%89%8D%E8%AA%AA%E5%87%BA%E3%80%8C%E4%B8%AD%E8%8F%AF%E6%B0%91%E5%9C%8B%E3%80%8D%E5%BE%8C%E5%8F%88%E6%94%B9%E5%8F%A3-092302184.html" target="_blank">馬習二會睽違9年 馬英九在習近平面前說出「中華民國」後又改口</a></p><p>馬英九他真的我哭死，台獨教父在匪酋習近平面前講中華民國，又使出死亡之握繼續加速。反觀躲在賴皮寮的狗男狗女（這裡借用李敖以前的比喻），躲在台獨吉娃娃的卵翼下的統一教母。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dc726ed9e8.webp"><p>唉，抗中保台隨便騙，不輸閃電五連鞭。</p><p>技術上我還是支持台獨，但不支持台獨龜孫ㄛ。</p><p>民進黨的人常常說台灣好棒棒啊，好事都台派，壞事都華國。台灣的建築風格變成今天這樣，不只是民國美學的錯，閩國美學也有責任（這個觀點來自貓貓頭社長）。閩南沙文主義，沒有一個無辜的。現在仍有人留戀過去殖民日治時代！那若他們認為現在台灣是被中華民國殖民，這就沒跳脫殖人思維嘛。還有吃中華民國豆腐，宣稱台灣已經獨立的！再用正名制憲當蘿蔔的，純純騙選票而已。</p><p>在民眾黨立委想要做實事的時候，塔綠班就只會追著毀憲亂政的說法，無的放矢的抹黑、貼標籤，認為不支持民進黨的就是舔共親中！</p><p>一個親民進黨的KOL在Twitter一發文，馬上就有塔綠班千呼百應的轉貼跟進。</p><p>當塔綠班指責你是中共同路人的時候，你最好真的是。</p><p>不過，台派的台獨理念勉強跟諸夏沾上邊這我還能接受，研讀諸夏主義對破除大中華主義很有幫助。我並不反對台獨，但我對民進黨要獨不獨的樣子很是不爽。</p><h2>反對藍腦中華膠<span><a href="#%E5%8F%8D%E5%B0%8D%E8%97%8D%E8%85%A6%E4%B8%AD%E8%8F%AF%E8%86%A0" aria-label="定位點">#</a></span></h2><p>即使我不喜歡現在的綠營民進黨，也不代表支持國民黨藍腦的大中華膠思維，甚或是共產黨紅統派。</p><p>支持中華民族精神、中國人最棒、漢族崛起的，其危害性不亞於無端自信的台派。其保守迂腐之程度，胡適、孫中山等人看了也會搖頭。</p><p>從對太陽花事件的態度可以看出一個人真正的想法。</p><p>本質上我還是肯定太陽花運動的效果，證明台灣年輕人出來反對政府黑箱的努力。所以我不會像國民黨、新黨支持者一樣徹底的否定這個運動，比方說前日子<a href="https://youtu.be/Xntj6_eVceU" target="_blank">
+反反服貿的侯漢廷的男盜女娼評論</a>我就很不能認同，他是在學<a href="https://www.youtube.com/watch?v=9ITq3bhn0cE" target="_blank">
+李敖拷打228事件</a>嗎？</p><p>很多國民黨保守派便會認為年輕人不受教，是叛亂份子。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bb70e26ddf.webp"><p>我恨的是當年的訴求到現在都沒有達成，甚至對中貿易額依存度也沒下降，變成太陽花學運只剩下民進黨政治利用的價值，選舉到了就當成雞血用，說沒有民進黨就沒有新台灣，變成純粹反中活動，這就不對了，讓人厭惡。</p><p>服貿協定已經變成民進黨不能碰的政治正確，當初上街頭的一些人把反黑箱和反中情緒湊在一起傻傻分不清楚。使得好好的太陽花運動淪為暴民奪權的工具，並只有民進黨及其黨羽有話語解釋權，甚至指責不聽黨的話的人是「背叛」運動。</p><p>現在希望能由新一代的民眾黨立法委員打破，讓跳票多時的兩岸協議監督條例做為解決擱置服貿爭議的作法。並非立監督條例就等同重啟服貿，也並非是舔中。</p><p>公民運動應該促使一代人的政治意識覺醒，不是集體成為一個黨的附庸。</p><hr><p>民眾黨的支持者有藍有綠的，很多都跳槽過來的。偏綠的還好，如果偏藍，那麼意識形態和敘事方式難免會偏向大中華主義，比如重視表面上的禮義廉恥，反對刪改文言文，普遍仇日等，認為凡是中國人都和日本有深仇大恨，並會質疑民進黨為什麼只關心白色恐怖，不關心日本在台殺了多少台灣人。</p><p>台灣的課本最好是沒有提及日本人屠殺的歷史啦！而且把日治台灣當作是被搶走的，國民黨就不是強佔台灣了嗎？可悲！被吃豆腐劃分為中國人的台灣殖民地人。</p><hr><p>我承認中華文化在台灣的影響力，並不主張全面廢除。</p><h2>反對共匪<span><a href="#%E5%8F%8D%E5%B0%8D%E5%85%B1%E5%8C%AA" aria-label="定位點">#</a></span></h2><p>除了藍腦外，最讓人不能忍受的是讚揚共產黨和現在的中國好棒棒的！</p><p>台灣人需要搞清楚誰才是最大的敵人。</p><p>論「綠共」跟「紅共」誰比較恐怖，那我想還是紅共，千萬不要因為民進黨很爛，就說給共產黨統治還不是一樣的話，這是地獄梗ㄟ不要當真。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd2307af30.webp"><p>就拿最近Facebook遇到的統派對話紀錄來說吧。塔綠班喜歡貼乳包照片來攻擊咱反對民進黨的人士，可是我們又不是共產黨派來的，貼這張是有什麼殺傷力？於是我表示：在批評民進黨的時候也要知道共產黨才是台灣人敵人的立場，結果就有人罵我是日本人雜種後代，我：？？？？</p><p>啊，這個罵我的大概就是小粉紅吧，或者住在台灣的激進統派，兩者常常合流。</p><p>莫因反民進黨陷入中共的敘事陷阱中。前些日子唐鳳被攻擊最激烈的時候，有柯粉引用了很明顯是中國五毛寫的黑料，指出數發部贊助的資安戰隊私生活淫亂 <a href="https://medium.com/@usadf878/%E5%8F%B0%E8%B3%87%E5%AE%89%E6%88%B0%E9%9A%8Atsj%E9%9A%8A%E9%95%B7%E6%9E%97%E8%A9%A0%E7%BF%94-%E8%A2%AB%E7%88%86%E7%A7%81%E7%94%9F%E6%B4%BB%E6%B7%B7%E4%BA%82-bb44caaf708c" target="_blank">台資安戰隊TSJ隊長林詠翔被爆私生活混亂- Usadf</a>，台灣國內完全沒有報導的新聞，連八卦週刊都沒報的，我說要黑也不是這種尬黑模式好不。</p><p>然後，民進黨幹不好的事情，也會成為五毛的黑料，比如Twitter著名的「徐芳麗」帳號所發布內容，這就導致有柯粉會反過來跟五毛沆瀣一氣。不要這樣，要看內幕就看黃國昌講的，可信度要高多了。</p><p>就拿上面遇到的統派來說，他們反民進黨的方式卻是支持統一，並且擁護大中華主義，這真的想讓人走向「屠支派」。華腦的味就真的太大了，常常大到洗不掉，標準9.2華腦是無法溝通的，縫合共產黨思維的更是沒救，莫名仇日和強調中華民族情節，這些人卻混入民眾黨的群組。韓粉轉柯粉的必然結果是嗎？</p><p>呼，避免如此的方法是多吸收一些反共民小的材料，知道如何理性與其辯駁。還有把整天強調中國崛起的當成獄友（畢竟你不知道匿名網友是不是翻牆的，還是真的住在台灣），可憐他們，搞不好是發帖減刑的。</p><p>最後，還有一種知乎上中國自由派教的辦法：放下助人情節，尊重他人命運。那麼愛給共產黨統治就去，被鐵拳了不要哭著回來。</p><h2>民眾黨如何取得自己的定位<span><a href="#%E6%B0%91%E7%9C%BE%E9%BB%A8%E5%A6%82%E4%BD%95%E5%8F%96%E5%BE%97%E8%87%AA%E5%B7%B1%E7%9A%84%E5%AE%9A%E4%BD%8D" aria-label="定位點">#</a></span></h2><p>堅持科學、理性、務實精神。</p><p>過份在意識型態競爭上，可能背離了柯文哲主席的想法。雖然柯文哲自己也蠻懂包牌的，一下說中華民國又說自己是深綠……</p><p>現在雖然我支持台獨，但我的主張是反共不反中，儘管實務上難以做到，因為許多中國人都被黨國不分的概念綁架太久了。但至少，支持台獨的同時，不要當純純的支黑。</p><p>那麼，如何讓喜歡大中華主義的藍營人士願意合作，這又是個大問題。民生議題或許有合作空間，但在國家主權問題上又會遇到一堆中國膠的對抗。</p><p>再講民進黨方面的問題，除了深綠派以外，其實還是有合作空間。</p><p>我覺得柯文哲主張「台灣自主，兩岸和平」，且很多民眾黨支持者既然是前817成員，那麼我有個大膽的想法：其實反而是我們要跟民進黨合作，對抗真正的親共政黨才對。小草和塔綠班本來就是綠的，起碼不是藍的，也不是紅的。</p><p>但是，現在暫時沒有合作的跡象，雙方都拉不下臉來，我們得要先向塔綠班算八年來跳票的總帳，解決民生議題。</p><p>我傾向相信，現階段民眾黨選擇跟國民黨合作，改革國會，不教訓國民黨也只是暫時而已。如果哪天國民黨爆出弊案，或是通共了，那也得追查。</p><hr><p><a href="https://www.youtube.com/watch?v=BjeRb6LR8cw" target="_blank">歷史課｜回顧過去 和解台灣</a> 柯主席演講反思：每次台灣政權更替，都要消滅上一代人…從以前的華腦反日，到現在的綠共反中…台灣的流行歌曲如此悲傷，他少講了亞細亞孤兒，未來又該怎麼做。</p><p>其實我們可以試著理解各方想法，不論是台獨派還是民國派。</p><p>台灣自主，才能兩岸和平。現階段，就是整合所有可以合作的力量。</p><h2>民眾黨人如何尋找友柯社群<span><a href="#%E6%B0%91%E7%9C%BE%E9%BB%A8%E4%BA%BA%E5%A6%82%E4%BD%95%E5%B0%8B%E6%89%BE%E5%8F%8B%E6%9F%AF%E7%A4%BE%E7%BE%A4" aria-label="定位點">#</a></span></h2><p>事實就是，台灣流行的中文社群網站，Facebook、Instagram、PTT、Dcard比較多挺柯的人士。Twitter、Threads較少。</p><p>尤其Facebook在台灣仍然是很受歡迎的網站，所以在這裡也可以找到更多淺藍淺綠的受眾。</p><p>如果想找友柯的社群，可以反過來用塔綠班去年<a href="https://drive.google.com/file/d/1Qj77dhFtSsusxqcmqow6l_SA0F-bKosQ/" target="_blank">
+柯文哲症績落落長「黑柯文件」</a>所列出的名單去找：裡面真的有不少是出錢出力，打空戰也打陸戰，死忠挺民眾黨的。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cf183ecf2d.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-748db2b33a.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-748a515251.webp"><p>誠然，我不要求找一定要狂柯粉的社群，淺藍淺綠的人士是民眾黨也要爭取對象。所以不必堅持所有人都必須無條件服從柯文哲的說法。</p><hr><p>除此之外，也要小心不要追蹤到深藍或統派社群。Facebook不時會看到有趣反民進黨粉絲專頁名稱：反吱者聯盟2：暗綠紀元、反吱者情報局主任、政客爽、鎖綠鴉…等等。看到偽基百科有完整<a href="https://zh.uncyclopedia.info/wiki/%E5%A1%94%E7%B6%A0%E7%8F%AD" target="_blank">
+塔綠班宇宙</a>的頁面就知道這些人多恨民進黨XD</p><p>但是，會取這種名字的有機率是國民黨，也就是說反民進黨的同時，他們會自視甚高的瞧不起民眾黨，如同趙少康的態度一般，參見<a href="https://www.facebook.com/photo?fbid=968538231945646&amp;set=a.385637186902423&amp;locale=zh_TW" target="_blank">
+民眾黨成麻煩製造者？</a></p><p>所以我只能笑笑但不追蹤。還有些疑似挺藍的專頁但甚少嘴民眾黨，還在觀察中。</p><p>對於潛藏在支持民眾黨中的統派與藍營支持，究竟要怎麼界定呢？我提出一個意識形態光譜量表尋找戰友的作法，你也可以自己畫一個。</p><p>使用意識形態光譜量表作為尋找依據：這個表作為我個人選取戰友的意識形態、政治觀點的參考。</p><p>越往左越可以接受，越往右越不能接受。</p><p>主張個人自由大於國家 &gt; 主張事實大於意識形態 &gt; 支持台灣主體意識 &gt; 支持台灣獨立 &gt; 柯粉 &gt; 狂柯粉 &gt; 主張反共不反中 &gt; 對民眾黨善意的批評（貓貓頭社長） &gt; 台派 &gt; 支持中華民國 &gt; 民國派 &gt; 支黑 &gt; 惡意抹黑民眾黨的柯黑（486先生） &gt; 塔綠班 &gt; 支持大中華主義 &gt; 支持共產黨 &gt; 仇日反美 &gt; 支持兩岸統一</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/2024042501/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4580d4bbf0.webp"></a></p>
+<p>台派（民進黨光譜）和華腦（國民黨光譜）都欠屠，不是嗎？一個說台灣民族好棒棒，一個說中國人是最屌的。</p><p>作為民眾黨支持者，便是落得常常被兩頭罵的下場，一邊說你不夠愛台灣，一邊說你不愛中國。</p><p>說說我個人的看法，以及民眾黨人如何尋找真正的友柯戰友。還請注意，這只是我個人看法而已，我在民眾黨內沒有任何職位，不要求民眾黨支持者照做。</p><p>何不先聽首歌呢？</p><iframe src="https://www.youtube.com/embed/bc0QHKSXP_M?si=5inRhlNQf4zSMO5d" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe><h2>太長不看系列<span><a href="#%E5%A4%AA%E9%95%B7%E4%B8%8D%E7%9C%8B%E7%B3%BB%E5%88%97" aria-label="定位點">#</a></span></h2><ul><li>個人大於國家</li><li>我支持台獨</li><li>肯定中華文化在台灣的影響力</li><li>反共不反中</li><li>支持中國民主化，或者成立諸夏</li><li>反對支黑，反對塔綠班，反對華腦，反對兩岸統一</li><li>柯文哲不總是對的，善意的批評要接受</li><li>中美等距三角形</li></ul><p>在對各種觀點的接受度上，從最能接受的到最不能接受的順序：</p><p>主張個人自由大於國家 &gt; 主張事實大於意識形態 &gt; 支持台灣主體意識 &gt; 支持台灣獨立 &gt; 柯粉 &gt; 狂柯粉 &gt; 主張反共不反中 &gt; 對民眾黨善意的批評（貓貓頭社長） &gt; 台派 &gt; 支持中華民國 &gt; 民國派 &gt; 支黑 &gt; 惡意抹黑民眾黨的柯黑（486先生） &gt; 塔綠班 &gt; 支持大中華主義 &gt; 支持共產黨 &gt; 仇日反美 &gt; 支持兩岸統一</p><h2>名詞定義<span><a href="#%E5%90%8D%E8%A9%9E%E5%AE%9A%E7%BE%A9" aria-label="定位點">#</a></span></h2><p>我明白不能用二分法來斷定某一個黨的人都跟黨中央意志高度相似，並非所有人都是無可救藥的黨棍。所以，這裡我只對各黨派的意識形態做以下粗略的假定：</p><p>民進黨：支持台獨，支持台灣主體意識，支持者主體為台派和深綠，蔑稱為塔綠班，不論民進黨做什麼都是對的。主張反中、親日親美。</p><p>國民黨：反對台獨，支持大中華主義，支持主體為深藍，蔑稱為華腦、大中華膠。不論國民黨做什麼都是對的。就算中國被中共統治，但基於大家都是中國人的想法，所以被統一也無妨。主張親中、仇日疑美。</p><p>民眾黨：維持現狀派，主張與中國互相理解，支持者主體為柯粉和小草，以及淺藍淺綠人士，蔑稱為雜草。認為民眾黨柯主席做什麼都是對的。主張中美關係等距，聚焦實務議題，包牌能手。</p><p>中國：中華人民共和國政權，統治中國大陸的領土。</p><p>我國：中華民國 = 中華民國台灣 = 台灣，實際治理區域為台澎金馬。</p><h2>反對塔綠班<span><a href="#%E5%8F%8D%E5%B0%8D%E5%A1%94%E7%B6%A0%E7%8F%AD" aria-label="定位點">#</a></span></h2><p>從一件事開始說起。</p><p><a href="https://tw.news.yahoo.com/%E9%A6%AC%E7%BF%92%E4%BA%8C%E6%9C%83%E7%9D%BD%E9%81%959%E5%B9%B4-%E9%A6%AC%E8%8B%B1%E4%B9%9D%E5%9C%A8%E7%BF%92%E8%BF%91%E5%B9%B3%E9%9D%A2%E5%89%8D%E8%AA%AA%E5%87%BA%E3%80%8C%E4%B8%AD%E8%8F%AF%E6%B0%91%E5%9C%8B%E3%80%8D%E5%BE%8C%E5%8F%88%E6%94%B9%E5%8F%A3-092302184.html" target="_blank">馬習二會睽違9年 馬英九在習近平面前說出「中華民國」後又改口</a></p><p>馬英九他真的我哭死，台獨教父在匪酋習近平面前講中華民國，又使出死亡之握繼續加速。反觀躲在賴皮寮的狗男狗女（這裡借用李敖以前的比喻），躲在台獨吉娃娃的卵翼下的統一教母。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dc726ed9e8.webp"><p>唉，抗中保台隨便騙，不輸閃電五連鞭。</p><p>技術上我還是支持台獨，但不支持台獨龜孫ㄛ。</p><p>民進黨的人常常說台灣好棒棒啊，好事都台派，壞事都華國。台灣的建築風格變成今天這樣，不只是民國美學的錯，閩國美學也有責任（這個觀點來自貓貓頭社長）。閩南沙文主義，沒有一個無辜的。現在仍有人留戀過去殖民日治時代！那若他們認為現在台灣是被中華民國殖民，這就沒跳脫殖人思維嘛。還有吃中華民國豆腐，宣稱台灣已經獨立的！再用正名制憲當蘿蔔的，純純騙選票而已。</p><p>在民眾黨立委想要做實事的時候，塔綠班就只會追著毀憲亂政的說法，無的放矢的抹黑、貼標籤，認為不支持民進黨的就是舔共親中！</p><p>一個親民進黨的KOL在Twitter一發文，馬上就有塔綠班千呼百應的轉貼跟進。</p><p>當塔綠班指責你是中共同路人的時候，你最好真的是。</p><p>不過，台派的台獨理念勉強跟諸夏沾上邊這我還能接受，研讀諸夏主義對破除大中華主義很有幫助。我並不反對台獨，但我對民進黨要獨不獨的樣子很是不爽。</p><h2>反對藍腦中華膠<span><a href="#%E5%8F%8D%E5%B0%8D%E8%97%8D%E8%85%A6%E4%B8%AD%E8%8F%AF%E8%86%A0" aria-label="定位點">#</a></span></h2><p>即使我不喜歡現在的綠營民進黨，也不代表支持國民黨藍腦的大中華膠思維，甚或是共產黨紅統派。</p><p>支持中華民族精神、中國人最棒、漢族崛起的，其危害性不亞於無端自信的台派。其保守迂腐之程度，胡適、孫中山等人看了也會搖頭。</p><p>從對太陽花事件的態度可以看出一個人真正的想法。</p><p>本質上我還是肯定太陽花運動的效果，證明台灣年輕人出來反對政府黑箱的努力。所以我不會像國民黨、新黨支持者一樣徹底的否定這個運動，比方說前日子<a href="https://youtu.be/Xntj6_eVceU" target="_blank">
+反反服貿的侯漢廷的男盜女娼評論</a>我就很不能認同，他是在學<a href="https://www.youtube.com/watch?v=9ITq3bhn0cE" target="_blank">
+李敖拷打228事件</a>嗎？</p><p>很多國民黨保守派便會認為年輕人不受教，是叛亂份子。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bb70e26ddf.webp"><p>我恨的是當年的訴求到現在都沒有達成，甚至對中貿易額依存度也沒下降，變成太陽花學運只剩下民進黨政治利用的價值，選舉到了就當成雞血用，說沒有民進黨就沒有新台灣，變成純粹反中活動，這就不對了，讓人厭惡。</p><p>服貿協定已經變成民進黨不能碰的政治正確，當初上街頭的一些人把反黑箱和反中情緒湊在一起傻傻分不清楚。使得好好的太陽花運動淪為暴民奪權的工具，並只有民進黨及其黨羽有話語解釋權，甚至指責不聽黨的話的人是「背叛」運動。</p><p>現在希望能由新一代的民眾黨立法委員打破，讓跳票多時的兩岸協議監督條例做為解決擱置服貿爭議的作法。並非立監督條例就等同重啟服貿，也並非是舔中。</p><p>公民運動應該促使一代人的政治意識覺醒，不是集體成為一個黨的附庸。</p><hr><p>民眾黨的支持者有藍有綠的，很多都跳槽過來的。偏綠的還好，如果偏藍，那麼意識形態和敘事方式難免會偏向大中華主義，比如重視表面上的禮義廉恥，反對刪改文言文，普遍仇日等，認為凡是中國人都和日本有深仇大恨，並會質疑民進黨為什麼只關心白色恐怖，不關心日本在台殺了多少台灣人。</p><p>台灣的課本最好是沒有提及日本人屠殺的歷史啦！而且把日治台灣當作是被搶走的，國民黨就不是強佔台灣了嗎？可悲！被吃豆腐劃分為中國人的台灣殖民地人。</p><hr><p>我承認中華文化在台灣的影響力，並不主張全面廢除。</p><h2>反對共匪<span><a href="#%E5%8F%8D%E5%B0%8D%E5%85%B1%E5%8C%AA" aria-label="定位點">#</a></span></h2><p>除了藍腦外，最讓人不能忍受的是讚揚共產黨和現在的中國好棒棒的！</p><p>台灣人需要搞清楚誰才是最大的敵人。</p><p>論「綠共」跟「紅共」誰比較恐怖，那我想還是紅共，千萬不要因為民進黨很爛，就說給共產黨統治還不是一樣的話，這是地獄梗ㄟ不要當真。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd2307af30.webp"><p>就拿最近Facebook遇到的統派對話紀錄來說吧。塔綠班喜歡貼乳包照片來攻擊咱反對民進黨的人士，可是我們又不是共產黨派來的，貼這張是有什麼殺傷力？於是我表示：在批評民進黨的時候也要知道共產黨才是台灣人敵人的立場，結果就有人罵我是日本人雜種後代，我：？？？？</p><p>啊，這個罵我的大概就是小粉紅吧，或者住在台灣的激進統派，兩者常常合流。</p><p>莫因反民進黨陷入中共的敘事陷阱中。前些日子唐鳳被攻擊最激烈的時候，有柯粉引用了很明顯是中國五毛寫的黑料，指出數發部贊助的資安戰隊私生活淫亂 <a href="https://medium.com/@usadf878/%E5%8F%B0%E8%B3%87%E5%AE%89%E6%88%B0%E9%9A%8Atsj%E9%9A%8A%E9%95%B7%E6%9E%97%E8%A9%A0%E7%BF%94-%E8%A2%AB%E7%88%86%E7%A7%81%E7%94%9F%E6%B4%BB%E6%B7%B7%E4%BA%82-bb44caaf708c" target="_blank">台資安戰隊TSJ隊長林詠翔被爆私生活混亂- Usadf</a>，台灣國內完全沒有報導的新聞，連八卦週刊都沒報的，我說要黑也不是這種尬黑模式好不。</p><p>然後，民進黨幹不好的事情，也會成為五毛的黑料，比如Twitter著名的「徐芳麗」帳號所發布內容，這就導致有柯粉會反過來跟五毛沆瀣一氣。不要這樣，要看內幕就看黃國昌講的，可信度要高多了。</p><p>就拿上面遇到的統派來說，他們反民進黨的方式卻是支持統一，並且擁護大中華主義，這真的想讓人走向「屠支派」。華腦的味就真的太大了，常常大到洗不掉，標準9.2華腦是無法溝通的，縫合共產黨思維的更是沒救，莫名仇日和強調中華民族情節，這些人卻混入民眾黨的群組。韓粉轉柯粉的必然結果是嗎？</p><p>呼，避免如此的方法是多吸收一些反共民小的材料，知道如何理性與其辯駁。還有把整天強調中國崛起的當成獄友（畢竟你不知道匿名網友是不是翻牆的，還是真的住在台灣），可憐他們，搞不好是發帖減刑的。</p><p>最後，還有一種知乎上中國自由派教的辦法：放下助人情節，尊重他人命運。那麼愛給共產黨統治就去，被鐵拳了不要哭著回來。</p><h2>民眾黨如何取得自己的定位<span><a href="#%E6%B0%91%E7%9C%BE%E9%BB%A8%E5%A6%82%E4%BD%95%E5%8F%96%E5%BE%97%E8%87%AA%E5%B7%B1%E7%9A%84%E5%AE%9A%E4%BD%8D" aria-label="定位點">#</a></span></h2><p>堅持科學、理性、務實精神。</p><p>過份在意識型態競爭上，可能背離了柯文哲主席的想法。雖然柯文哲自己也蠻懂包牌的，一下說中華民國又說自己是深綠……</p><p>現在雖然我支持台獨，但我的主張是反共不反中，儘管實務上難以做到，因為許多中國人都被黨國不分的概念綁架太久了。但至少，支持台獨的同時，不要當純純的支黑。</p><p>那麼，如何讓喜歡大中華主義的藍營人士願意合作，這又是個大問題。民生議題或許有合作空間，但在國家主權問題上又會遇到一堆中國膠的對抗。</p><p>再講民進黨方面的問題，除了深綠派以外，其實還是有合作空間。</p><p>我覺得柯文哲主張「台灣自主，兩岸和平」，且很多民眾黨支持者既然是前817成員，那麼我有個大膽的想法：其實反而是我們要跟民進黨合作，對抗真正的親共政黨才對。小草和塔綠班本來就是綠的，起碼不是藍的，也不是紅的。</p><p>但是，現在暫時沒有合作的跡象，雙方都拉不下臉來，我們得要先向塔綠班算八年來跳票的總帳，解決民生議題。</p><p>我傾向相信，現階段民眾黨選擇跟國民黨合作，改革國會，不教訓國民黨也只是暫時而已。如果哪天國民黨爆出弊案，或是通共了，那也得追查。</p><hr><p><a href="https://www.youtube.com/watch?v=BjeRb6LR8cw" target="_blank">歷史課｜回顧過去 和解台灣</a> 柯主席演講反思：每次台灣政權更替，都要消滅上一代人…從以前的華腦反日，到現在的綠共反中…台灣的流行歌曲如此悲傷，他少講了亞細亞孤兒，未來又該怎麼做。</p><p>其實我們可以試著理解各方想法，不論是台獨派還是民國派。</p><p>台灣自主，才能兩岸和平。現階段，就是整合所有可以合作的力量。</p><h2>民眾黨人如何尋找友柯社群<span><a href="#%E6%B0%91%E7%9C%BE%E9%BB%A8%E4%BA%BA%E5%A6%82%E4%BD%95%E5%B0%8B%E6%89%BE%E5%8F%8B%E6%9F%AF%E7%A4%BE%E7%BE%A4" aria-label="定位點">#</a></span></h2><p>事實就是，台灣流行的中文社群網站，Facebook、Instagram、PTT、Dcard比較多挺柯的人士。Twitter、Threads較少。</p><p>尤其Facebook在台灣仍然是很受歡迎的網站，所以在這裡也可以找到更多淺藍淺綠的受眾。</p><p>如果想找友柯的社群，可以反過來用塔綠班去年<a href="https://drive.google.com/file/d/1Qj77dhFtSsusxqcmqow6l_SA0F-bKosQ/" target="_blank">
+柯文哲症績落落長「黑柯文件」</a>所列出的名單去找：裡面真的有不少是出錢出力，打空戰也打陸戰，死忠挺民眾黨的。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cf183ecf2d.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-748db2b33a.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-748a515251.webp"><p>誠然，我不要求找一定要狂柯粉的社群，淺藍淺綠的人士是民眾黨也要爭取對象。所以不必堅持所有人都必須無條件服從柯文哲的說法。</p><hr><p>除此之外，也要小心不要追蹤到深藍或統派社群。Facebook不時會看到有趣反民進黨粉絲專頁名稱：反吱者聯盟2：暗綠紀元、反吱者情報局主任、政客爽、鎖綠鴉…等等。看到偽基百科有完整<a href="https://zh.uncyclopedia.info/wiki/%E5%A1%94%E7%B6%A0%E7%8F%AD" target="_blank">
+塔綠班宇宙</a>的頁面就知道這些人多恨民進黨XD</p><p>但是，會取這種名字的有機率是國民黨，也就是說反民進黨的同時，他們會自視甚高的瞧不起民眾黨，如同趙少康的態度一般，參見<a href="https://www.facebook.com/photo?fbid=968538231945646&amp;set=a.385637186902423&amp;locale=zh_TW" target="_blank">
+民眾黨成麻煩製造者？</a></p><p>所以我只能笑笑但不追蹤。還有些疑似挺藍的專頁但甚少嘴民眾黨，還在觀察中。</p><p>對於潛藏在支持民眾黨中的統派與藍營支持，究竟要怎麼界定呢？我提出一個意識形態光譜量表尋找戰友的作法，你也可以自己畫一個。</p><p>使用意識形態光譜量表作為尋找依據：這個表作為我個人選取戰友的意識形態、政治觀點的參考。</p><p>越往左越可以接受，越往右越不能接受。</p><p>主張個人自由大於國家 &gt; 主張事實大於意識形態 &gt; 支持台灣主體意識 &gt; 支持台灣獨立 &gt; 柯粉 &gt; 狂柯粉 &gt; 主張反共不反中 &gt; 對民眾黨善意的批評（貓貓頭社長） &gt; 台派 &gt; 支持中華民國 &gt; 民國派 &gt; 支黑 &gt; 惡意抹黑民眾黨的柯黑（486先生） &gt; 塔綠班 &gt; 支持大中華主義 &gt; 支持共產黨 &gt; 仇日反美 &gt; 支持兩岸統一</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4580d4bbf0.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4580d4bbf0.webp" medium="image"/>
+    <pubDate>Thu, 25 Apr 2024 16:30:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[一看就知道是陸軍的飛機！二戰日本陸軍飛行戰隊塗裝概說]]></title>
     <link>https://ivonblog.com/posts/ijaaf-camouflage-and-markings/</link>
     <itunes:title><![CDATA[一看就知道是陸軍的飛機！二戰日本陸軍飛行戰隊塗裝概說]]></itunes:title>
@@ -1511,47 +1910,5 @@ Ads Revenue Sharing</a>一樣奸詐：你必須先訂閱付費方案，才可以
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-67df74e436.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-67df74e436.webp" medium="image"/>
     <pubDate>Thu, 11 Apr 2024 21:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Android和iOS手機看AV的APP？這是個問題]]></title>
-    <link>https://ivonblog.com/posts/watch-porn-on-mobile-phones/</link>
-    <itunes:title><![CDATA[Android和iOS手機看AV的APP？這是個問題]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/watch-porn-on-mobile-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-881339692e.webp"></a></p>
-<p>強者我朋友問如何在手機看A片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3e7d756ba7.webp"><p>不如將這個問題分成：</p><p>你想看的是真人色情，還是色情動漫？</p><p>後者有很多專門的APP，例如<a href="/posts/tachiyomi-manga-reader">
-Tachiyomi</a>、<a href="/posts/android-ehviewer">
-EHviewer</a>、<a href="/posts/imgbrd-grabber-usage/">
-Imgrd Grabber</a>、<a href="https://github.com/YenalyLiew/Han1meViewer" target="_blank">
-Han1meViewer</a>、<a href="https://github.com/iwrqk/iwrqk" target="_blank">
-IwaraQk</a>等等…多不勝數呀。不論你想看色圖、同人本、裏番、3D動畫，幾乎每個色情動漫網站都有專門的APP方便瀏覽與下載資源。</p><p>但是真人色情片情況就不太一樣。</p><p>想要看免費的，依照使用幾大色情網站的經驗來看（PornHub、XVideos、XNXX、Jable、Avgle、MissAV）</p><p>雖然很多色情網站都有推出自家的APP</p><p>但是我覺得他們要不是廣告很多（Setting.app），不然就界面設計很爛（PornHub）</p><p>更重要的是幾乎沒有一款開源的。</p><p>有人會說啊Twiiter、Reddit不就一堆色情自拍影片，Telegram的老司機群組一堆，Dcard西斯板一堆淫亂大學生。這些APP在應用商店都可以合法下載，何必找那些色情影片網站？</p><p>但我想找專門的色情網站呀！一個真正獨立的社群。</p><p>最佳解果然還是用瀏覽器 ———— 也就是看網頁版影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-95399aa02a.webp"><p>在這個時代，大部分網站都有做手機版網頁啦。不少英文網站還提供了中文界面</p><p>鑑於色情網站多半會放一堆比你的洨還多的廣告來賺取收益</p><p>所以選一款能擋廣告的瀏覽器絕對是有必要的了</p><p>個人認為看色情片的首選瀏覽器是<a href="https://brave.com/" target="_blank">
-Brave</a></p><p>開源，跨平台，支援Android與iOS，內建擋廣告插件和無痕模式。</p><p>其次為<a href="https://www.mozilla.org/zh-TW/firefox/" target="_blank">
-Firefox</a></p><p>同樣有擋廣告擴充功能和無痕模式，Android版更是可以裝<a href="https://www.downloadhelper.net/" target="_blank">
-VideoDownloaderHelper</a>擴充功能下載網頁影片</p><p>以上提的二個APP都沒有密碼鎖功能</p><p>需要另外裝APP來實現。</p><p>另外，在正常民主國家，看AV並不會被抓走好ㄅ，沒有必要使用VPN或者Tor。</p><p>不過VPN倒是可以繞過色情守門員的防護。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/watch-porn-on-mobile-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-881339692e.webp"></a></p>
-<p>強者我朋友問如何在手機看A片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3e7d756ba7.webp"><p>不如將這個問題分成：</p><p>你想看的是真人色情，還是色情動漫？</p><p>後者有很多專門的APP，例如<a href="/posts/tachiyomi-manga-reader">
-Tachiyomi</a>、<a href="/posts/android-ehviewer">
-EHviewer</a>、<a href="/posts/imgbrd-grabber-usage/">
-Imgrd Grabber</a>、<a href="https://github.com/YenalyLiew/Han1meViewer" target="_blank">
-Han1meViewer</a>、<a href="https://github.com/iwrqk/iwrqk" target="_blank">
-IwaraQk</a>等等…多不勝數呀。不論你想看色圖、同人本、裏番、3D動畫，幾乎每個色情動漫網站都有專門的APP方便瀏覽與下載資源。</p><p>但是真人色情片情況就不太一樣。</p><p>想要看免費的，依照使用幾大色情網站的經驗來看（PornHub、XVideos、XNXX、Jable、Avgle、MissAV）</p><p>雖然很多色情網站都有推出自家的APP</p><p>但是我覺得他們要不是廣告很多（Setting.app），不然就界面設計很爛（PornHub）</p><p>更重要的是幾乎沒有一款開源的。</p><p>有人會說啊Twiiter、Reddit不就一堆色情自拍影片，Telegram的老司機群組一堆，Dcard西斯板一堆淫亂大學生。這些APP在應用商店都可以合法下載，何必找那些色情影片網站？</p><p>但我想找專門的色情網站呀！一個真正獨立的社群。</p><p>最佳解果然還是用瀏覽器 ———— 也就是看網頁版影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-95399aa02a.webp"><p>在這個時代，大部分網站都有做手機版網頁啦。不少英文網站還提供了中文界面</p><p>鑑於色情網站多半會放一堆比你的洨還多的廣告來賺取收益</p><p>所以選一款能擋廣告的瀏覽器絕對是有必要的了</p><p>個人認為看色情片的首選瀏覽器是<a href="https://brave.com/" target="_blank">
-Brave</a></p><p>開源，跨平台，支援Android與iOS，內建擋廣告插件和無痕模式。</p><p>其次為<a href="https://www.mozilla.org/zh-TW/firefox/" target="_blank">
-Firefox</a></p><p>同樣有擋廣告擴充功能和無痕模式，Android版更是可以裝<a href="https://www.downloadhelper.net/" target="_blank">
-VideoDownloaderHelper</a>擴充功能下載網頁影片</p><p>以上提的二個APP都沒有密碼鎖功能</p><p>需要另外裝APP來實現。</p><p>另外，在正常民主國家，看AV並不會被抓走好ㄅ，沒有必要使用VPN或者Tor。</p><p>不過VPN倒是可以繞過色情守門員的防護。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/watch-porn-on-mobile-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-881339692e.webp"></a></p>
-<p>強者我朋友問如何在手機看A片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3e7d756ba7.webp"><p>不如將這個問題分成：</p><p>你想看的是真人色情，還是色情動漫？</p><p>後者有很多專門的APP，例如<a href="/posts/tachiyomi-manga-reader">
-Tachiyomi</a>、<a href="/posts/android-ehviewer">
-EHviewer</a>、<a href="/posts/imgbrd-grabber-usage/">
-Imgrd Grabber</a>、<a href="https://github.com/YenalyLiew/Han1meViewer" target="_blank">
-Han1meViewer</a>、<a href="https://github.com/iwrqk/iwrqk" target="_blank">
-IwaraQk</a>等等…多不勝數呀。不論你想看色圖、同人本、裏番、3D動畫，幾乎每個色情動漫網站都有專門的APP方便瀏覽與下載資源。</p><p>但是真人色情片情況就不太一樣。</p><p>想要看免費的，依照使用幾大色情網站的經驗來看（PornHub、XVideos、XNXX、Jable、Avgle、MissAV）</p><p>雖然很多色情網站都有推出自家的APP</p><p>但是我覺得他們要不是廣告很多（Setting.app），不然就界面設計很爛（PornHub）</p><p>更重要的是幾乎沒有一款開源的。</p><p>有人會說啊Twiiter、Reddit不就一堆色情自拍影片，Telegram的老司機群組一堆，Dcard西斯板一堆淫亂大學生。這些APP在應用商店都可以合法下載，何必找那些色情影片網站？</p><p>但我想找專門的色情網站呀！一個真正獨立的社群。</p><p>最佳解果然還是用瀏覽器 ———— 也就是看網頁版影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-95399aa02a.webp"><p>在這個時代，大部分網站都有做手機版網頁啦。不少英文網站還提供了中文界面</p><p>鑑於色情網站多半會放一堆比你的洨還多的廣告來賺取收益</p><p>所以選一款能擋廣告的瀏覽器絕對是有必要的了</p><p>個人認為看色情片的首選瀏覽器是<a href="https://brave.com/" target="_blank">
-Brave</a></p><p>開源，跨平台，支援Android與iOS，內建擋廣告插件和無痕模式。</p><p>其次為<a href="https://www.mozilla.org/zh-TW/firefox/" target="_blank">
-Firefox</a></p><p>同樣有擋廣告擴充功能和無痕模式，Android版更是可以裝<a href="https://www.downloadhelper.net/" target="_blank">
-VideoDownloaderHelper</a>擴充功能下載網頁影片</p><p>以上提的二個APP都沒有密碼鎖功能</p><p>需要另外裝APP來實現。</p><p>另外，在正常民主國家，看AV並不會被抓走好ㄅ，沒有必要使用VPN或者Tor。</p><p>不過VPN倒是可以繞過色情守門員的防護。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-881339692e.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-881339692e.webp" medium="image"/>
-    <pubDate>Wed, 10 Apr 2024 14:00:00 +0800</pubDate>
   </item></channel>
 </rss>
