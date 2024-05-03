@@ -30,6 +30,27 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手日記】停用 Azure DevOps Server 基本驗證]]></title>
+    <link>https://blog.darkthread.net/blog/disable-azure-devops-basic-auth/</link>
+    <itunes:title><![CDATA[【茶包射手日記】停用 Azure DevOps Server 基本驗證]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>接到報案，Azure DevOps Server 2022 因啟用<a href="https://learn.microsoft.com/zh-tw/iis/configuration/system.webserver/security/authentication/basicauthentication?WT.mc_id=DOP-MVP-37580">基本驗證 (Basic Authentication) </a>但未搭配 TLS/SSL 加密傳輸，被判定不安全需列入改善。<br> 註：HTTP 基本驗證主要用在 <a href="https://learn.microsoft.com/zh-tw/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&amp;tabs=Windows&amp;WT.mc_id=DOP-MVP-37580#use-a-pat">Personal Access Token (PAT)</a>，方便批次作業或背景服務以 PAT 取代帳號密碼存取 Azure DevOps Server，現階段沒用到，故關閉也是個選項。若會用到 PAT，則啟用 TLS 加密是正解。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638503474904219067.png"></p> <p>但查了一下，IIS 主機根本沒安裝基本驗證模組：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638503474905984917.png"></p> <p>觀察到 Response 包含 X-Tfs-ProcessId 等自訂 Header，加上認證失敗畫面為客製版本(如下圖)，推測 Azure DevOps Server 應該有加掛 HTTP Module 處理身分認證。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638503474907694715.png"></p> <p>用 IIS 管理介面查到有個 Microsoft.TeamFoundation.Framework.Server.TeamFoundationModule，應該就是可跳過 IIS 發送 Www-Authenticate Header 的來源：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638503474909388743.png"></p> <p>原始想法是成熟的軟體或產品應該有開關或設定決定啟用哪些驗證方式，如果是勇者欣梅爾的話，一定會這麼做的，更何況是 Azure DevOps Server 這類架構嚴謹的系統 (光看其 DLL 數量即可見一斑)。但這問題屬小眾產品的少見需求，試遍各種關鍵字也苦尋不到相關討論。摸摸鼻子，那就發揮駭客精神，設法追 Code 找答案吧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638503474911150287.png"></p> <p>動用反組譯工具追到一段依據 <code>IsFeatureEnabled("VisualStudio.BasicAuth.Disable")</code> 決定是否加上 <code>Www-Authenticate: Basic</code> Header 的邏輯，BINGO! 進一步查到 Feature Flag 是由 <code>FeatureAvailability\Entries\&lt;Feature_Name&gt;\AvailabilityState</code> 格式的字串決定，懷疑是用 XML 或 JSON 檔控制，但遍尋不著設定相關說明。最後靠關鍵字查到一篇 <a href="https://developercommunity.visualstudio.com/t/azure-devops-server-2020-rc1-an-unexpected-error-h/1098066#T-N1103689">Azure DevOps Server 2020 RC1 問題討論</a>，提到有個名為 <code>prc_SetRegistryValue</code> 的 Stored Procedure，指引了一條明路。</p> <p>在 AzureDevOps_Configuration 資料庫果真有個 Procedure，用以下指令設定及查詢：</p> <pre><code>exec prc_SetRegistryValue 1,'#\FeatureAvailability\Entries\VisualStudio.BasicAuth.Disable\AvailabilityState\', 1
+exec prc_QueryRegistry 1, '#\FeatureAvailability\Entries\VisualStudio.BasicAuth.Disable\AvailabilityState\', 1
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638503474912751397.png"></p> <p>設定完成，IISRESET 重啟後，我成功停用了基本驗證，哈里路亞~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638503474914448121.png"></p> <p>【題外話】</p> <p>要找出這個解決方案很吃經驗跟背景知識，還需要一點運氣。</p> <p>你必須了解 HTTP 驗證原理，知道 IIS Module 與 ASP.NET 程式架構，並具備從 DLL 追 Code 的技巧，並幸運地在耐心磨完前找到線索，當然選對關鍵字爬文的技巧也不可少。在成天有人高喊「AI 來了，老鳥優勢不再」的年代，這類破案經驗多少能帶來一點信心，相信自己不會那麼快被淘汰...</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig2_637923425592843819.jpg" alt="thumbnail"></p> <p data-slug="disable-azure-devops-basic-auth" data-title-en="Disabling basic authentication for Azure DevOps Server 2022" data-catg="Web Development" data-fbimg="https://i.imgur.com/5Mu1ukM.jpg#480#320">This article shares how I analyzed and investigated to find a way to disable the Basic Authentication feature in Azure DevOps Server.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>接到報案，Azure DevOps Server 2022 因啟用<a href="https://learn.microsoft.com/zh-tw/iis/configuration/system.webserver/security/authentication/basicauthentication?WT.mc_id=DOP-MVP-37580">基本驗證 (Basic Authentication) </a>但未搭配 TLS/SSL 加密傳輸，被判定不安全需列入改善。<br> 註：HTTP 基本驗證主要用在 <a href="https://learn.microsoft.com/zh-tw/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&amp;tabs=Windows&amp;WT.mc_id=DOP-MVP-37580#use-a-pat">Personal Access Token (PAT)</a>，方便批次作業或背景服務以 PAT 取代帳號密碼存取 Azure DevOps Server，現階段沒用到，故關閉也是個選項。若會用到 PAT，則啟用 TLS 加密是正解。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638503474904219067.png"></p> <p>但查了一下，IIS 主機根本沒安裝基本驗證模組：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638503474905984917.png"></p> <p>觀察到 Response 包含 X-Tfs-ProcessId 等自訂 Header，加上認證失敗畫面為客製版本(如下圖)，推測 Azure DevOps Server 應該有加掛 HTTP Module 處理身分認證。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638503474907694715.png"></p> <p>用 IIS 管理介面查到有個 Microsoft.TeamFoundation.Framework.Server.TeamFoundationModule，應該就是可跳過 IIS 發送 Www-Authenticate Header 的來源：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638503474909388743.png"></p> <p>原始想法是成熟的軟體或產品應該有開關或設定決定啟用哪些驗證方式，如果是勇者欣梅爾的話，一定會這麼做的，更何況是 Azure DevOps Server 這類架構嚴謹的系統 (光看其 DLL 數量即可見一斑)。但這問題屬小眾產品的少見需求，試遍各種關鍵字也苦尋不到相關討論。摸摸鼻子，那就發揮駭客精神，設法追 Code 找答案吧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638503474911150287.png"></p> <p>動用反組譯工具追到一段依據 <code>IsFeatureEnabled("VisualStudio.BasicAuth.Disable")</code> 決定是否加上 <code>Www-Authenticate: Basic</code> Header 的邏輯，BINGO! 進一步查到 Feature Flag 是由 <code>FeatureAvailability\Entries\&lt;Feature_Name&gt;\AvailabilityState</code> 格式的字串決定，懷疑是用 XML 或 JSON 檔控制，但遍尋不著設定相關說明。最後靠關鍵字查到一篇 <a href="https://developercommunity.visualstudio.com/t/azure-devops-server-2020-rc1-an-unexpected-error-h/1098066#T-N1103689">Azure DevOps Server 2020 RC1 問題討論</a>，提到有個名為 <code>prc_SetRegistryValue</code> 的 Stored Procedure，指引了一條明路。</p> <p>在 AzureDevOps_Configuration 資料庫果真有個 Procedure，用以下指令設定及查詢：</p> <pre><code>exec prc_SetRegistryValue 1,'#\FeatureAvailability\Entries\VisualStudio.BasicAuth.Disable\AvailabilityState\', 1
+exec prc_QueryRegistry 1, '#\FeatureAvailability\Entries\VisualStudio.BasicAuth.Disable\AvailabilityState\', 1
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638503474912751397.png"></p> <p>設定完成，IISRESET 重啟後，我成功停用了基本驗證，哈里路亞~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638503474914448121.png"></p> <p>【題外話】</p> <p>要找出這個解決方案很吃經驗跟背景知識，還需要一點運氣。</p> <p>你必須了解 HTTP 驗證原理，知道 IIS Module 與 ASP.NET 程式架構，並具備從 DLL 追 Code 的技巧，並幸運地在耐心磨完前找到線索，當然選對關鍵字爬文的技巧也不可少。在成天有人高喊「AI 來了，老鳥優勢不再」的年代，這類破案經驗多少能帶來一點信心，相信自己不會那麼快被淘汰...</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig2_637923425592843819.jpg" alt="thumbnail"></p> <p data-slug="disable-azure-devops-basic-auth" data-title-en="Disabling basic authentication for Azure DevOps Server 2022" data-catg="Web Development" data-fbimg="https://i.imgur.com/5Mu1ukM.jpg#480#320">This article shares how I analyzed and investigated to find a way to disable the Basic Authentication feature in Azure DevOps Server.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>接到報案，Azure DevOps Server 2022 因啟用<a href="https://learn.microsoft.com/zh-tw/iis/configuration/system.webserver/security/authentication/basicauthentication?WT.mc_id=DOP-MVP-37580">基本驗證 (Basic Authentication) </a>但未搭配 TLS/SSL 加密傳輸，被判定不安全需列入改善。<br> 註：HTTP 基本驗證主要用在 <a href="https://learn.microsoft.com/zh-tw/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&amp;tabs=Windows&amp;WT.mc_id=DOP-MVP-37580#use-a-pat">Personal Access Token (PAT)</a>，方便批次作業或背景服務以 PAT 取代帳號密碼存取 Azure DevOps Server，現階段沒用到，故關閉也是個選項。若會用到 PAT，則啟用 TLS 加密是正解。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638503474904219067.png"></p> <p>但查了一下，IIS 主機根本沒安裝基本驗證模組：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638503474905984917.png"></p> <p>觀察到 Response 包含 X-Tfs-ProcessId 等自訂 Header，加上認證失敗畫面為客製版本(如下圖)，推測 Azure DevOps Server 應該有加掛 HTTP Module 處理身分認證。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638503474907694715.png"></p> <p>用 IIS 管理介面查到有個 Microsoft.TeamFoundation.Framework.Server.TeamFoundationModule，應該就是可跳過 IIS 發送 Www-Authenticate Header 的來源：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638503474909388743.png"></p> <p>原始想法是成熟的軟體或產品應該有開關或設定決定啟用哪些驗證方式，如果是勇者欣梅爾的話，一定會這麼做的，更何況是 Azure DevOps Server 這類架構嚴謹的系統 (光看其 DLL 數量即可見一斑)。但這問題屬小眾產品的少見需求，試遍各種關鍵字也苦尋不到相關討論。摸摸鼻子，那就發揮駭客精神，設法追 Code 找答案吧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638503474911150287.png"></p> <p>動用反組譯工具追到一段依據 <code>IsFeatureEnabled("VisualStudio.BasicAuth.Disable")</code> 決定是否加上 <code>Www-Authenticate: Basic</code> Header 的邏輯，BINGO! 進一步查到 Feature Flag 是由 <code>FeatureAvailability\Entries\&lt;Feature_Name&gt;\AvailabilityState</code> 格式的字串決定，懷疑是用 XML 或 JSON 檔控制，但遍尋不著設定相關說明。最後靠關鍵字查到一篇 <a href="https://developercommunity.visualstudio.com/t/azure-devops-server-2020-rc1-an-unexpected-error-h/1098066#T-N1103689">Azure DevOps Server 2020 RC1 問題討論</a>，提到有個名為 <code>prc_SetRegistryValue</code> 的 Stored Procedure，指引了一條明路。</p> <p>在 AzureDevOps_Configuration 資料庫果真有個 Procedure，用以下指令設定及查詢：</p> <pre><code>exec prc_SetRegistryValue 1,'#\FeatureAvailability\Entries\VisualStudio.BasicAuth.Disable\AvailabilityState\', 1
+exec prc_QueryRegistry 1, '#\FeatureAvailability\Entries\VisualStudio.BasicAuth.Disable\AvailabilityState\', 1
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638503474912751397.png"></p> <p>設定完成，IISRESET 重啟後，我成功停用了基本驗證，哈里路亞~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638503474914448121.png"></p> <p>【題外話】</p> <p>要找出這個解決方案很吃經驗跟背景知識，還需要一點運氣。</p> <p>你必須了解 HTTP 驗證原理，知道 IIS Module 與 ASP.NET 程式架構，並具備從 DLL 追 Code 的技巧，並幸運地在耐心磨完前找到線索，當然選對關鍵字爬文的技巧也不可少。在成天有人高喊「AI 來了，老鳥優勢不再」的年代，這類破案經驗多少能帶來一點信心，相信自己不會那麼快被淘汰...</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig2_637923425592843819.jpg" alt="thumbnail"></p> <p data-slug="disable-azure-devops-basic-auth" data-title-en="Disabling basic authentication for Azure DevOps Server 2022" data-catg="Web Development" data-fbimg="https://i.imgur.com/5Mu1ukM.jpg#480#320">This article shares how I analyzed and investigated to find a way to disable the Basic Authentication feature in Azure DevOps Server.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638503474904219067.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638503474904219067.png" medium="image"/>
+    <pubDate>Fri, 03 May 2024 14:35:25 GMT</pubDate>
+  </item><item>
     <title><![CDATA[如何查詢微軟產品訊息之英文原文及各語系翻譯？]]></title>
     <link>https://blog.darkthread.net/blog/ms-ui-string-search/</link>
     <itunes:title><![CDATA[如何查詢微軟產品訊息之英文原文及各語系翻譯？]]></itunes:title>
@@ -1100,146 +1121,5 @@ restart: unless-stopped
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638488769173929615.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638488769173929615.png" medium="image"/>
     <pubDate>Tue, 16 Apr 2024 14:56:25 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[.NET 呼叫 Ollama 範例與 CPU 使用率問題]]></title>
-    <link>https://blog.darkthread.net/blog/ollama-cpu-usage-issue/</link>
-    <itunes:title><![CDATA[.NET 呼叫 Ollama 範例與 CPU 使用率問題]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>前幾天介紹過用 Ollama + Open WebUI 跑本地 LLM 的<a href="/blog/ollam-open-webui/">懶人做法</a>，只靠 CPU 速度不甚理想。</p> <p>沒 GPU 學人玩地端 LLM，慢到靠北也是剛好而已。。</p> <p>話雖如此，基於好奇我很想看看若 CPU 核數加倍再加倍，效能會不會有明顯提升，便在 Azure 開了台 48 vCPU VM 短暫小試一下。</p> <p>過程發現一件事，48 核 CPU 使用率最高只到 50% 就止步了，跟想像中所有 CPU 操好操滿不太一樣。如此豈不浪費資源，沒有火力全開？</p> <p>爬文查到不少人也提到 Ollama/llama.cpp 只用到 50% CPU 的問題：(註：Ollama 的底層也是 <a href="/blog/llama-cpp/">llama.cpp</a>)</p> <ul><li><a href="https://github.com/ollama/ollama/issues/2496">almost no RAM usage and only 50% CPU cores used</a></li> <li><a href="https://github.com/ggerganov/llama.cpp/issues/842">Performance e-core bug(?) - only 50% CPU utilization when using all threads - (Win11, Intel 13900k)</a></li></ul> <p>研究了一下，llama.cpp 有個 n_threads 參數可控制開幾條 Thread 跑 LLM 生成，ollama 則是由 <a href="https://www.pacenthink.io/post/understanding-modelfile-in-ollama/">Modelfile 的 num_thread 參數</a> 控制，而我查到一篇<a href="https://github.com/abetlen/llama-cpp-python/issues/89#issuecomment-1512587285">討論</a>，有個 llama.cpp Python 專案使用 <code>self.n_threads = n_threads or max(multiprocessing.cpu_count() // 2, 1)</code> 將 Thread 數設為 CPU 核數的一半，被質疑部分 CPU 閒置未達最佳化，在討論中提到：</p> <blockquote> <ul><li>Most physical systems are hyperthreaded</li> <li>Hyperthreading doesn't seem to improve performance due to the memory I/O bound nature of llama.cpp</li> <li>Might be invalid for VMs</li></ul> <p>This was tested in original llama. C++ implementation already utilities full available compute of physical cores, increasing amount of threads beyond would only to lower performance due to reason mentioned above.</p> </blockquote> <p>大意是說：經實測，llama.cpp 在實作上已充分運用實體核心的算力，且基於 Hyperthreading、Memory I/O Bound、VM 特性等理由，增加 Thread 數對效能並無助益。</p> <p>做個實驗驗證一下。</p> <p>為得到明確效能數字，我打算寫支測試程式呼叫 Ollama API 並計時，藉此機會也練習如何用 C# 整合 Ollama，補齊 RAG 整合地端 LLM 的必要技能。.NET 要連 Ollama 有個開源專案 <a href="https://github.com/awaescher/OllamaSharp">OllamaSharp</a>，<code>dotent add package OllamaSharp</code> 參照程式庫，幾行程式便可搞定。</p> <p>我寫了一個簡單的取關鍵字任務，程式如下：(Prompt 我請 ChatGPT 幫忙調整，比我最早想的版本專業多了)</p> <pre><code>using System.Diagnostics;
-using OllamaSharp;
-var ollama = new OllamaApiClient(new Uri("http://localhost:11434"));
-var prompt = @"As an AI, carefully read the given article and determine the 10 most crucial keywords.
-These should be listed in a string seperated by comma as follows: '1. keyword1, 2. keyword2, 3. keyword3...'.
-Don't give more than 10 keywords and no explanations and additional words are permitted.
-Here is the article:
-""""""
-Understand the Transformer architecture and explore large language models in Azure Machine Learning
-Introduction
-Foundation models, such as GPT-3, are state-of-the-art natural language processing models ... 內容省略
-""""""
-";
-string[] models = ["mistral", "mistral-16t", "mistral-32t", "mistral-47t"];
-foreach (var modelName in models)
-{
-await RunTest(modelName);
-await Task.Delay(10000);
-}
-async Task RunTest(string modelName)
-{
-ollama.SelectedModel = modelName;
-ConversationContext context = null!;
-Console.WriteLine($"Testing model {modelName}...");
-for (int i = 0; i &lt; 3; i++)
-{
-var sw = new Stopwatch();
-sw.Start();
-try
-{
-var resp = await ollama.GetCompletion(prompt, context);
-Console.WriteLine(resp.Response);
-}
-catch (Exception ex)
-{
-Console.WriteLine($"Error: {ex.Message}");
-continue;
-}
-sw.Stop();
-Console.WriteLine($" Run {i} - Time: {sw.ElapsedMilliseconds:n0}ms");
-}
-}
-</code></pre> <p>ollama 部分要透過 Modefile 指定 num_thread 建立不同模型，我先準備類似以下內容存成 Modelfile_mistral_32，使用 <code>ollama create "mistral-32t" -f ./Modelfile-mistral-32</code> 建立名為 <code>mistral-32t</code> 的模型，呼叫 ollama.GetCompletion() 前用 ollama.SelectedModel = modelName 指定使用模型的名稱，便可針對不同 Thread 數的模型進行測試。我在 48 核 VM 上測了不指定(系統自動決定)、16、32、48 四種 Thread 數，每種各跑三次。Linux 伺服器用 <code>sar -u 5</code> 每五秒記錄一次 CPU 使用率。切換不同模型間會休息 10 秒，故應有兩次 CPU 歸零做為區測，實測結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638487031616948247.png"></p> <p>結果完全符合預期數字，不指定 Thread 數時 CPU 使用率 50%；16 Thread 時用了 48 核的 1/3，使用率 32%；32 Thread CPU 65%；47 Thread 95%;</p> <p>那，提高 CPU 使用率，生成速度有變快嗎？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638487031618797226.png"></p> <p>並沒有，使用率 32% 時有略為變慢，但使用率 65% 及 95% 時，秒數並未明顯縮短；另外，切換模型的第一次，花的時間比較久，有可能是多了一切初始化動作。</p> <p>結論：以 mistral 7B 模型為例，Ollama/llama.cpp 預設 CPU 使用率 50% 下的效能表現已接近最佳，刻意調高 Thread 數提高 CPU 使用率無助加快速度，效能瓶頸應在他處。至於背後原因，我暫未查到相關解釋，大家如有相關情資經驗，歡迎分享。</p> <p data-slug="ollama-cpu-usage-issue" data-title-en="Ollama .NET example and CPU usage issue" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/1092883/pexels-photo-1092883.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article provides an example of using C# to call Ollama for LLM generation, and through experimental testing, it explores the relationship between CPU usage and LLM generation speed. The results suggest that optimal performance is achieved at 50% CPU usage, eliminating the need to adjust the Thread to increase usage.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>前幾天介紹過用 Ollama + Open WebUI 跑本地 LLM 的<a href="/blog/ollam-open-webui/">懶人做法</a>，只靠 CPU 速度不甚理想。</p> <p>沒 GPU 學人玩地端 LLM，慢到靠北也是剛好而已。。</p> <p>話雖如此，基於好奇我很想看看若 CPU 核數加倍再加倍，效能會不會有明顯提升，便在 Azure 開了台 48 vCPU VM 短暫小試一下。</p> <p>過程發現一件事，48 核 CPU 使用率最高只到 50% 就止步了，跟想像中所有 CPU 操好操滿不太一樣。如此豈不浪費資源，沒有火力全開？</p> <p>爬文查到不少人也提到 Ollama/llama.cpp 只用到 50% CPU 的問題：(註：Ollama 的底層也是 <a href="/blog/llama-cpp/">llama.cpp</a>)</p> <ul><li><a href="https://github.com/ollama/ollama/issues/2496">almost no RAM usage and only 50% CPU cores used</a></li> <li><a href="https://github.com/ggerganov/llama.cpp/issues/842">Performance e-core bug(?) - only 50% CPU utilization when using all threads - (Win11, Intel 13900k)</a></li></ul> <p>研究了一下，llama.cpp 有個 n_threads 參數可控制開幾條 Thread 跑 LLM 生成，ollama 則是由 <a href="https://www.pacenthink.io/post/understanding-modelfile-in-ollama/">Modelfile 的 num_thread 參數</a> 控制，而我查到一篇<a href="https://github.com/abetlen/llama-cpp-python/issues/89#issuecomment-1512587285">討論</a>，有個 llama.cpp Python 專案使用 <code>self.n_threads = n_threads or max(multiprocessing.cpu_count() // 2, 1)</code> 將 Thread 數設為 CPU 核數的一半，被質疑部分 CPU 閒置未達最佳化，在討論中提到：</p> <blockquote> <ul><li>Most physical systems are hyperthreaded</li> <li>Hyperthreading doesn't seem to improve performance due to the memory I/O bound nature of llama.cpp</li> <li>Might be invalid for VMs</li></ul> <p>This was tested in original llama. C++ implementation already utilities full available compute of physical cores, increasing amount of threads beyond would only to lower performance due to reason mentioned above.</p> </blockquote> <p>大意是說：經實測，llama.cpp 在實作上已充分運用實體核心的算力，且基於 Hyperthreading、Memory I/O Bound、VM 特性等理由，增加 Thread 數對效能並無助益。</p> <p>做個實驗驗證一下。</p> <p>為得到明確效能數字，我打算寫支測試程式呼叫 Ollama API 並計時，藉此機會也練習如何用 C# 整合 Ollama，補齊 RAG 整合地端 LLM 的必要技能。.NET 要連 Ollama 有個開源專案 <a href="https://github.com/awaescher/OllamaSharp">OllamaSharp</a>，<code>dotent add package OllamaSharp</code> 參照程式庫，幾行程式便可搞定。</p> <p>我寫了一個簡單的取關鍵字任務，程式如下：(Prompt 我請 ChatGPT 幫忙調整，比我最早想的版本專業多了)</p> <pre><code>using System.Diagnostics;
-using OllamaSharp;
-var ollama = new OllamaApiClient(new Uri("http://localhost:11434"));
-var prompt = @"As an AI, carefully read the given article and determine the 10 most crucial keywords.
-These should be listed in a string seperated by comma as follows: '1. keyword1, 2. keyword2, 3. keyword3...'.
-Don't give more than 10 keywords and no explanations and additional words are permitted.
-Here is the article:
-""""""
-Understand the Transformer architecture and explore large language models in Azure Machine Learning
-Introduction
-Foundation models, such as GPT-3, are state-of-the-art natural language processing models ... 內容省略
-""""""
-";
-string[] models = ["mistral", "mistral-16t", "mistral-32t", "mistral-47t"];
-foreach (var modelName in models)
-{
-await RunTest(modelName);
-await Task.Delay(10000);
-}
-async Task RunTest(string modelName)
-{
-ollama.SelectedModel = modelName;
-ConversationContext context = null!;
-Console.WriteLine($"Testing model {modelName}...");
-for (int i = 0; i &lt; 3; i++)
-{
-var sw = new Stopwatch();
-sw.Start();
-try
-{
-var resp = await ollama.GetCompletion(prompt, context);
-Console.WriteLine(resp.Response);
-}
-catch (Exception ex)
-{
-Console.WriteLine($"Error: {ex.Message}");
-continue;
-}
-sw.Stop();
-Console.WriteLine($" Run {i} - Time: {sw.ElapsedMilliseconds:n0}ms");
-}
-}
-</code></pre> <p>ollama 部分要透過 Modefile 指定 num_thread 建立不同模型，我先準備類似以下內容存成 Modelfile_mistral_32，使用 <code>ollama create "mistral-32t" -f ./Modelfile-mistral-32</code> 建立名為 <code>mistral-32t</code> 的模型，呼叫 ollama.GetCompletion() 前用 ollama.SelectedModel = modelName 指定使用模型的名稱，便可針對不同 Thread 數的模型進行測試。我在 48 核 VM 上測了不指定(系統自動決定)、16、32、48 四種 Thread 數，每種各跑三次。Linux 伺服器用 <code>sar -u 5</code> 每五秒記錄一次 CPU 使用率。切換不同模型間會休息 10 秒，故應有兩次 CPU 歸零做為區測，實測結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638487031616948247.png"></p> <p>結果完全符合預期數字，不指定 Thread 數時 CPU 使用率 50%；16 Thread 時用了 48 核的 1/3，使用率 32%；32 Thread CPU 65%；47 Thread 95%;</p> <p>那，提高 CPU 使用率，生成速度有變快嗎？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638487031618797226.png"></p> <p>並沒有，使用率 32% 時有略為變慢，但使用率 65% 及 95% 時，秒數並未明顯縮短；另外，切換模型的第一次，花的時間比較久，有可能是多了一切初始化動作。</p> <p>結論：以 mistral 7B 模型為例，Ollama/llama.cpp 預設 CPU 使用率 50% 下的效能表現已接近最佳，刻意調高 Thread 數提高 CPU 使用率無助加快速度，效能瓶頸應在他處。至於背後原因，我暫未查到相關解釋，大家如有相關情資經驗，歡迎分享。</p> <p data-slug="ollama-cpu-usage-issue" data-title-en="Ollama .NET example and CPU usage issue" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/1092883/pexels-photo-1092883.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article provides an example of using C# to call Ollama for LLM generation, and through experimental testing, it explores the relationship between CPU usage and LLM generation speed. The results suggest that optimal performance is achieved at 50% CPU usage, eliminating the need to adjust the Thread to increase usage.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>前幾天介紹過用 Ollama + Open WebUI 跑本地 LLM 的<a href="/blog/ollam-open-webui/">懶人做法</a>，只靠 CPU 速度不甚理想。</p> <p>沒 GPU 學人玩地端 LLM，慢到靠北也是剛好而已。。</p> <p>話雖如此，基於好奇我很想看看若 CPU 核數加倍再加倍，效能會不會有明顯提升，便在 Azure 開了台 48 vCPU VM 短暫小試一下。</p> <p>過程發現一件事，48 核 CPU 使用率最高只到 50% 就止步了，跟想像中所有 CPU 操好操滿不太一樣。如此豈不浪費資源，沒有火力全開？</p> <p>爬文查到不少人也提到 Ollama/llama.cpp 只用到 50% CPU 的問題：(註：Ollama 的底層也是 <a href="/blog/llama-cpp/">llama.cpp</a>)</p> <ul><li><a href="https://github.com/ollama/ollama/issues/2496">almost no RAM usage and only 50% CPU cores used</a></li> <li><a href="https://github.com/ggerganov/llama.cpp/issues/842">Performance e-core bug(?) - only 50% CPU utilization when using all threads - (Win11, Intel 13900k)</a></li></ul> <p>研究了一下，llama.cpp 有個 n_threads 參數可控制開幾條 Thread 跑 LLM 生成，ollama 則是由 <a href="https://www.pacenthink.io/post/understanding-modelfile-in-ollama/">Modelfile 的 num_thread 參數</a> 控制，而我查到一篇<a href="https://github.com/abetlen/llama-cpp-python/issues/89#issuecomment-1512587285">討論</a>，有個 llama.cpp Python 專案使用 <code>self.n_threads = n_threads or max(multiprocessing.cpu_count() // 2, 1)</code> 將 Thread 數設為 CPU 核數的一半，被質疑部分 CPU 閒置未達最佳化，在討論中提到：</p> <blockquote> <ul><li>Most physical systems are hyperthreaded</li> <li>Hyperthreading doesn't seem to improve performance due to the memory I/O bound nature of llama.cpp</li> <li>Might be invalid for VMs</li></ul> <p>This was tested in original llama. C++ implementation already utilities full available compute of physical cores, increasing amount of threads beyond would only to lower performance due to reason mentioned above.</p> </blockquote> <p>大意是說：經實測，llama.cpp 在實作上已充分運用實體核心的算力，且基於 Hyperthreading、Memory I/O Bound、VM 特性等理由，增加 Thread 數對效能並無助益。</p> <p>做個實驗驗證一下。</p> <p>為得到明確效能數字，我打算寫支測試程式呼叫 Ollama API 並計時，藉此機會也練習如何用 C# 整合 Ollama，補齊 RAG 整合地端 LLM 的必要技能。.NET 要連 Ollama 有個開源專案 <a href="https://github.com/awaescher/OllamaSharp">OllamaSharp</a>，<code>dotent add package OllamaSharp</code> 參照程式庫，幾行程式便可搞定。</p> <p>我寫了一個簡單的取關鍵字任務，程式如下：(Prompt 我請 ChatGPT 幫忙調整，比我最早想的版本專業多了)</p> <pre><code>using System.Diagnostics;
-using OllamaSharp;
-var ollama = new OllamaApiClient(new Uri("http://localhost:11434"));
-var prompt = @"As an AI, carefully read the given article and determine the 10 most crucial keywords.
-These should be listed in a string seperated by comma as follows: '1. keyword1, 2. keyword2, 3. keyword3...'.
-Don't give more than 10 keywords and no explanations and additional words are permitted.
-Here is the article:
-""""""
-Understand the Transformer architecture and explore large language models in Azure Machine Learning
-Introduction
-Foundation models, such as GPT-3, are state-of-the-art natural language processing models ... 內容省略
-""""""
-";
-string[] models = ["mistral", "mistral-16t", "mistral-32t", "mistral-47t"];
-foreach (var modelName in models)
-{
-await RunTest(modelName);
-await Task.Delay(10000);
-}
-async Task RunTest(string modelName)
-{
-ollama.SelectedModel = modelName;
-ConversationContext context = null!;
-Console.WriteLine($"Testing model {modelName}...");
-for (int i = 0; i &lt; 3; i++)
-{
-var sw = new Stopwatch();
-sw.Start();
-try
-{
-var resp = await ollama.GetCompletion(prompt, context);
-Console.WriteLine(resp.Response);
-}
-catch (Exception ex)
-{
-Console.WriteLine($"Error: {ex.Message}");
-continue;
-}
-sw.Stop();
-Console.WriteLine($" Run {i} - Time: {sw.ElapsedMilliseconds:n0}ms");
-}
-}
-</code></pre> <p>ollama 部分要透過 Modefile 指定 num_thread 建立不同模型，我先準備類似以下內容存成 Modelfile_mistral_32，使用 <code>ollama create "mistral-32t" -f ./Modelfile-mistral-32</code> 建立名為 <code>mistral-32t</code> 的模型，呼叫 ollama.GetCompletion() 前用 ollama.SelectedModel = modelName 指定使用模型的名稱，便可針對不同 Thread 數的模型進行測試。我在 48 核 VM 上測了不指定(系統自動決定)、16、32、48 四種 Thread 數，每種各跑三次。Linux 伺服器用 <code>sar -u 5</code> 每五秒記錄一次 CPU 使用率。切換不同模型間會休息 10 秒，故應有兩次 CPU 歸零做為區測，實測結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638487031616948247.png"></p> <p>結果完全符合預期數字，不指定 Thread 數時 CPU 使用率 50%；16 Thread 時用了 48 核的 1/3，使用率 32%；32 Thread CPU 65%；47 Thread 95%;</p> <p>那，提高 CPU 使用率，生成速度有變快嗎？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638487031618797226.png"></p> <p>並沒有，使用率 32% 時有略為變慢，但使用率 65% 及 95% 時，秒數並未明顯縮短；另外，切換模型的第一次，花的時間比較久，有可能是多了一切初始化動作。</p> <p>結論：以 mistral 7B 模型為例，Ollama/llama.cpp 預設 CPU 使用率 50% 下的效能表現已接近最佳，刻意調高 Thread 數提高 CPU 使用率無助加快速度，效能瓶頸應在他處。至於背後原因，我暫未查到相關解釋，大家如有相關情資經驗，歡迎分享。</p> <p data-slug="ollama-cpu-usage-issue" data-title-en="Ollama .NET example and CPU usage issue" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/1092883/pexels-photo-1092883.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article provides an example of using C# to call Ollama for LLM generation, and through experimental testing, it explores the relationship between CPU usage and LLM generation speed. The results suggest that optimal performance is achieved at 50% CPU usage, eliminating the need to adjust the Thread to increase usage.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638487031616948247.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638487031616948247.png" medium="image"/>
-    <pubDate>Sun, 14 Apr 2024 14:52:18 GMT</pubDate>
   </item></channel>
 </rss>
