@@ -30,6 +30,495 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[由 Linux strace 看 .NET AOT 效能差異 (同場加映組合語言、C/C++ 比較)]]></title>
+    <link>https://blog.darkthread.net/blog/strace-test-for-dotnet-aot/</link>
+    <itunes:title><![CDATA[由 Linux strace 看 .NET AOT 效能差異 (同場加映組合語言、C/C++ 比較)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>Linux 有個好用偵錯工具 - <a href="https://zh.wikipedia.org/zh-tw/Strace">strace</a>，它可以追蹤及統計應用程式調用<a href="https://zh.wikipedia.org/zh-tw/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8">系統呼叫 (System Call)</a> 的狀況。在作業系統裡，舉凡開關檔、讀檔、程序管理、通訊... 等核心等級的作業系統動作都必須透過 System Call 完成。因此，應用程式完成相同動作所呼叫 System Call 次數可當成衡量執行效率的參考指標，不全然精準(例如：程式沒呼叫 System Call 但拼命跑迴圈的極端案例)，但在大部分情境呼叫次數愈少通常代表程式愈輕巧，效率愈好。</p> <p>舉例來說，同樣要在終端機顯示 Hello Word!，用 C 寫一定比組合語言複雜，用 .NET 寫則又比 C 更複雜，但編譯成 <a href="/blog/native-aot-w-python/">Native AOT</a> 應會有所改善。所以這篇來做個有趣實驗，從 strace 角度比較 Console.WriteLine("Hello, World!") .NET 程式有無編譯成 AOT 的差異，各需要動用多少 System Call 完成這個超簡單任務。另外，既然動手了就順便連 C++、C 及組合語言都拿來比一比，見識一下中低階語言編譯的程式碼的精簡程度。</p> <p>我的測試方法很簡單，在 WSL2 用 <code>dotnet new console -o hello-cs</code> 產生空白 Console Appliation 專案，Program.cs 原本就只有一行 <code>Console.WriteLine("Hello, World!");</code>，執行 <code>dotnet publish --no-self-contained -p:PublishSingleFile=true</code> 得到執行檔 <code>bin/Release/net8.0/linux-x64/publish/hello-cs</code>。</p> <p>接著修改 hello-cs.csproj 加入 <code>&lt;PublishAot&gt;true&lt;/PublishAot&gt;</code> <a href="https://blog.darkthread.net/blog/native-aot-w-python/">參考</a>，重新 <code>dotnet publish</code>，得到執行檔 <code>bin/Release/net8.0/linux-x64/publish/hello-cs</code>，這裡將它更名為 hello-cs-aot，方便稍後比較。</p> <p>再來我分別寫了 C/C++ 跟組合語言的版本：</p> <p>C 語言，hello-c.c：</p> <pre><code>#include &lt;stdio.h&gt;
+// gcc hello-c.c -o hello-c
+int main(void){
+printf("Hello, World!
+");
+return 0;
+}
+</code></pre> <p>C++，hello-cpp.cpp：</p> <pre><code>#include &lt;iostream&gt;
+// g++ hello-cpp.cpp -o hello-cpp
+int main() {
+std::cout &lt;&lt; "Hello World!";
+return 0;
+}
+</code></pre> <p>最後是組合語言：</p> <pre><code>section .data
+text db "Hello, World!",10
+section .text
+global _start
+_start:
+mov rax, 1
+mov rdi, 1
+mov rsi, text
+mov rdx, 14
+syscall
+mov rax, 60
+mov rdi, 0
+syscall
+</code></pre> <p>編譯執行：</p> <pre><code>sudo apt install -y nasm
+nasm -f elf64 hello.asm
+ld hello.o -o hello-asm
+strace ./hello-asm 2&gt; asm.txt
+</code></pre> <p>五隻程式一字排開：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638504951504191104.png"></p> <p>一如預期，組合語言最小，只有 8,488 bytes，C 比 C++ 小一點，16,696 vs 17,176。C# 標準執行檔大小為 77,941 bytes，體積不大，原因是有一大部分工作由 Runtime 完成；編譯成 AOT 版本時，原本由 Runtime 執行的作業包進執行檔，大小增加到 1.5MB。</p> <p>使用 <code>strace -c &lt;exec-file-name&gt; 2&gt; &lt;result-txt&gt;</code> 記錄各語言版本的 Hello World! System Call 統計如下。</p> <p>C# 標準執行檔最多，共 1539 次，耗時 0.014398s：</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+22.78    0.003280           8       375           mprotect
+12.61    0.001816           8       222           mmap
+11.47    0.001652           7       216       131 openat
+9.61    0.001383          14        93           read
+5.35    0.000771           7       108         2 lstat
+4.32    0.000622          44        14           futex
+4.07    0.000586           7        75           close
+3.83    0.000551           8        62           munmap
+3.71    0.000534          66         8           write
+3.59    0.000517           6        85           fstat
+2.36    0.000340           6        49        36 stat
+2.06    0.000296          11        25           madvise
+1.63    0.000235           7        30           brk
+1.53    0.000221          44         5         2 unlink
+1.42    0.000204          29         7           clone
+1.38    0.000198           7        26           rt_sigaction
+1.11    0.000160           5        27           pread64
+0.92    0.000133           8        15         8 access
+0.71    0.000102          10        10           lseek
+0.65    0.000093           4        22           fcntl
+0.48    0.000069           9         7           prlimit64
+0.38    0.000054          13         4           statfs
+0.36    0.000052           8         6           getpid
+0.34    0.000049          24         2           mknod
+0.34    0.000049          12         4           sched_getaffinity
+0.32    0.000046          11         4           getdents64
+0.30    0.000043           8         5           readlink
+0.29    0.000042          10         4           ioctl
+0.28    0.000041          13         3           sysinfo
+0.25    0.000036          12         3           pipe2
+0.24    0.000035          35         1           bind
+0.23    0.000033           8         4           membarrier
+0.13    0.000019           9         2           getsid
+0.13    0.000018           9         2           sigaltstack
+0.12    0.000017           8         2           gettid
+0.10    0.000015          15         1           socket
+0.09    0.000013          13         1           memfd_create
+0.08    0.000012          12         1           ftruncate
+0.08    0.000012          12         1           fchmod
+0.08    0.000011          11         1           listen
+0.06    0.000009           9         1           rt_sigprocmask
+0.06    0.000009           4         2         1 arch_prctl
+0.06    0.000009           9         1           set_tid_address
+0.06    0.000009           9         1           set_robust_list
+0.01    0.000002           2         1         1 get_mempolicy
+0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.014398                  1539       181 total
+</code></pre> <p>AOT 版只有 1/3，574 次，速度也變快，耗時縮短到 0.000521s：</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+16.89    0.000088           4        19           rt_sigaction
+15.74    0.000082           0       185       141 openat
+11.71    0.000061           0        78           mmap
+8.25    0.000043          10         4           ioctl
+7.49    0.000039          19         2           write
+7.10    0.000037           1        34           mprotect
+5.95    0.000031          15         2           clone
+5.57    0.000029           0        38           read
+3.45    0.000018           0        43           close
+3.45    0.000018           0        42           fstat
+2.88    0.000015           0        27           munmap
+2.50    0.000013          13         1           pipe2
+1.92    0.000010           2         4           brk
+1.92    0.000010           1         9           pread64
+1.73    0.000009           9         1           lseek
+1.73    0.000009           3         3           getpid
+1.73    0.000009           4         2           futex
+0.00    0.000000           0        40        35 stat
+0.00    0.000000           0         1           rt_sigprocmask
+0.00    0.000000           0         1         1 access
+0.00    0.000000           0        18           madvise
+0.00    0.000000           0         1           execve
+0.00    0.000000           0         1           fcntl
+0.00    0.000000           0         1           readlink
+0.00    0.000000           0         2           sysinfo
+0.00    0.000000           0         2           statfs
+0.00    0.000000           0         2         1 arch_prctl
+0.00    0.000000           0         1           gettid
+0.00    0.000000           0         3           sched_getaffinity
+0.00    0.000000           0         1           set_tid_address
+0.00    0.000000           0         1         1 get_mempolicy
+0.00    0.000000           0         1           set_robust_list
+0.00    0.000000           0         2           prlimit64
+0.00    0.000000           0         2           membarrier
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000521                   574       179 total
+</code></pre> <p>C++ 版本 64 次，耗時 0.000926s。</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+26.13    0.000242          11        22           mmap
+19.87    0.000184         184         1           execve
+9.18    0.000085          12         7           mprotect
+9.07    0.000084          16         5           openat
+6.91    0.000064          10         6           fstat
+5.94    0.000055           9         6           pread64
+5.29    0.000049           9         5           close
+5.18    0.000048          12         4           read
+4.00    0.000037          12         3           brk
+2.59    0.000024          24         1           write
+2.27    0.000021          10         2         1 arch_prctl
+1.84    0.000017          17         1           munmap
+1.73    0.000016          16         1         1 access
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000926                    64         2 total
+</code></pre> <p>C 語言版本 33 次，時間短到測不到。</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+0.00    0.000000           0         1           read
+0.00    0.000000           0         1           write
+0.00    0.000000           0         2           close
+0.00    0.000000           0         3           fstat
+0.00    0.000000           0         7           mmap
+0.00    0.000000           0         3           mprotect
+0.00    0.000000           0         1           munmap
+0.00    0.000000           0         3           brk
+0.00    0.000000           0         6           pread64
+0.00    0.000000           0         1         1 access
+0.00    0.000000           0         1           execve
+0.00    0.000000           0         2         1 arch_prctl
+0.00    0.000000           0         2           openat
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                    33         2 total
+</code></pre> <p>最後來看組合語言，各位觀眾，2 次!</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+0.00    0.000000           0         1           write
+0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                     2           total
+</code></pre> <p>【結論】</p> <p>在以上實驗，用呼叫 System Call 頻率作為系統複雜度及執行效能指標，一如預期得到 C# &gt; C++ &gt; C &gt; 組合語言 的相對關係，愈高階的程式語言在完成相同任務的前題下，編譯產生的程式體積愈大，執行時動用的 System Call 愈多。</p> <p>不過，在大部分情境下，高階語言開發速度快、易於維護修改擴充的優勢遠大於這部分的效能損失，而且生態系統的程式庫及文件資源較中低階豐富 N 倍。故除非是極度追求速度的應用，高階語言還是多數人的選擇。(若被要求用組合語言寫 MVC 網站，開發人員會選擇自掛東南枝吧？XD)</p> <p>而 .NET AOT 在 Hello, World! 案例差異明顯，執行過程減少了近 2/3 的 System Call 次數，速度加快 27 倍。改善源自不用帶入整個 Runtime 及省掉 JIT 編譯，故對啟動速度敏感的應用，可考慮啟用 AOT 加速。</p> <p>【延伸閱讀】</p> <ul><li><a href="https://gist.github.com/5cotts/6b079908aef52e1ad319e3e3ca157c6f">組合語言 Hello World!</a></li> <li><a href="/blog/native-aot-w-python/">用 .NET 開發程式庫供 Python 呼叫 - Native AOT 應用</a></li> <li><a href="/blog/publish-native-aot-on-linux/">筆記 - 在 Linux 平台使用 .NET Native AOT</a></li></ul> <p data-slug="strace-test-for-dotnet-aot" data-title-en="Observing performance improvements of .NET AOT by strace" data-catg="C#" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article uses Linux strace to observe the performance improvements of .NET AOT, and also compares the differences between C#, C/C++, and assembly language.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>Linux 有個好用偵錯工具 - <a href="https://zh.wikipedia.org/zh-tw/Strace">strace</a>，它可以追蹤及統計應用程式調用<a href="https://zh.wikipedia.org/zh-tw/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8">系統呼叫 (System Call)</a> 的狀況。在作業系統裡，舉凡開關檔、讀檔、程序管理、通訊... 等核心等級的作業系統動作都必須透過 System Call 完成。因此，應用程式完成相同動作所呼叫 System Call 次數可當成衡量執行效率的參考指標，不全然精準(例如：程式沒呼叫 System Call 但拼命跑迴圈的極端案例)，但在大部分情境呼叫次數愈少通常代表程式愈輕巧，效率愈好。</p> <p>舉例來說，同樣要在終端機顯示 Hello Word!，用 C 寫一定比組合語言複雜，用 .NET 寫則又比 C 更複雜，但編譯成 <a href="/blog/native-aot-w-python/">Native AOT</a> 應會有所改善。所以這篇來做個有趣實驗，從 strace 角度比較 Console.WriteLine("Hello, World!") .NET 程式有無編譯成 AOT 的差異，各需要動用多少 System Call 完成這個超簡單任務。另外，既然動手了就順便連 C++、C 及組合語言都拿來比一比，見識一下中低階語言編譯的程式碼的精簡程度。</p> <p>我的測試方法很簡單，在 WSL2 用 <code>dotnet new console -o hello-cs</code> 產生空白 Console Appliation 專案，Program.cs 原本就只有一行 <code>Console.WriteLine("Hello, World!");</code>，執行 <code>dotnet publish --no-self-contained -p:PublishSingleFile=true</code> 得到執行檔 <code>bin/Release/net8.0/linux-x64/publish/hello-cs</code>。</p> <p>接著修改 hello-cs.csproj 加入 <code>&lt;PublishAot&gt;true&lt;/PublishAot&gt;</code> <a href="https://blog.darkthread.net/blog/native-aot-w-python/">參考</a>，重新 <code>dotnet publish</code>，得到執行檔 <code>bin/Release/net8.0/linux-x64/publish/hello-cs</code>，這裡將它更名為 hello-cs-aot，方便稍後比較。</p> <p>再來我分別寫了 C/C++ 跟組合語言的版本：</p> <p>C 語言，hello-c.c：</p> <pre><code>#include &lt;stdio.h&gt;
+// gcc hello-c.c -o hello-c
+int main(void){
+printf("Hello, World!
+");
+return 0;
+}
+</code></pre> <p>C++，hello-cpp.cpp：</p> <pre><code>#include &lt;iostream&gt;
+// g++ hello-cpp.cpp -o hello-cpp
+int main() {
+std::cout &lt;&lt; "Hello World!";
+return 0;
+}
+</code></pre> <p>最後是組合語言：</p> <pre><code>section .data
+text db "Hello, World!",10
+section .text
+global _start
+_start:
+mov rax, 1
+mov rdi, 1
+mov rsi, text
+mov rdx, 14
+syscall
+mov rax, 60
+mov rdi, 0
+syscall
+</code></pre> <p>編譯執行：</p> <pre><code>sudo apt install -y nasm
+nasm -f elf64 hello.asm
+ld hello.o -o hello-asm
+strace ./hello-asm 2&gt; asm.txt
+</code></pre> <p>五隻程式一字排開：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638504951504191104.png"></p> <p>一如預期，組合語言最小，只有 8,488 bytes，C 比 C++ 小一點，16,696 vs 17,176。C# 標準執行檔大小為 77,941 bytes，體積不大，原因是有一大部分工作由 Runtime 完成；編譯成 AOT 版本時，原本由 Runtime 執行的作業包進執行檔，大小增加到 1.5MB。</p> <p>使用 <code>strace -c &lt;exec-file-name&gt; 2&gt; &lt;result-txt&gt;</code> 記錄各語言版本的 Hello World! System Call 統計如下。</p> <p>C# 標準執行檔最多，共 1539 次，耗時 0.014398s：</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+22.78    0.003280           8       375           mprotect
+12.61    0.001816           8       222           mmap
+11.47    0.001652           7       216       131 openat
+9.61    0.001383          14        93           read
+5.35    0.000771           7       108         2 lstat
+4.32    0.000622          44        14           futex
+4.07    0.000586           7        75           close
+3.83    0.000551           8        62           munmap
+3.71    0.000534          66         8           write
+3.59    0.000517           6        85           fstat
+2.36    0.000340           6        49        36 stat
+2.06    0.000296          11        25           madvise
+1.63    0.000235           7        30           brk
+1.53    0.000221          44         5         2 unlink
+1.42    0.000204          29         7           clone
+1.38    0.000198           7        26           rt_sigaction
+1.11    0.000160           5        27           pread64
+0.92    0.000133           8        15         8 access
+0.71    0.000102          10        10           lseek
+0.65    0.000093           4        22           fcntl
+0.48    0.000069           9         7           prlimit64
+0.38    0.000054          13         4           statfs
+0.36    0.000052           8         6           getpid
+0.34    0.000049          24         2           mknod
+0.34    0.000049          12         4           sched_getaffinity
+0.32    0.000046          11         4           getdents64
+0.30    0.000043           8         5           readlink
+0.29    0.000042          10         4           ioctl
+0.28    0.000041          13         3           sysinfo
+0.25    0.000036          12         3           pipe2
+0.24    0.000035          35         1           bind
+0.23    0.000033           8         4           membarrier
+0.13    0.000019           9         2           getsid
+0.13    0.000018           9         2           sigaltstack
+0.12    0.000017           8         2           gettid
+0.10    0.000015          15         1           socket
+0.09    0.000013          13         1           memfd_create
+0.08    0.000012          12         1           ftruncate
+0.08    0.000012          12         1           fchmod
+0.08    0.000011          11         1           listen
+0.06    0.000009           9         1           rt_sigprocmask
+0.06    0.000009           4         2         1 arch_prctl
+0.06    0.000009           9         1           set_tid_address
+0.06    0.000009           9         1           set_robust_list
+0.01    0.000002           2         1         1 get_mempolicy
+0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.014398                  1539       181 total
+</code></pre> <p>AOT 版只有 1/3，574 次，速度也變快，耗時縮短到 0.000521s：</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+16.89    0.000088           4        19           rt_sigaction
+15.74    0.000082           0       185       141 openat
+11.71    0.000061           0        78           mmap
+8.25    0.000043          10         4           ioctl
+7.49    0.000039          19         2           write
+7.10    0.000037           1        34           mprotect
+5.95    0.000031          15         2           clone
+5.57    0.000029           0        38           read
+3.45    0.000018           0        43           close
+3.45    0.000018           0        42           fstat
+2.88    0.000015           0        27           munmap
+2.50    0.000013          13         1           pipe2
+1.92    0.000010           2         4           brk
+1.92    0.000010           1         9           pread64
+1.73    0.000009           9         1           lseek
+1.73    0.000009           3         3           getpid
+1.73    0.000009           4         2           futex
+0.00    0.000000           0        40        35 stat
+0.00    0.000000           0         1           rt_sigprocmask
+0.00    0.000000           0         1         1 access
+0.00    0.000000           0        18           madvise
+0.00    0.000000           0         1           execve
+0.00    0.000000           0         1           fcntl
+0.00    0.000000           0         1           readlink
+0.00    0.000000           0         2           sysinfo
+0.00    0.000000           0         2           statfs
+0.00    0.000000           0         2         1 arch_prctl
+0.00    0.000000           0         1           gettid
+0.00    0.000000           0         3           sched_getaffinity
+0.00    0.000000           0         1           set_tid_address
+0.00    0.000000           0         1         1 get_mempolicy
+0.00    0.000000           0         1           set_robust_list
+0.00    0.000000           0         2           prlimit64
+0.00    0.000000           0         2           membarrier
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000521                   574       179 total
+</code></pre> <p>C++ 版本 64 次，耗時 0.000926s。</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+26.13    0.000242          11        22           mmap
+19.87    0.000184         184         1           execve
+9.18    0.000085          12         7           mprotect
+9.07    0.000084          16         5           openat
+6.91    0.000064          10         6           fstat
+5.94    0.000055           9         6           pread64
+5.29    0.000049           9         5           close
+5.18    0.000048          12         4           read
+4.00    0.000037          12         3           brk
+2.59    0.000024          24         1           write
+2.27    0.000021          10         2         1 arch_prctl
+1.84    0.000017          17         1           munmap
+1.73    0.000016          16         1         1 access
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000926                    64         2 total
+</code></pre> <p>C 語言版本 33 次，時間短到測不到。</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+0.00    0.000000           0         1           read
+0.00    0.000000           0         1           write
+0.00    0.000000           0         2           close
+0.00    0.000000           0         3           fstat
+0.00    0.000000           0         7           mmap
+0.00    0.000000           0         3           mprotect
+0.00    0.000000           0         1           munmap
+0.00    0.000000           0         3           brk
+0.00    0.000000           0         6           pread64
+0.00    0.000000           0         1         1 access
+0.00    0.000000           0         1           execve
+0.00    0.000000           0         2         1 arch_prctl
+0.00    0.000000           0         2           openat
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                    33         2 total
+</code></pre> <p>最後來看組合語言，各位觀眾，2 次!</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+0.00    0.000000           0         1           write
+0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                     2           total
+</code></pre> <p>【結論】</p> <p>在以上實驗，用呼叫 System Call 頻率作為系統複雜度及執行效能指標，一如預期得到 C# &gt; C++ &gt; C &gt; 組合語言 的相對關係，愈高階的程式語言在完成相同任務的前題下，編譯產生的程式體積愈大，執行時動用的 System Call 愈多。</p> <p>不過，在大部分情境下，高階語言開發速度快、易於維護修改擴充的優勢遠大於這部分的效能損失，而且生態系統的程式庫及文件資源較中低階豐富 N 倍。故除非是極度追求速度的應用，高階語言還是多數人的選擇。(若被要求用組合語言寫 MVC 網站，開發人員會選擇自掛東南枝吧？XD)</p> <p>而 .NET AOT 在 Hello, World! 案例差異明顯，執行過程減少了近 2/3 的 System Call 次數，速度加快 27 倍。改善源自不用帶入整個 Runtime 及省掉 JIT 編譯，故對啟動速度敏感的應用，可考慮啟用 AOT 加速。</p> <p>【延伸閱讀】</p> <ul><li><a href="https://gist.github.com/5cotts/6b079908aef52e1ad319e3e3ca157c6f">組合語言 Hello World!</a></li> <li><a href="/blog/native-aot-w-python/">用 .NET 開發程式庫供 Python 呼叫 - Native AOT 應用</a></li> <li><a href="/blog/publish-native-aot-on-linux/">筆記 - 在 Linux 平台使用 .NET Native AOT</a></li></ul> <p data-slug="strace-test-for-dotnet-aot" data-title-en="Observing performance improvements of .NET AOT by strace" data-catg="C#" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article uses Linux strace to observe the performance improvements of .NET AOT, and also compares the differences between C#, C/C++, and assembly language.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>Linux 有個好用偵錯工具 - <a href="https://zh.wikipedia.org/zh-tw/Strace">strace</a>，它可以追蹤及統計應用程式調用<a href="https://zh.wikipedia.org/zh-tw/%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8">系統呼叫 (System Call)</a> 的狀況。在作業系統裡，舉凡開關檔、讀檔、程序管理、通訊... 等核心等級的作業系統動作都必須透過 System Call 完成。因此，應用程式完成相同動作所呼叫 System Call 次數可當成衡量執行效率的參考指標，不全然精準(例如：程式沒呼叫 System Call 但拼命跑迴圈的極端案例)，但在大部分情境呼叫次數愈少通常代表程式愈輕巧，效率愈好。</p> <p>舉例來說，同樣要在終端機顯示 Hello Word!，用 C 寫一定比組合語言複雜，用 .NET 寫則又比 C 更複雜，但編譯成 <a href="/blog/native-aot-w-python/">Native AOT</a> 應會有所改善。所以這篇來做個有趣實驗，從 strace 角度比較 Console.WriteLine("Hello, World!") .NET 程式有無編譯成 AOT 的差異，各需要動用多少 System Call 完成這個超簡單任務。另外，既然動手了就順便連 C++、C 及組合語言都拿來比一比，見識一下中低階語言編譯的程式碼的精簡程度。</p> <p>我的測試方法很簡單，在 WSL2 用 <code>dotnet new console -o hello-cs</code> 產生空白 Console Appliation 專案，Program.cs 原本就只有一行 <code>Console.WriteLine("Hello, World!");</code>，執行 <code>dotnet publish --no-self-contained -p:PublishSingleFile=true</code> 得到執行檔 <code>bin/Release/net8.0/linux-x64/publish/hello-cs</code>。</p> <p>接著修改 hello-cs.csproj 加入 <code>&lt;PublishAot&gt;true&lt;/PublishAot&gt;</code> <a href="https://blog.darkthread.net/blog/native-aot-w-python/">參考</a>，重新 <code>dotnet publish</code>，得到執行檔 <code>bin/Release/net8.0/linux-x64/publish/hello-cs</code>，這裡將它更名為 hello-cs-aot，方便稍後比較。</p> <p>再來我分別寫了 C/C++ 跟組合語言的版本：</p> <p>C 語言，hello-c.c：</p> <pre><code>#include &lt;stdio.h&gt;
+// gcc hello-c.c -o hello-c
+int main(void){
+printf("Hello, World!
+");
+return 0;
+}
+</code></pre> <p>C++，hello-cpp.cpp：</p> <pre><code>#include &lt;iostream&gt;
+// g++ hello-cpp.cpp -o hello-cpp
+int main() {
+std::cout &lt;&lt; "Hello World!";
+return 0;
+}
+</code></pre> <p>最後是組合語言：</p> <pre><code>section .data
+text db "Hello, World!",10
+section .text
+global _start
+_start:
+mov rax, 1
+mov rdi, 1
+mov rsi, text
+mov rdx, 14
+syscall
+mov rax, 60
+mov rdi, 0
+syscall
+</code></pre> <p>編譯執行：</p> <pre><code>sudo apt install -y nasm
+nasm -f elf64 hello.asm
+ld hello.o -o hello-asm
+strace ./hello-asm 2&gt; asm.txt
+</code></pre> <p>五隻程式一字排開：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638504951504191104.png"></p> <p>一如預期，組合語言最小，只有 8,488 bytes，C 比 C++ 小一點，16,696 vs 17,176。C# 標準執行檔大小為 77,941 bytes，體積不大，原因是有一大部分工作由 Runtime 完成；編譯成 AOT 版本時，原本由 Runtime 執行的作業包進執行檔，大小增加到 1.5MB。</p> <p>使用 <code>strace -c &lt;exec-file-name&gt; 2&gt; &lt;result-txt&gt;</code> 記錄各語言版本的 Hello World! System Call 統計如下。</p> <p>C# 標準執行檔最多，共 1539 次，耗時 0.014398s：</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+22.78    0.003280           8       375           mprotect
+12.61    0.001816           8       222           mmap
+11.47    0.001652           7       216       131 openat
+9.61    0.001383          14        93           read
+5.35    0.000771           7       108         2 lstat
+4.32    0.000622          44        14           futex
+4.07    0.000586           7        75           close
+3.83    0.000551           8        62           munmap
+3.71    0.000534          66         8           write
+3.59    0.000517           6        85           fstat
+2.36    0.000340           6        49        36 stat
+2.06    0.000296          11        25           madvise
+1.63    0.000235           7        30           brk
+1.53    0.000221          44         5         2 unlink
+1.42    0.000204          29         7           clone
+1.38    0.000198           7        26           rt_sigaction
+1.11    0.000160           5        27           pread64
+0.92    0.000133           8        15         8 access
+0.71    0.000102          10        10           lseek
+0.65    0.000093           4        22           fcntl
+0.48    0.000069           9         7           prlimit64
+0.38    0.000054          13         4           statfs
+0.36    0.000052           8         6           getpid
+0.34    0.000049          24         2           mknod
+0.34    0.000049          12         4           sched_getaffinity
+0.32    0.000046          11         4           getdents64
+0.30    0.000043           8         5           readlink
+0.29    0.000042          10         4           ioctl
+0.28    0.000041          13         3           sysinfo
+0.25    0.000036          12         3           pipe2
+0.24    0.000035          35         1           bind
+0.23    0.000033           8         4           membarrier
+0.13    0.000019           9         2           getsid
+0.13    0.000018           9         2           sigaltstack
+0.12    0.000017           8         2           gettid
+0.10    0.000015          15         1           socket
+0.09    0.000013          13         1           memfd_create
+0.08    0.000012          12         1           ftruncate
+0.08    0.000012          12         1           fchmod
+0.08    0.000011          11         1           listen
+0.06    0.000009           9         1           rt_sigprocmask
+0.06    0.000009           4         2         1 arch_prctl
+0.06    0.000009           9         1           set_tid_address
+0.06    0.000009           9         1           set_robust_list
+0.01    0.000002           2         1         1 get_mempolicy
+0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.014398                  1539       181 total
+</code></pre> <p>AOT 版只有 1/3，574 次，速度也變快，耗時縮短到 0.000521s：</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+16.89    0.000088           4        19           rt_sigaction
+15.74    0.000082           0       185       141 openat
+11.71    0.000061           0        78           mmap
+8.25    0.000043          10         4           ioctl
+7.49    0.000039          19         2           write
+7.10    0.000037           1        34           mprotect
+5.95    0.000031          15         2           clone
+5.57    0.000029           0        38           read
+3.45    0.000018           0        43           close
+3.45    0.000018           0        42           fstat
+2.88    0.000015           0        27           munmap
+2.50    0.000013          13         1           pipe2
+1.92    0.000010           2         4           brk
+1.92    0.000010           1         9           pread64
+1.73    0.000009           9         1           lseek
+1.73    0.000009           3         3           getpid
+1.73    0.000009           4         2           futex
+0.00    0.000000           0        40        35 stat
+0.00    0.000000           0         1           rt_sigprocmask
+0.00    0.000000           0         1         1 access
+0.00    0.000000           0        18           madvise
+0.00    0.000000           0         1           execve
+0.00    0.000000           0         1           fcntl
+0.00    0.000000           0         1           readlink
+0.00    0.000000           0         2           sysinfo
+0.00    0.000000           0         2           statfs
+0.00    0.000000           0         2         1 arch_prctl
+0.00    0.000000           0         1           gettid
+0.00    0.000000           0         3           sched_getaffinity
+0.00    0.000000           0         1           set_tid_address
+0.00    0.000000           0         1         1 get_mempolicy
+0.00    0.000000           0         1           set_robust_list
+0.00    0.000000           0         2           prlimit64
+0.00    0.000000           0         2           membarrier
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000521                   574       179 total
+</code></pre> <p>C++ 版本 64 次，耗時 0.000926s。</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+26.13    0.000242          11        22           mmap
+19.87    0.000184         184         1           execve
+9.18    0.000085          12         7           mprotect
+9.07    0.000084          16         5           openat
+6.91    0.000064          10         6           fstat
+5.94    0.000055           9         6           pread64
+5.29    0.000049           9         5           close
+5.18    0.000048          12         4           read
+4.00    0.000037          12         3           brk
+2.59    0.000024          24         1           write
+2.27    0.000021          10         2         1 arch_prctl
+1.84    0.000017          17         1           munmap
+1.73    0.000016          16         1         1 access
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000926                    64         2 total
+</code></pre> <p>C 語言版本 33 次，時間短到測不到。</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+0.00    0.000000           0         1           read
+0.00    0.000000           0         1           write
+0.00    0.000000           0         2           close
+0.00    0.000000           0         3           fstat
+0.00    0.000000           0         7           mmap
+0.00    0.000000           0         3           mprotect
+0.00    0.000000           0         1           munmap
+0.00    0.000000           0         3           brk
+0.00    0.000000           0         6           pread64
+0.00    0.000000           0         1         1 access
+0.00    0.000000           0         1           execve
+0.00    0.000000           0         2         1 arch_prctl
+0.00    0.000000           0         2           openat
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                    33         2 total
+</code></pre> <p>最後來看組合語言，各位觀眾，2 次!</p> <pre><code>% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+0.00    0.000000           0         1           write
+0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                     2           total
+</code></pre> <p>【結論】</p> <p>在以上實驗，用呼叫 System Call 頻率作為系統複雜度及執行效能指標，一如預期得到 C# &gt; C++ &gt; C &gt; 組合語言 的相對關係，愈高階的程式語言在完成相同任務的前題下，編譯產生的程式體積愈大，執行時動用的 System Call 愈多。</p> <p>不過，在大部分情境下，高階語言開發速度快、易於維護修改擴充的優勢遠大於這部分的效能損失，而且生態系統的程式庫及文件資源較中低階豐富 N 倍。故除非是極度追求速度的應用，高階語言還是多數人的選擇。(若被要求用組合語言寫 MVC 網站，開發人員會選擇自掛東南枝吧？XD)</p> <p>而 .NET AOT 在 Hello, World! 案例差異明顯，執行過程減少了近 2/3 的 System Call 次數，速度加快 27 倍。改善源自不用帶入整個 Runtime 及省掉 JIT 編譯，故對啟動速度敏感的應用，可考慮啟用 AOT 加速。</p> <p>【延伸閱讀】</p> <ul><li><a href="https://gist.github.com/5cotts/6b079908aef52e1ad319e3e3ca157c6f">組合語言 Hello World!</a></li> <li><a href="/blog/native-aot-w-python/">用 .NET 開發程式庫供 Python 呼叫 - Native AOT 應用</a></li> <li><a href="/blog/publish-native-aot-on-linux/">筆記 - 在 Linux 平台使用 .NET Native AOT</a></li></ul> <p data-slug="strace-test-for-dotnet-aot" data-title-en="Observing performance improvements of .NET AOT by strace" data-catg="C#" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article uses Linux strace to observe the performance improvements of .NET AOT, and also compares the differences between C#, C/C++, and assembly language.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638504951504191104.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638504951504191104.png" medium="image"/>
+    <pubDate>Sun, 05 May 2024 08:13:24 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【茶包射手日記】停用 Azure DevOps Server 基本驗證]]></title>
     <link>https://blog.darkthread.net/blog/disable-azure-devops-basic-auth/</link>
     <itunes:title><![CDATA[【茶包射手日記】停用 Azure DevOps Server 基本驗證]]></itunes:title>
@@ -1055,71 +1544,5 @@ simulateMouseClick(document.querySelector('button.ant-btn'));
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638491384379100034.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638491384379100034.png" medium="image"/>
     <pubDate>Fri, 19 Apr 2024 15:43:47 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[包山包海的殺手級 LLM 整合平台 - Anything LLM]]></title>
-    <link>https://blog.darkthread.net/blog/anything-llm/</link>
-    <itunes:title><![CDATA[包山包海的殺手級 LLM 整合平台 - Anything LLM]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>之前試過用 Chatty GPT <a href="/blog/chatty-gpt-azure-openai-version/">打造個人專屬 ChatGPT 聊天室</a>，但受限只能在本機桌面跑，無法多人使用。後來試了<a href="/blog/supabase/">自架 Chatbot UI 伺服器</a>因綁了 Supabase 太笨重，想等作者改 SQLite 版再用。</p> <p>現在看來不用等 Chatbot UI 了! 有個包山包海的殺手級 LLM 整合平台開源專案 - <a href="https://github.com/Mintplex-Labs/anything-llm">Anything LLM</a>，一口氣通吃所有 LLM API (ChatGPT、Azure OpenAI、Gemini、Hugging Face、Anthropic、Groq、Ollama... )、整進各大<a href="/blog/vector-db-survey/">向量資料庫</a> (Chroma、Qdrant、Pinecone、Weaviate、Milvus...)，甚至內建上傳 PDF 解析、爬網頁、掃 YouTube 影片... 等文字擷取及向量化功能，直接包辦 <a href="/blog/rag/">RAG</a> 的活兒。把這些全部整進一個聊天介面，還支援多使用者管理，能設定誰可以用哪些 LLM 功能... 一口氣把大部分想得到的 LLM 整合功能都包進去了，大家還玩什麼？<br> (讀者提醒：目前有一大塊還沒被包進去 - 整合外部資料或控制外部裝罝的 <a href="https://openai.com/blog/chatgpt-plugins">Plugin</a> 或 <a href="https://learn.microsoft.com/en-us/semantic-kernel/agents/?WT.mc_id=DOP-MVP-37580">Agent</a>。但該不會 Anything LLM 己在研發中？)</p> <p>Anything LLM 採 MIT 授權，下幾行指令跑個 Docker 容器，幾分鐘便能架好一台多人共用的 LLM 聊天網站，背後可以接 ChatGPT 也可以接地端 LLM，還能上傳 PDF 抓網頁玩 RAG，完全免費。基本上要做簡單 LLM 整合應用，不必求人，不用寫程式，稍具 Docker 與 LLM 知識即可輕鬆搞定，傻瓜到極點。<a href="https://mintplexlabs.com/">Mintplex Labs</a>這間公司真是佛心來著，但說來也算心狠手辣，Anything LLM 一口氣讓 LLM 基本技能徹底貶值，這下子你得研究到更深才能有點價值，內捲又內捲，捲到最高點。</p> <p>以下是我的安裝測試體驗筆記。(參考來源：國網中心莊朝鈞研究員線上課程 - <a href="https://www.youtube.com/watch?v=dsCYB1z64uo">大型語言模型-中階/基於RAG方案的專屬私有知識庫服務網站建置</a>)</p> <p>我選擇用以下 Docker Compose 檔案執行 Anything LLM。</p> <p>docker-compose.yml</p> <pre><code>version: '3.8'
-services:
-anythingllm:
-image: mintplexlabs/anythingllm
-container_name: anythingllm
-ports:
-- "3001:3001"
-volumes:
-- ./storage:/app/server/storage
-- ./env.txt:/app/server/.env
-environment:
-- STORAGE_DIR=/app/server/storage
-cap_add:
-- SYS_ADMIN
-extra_hosts:
-- "host.docker.internal:host-gateway"
-restart: unless-stopped
-</code></pre> <p>執行前先 <code>touch ./env.txt</code> 及 <code>.\mkdir storage</code> 建好檔案及資料夾，接著用 <code>sudo docker-compose up -d</code> 啟動容器，開瀏覽器連上 <code>http://localhost:3001</code> 即可開始使用。</p> <p>首次使用要先做初始設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638488769173929615.png"></p> <p>先選預設 LLM 模型，清單把當今的主流 LLM 一網打盡，填一下 URL、API Key 就能用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig17_638488826557503171.png"></p> <p>選擇 Embedding 服務，AnythingLLM 有內建自己的版本：(延伸閱讀：<a href="/blog/text-embedding-ada-002-lab/">動手玩 AI - 使用 OpenAI Embedding 模型比對文字相似性</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638488769179859904.png"></p> <p>接著選向量資料庫，預設可用免安裝的 <a href="https://lancedb.com/">LanceDB</a>：(延伸閱讀：<a href="/blog/vector-db-concept/">YT 筆記：向量資料庫概念科普</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638488769182140817.png"></p> <p>再來選擇單人使用還是多人共用，多人使用時要建立管理者帳號：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638488769183872101.png"></p> <p>接著系統提醒你 LLM、Embedding、向量資料庫的資料流向，告知哪些會上雲哪些在本地：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638488769185688225.png"></p> <p>再來建立第一個 Workspace：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638488769187518580.png"></p> <p>進入 Workspace，就是個標準 LLM 聊天介面，大家應能無痛上手：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638488769189593196.png"></p> <p>上圖 [1] 按下去是系統設定，其中 Users 功能可新增及管理使用者：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638488769191392527.png"></p> <p>Workspace 聊天畫面的 [2] 為 Workspace 設定，Members 頁籤可指定哪些使用者可使用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig10_638488769193111343.png"></p> <p>Workspace 聊天畫面的 [3] 按下去會帶出文件管理功能，你可以上傳 PDF、提供網址，甚至 YouTube 影片位址，讓 Anything LLM 擷取文字內容轉成向量供後續查詢：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig11_638488769194852547.png"></p> <p>按 Move to Workspace 轉入後，按 Save and Embbed 向量化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig12_638488769196607010.png"></p> <p>處理好記得按圖釘啟用文件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig13_638488769198277079.png"></p> <p>用上回<a href="/blog/rag/">小試 RAG - 整合 ChatGPT 與自有資料 (駕駛人手冊實測)</a> 的 PDF 測試，成功查到答案，並有附上出處 (Citation)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig14_638488769200075900.png"></p> <p>原始來源應來自 PDF 這段，回答內容有被大幅改寫：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig15_638488769207588091.png"></p> <p>引用來源 (Citation) 顯示的內容也不算精準：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig16_638488769209402189.png"></p> <p>但可算是成功由自訂文件查到內容，達成 RAG 的基本要求。</p> <p>【結論】</p> <p>靠著 Anything LLM，我們可以無腦架出好一個整合 ChatGPT 或地端 LLM 模型的聊天伺服器，不但內建上傳 PDF、爬網功能，還支援多使用者管理，可滿足基本 RAG 應用需求。對於想玩 LLM 整合的一般使用者來說，門檻一下變低了；而對於想投身 LLM 整合應用的開發者來說，門檻一下變高了。功能與效果不如 Anything LLM，你還玩屁？</p> <p>好捲啊~~~ 我還是躺平好了。</p> <p data-slug="anything-llm" data-fbimg="https://i.imgur.com/azddPE2.png#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>之前試過用 Chatty GPT <a href="/blog/chatty-gpt-azure-openai-version/">打造個人專屬 ChatGPT 聊天室</a>，但受限只能在本機桌面跑，無法多人使用。後來試了<a href="/blog/supabase/">自架 Chatbot UI 伺服器</a>因綁了 Supabase 太笨重，想等作者改 SQLite 版再用。</p> <p>現在看來不用等 Chatbot UI 了! 有個包山包海的殺手級 LLM 整合平台開源專案 - <a href="https://github.com/Mintplex-Labs/anything-llm">Anything LLM</a>，一口氣通吃所有 LLM API (ChatGPT、Azure OpenAI、Gemini、Hugging Face、Anthropic、Groq、Ollama... )、整進各大<a href="/blog/vector-db-survey/">向量資料庫</a> (Chroma、Qdrant、Pinecone、Weaviate、Milvus...)，甚至內建上傳 PDF 解析、爬網頁、掃 YouTube 影片... 等文字擷取及向量化功能，直接包辦 <a href="/blog/rag/">RAG</a> 的活兒。把這些全部整進一個聊天介面，還支援多使用者管理，能設定誰可以用哪些 LLM 功能... 一口氣把大部分想得到的 LLM 整合功能都包進去了，大家還玩什麼？<br> (讀者提醒：目前有一大塊還沒被包進去 - 整合外部資料或控制外部裝罝的 <a href="https://openai.com/blog/chatgpt-plugins">Plugin</a> 或 <a href="https://learn.microsoft.com/en-us/semantic-kernel/agents/?WT.mc_id=DOP-MVP-37580">Agent</a>。但該不會 Anything LLM 己在研發中？)</p> <p>Anything LLM 採 MIT 授權，下幾行指令跑個 Docker 容器，幾分鐘便能架好一台多人共用的 LLM 聊天網站，背後可以接 ChatGPT 也可以接地端 LLM，還能上傳 PDF 抓網頁玩 RAG，完全免費。基本上要做簡單 LLM 整合應用，不必求人，不用寫程式，稍具 Docker 與 LLM 知識即可輕鬆搞定，傻瓜到極點。<a href="https://mintplexlabs.com/">Mintplex Labs</a>這間公司真是佛心來著，但說來也算心狠手辣，Anything LLM 一口氣讓 LLM 基本技能徹底貶值，這下子你得研究到更深才能有點價值，內捲又內捲，捲到最高點。</p> <p>以下是我的安裝測試體驗筆記。(參考來源：國網中心莊朝鈞研究員線上課程 - <a href="https://www.youtube.com/watch?v=dsCYB1z64uo">大型語言模型-中階/基於RAG方案的專屬私有知識庫服務網站建置</a>)</p> <p>我選擇用以下 Docker Compose 檔案執行 Anything LLM。</p> <p>docker-compose.yml</p> <pre><code>version: '3.8'
-services:
-anythingllm:
-image: mintplexlabs/anythingllm
-container_name: anythingllm
-ports:
-- "3001:3001"
-volumes:
-- ./storage:/app/server/storage
-- ./env.txt:/app/server/.env
-environment:
-- STORAGE_DIR=/app/server/storage
-cap_add:
-- SYS_ADMIN
-extra_hosts:
-- "host.docker.internal:host-gateway"
-restart: unless-stopped
-</code></pre> <p>執行前先 <code>touch ./env.txt</code> 及 <code>.\mkdir storage</code> 建好檔案及資料夾，接著用 <code>sudo docker-compose up -d</code> 啟動容器，開瀏覽器連上 <code>http://localhost:3001</code> 即可開始使用。</p> <p>首次使用要先做初始設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638488769173929615.png"></p> <p>先選預設 LLM 模型，清單把當今的主流 LLM 一網打盡，填一下 URL、API Key 就能用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig17_638488826557503171.png"></p> <p>選擇 Embedding 服務，AnythingLLM 有內建自己的版本：(延伸閱讀：<a href="/blog/text-embedding-ada-002-lab/">動手玩 AI - 使用 OpenAI Embedding 模型比對文字相似性</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638488769179859904.png"></p> <p>接著選向量資料庫，預設可用免安裝的 <a href="https://lancedb.com/">LanceDB</a>：(延伸閱讀：<a href="/blog/vector-db-concept/">YT 筆記：向量資料庫概念科普</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638488769182140817.png"></p> <p>再來選擇單人使用還是多人共用，多人使用時要建立管理者帳號：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638488769183872101.png"></p> <p>接著系統提醒你 LLM、Embedding、向量資料庫的資料流向，告知哪些會上雲哪些在本地：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638488769185688225.png"></p> <p>再來建立第一個 Workspace：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638488769187518580.png"></p> <p>進入 Workspace，就是個標準 LLM 聊天介面，大家應能無痛上手：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638488769189593196.png"></p> <p>上圖 [1] 按下去是系統設定，其中 Users 功能可新增及管理使用者：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638488769191392527.png"></p> <p>Workspace 聊天畫面的 [2] 為 Workspace 設定，Members 頁籤可指定哪些使用者可使用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig10_638488769193111343.png"></p> <p>Workspace 聊天畫面的 [3] 按下去會帶出文件管理功能，你可以上傳 PDF、提供網址，甚至 YouTube 影片位址，讓 Anything LLM 擷取文字內容轉成向量供後續查詢：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig11_638488769194852547.png"></p> <p>按 Move to Workspace 轉入後，按 Save and Embbed 向量化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig12_638488769196607010.png"></p> <p>處理好記得按圖釘啟用文件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig13_638488769198277079.png"></p> <p>用上回<a href="/blog/rag/">小試 RAG - 整合 ChatGPT 與自有資料 (駕駛人手冊實測)</a> 的 PDF 測試，成功查到答案，並有附上出處 (Citation)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig14_638488769200075900.png"></p> <p>原始來源應來自 PDF 這段，回答內容有被大幅改寫：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig15_638488769207588091.png"></p> <p>引用來源 (Citation) 顯示的內容也不算精準：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig16_638488769209402189.png"></p> <p>但可算是成功由自訂文件查到內容，達成 RAG 的基本要求。</p> <p>【結論】</p> <p>靠著 Anything LLM，我們可以無腦架出好一個整合 ChatGPT 或地端 LLM 模型的聊天伺服器，不但內建上傳 PDF、爬網功能，還支援多使用者管理，可滿足基本 RAG 應用需求。對於想玩 LLM 整合的一般使用者來說，門檻一下變低了；而對於想投身 LLM 整合應用的開發者來說，門檻一下變高了。功能與效果不如 Anything LLM，你還玩屁？</p> <p>好捲啊~~~ 我還是躺平好了。</p> <p data-slug="anything-llm" data-fbimg="https://i.imgur.com/azddPE2.png#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>之前試過用 Chatty GPT <a href="/blog/chatty-gpt-azure-openai-version/">打造個人專屬 ChatGPT 聊天室</a>，但受限只能在本機桌面跑，無法多人使用。後來試了<a href="/blog/supabase/">自架 Chatbot UI 伺服器</a>因綁了 Supabase 太笨重，想等作者改 SQLite 版再用。</p> <p>現在看來不用等 Chatbot UI 了! 有個包山包海的殺手級 LLM 整合平台開源專案 - <a href="https://github.com/Mintplex-Labs/anything-llm">Anything LLM</a>，一口氣通吃所有 LLM API (ChatGPT、Azure OpenAI、Gemini、Hugging Face、Anthropic、Groq、Ollama... )、整進各大<a href="/blog/vector-db-survey/">向量資料庫</a> (Chroma、Qdrant、Pinecone、Weaviate、Milvus...)，甚至內建上傳 PDF 解析、爬網頁、掃 YouTube 影片... 等文字擷取及向量化功能，直接包辦 <a href="/blog/rag/">RAG</a> 的活兒。把這些全部整進一個聊天介面，還支援多使用者管理，能設定誰可以用哪些 LLM 功能... 一口氣把大部分想得到的 LLM 整合功能都包進去了，大家還玩什麼？<br> (讀者提醒：目前有一大塊還沒被包進去 - 整合外部資料或控制外部裝罝的 <a href="https://openai.com/blog/chatgpt-plugins">Plugin</a> 或 <a href="https://learn.microsoft.com/en-us/semantic-kernel/agents/?WT.mc_id=DOP-MVP-37580">Agent</a>。但該不會 Anything LLM 己在研發中？)</p> <p>Anything LLM 採 MIT 授權，下幾行指令跑個 Docker 容器，幾分鐘便能架好一台多人共用的 LLM 聊天網站，背後可以接 ChatGPT 也可以接地端 LLM，還能上傳 PDF 抓網頁玩 RAG，完全免費。基本上要做簡單 LLM 整合應用，不必求人，不用寫程式，稍具 Docker 與 LLM 知識即可輕鬆搞定，傻瓜到極點。<a href="https://mintplexlabs.com/">Mintplex Labs</a>這間公司真是佛心來著，但說來也算心狠手辣，Anything LLM 一口氣讓 LLM 基本技能徹底貶值，這下子你得研究到更深才能有點價值，內捲又內捲，捲到最高點。</p> <p>以下是我的安裝測試體驗筆記。(參考來源：國網中心莊朝鈞研究員線上課程 - <a href="https://www.youtube.com/watch?v=dsCYB1z64uo">大型語言模型-中階/基於RAG方案的專屬私有知識庫服務網站建置</a>)</p> <p>我選擇用以下 Docker Compose 檔案執行 Anything LLM。</p> <p>docker-compose.yml</p> <pre><code>version: '3.8'
-services:
-anythingllm:
-image: mintplexlabs/anythingllm
-container_name: anythingllm
-ports:
-- "3001:3001"
-volumes:
-- ./storage:/app/server/storage
-- ./env.txt:/app/server/.env
-environment:
-- STORAGE_DIR=/app/server/storage
-cap_add:
-- SYS_ADMIN
-extra_hosts:
-- "host.docker.internal:host-gateway"
-restart: unless-stopped
-</code></pre> <p>執行前先 <code>touch ./env.txt</code> 及 <code>.\mkdir storage</code> 建好檔案及資料夾，接著用 <code>sudo docker-compose up -d</code> 啟動容器，開瀏覽器連上 <code>http://localhost:3001</code> 即可開始使用。</p> <p>首次使用要先做初始設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638488769173929615.png"></p> <p>先選預設 LLM 模型，清單把當今的主流 LLM 一網打盡，填一下 URL、API Key 就能用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig17_638488826557503171.png"></p> <p>選擇 Embedding 服務，AnythingLLM 有內建自己的版本：(延伸閱讀：<a href="/blog/text-embedding-ada-002-lab/">動手玩 AI - 使用 OpenAI Embedding 模型比對文字相似性</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638488769179859904.png"></p> <p>接著選向量資料庫，預設可用免安裝的 <a href="https://lancedb.com/">LanceDB</a>：(延伸閱讀：<a href="/blog/vector-db-concept/">YT 筆記：向量資料庫概念科普</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638488769182140817.png"></p> <p>再來選擇單人使用還是多人共用，多人使用時要建立管理者帳號：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638488769183872101.png"></p> <p>接著系統提醒你 LLM、Embedding、向量資料庫的資料流向，告知哪些會上雲哪些在本地：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638488769185688225.png"></p> <p>再來建立第一個 Workspace：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638488769187518580.png"></p> <p>進入 Workspace，就是個標準 LLM 聊天介面，大家應能無痛上手：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638488769189593196.png"></p> <p>上圖 [1] 按下去是系統設定，其中 Users 功能可新增及管理使用者：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638488769191392527.png"></p> <p>Workspace 聊天畫面的 [2] 為 Workspace 設定，Members 頁籤可指定哪些使用者可使用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig10_638488769193111343.png"></p> <p>Workspace 聊天畫面的 [3] 按下去會帶出文件管理功能，你可以上傳 PDF、提供網址，甚至 YouTube 影片位址，讓 Anything LLM 擷取文字內容轉成向量供後續查詢：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig11_638488769194852547.png"></p> <p>按 Move to Workspace 轉入後，按 Save and Embbed 向量化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig12_638488769196607010.png"></p> <p>處理好記得按圖釘啟用文件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig13_638488769198277079.png"></p> <p>用上回<a href="/blog/rag/">小試 RAG - 整合 ChatGPT 與自有資料 (駕駛人手冊實測)</a> 的 PDF 測試，成功查到答案，並有附上出處 (Citation)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig14_638488769200075900.png"></p> <p>原始來源應來自 PDF 這段，回答內容有被大幅改寫：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig15_638488769207588091.png"></p> <p>引用來源 (Citation) 顯示的內容也不算精準：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig16_638488769209402189.png"></p> <p>但可算是成功由自訂文件查到內容，達成 RAG 的基本要求。</p> <p>【結論】</p> <p>靠著 Anything LLM，我們可以無腦架出好一個整合 ChatGPT 或地端 LLM 模型的聊天伺服器，不但內建上傳 PDF、爬網功能，還支援多使用者管理，可滿足基本 RAG 應用需求。對於想玩 LLM 整合的一般使用者來說，門檻一下變低了；而對於想投身 LLM 整合應用的開發者來說，門檻一下變高了。功能與效果不如 Anything LLM，你還玩屁？</p> <p>好捲啊~~~ 我還是躺平好了。</p> <p data-slug="anything-llm" data-fbimg="https://i.imgur.com/azddPE2.png#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638488769173929615.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638488769173929615.png" medium="image"/>
-    <pubDate>Tue, 16 Apr 2024 14:56:25 GMT</pubDate>
   </item></channel>
 </rss>
