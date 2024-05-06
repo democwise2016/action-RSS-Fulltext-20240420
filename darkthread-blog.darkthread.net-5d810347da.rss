@@ -30,6 +30,147 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Python 執行 DPAPI 解密：pywin32 與呼叫 PowerShell]]></title>
+    <link>https://blog.darkthread.net/blog/call-ps-from-python/</link>
+    <itunes:title><![CDATA[Python 執行 DPAPI 解密：pywin32 與呼叫 PowerShell]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>自己搞出來的冷門需求，自己解決。</p> <p>先前分享過，遇到用環境變數儲存 API Key 的需求，正常人幾乎都是明碼存入了事，某人因資安偏執發作，<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密</a>才安心。當場景推到 Python，再度遇上從環境變數讀 API Key 的需求，明明已有加密版又另外明碼存一份感覺是個餿主意，於是我領到一個題目：如何在 Python 解密 DPAPI 加密內容？</p> <p>爬文查到有個 <a href="https://github.com/mhammond/pywin32">Python for Win32 (pywin32) 擴充套件</a>為 Python 提供 Win32 API 呼叫介面，其中包含 <a href="https://timgolden.me.uk/pywin32-docs/win32crypt__CryptUnprotectData_meth.html">win32crypt.CryptUnprotectData</a>，可用來解開 System.Security.Cryptography.ProtectedData 加密內容。</p> <p>試了一下，先 <code>pip install pywin32</code> 裝好套件，只需幾行程式便能在 Python 端完成解密。</p> <pre><code>import os
+import re
+import win32crypt
+import base64
+def read_env_var(env_var):
+raw = os.environ.get(env_var)
+if not raw or os.name != "nt":
+return raw
+if not re.match(r"^[A-Za-z0-9+/]+={0,2}$", raw):
+return raw
+try:
+val = base64.b64decode(raw)
+entropy = bytes([2, 8, 8, 2, 5, 2, 5, 2])
+dec = win32crypt.CryptUnprotectData(val, entropy, None, None, 0)
+return dec[1].decode("utf-8")
+except Exception:
+# return error message
+return "ERROR! " + str(Exception)
+print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
+</code></pre> <p>後來想想，能不能不靠套件，直接從 Python 呼叫 PowerShell 解決呢？呼叫外部程式取得執行結果是高階程式語言的標配，Python 也不例外。Python 有個 <a href="https://kaigiks.gitbooks.io/python/content/day2.html">subprocess.run</a> 概念類似 .NET <a href="/blog/tips-excute-exe-and-get-its-output-from-net/">用 Process 執行 EXE</a>，簡單拼裝一下，用以下的程式也能順利解密。</p> <pre><code>import subprocess
+import os
+def read_env_var(env_var):
+if os.name != "nt":
+return os.environ.get(env_var)
+script = """
+Add-Type -AssemblyName System.Security
+try {
+[Console]::OutputEncoding = [Text.Encoding]::UTF8;
+$v=[Environment]::GetEnvironmentVariable('%s', [EnvironmentVariableTarget]::User);
+$entropy = @(2, 8, 8, 2, 5, 2, 5, 2);
+[System.Text.Encoding]::UTF8.GetString([System.Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($v),  $entropy, [System.Security.Cryptography.DataProtectionScope]::CurrentUser))
+}
+catch {
+'ERROR! ' + $_.Exception.Message
+}
+""" % env_var
+res = subprocess.run(
+["powershell", "-ExecutionPolicy", "Unrestricted", "-Command", script],
+capture_output=True, text=True, encoding="utf-8"
+)
+return res.stdout.strip()
+print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png"></p> <p>打完收工。</p> <p data-slug="call-ps-from-python" data-title-en="Using pywin32 and calling PowerShell in Python" data-catg="Python" data-fbimg="https://images.pexels.com/photos/2994335/pexels-photo-2994335.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">In this article, I demonstrate how to use pywin32 to decrypt content encrypted with System.Security.Cryptography.ProtectedData, as well as techniques for calling PowerShell scripts from Python.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>自己搞出來的冷門需求，自己解決。</p> <p>先前分享過，遇到用環境變數儲存 API Key 的需求，正常人幾乎都是明碼存入了事，某人因資安偏執發作，<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密</a>才安心。當場景推到 Python，再度遇上從環境變數讀 API Key 的需求，明明已有加密版又另外明碼存一份感覺是個餿主意，於是我領到一個題目：如何在 Python 解密 DPAPI 加密內容？</p> <p>爬文查到有個 <a href="https://github.com/mhammond/pywin32">Python for Win32 (pywin32) 擴充套件</a>為 Python 提供 Win32 API 呼叫介面，其中包含 <a href="https://timgolden.me.uk/pywin32-docs/win32crypt__CryptUnprotectData_meth.html">win32crypt.CryptUnprotectData</a>，可用來解開 System.Security.Cryptography.ProtectedData 加密內容。</p> <p>試了一下，先 <code>pip install pywin32</code> 裝好套件，只需幾行程式便能在 Python 端完成解密。</p> <pre><code>import os
+import re
+import win32crypt
+import base64
+def read_env_var(env_var):
+raw = os.environ.get(env_var)
+if not raw or os.name != "nt":
+return raw
+if not re.match(r"^[A-Za-z0-9+/]+={0,2}$", raw):
+return raw
+try:
+val = base64.b64decode(raw)
+entropy = bytes([2, 8, 8, 2, 5, 2, 5, 2])
+dec = win32crypt.CryptUnprotectData(val, entropy, None, None, 0)
+return dec[1].decode("utf-8")
+except Exception:
+# return error message
+return "ERROR! " + str(Exception)
+print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
+</code></pre> <p>後來想想，能不能不靠套件，直接從 Python 呼叫 PowerShell 解決呢？呼叫外部程式取得執行結果是高階程式語言的標配，Python 也不例外。Python 有個 <a href="https://kaigiks.gitbooks.io/python/content/day2.html">subprocess.run</a> 概念類似 .NET <a href="/blog/tips-excute-exe-and-get-its-output-from-net/">用 Process 執行 EXE</a>，簡單拼裝一下，用以下的程式也能順利解密。</p> <pre><code>import subprocess
+import os
+def read_env_var(env_var):
+if os.name != "nt":
+return os.environ.get(env_var)
+script = """
+Add-Type -AssemblyName System.Security
+try {
+[Console]::OutputEncoding = [Text.Encoding]::UTF8;
+$v=[Environment]::GetEnvironmentVariable('%s', [EnvironmentVariableTarget]::User);
+$entropy = @(2, 8, 8, 2, 5, 2, 5, 2);
+[System.Text.Encoding]::UTF8.GetString([System.Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($v),  $entropy, [System.Security.Cryptography.DataProtectionScope]::CurrentUser))
+}
+catch {
+'ERROR! ' + $_.Exception.Message
+}
+""" % env_var
+res = subprocess.run(
+["powershell", "-ExecutionPolicy", "Unrestricted", "-Command", script],
+capture_output=True, text=True, encoding="utf-8"
+)
+return res.stdout.strip()
+print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png"></p> <p>打完收工。</p> <p data-slug="call-ps-from-python" data-title-en="Using pywin32 and calling PowerShell in Python" data-catg="Python" data-fbimg="https://images.pexels.com/photos/2994335/pexels-photo-2994335.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">In this article, I demonstrate how to use pywin32 to decrypt content encrypted with System.Security.Cryptography.ProtectedData, as well as techniques for calling PowerShell scripts from Python.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>自己搞出來的冷門需求，自己解決。</p> <p>先前分享過，遇到用環境變數儲存 API Key 的需求，正常人幾乎都是明碼存入了事，某人因資安偏執發作，<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密</a>才安心。當場景推到 Python，再度遇上從環境變數讀 API Key 的需求，明明已有加密版又另外明碼存一份感覺是個餿主意，於是我領到一個題目：如何在 Python 解密 DPAPI 加密內容？</p> <p>爬文查到有個 <a href="https://github.com/mhammond/pywin32">Python for Win32 (pywin32) 擴充套件</a>為 Python 提供 Win32 API 呼叫介面，其中包含 <a href="https://timgolden.me.uk/pywin32-docs/win32crypt__CryptUnprotectData_meth.html">win32crypt.CryptUnprotectData</a>，可用來解開 System.Security.Cryptography.ProtectedData 加密內容。</p> <p>試了一下，先 <code>pip install pywin32</code> 裝好套件，只需幾行程式便能在 Python 端完成解密。</p> <pre><code>import os
+import re
+import win32crypt
+import base64
+def read_env_var(env_var):
+raw = os.environ.get(env_var)
+if not raw or os.name != "nt":
+return raw
+if not re.match(r"^[A-Za-z0-9+/]+={0,2}$", raw):
+return raw
+try:
+val = base64.b64decode(raw)
+entropy = bytes([2, 8, 8, 2, 5, 2, 5, 2])
+dec = win32crypt.CryptUnprotectData(val, entropy, None, None, 0)
+return dec[1].decode("utf-8")
+except Exception:
+# return error message
+return "ERROR! " + str(Exception)
+print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
+</code></pre> <p>後來想想，能不能不靠套件，直接從 Python 呼叫 PowerShell 解決呢？呼叫外部程式取得執行結果是高階程式語言的標配，Python 也不例外。Python 有個 <a href="https://kaigiks.gitbooks.io/python/content/day2.html">subprocess.run</a> 概念類似 .NET <a href="/blog/tips-excute-exe-and-get-its-output-from-net/">用 Process 執行 EXE</a>，簡單拼裝一下，用以下的程式也能順利解密。</p> <pre><code>import subprocess
+import os
+def read_env_var(env_var):
+if os.name != "nt":
+return os.environ.get(env_var)
+script = """
+Add-Type -AssemblyName System.Security
+try {
+[Console]::OutputEncoding = [Text.Encoding]::UTF8;
+$v=[Environment]::GetEnvironmentVariable('%s', [EnvironmentVariableTarget]::User);
+$entropy = @(2, 8, 8, 2, 5, 2, 5, 2);
+[System.Text.Encoding]::UTF8.GetString([System.Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($v),  $entropy, [System.Security.Cryptography.DataProtectionScope]::CurrentUser))
+}
+catch {
+'ERROR! ' + $_.Exception.Message
+}
+""" % env_var
+res = subprocess.run(
+["powershell", "-ExecutionPolicy", "Unrestricted", "-Command", script],
+capture_output=True, text=True, encoding="utf-8"
+)
+return res.stdout.strip()
+print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png"></p> <p>打完收工。</p> <p data-slug="call-ps-from-python" data-title-en="Using pywin32 and calling PowerShell in Python" data-catg="Python" data-fbimg="https://images.pexels.com/photos/2994335/pexels-photo-2994335.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">In this article, I demonstrate how to use pywin32 to decrypt content encrypted with System.Security.Cryptography.ProtectedData, as well as techniques for calling PowerShell scripts from Python.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png" medium="image"/>
+    <pubDate>Mon, 06 May 2024 14:28:27 GMT</pubDate>
+  </item><item>
     <title><![CDATA[由 Linux strace 看 .NET AOT 效能差異 (同場加映組合語言、C/C++ 比較)]]></title>
     <link>https://blog.darkthread.net/blog/strace-test-for-dotnet-aot/</link>
     <itunes:title><![CDATA[由 Linux strace 看 .NET AOT 效能差異 (同場加映組合語言、C/C++ 比較)]]></itunes:title>
@@ -1457,92 +1598,5 @@ plt.show()
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638491779775466370.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638491779775466370.png" medium="image"/>
     <pubDate>Sat, 20 Apr 2024 02:44:23 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[在 React.js 網頁模擬文字輸入及滑鼠點擊]]></title>
-    <link>https://blog.darkthread.net/blog/simu-input-on-reactjs-page/</link>
-    <itunes:title><![CDATA[在 React.js 網頁模擬文字輸入及滑鼠點擊]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>如果有人問你，要怎麼寫 JavaScript 在以下網頁的 textarea 欄位塞值並按下送出鈕，你可能會像我噗哧一笑，想說這是什麼白痴問題？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638491384379100034.png"></p> <p>然後用肌肉記憶生出兩行程式碼：</p> <pre><code>document.querySelector('textarea.ant-input').value = 'summary';
-document.querySelector('button.ant-btn').click();
-</code></pre> <p>漫不在乎按下 Enter，正要帥氣轉身，高歌離席... 不料，網頁沒送出，登楞!</p> <p>試了五分鐘換了幾種寫法，textarea 有出現文字，但滑鼠點了欄位文字會消失；程式無法觸發按鈕，趁 textarea 有內容，手動按鈕也無法送出。我這才意識到，代誌不像憨人想得那麼簡單...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638491384383790712.gif"></p> <p>經過一番調查，大概有了頭緒。網頁是用 React.js 寫的，靠 Virtual DOM 驅動，直接修改表象的 HTML 元素是沒意義的，背後對映的值沒改改，下一輪 Render 時，HTML 元素的值便會被覆寫。這就是為什麼去點 textarea，JavaScript 寫入的值會消失；手動按鈕無效則是因為從 React.js 角度 textarea 是空的不能送出。</p> <p>江湖一點訣，講破不值錢。查到要在 React.js 網頁模擬輸入及 Click 的寫法。<a href="https://stackoverflow.com/a/46012210/288936">參考 1</a> <a href="https://stackoverflow.com/a/54316368/288936">參考 2</a></p> <pre><code>const textAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-function simulateTextareaInput(input, newValue) {
-textAreaValueSetter.call(input, newValue);
-const event = new Event('input', { bubbles: true });
-event.simulated = true;
-input.dispatchEvent(event);
-}
-const mouseClickEvents = ['mousedown', 'click', 'mouseup'];
-function simulateMouseClick(element){
-mouseClickEvents.forEach(mouseEventType =&gt;
-element.dispatchEvent(
-new MouseEvent(mouseEventType, {
-view: window,
-bubbles: true,
-cancelable: true,
-buttons: 1
-})
-)
-);
-}
-simulateTextareaInput(document.querySelector('textarea.ant-input'), 'summary');
-simulateMouseClick(document.querySelector('button.ant-btn'));
-</code></pre> <p>背後原理是因為 React 覆寫了 value 屬性 setter，故我們要改用 prototype.value 原生的 setter 更新 value，再觸發 input 事件。模擬點擊則要連續觸發 mousedown、click、mouseup 事件。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638491384389840720.gif"></p> <p data-slug="simu-input-on-reactjs-page" dadta-title-en="Simulating text input and click on React.js pages" data-catg="Web Deployment" data-fbimg="https://cdn.pixabay.com/photo/2016/12/05/11/39/fox-1883658_960_720.jpg#960#641">The web page developed with React.js cannot be modified using the regular DOM API due to the Virtual DOM. This article introduces how to simulate input and button clicks.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>如果有人問你，要怎麼寫 JavaScript 在以下網頁的 textarea 欄位塞值並按下送出鈕，你可能會像我噗哧一笑，想說這是什麼白痴問題？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638491384379100034.png"></p> <p>然後用肌肉記憶生出兩行程式碼：</p> <pre><code>document.querySelector('textarea.ant-input').value = 'summary';
-document.querySelector('button.ant-btn').click();
-</code></pre> <p>漫不在乎按下 Enter，正要帥氣轉身，高歌離席... 不料，網頁沒送出，登楞!</p> <p>試了五分鐘換了幾種寫法，textarea 有出現文字，但滑鼠點了欄位文字會消失；程式無法觸發按鈕，趁 textarea 有內容，手動按鈕也無法送出。我這才意識到，代誌不像憨人想得那麼簡單...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638491384383790712.gif"></p> <p>經過一番調查，大概有了頭緒。網頁是用 React.js 寫的，靠 Virtual DOM 驅動，直接修改表象的 HTML 元素是沒意義的，背後對映的值沒改改，下一輪 Render 時，HTML 元素的值便會被覆寫。這就是為什麼去點 textarea，JavaScript 寫入的值會消失；手動按鈕無效則是因為從 React.js 角度 textarea 是空的不能送出。</p> <p>江湖一點訣，講破不值錢。查到要在 React.js 網頁模擬輸入及 Click 的寫法。<a href="https://stackoverflow.com/a/46012210/288936">參考 1</a> <a href="https://stackoverflow.com/a/54316368/288936">參考 2</a></p> <pre><code>const textAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-function simulateTextareaInput(input, newValue) {
-textAreaValueSetter.call(input, newValue);
-const event = new Event('input', { bubbles: true });
-event.simulated = true;
-input.dispatchEvent(event);
-}
-const mouseClickEvents = ['mousedown', 'click', 'mouseup'];
-function simulateMouseClick(element){
-mouseClickEvents.forEach(mouseEventType =&gt;
-element.dispatchEvent(
-new MouseEvent(mouseEventType, {
-view: window,
-bubbles: true,
-cancelable: true,
-buttons: 1
-})
-)
-);
-}
-simulateTextareaInput(document.querySelector('textarea.ant-input'), 'summary');
-simulateMouseClick(document.querySelector('button.ant-btn'));
-</code></pre> <p>背後原理是因為 React 覆寫了 value 屬性 setter，故我們要改用 prototype.value 原生的 setter 更新 value，再觸發 input 事件。模擬點擊則要連續觸發 mousedown、click、mouseup 事件。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638491384389840720.gif"></p> <p data-slug="simu-input-on-reactjs-page" dadta-title-en="Simulating text input and click on React.js pages" data-catg="Web Deployment" data-fbimg="https://cdn.pixabay.com/photo/2016/12/05/11/39/fox-1883658_960_720.jpg#960#641">The web page developed with React.js cannot be modified using the regular DOM API due to the Virtual DOM. This article introduces how to simulate input and button clicks.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>如果有人問你，要怎麼寫 JavaScript 在以下網頁的 textarea 欄位塞值並按下送出鈕，你可能會像我噗哧一笑，想說這是什麼白痴問題？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638491384379100034.png"></p> <p>然後用肌肉記憶生出兩行程式碼：</p> <pre><code>document.querySelector('textarea.ant-input').value = 'summary';
-document.querySelector('button.ant-btn').click();
-</code></pre> <p>漫不在乎按下 Enter，正要帥氣轉身，高歌離席... 不料，網頁沒送出，登楞!</p> <p>試了五分鐘換了幾種寫法，textarea 有出現文字，但滑鼠點了欄位文字會消失；程式無法觸發按鈕，趁 textarea 有內容，手動按鈕也無法送出。我這才意識到，代誌不像憨人想得那麼簡單...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638491384383790712.gif"></p> <p>經過一番調查，大概有了頭緒。網頁是用 React.js 寫的，靠 Virtual DOM 驅動，直接修改表象的 HTML 元素是沒意義的，背後對映的值沒改改，下一輪 Render 時，HTML 元素的值便會被覆寫。這就是為什麼去點 textarea，JavaScript 寫入的值會消失；手動按鈕無效則是因為從 React.js 角度 textarea 是空的不能送出。</p> <p>江湖一點訣，講破不值錢。查到要在 React.js 網頁模擬輸入及 Click 的寫法。<a href="https://stackoverflow.com/a/46012210/288936">參考 1</a> <a href="https://stackoverflow.com/a/54316368/288936">參考 2</a></p> <pre><code>const textAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-function simulateTextareaInput(input, newValue) {
-textAreaValueSetter.call(input, newValue);
-const event = new Event('input', { bubbles: true });
-event.simulated = true;
-input.dispatchEvent(event);
-}
-const mouseClickEvents = ['mousedown', 'click', 'mouseup'];
-function simulateMouseClick(element){
-mouseClickEvents.forEach(mouseEventType =&gt;
-element.dispatchEvent(
-new MouseEvent(mouseEventType, {
-view: window,
-bubbles: true,
-cancelable: true,
-buttons: 1
-})
-)
-);
-}
-simulateTextareaInput(document.querySelector('textarea.ant-input'), 'summary');
-simulateMouseClick(document.querySelector('button.ant-btn'));
-</code></pre> <p>背後原理是因為 React 覆寫了 value 屬性 setter，故我們要改用 prototype.value 原生的 setter 更新 value，再觸發 input 事件。模擬點擊則要連續觸發 mousedown、click、mouseup 事件。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638491384389840720.gif"></p> <p data-slug="simu-input-on-reactjs-page" dadta-title-en="Simulating text input and click on React.js pages" data-catg="Web Deployment" data-fbimg="https://cdn.pixabay.com/photo/2016/12/05/11/39/fox-1883658_960_720.jpg#960#641">The web page developed with React.js cannot be modified using the regular DOM API due to the Virtual DOM. This article introduces how to simulate input and button clicks.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638491384379100034.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638491384379100034.png" medium="image"/>
-    <pubDate>Fri, 19 Apr 2024 15:43:47 GMT</pubDate>
   </item></channel>
 </rss>
