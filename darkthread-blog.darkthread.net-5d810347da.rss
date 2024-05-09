@@ -30,6 +30,384 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[PowerShell CSV / Excel 轉換函式]]></title>
+    <link>https://blog.darkthread.net/blog/ps-csv-excel-conv/</link>
+    <itunes:title><![CDATA[PowerShell CSV / Excel 轉換函式]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>想在 PowerShell 中將 CSV 轉成 Excel 或將 Excel 轉成 CSV。例如，將以下的 CSV：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638508661427057074.png"></p> <p>轉成以下格式的 Excel：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638508661428799783.png"></p> <p>嚴格來說，這類轉換用手工作也不算難事，Excel 開啟 CSV 置中上色再調成自動寬度就好，但大家知道我性急直逼王藍田，同樣動作多做兩次就想翻桌。心想反正難度不高，有 <a href="/blog/closedxml/">ClosedXML</a> 在用單手都能寫完，也懶得去找現成程式庫或工具了，直接開工。</p> <p>除了給檔名讀 CSV，順便復習用 Pipeline 吃物件陣列的進階寫法，寫成 ConvertTo-Excel、ConvertFrom-Excel 兩個函式，程式碼如下：</p> <pre><code>Function ConvertTo-Excel {
+[CmdletBinding()]
+Param (
+[Parameter(ValueFromPipeline = $true)]
+[PSCustomObject]$csvObject,
+[string]$csvFile,
+[string]$excelFile
+)
+Begin {
+$collection = @()
+}
+Process {
+$collection += $csvObject
+}
+End {
+$ErrorActionPreference = "Stop"
+if (!$collection -or $collection.Count -eq 0) {
+if ($csvFile) {
+if (!(Test-Path $csvFile)) {
+Write-Error "File not found: $csvFile"
+return
+}
+$csv = Import-Csv $csvFile
+}
+}
+else {
+$csv = $collection
+}
+if (!$csv) {
+Write-Error "No CSV data or csvFile specified"
+return
+}
+if (!$excelFile) {
+if (!$csvFile) {
+Write-Error "No excelFile specified"
+return
+}
+$excelFile = $csvFile -replace '\.csv$', '.xlsx'
+}
+Add-Type -Path $PSScriptRoot\ClosedXML.dll
+Add-Type -Path $PSScriptRoot\DocumentFormat.OpenXml.dll
+Add-Type -Path $PSScriptRoot\ExcelNumberFormat.dll
+$wb = New-Object ClosedXML.Excel.XLWorkbook
+$shtName = 'CsvData'
+if ($csvFile) {
+$shtName = [System.IO.Path]::GetFileNameWithoutExtension($csvFile)
+}
+$ws = $wb.Worksheets.Add($shtName)
+$colIdx = 1
+$csv[0].PSObject.Properties | ForEach-Object {
+$ws.Cell(1, $colIdx++).Value = $_.Name
+}
+$range = $ws.Range($ws.Cell(1, 1), $ws.Cell(1, $colIdx - 1))
+$range.Style.Alignment.Horizontal = [DocumentFormat.OpenXml.Spreadsheet.HorizontalAlignmentValues]::Center
+$range.Style.Fill.BackgroundColor = [ClosedXML.Excel.XLColor]::LightGray
+$rowIdx = 2
+$csv | ForEach-Object {
+$colIdx = 1
+$_.PSObject.Properties | ForEach-Object {
+$ws.Cell($rowIdx, $colIdx).Value = $_.Value
+$colIdx++
+}
+$rowIdx++
+}
+$ws.Columns().AdjustToContents() | Out-Null
+$ws.Columns() | ForEach-Object {
+$_.Width += 1
+}
+[System.IO.Directory]::SetCurrentDirectory((Get-Location))
+$wb.SaveAs($excelFile)
+}
+}
+Function ConvertFrom-Excel {
+param (
+[Parameter(Mandatory = $true)]
+[string]$excelFile
+)
+$ErrorActionPreference = "Stop"
+if (!$excelFile) {
+Write-Error "No excelFile specified"
+return
+}
+if (!(Test-Path $excelFile)) {
+Write-Error "File not found: $excelFile"
+return
+}
+$excelFile = Resolve-Path $excelFile
+Add-Type -Path $PSScriptRoot\ClosedXML.dll
+Add-Type -Path $PSScriptRoot\DocumentFormat.OpenXml.dll
+Add-Type -Path $PSScriptRoot\ExcelNumberFormat.dll
+$wb = New-Object ClosedXML.Excel.XLWorkbook($excelFile)
+$ws = $wb.Worksheets[0]
+$csv = @()
+[string[]]$colNames = $ws.Rows(1).Cells() | ForEach-Object { $_.Value }
+$rowIdx = 1
+$ws.RowsUsed() | ForEach-Object {
+if ($rowIdx++ -eq 1) {
+return
+}
+$row = New-Object PSObject
+for ($colIdx = 0; $colIdx -lt $colNames.Length; $colIdx++) {
+$row | Add-Member -MemberType NoteProperty -Name $colNames[$colIdx] -Value $_.Cell($colIdx + 1).Value
+}
+$csv += $row
+}
+$csv
+}
+</code></pre> <p>由於程式會用到 ClosedXML 程式庫，你可以下載 .nupkg 解壓縮取出 DLL 檔，或是開個 .NET 專案參照 ClosedXML NuGet Package 編譯後從 bin 目錄取檔。推薦用 <a href="https://www.nuget.org/packages/ClosedXML/0.96.0#dependencies-body-tab">ClosdXML 0.96.0</a> 之前的版本，.NET Formework 4.0 只需要部署 ClosedXML.dll、DocumentFormat.OpenXml.dll、ExcelNumberFormat.dll 三個 DLL，0.97 後 .NET Standard 2.0 需一併部署的檔案增加到 9 個。</p> <p>沒花時間包成 <a href="https://blog.darkthread.net/blog/ps-module/">PowerShell 模組</a>，要使用就在 .ps1 中寫 <code>. &lt;path&gt;\CsvExcelConv.ps1</code>，即可呼叫 ConvertTo-Excel() 及 ConvertFrom-Excel() 函式，範例如下：</p> <pre><code>. .\CsvExcelConv.ps1
+# 吃 CSV 檔
+ConvertTo-Excel -csvFile .\sample.csv -excelFile sample1.xlsx
+# 吃 ConvertFrom-Csv 結果
+Get-Content .\sample.csv | ConvertFrom-Csv | ConvertTo-Excel -excelFile sample2.xlsx
+# 吃 Select-Object 或 ForEach-Object 結果
+Get-ChildItem . -Filter '*.dll' | ForEach-Object {
+[PSCustomObject]@{
+檔案路徑 = $_.FullName
+檔案大小 = $_.Size
+}
+} | ConvertTo-Excel -excelFile .\dll-list.xlsx
+# 驗證結果
+ConvertFrom-Excel .\dll-list.xlsx | Format-Table
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638508661430442890.png"></p> <p data-slug="ps-csv-excel-conv" data-title-en="PowerShell ConvertTo-Excel and ConvertFrom-Excel by ClosedXML" data-catg=".NET" data-fbimg="https://i.imgur.com/lXlrMc4.jpg#1280#854">Due to work requirements, I wrote a simple PowerShell function to convert between CSV and Excel.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>想在 PowerShell 中將 CSV 轉成 Excel 或將 Excel 轉成 CSV。例如，將以下的 CSV：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638508661427057074.png"></p> <p>轉成以下格式的 Excel：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638508661428799783.png"></p> <p>嚴格來說，這類轉換用手工作也不算難事，Excel 開啟 CSV 置中上色再調成自動寬度就好，但大家知道我性急直逼王藍田，同樣動作多做兩次就想翻桌。心想反正難度不高，有 <a href="/blog/closedxml/">ClosedXML</a> 在用單手都能寫完，也懶得去找現成程式庫或工具了，直接開工。</p> <p>除了給檔名讀 CSV，順便復習用 Pipeline 吃物件陣列的進階寫法，寫成 ConvertTo-Excel、ConvertFrom-Excel 兩個函式，程式碼如下：</p> <pre><code>Function ConvertTo-Excel {
+[CmdletBinding()]
+Param (
+[Parameter(ValueFromPipeline = $true)]
+[PSCustomObject]$csvObject,
+[string]$csvFile,
+[string]$excelFile
+)
+Begin {
+$collection = @()
+}
+Process {
+$collection += $csvObject
+}
+End {
+$ErrorActionPreference = "Stop"
+if (!$collection -or $collection.Count -eq 0) {
+if ($csvFile) {
+if (!(Test-Path $csvFile)) {
+Write-Error "File not found: $csvFile"
+return
+}
+$csv = Import-Csv $csvFile
+}
+}
+else {
+$csv = $collection
+}
+if (!$csv) {
+Write-Error "No CSV data or csvFile specified"
+return
+}
+if (!$excelFile) {
+if (!$csvFile) {
+Write-Error "No excelFile specified"
+return
+}
+$excelFile = $csvFile -replace '\.csv$', '.xlsx'
+}
+Add-Type -Path $PSScriptRoot\ClosedXML.dll
+Add-Type -Path $PSScriptRoot\DocumentFormat.OpenXml.dll
+Add-Type -Path $PSScriptRoot\ExcelNumberFormat.dll
+$wb = New-Object ClosedXML.Excel.XLWorkbook
+$shtName = 'CsvData'
+if ($csvFile) {
+$shtName = [System.IO.Path]::GetFileNameWithoutExtension($csvFile)
+}
+$ws = $wb.Worksheets.Add($shtName)
+$colIdx = 1
+$csv[0].PSObject.Properties | ForEach-Object {
+$ws.Cell(1, $colIdx++).Value = $_.Name
+}
+$range = $ws.Range($ws.Cell(1, 1), $ws.Cell(1, $colIdx - 1))
+$range.Style.Alignment.Horizontal = [DocumentFormat.OpenXml.Spreadsheet.HorizontalAlignmentValues]::Center
+$range.Style.Fill.BackgroundColor = [ClosedXML.Excel.XLColor]::LightGray
+$rowIdx = 2
+$csv | ForEach-Object {
+$colIdx = 1
+$_.PSObject.Properties | ForEach-Object {
+$ws.Cell($rowIdx, $colIdx).Value = $_.Value
+$colIdx++
+}
+$rowIdx++
+}
+$ws.Columns().AdjustToContents() | Out-Null
+$ws.Columns() | ForEach-Object {
+$_.Width += 1
+}
+[System.IO.Directory]::SetCurrentDirectory((Get-Location))
+$wb.SaveAs($excelFile)
+}
+}
+Function ConvertFrom-Excel {
+param (
+[Parameter(Mandatory = $true)]
+[string]$excelFile
+)
+$ErrorActionPreference = "Stop"
+if (!$excelFile) {
+Write-Error "No excelFile specified"
+return
+}
+if (!(Test-Path $excelFile)) {
+Write-Error "File not found: $excelFile"
+return
+}
+$excelFile = Resolve-Path $excelFile
+Add-Type -Path $PSScriptRoot\ClosedXML.dll
+Add-Type -Path $PSScriptRoot\DocumentFormat.OpenXml.dll
+Add-Type -Path $PSScriptRoot\ExcelNumberFormat.dll
+$wb = New-Object ClosedXML.Excel.XLWorkbook($excelFile)
+$ws = $wb.Worksheets[0]
+$csv = @()
+[string[]]$colNames = $ws.Rows(1).Cells() | ForEach-Object { $_.Value }
+$rowIdx = 1
+$ws.RowsUsed() | ForEach-Object {
+if ($rowIdx++ -eq 1) {
+return
+}
+$row = New-Object PSObject
+for ($colIdx = 0; $colIdx -lt $colNames.Length; $colIdx++) {
+$row | Add-Member -MemberType NoteProperty -Name $colNames[$colIdx] -Value $_.Cell($colIdx + 1).Value
+}
+$csv += $row
+}
+$csv
+}
+</code></pre> <p>由於程式會用到 ClosedXML 程式庫，你可以下載 .nupkg 解壓縮取出 DLL 檔，或是開個 .NET 專案參照 ClosedXML NuGet Package 編譯後從 bin 目錄取檔。推薦用 <a href="https://www.nuget.org/packages/ClosedXML/0.96.0#dependencies-body-tab">ClosdXML 0.96.0</a> 之前的版本，.NET Formework 4.0 只需要部署 ClosedXML.dll、DocumentFormat.OpenXml.dll、ExcelNumberFormat.dll 三個 DLL，0.97 後 .NET Standard 2.0 需一併部署的檔案增加到 9 個。</p> <p>沒花時間包成 <a href="https://blog.darkthread.net/blog/ps-module/">PowerShell 模組</a>，要使用就在 .ps1 中寫 <code>. &lt;path&gt;\CsvExcelConv.ps1</code>，即可呼叫 ConvertTo-Excel() 及 ConvertFrom-Excel() 函式，範例如下：</p> <pre><code>. .\CsvExcelConv.ps1
+# 吃 CSV 檔
+ConvertTo-Excel -csvFile .\sample.csv -excelFile sample1.xlsx
+# 吃 ConvertFrom-Csv 結果
+Get-Content .\sample.csv | ConvertFrom-Csv | ConvertTo-Excel -excelFile sample2.xlsx
+# 吃 Select-Object 或 ForEach-Object 結果
+Get-ChildItem . -Filter '*.dll' | ForEach-Object {
+[PSCustomObject]@{
+檔案路徑 = $_.FullName
+檔案大小 = $_.Size
+}
+} | ConvertTo-Excel -excelFile .\dll-list.xlsx
+# 驗證結果
+ConvertFrom-Excel .\dll-list.xlsx | Format-Table
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638508661430442890.png"></p> <p data-slug="ps-csv-excel-conv" data-title-en="PowerShell ConvertTo-Excel and ConvertFrom-Excel by ClosedXML" data-catg=".NET" data-fbimg="https://i.imgur.com/lXlrMc4.jpg#1280#854">Due to work requirements, I wrote a simple PowerShell function to convert between CSV and Excel.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>想在 PowerShell 中將 CSV 轉成 Excel 或將 Excel 轉成 CSV。例如，將以下的 CSV：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638508661427057074.png"></p> <p>轉成以下格式的 Excel：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638508661428799783.png"></p> <p>嚴格來說，這類轉換用手工作也不算難事，Excel 開啟 CSV 置中上色再調成自動寬度就好，但大家知道我性急直逼王藍田，同樣動作多做兩次就想翻桌。心想反正難度不高，有 <a href="/blog/closedxml/">ClosedXML</a> 在用單手都能寫完，也懶得去找現成程式庫或工具了，直接開工。</p> <p>除了給檔名讀 CSV，順便復習用 Pipeline 吃物件陣列的進階寫法，寫成 ConvertTo-Excel、ConvertFrom-Excel 兩個函式，程式碼如下：</p> <pre><code>Function ConvertTo-Excel {
+[CmdletBinding()]
+Param (
+[Parameter(ValueFromPipeline = $true)]
+[PSCustomObject]$csvObject,
+[string]$csvFile,
+[string]$excelFile
+)
+Begin {
+$collection = @()
+}
+Process {
+$collection += $csvObject
+}
+End {
+$ErrorActionPreference = "Stop"
+if (!$collection -or $collection.Count -eq 0) {
+if ($csvFile) {
+if (!(Test-Path $csvFile)) {
+Write-Error "File not found: $csvFile"
+return
+}
+$csv = Import-Csv $csvFile
+}
+}
+else {
+$csv = $collection
+}
+if (!$csv) {
+Write-Error "No CSV data or csvFile specified"
+return
+}
+if (!$excelFile) {
+if (!$csvFile) {
+Write-Error "No excelFile specified"
+return
+}
+$excelFile = $csvFile -replace '\.csv$', '.xlsx'
+}
+Add-Type -Path $PSScriptRoot\ClosedXML.dll
+Add-Type -Path $PSScriptRoot\DocumentFormat.OpenXml.dll
+Add-Type -Path $PSScriptRoot\ExcelNumberFormat.dll
+$wb = New-Object ClosedXML.Excel.XLWorkbook
+$shtName = 'CsvData'
+if ($csvFile) {
+$shtName = [System.IO.Path]::GetFileNameWithoutExtension($csvFile)
+}
+$ws = $wb.Worksheets.Add($shtName)
+$colIdx = 1
+$csv[0].PSObject.Properties | ForEach-Object {
+$ws.Cell(1, $colIdx++).Value = $_.Name
+}
+$range = $ws.Range($ws.Cell(1, 1), $ws.Cell(1, $colIdx - 1))
+$range.Style.Alignment.Horizontal = [DocumentFormat.OpenXml.Spreadsheet.HorizontalAlignmentValues]::Center
+$range.Style.Fill.BackgroundColor = [ClosedXML.Excel.XLColor]::LightGray
+$rowIdx = 2
+$csv | ForEach-Object {
+$colIdx = 1
+$_.PSObject.Properties | ForEach-Object {
+$ws.Cell($rowIdx, $colIdx).Value = $_.Value
+$colIdx++
+}
+$rowIdx++
+}
+$ws.Columns().AdjustToContents() | Out-Null
+$ws.Columns() | ForEach-Object {
+$_.Width += 1
+}
+[System.IO.Directory]::SetCurrentDirectory((Get-Location))
+$wb.SaveAs($excelFile)
+}
+}
+Function ConvertFrom-Excel {
+param (
+[Parameter(Mandatory = $true)]
+[string]$excelFile
+)
+$ErrorActionPreference = "Stop"
+if (!$excelFile) {
+Write-Error "No excelFile specified"
+return
+}
+if (!(Test-Path $excelFile)) {
+Write-Error "File not found: $excelFile"
+return
+}
+$excelFile = Resolve-Path $excelFile
+Add-Type -Path $PSScriptRoot\ClosedXML.dll
+Add-Type -Path $PSScriptRoot\DocumentFormat.OpenXml.dll
+Add-Type -Path $PSScriptRoot\ExcelNumberFormat.dll
+$wb = New-Object ClosedXML.Excel.XLWorkbook($excelFile)
+$ws = $wb.Worksheets[0]
+$csv = @()
+[string[]]$colNames = $ws.Rows(1).Cells() | ForEach-Object { $_.Value }
+$rowIdx = 1
+$ws.RowsUsed() | ForEach-Object {
+if ($rowIdx++ -eq 1) {
+return
+}
+$row = New-Object PSObject
+for ($colIdx = 0; $colIdx -lt $colNames.Length; $colIdx++) {
+$row | Add-Member -MemberType NoteProperty -Name $colNames[$colIdx] -Value $_.Cell($colIdx + 1).Value
+}
+$csv += $row
+}
+$csv
+}
+</code></pre> <p>由於程式會用到 ClosedXML 程式庫，你可以下載 .nupkg 解壓縮取出 DLL 檔，或是開個 .NET 專案參照 ClosedXML NuGet Package 編譯後從 bin 目錄取檔。推薦用 <a href="https://www.nuget.org/packages/ClosedXML/0.96.0#dependencies-body-tab">ClosdXML 0.96.0</a> 之前的版本，.NET Formework 4.0 只需要部署 ClosedXML.dll、DocumentFormat.OpenXml.dll、ExcelNumberFormat.dll 三個 DLL，0.97 後 .NET Standard 2.0 需一併部署的檔案增加到 9 個。</p> <p>沒花時間包成 <a href="https://blog.darkthread.net/blog/ps-module/">PowerShell 模組</a>，要使用就在 .ps1 中寫 <code>. &lt;path&gt;\CsvExcelConv.ps1</code>，即可呼叫 ConvertTo-Excel() 及 ConvertFrom-Excel() 函式，範例如下：</p> <pre><code>. .\CsvExcelConv.ps1
+# 吃 CSV 檔
+ConvertTo-Excel -csvFile .\sample.csv -excelFile sample1.xlsx
+# 吃 ConvertFrom-Csv 結果
+Get-Content .\sample.csv | ConvertFrom-Csv | ConvertTo-Excel -excelFile sample2.xlsx
+# 吃 Select-Object 或 ForEach-Object 結果
+Get-ChildItem . -Filter '*.dll' | ForEach-Object {
+[PSCustomObject]@{
+檔案路徑 = $_.FullName
+檔案大小 = $_.Size
+}
+} | ConvertTo-Excel -excelFile .\dll-list.xlsx
+# 驗證結果
+ConvertFrom-Excel .\dll-list.xlsx | Format-Table
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638508661430442890.png"></p> <p data-slug="ps-csv-excel-conv" data-title-en="PowerShell ConvertTo-Excel and ConvertFrom-Excel by ClosedXML" data-catg=".NET" data-fbimg="https://i.imgur.com/lXlrMc4.jpg#1280#854">Due to work requirements, I wrote a simple PowerShell function to convert between CSV and Excel.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638508661427057074.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638508661427057074.png" medium="image"/>
+    <pubDate>Thu, 09 May 2024 15:42:42 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【茶包射手日記】 Oracle NUMBER 與 .NET decimal 小數精準度差異地雷]]></title>
     <link>https://blog.darkthread.net/blog/decimal-precision-issue/</link>
     <itunes:title><![CDATA[【茶包射手日記】 Oracle NUMBER 與 .NET decimal 小數精準度差異地雷]]></itunes:title>
@@ -1658,20 +2036,5 @@ app.mount('#app');
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638493947264944342.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638493947264944342.png" medium="image"/>
     <pubDate>Mon, 22 Apr 2024 14:55:28 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[網頁排版與可讀性 - 字型大小與行高]]></title>
-    <link>https://blog.darkthread.net/blog/font-size-n-line-height/</link>
-    <itunes:title><![CDATA[網頁排版與可讀性 - 字型大小與行高]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>朋友分享了一篇網路文章，題材我有興趣，但讀來帶有痛苦感，像是馬拉松最後階段，得靠意志力才能撐下去不棄賽，但我明明是在讀第一段呀。</p> <p>做了民調，原來不只我有這種感覺。嚴格來說，文章用字還算淺白通順，到底什麼原因讓它散發著「別讀了，快放棄吧，這些文字不是你能駕御的」的暗示？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638493051821217783.png"><br> (以上非原文章，是用<a href="https://gadget.chienwen.net/x/text/garbagearticle">廢文產生器</a>模擬排版效果)</p> <p>用 F12 工具試調了 font-size (13px -&gt; 14.66px)、line-height (1.4 -&gt; 1.8 倍)、color (#666666 -&gt; black)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638493051822885766.png"></p> <p>純黑字、字放大，每行字數變少 (由 44 降到 36 (12pt) / 39 (11pt))，可讀性變高不少，至少對我是如此。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638493051825299237.png"></p> <p>以上是自己盲試的結果，好奇在中文排版上有沒有像<a href="/blog/wcag-g18-color-contrast/">文字顏色對比 WCAG 標準</a>一樣的科學化建議可遵守？</p> <p>還真的有，W3C 有份<a href="https://www.w3.org/International/clreq/">Requirements for Chinese Text Layout 中文排版需求</a>，洋洋灑灑鉅細靡遺，連避孤行、避孤字、示亡號都討論到了。懶人如我，只想知道建議的行高(line-height)、字型大小(font-size)，很不幸標準沒提。</p> <p>爬文找到一些參考：</p> <ol><li><a href="https://blog.justfont.com/2013/05/popular-typography-2/">大眾字型學｜怎麼製作美觀的文件版面？ by justfont</a></li></ol> <p>要計算垂直韻律，必須先決定內文的基本字型大小。就中文來說，台灣約定俗成的印刷內文大小為 12 pt，而 1.5 倍行距也被認為是理想的設定。在這種設定下，這份文件的基本行高就是 12 X 1.5，也就是說，每一行都是 18 pt 高。</p> <ol start="2"><li><a href="https://www.bfa.com.tw/blog/ten-rules-that-make-articles-better-understood">簡單做好中文排版：十項讓長文章更容易閱讀的原則 by BFA 簡報</a>：</li></ol> <p>不只是行距，字級也是個問題。但我沒辦法告訴你字級要多大才正確，畢竟現在螢幕尺寸與DPI差距頗大，但絕對不能以排英文的方式來排中文。活版時代，內文常用的字級有兩種，一種是五號字，就是10.5pt（3.7mm），另一種是新五號，就是9pt（3.18mm）。7內文字盡量不要小於9pt。這裏請以適當的大小自行計算，畢竟螢幕與書籍是不同的。</p> <p>但是行距有著正確的數字，一般而言中文行距介於1.5到2em之間，通常只要指定：</p> <p><code>p {line-height: 1.7em;}</code></p> <p>就能得到適當的行距。</p> <ol start="3"><li><a href="http://www.flycan.com/article/css/css-font-size-line-height-2040.html">CSS 教學 – 基本文字設定 : font-size 與 line-height by 飛肯課程</a></li></ol> <p>當沒有特別指定時，line-height (行高)在瀏覽器的原始預設值為 1.0 ~ 1.2 倍，但如果想要讓瀏覽者在閱讀文字上面感到更舒適的話，會建議大家至少要設定為 1.5 倍以上，通常比較多人會設定在 1.5 ~ 1.8 倍之間。</p> <p>舉例來說，飛肯的官網網頁，文字設定的行高就大多是使用 1.6 倍，既方便同學輕鬆閱讀，又能清楚獲取最新的開課資訊。</p> <ol start="4"><li><a href="https://rab.tw/font-size-for-rwd-websites/">網站設計的最佳字體大小指南 by 瑞布科技</a></li></ol> <p>對於字體大小沒有確切的規則，但是在設計電腦網頁時需要考慮一些良好的做法：</p> <ul><li>正文 – 字體大小應在 16 px 到 18 px 之間以確保易讀性（或使用我們上面提到的大小規則為 1.6 rem 到 1.8 rem）。如果您可以承受更大的尺寸，那麼即使是 21 px 也可以令人愉悅地閱讀。</li></ul> <p>【結論】</p> <p>原本想看看有沒有官方標準，無功而返。歸納上述建議，行高 1.5 應該是下限，原排版的 1.4 偏低了。至於字型，有 10.5pt、12pt、16px 幾種說法。取 10.5pt 字級、1.7em 行高效果如下，我個人覺得字偏小，但已比原本的排版好讀許多。由此，本回合唯一的共識為「中文內文 line-height 請 1.5 起跳」。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638493051827104965.png"></p> <p data-slug="font-size-n-line-height" data-title-en="Font-size and line-height in Chinese web pages" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2020/10/27/14/01/soldiers-5690829_960_720.jpg#960#720">This article briefly explores recommendations for font-size and line-height in Chinese typography on web pages.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>朋友分享了一篇網路文章，題材我有興趣，但讀來帶有痛苦感，像是馬拉松最後階段，得靠意志力才能撐下去不棄賽，但我明明是在讀第一段呀。</p> <p>做了民調，原來不只我有這種感覺。嚴格來說，文章用字還算淺白通順，到底什麼原因讓它散發著「別讀了，快放棄吧，這些文字不是你能駕御的」的暗示？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638493051821217783.png"><br> (以上非原文章，是用<a href="https://gadget.chienwen.net/x/text/garbagearticle">廢文產生器</a>模擬排版效果)</p> <p>用 F12 工具試調了 font-size (13px -&gt; 14.66px)、line-height (1.4 -&gt; 1.8 倍)、color (#666666 -&gt; black)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638493051822885766.png"></p> <p>純黑字、字放大，每行字數變少 (由 44 降到 36 (12pt) / 39 (11pt))，可讀性變高不少，至少對我是如此。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638493051825299237.png"></p> <p>以上是自己盲試的結果，好奇在中文排版上有沒有像<a href="/blog/wcag-g18-color-contrast/">文字顏色對比 WCAG 標準</a>一樣的科學化建議可遵守？</p> <p>還真的有，W3C 有份<a href="https://www.w3.org/International/clreq/">Requirements for Chinese Text Layout 中文排版需求</a>，洋洋灑灑鉅細靡遺，連避孤行、避孤字、示亡號都討論到了。懶人如我，只想知道建議的行高(line-height)、字型大小(font-size)，很不幸標準沒提。</p> <p>爬文找到一些參考：</p> <ol><li><a href="https://blog.justfont.com/2013/05/popular-typography-2/">大眾字型學｜怎麼製作美觀的文件版面？ by justfont</a></li></ol> <p>要計算垂直韻律，必須先決定內文的基本字型大小。就中文來說，台灣約定俗成的印刷內文大小為 12 pt，而 1.5 倍行距也被認為是理想的設定。在這種設定下，這份文件的基本行高就是 12 X 1.5，也就是說，每一行都是 18 pt 高。</p> <ol start="2"><li><a href="https://www.bfa.com.tw/blog/ten-rules-that-make-articles-better-understood">簡單做好中文排版：十項讓長文章更容易閱讀的原則 by BFA 簡報</a>：</li></ol> <p>不只是行距，字級也是個問題。但我沒辦法告訴你字級要多大才正確，畢竟現在螢幕尺寸與DPI差距頗大，但絕對不能以排英文的方式來排中文。活版時代，內文常用的字級有兩種，一種是五號字，就是10.5pt（3.7mm），另一種是新五號，就是9pt（3.18mm）。7內文字盡量不要小於9pt。這裏請以適當的大小自行計算，畢竟螢幕與書籍是不同的。</p> <p>但是行距有著正確的數字，一般而言中文行距介於1.5到2em之間，通常只要指定：</p> <p><code>p {line-height: 1.7em;}</code></p> <p>就能得到適當的行距。</p> <ol start="3"><li><a href="http://www.flycan.com/article/css/css-font-size-line-height-2040.html">CSS 教學 – 基本文字設定 : font-size 與 line-height by 飛肯課程</a></li></ol> <p>當沒有特別指定時，line-height (行高)在瀏覽器的原始預設值為 1.0 ~ 1.2 倍，但如果想要讓瀏覽者在閱讀文字上面感到更舒適的話，會建議大家至少要設定為 1.5 倍以上，通常比較多人會設定在 1.5 ~ 1.8 倍之間。</p> <p>舉例來說，飛肯的官網網頁，文字設定的行高就大多是使用 1.6 倍，既方便同學輕鬆閱讀，又能清楚獲取最新的開課資訊。</p> <ol start="4"><li><a href="https://rab.tw/font-size-for-rwd-websites/">網站設計的最佳字體大小指南 by 瑞布科技</a></li></ol> <p>對於字體大小沒有確切的規則，但是在設計電腦網頁時需要考慮一些良好的做法：</p> <ul><li>正文 – 字體大小應在 16 px 到 18 px 之間以確保易讀性（或使用我們上面提到的大小規則為 1.6 rem 到 1.8 rem）。如果您可以承受更大的尺寸，那麼即使是 21 px 也可以令人愉悅地閱讀。</li></ul> <p>【結論】</p> <p>原本想看看有沒有官方標準，無功而返。歸納上述建議，行高 1.5 應該是下限，原排版的 1.4 偏低了。至於字型，有 10.5pt、12pt、16px 幾種說法。取 10.5pt 字級、1.7em 行高效果如下，我個人覺得字偏小，但已比原本的排版好讀許多。由此，本回合唯一的共識為「中文內文 line-height 請 1.5 起跳」。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638493051827104965.png"></p> <p data-slug="font-size-n-line-height" data-title-en="Font-size and line-height in Chinese web pages" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2020/10/27/14/01/soldiers-5690829_960_720.jpg#960#720">This article briefly explores recommendations for font-size and line-height in Chinese typography on web pages.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>朋友分享了一篇網路文章，題材我有興趣，但讀來帶有痛苦感，像是馬拉松最後階段，得靠意志力才能撐下去不棄賽，但我明明是在讀第一段呀。</p> <p>做了民調，原來不只我有這種感覺。嚴格來說，文章用字還算淺白通順，到底什麼原因讓它散發著「別讀了，快放棄吧，這些文字不是你能駕御的」的暗示？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638493051821217783.png"><br> (以上非原文章，是用<a href="https://gadget.chienwen.net/x/text/garbagearticle">廢文產生器</a>模擬排版效果)</p> <p>用 F12 工具試調了 font-size (13px -&gt; 14.66px)、line-height (1.4 -&gt; 1.8 倍)、color (#666666 -&gt; black)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638493051822885766.png"></p> <p>純黑字、字放大，每行字數變少 (由 44 降到 36 (12pt) / 39 (11pt))，可讀性變高不少，至少對我是如此。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638493051825299237.png"></p> <p>以上是自己盲試的結果，好奇在中文排版上有沒有像<a href="/blog/wcag-g18-color-contrast/">文字顏色對比 WCAG 標準</a>一樣的科學化建議可遵守？</p> <p>還真的有，W3C 有份<a href="https://www.w3.org/International/clreq/">Requirements for Chinese Text Layout 中文排版需求</a>，洋洋灑灑鉅細靡遺，連避孤行、避孤字、示亡號都討論到了。懶人如我，只想知道建議的行高(line-height)、字型大小(font-size)，很不幸標準沒提。</p> <p>爬文找到一些參考：</p> <ol><li><a href="https://blog.justfont.com/2013/05/popular-typography-2/">大眾字型學｜怎麼製作美觀的文件版面？ by justfont</a></li></ol> <p>要計算垂直韻律，必須先決定內文的基本字型大小。就中文來說，台灣約定俗成的印刷內文大小為 12 pt，而 1.5 倍行距也被認為是理想的設定。在這種設定下，這份文件的基本行高就是 12 X 1.5，也就是說，每一行都是 18 pt 高。</p> <ol start="2"><li><a href="https://www.bfa.com.tw/blog/ten-rules-that-make-articles-better-understood">簡單做好中文排版：十項讓長文章更容易閱讀的原則 by BFA 簡報</a>：</li></ol> <p>不只是行距，字級也是個問題。但我沒辦法告訴你字級要多大才正確，畢竟現在螢幕尺寸與DPI差距頗大，但絕對不能以排英文的方式來排中文。活版時代，內文常用的字級有兩種，一種是五號字，就是10.5pt（3.7mm），另一種是新五號，就是9pt（3.18mm）。7內文字盡量不要小於9pt。這裏請以適當的大小自行計算，畢竟螢幕與書籍是不同的。</p> <p>但是行距有著正確的數字，一般而言中文行距介於1.5到2em之間，通常只要指定：</p> <p><code>p {line-height: 1.7em;}</code></p> <p>就能得到適當的行距。</p> <ol start="3"><li><a href="http://www.flycan.com/article/css/css-font-size-line-height-2040.html">CSS 教學 – 基本文字設定 : font-size 與 line-height by 飛肯課程</a></li></ol> <p>當沒有特別指定時，line-height (行高)在瀏覽器的原始預設值為 1.0 ~ 1.2 倍，但如果想要讓瀏覽者在閱讀文字上面感到更舒適的話，會建議大家至少要設定為 1.5 倍以上，通常比較多人會設定在 1.5 ~ 1.8 倍之間。</p> <p>舉例來說，飛肯的官網網頁，文字設定的行高就大多是使用 1.6 倍，既方便同學輕鬆閱讀，又能清楚獲取最新的開課資訊。</p> <ol start="4"><li><a href="https://rab.tw/font-size-for-rwd-websites/">網站設計的最佳字體大小指南 by 瑞布科技</a></li></ol> <p>對於字體大小沒有確切的規則，但是在設計電腦網頁時需要考慮一些良好的做法：</p> <ul><li>正文 – 字體大小應在 16 px 到 18 px 之間以確保易讀性（或使用我們上面提到的大小規則為 1.6 rem 到 1.8 rem）。如果您可以承受更大的尺寸，那麼即使是 21 px 也可以令人愉悅地閱讀。</li></ul> <p>【結論】</p> <p>原本想看看有沒有官方標準，無功而返。歸納上述建議，行高 1.5 應該是下限，原排版的 1.4 偏低了。至於字型，有 10.5pt、12pt、16px 幾種說法。取 10.5pt 字級、1.7em 行高效果如下，我個人覺得字偏小，但已比原本的排版好讀許多。由此，本回合唯一的共識為「中文內文 line-height 請 1.5 起跳」。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638493051827104965.png"></p> <p data-slug="font-size-n-line-height" data-title-en="Font-size and line-height in Chinese web pages" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2020/10/27/14/01/soldiers-5690829_960_720.jpg#960#720">This article briefly explores recommendations for font-size and line-height in Chinese typography on web pages.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638493051821217783.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638493051821217783.png" medium="image"/>
-    <pubDate>Sun, 21 Apr 2024 13:59:45 GMT</pubDate>
   </item></channel>
 </rss>
