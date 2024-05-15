@@ -30,6 +30,21 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[史上最遙遠的遠端修電腦，遠在太陽系外的航海家一號被 NASA 工程師修好惹]]></title>
+    <link>https://blog.darkthread.net/blog/voyager-1-fixed/</link>
+    <itunes:title><![CDATA[史上最遙遠的遠端修電腦，遠在太陽系外的航海家一號被 NASA 工程師修好惹]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>史上最遙遠(沒有之一)的遠端偵錯 (Remote Debugging)，從 240 億公里之外射茶包!</p> <p>昨天 <a href="/blog/fortran-great-again/">Fortran 風雲再起？</a> 的留言有朋友提到：在太空流浪 46 年，已飛出太陽系統的「航海家一號內部運作是用 Fortran」。考證了一下，更完整說法是：</p> <ul><li>探測器上共有三個系統：AACS、FDS 是用組合語言，CCS 則是用專屬虛擬程式碼靠直譯器執行。<code>Both the AACS and FDS use assembly language. The CCS uses assembly language and Voyager-unique pseudo code (interpreter)</code> (來源論文：<a href="https://arc.aiaa.org/doi/pdf/10.2514/6.2016-2415">Voyager Interstellar Mission: Challenges of Flying a Very Old Spacecraft on a Very Long Mission</a>)</li> <li>地面控制及分析軟體有使用 Fortran 沒錯<a href="https://hackaday.com/2024/04/22/nasas-voyager-1-resumes-sending-engineering-updates-to-earth/#comment-6752755">參考來源</a>，而 2015 年時 NASA 曾因此急徵熟悉組合語言跟 FORTRAN 的開發人員接替即將退休的工程師。(參考：<a href="https://www.popularmechanics.com/space/a17991/voyager-1-voyager-2-retiring-engineer/">NASA Needs a Programmer Fluent In 60-Year-Old Languages</a>)。</li></ul> <p>談到航海家一號，讓我想起上個月有一則神奇的程式開發相關新聞。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638513699574641961.jpg" alt="thumbnail"><br> 照片與新聞來源：<a href="https://www.jpl.nasa.gov/news/nasas-voyager-1-resumes-sending-engineering-updates-to-earth">NASA’s Voyager 1 Resumes Sending Engineering Updates to Earth</a></p> <p>航海家一號是 NASA 研製的外太陽系太空探測器，於 1977 年 9 月 5 日發射。它是有史以來距離地球最遠的人造飛行器，2012 年成為第一個離開太陽系的人造飛行器。</p> <p>在連續工作 46 年後<del>出現職業倦怠也是難免的</del>，2023/11/14 起航海家一號送回的資料開始變成一堆亂碼。</p> <p>NASA JPL (Jet Propulsion Laboratory 噴射推進實驗室) 工程師花了幾個月時間調查，研判是探測器的 FDS (飛行資料子系統)有某個記憶體晶片壞了，但總不能派人帶晶片去現場更換吧？(除非有曲速引擎) 幸運的是，航海家一號的其他系統還能接受指令及運作，理論上將受損記憶體的程式碼搬到其他地方就行了。但問題來了，剩下的可用記憶體找不到沒有夠大的區塊可以放下整段程式碼。</p> <p>因此，他們決定將程式碼拆成多段分別存到不同的記憶體區塊，當然，程式必須配合改寫，將函式指標指向新地址確保程式邏輯能照常運作，而其他有用到這些程式片段的程式碼也必須一起調整。(註：所幸這類調整應該可在地球上模擬及測試驗證，不需要賭一把)</p> <p>JPL 在 4/18 對航海家一號派送了程式更新，歷經 22.5 小時才傳到，45 小時後 (4/20) 地面收到可解讀的狀態回報，證明程式修改成功了。歷經五個月，航海家一號恢復回報健康狀況。後續幾週，工程團隊會持續調整修改 FDS 其他部分，使其能正確回傳科學觀測資料。</p> <p>好奇航海家一號上的 FDS 電腦長什麼樣子？每個子系統兩個處理器，共享 70KB CMOS RAM，數據資料存在 1/2" 8 軌磁帶，容量 67MB。(原本有台備用 FDS，但 1981 年壞掉了)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638513737565778563.jpg"><br> <a href="https://www.dailykos.com/stories/2024/4/22/2236731/-Voyager-1-calls-home">來源</a></p> <ul><li>題外話一：JPL 工程團隊看起來好資深哦，希望我也可以寫程式寫到這麼老。</li> <li>題外話二：太空計劃用的軟體大概是世界上最不容出錯的程式碼吧! 任何一個 Bug 或一次當機，損失可能高達幾百億美金，甚至白白浪費幾千人幾十年的努力，這種程式若給我寫，我的手應該會抖。XD (最接近的案例應該是「因為防呆公制英制單位沒寫好，NASA 在 1988 年因 Key 錯數字<a href="https://www.facebook.com/darkthread.lds/posts/pfbid0pgfbsHMRu4rE1Td3Yhh7CKtRU8hKaRh7ALguZE4pbLiYLgMHjy8NA49MFRVW4vswl">燒掉一枚三億美元的探測器</a>」吧？)</li></ul> <p data-slug="voyager-1-fixed" data-fbimg="https://d2pn8kiwq2w21t.cloudfront.net/images/e1-PIA26275-voyager-copy-16.width-1024.jpg#1024#576"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>史上最遙遠(沒有之一)的遠端偵錯 (Remote Debugging)，從 240 億公里之外射茶包!</p> <p>昨天 <a href="/blog/fortran-great-again/">Fortran 風雲再起？</a> 的留言有朋友提到：在太空流浪 46 年，已飛出太陽系統的「航海家一號內部運作是用 Fortran」。考證了一下，更完整說法是：</p> <ul><li>探測器上共有三個系統：AACS、FDS 是用組合語言，CCS 則是用專屬虛擬程式碼靠直譯器執行。<code>Both the AACS and FDS use assembly language. The CCS uses assembly language and Voyager-unique pseudo code (interpreter)</code> (來源論文：<a href="https://arc.aiaa.org/doi/pdf/10.2514/6.2016-2415">Voyager Interstellar Mission: Challenges of Flying a Very Old Spacecraft on a Very Long Mission</a>)</li> <li>地面控制及分析軟體有使用 Fortran 沒錯<a href="https://hackaday.com/2024/04/22/nasas-voyager-1-resumes-sending-engineering-updates-to-earth/#comment-6752755">參考來源</a>，而 2015 年時 NASA 曾因此急徵熟悉組合語言跟 FORTRAN 的開發人員接替即將退休的工程師。(參考：<a href="https://www.popularmechanics.com/space/a17991/voyager-1-voyager-2-retiring-engineer/">NASA Needs a Programmer Fluent In 60-Year-Old Languages</a>)。</li></ul> <p>談到航海家一號，讓我想起上個月有一則神奇的程式開發相關新聞。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638513699574641961.jpg" alt="thumbnail"><br> 照片與新聞來源：<a href="https://www.jpl.nasa.gov/news/nasas-voyager-1-resumes-sending-engineering-updates-to-earth">NASA’s Voyager 1 Resumes Sending Engineering Updates to Earth</a></p> <p>航海家一號是 NASA 研製的外太陽系太空探測器，於 1977 年 9 月 5 日發射。它是有史以來距離地球最遠的人造飛行器，2012 年成為第一個離開太陽系的人造飛行器。</p> <p>在連續工作 46 年後<del>出現職業倦怠也是難免的</del>，2023/11/14 起航海家一號送回的資料開始變成一堆亂碼。</p> <p>NASA JPL (Jet Propulsion Laboratory 噴射推進實驗室) 工程師花了幾個月時間調查，研判是探測器的 FDS (飛行資料子系統)有某個記憶體晶片壞了，但總不能派人帶晶片去現場更換吧？(除非有曲速引擎) 幸運的是，航海家一號的其他系統還能接受指令及運作，理論上將受損記憶體的程式碼搬到其他地方就行了。但問題來了，剩下的可用記憶體找不到沒有夠大的區塊可以放下整段程式碼。</p> <p>因此，他們決定將程式碼拆成多段分別存到不同的記憶體區塊，當然，程式必須配合改寫，將函式指標指向新地址確保程式邏輯能照常運作，而其他有用到這些程式片段的程式碼也必須一起調整。(註：所幸這類調整應該可在地球上模擬及測試驗證，不需要賭一把)</p> <p>JPL 在 4/18 對航海家一號派送了程式更新，歷經 22.5 小時才傳到，45 小時後 (4/20) 地面收到可解讀的狀態回報，證明程式修改成功了。歷經五個月，航海家一號恢復回報健康狀況。後續幾週，工程團隊會持續調整修改 FDS 其他部分，使其能正確回傳科學觀測資料。</p> <p>好奇航海家一號上的 FDS 電腦長什麼樣子？每個子系統兩個處理器，共享 70KB CMOS RAM，數據資料存在 1/2" 8 軌磁帶，容量 67MB。(原本有台備用 FDS，但 1981 年壞掉了)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638513737565778563.jpg"><br> <a href="https://www.dailykos.com/stories/2024/4/22/2236731/-Voyager-1-calls-home">來源</a></p> <ul><li>題外話一：JPL 工程團隊看起來好資深哦，希望我也可以寫程式寫到這麼老。</li> <li>題外話二：太空計劃用的軟體大概是世界上最不容出錯的程式碼吧! 任何一個 Bug 或一次當機，損失可能高達幾百億美金，甚至白白浪費幾千人幾十年的努力，這種程式若給我寫，我的手應該會抖。XD (最接近的案例應該是「因為防呆公制英制單位沒寫好，NASA 在 1988 年因 Key 錯數字<a href="https://www.facebook.com/darkthread.lds/posts/pfbid0pgfbsHMRu4rE1Td3Yhh7CKtRU8hKaRh7ALguZE4pbLiYLgMHjy8NA49MFRVW4vswl">燒掉一枚三億美元的探測器</a>」吧？)</li></ul> <p data-slug="voyager-1-fixed" data-fbimg="https://d2pn8kiwq2w21t.cloudfront.net/images/e1-PIA26275-voyager-copy-16.width-1024.jpg#1024#576"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>史上最遙遠(沒有之一)的遠端偵錯 (Remote Debugging)，從 240 億公里之外射茶包!</p> <p>昨天 <a href="/blog/fortran-great-again/">Fortran 風雲再起？</a> 的留言有朋友提到：在太空流浪 46 年，已飛出太陽系統的「航海家一號內部運作是用 Fortran」。考證了一下，更完整說法是：</p> <ul><li>探測器上共有三個系統：AACS、FDS 是用組合語言，CCS 則是用專屬虛擬程式碼靠直譯器執行。<code>Both the AACS and FDS use assembly language. The CCS uses assembly language and Voyager-unique pseudo code (interpreter)</code> (來源論文：<a href="https://arc.aiaa.org/doi/pdf/10.2514/6.2016-2415">Voyager Interstellar Mission: Challenges of Flying a Very Old Spacecraft on a Very Long Mission</a>)</li> <li>地面控制及分析軟體有使用 Fortran 沒錯<a href="https://hackaday.com/2024/04/22/nasas-voyager-1-resumes-sending-engineering-updates-to-earth/#comment-6752755">參考來源</a>，而 2015 年時 NASA 曾因此急徵熟悉組合語言跟 FORTRAN 的開發人員接替即將退休的工程師。(參考：<a href="https://www.popularmechanics.com/space/a17991/voyager-1-voyager-2-retiring-engineer/">NASA Needs a Programmer Fluent In 60-Year-Old Languages</a>)。</li></ul> <p>談到航海家一號，讓我想起上個月有一則神奇的程式開發相關新聞。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638513699574641961.jpg" alt="thumbnail"><br> 照片與新聞來源：<a href="https://www.jpl.nasa.gov/news/nasas-voyager-1-resumes-sending-engineering-updates-to-earth">NASA’s Voyager 1 Resumes Sending Engineering Updates to Earth</a></p> <p>航海家一號是 NASA 研製的外太陽系太空探測器，於 1977 年 9 月 5 日發射。它是有史以來距離地球最遠的人造飛行器，2012 年成為第一個離開太陽系的人造飛行器。</p> <p>在連續工作 46 年後<del>出現職業倦怠也是難免的</del>，2023/11/14 起航海家一號送回的資料開始變成一堆亂碼。</p> <p>NASA JPL (Jet Propulsion Laboratory 噴射推進實驗室) 工程師花了幾個月時間調查，研判是探測器的 FDS (飛行資料子系統)有某個記憶體晶片壞了，但總不能派人帶晶片去現場更換吧？(除非有曲速引擎) 幸運的是，航海家一號的其他系統還能接受指令及運作，理論上將受損記憶體的程式碼搬到其他地方就行了。但問題來了，剩下的可用記憶體找不到沒有夠大的區塊可以放下整段程式碼。</p> <p>因此，他們決定將程式碼拆成多段分別存到不同的記憶體區塊，當然，程式必須配合改寫，將函式指標指向新地址確保程式邏輯能照常運作，而其他有用到這些程式片段的程式碼也必須一起調整。(註：所幸這類調整應該可在地球上模擬及測試驗證，不需要賭一把)</p> <p>JPL 在 4/18 對航海家一號派送了程式更新，歷經 22.5 小時才傳到，45 小時後 (4/20) 地面收到可解讀的狀態回報，證明程式修改成功了。歷經五個月，航海家一號恢復回報健康狀況。後續幾週，工程團隊會持續調整修改 FDS 其他部分，使其能正確回傳科學觀測資料。</p> <p>好奇航海家一號上的 FDS 電腦長什麼樣子？每個子系統兩個處理器，共享 70KB CMOS RAM，數據資料存在 1/2" 8 軌磁帶，容量 67MB。(原本有台備用 FDS，但 1981 年壞掉了)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638513737565778563.jpg"><br> <a href="https://www.dailykos.com/stories/2024/4/22/2236731/-Voyager-1-calls-home">來源</a></p> <ul><li>題外話一：JPL 工程團隊看起來好資深哦，希望我也可以寫程式寫到這麼老。</li> <li>題外話二：太空計劃用的軟體大概是世界上最不容出錯的程式碼吧! 任何一個 Bug 或一次當機，損失可能高達幾百億美金，甚至白白浪費幾千人幾十年的努力，這種程式若給我寫，我的手應該會抖。XD (最接近的案例應該是「因為防呆公制英制單位沒寫好，NASA 在 1988 年因 Key 錯數字<a href="https://www.facebook.com/darkthread.lds/posts/pfbid0pgfbsHMRu4rE1Td3Yhh7CKtRU8hKaRh7ALguZE4pbLiYLgMHjy8NA49MFRVW4vswl">燒掉一枚三億美元的探測器</a>」吧？)</li></ul> <p data-slug="voyager-1-fixed" data-fbimg="https://d2pn8kiwq2w21t.cloudfront.net/images/e1-PIA26275-voyager-copy-16.width-1024.jpg#1024#576"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638513699574641961.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638513699574641961.jpg" medium="image"/>
+    <pubDate>Wed, 15 May 2024 11:13:19 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Fortran 風雲再起？]]></title>
     <link>https://blog.darkthread.net/blog/fortran-great-again/</link>
     <itunes:title><![CDATA[Fortran 風雲再起？]]></itunes:title>
@@ -1664,230 +1679,5 @@ exec prc_QueryRegistry 1, '#\FeatureAvailability\Entries\VisualStudio.BasicAuth.
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638501693157503726.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638501693157503726.png" medium="image"/>
     <pubDate>Wed, 01 May 2024 14:05:14 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[四個小技巧讓 ASP.NET Core Minimal API 更有條理好維護]]></title>
-    <link>https://blog.darkthread.net/blog/organizing-min-api/</link>
-    <itunes:title><![CDATA[四個小技巧讓 ASP.NET Core Minimal API 更有條理好維護]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>自從發現 <a href="/blog/minimal-api/">ASP.NET Core Minimal API</a>，我所有用到 ASP.NET Web 的小專案(小於一個人月)清一色都是用 Minimal API 寫，省去建 Controller，另開 MVC View 的麻煩，加上 UI 走 <a href="/blog/vue-3-release/">HTML + Vue.js 輕前端</a>，小專案往往三五個檔案寫完網站，符合我的 KISS 極簡美學。</p> <p>不過，當 Min API 再複雜一點，所有邏輯都塞在 Program.cs 寫起來開始有違和感。看到保哥<a href="https://www.facebook.com/groups/DotNetUserGroupTaiwan/posts/3365632733729821/">分享</a>一篇好文章 - Debugger Lady (<a href="/blog/kb-w3svc-throw-0x800703e9-exception/">典故</a>), Tess, 分享如何讓 Minimal API 程式碼更有條理的四則小技巧 - <a href="https://www.tessferrandez.com/blog/2023/10/31/organizing-minimal-apis.html">Organizing ASP.NET Core Minimal APIs</a>，改動幅度不大，但能有效提升程式可讀性，降低維護複雜度，深得我心。</p> <p>閱畢，花了點時間整理成展示專案加強印象，順便納入我常用的單檔部署、JavaScript 快顯通知、SQLite EF Core 存資料等技巧，拼成一個範例方便日後參考。</p> <p>背景知識補充：</p> <ol><li><a href="/blog/aspnetcore-emb-static-files/">內嵌 .html/.css/.js 靜態檔整成單一 EXE</a></li> <li><a href="/blog/noty-js/">JavaScript 快顯通知套件 - NOTY</a></li> <li><a href="/blog/efcore-notes-1/">EF Core 與 SQLite</a></li> <li><a href="/blog/min-api-openapi/">使用 TypedResults 限定回傳型別</a></li></ol> <p>在示範專案中，原本 Minimal API 的 Program.cs 長這樣：</p> <pre><code>using System.ComponentModel.DataAnnotations;
-using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore;
-using MinApiDemo;
-var builder = WebApplication.CreateBuilder(args);
-var sqliteFileName = "bookmark.sqlite";
-if (File.Exists(sqliteFileName)) File.Delete(sqliteFileName);
-var cs = $"Data Source={sqliteFileName}";
-builder.Services.AddDbContext&lt;AppDbContext&gt;(options =&gt; {
-options.UseSqlite(cs);
-});
-var app = builder.Build();
-// create scope to create dbcontext
-using (var scope = app.Services.CreateScope()) {
-var db = scope.ServiceProvider.GetRequiredService&lt;AppDbContext&gt;();
-db.Database.EnsureCreated();
-if (!db.Bookmarks.Any()) {
-db.Bookmarks.AddRange(new[] {
-new Bookmark { Title = "Google", Url = "https://www.google.com" },
-new Bookmark { Title = "Facebook", Url = "https://www.facebook.com" },
-new Bookmark { Title = "YouTube", Url = "https://www.youtube.com" }
-});
-db.SaveChanges();
-}
-}
-app.UseFileServer(new FileServerOptions {
-RequestPath = "",
-FileProvider = new Microsoft.Extensions.FileProviders
-.ManifestEmbeddedFileProvider(
-typeof(Program).Assembly, "ui"
-)
-});
-app.MapGet("/bookmarks/list", async (AppDbContext db) =&gt; {
-return Results.Json(await db.Bookmarks.ToListAsync());
-});
-app.MapPost("/bookmarks/add", async (AppDbContext db, Bookmark bookmark) =&gt; {
-var results = new List&lt;ValidationResult&gt;();
-var isValid = Validator.TryValidateObject(bookmark, new ValidationContext(bookmark), results, true);
-if (!isValid) return Results.BadRequest(results);
-db.Bookmarks.Add(bookmark);
-await db.SaveChangesAsync();
-return Results.Json(bookmark);
-});
-app.MapPost("/bookmarks/remove/{id}", async (AppDbContext db, int id) =&gt; {
-var bookmark = await db.Bookmarks.FindAsync(id);
-if (bookmark == null) return Results.NotFound();
-db.Bookmarks.Remove(bookmark);
-await db.SaveChangesAsync();
-return Results.Ok("OK");
-});
-app.MapGet("/export/json", async (AppDbContext db) =&gt; {
-var bookmarks = await db.Bookmarks.ToListAsync();
-return Results.Json(bookmarks);
-});
-app.MapGet("/export/xml", async (AppDbContext db) =&gt; {
-var bookmarks = await db.Bookmarks.ToListAsync();
-var xd = XDocument.Parse("&lt;bookmarks&gt;&lt;/bookmarks&gt;");
-var root = xd.Root!;
-foreach (var bookmark in bookmarks) {
-var xe = new XElement("bookmark");
-xe.Add(new XElement("id", bookmark.Id));
-xe.Add(new XElement("title", bookmark.Title));
-xe.Add(new XElement("url", bookmark.Url));
-root.Add(xe);
-}
-return Results.Content(xd.ToString(), "application/xml");
-});
-app.Run();
-</code></pre> <p>它是個簡單的 URL 書籤維護，前端則是用 Vue.js 簡單搭個展示 UI：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638498632756351522.gif"></p> <p>而 Tess 建議的四項改善包含：</p> <ol><li>依據功能或性質分類將 Program.cs 中的 .MapGet()、.MapPost() 移到專屬型別，改用 app.RegisterXXXEndPoints() 註冊該類別 API。</li> <li>使用 TypedResults 取代 Reulsts，實現編譯期間的回傳型別檢查。</li> <li>用 MapGroup() 將 API 分群，在群組設定 CORS、身分認證等可一次套用該群所有 API。</li> <li>將 .MapGet()/.MapPost() 邏輯移為型別獨立方法，方便查找維護。<br> 順便分享我怎麼請 Copilot 幫我重構：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638498632758153087.png"><br> 薑!薑!薑!薑~~~<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638498632759871646.png"><br> 或者用 Chat 功能跟 Copilot 許願也行：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638498632761652423.png"></li></ol> <p>重構完 Program.cs 原本一堆 MapGet()/MapPost() 程式碼改成兩行，清爽多了：</p> <pre><code>app.RegisterCrudEndPoints();
-app.RegisterExportApiEndPoints();
-</code></pre> <p>而每個 API 寫成獨立方法，尋找跟管理也會方便很多：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638498632763422504.png"></p> <p>展示專案我放上 <a href="https://github.com/darkthread/organized-min-api">Github</a>，有需要的同學請自行下載參考。</p> <p>題外話，常被問到：面對網站需求如何決定該用 MVC/Razor Page 還是用 Minimal API ？坦白說，我沒有量化標準但有個心法：這差不多像是「該騎機車去還是要開車」的抉擇，關鍵其實是「看是要去哪裡」，靠直覺就會有答案，就算不一定是對的，選錯只差在時間早晚及成本，最終都會到目的地。而且換架構只需重構調整不必砍掉重練，代價比折返回家換交通工具低多了，故做這個決定不該比選騎車或開車困難，沒什麼好糾結的，憑直覺動手再說。若直覺是錯了就當繳學費，也是種成長。</p> <p data-slug="organizing-min-api" data-title-en="Tips to organize your Minimal API" data-catg="Web Devlopment" data-fbimg="https://images.pexels.com/photos/128880/parachute-skydiving-parachuting-jumping-128880.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article introduces small tips for organizing and maintaining code more effectively when developing more complex Minimal APIs.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>自從發現 <a href="/blog/minimal-api/">ASP.NET Core Minimal API</a>，我所有用到 ASP.NET Web 的小專案(小於一個人月)清一色都是用 Minimal API 寫，省去建 Controller，另開 MVC View 的麻煩，加上 UI 走 <a href="/blog/vue-3-release/">HTML + Vue.js 輕前端</a>，小專案往往三五個檔案寫完網站，符合我的 KISS 極簡美學。</p> <p>不過，當 Min API 再複雜一點，所有邏輯都塞在 Program.cs 寫起來開始有違和感。看到保哥<a href="https://www.facebook.com/groups/DotNetUserGroupTaiwan/posts/3365632733729821/">分享</a>一篇好文章 - Debugger Lady (<a href="/blog/kb-w3svc-throw-0x800703e9-exception/">典故</a>), Tess, 分享如何讓 Minimal API 程式碼更有條理的四則小技巧 - <a href="https://www.tessferrandez.com/blog/2023/10/31/organizing-minimal-apis.html">Organizing ASP.NET Core Minimal APIs</a>，改動幅度不大，但能有效提升程式可讀性，降低維護複雜度，深得我心。</p> <p>閱畢，花了點時間整理成展示專案加強印象，順便納入我常用的單檔部署、JavaScript 快顯通知、SQLite EF Core 存資料等技巧，拼成一個範例方便日後參考。</p> <p>背景知識補充：</p> <ol><li><a href="/blog/aspnetcore-emb-static-files/">內嵌 .html/.css/.js 靜態檔整成單一 EXE</a></li> <li><a href="/blog/noty-js/">JavaScript 快顯通知套件 - NOTY</a></li> <li><a href="/blog/efcore-notes-1/">EF Core 與 SQLite</a></li> <li><a href="/blog/min-api-openapi/">使用 TypedResults 限定回傳型別</a></li></ol> <p>在示範專案中，原本 Minimal API 的 Program.cs 長這樣：</p> <pre><code>using System.ComponentModel.DataAnnotations;
-using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore;
-using MinApiDemo;
-var builder = WebApplication.CreateBuilder(args);
-var sqliteFileName = "bookmark.sqlite";
-if (File.Exists(sqliteFileName)) File.Delete(sqliteFileName);
-var cs = $"Data Source={sqliteFileName}";
-builder.Services.AddDbContext&lt;AppDbContext&gt;(options =&gt; {
-options.UseSqlite(cs);
-});
-var app = builder.Build();
-// create scope to create dbcontext
-using (var scope = app.Services.CreateScope()) {
-var db = scope.ServiceProvider.GetRequiredService&lt;AppDbContext&gt;();
-db.Database.EnsureCreated();
-if (!db.Bookmarks.Any()) {
-db.Bookmarks.AddRange(new[] {
-new Bookmark { Title = "Google", Url = "https://www.google.com" },
-new Bookmark { Title = "Facebook", Url = "https://www.facebook.com" },
-new Bookmark { Title = "YouTube", Url = "https://www.youtube.com" }
-});
-db.SaveChanges();
-}
-}
-app.UseFileServer(new FileServerOptions {
-RequestPath = "",
-FileProvider = new Microsoft.Extensions.FileProviders
-.ManifestEmbeddedFileProvider(
-typeof(Program).Assembly, "ui"
-)
-});
-app.MapGet("/bookmarks/list", async (AppDbContext db) =&gt; {
-return Results.Json(await db.Bookmarks.ToListAsync());
-});
-app.MapPost("/bookmarks/add", async (AppDbContext db, Bookmark bookmark) =&gt; {
-var results = new List&lt;ValidationResult&gt;();
-var isValid = Validator.TryValidateObject(bookmark, new ValidationContext(bookmark), results, true);
-if (!isValid) return Results.BadRequest(results);
-db.Bookmarks.Add(bookmark);
-await db.SaveChangesAsync();
-return Results.Json(bookmark);
-});
-app.MapPost("/bookmarks/remove/{id}", async (AppDbContext db, int id) =&gt; {
-var bookmark = await db.Bookmarks.FindAsync(id);
-if (bookmark == null) return Results.NotFound();
-db.Bookmarks.Remove(bookmark);
-await db.SaveChangesAsync();
-return Results.Ok("OK");
-});
-app.MapGet("/export/json", async (AppDbContext db) =&gt; {
-var bookmarks = await db.Bookmarks.ToListAsync();
-return Results.Json(bookmarks);
-});
-app.MapGet("/export/xml", async (AppDbContext db) =&gt; {
-var bookmarks = await db.Bookmarks.ToListAsync();
-var xd = XDocument.Parse("&lt;bookmarks&gt;&lt;/bookmarks&gt;");
-var root = xd.Root!;
-foreach (var bookmark in bookmarks) {
-var xe = new XElement("bookmark");
-xe.Add(new XElement("id", bookmark.Id));
-xe.Add(new XElement("title", bookmark.Title));
-xe.Add(new XElement("url", bookmark.Url));
-root.Add(xe);
-}
-return Results.Content(xd.ToString(), "application/xml");
-});
-app.Run();
-</code></pre> <p>它是個簡單的 URL 書籤維護，前端則是用 Vue.js 簡單搭個展示 UI：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638498632756351522.gif"></p> <p>而 Tess 建議的四項改善包含：</p> <ol><li>依據功能或性質分類將 Program.cs 中的 .MapGet()、.MapPost() 移到專屬型別，改用 app.RegisterXXXEndPoints() 註冊該類別 API。</li> <li>使用 TypedResults 取代 Reulsts，實現編譯期間的回傳型別檢查。</li> <li>用 MapGroup() 將 API 分群，在群組設定 CORS、身分認證等可一次套用該群所有 API。</li> <li>將 .MapGet()/.MapPost() 邏輯移為型別獨立方法，方便查找維護。<br> 順便分享我怎麼請 Copilot 幫我重構：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638498632758153087.png"><br> 薑!薑!薑!薑~~~<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638498632759871646.png"><br> 或者用 Chat 功能跟 Copilot 許願也行：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638498632761652423.png"></li></ol> <p>重構完 Program.cs 原本一堆 MapGet()/MapPost() 程式碼改成兩行，清爽多了：</p> <pre><code>app.RegisterCrudEndPoints();
-app.RegisterExportApiEndPoints();
-</code></pre> <p>而每個 API 寫成獨立方法，尋找跟管理也會方便很多：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638498632763422504.png"></p> <p>展示專案我放上 <a href="https://github.com/darkthread/organized-min-api">Github</a>，有需要的同學請自行下載參考。</p> <p>題外話，常被問到：面對網站需求如何決定該用 MVC/Razor Page 還是用 Minimal API ？坦白說，我沒有量化標準但有個心法：這差不多像是「該騎機車去還是要開車」的抉擇，關鍵其實是「看是要去哪裡」，靠直覺就會有答案，就算不一定是對的，選錯只差在時間早晚及成本，最終都會到目的地。而且換架構只需重構調整不必砍掉重練，代價比折返回家換交通工具低多了，故做這個決定不該比選騎車或開車困難，沒什麼好糾結的，憑直覺動手再說。若直覺是錯了就當繳學費，也是種成長。</p> <p data-slug="organizing-min-api" data-title-en="Tips to organize your Minimal API" data-catg="Web Devlopment" data-fbimg="https://images.pexels.com/photos/128880/parachute-skydiving-parachuting-jumping-128880.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article introduces small tips for organizing and maintaining code more effectively when developing more complex Minimal APIs.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>自從發現 <a href="/blog/minimal-api/">ASP.NET Core Minimal API</a>，我所有用到 ASP.NET Web 的小專案(小於一個人月)清一色都是用 Minimal API 寫，省去建 Controller，另開 MVC View 的麻煩，加上 UI 走 <a href="/blog/vue-3-release/">HTML + Vue.js 輕前端</a>，小專案往往三五個檔案寫完網站，符合我的 KISS 極簡美學。</p> <p>不過，當 Min API 再複雜一點，所有邏輯都塞在 Program.cs 寫起來開始有違和感。看到保哥<a href="https://www.facebook.com/groups/DotNetUserGroupTaiwan/posts/3365632733729821/">分享</a>一篇好文章 - Debugger Lady (<a href="/blog/kb-w3svc-throw-0x800703e9-exception/">典故</a>), Tess, 分享如何讓 Minimal API 程式碼更有條理的四則小技巧 - <a href="https://www.tessferrandez.com/blog/2023/10/31/organizing-minimal-apis.html">Organizing ASP.NET Core Minimal APIs</a>，改動幅度不大，但能有效提升程式可讀性，降低維護複雜度，深得我心。</p> <p>閱畢，花了點時間整理成展示專案加強印象，順便納入我常用的單檔部署、JavaScript 快顯通知、SQLite EF Core 存資料等技巧，拼成一個範例方便日後參考。</p> <p>背景知識補充：</p> <ol><li><a href="/blog/aspnetcore-emb-static-files/">內嵌 .html/.css/.js 靜態檔整成單一 EXE</a></li> <li><a href="/blog/noty-js/">JavaScript 快顯通知套件 - NOTY</a></li> <li><a href="/blog/efcore-notes-1/">EF Core 與 SQLite</a></li> <li><a href="/blog/min-api-openapi/">使用 TypedResults 限定回傳型別</a></li></ol> <p>在示範專案中，原本 Minimal API 的 Program.cs 長這樣：</p> <pre><code>using System.ComponentModel.DataAnnotations;
-using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore;
-using MinApiDemo;
-var builder = WebApplication.CreateBuilder(args);
-var sqliteFileName = "bookmark.sqlite";
-if (File.Exists(sqliteFileName)) File.Delete(sqliteFileName);
-var cs = $"Data Source={sqliteFileName}";
-builder.Services.AddDbContext&lt;AppDbContext&gt;(options =&gt; {
-options.UseSqlite(cs);
-});
-var app = builder.Build();
-// create scope to create dbcontext
-using (var scope = app.Services.CreateScope()) {
-var db = scope.ServiceProvider.GetRequiredService&lt;AppDbContext&gt;();
-db.Database.EnsureCreated();
-if (!db.Bookmarks.Any()) {
-db.Bookmarks.AddRange(new[] {
-new Bookmark { Title = "Google", Url = "https://www.google.com" },
-new Bookmark { Title = "Facebook", Url = "https://www.facebook.com" },
-new Bookmark { Title = "YouTube", Url = "https://www.youtube.com" }
-});
-db.SaveChanges();
-}
-}
-app.UseFileServer(new FileServerOptions {
-RequestPath = "",
-FileProvider = new Microsoft.Extensions.FileProviders
-.ManifestEmbeddedFileProvider(
-typeof(Program).Assembly, "ui"
-)
-});
-app.MapGet("/bookmarks/list", async (AppDbContext db) =&gt; {
-return Results.Json(await db.Bookmarks.ToListAsync());
-});
-app.MapPost("/bookmarks/add", async (AppDbContext db, Bookmark bookmark) =&gt; {
-var results = new List&lt;ValidationResult&gt;();
-var isValid = Validator.TryValidateObject(bookmark, new ValidationContext(bookmark), results, true);
-if (!isValid) return Results.BadRequest(results);
-db.Bookmarks.Add(bookmark);
-await db.SaveChangesAsync();
-return Results.Json(bookmark);
-});
-app.MapPost("/bookmarks/remove/{id}", async (AppDbContext db, int id) =&gt; {
-var bookmark = await db.Bookmarks.FindAsync(id);
-if (bookmark == null) return Results.NotFound();
-db.Bookmarks.Remove(bookmark);
-await db.SaveChangesAsync();
-return Results.Ok("OK");
-});
-app.MapGet("/export/json", async (AppDbContext db) =&gt; {
-var bookmarks = await db.Bookmarks.ToListAsync();
-return Results.Json(bookmarks);
-});
-app.MapGet("/export/xml", async (AppDbContext db) =&gt; {
-var bookmarks = await db.Bookmarks.ToListAsync();
-var xd = XDocument.Parse("&lt;bookmarks&gt;&lt;/bookmarks&gt;");
-var root = xd.Root!;
-foreach (var bookmark in bookmarks) {
-var xe = new XElement("bookmark");
-xe.Add(new XElement("id", bookmark.Id));
-xe.Add(new XElement("title", bookmark.Title));
-xe.Add(new XElement("url", bookmark.Url));
-root.Add(xe);
-}
-return Results.Content(xd.ToString(), "application/xml");
-});
-app.Run();
-</code></pre> <p>它是個簡單的 URL 書籤維護，前端則是用 Vue.js 簡單搭個展示 UI：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638498632756351522.gif"></p> <p>而 Tess 建議的四項改善包含：</p> <ol><li>依據功能或性質分類將 Program.cs 中的 .MapGet()、.MapPost() 移到專屬型別，改用 app.RegisterXXXEndPoints() 註冊該類別 API。</li> <li>使用 TypedResults 取代 Reulsts，實現編譯期間的回傳型別檢查。</li> <li>用 MapGroup() 將 API 分群，在群組設定 CORS、身分認證等可一次套用該群所有 API。</li> <li>將 .MapGet()/.MapPost() 邏輯移為型別獨立方法，方便查找維護。<br> 順便分享我怎麼請 Copilot 幫我重構：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638498632758153087.png"><br> 薑!薑!薑!薑~~~<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638498632759871646.png"><br> 或者用 Chat 功能跟 Copilot 許願也行：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638498632761652423.png"></li></ol> <p>重構完 Program.cs 原本一堆 MapGet()/MapPost() 程式碼改成兩行，清爽多了：</p> <pre><code>app.RegisterCrudEndPoints();
-app.RegisterExportApiEndPoints();
-</code></pre> <p>而每個 API 寫成獨立方法，尋找跟管理也會方便很多：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638498632763422504.png"></p> <p>展示專案我放上 <a href="https://github.com/darkthread/organized-min-api">Github</a>，有需要的同學請自行下載參考。</p> <p>題外話，常被問到：面對網站需求如何決定該用 MVC/Razor Page 還是用 Minimal API ？坦白說，我沒有量化標準但有個心法：這差不多像是「該騎機車去還是要開車」的抉擇，關鍵其實是「看是要去哪裡」，靠直覺就會有答案，就算不一定是對的，選錯只差在時間早晚及成本，最終都會到目的地。而且換架構只需重構調整不必砍掉重練，代價比折返回家換交通工具低多了，故做這個決定不該比選騎車或開車困難，沒什麼好糾結的，憑直覺動手再說。若直覺是錯了就當繳學費，也是種成長。</p> <p data-slug="organizing-min-api" data-title-en="Tips to organize your Minimal API" data-catg="Web Devlopment" data-fbimg="https://images.pexels.com/photos/128880/parachute-skydiving-parachuting-jumping-128880.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article introduces small tips for organizing and maintaining code more effectively when developing more complex Minimal APIs.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638498632756351522.gif"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638498632756351522.gif" medium="image"/>
-    <pubDate>Sun, 28 Apr 2024 01:06:18 GMT</pubDate>
   </item></channel>
 </rss>

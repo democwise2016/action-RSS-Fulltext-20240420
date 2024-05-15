@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/987/800/800.jpg?hmac=M777jmvyWJn730Qs7ho41HSlAN0koDz3PIztiFd1VU0</url>
+      <url>https://fastly.picsum.photos/id/988/800/800.jpg?hmac=TWljiGaBF5H60JQOuChnq289FK0Bq-NbA6qzvsunFAY</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,257 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/987/800/800.jpg?hmac=M777jmvyWJn730Qs7ho41HSlAN0koDz3PIztiFd1VU0"/>
+    <itunes:image href="https://fastly.picsum.photos/id/988/800/800.jpg?hmac=TWljiGaBF5H60JQOuChnq289FK0Bq-NbA6qzvsunFAY"/>
 <item>
+    <title><![CDATA[Tube Archivist：批次下載YT影片，打造離線版YouTube]]></title>
+    <link>https://ivonblog.com/posts/tube-archivist/</link>
+    <itunes:title><![CDATA[Tube Archivist：批次下載YT影片，打造離線版YouTube]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>你知道嗎，古巴以前曾經禁止人民觀看Youtube。於是在當地的黑市，商人販售含有最新Youtube影片的隨身碟給當地居民，用以滿足人們想看Youtube又沒辦法翻牆看的需求。</p><p>住在自由國家的我等，當珍惜自由觀看Youtube的權利。不過有時候Youtube的影片還是會因為各種原因從世界上消失，那麼你就需要一款Youtube影片批次下載工具。</p><p>今天分享的「Tube Archivist」軟體就是專為大量下載Youtube影片而生。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp"><p>它整合了yt-dlp工具，可以批次下載Youtube影片</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-68334dbf9a.webp"><p>Tube Archivist還有簡單的網頁界面，能夠在自己的電腦建立離線版Youtube</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b9d1feaea3.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-763a9d39e7.webp"><p>彷彿就像看線上Youtube一樣，不只能瀏覽頻道，播放清單下面還會推薦影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-6e46d748d9.webp"><p>但你可能會問說，大部分YouTube影片看過一次就不會再看了，使用這個服務的意義何在？</p><p>這裡舉幾個使用例：</p><ul><li>方便倉鼠症患者囤積與整理影片</li><li>讓需要翻牆上YouTube的用戶有管道大量爬取影片</li><li>保存愛po版權歌曲合集的頻道，防止優質頻道吃版權砲消失</li><li>下載音樂專輯，建置離線版Youtube Music，演算法由本機程式定之</li><li>建置離線版Youtube Kids，由你親自篩選過內容</li></ul><h2>1. 架設Tube Archivist<span><a href="#1-%E6%9E%B6%E8%A8%ADtube-archivist" aria-label="定位點">#</a></span></h2><p>Tube Archivist是開源軟體，兼具下載Youtube影片與索引YouTube影片的功能，下載技術使用的是<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
+yt-dlp</a>，支援高速下載4K畫質的影片和自動轉檔。</p><p>至於索引部份，Tube Archivist使用Elasticsearch當作本機搜尋引擎，再加上媒體伺服器功能。</p><p>由於yt-dlp下載的影片沒有加密，你還可以將Tube Archivist的下載目錄與界面更成熟的<a href="https://ivonblog.com/posts/self-hosting-jellyfin/" target="_blank">
+Jellyfin</a>共用，並透過<a href="https://github.com/tubearchivist/tubearchivist-jf-plugin" target="_blank">
+Jellyfin TubeArchivist Plugin</a>提供中繼資料給Jellyfin整理。</p><p>根據<a href="https://docs.tubearchivist.com/installation/docker-compose/" target="_blank">
+官方文件說明</a>，使用docker-compose架設。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">
+Docker</a></p></li><li><p>新增docker-compose</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/tubeArchivist
+</span></span><span><span><span>cd</span> tubeArchivist
+</span></span><span><span>vim docker-compose.yml
+</span></span></code></pre></div><ol start="3"><li>填入以下內容，注意註解。本docker-compose包含三個服務：Tube Archivist、Redis、 Elasticsearch。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.5'</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>services</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>tubearchivist</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>tubearchivist</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist</span><span>
+</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>8000</span><span>:</span><span>8000</span><span> </span><span># Tube Archivist網頁界面的通訊埠</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>media:/youtube </span><span> </span><span># 儲存影片的目錄，預設使用docker volume，可以改掛載其他目錄</span><span>
+</span></span></span><span><span><span>      </span>- <span>cache:/cache</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>ES_URL=http://archivist-es:9200    </span><span> </span><span># 需要填寫http與port</span><span>
+</span></span></span><span><span><span>      </span>- <span>REDIS_HOST=archivist-redis         </span><span> </span><span># 不需要填http</span><span>
+</span></span></span><span><span><span>      </span>- <span>HOST_UID=1000</span><span>
+</span></span></span><span><span><span>      </span>- <span>HOST_GID=1000</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_HOST=tubearchivist.local        </span><span> </span><span># 必須修改成自己的hostname或IP</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_USERNAME=tubearchivist          </span><span> </span><span># 預設Tube Archivist帳號</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_PASSWORD=verysecret             </span><span> </span><span># 預設Tube Archivist密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>ELASTIC_PASSWORD=verysecret        </span><span> </span><span># Elasticsearch的密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>TZ=Asia/Taipei                </span><span> </span><span># 時區</span><span>
+</span></span></span><span><span><span>    </span><span>healthcheck</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>test</span><span>:</span><span> </span><span>[</span><span>"CMD"</span><span>,</span><span> </span><span>"curl"</span><span>,</span><span> </span><span>"-f"</span><span>,</span><span> </span><span>"http://localhost:8000/health"</span><span>]</span><span>
+</span></span></span><span><span><span>      </span><span>interval</span><span>:</span><span> </span><span>2m</span><span>
+</span></span></span><span><span><span>      </span><span>timeout</span><span>:</span><span> </span><span>10s</span><span>
+</span></span></span><span><span><span>      </span><span>retries</span><span>:</span><span> </span><span>3</span><span>
+</span></span></span><span><span><span>      </span><span>start_period</span><span>:</span><span> </span><span>30s</span><span>
+</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-redis</span><span>
+</span></span></span><span><span><span>  </span><span>archivist-redis</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>redis/redis-stack-server</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-redis</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"6379"</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>redis:/data</span><span>
+</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
+</span></span></span><span><span><span>  </span><span>archivist-es</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist-es        </span><span> </span><span># 本映像檔僅支援AMD64架構，ARM64請用 docker.io/library/elasticsearch:8.13.2</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-es</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"ELASTIC_PASSWORD=verysecret"</span><span>       </span><span># 填入上述Elasticsearch的密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>"ES_JAVA_OPTS=-Xms512m -Xmx512m"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"xpack.security.enabled=true"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"discovery.type=single-node"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"path.repo=/usr/share/elasticsearch/data/snapshot"</span><span>
+</span></span></span><span><span><span>    </span><span>ulimits</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>memlock</span><span>:</span><span>
+</span></span></span><span><span><span>        </span><span>soft</span><span>:</span><span> </span>-<span>1</span><span>
+</span></span></span><span><span><span>        </span><span>hard</span><span>:</span><span> </span>-<span>1</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>es:/usr/share/elasticsearch/data   </span><span> </span><span># 使用bind的時候檢查權限</span><span>
+</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"9200"</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>media</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>cache</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>redis</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>es</span><span>:</span><span>
+</span></span></span></code></pre></div><ol start="4"><li>為了防止權限錯誤，事先將儲存影片的目錄權限修改</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown user:user <span>"/影片目錄/"</span>
+</span></span></code></pre></div><ol start="5"><li>啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>docker compose up -d
+</span></span></code></pre></div><ol start="6"><li>使用瀏覽器開啟<code>http://localhost:8000</code>開啟網頁頁面，使用docker-compose填寫的帳密登入。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ecb6917a3c.webp"></li></ol><h2>2. Tube Archivist的影片下載邏輯<span><a href="#2-tube-archivist%E7%9A%84%E5%BD%B1%E7%89%87%E4%B8%8B%E8%BC%89%E9%82%8F%E8%BC%AF" aria-label="定位點">#</a></span></h2><p>Tube Archivist有頻道(Channel)、播放清單{Playlist)的頁面，輸入URL或者播放清單ID新增訂閱列表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce701a7a9f.webp"><p>下載邏輯是這樣的：如果你直接訂閱(新增)頻道或者播放清單，則Tube Archivist會下載<strong>全部頻道</strong>內容的影片。</p><p>如果你只是想儲存特定影片，那麼推薦使用下載頁面的下載影片方式。</p><p>切Tube Archivist的downloads頁面。在這裡只要填入YoutTube影片或播放清單ID，再按Start Download就會開始下載影片。預設會抓最高畫質影片，你可以點Tube Archivist右上角設定，參考<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
+yt-dlp參數</a>調整詳細下載內容。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f4b220cf76.webp"><p>不論下載方式為何，Tube Archivist都會儲存影片的中繼資料，並將影片按照上傳者歸類，構成一個類似Youtube的界面。使用者可以瀏覽特定「頻道」已下載的所有影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fba7f3770f.webp"><p>實際下載的影片檔名以原始Youtube影片網址命名。而下載後檔案目錄的結構則為頻道名稱＋影片名稱：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-37e4ef792e.webp"><h2>3. 使用擴充功能下載影片<span><a href="#3-%E4%BD%BF%E7%94%A8%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD%E4%B8%8B%E8%BC%89%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>Tube Archivist的擴充功能可以讓你看到喜歡的影片就一鍵傳給Tube Archivist下載。</p><ol><li><p>點選Tube Archivist右上角設定 → User → User Management → Admin Interface → Auth Token，按Add，新增API金鑰</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0008750dc7.webp"></li><li><p>安裝Tube Archivist作者開發的擴充功能。<a href="https://addons.mozilla.org/zh-TW/firefox/addon/tubearchivist-companion/" target="_blank">
+Firefox</a>｜<a href="https://chromewebstore.google.com/detail/tubearchivist-companion/jjnkmicfnfojkkgobdfeieblocadmcie" target="_blank">
+Chrome</a></p></li><li><p>開啟擴充功能，填入Tube Archivist的網址和API金鑰。勾選Sync Youtube cookies可以方便你下載會員限定影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c3abc8d370.webp"></li><li><p>如此一來，Youtube網頁就會出現按鈕。Subscribe是訂閱頻道，「下載」按鈕為下載單部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d5a2db0fd7.webp"></li><li><p>只要一按下按鈕影片就會出現在Tube Archivist佇列。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d85e21df67.webp"></li></ol><h2>4. 訂閱並下載整個頻道的影片<span><a href="#4-%E8%A8%82%E9%96%B1%E4%B8%A6%E4%B8%8B%E8%BC%89%E6%95%B4%E5%80%8B%E9%A0%BB%E9%81%93%E7%9A%84%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>在channel填入Yotuube頻道的網址（播放清單同理，不過要填寫的是<code>&amp;list=</code>後面的ID）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-898a7c8835.webp"><p>之後到downloads頁面，點選Rescan subscriptions，它就會開始抓取該頻道的全部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fac6079eb.webp">]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>你知道嗎，古巴以前曾經禁止人民觀看Youtube。於是在當地的黑市，商人販售含有最新Youtube影片的隨身碟給當地居民，用以滿足人們想看Youtube又沒辦法翻牆看的需求。</p><p>住在自由國家的我等，當珍惜自由觀看Youtube的權利。不過有時候Youtube的影片還是會因為各種原因從世界上消失，那麼你就需要一款Youtube影片批次下載工具。</p><p>今天分享的「Tube Archivist」軟體就是專為大量下載Youtube影片而生。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp"><p>它整合了yt-dlp工具，可以批次下載Youtube影片</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-68334dbf9a.webp"><p>Tube Archivist還有簡單的網頁界面，能夠在自己的電腦建立離線版Youtube</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b9d1feaea3.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-763a9d39e7.webp"><p>彷彿就像看線上Youtube一樣，不只能瀏覽頻道，播放清單下面還會推薦影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-6e46d748d9.webp"><p>但你可能會問說，大部分YouTube影片看過一次就不會再看了，使用這個服務的意義何在？</p><p>這裡舉幾個使用例：</p><ul><li>方便倉鼠症患者囤積與整理影片</li><li>讓需要翻牆上YouTube的用戶有管道大量爬取影片</li><li>保存愛po版權歌曲合集的頻道，防止優質頻道吃版權砲消失</li><li>下載音樂專輯，建置離線版Youtube Music，演算法由本機程式定之</li><li>建置離線版Youtube Kids，由你親自篩選過內容</li></ul><h2>1. 架設Tube Archivist<span><a href="#1-%E6%9E%B6%E8%A8%ADtube-archivist" aria-label="定位點">#</a></span></h2><p>Tube Archivist是開源軟體，兼具下載Youtube影片與索引YouTube影片的功能，下載技術使用的是<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
+yt-dlp</a>，支援高速下載4K畫質的影片和自動轉檔。</p><p>至於索引部份，Tube Archivist使用Elasticsearch當作本機搜尋引擎，再加上媒體伺服器功能。</p><p>由於yt-dlp下載的影片沒有加密，你還可以將Tube Archivist的下載目錄與界面更成熟的<a href="https://ivonblog.com/posts/self-hosting-jellyfin/" target="_blank">
+Jellyfin</a>共用，並透過<a href="https://github.com/tubearchivist/tubearchivist-jf-plugin" target="_blank">
+Jellyfin TubeArchivist Plugin</a>提供中繼資料給Jellyfin整理。</p><p>根據<a href="https://docs.tubearchivist.com/installation/docker-compose/" target="_blank">
+官方文件說明</a>，使用docker-compose架設。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">
+Docker</a></p></li><li><p>新增docker-compose</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/tubeArchivist
+</span></span><span><span><span>cd</span> tubeArchivist
+</span></span><span><span>vim docker-compose.yml
+</span></span></code></pre></div><ol start="3"><li>填入以下內容，注意註解。本docker-compose包含三個服務：Tube Archivist、Redis、 Elasticsearch。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.5'</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>services</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>tubearchivist</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>tubearchivist</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist</span><span>
+</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>8000</span><span>:</span><span>8000</span><span> </span><span># Tube Archivist網頁界面的通訊埠</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>media:/youtube </span><span> </span><span># 儲存影片的目錄，預設使用docker volume，可以改掛載其他目錄</span><span>
+</span></span></span><span><span><span>      </span>- <span>cache:/cache</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>ES_URL=http://archivist-es:9200    </span><span> </span><span># 需要填寫http與port</span><span>
+</span></span></span><span><span><span>      </span>- <span>REDIS_HOST=archivist-redis         </span><span> </span><span># 不需要填http</span><span>
+</span></span></span><span><span><span>      </span>- <span>HOST_UID=1000</span><span>
+</span></span></span><span><span><span>      </span>- <span>HOST_GID=1000</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_HOST=tubearchivist.local        </span><span> </span><span># 必須修改成自己的hostname或IP</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_USERNAME=tubearchivist          </span><span> </span><span># 預設Tube Archivist帳號</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_PASSWORD=verysecret             </span><span> </span><span># 預設Tube Archivist密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>ELASTIC_PASSWORD=verysecret        </span><span> </span><span># Elasticsearch的密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>TZ=Asia/Taipei                </span><span> </span><span># 時區</span><span>
+</span></span></span><span><span><span>    </span><span>healthcheck</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>test</span><span>:</span><span> </span><span>[</span><span>"CMD"</span><span>,</span><span> </span><span>"curl"</span><span>,</span><span> </span><span>"-f"</span><span>,</span><span> </span><span>"http://localhost:8000/health"</span><span>]</span><span>
+</span></span></span><span><span><span>      </span><span>interval</span><span>:</span><span> </span><span>2m</span><span>
+</span></span></span><span><span><span>      </span><span>timeout</span><span>:</span><span> </span><span>10s</span><span>
+</span></span></span><span><span><span>      </span><span>retries</span><span>:</span><span> </span><span>3</span><span>
+</span></span></span><span><span><span>      </span><span>start_period</span><span>:</span><span> </span><span>30s</span><span>
+</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-redis</span><span>
+</span></span></span><span><span><span>  </span><span>archivist-redis</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>redis/redis-stack-server</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-redis</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"6379"</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>redis:/data</span><span>
+</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
+</span></span></span><span><span><span>  </span><span>archivist-es</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist-es        </span><span> </span><span># 本映像檔僅支援AMD64架構，ARM64請用 docker.io/library/elasticsearch:8.13.2</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-es</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"ELASTIC_PASSWORD=verysecret"</span><span>       </span><span># 填入上述Elasticsearch的密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>"ES_JAVA_OPTS=-Xms512m -Xmx512m"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"xpack.security.enabled=true"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"discovery.type=single-node"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"path.repo=/usr/share/elasticsearch/data/snapshot"</span><span>
+</span></span></span><span><span><span>    </span><span>ulimits</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>memlock</span><span>:</span><span>
+</span></span></span><span><span><span>        </span><span>soft</span><span>:</span><span> </span>-<span>1</span><span>
+</span></span></span><span><span><span>        </span><span>hard</span><span>:</span><span> </span>-<span>1</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>es:/usr/share/elasticsearch/data   </span><span> </span><span># 使用bind的時候檢查權限</span><span>
+</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"9200"</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>media</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>cache</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>redis</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>es</span><span>:</span><span>
+</span></span></span></code></pre></div><ol start="4"><li>為了防止權限錯誤，事先將儲存影片的目錄權限修改</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown user:user <span>"/影片目錄/"</span>
+</span></span></code></pre></div><ol start="5"><li>啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>docker compose up -d
+</span></span></code></pre></div><ol start="6"><li>使用瀏覽器開啟<code>http://localhost:8000</code>開啟網頁頁面，使用docker-compose填寫的帳密登入。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ecb6917a3c.webp"></li></ol><h2>2. Tube Archivist的影片下載邏輯<span><a href="#2-tube-archivist%E7%9A%84%E5%BD%B1%E7%89%87%E4%B8%8B%E8%BC%89%E9%82%8F%E8%BC%AF" aria-label="定位點">#</a></span></h2><p>Tube Archivist有頻道(Channel)、播放清單{Playlist)的頁面，輸入URL或者播放清單ID新增訂閱列表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce701a7a9f.webp"><p>下載邏輯是這樣的：如果你直接訂閱(新增)頻道或者播放清單，則Tube Archivist會下載<strong>全部頻道</strong>內容的影片。</p><p>如果你只是想儲存特定影片，那麼推薦使用下載頁面的下載影片方式。</p><p>切Tube Archivist的downloads頁面。在這裡只要填入YoutTube影片或播放清單ID，再按Start Download就會開始下載影片。預設會抓最高畫質影片，你可以點Tube Archivist右上角設定，參考<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
+yt-dlp參數</a>調整詳細下載內容。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f4b220cf76.webp"><p>不論下載方式為何，Tube Archivist都會儲存影片的中繼資料，並將影片按照上傳者歸類，構成一個類似Youtube的界面。使用者可以瀏覽特定「頻道」已下載的所有影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fba7f3770f.webp"><p>實際下載的影片檔名以原始Youtube影片網址命名。而下載後檔案目錄的結構則為頻道名稱＋影片名稱：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-37e4ef792e.webp"><h2>3. 使用擴充功能下載影片<span><a href="#3-%E4%BD%BF%E7%94%A8%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD%E4%B8%8B%E8%BC%89%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>Tube Archivist的擴充功能可以讓你看到喜歡的影片就一鍵傳給Tube Archivist下載。</p><ol><li><p>點選Tube Archivist右上角設定 → User → User Management → Admin Interface → Auth Token，按Add，新增API金鑰</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0008750dc7.webp"></li><li><p>安裝Tube Archivist作者開發的擴充功能。<a href="https://addons.mozilla.org/zh-TW/firefox/addon/tubearchivist-companion/" target="_blank">
+Firefox</a>｜<a href="https://chromewebstore.google.com/detail/tubearchivist-companion/jjnkmicfnfojkkgobdfeieblocadmcie" target="_blank">
+Chrome</a></p></li><li><p>開啟擴充功能，填入Tube Archivist的網址和API金鑰。勾選Sync Youtube cookies可以方便你下載會員限定影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c3abc8d370.webp"></li><li><p>如此一來，Youtube網頁就會出現按鈕。Subscribe是訂閱頻道，「下載」按鈕為下載單部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d5a2db0fd7.webp"></li><li><p>只要一按下按鈕影片就會出現在Tube Archivist佇列。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d85e21df67.webp"></li></ol><h2>4. 訂閱並下載整個頻道的影片<span><a href="#4-%E8%A8%82%E9%96%B1%E4%B8%A6%E4%B8%8B%E8%BC%89%E6%95%B4%E5%80%8B%E9%A0%BB%E9%81%93%E7%9A%84%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>在channel填入Yotuube頻道的網址（播放清單同理，不過要填寫的是<code>&amp;list=</code>後面的ID）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-898a7c8835.webp"><p>之後到downloads頁面，點選Rescan subscriptions，它就會開始抓取該頻道的全部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fac6079eb.webp">]]>
+    </description>
+    <content:encoded><![CDATA[<p>你知道嗎，古巴以前曾經禁止人民觀看Youtube。於是在當地的黑市，商人販售含有最新Youtube影片的隨身碟給當地居民，用以滿足人們想看Youtube又沒辦法翻牆看的需求。</p><p>住在自由國家的我等，當珍惜自由觀看Youtube的權利。不過有時候Youtube的影片還是會因為各種原因從世界上消失，那麼你就需要一款Youtube影片批次下載工具。</p><p>今天分享的「Tube Archivist」軟體就是專為大量下載Youtube影片而生。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp"><p>它整合了yt-dlp工具，可以批次下載Youtube影片</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-68334dbf9a.webp"><p>Tube Archivist還有簡單的網頁界面，能夠在自己的電腦建立離線版Youtube</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b9d1feaea3.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-763a9d39e7.webp"><p>彷彿就像看線上Youtube一樣，不只能瀏覽頻道，播放清單下面還會推薦影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-6e46d748d9.webp"><p>但你可能會問說，大部分YouTube影片看過一次就不會再看了，使用這個服務的意義何在？</p><p>這裡舉幾個使用例：</p><ul><li>方便倉鼠症患者囤積與整理影片</li><li>讓需要翻牆上YouTube的用戶有管道大量爬取影片</li><li>保存愛po版權歌曲合集的頻道，防止優質頻道吃版權砲消失</li><li>下載音樂專輯，建置離線版Youtube Music，演算法由本機程式定之</li><li>建置離線版Youtube Kids，由你親自篩選過內容</li></ul><h2>1. 架設Tube Archivist<span><a href="#1-%E6%9E%B6%E8%A8%ADtube-archivist" aria-label="定位點">#</a></span></h2><p>Tube Archivist是開源軟體，兼具下載Youtube影片與索引YouTube影片的功能，下載技術使用的是<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
+yt-dlp</a>，支援高速下載4K畫質的影片和自動轉檔。</p><p>至於索引部份，Tube Archivist使用Elasticsearch當作本機搜尋引擎，再加上媒體伺服器功能。</p><p>由於yt-dlp下載的影片沒有加密，你還可以將Tube Archivist的下載目錄與界面更成熟的<a href="https://ivonblog.com/posts/self-hosting-jellyfin/" target="_blank">
+Jellyfin</a>共用，並透過<a href="https://github.com/tubearchivist/tubearchivist-jf-plugin" target="_blank">
+Jellyfin TubeArchivist Plugin</a>提供中繼資料給Jellyfin整理。</p><p>根據<a href="https://docs.tubearchivist.com/installation/docker-compose/" target="_blank">
+官方文件說明</a>，使用docker-compose架設。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">
+Docker</a></p></li><li><p>新增docker-compose</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/tubeArchivist
+</span></span><span><span><span>cd</span> tubeArchivist
+</span></span><span><span>vim docker-compose.yml
+</span></span></code></pre></div><ol start="3"><li>填入以下內容，注意註解。本docker-compose包含三個服務：Tube Archivist、Redis、 Elasticsearch。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.5'</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>services</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>tubearchivist</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>tubearchivist</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist</span><span>
+</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>8000</span><span>:</span><span>8000</span><span> </span><span># Tube Archivist網頁界面的通訊埠</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>media:/youtube </span><span> </span><span># 儲存影片的目錄，預設使用docker volume，可以改掛載其他目錄</span><span>
+</span></span></span><span><span><span>      </span>- <span>cache:/cache</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>ES_URL=http://archivist-es:9200    </span><span> </span><span># 需要填寫http與port</span><span>
+</span></span></span><span><span><span>      </span>- <span>REDIS_HOST=archivist-redis         </span><span> </span><span># 不需要填http</span><span>
+</span></span></span><span><span><span>      </span>- <span>HOST_UID=1000</span><span>
+</span></span></span><span><span><span>      </span>- <span>HOST_GID=1000</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_HOST=tubearchivist.local        </span><span> </span><span># 必須修改成自己的hostname或IP</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_USERNAME=tubearchivist          </span><span> </span><span># 預設Tube Archivist帳號</span><span>
+</span></span></span><span><span><span>      </span>- <span>TA_PASSWORD=verysecret             </span><span> </span><span># 預設Tube Archivist密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>ELASTIC_PASSWORD=verysecret        </span><span> </span><span># Elasticsearch的密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>TZ=Asia/Taipei                </span><span> </span><span># 時區</span><span>
+</span></span></span><span><span><span>    </span><span>healthcheck</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>test</span><span>:</span><span> </span><span>[</span><span>"CMD"</span><span>,</span><span> </span><span>"curl"</span><span>,</span><span> </span><span>"-f"</span><span>,</span><span> </span><span>"http://localhost:8000/health"</span><span>]</span><span>
+</span></span></span><span><span><span>      </span><span>interval</span><span>:</span><span> </span><span>2m</span><span>
+</span></span></span><span><span><span>      </span><span>timeout</span><span>:</span><span> </span><span>10s</span><span>
+</span></span></span><span><span><span>      </span><span>retries</span><span>:</span><span> </span><span>3</span><span>
+</span></span></span><span><span><span>      </span><span>start_period</span><span>:</span><span> </span><span>30s</span><span>
+</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-redis</span><span>
+</span></span></span><span><span><span>  </span><span>archivist-redis</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>redis/redis-stack-server</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-redis</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"6379"</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>redis:/data</span><span>
+</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
+</span></span></span><span><span><span>  </span><span>archivist-es</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist-es        </span><span> </span><span># 本映像檔僅支援AMD64架構，ARM64請用 docker.io/library/elasticsearch:8.13.2</span><span>
+</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-es</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"ELASTIC_PASSWORD=verysecret"</span><span>       </span><span># 填入上述Elasticsearch的密碼</span><span>
+</span></span></span><span><span><span>      </span>- <span>"ES_JAVA_OPTS=-Xms512m -Xmx512m"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"xpack.security.enabled=true"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"discovery.type=single-node"</span><span>
+</span></span></span><span><span><span>      </span>- <span>"path.repo=/usr/share/elasticsearch/data/snapshot"</span><span>
+</span></span></span><span><span><span>    </span><span>ulimits</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>memlock</span><span>:</span><span>
+</span></span></span><span><span><span>        </span><span>soft</span><span>:</span><span> </span>-<span>1</span><span>
+</span></span></span><span><span><span>        </span><span>hard</span><span>:</span><span> </span>-<span>1</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>es:/usr/share/elasticsearch/data   </span><span> </span><span># 使用bind的時候檢查權限</span><span>
+</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"9200"</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>media</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>cache</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>redis</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>es</span><span>:</span><span>
+</span></span></span></code></pre></div><ol start="4"><li>為了防止權限錯誤，事先將儲存影片的目錄權限修改</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown user:user <span>"/影片目錄/"</span>
+</span></span></code></pre></div><ol start="5"><li>啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>docker compose up -d
+</span></span></code></pre></div><ol start="6"><li>使用瀏覽器開啟<code>http://localhost:8000</code>開啟網頁頁面，使用docker-compose填寫的帳密登入。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ecb6917a3c.webp"></li></ol><h2>2. Tube Archivist的影片下載邏輯<span><a href="#2-tube-archivist%E7%9A%84%E5%BD%B1%E7%89%87%E4%B8%8B%E8%BC%89%E9%82%8F%E8%BC%AF" aria-label="定位點">#</a></span></h2><p>Tube Archivist有頻道(Channel)、播放清單{Playlist)的頁面，輸入URL或者播放清單ID新增訂閱列表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce701a7a9f.webp"><p>下載邏輯是這樣的：如果你直接訂閱(新增)頻道或者播放清單，則Tube Archivist會下載<strong>全部頻道</strong>內容的影片。</p><p>如果你只是想儲存特定影片，那麼推薦使用下載頁面的下載影片方式。</p><p>切Tube Archivist的downloads頁面。在這裡只要填入YoutTube影片或播放清單ID，再按Start Download就會開始下載影片。預設會抓最高畫質影片，你可以點Tube Archivist右上角設定，參考<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
+yt-dlp參數</a>調整詳細下載內容。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f4b220cf76.webp"><p>不論下載方式為何，Tube Archivist都會儲存影片的中繼資料，並將影片按照上傳者歸類，構成一個類似Youtube的界面。使用者可以瀏覽特定「頻道」已下載的所有影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fba7f3770f.webp"><p>實際下載的影片檔名以原始Youtube影片網址命名。而下載後檔案目錄的結構則為頻道名稱＋影片名稱：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-37e4ef792e.webp"><h2>3. 使用擴充功能下載影片<span><a href="#3-%E4%BD%BF%E7%94%A8%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD%E4%B8%8B%E8%BC%89%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>Tube Archivist的擴充功能可以讓你看到喜歡的影片就一鍵傳給Tube Archivist下載。</p><ol><li><p>點選Tube Archivist右上角設定 → User → User Management → Admin Interface → Auth Token，按Add，新增API金鑰</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0008750dc7.webp"></li><li><p>安裝Tube Archivist作者開發的擴充功能。<a href="https://addons.mozilla.org/zh-TW/firefox/addon/tubearchivist-companion/" target="_blank">
+Firefox</a>｜<a href="https://chromewebstore.google.com/detail/tubearchivist-companion/jjnkmicfnfojkkgobdfeieblocadmcie" target="_blank">
+Chrome</a></p></li><li><p>開啟擴充功能，填入Tube Archivist的網址和API金鑰。勾選Sync Youtube cookies可以方便你下載會員限定影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c3abc8d370.webp"></li><li><p>如此一來，Youtube網頁就會出現按鈕。Subscribe是訂閱頻道，「下載」按鈕為下載單部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d5a2db0fd7.webp"></li><li><p>只要一按下按鈕影片就會出現在Tube Archivist佇列。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d85e21df67.webp"></li></ol><h2>4. 訂閱並下載整個頻道的影片<span><a href="#4-%E8%A8%82%E9%96%B1%E4%B8%A6%E4%B8%8B%E8%BC%89%E6%95%B4%E5%80%8B%E9%A0%BB%E9%81%93%E7%9A%84%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>在channel填入Yotuube頻道的網址（播放清單同理，不過要填寫的是<code>&amp;list=</code>後面的ID）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-898a7c8835.webp"><p>之後到downloads頁面，點選Rescan subscriptions，它就會開始抓取該頻道的全部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fac6079eb.webp">]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp" medium="image"/>
+    <pubDate>Wed, 15 May 2024 15:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[超美Minetest畫面！開啟光影著色器(shader)強化畫面效果]]></title>
     <link>https://ivonblog.com/posts/minetest-enhanced-graphics/</link>
     <itunes:title><![CDATA[超美Minetest畫面！開啟光影著色器(shader)強化畫面效果]]></itunes:title>
@@ -1087,22 +1336,5 @@ NPM</a></p></li><li><p>開啟終端機，複製儲存庫，安裝依賴套件</p
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6c105c0ceb.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6c105c0ceb.webp" medium="image"/>
     <pubDate>Wed, 08 May 2024 20:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Linux開發Minecraft基岩版Add-On的環境設定]]></title>
-    <link>https://ivonblog.com/posts/develope-minecraft-bedrock-add-on-on-linux/</link>
-    <itunes:title><![CDATA[Linux開發Minecraft基岩版Add-On的環境設定]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>地獄級難度警告。</p><p>首先，Linux先天就不適合開發Minecraft基岩版的Add-On。</p><p>Java版Forge模組還湊合，Minecraft Java本身就跨平台，寫Mod的IntelliJ IDEA又不是沒有Linux版嘛…聽說Forge的開發者也有用Linux寫程式的。</p><p>但是基岩版Add-On就不一樣了。</p><p>程式碼編輯器不是最大問題，問題在於遊戲本身。</p><p>在做基岩版Add-On的時候我主要用到：程式碼編輯器(Visual Studio Code)、修圖軟體(GIMP或Photoshop)、Minecraft本體，前二者都有Linux版，但基岩版只有Windows版，不支援原生Linux系統。且基岩版程式用UWP打包的，所以休想用Wine跑。</p><p><del>ㄟ，Canoncial都跟Microsoft屁眼交易，用WSL換.Net上Linux了，Mark你能不能再給Satya多哈幾口讓Minecraft基岩版上Linux啊！</del></p><p>這是死穴。</p><p>用虛擬機再用local sshfs傳檔案？似乎可行但3D效能很糟糕。</p><p>原本在Windows平台可以把Add-On檔案直接往遊戲目錄的<code>developments_*_packs</code>目錄塞，一邊寫程式一邊偵錯的操作，在Linux就行不通了。</p><p>所以，退而求其次，我只好用Linux的Android模擬器跑Android版Minecraft來測試了。參見<a href="https://ivonblog.com/posts/play-minecraft-bedrock-edition-on-linux/" target="_blank">
-Waydroid容器跑Minecraft基岩版</a></p><p>或者，使用ADB＋Scrcpy連線到實體Android手機，有變更就傳檔案過去，方便做實機測試。</p><p>不過這又會牽涉到Android權限的問題，Minecraft 1.18以後版本把檔案放到<code>Android/data</code>，該死的Google在Android 11後不斷限制對Android/data的存取。所以我大部分時候都只能用ADB root指令傳檔。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>地獄級難度警告。</p><p>首先，Linux先天就不適合開發Minecraft基岩版的Add-On。</p><p>Java版Forge模組還湊合，Minecraft Java本身就跨平台，寫Mod的IntelliJ IDEA又不是沒有Linux版嘛…聽說Forge的開發者也有用Linux寫程式的。</p><p>但是基岩版Add-On就不一樣了。</p><p>程式碼編輯器不是最大問題，問題在於遊戲本身。</p><p>在做基岩版Add-On的時候我主要用到：程式碼編輯器(Visual Studio Code)、修圖軟體(GIMP或Photoshop)、Minecraft本體，前二者都有Linux版，但基岩版只有Windows版，不支援原生Linux系統。且基岩版程式用UWP打包的，所以休想用Wine跑。</p><p><del>ㄟ，Canoncial都跟Microsoft屁眼交易，用WSL換.Net上Linux了，Mark你能不能再給Satya多哈幾口讓Minecraft基岩版上Linux啊！</del></p><p>這是死穴。</p><p>用虛擬機再用local sshfs傳檔案？似乎可行但3D效能很糟糕。</p><p>原本在Windows平台可以把Add-On檔案直接往遊戲目錄的<code>developments_*_packs</code>目錄塞，一邊寫程式一邊偵錯的操作，在Linux就行不通了。</p><p>所以，退而求其次，我只好用Linux的Android模擬器跑Android版Minecraft來測試了。參見<a href="https://ivonblog.com/posts/play-minecraft-bedrock-edition-on-linux/" target="_blank">
-Waydroid容器跑Minecraft基岩版</a></p><p>或者，使用ADB＋Scrcpy連線到實體Android手機，有變更就傳檔案過去，方便做實機測試。</p><p>不過這又會牽涉到Android權限的問題，Minecraft 1.18以後版本把檔案放到<code>Android/data</code>，該死的Google在Android 11後不斷限制對Android/data的存取。所以我大部分時候都只能用ADB root指令傳檔。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>地獄級難度警告。</p><p>首先，Linux先天就不適合開發Minecraft基岩版的Add-On。</p><p>Java版Forge模組還湊合，Minecraft Java本身就跨平台，寫Mod的IntelliJ IDEA又不是沒有Linux版嘛…聽說Forge的開發者也有用Linux寫程式的。</p><p>但是基岩版Add-On就不一樣了。</p><p>程式碼編輯器不是最大問題，問題在於遊戲本身。</p><p>在做基岩版Add-On的時候我主要用到：程式碼編輯器(Visual Studio Code)、修圖軟體(GIMP或Photoshop)、Minecraft本體，前二者都有Linux版，但基岩版只有Windows版，不支援原生Linux系統。且基岩版程式用UWP打包的，所以休想用Wine跑。</p><p><del>ㄟ，Canoncial都跟Microsoft屁眼交易，用WSL換.Net上Linux了，Mark你能不能再給Satya多哈幾口讓Minecraft基岩版上Linux啊！</del></p><p>這是死穴。</p><p>用虛擬機再用local sshfs傳檔案？似乎可行但3D效能很糟糕。</p><p>原本在Windows平台可以把Add-On檔案直接往遊戲目錄的<code>developments_*_packs</code>目錄塞，一邊寫程式一邊偵錯的操作，在Linux就行不通了。</p><p>所以，退而求其次，我只好用Linux的Android模擬器跑Android版Minecraft來測試了。參見<a href="https://ivonblog.com/posts/play-minecraft-bedrock-edition-on-linux/" target="_blank">
-Waydroid容器跑Minecraft基岩版</a></p><p>或者，使用ADB＋Scrcpy連線到實體Android手機，有變更就傳檔案過去，方便做實機測試。</p><p>不過這又會牽涉到Android權限的問題，Minecraft 1.18以後版本把檔案放到<code>Android/data</code>，該死的Google在Android 11後不斷限制對Android/data的存取。所以我大部分時候都只能用ADB root指令傳檔。</p>]]></content:encoded>
-    
-    <pubDate>Tue, 07 May 2024 20:00:00 +0800</pubDate>
   </item></channel>
 </rss>
