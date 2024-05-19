@@ -30,6 +30,45 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Git 小技巧 - 切換為特定 Github 帳號維護專案]]></title>
+    <link>https://blog.darkthread.net/blog/git-with-multi-github-accounts/</link>
+    <itunes:title><![CDATA[Git 小技巧 - 切換為特定 Github 帳號維護專案]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這個小技巧適用於在一台電腦上同時使用多個 Github 帳號的情境，像是開發 Side Project 時都用個人 Github 帳號，但工作專案則要改由公務用 Github 帳號 Commit 及 Push。</p> <p>這算實務常見需求，很快就找到<a href="https://stackoverflow.com/a/27407168/288936">解答</a>。</p> <p>江湖一點訣：來源 Github URL 加上 Github 使用者名稱即可，若在專案中的署名及 Email 名稱與全域設定不同，記得也要修改。</p> <p>借用我的 <a href="https://github.com/darkthread/passkey-demo">Passkey Demo</a> 專案當例子，Github 使用者名稱是 darkthread、專案名稱 passkey-demo。</p> <p>假設我在某台電腦都是用另一個 Github 帳號 blahblah 在維護專案，獨獨這個專案要改用 darkthread。在沒特別設定的情況下，若我 clone 專案開新 branch 再 push，一定會被擋下來，因為 blahblah 沒有更新權限：</p> <pre><code>git clone https://github.com/darkthread/passkey-demo
+cd passkey-demo
+git checkout -b beta
+git push --set-upstream origin beta
+</code></pre> <p>如下圖所示，push 會得到 HTTP 403，原因為 Permission Denied：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png"></p> <p>此時我們用 git 指令修改設定，在 origin URL 前方加上 <code>darkthread@</code> 並設定姓名及 Email (記得勿加 -g，這個設定只套用在專案而非全域)：</p> <pre><code># git remote set-url origin https://&lt;USERNAME&gt;@github.com/&lt;USERNAME&gt;/&lt;PROJECTNAME&gt;.git
+git remote set-url origin https://darkthread@github.com/darkthread/passkey-demo
+git config user.name Jeffrey
+git config user.email example@hotmail.com
+</code></pre> <p>修改完成再 git push 便會彈出登入提示：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638516984746802943.png"></p> <p>成功登入後，就會改用 darkthread 帳號 push 了。而使用 Windows 密碼管理員檢視，可發現多了一筆 <code>git:https://&lt;username&gt;@github.com</code>，如此就可實現切換不同 Github 帳號維護特定專案囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638516984748491198.png"></p> <p data-slug="git-with-multi-github-accounts" data-fbimg="https://cdn.pixabay.com/photo/2016/08/01/11/09/british-1560838_1280.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這個小技巧適用於在一台電腦上同時使用多個 Github 帳號的情境，像是開發 Side Project 時都用個人 Github 帳號，但工作專案則要改由公務用 Github 帳號 Commit 及 Push。</p> <p>這算實務常見需求，很快就找到<a href="https://stackoverflow.com/a/27407168/288936">解答</a>。</p> <p>江湖一點訣：來源 Github URL 加上 Github 使用者名稱即可，若在專案中的署名及 Email 名稱與全域設定不同，記得也要修改。</p> <p>借用我的 <a href="https://github.com/darkthread/passkey-demo">Passkey Demo</a> 專案當例子，Github 使用者名稱是 darkthread、專案名稱 passkey-demo。</p> <p>假設我在某台電腦都是用另一個 Github 帳號 blahblah 在維護專案，獨獨這個專案要改用 darkthread。在沒特別設定的情況下，若我 clone 專案開新 branch 再 push，一定會被擋下來，因為 blahblah 沒有更新權限：</p> <pre><code>git clone https://github.com/darkthread/passkey-demo
+cd passkey-demo
+git checkout -b beta
+git push --set-upstream origin beta
+</code></pre> <p>如下圖所示，push 會得到 HTTP 403，原因為 Permission Denied：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png"></p> <p>此時我們用 git 指令修改設定，在 origin URL 前方加上 <code>darkthread@</code> 並設定姓名及 Email (記得勿加 -g，這個設定只套用在專案而非全域)：</p> <pre><code># git remote set-url origin https://&lt;USERNAME&gt;@github.com/&lt;USERNAME&gt;/&lt;PROJECTNAME&gt;.git
+git remote set-url origin https://darkthread@github.com/darkthread/passkey-demo
+git config user.name Jeffrey
+git config user.email example@hotmail.com
+</code></pre> <p>修改完成再 git push 便會彈出登入提示：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638516984746802943.png"></p> <p>成功登入後，就會改用 darkthread 帳號 push 了。而使用 Windows 密碼管理員檢視，可發現多了一筆 <code>git:https://&lt;username&gt;@github.com</code>，如此就可實現切換不同 Github 帳號維護特定專案囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638516984748491198.png"></p> <p data-slug="git-with-multi-github-accounts" data-fbimg="https://cdn.pixabay.com/photo/2016/08/01/11/09/british-1560838_1280.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這個小技巧適用於在一台電腦上同時使用多個 Github 帳號的情境，像是開發 Side Project 時都用個人 Github 帳號，但工作專案則要改由公務用 Github 帳號 Commit 及 Push。</p> <p>這算實務常見需求，很快就找到<a href="https://stackoverflow.com/a/27407168/288936">解答</a>。</p> <p>江湖一點訣：來源 Github URL 加上 Github 使用者名稱即可，若在專案中的署名及 Email 名稱與全域設定不同，記得也要修改。</p> <p>借用我的 <a href="https://github.com/darkthread/passkey-demo">Passkey Demo</a> 專案當例子，Github 使用者名稱是 darkthread、專案名稱 passkey-demo。</p> <p>假設我在某台電腦都是用另一個 Github 帳號 blahblah 在維護專案，獨獨這個專案要改用 darkthread。在沒特別設定的情況下，若我 clone 專案開新 branch 再 push，一定會被擋下來，因為 blahblah 沒有更新權限：</p> <pre><code>git clone https://github.com/darkthread/passkey-demo
+cd passkey-demo
+git checkout -b beta
+git push --set-upstream origin beta
+</code></pre> <p>如下圖所示，push 會得到 HTTP 403，原因為 Permission Denied：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png"></p> <p>此時我們用 git 指令修改設定，在 origin URL 前方加上 <code>darkthread@</code> 並設定姓名及 Email (記得勿加 -g，這個設定只套用在專案而非全域)：</p> <pre><code># git remote set-url origin https://&lt;USERNAME&gt;@github.com/&lt;USERNAME&gt;/&lt;PROJECTNAME&gt;.git
+git remote set-url origin https://darkthread@github.com/darkthread/passkey-demo
+git config user.name Jeffrey
+git config user.email example@hotmail.com
+</code></pre> <p>修改完成再 git push 便會彈出登入提示：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638516984746802943.png"></p> <p>成功登入後，就會改用 darkthread 帳號 push 了。而使用 Windows 密碼管理員檢視，可發現多了一筆 <code>git:https://&lt;username&gt;@github.com</code>，如此就可實現切換不同 Github 帳號維護特定專案囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638516984748491198.png"></p> <p data-slug="git-with-multi-github-accounts" data-fbimg="https://cdn.pixabay.com/photo/2016/08/01/11/09/british-1560838_1280.jpg#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png" medium="image"/>
+    <pubDate>Sun, 19 May 2024 06:53:26 GMT</pubDate>
+  </item><item>
     <title><![CDATA[史上最遙遠的遠端修電腦，遠在太陽系外的航海家一號被 NASA 工程師修好惹]]></title>
     <link>https://blog.darkthread.net/blog/voyager-1-fixed/</link>
     <itunes:title><![CDATA[史上最遙遠的遠端修電腦，遠在太陽系外的航海家一號被 NASA 工程師修好惹]]></itunes:title>
@@ -1664,20 +1703,5 @@ exec prc_QueryRegistry 1, '#\FeatureAvailability\Entries\VisualStudio.BasicAuth.
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638503474904219067.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638503474904219067.png" medium="image"/>
     <pubDate>Fri, 03 May 2024 14:35:25 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[如何查詢微軟產品訊息之英文原文及各語系翻譯？]]></title>
-    <link>https://blog.darkthread.net/blog/ms-ui-string-search/</link>
-    <itunes:title><![CDATA[如何查詢微軟產品訊息之英文原文及各語系翻譯？]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>分享微軟產品相關問題爬文小技巧一則。</p> <p>有讀者<a href="/blog/external-image-download-in-outlook/#b0f5d444-4632-41e1-94f6-70335b7cfe09">提問</a> Outlook 不可自動下載圖片設定變灰階無法選取怎麼辦？這個問題用「"不自動下載標準 HTML 電子郵件訊息或 RSS 項目中的圖片" 灰色」Google 會找不到相關解答。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638501693157503726.png"></p> <p>這種狀況挺常見，理由是當茶包太冷門，中文世界沒人遇到或討論，就得用英文查才容易查到解答。這也是為什麼軟體我喜歡裝英文版的原因，有問題可以直接用英文訊息查，破案速度快。但 Office 要順手得裝中文版，出問題時相關資訊都是中文，要怎麼找出 Outlook 的"不自動下載標準 HTML 電子郵件訊息或 RSS 項目中的圖片"的原文精準搜索？</p> <p>微軟有個 UI 字串對照查詢工具 - <a href="https://learn.microsoft.com/en-us/globalization/reference/microsoft-language-resources?rtc=1&amp;WT.mc_id=DOP-MVP-37580#ui-strings">Microsoft UI String Search</a>，使用時先選取本地語系 zh-TW / Chinese (Traditional Tainwan) [1]，輸入中文版訊息 [2]，按下查詢 [3]，即可查到原文 (Source Term) [4]：<br> (註：這個查詢功能不支援模糊比對，包含字串中的空格要一致才查得到，若怕因細微差異比對失敗，可輸入部分內容就好)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638501693159183796.png"></p> <p>改用英文 Google，很快找到解答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638501693160926549.png"></p> <p>題外話，Microsoft UI String Search 也可用來查訊息或文字在其他語系的翻譯，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638501693162610083.png"></p> <p>這也算「如何比別人更會 Google」的訣竅之一，分享給大家。</p> <p data-slug="ms-ui-string-search" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>分享微軟產品相關問題爬文小技巧一則。</p> <p>有讀者<a href="/blog/external-image-download-in-outlook/#b0f5d444-4632-41e1-94f6-70335b7cfe09">提問</a> Outlook 不可自動下載圖片設定變灰階無法選取怎麼辦？這個問題用「"不自動下載標準 HTML 電子郵件訊息或 RSS 項目中的圖片" 灰色」Google 會找不到相關解答。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638501693157503726.png"></p> <p>這種狀況挺常見，理由是當茶包太冷門，中文世界沒人遇到或討論，就得用英文查才容易查到解答。這也是為什麼軟體我喜歡裝英文版的原因，有問題可以直接用英文訊息查，破案速度快。但 Office 要順手得裝中文版，出問題時相關資訊都是中文，要怎麼找出 Outlook 的"不自動下載標準 HTML 電子郵件訊息或 RSS 項目中的圖片"的原文精準搜索？</p> <p>微軟有個 UI 字串對照查詢工具 - <a href="https://learn.microsoft.com/en-us/globalization/reference/microsoft-language-resources?rtc=1&amp;WT.mc_id=DOP-MVP-37580#ui-strings">Microsoft UI String Search</a>，使用時先選取本地語系 zh-TW / Chinese (Traditional Tainwan) [1]，輸入中文版訊息 [2]，按下查詢 [3]，即可查到原文 (Source Term) [4]：<br> (註：這個查詢功能不支援模糊比對，包含字串中的空格要一致才查得到，若怕因細微差異比對失敗，可輸入部分內容就好)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638501693159183796.png"></p> <p>改用英文 Google，很快找到解答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638501693160926549.png"></p> <p>題外話，Microsoft UI String Search 也可用來查訊息或文字在其他語系的翻譯，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638501693162610083.png"></p> <p>這也算「如何比別人更會 Google」的訣竅之一，分享給大家。</p> <p data-slug="ms-ui-string-search" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>分享微軟產品相關問題爬文小技巧一則。</p> <p>有讀者<a href="/blog/external-image-download-in-outlook/#b0f5d444-4632-41e1-94f6-70335b7cfe09">提問</a> Outlook 不可自動下載圖片設定變灰階無法選取怎麼辦？這個問題用「"不自動下載標準 HTML 電子郵件訊息或 RSS 項目中的圖片" 灰色」Google 會找不到相關解答。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638501693157503726.png"></p> <p>這種狀況挺常見，理由是當茶包太冷門，中文世界沒人遇到或討論，就得用英文查才容易查到解答。這也是為什麼軟體我喜歡裝英文版的原因，有問題可以直接用英文訊息查，破案速度快。但 Office 要順手得裝中文版，出問題時相關資訊都是中文，要怎麼找出 Outlook 的"不自動下載標準 HTML 電子郵件訊息或 RSS 項目中的圖片"的原文精準搜索？</p> <p>微軟有個 UI 字串對照查詢工具 - <a href="https://learn.microsoft.com/en-us/globalization/reference/microsoft-language-resources?rtc=1&amp;WT.mc_id=DOP-MVP-37580#ui-strings">Microsoft UI String Search</a>，使用時先選取本地語系 zh-TW / Chinese (Traditional Tainwan) [1]，輸入中文版訊息 [2]，按下查詢 [3]，即可查到原文 (Source Term) [4]：<br> (註：這個查詢功能不支援模糊比對，包含字串中的空格要一致才查得到，若怕因細微差異比對失敗，可輸入部分內容就好)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638501693159183796.png"></p> <p>改用英文 Google，很快找到解答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638501693160926549.png"></p> <p>題外話，Microsoft UI String Search 也可用來查訊息或文字在其他語系的翻譯，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638501693162610083.png"></p> <p>這也算「如何比別人更會 Google」的訣竅之一，分享給大家。</p> <p data-slug="ms-ui-string-search" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638501693157503726.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638501693157503726.png" medium="image"/>
-    <pubDate>Wed, 01 May 2024 14:05:14 GMT</pubDate>
   </item></channel>
 </rss>
