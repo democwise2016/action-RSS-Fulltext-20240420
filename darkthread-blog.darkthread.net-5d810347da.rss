@@ -30,6 +30,21 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[冷知識：ASP.NET Core 發佈時的 refs 跟 runtimes 資料夾是做什麼用的？]]></title>
+    <link>https://blog.darkthread.net/blog/refs-n-runtimes-folder-in-aspnetcore-publish/</link>
+    <itunes:title><![CDATA[冷知識：ASP.NET Core 發佈時的 refs 跟 runtimes 資料夾是做什麼用的？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>被問到冷門問題：使用 <code>dotnet publish</code> 發佈 ASP.NET Core 專案時有些會產生 refs 跟 runtimes 目錄有些不會，這兩個資料夾是做什麼用的？</p> <p>好問題。這部分一直被我當成黑盒子，沒想過深入了解，評估屬於不知道也不會死的等級，但既然遇上了就當成天意，趁此機會搞清楚補充知識。</p> <p>難得本草網目有個專頁說明 <a href="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/directory-structure?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580">ASP.NET Core 目錄架構</a>，但裡面沒提到 refs 及 runtimes 的事。最後，我在官方部落格文章 <a href="https://devblogs.microsoft.com/premier-developer/net-core-2-1-update-strategy/?WT.mc_id=DOP-MVP-37580">.NET Core 2.1 Update strategy</a> 查到說明，雖是 ASP.NET Core 2.0 年代的文章，但概念相同。</p> <p>例如：<code>dotnet new mvc</code> 建立空白 MVC 專案，起初 publish 下只有 wwwroot 資料夾。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638520755170430623.png"></p> <p>但在參照特定程式庫及修改設定後，便會生出 runtimes 資料夾及 refs 資料夾。</p> <p>runtimes 會在 NuGet 套件包含原生資產（作業系統/架構特定）時產生，其下會依作業系統或架構分資料夾，例如 Microsoft.Data.SqlClient 在不同平台有不同版本，有時還需要額外的 Unmanaged 程式庫 Microsoft.Data.SqliClient.SNI.dll。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638520755172050162.png"></p> <p>refs 則在<a href="/blog/razor-runtime-compilation/">啟用動態 .cshtml 編譯</a>時出現，裡面擺放執行階段編譯 Razor View 需要的組件，做法是 <code>dotnet add package Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation</code>，並在 .csproj 加入 RazorCompileOnPublish 屬性設成 false。<a href="/blog/razor-runtime-compilation/">參考</a>，之後 publish 會包含 Views 資料夾及 .cshtml 檔，refs 資料夾則會有幾乎全套 Microsoft.*、System.* 組件，以便在瀏覽到 View 時動態編譯 .cshtml。</p> <p>再補充一些冷知識。</p> <p data-slug="refs-n-runtimes-folder-in-aspnetcore-publish" data-title-en="About refs and runtimes folder in ASP.NET Core publish folder" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">Explain the purpose of the refs and runtimes folders in the ASP.NET Core publish folder.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>被問到冷門問題：使用 <code>dotnet publish</code> 發佈 ASP.NET Core 專案時有些會產生 refs 跟 runtimes 目錄有些不會，這兩個資料夾是做什麼用的？</p> <p>好問題。這部分一直被我當成黑盒子，沒想過深入了解，評估屬於不知道也不會死的等級，但既然遇上了就當成天意，趁此機會搞清楚補充知識。</p> <p>難得本草網目有個專頁說明 <a href="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/directory-structure?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580">ASP.NET Core 目錄架構</a>，但裡面沒提到 refs 及 runtimes 的事。最後，我在官方部落格文章 <a href="https://devblogs.microsoft.com/premier-developer/net-core-2-1-update-strategy/?WT.mc_id=DOP-MVP-37580">.NET Core 2.1 Update strategy</a> 查到說明，雖是 ASP.NET Core 2.0 年代的文章，但概念相同。</p> <p>例如：<code>dotnet new mvc</code> 建立空白 MVC 專案，起初 publish 下只有 wwwroot 資料夾。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638520755170430623.png"></p> <p>但在參照特定程式庫及修改設定後，便會生出 runtimes 資料夾及 refs 資料夾。</p> <p>runtimes 會在 NuGet 套件包含原生資產（作業系統/架構特定）時產生，其下會依作業系統或架構分資料夾，例如 Microsoft.Data.SqlClient 在不同平台有不同版本，有時還需要額外的 Unmanaged 程式庫 Microsoft.Data.SqliClient.SNI.dll。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638520755172050162.png"></p> <p>refs 則在<a href="/blog/razor-runtime-compilation/">啟用動態 .cshtml 編譯</a>時出現，裡面擺放執行階段編譯 Razor View 需要的組件，做法是 <code>dotnet add package Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation</code>，並在 .csproj 加入 RazorCompileOnPublish 屬性設成 false。<a href="/blog/razor-runtime-compilation/">參考</a>，之後 publish 會包含 Views 資料夾及 .cshtml 檔，refs 資料夾則會有幾乎全套 Microsoft.*、System.* 組件，以便在瀏覽到 View 時動態編譯 .cshtml。</p> <p>再補充一些冷知識。</p> <p data-slug="refs-n-runtimes-folder-in-aspnetcore-publish" data-title-en="About refs and runtimes folder in ASP.NET Core publish folder" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">Explain the purpose of the refs and runtimes folders in the ASP.NET Core publish folder.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>被問到冷門問題：使用 <code>dotnet publish</code> 發佈 ASP.NET Core 專案時有些會產生 refs 跟 runtimes 目錄有些不會，這兩個資料夾是做什麼用的？</p> <p>好問題。這部分一直被我當成黑盒子，沒想過深入了解，評估屬於不知道也不會死的等級，但既然遇上了就當成天意，趁此機會搞清楚補充知識。</p> <p>難得本草網目有個專頁說明 <a href="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/directory-structure?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580">ASP.NET Core 目錄架構</a>，但裡面沒提到 refs 及 runtimes 的事。最後，我在官方部落格文章 <a href="https://devblogs.microsoft.com/premier-developer/net-core-2-1-update-strategy/?WT.mc_id=DOP-MVP-37580">.NET Core 2.1 Update strategy</a> 查到說明，雖是 ASP.NET Core 2.0 年代的文章，但概念相同。</p> <p>例如：<code>dotnet new mvc</code> 建立空白 MVC 專案，起初 publish 下只有 wwwroot 資料夾。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638520755170430623.png"></p> <p>但在參照特定程式庫及修改設定後，便會生出 runtimes 資料夾及 refs 資料夾。</p> <p>runtimes 會在 NuGet 套件包含原生資產（作業系統/架構特定）時產生，其下會依作業系統或架構分資料夾，例如 Microsoft.Data.SqlClient 在不同平台有不同版本，有時還需要額外的 Unmanaged 程式庫 Microsoft.Data.SqliClient.SNI.dll。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638520755172050162.png"></p> <p>refs 則在<a href="/blog/razor-runtime-compilation/">啟用動態 .cshtml 編譯</a>時出現，裡面擺放執行階段編譯 Razor View 需要的組件，做法是 <code>dotnet add package Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation</code>，並在 .csproj 加入 RazorCompileOnPublish 屬性設成 false。<a href="/blog/razor-runtime-compilation/">參考</a>，之後 publish 會包含 Views 資料夾及 .cshtml 檔，refs 資料夾則會有幾乎全套 Microsoft.*、System.* 組件，以便在瀏覽到 View 時動態編譯 .cshtml。</p> <p>再補充一些冷知識。</p> <p data-slug="refs-n-runtimes-folder-in-aspnetcore-publish" data-title-en="About refs and runtimes folder in ASP.NET Core publish folder" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">Explain the purpose of the refs and runtimes folders in the ASP.NET Core publish folder.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638520755170430623.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638520755170430623.png" medium="image"/>
+    <pubDate>Thu, 23 May 2024 15:38:59 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Build 2024 開發者大會雜記 1 - Keynote 關鍵字整理]]></title>
     <link>https://blog.darkthread.net/blog/build-2024-notes-1/</link>
     <itunes:title><![CDATA[Build 2024 開發者大會雜記 1 - Keynote 關鍵字整理]]></itunes:title>
@@ -1112,146 +1127,5 @@ Console.WriteLine(d);
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638506895047416835.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638506895047416835.png" medium="image"/>
     <pubDate>Tue, 07 May 2024 14:27:00 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Python 執行 DPAPI 解密：pywin32 與呼叫 PowerShell]]></title>
-    <link>https://blog.darkthread.net/blog/call-ps-from-python/</link>
-    <itunes:title><![CDATA[Python 執行 DPAPI 解密：pywin32 與呼叫 PowerShell]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>自己搞出來的冷門需求，自己解決。</p> <p>先前分享過，遇到用環境變數儲存 API Key 的需求，正常人幾乎都是明碼存入了事，某人因資安偏執發作，<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密</a>才安心。當場景推到 Python，再度遇上從環境變數讀 API Key 的需求，明明已有加密版又另外明碼存一份感覺是個餿主意，於是我領到一個題目：如何在 Python 解密 DPAPI 加密內容？</p> <p>爬文查到有個 <a href="https://github.com/mhammond/pywin32">Python for Win32 (pywin32) 擴充套件</a>為 Python 提供 Win32 API 呼叫介面，其中包含 <a href="https://timgolden.me.uk/pywin32-docs/win32crypt__CryptUnprotectData_meth.html">win32crypt.CryptUnprotectData</a>，可用來解開 System.Security.Cryptography.ProtectedData 加密內容。</p> <p>試了一下，先 <code>pip install pywin32</code> 裝好套件，只需幾行程式便能在 Python 端完成解密。</p> <pre><code>import os
-import re
-import win32crypt
-import base64
-def read_env_var(env_var):
-raw = os.environ.get(env_var)
-if not raw or os.name != "nt":
-return raw
-if not re.match(r"^[A-Za-z0-9+/]+={0,2}$", raw):
-return raw
-try:
-val = base64.b64decode(raw)
-entropy = bytes([2, 8, 8, 2, 5, 2, 5, 2])
-dec = win32crypt.CryptUnprotectData(val, entropy, None, None, 0)
-return dec[1].decode("utf-8")
-except Exception:
-# return error message
-return "ERROR! " + str(Exception)
-print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
-</code></pre> <p>後來想想，能不能不靠套件，直接從 Python 呼叫 PowerShell 解決呢？呼叫外部程式取得執行結果是高階程式語言的標配，Python 也不例外。Python 有個 <a href="https://kaigiks.gitbooks.io/python/content/day2.html">subprocess.run</a> 概念類似 .NET <a href="/blog/tips-excute-exe-and-get-its-output-from-net/">用 Process 執行 EXE</a>，簡單拼裝一下，用以下的程式也能順利解密。</p> <pre><code>import subprocess
-import os
-def read_env_var(env_var):
-if os.name != "nt":
-return os.environ.get(env_var)
-script = """
-Add-Type -AssemblyName System.Security
-try {
-[Console]::OutputEncoding = [Text.Encoding]::UTF8;
-$v=[Environment]::GetEnvironmentVariable('%s', [EnvironmentVariableTarget]::User);
-$entropy = @(2, 8, 8, 2, 5, 2, 5, 2);
-[System.Text.Encoding]::UTF8.GetString([System.Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($v),  $entropy, [System.Security.Cryptography.DataProtectionScope]::CurrentUser))
-}
-catch {
-'ERROR! ' + $_.Exception.Message
-}
-""" % env_var
-res = subprocess.run(
-["powershell", "-ExecutionPolicy", "Unrestricted", "-Command", script],
-capture_output=True, text=True, encoding="utf-8"
-)
-return res.stdout.strip()
-print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png"></p> <p>打完收工。</p> <p data-slug="call-ps-from-python" data-title-en="Using pywin32 and calling PowerShell in Python" data-catg="Python" data-fbimg="https://images.pexels.com/photos/2994335/pexels-photo-2994335.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">In this article, I demonstrate how to use pywin32 to decrypt content encrypted with System.Security.Cryptography.ProtectedData, as well as techniques for calling PowerShell scripts from Python.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>自己搞出來的冷門需求，自己解決。</p> <p>先前分享過，遇到用環境變數儲存 API Key 的需求，正常人幾乎都是明碼存入了事，某人因資安偏執發作，<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密</a>才安心。當場景推到 Python，再度遇上從環境變數讀 API Key 的需求，明明已有加密版又另外明碼存一份感覺是個餿主意，於是我領到一個題目：如何在 Python 解密 DPAPI 加密內容？</p> <p>爬文查到有個 <a href="https://github.com/mhammond/pywin32">Python for Win32 (pywin32) 擴充套件</a>為 Python 提供 Win32 API 呼叫介面，其中包含 <a href="https://timgolden.me.uk/pywin32-docs/win32crypt__CryptUnprotectData_meth.html">win32crypt.CryptUnprotectData</a>，可用來解開 System.Security.Cryptography.ProtectedData 加密內容。</p> <p>試了一下，先 <code>pip install pywin32</code> 裝好套件，只需幾行程式便能在 Python 端完成解密。</p> <pre><code>import os
-import re
-import win32crypt
-import base64
-def read_env_var(env_var):
-raw = os.environ.get(env_var)
-if not raw or os.name != "nt":
-return raw
-if not re.match(r"^[A-Za-z0-9+/]+={0,2}$", raw):
-return raw
-try:
-val = base64.b64decode(raw)
-entropy = bytes([2, 8, 8, 2, 5, 2, 5, 2])
-dec = win32crypt.CryptUnprotectData(val, entropy, None, None, 0)
-return dec[1].decode("utf-8")
-except Exception:
-# return error message
-return "ERROR! " + str(Exception)
-print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
-</code></pre> <p>後來想想，能不能不靠套件，直接從 Python 呼叫 PowerShell 解決呢？呼叫外部程式取得執行結果是高階程式語言的標配，Python 也不例外。Python 有個 <a href="https://kaigiks.gitbooks.io/python/content/day2.html">subprocess.run</a> 概念類似 .NET <a href="/blog/tips-excute-exe-and-get-its-output-from-net/">用 Process 執行 EXE</a>，簡單拼裝一下，用以下的程式也能順利解密。</p> <pre><code>import subprocess
-import os
-def read_env_var(env_var):
-if os.name != "nt":
-return os.environ.get(env_var)
-script = """
-Add-Type -AssemblyName System.Security
-try {
-[Console]::OutputEncoding = [Text.Encoding]::UTF8;
-$v=[Environment]::GetEnvironmentVariable('%s', [EnvironmentVariableTarget]::User);
-$entropy = @(2, 8, 8, 2, 5, 2, 5, 2);
-[System.Text.Encoding]::UTF8.GetString([System.Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($v),  $entropy, [System.Security.Cryptography.DataProtectionScope]::CurrentUser))
-}
-catch {
-'ERROR! ' + $_.Exception.Message
-}
-""" % env_var
-res = subprocess.run(
-["powershell", "-ExecutionPolicy", "Unrestricted", "-Command", script],
-capture_output=True, text=True, encoding="utf-8"
-)
-return res.stdout.strip()
-print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png"></p> <p>打完收工。</p> <p data-slug="call-ps-from-python" data-title-en="Using pywin32 and calling PowerShell in Python" data-catg="Python" data-fbimg="https://images.pexels.com/photos/2994335/pexels-photo-2994335.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">In this article, I demonstrate how to use pywin32 to decrypt content encrypted with System.Security.Cryptography.ProtectedData, as well as techniques for calling PowerShell scripts from Python.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>自己搞出來的冷門需求，自己解決。</p> <p>先前分享過，遇到用環境變數儲存 API Key 的需求，正常人幾乎都是明碼存入了事，某人因資安偏執發作，<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密</a>才安心。當場景推到 Python，再度遇上從環境變數讀 API Key 的需求，明明已有加密版又另外明碼存一份感覺是個餿主意，於是我領到一個題目：如何在 Python 解密 DPAPI 加密內容？</p> <p>爬文查到有個 <a href="https://github.com/mhammond/pywin32">Python for Win32 (pywin32) 擴充套件</a>為 Python 提供 Win32 API 呼叫介面，其中包含 <a href="https://timgolden.me.uk/pywin32-docs/win32crypt__CryptUnprotectData_meth.html">win32crypt.CryptUnprotectData</a>，可用來解開 System.Security.Cryptography.ProtectedData 加密內容。</p> <p>試了一下，先 <code>pip install pywin32</code> 裝好套件，只需幾行程式便能在 Python 端完成解密。</p> <pre><code>import os
-import re
-import win32crypt
-import base64
-def read_env_var(env_var):
-raw = os.environ.get(env_var)
-if not raw or os.name != "nt":
-return raw
-if not re.match(r"^[A-Za-z0-9+/]+={0,2}$", raw):
-return raw
-try:
-val = base64.b64decode(raw)
-entropy = bytes([2, 8, 8, 2, 5, 2, 5, 2])
-dec = win32crypt.CryptUnprotectData(val, entropy, None, None, 0)
-return dec[1].decode("utf-8")
-except Exception:
-# return error message
-return "ERROR! " + str(Exception)
-print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
-</code></pre> <p>後來想想，能不能不靠套件，直接從 Python 呼叫 PowerShell 解決呢？呼叫外部程式取得執行結果是高階程式語言的標配，Python 也不例外。Python 有個 <a href="https://kaigiks.gitbooks.io/python/content/day2.html">subprocess.run</a> 概念類似 .NET <a href="/blog/tips-excute-exe-and-get-its-output-from-net/">用 Process 執行 EXE</a>，簡單拼裝一下，用以下的程式也能順利解密。</p> <pre><code>import subprocess
-import os
-def read_env_var(env_var):
-if os.name != "nt":
-return os.environ.get(env_var)
-script = """
-Add-Type -AssemblyName System.Security
-try {
-[Console]::OutputEncoding = [Text.Encoding]::UTF8;
-$v=[Environment]::GetEnvironmentVariable('%s', [EnvironmentVariableTarget]::User);
-$entropy = @(2, 8, 8, 2, 5, 2, 5, 2);
-[System.Text.Encoding]::UTF8.GetString([System.Security.Cryptography.ProtectedData]::Unprotect([Convert]::FromBase64String($v),  $entropy, [System.Security.Cryptography.DataProtectionScope]::CurrentUser))
-}
-catch {
-'ERROR! ' + $_.Exception.Message
-}
-""" % env_var
-res = subprocess.run(
-["powershell", "-ExecutionPolicy", "Unrestricted", "-Command", script],
-capture_output=True, text=True, encoding="utf-8"
-)
-return res.stdout.strip()
-print("加密環境變數讀取結果 =", read_env_var("MY_API_KEY"))
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png"></p> <p>打完收工。</p> <p data-slug="call-ps-from-python" data-title-en="Using pywin32 and calling PowerShell in Python" data-catg="Python" data-fbimg="https://images.pexels.com/photos/2994335/pexels-photo-2994335.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">In this article, I demonstrate how to use pywin32 to decrypt content encrypted with System.Security.Cryptography.ProtectedData, as well as techniques for calling PowerShell scripts from Python.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638506029851847769.png" medium="image"/>
-    <pubDate>Mon, 06 May 2024 14:28:27 GMT</pubDate>
   </item></channel>
 </rss>
