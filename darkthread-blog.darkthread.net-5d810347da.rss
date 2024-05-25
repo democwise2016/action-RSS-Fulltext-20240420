@@ -30,6 +30,285 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[JavaScript 小把戲 - 讓 JSON.stringify 日期時保留時區資訊]]></title>
+    <link>https://blog.darkthread.net/blog/json-stringify-date-with-timezone/</link>
+    <itunes:title><![CDATA[JavaScript 小把戲 - 讓 JSON.stringify 日期時保留時區資訊]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>JavaScript 在 JSON.stringify() 時會將 Date 型別轉成 ISO 8601 格式，而時區則一律轉成 UTC 時間 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString">參考</a>，故在網頁 new Date() 取得台北時間轉成 JSON 時會減 8 小時變成 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code> 格式。</p> <p>然而 <a href="https://zh.wikipedia.org/zh-tw/ISO_8601">ISO 8601</a> 除了 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code>，也可以在後方加上 <code>+HH:mm</code> 或 <code>-HH:mm</code> 標註時區，例如：<code>2024-01-01T12:34:56.789+08:00</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png"></p> <p>而 .NET 端在處理時，能區別出含時區的 ISO 8601 正確解析，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638521996322262546.png"></p> <p>因此，我想擴充 JavaScript JSON.stringify()，視需求可將 Date 轉成含時區的 ISO 8601 格式：<code>YYYY-MM-DDTHH:mm:ss+08:00</code>，這樣就可以直接傳台北時間給 API，伺服器端不需再做轉換。</p> <p>這個問題在 <a href="/blog/json-date-timezone-issue">JSON 日期轉換的時區陷阱</a>有研究過，改寫 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/tojson">Date.toJSON()</a> 即可，但我不想全面覆寫 JSON 行為，而是擴充成靠額外設定改變行為，所以決定玩點小把戲，為 Date 擴充一個 jsonDateKind 屬性，當設成 'local' 時再改傳有 '+08:00' 的格式，另外，我加一個 <code>Date.newLocalKindDate()</code> 方法，傳入參數與 <code>new Date(...)</code> 一致，但建立的 Date 物件會設定 .jsonDateKind = 'local'。程式碼很簡單，透過 Date.prototype 修改 Date 屬性及行為而已，另外，有用到上回研究的 <a href="/blog/js-date-yyyymmdd-hhmmss/">JSON UTC 時間轉 yyyy-MM-mm HH:mm:ss 格式極簡解法</a>，平日累積的小東西總會有適當時機發揮功效。</p> <pre><code>Date.prototype.jsonDateKind = 'utc';
+Date.prototype.toJSON = function () {
+if (this.jsonDateKind === 'local') {
+var tzDiffHours = this.getTimezoneOffset() / 60;
+var tzDiffMinutes = this.getTimezoneOffset() % 60;
+return this.toLocaleString('sv').replace(' ', 'T') +
+(this.getMilliseconds() &gt; 0 ?
+'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
+(tzDiffHours &gt; 0 ? '-' : '+') +
+Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
+tzDiffMinutes.toString().padStart(2, '0');
+} else {
+return this.toISOString();
+}
+};
+Date.newLocalKindDate = function () {
+const date = new Date(...arguments);
+date.jsonDateKind = 'local';
+return date;
+}
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638521996323965420.png"></p> <p>附上原始碼跟<a href="https://output.jsbin.com/zozodec">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Date jsonDateKind Property&lt;/title&gt;
+&lt;style&gt;
+#script {
+width: calc(100% - 24px);
+height: 210px;
+padding: 12px;
+}
+#result {
+width: calc(100% - 24px);
+height: 150px;
+background-color: #eee;
+padding: 10px;
+margin-top: 10px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;textarea id="script"&gt;
+const now = new Date();
+now.jsonDateKind = 'local';
+const date = new Date(2024, 0, 1, 12, 34, 56, 789);
+date.jsonDateKind = 'local';
+const cust = Date.newLocalKindDate(2012, 11, 21, 12, 21, 0, 0);
+var data = {
+s: "Hello World!",
+i: 1234,
+d1: new Date(),
+d2: now,
+d3: date,
+d4: cust
+};
+&lt;/textarea&gt;
+&lt;button id="btn"&gt;Convert to Json&lt;/button&gt;
+&lt;pre id="result"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+Date.prototype.jsonDateKind = 'utc';
+Date.prototype.toJSON = function () {
+if (this.jsonDateKind === 'local') {
+var tzDiffHours = this.getTimezoneOffset() / 60;
+var tzDiffMinutes = this.getTimezoneOffset() % 60;
+return this.toLocaleString('sv').replace(' ', 'T') +
+(this.getMilliseconds() &gt; 0 ?
+'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
+(tzDiffHours &gt; 0 ? '-' : '+') +
+Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
+tzDiffMinutes.toString().padStart(2, '0');
+} else {
+return this.toISOString();
+}
+};
+Date.newLocalKindDate = function () {
+const date = new Date(...arguments);
+date.jsonDateKind = 'local';
+return date;
+}
+document.getElementById('btn').addEventListener('click', function () {
+var script = document.querySelector('#script').textContent;
+eval(script);
+var json = JSON.stringify(data, null, 2);
+document.querySelector('#result').textContent = json;
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="json-stringify-date-with-timezone" data-title-en="JSON.stringify() Date with timezone" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720">This article demonstrates how to use JavaScript prototype to extend the Date object, implementing control over whether to include timezone information when JSON is stringified.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>JavaScript 在 JSON.stringify() 時會將 Date 型別轉成 ISO 8601 格式，而時區則一律轉成 UTC 時間 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString">參考</a>，故在網頁 new Date() 取得台北時間轉成 JSON 時會減 8 小時變成 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code> 格式。</p> <p>然而 <a href="https://zh.wikipedia.org/zh-tw/ISO_8601">ISO 8601</a> 除了 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code>，也可以在後方加上 <code>+HH:mm</code> 或 <code>-HH:mm</code> 標註時區，例如：<code>2024-01-01T12:34:56.789+08:00</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png"></p> <p>而 .NET 端在處理時，能區別出含時區的 ISO 8601 正確解析，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638521996322262546.png"></p> <p>因此，我想擴充 JavaScript JSON.stringify()，視需求可將 Date 轉成含時區的 ISO 8601 格式：<code>YYYY-MM-DDTHH:mm:ss+08:00</code>，這樣就可以直接傳台北時間給 API，伺服器端不需再做轉換。</p> <p>這個問題在 <a href="/blog/json-date-timezone-issue">JSON 日期轉換的時區陷阱</a>有研究過，改寫 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/tojson">Date.toJSON()</a> 即可，但我不想全面覆寫 JSON 行為，而是擴充成靠額外設定改變行為，所以決定玩點小把戲，為 Date 擴充一個 jsonDateKind 屬性，當設成 'local' 時再改傳有 '+08:00' 的格式，另外，我加一個 <code>Date.newLocalKindDate()</code> 方法，傳入參數與 <code>new Date(...)</code> 一致，但建立的 Date 物件會設定 .jsonDateKind = 'local'。程式碼很簡單，透過 Date.prototype 修改 Date 屬性及行為而已，另外，有用到上回研究的 <a href="/blog/js-date-yyyymmdd-hhmmss/">JSON UTC 時間轉 yyyy-MM-mm HH:mm:ss 格式極簡解法</a>，平日累積的小東西總會有適當時機發揮功效。</p> <pre><code>Date.prototype.jsonDateKind = 'utc';
+Date.prototype.toJSON = function () {
+if (this.jsonDateKind === 'local') {
+var tzDiffHours = this.getTimezoneOffset() / 60;
+var tzDiffMinutes = this.getTimezoneOffset() % 60;
+return this.toLocaleString('sv').replace(' ', 'T') +
+(this.getMilliseconds() &gt; 0 ?
+'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
+(tzDiffHours &gt; 0 ? '-' : '+') +
+Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
+tzDiffMinutes.toString().padStart(2, '0');
+} else {
+return this.toISOString();
+}
+};
+Date.newLocalKindDate = function () {
+const date = new Date(...arguments);
+date.jsonDateKind = 'local';
+return date;
+}
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638521996323965420.png"></p> <p>附上原始碼跟<a href="https://output.jsbin.com/zozodec">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Date jsonDateKind Property&lt;/title&gt;
+&lt;style&gt;
+#script {
+width: calc(100% - 24px);
+height: 210px;
+padding: 12px;
+}
+#result {
+width: calc(100% - 24px);
+height: 150px;
+background-color: #eee;
+padding: 10px;
+margin-top: 10px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;textarea id="script"&gt;
+const now = new Date();
+now.jsonDateKind = 'local';
+const date = new Date(2024, 0, 1, 12, 34, 56, 789);
+date.jsonDateKind = 'local';
+const cust = Date.newLocalKindDate(2012, 11, 21, 12, 21, 0, 0);
+var data = {
+s: "Hello World!",
+i: 1234,
+d1: new Date(),
+d2: now,
+d3: date,
+d4: cust
+};
+&lt;/textarea&gt;
+&lt;button id="btn"&gt;Convert to Json&lt;/button&gt;
+&lt;pre id="result"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+Date.prototype.jsonDateKind = 'utc';
+Date.prototype.toJSON = function () {
+if (this.jsonDateKind === 'local') {
+var tzDiffHours = this.getTimezoneOffset() / 60;
+var tzDiffMinutes = this.getTimezoneOffset() % 60;
+return this.toLocaleString('sv').replace(' ', 'T') +
+(this.getMilliseconds() &gt; 0 ?
+'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
+(tzDiffHours &gt; 0 ? '-' : '+') +
+Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
+tzDiffMinutes.toString().padStart(2, '0');
+} else {
+return this.toISOString();
+}
+};
+Date.newLocalKindDate = function () {
+const date = new Date(...arguments);
+date.jsonDateKind = 'local';
+return date;
+}
+document.getElementById('btn').addEventListener('click', function () {
+var script = document.querySelector('#script').textContent;
+eval(script);
+var json = JSON.stringify(data, null, 2);
+document.querySelector('#result').textContent = json;
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="json-stringify-date-with-timezone" data-title-en="JSON.stringify() Date with timezone" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720">This article demonstrates how to use JavaScript prototype to extend the Date object, implementing control over whether to include timezone information when JSON is stringified.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>JavaScript 在 JSON.stringify() 時會將 Date 型別轉成 ISO 8601 格式，而時區則一律轉成 UTC 時間 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString">參考</a>，故在網頁 new Date() 取得台北時間轉成 JSON 時會減 8 小時變成 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code> 格式。</p> <p>然而 <a href="https://zh.wikipedia.org/zh-tw/ISO_8601">ISO 8601</a> 除了 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code>，也可以在後方加上 <code>+HH:mm</code> 或 <code>-HH:mm</code> 標註時區，例如：<code>2024-01-01T12:34:56.789+08:00</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png"></p> <p>而 .NET 端在處理時，能區別出含時區的 ISO 8601 正確解析，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638521996322262546.png"></p> <p>因此，我想擴充 JavaScript JSON.stringify()，視需求可將 Date 轉成含時區的 ISO 8601 格式：<code>YYYY-MM-DDTHH:mm:ss+08:00</code>，這樣就可以直接傳台北時間給 API，伺服器端不需再做轉換。</p> <p>這個問題在 <a href="/blog/json-date-timezone-issue">JSON 日期轉換的時區陷阱</a>有研究過，改寫 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/tojson">Date.toJSON()</a> 即可，但我不想全面覆寫 JSON 行為，而是擴充成靠額外設定改變行為，所以決定玩點小把戲，為 Date 擴充一個 jsonDateKind 屬性，當設成 'local' 時再改傳有 '+08:00' 的格式，另外，我加一個 <code>Date.newLocalKindDate()</code> 方法，傳入參數與 <code>new Date(...)</code> 一致，但建立的 Date 物件會設定 .jsonDateKind = 'local'。程式碼很簡單，透過 Date.prototype 修改 Date 屬性及行為而已，另外，有用到上回研究的 <a href="/blog/js-date-yyyymmdd-hhmmss/">JSON UTC 時間轉 yyyy-MM-mm HH:mm:ss 格式極簡解法</a>，平日累積的小東西總會有適當時機發揮功效。</p> <pre><code>Date.prototype.jsonDateKind = 'utc';
+Date.prototype.toJSON = function () {
+if (this.jsonDateKind === 'local') {
+var tzDiffHours = this.getTimezoneOffset() / 60;
+var tzDiffMinutes = this.getTimezoneOffset() % 60;
+return this.toLocaleString('sv').replace(' ', 'T') +
+(this.getMilliseconds() &gt; 0 ?
+'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
+(tzDiffHours &gt; 0 ? '-' : '+') +
+Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
+tzDiffMinutes.toString().padStart(2, '0');
+} else {
+return this.toISOString();
+}
+};
+Date.newLocalKindDate = function () {
+const date = new Date(...arguments);
+date.jsonDateKind = 'local';
+return date;
+}
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638521996323965420.png"></p> <p>附上原始碼跟<a href="https://output.jsbin.com/zozodec">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Date jsonDateKind Property&lt;/title&gt;
+&lt;style&gt;
+#script {
+width: calc(100% - 24px);
+height: 210px;
+padding: 12px;
+}
+#result {
+width: calc(100% - 24px);
+height: 150px;
+background-color: #eee;
+padding: 10px;
+margin-top: 10px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;textarea id="script"&gt;
+const now = new Date();
+now.jsonDateKind = 'local';
+const date = new Date(2024, 0, 1, 12, 34, 56, 789);
+date.jsonDateKind = 'local';
+const cust = Date.newLocalKindDate(2012, 11, 21, 12, 21, 0, 0);
+var data = {
+s: "Hello World!",
+i: 1234,
+d1: new Date(),
+d2: now,
+d3: date,
+d4: cust
+};
+&lt;/textarea&gt;
+&lt;button id="btn"&gt;Convert to Json&lt;/button&gt;
+&lt;pre id="result"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+Date.prototype.jsonDateKind = 'utc';
+Date.prototype.toJSON = function () {
+if (this.jsonDateKind === 'local') {
+var tzDiffHours = this.getTimezoneOffset() / 60;
+var tzDiffMinutes = this.getTimezoneOffset() % 60;
+return this.toLocaleString('sv').replace(' ', 'T') +
+(this.getMilliseconds() &gt; 0 ?
+'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
+(tzDiffHours &gt; 0 ? '-' : '+') +
+Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
+tzDiffMinutes.toString().padStart(2, '0');
+} else {
+return this.toISOString();
+}
+};
+Date.newLocalKindDate = function () {
+const date = new Date(...arguments);
+date.jsonDateKind = 'local';
+return date;
+}
+document.getElementById('btn').addEventListener('click', function () {
+var script = document.querySelector('#script').textContent;
+eval(script);
+var json = JSON.stringify(data, null, 2);
+document.querySelector('#result').textContent = json;
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="json-stringify-date-with-timezone" data-title-en="JSON.stringify() Date with timezone" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720">This article demonstrates how to use JavaScript prototype to extend the Date object, implementing control over whether to include timezone information when JSON is stringified.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png" medium="image"/>
+    <pubDate>Sat, 25 May 2024 02:06:39 GMT</pubDate>
+  </item><item>
     <title><![CDATA[冷知識：ASP.NET Core 發佈時的 refs 跟 runtimes 資料夾是做什麼用的？]]></title>
     <link>https://blog.darkthread.net/blog/refs-n-runtimes-folder-in-aspnetcore-publish/</link>
     <itunes:title><![CDATA[冷知識：ASP.NET Core 發佈時的 refs 跟 runtimes 資料夾是做什麼用的？]]></itunes:title>
@@ -992,140 +1271,5 @@ ConvertFrom-Excel .\dll-list.xlsx | Format-Table
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638508661427057074.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638508661427057074.png" medium="image"/>
     <pubDate>Thu, 09 May 2024 15:42:42 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手日記】 Oracle NUMBER 與 .NET decimal 小數精準度差異地雷]]></title>
-    <link>https://blog.darkthread.net/blog/decimal-precision-issue/</link>
-    <itunes:title><![CDATA[【茶包射手日記】 Oracle NUMBER 與 .NET decimal 小數精準度差異地雷]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>接獲報案，某段 Dapper + Managed ODP.NET 呼叫 Oracle Stored Procedure 程式出錯，語法類似 <code>cn.Query&lt;SomeEntity&gt;("Some_Stored_Procedure", paramObject, commandType: CommandType.StoredProcedure)</code>，錯誤訊息有點奧妙：</p> <pre><code>[InvalidCastException: Specified cast is not valid.]
-Oracle.ManagedDataAccess.Client.OracleDataReader.GetDecimal(Int32 i} +136@
-Oracle.ManagedDataAccess.Client.OracleDataReader.GetValue(Int32 i) +4353
-Deserializec98dcac5 -@c@1-48f7-9a54-cc68816e8a79(IDataReader ) +196
-[DataException: Error parsing column 1 (AVG_VALUE=CC TEST - String)]
-Dapper .SqlMapper.ThrowDataException(Exception ex, Int32 index, IDataReader reader, Object value) +463
-Deserializec98dcac5 -@c@1-48f7-9a54-cc68816e8a79(IDataReader ) +1037
-Dapper. &lt;QueryImp1l&gt;d__125°1.MoveNext() +808
-</code></pre> <p>Dapper 在取得 AVG_VALUE 資料欄出錯，乍看錯誤訊息，似乎是原本應是數字的 AVG_VALUE 被誤植了前一欄的名稱字串內容 "CC TEST" 導致轉型 decimal 失敗。但 B 欄塞成 A 欄資料的狀況實在太離奇了，資料庫查詢結果是結構化資料又不是 CSV，要搞到錯抓欄位，程式是要寫到多低級？</p> <p>分析案情，查詢到特定日期資料時才出錯，比較容易的解釋還是某天的結果數字較特別，剛好觸發錯誤。</p> <p>爬文在 Dapper Issue 查到相同案例 - <a href="https://github.com/DapperLib/Dapper/issues/576">Dapper trying to parse wrong column</a>，幾乎一模一樣的狀況，結論如下：</p> <ol><li>AVG_VALUE 顯示前一欄內容是錯誤訊息的 Bug，其實 Dapper 抓的欄位沒錯。 <blockquote> <p>This error message with "PRICE=L" is just an incorrect error. It was attempting to parse the correct column.</p> </blockquote> </li> <li>OracleDataReader.GetDecimal() 有個行為，<a href="https://learn.microsoft.com/zh-tw/dotnet/visual-basic/language-reference/data-types/decimal-data-type?WT.mc_id=DOP-MVP-37580">decimal</a> 的精準度只到 29 位 (Decimal 資料類型可為數字提供最大的有效位數。其最多可支援 29 個有效位數 <a href="https://learn.microsoft.com/zh-tw/dotnet/visual-basic/language-reference/data-types/decimal-data-type?WT.mc_id=DOP-MVP-37580#remarks">參考</a>)，而 Oracle 的 NUMBER 型別可到 38 位，當 OracleDataReader.GetDecimal() 遇到來源資料位數超過 38 位時，便會拋出 InvalidCastException。<br> 參考：<a href="https://chrismay.org/2015/07/30/bug-in-oracledatareader-causing-invalidcastexception/">Bug in OracleDataReader causing InvalidCastException?</a></li></ol> <p>了解原理，我成功用一小段程式碼重現錯誤：</p> <pre><code>using Dapper;
-using Oracle.ManagedDataAccess.Client;
-var cs = "data source=XE;user id=LAB;password=P@ssW0rd";
-var cn = new OracleConnection(cs);
-var d = cn.Query&lt;SomeEntity&gt;(
-"SELECT 'CC TEST' AS NAME, 1/3 AS AVG_VALUE FROM DUAL").First();
-Console.WriteLine(d);
-public class SomeEntity {
-public string NAME { get; set; }
-public decimal AVG_VALUE { get; set;}
-}
-</code></pre> <p>故意用 1/3 產生循環小數[1]，ODP.NET 在讀取數值便會出現 System.InvalidCastException 錯誤[2] (我測的 Dapper 版本是 2.1.35，錯誤訊息 AVG_VALUE 誤植前一欄 NAME 內容的 Bug 仍在[3])。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506895047416835.png"></p> <p>以下程式則更明確驗證當 NUMBER 小數位數來到 29 位(含 0 共 30 位)，OracleDataReader.GetDecimal() 會拋出 InvalidCastException：</p> <pre><code>using Oracle.ManagedDataAccess.Client;
-var cs = "data source=XE;user id=LAB;password=P@ssW0rd";
-var cn = new OracleConnection(cs);
-cn.Open();
-for (int i = 25; i &lt; 30; i++)
-{
-var cmd = cn.CreateCommand();
-cmd.CommandText = $"SELECT ROUND(1/3, {i}) AS D FROM DUAL";
-var dr = cmd.ExecuteReader();
-dr.Read();
-try {
-Console.WriteLine($"ROUND(1/3, {i}) = {dr.GetDecimal(0)}");
-}
-catch (Exception e) {
-Console.WriteLine(e.Message);
-var s = dr.GetString(0);
-Console.WriteLine(s);
-var d = decimal.Parse(s);
-Console.WriteLine(d);
-}
-}
-</code></pre> <p>利用 ROUND(1/3, i) 指定保留小數位數，i 由 25 遞增到 30，當 i = 29 時就出錯了。29 位小數加上 0.333... 的 0，共 30 位，超過 decimal 精確度上限，OracleDataReader 的做法是拋出例外。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638506895049146425.png"></p> <p>值得注意的是，若我們將 29 位小數 NUMBER 當成字串，再用 decimal.Parse() 可轉成 decimal，但小數部分會少一位。依據<a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.decimal.parse?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">文件</a>，這是 Parse() 的預期行為無誤：當 s 具有小數部分並超過 29 位數(且介於 MaxValue 和 MinValue 的範圍)，則數位會四捨五入為最接近的數位而非截斷為 29 位數。</p> <p>實務上我們很少會需要超過 29 位的精確數字，故這類問題多半可透過在 Oracle 端只留所需小數位數解決，在用到除法或複雜運算的場合留意一下即可，但沒注意到還是可能踩雷。</p> <p>又學到一些冷知識。</p> <p data-slug="decimal-precision-issue" data-title-en=".NET decimal precision issue on ODP.NET" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/09/08/50/pattern-3864533_960_720.jpg#960#720">This article explains and analyzes the case where ODP.NET’s GetDecimal() function fails due to excessive decimal places, validates the conversion behavior through experiments, and offers corresponding suggestions.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>接獲報案，某段 Dapper + Managed ODP.NET 呼叫 Oracle Stored Procedure 程式出錯，語法類似 <code>cn.Query&lt;SomeEntity&gt;("Some_Stored_Procedure", paramObject, commandType: CommandType.StoredProcedure)</code>，錯誤訊息有點奧妙：</p> <pre><code>[InvalidCastException: Specified cast is not valid.]
-Oracle.ManagedDataAccess.Client.OracleDataReader.GetDecimal(Int32 i} +136@
-Oracle.ManagedDataAccess.Client.OracleDataReader.GetValue(Int32 i) +4353
-Deserializec98dcac5 -@c@1-48f7-9a54-cc68816e8a79(IDataReader ) +196
-[DataException: Error parsing column 1 (AVG_VALUE=CC TEST - String)]
-Dapper .SqlMapper.ThrowDataException(Exception ex, Int32 index, IDataReader reader, Object value) +463
-Deserializec98dcac5 -@c@1-48f7-9a54-cc68816e8a79(IDataReader ) +1037
-Dapper. &lt;QueryImp1l&gt;d__125°1.MoveNext() +808
-</code></pre> <p>Dapper 在取得 AVG_VALUE 資料欄出錯，乍看錯誤訊息，似乎是原本應是數字的 AVG_VALUE 被誤植了前一欄的名稱字串內容 "CC TEST" 導致轉型 decimal 失敗。但 B 欄塞成 A 欄資料的狀況實在太離奇了，資料庫查詢結果是結構化資料又不是 CSV，要搞到錯抓欄位，程式是要寫到多低級？</p> <p>分析案情，查詢到特定日期資料時才出錯，比較容易的解釋還是某天的結果數字較特別，剛好觸發錯誤。</p> <p>爬文在 Dapper Issue 查到相同案例 - <a href="https://github.com/DapperLib/Dapper/issues/576">Dapper trying to parse wrong column</a>，幾乎一模一樣的狀況，結論如下：</p> <ol><li>AVG_VALUE 顯示前一欄內容是錯誤訊息的 Bug，其實 Dapper 抓的欄位沒錯。 <blockquote> <p>This error message with "PRICE=L" is just an incorrect error. It was attempting to parse the correct column.</p> </blockquote> </li> <li>OracleDataReader.GetDecimal() 有個行為，<a href="https://learn.microsoft.com/zh-tw/dotnet/visual-basic/language-reference/data-types/decimal-data-type?WT.mc_id=DOP-MVP-37580">decimal</a> 的精準度只到 29 位 (Decimal 資料類型可為數字提供最大的有效位數。其最多可支援 29 個有效位數 <a href="https://learn.microsoft.com/zh-tw/dotnet/visual-basic/language-reference/data-types/decimal-data-type?WT.mc_id=DOP-MVP-37580#remarks">參考</a>)，而 Oracle 的 NUMBER 型別可到 38 位，當 OracleDataReader.GetDecimal() 遇到來源資料位數超過 38 位時，便會拋出 InvalidCastException。<br> 參考：<a href="https://chrismay.org/2015/07/30/bug-in-oracledatareader-causing-invalidcastexception/">Bug in OracleDataReader causing InvalidCastException?</a></li></ol> <p>了解原理，我成功用一小段程式碼重現錯誤：</p> <pre><code>using Dapper;
-using Oracle.ManagedDataAccess.Client;
-var cs = "data source=XE;user id=LAB;password=P@ssW0rd";
-var cn = new OracleConnection(cs);
-var d = cn.Query&lt;SomeEntity&gt;(
-"SELECT 'CC TEST' AS NAME, 1/3 AS AVG_VALUE FROM DUAL").First();
-Console.WriteLine(d);
-public class SomeEntity {
-public string NAME { get; set; }
-public decimal AVG_VALUE { get; set;}
-}
-</code></pre> <p>故意用 1/3 產生循環小數[1]，ODP.NET 在讀取數值便會出現 System.InvalidCastException 錯誤[2] (我測的 Dapper 版本是 2.1.35，錯誤訊息 AVG_VALUE 誤植前一欄 NAME 內容的 Bug 仍在[3])。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506895047416835.png"></p> <p>以下程式則更明確驗證當 NUMBER 小數位數來到 29 位(含 0 共 30 位)，OracleDataReader.GetDecimal() 會拋出 InvalidCastException：</p> <pre><code>using Oracle.ManagedDataAccess.Client;
-var cs = "data source=XE;user id=LAB;password=P@ssW0rd";
-var cn = new OracleConnection(cs);
-cn.Open();
-for (int i = 25; i &lt; 30; i++)
-{
-var cmd = cn.CreateCommand();
-cmd.CommandText = $"SELECT ROUND(1/3, {i}) AS D FROM DUAL";
-var dr = cmd.ExecuteReader();
-dr.Read();
-try {
-Console.WriteLine($"ROUND(1/3, {i}) = {dr.GetDecimal(0)}");
-}
-catch (Exception e) {
-Console.WriteLine(e.Message);
-var s = dr.GetString(0);
-Console.WriteLine(s);
-var d = decimal.Parse(s);
-Console.WriteLine(d);
-}
-}
-</code></pre> <p>利用 ROUND(1/3, i) 指定保留小數位數，i 由 25 遞增到 30，當 i = 29 時就出錯了。29 位小數加上 0.333... 的 0，共 30 位，超過 decimal 精確度上限，OracleDataReader 的做法是拋出例外。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638506895049146425.png"></p> <p>值得注意的是，若我們將 29 位小數 NUMBER 當成字串，再用 decimal.Parse() 可轉成 decimal，但小數部分會少一位。依據<a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.decimal.parse?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">文件</a>，這是 Parse() 的預期行為無誤：當 s 具有小數部分並超過 29 位數(且介於 MaxValue 和 MinValue 的範圍)，則數位會四捨五入為最接近的數位而非截斷為 29 位數。</p> <p>實務上我們很少會需要超過 29 位的精確數字，故這類問題多半可透過在 Oracle 端只留所需小數位數解決，在用到除法或複雜運算的場合留意一下即可，但沒注意到還是可能踩雷。</p> <p>又學到一些冷知識。</p> <p data-slug="decimal-precision-issue" data-title-en=".NET decimal precision issue on ODP.NET" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/09/08/50/pattern-3864533_960_720.jpg#960#720">This article explains and analyzes the case where ODP.NET’s GetDecimal() function fails due to excessive decimal places, validates the conversion behavior through experiments, and offers corresponding suggestions.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>接獲報案，某段 Dapper + Managed ODP.NET 呼叫 Oracle Stored Procedure 程式出錯，語法類似 <code>cn.Query&lt;SomeEntity&gt;("Some_Stored_Procedure", paramObject, commandType: CommandType.StoredProcedure)</code>，錯誤訊息有點奧妙：</p> <pre><code>[InvalidCastException: Specified cast is not valid.]
-Oracle.ManagedDataAccess.Client.OracleDataReader.GetDecimal(Int32 i} +136@
-Oracle.ManagedDataAccess.Client.OracleDataReader.GetValue(Int32 i) +4353
-Deserializec98dcac5 -@c@1-48f7-9a54-cc68816e8a79(IDataReader ) +196
-[DataException: Error parsing column 1 (AVG_VALUE=CC TEST - String)]
-Dapper .SqlMapper.ThrowDataException(Exception ex, Int32 index, IDataReader reader, Object value) +463
-Deserializec98dcac5 -@c@1-48f7-9a54-cc68816e8a79(IDataReader ) +1037
-Dapper. &lt;QueryImp1l&gt;d__125°1.MoveNext() +808
-</code></pre> <p>Dapper 在取得 AVG_VALUE 資料欄出錯，乍看錯誤訊息，似乎是原本應是數字的 AVG_VALUE 被誤植了前一欄的名稱字串內容 "CC TEST" 導致轉型 decimal 失敗。但 B 欄塞成 A 欄資料的狀況實在太離奇了，資料庫查詢結果是結構化資料又不是 CSV，要搞到錯抓欄位，程式是要寫到多低級？</p> <p>分析案情，查詢到特定日期資料時才出錯，比較容易的解釋還是某天的結果數字較特別，剛好觸發錯誤。</p> <p>爬文在 Dapper Issue 查到相同案例 - <a href="https://github.com/DapperLib/Dapper/issues/576">Dapper trying to parse wrong column</a>，幾乎一模一樣的狀況，結論如下：</p> <ol><li>AVG_VALUE 顯示前一欄內容是錯誤訊息的 Bug，其實 Dapper 抓的欄位沒錯。 <blockquote> <p>This error message with "PRICE=L" is just an incorrect error. It was attempting to parse the correct column.</p> </blockquote> </li> <li>OracleDataReader.GetDecimal() 有個行為，<a href="https://learn.microsoft.com/zh-tw/dotnet/visual-basic/language-reference/data-types/decimal-data-type?WT.mc_id=DOP-MVP-37580">decimal</a> 的精準度只到 29 位 (Decimal 資料類型可為數字提供最大的有效位數。其最多可支援 29 個有效位數 <a href="https://learn.microsoft.com/zh-tw/dotnet/visual-basic/language-reference/data-types/decimal-data-type?WT.mc_id=DOP-MVP-37580#remarks">參考</a>)，而 Oracle 的 NUMBER 型別可到 38 位，當 OracleDataReader.GetDecimal() 遇到來源資料位數超過 38 位時，便會拋出 InvalidCastException。<br> 參考：<a href="https://chrismay.org/2015/07/30/bug-in-oracledatareader-causing-invalidcastexception/">Bug in OracleDataReader causing InvalidCastException?</a></li></ol> <p>了解原理，我成功用一小段程式碼重現錯誤：</p> <pre><code>using Dapper;
-using Oracle.ManagedDataAccess.Client;
-var cs = "data source=XE;user id=LAB;password=P@ssW0rd";
-var cn = new OracleConnection(cs);
-var d = cn.Query&lt;SomeEntity&gt;(
-"SELECT 'CC TEST' AS NAME, 1/3 AS AVG_VALUE FROM DUAL").First();
-Console.WriteLine(d);
-public class SomeEntity {
-public string NAME { get; set; }
-public decimal AVG_VALUE { get; set;}
-}
-</code></pre> <p>故意用 1/3 產生循環小數[1]，ODP.NET 在讀取數值便會出現 System.InvalidCastException 錯誤[2] (我測的 Dapper 版本是 2.1.35，錯誤訊息 AVG_VALUE 誤植前一欄 NAME 內容的 Bug 仍在[3])。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638506895047416835.png"></p> <p>以下程式則更明確驗證當 NUMBER 小數位數來到 29 位(含 0 共 30 位)，OracleDataReader.GetDecimal() 會拋出 InvalidCastException：</p> <pre><code>using Oracle.ManagedDataAccess.Client;
-var cs = "data source=XE;user id=LAB;password=P@ssW0rd";
-var cn = new OracleConnection(cs);
-cn.Open();
-for (int i = 25; i &lt; 30; i++)
-{
-var cmd = cn.CreateCommand();
-cmd.CommandText = $"SELECT ROUND(1/3, {i}) AS D FROM DUAL";
-var dr = cmd.ExecuteReader();
-dr.Read();
-try {
-Console.WriteLine($"ROUND(1/3, {i}) = {dr.GetDecimal(0)}");
-}
-catch (Exception e) {
-Console.WriteLine(e.Message);
-var s = dr.GetString(0);
-Console.WriteLine(s);
-var d = decimal.Parse(s);
-Console.WriteLine(d);
-}
-}
-</code></pre> <p>利用 ROUND(1/3, i) 指定保留小數位數，i 由 25 遞增到 30，當 i = 29 時就出錯了。29 位小數加上 0.333... 的 0，共 30 位，超過 decimal 精確度上限，OracleDataReader 的做法是拋出例外。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638506895049146425.png"></p> <p>值得注意的是，若我們將 29 位小數 NUMBER 當成字串，再用 decimal.Parse() 可轉成 decimal，但小數部分會少一位。依據<a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.decimal.parse?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">文件</a>，這是 Parse() 的預期行為無誤：當 s 具有小數部分並超過 29 位數(且介於 MaxValue 和 MinValue 的範圍)，則數位會四捨五入為最接近的數位而非截斷為 29 位數。</p> <p>實務上我們很少會需要超過 29 位的精確數字，故這類問題多半可透過在 Oracle 端只留所需小數位數解決，在用到除法或複雜運算的場合留意一下即可，但沒注意到還是可能踩雷。</p> <p>又學到一些冷知識。</p> <p data-slug="decimal-precision-issue" data-title-en=".NET decimal precision issue on ODP.NET" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/09/08/50/pattern-3864533_960_720.jpg#960#720">This article explains and analyzes the case where ODP.NET’s GetDecimal() function fails due to excessive decimal places, validates the conversion behavior through experiments, and offers corresponding suggestions.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638506895047416835.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638506895047416835.png" medium="image"/>
-    <pubDate>Tue, 07 May 2024 14:27:00 GMT</pubDate>
   </item></channel>
 </rss>
