@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/566/800/800.jpg?hmac=Fnmn5zP_NI8xHYI9ECkR-tKs2te7KQUMvX-EVgbHM40</url>
+      <url>https://fastly.picsum.photos/id/633/800/800.jpg?hmac=iZqhw4r-bn_CD5FoL9cTGHAtVHxIcv1-FhixG96TMQ4</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,416 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/566/800/800.jpg?hmac=Fnmn5zP_NI8xHYI9ECkR-tKs2te7KQUMvX-EVgbHM40"/>
+    <itunes:image href="https://fastly.picsum.photos/id/633/800/800.jpg?hmac=iZqhw4r-bn_CD5FoL9cTGHAtVHxIcv1-FhixG96TMQ4"/>
 <item>
+    <title><![CDATA[樹莓派安裝Box64，使用Wine跑Windows exe程式]]></title>
+    <link>https://ivonblog.com/posts/box64-wine/</link>
+    <itunes:title><![CDATA[樹莓派安裝Box64，使用Wine跑Windows exe程式]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/box64-wine/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp"></a></p>
+<p>Wine是讓Linux跑Windows exe程式的轉譯技術。</p><p>儘管Wine有支援ARM架構，Raspbeery Pi OS套件庫也有收，然而Windows exe大多是x86架構，所以你不可以安裝ARM架構的Wine去跑x86架構的程式。</p><p>我們得想辦法搞到x86架構的Wine，交給Box64轉譯，進而執行Windows exe。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc3d6cb000.webp"><h2>1. 安裝Box64與Box86<span><a href="#1-%E5%AE%89%E8%A3%9Dbox64%E8%88%87box86" aria-label="定位點">#</a></span></h2><p>參見<a href="https://ivonblog.com/posts/box86-box64-usage" target="_blank">
+Box86＋Box64使用教學</a></p><h2>2. 安裝Wine<span><a href="#2-%E5%AE%89%E8%A3%9Dwine" aria-label="定位點">#</a></span></h2><p>以<code>Raspbeery Pi OS Bookworm 64-Bit</code>來說，<strong>請不要直接用APT硬裝x86版Wine的deb套件</strong>，在此，我們使用Box64開發者推薦的的方式，用符號連接將Wine執行檔硬塞到系統裡面。</p><ol><li>Wine目前在16K page會有問題，所以必須在系統啟用4K page</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
+</span></span></span><span><span><span>kernel=kernel8.img
+</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="2"><li>啟用armhf架構支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
+</span></span><span><span>
+</span></span><span><span>sudo apt-get update
+</span></span></code></pre></div><ol start="3"><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install -y libasound2:armhf libc6:armhf libglib2.0-0:armhf libgphoto2-6:armhf libgphoto2-port12:armhf <span>\
+</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:armhf libgstreamer1.0-0:armhf libldap-common:armhf libopenal1:armhf libpcap0.8:armhf <span>\
+</span></span></span><span><span>		libpulse0:armhf libsane1:armhf libudev1:armhf libusb-1.0-0:armhf libvkd3d1:armhf libx11-6:armhf libxext6:armhf <span>\
+</span></span></span><span><span>		libasound2-plugins:armhf ocl-icd-libopencl1:armhf libncurses6:armhf libncurses5:armhf libcap2-bin:armhf libcups2:armhf <span>\
+</span></span></span><span><span>		libdbus-1-3:armhf libfontconfig1:armhf libfreetype6:armhf libglu1-mesa:armhf libglu1:armhf libgnutls30:armhf <span>\
+</span></span></span><span><span>		libgssapi-krb5-2:armhf libkrb5-3:armhf libodbc1:armhf libosmesa6:armhf libsdl2-2.0-0:armhf libv4l-0:armhf <span>\
+</span></span></span><span><span>		libxcomposite1:armhf libxcursor1:armhf libxfixes3:armhf libxi6:armhf libxinerama1:armhf libxrandr2:armhf <span>\
+</span></span></span><span><span>		libxrender1:armhf libxxf86vm1 libc6:armhf libcap2-bin:armhf
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span>sudo apt-get install -y libasound2:arm64 libc6:arm64 libglib2.0-0:arm64 libgphoto2-6:arm64 libgphoto2-port12:arm64 <span>\
+</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:arm64 libgstreamer1.0-0:arm64 libldap-common:arm64 libopenal1:arm64 libpcap0.8:arm64 <span>\
+</span></span></span><span><span>		libpulse0:arm64 libsane1:arm64 libudev1:arm64 libunwind8:arm64 libusb-1.0-0:arm64 libvkd3d1:arm64 libx11-6:arm64 libxext6:arm64 <span>\
+</span></span></span><span><span>		ocl-icd-libopencl1:arm64 libasound2-plugins:arm64 libncurses6:arm64 libncurses5:arm64 libcups2:arm64 <span>\
+</span></span></span><span><span>		libdbus-1-3:arm64 libfontconfig1:arm64 libfreetype6:arm64 libglu1-mesa:arm64 libgnutls30:arm64 <span>\
+</span></span></span><span><span>		libgssapi-krb5-2:arm64 libjpeg62-turbo:arm64 libkrb5-3:arm64 libodbc1:arm64 libosmesa6:arm64 libsdl2-2.0-0:arm64 libv4l-0:arm64 <span>\
+</span></span></span><span><span>		libxcomposite1:arm64 libxcursor1:arm64 libxfixes3:arm64 libxi6:arm64 libxinerama1:arm64 libxrandr2:arm64 <span>\
+</span></span></span><span><span>		libxrender1:arm64 libxxf86vm1:arm64 libc6:arm64 libcap2-bin:arm64
+</span></span><span><span>
+</span></span><span><span><span># 額外套件</span>
+</span></span><span><span>
+</span></span><span><span>wget -r -l1 -np -nd -A <span>"libfaudio0_*~bpo10+1_i386.deb"</span> http://ftp.us.debian.org/debian/pool/main/f/faudio/
+</span></span><span><span>
+</span></span><span><span>dpkg-deb -xv libfaudio0_*~bpo10+1_i386.deb libfaudio
+</span></span><span><span>
+</span></span><span><span>sudo cp -TRv libfaudio/usr/ /usr/
+</span></span><span><span>
+</span></span><span><span>rm libfaudio0_*~bpo10+1_i386.deb
+</span></span><span><span>
+</span></span><span><span>rm -rf libfaudio
+</span></span></code></pre></div><ol start="4"><li>下載Wine執行檔。由於WineHQ官網僅提供deb套件，故我們使用預先建置的版本。此處使用<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
+Kron4ek建置的Wine</a>。Box64尚未支援Wine 8.0以上的的Wow64，故下載Wine 7.0版本。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>tar -xvf wine-7.22-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>mv wine-7.22-amd64 wine
+</span></span><span><span>
+</span></span><span><span>rm wine-7.22-amd64.tar.xz
+</span></span></code></pre></div><ol start="5"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>~/wine/bin/wine</code>，下面的以此類推。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ln -s ~/wine/bin/wine /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wine64 /usr/local/bin/wine64
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wineboot /usr/local/bin/wineboot
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/winecfg /usr/local/bin/winecfg
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wineserver /usr/local/bin/wineserver
+</span></span><span><span>
+</span></span><span><span>sudo chmod +x /usr/local/bin/wine /usr/local/bin/wine64 /usr/local/bin/wineboot /usr/local/bin/winecfg /usr/local/bin/wineserver
+</span></span></code></pre></div><h2>3. 安裝Winetricks<span><a href="#3-%E5%AE%89%E8%A3%9Dwinetricks" aria-label="定位點">#</a></span></h2><p>Winetricks只是指令稿，沒有架構之分，直接安裝：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install cabextract
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/Downloads <span>&amp;&amp;</span> wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+</span></span><span><span>
+</span></span><span><span>sudo chmod +x winetricks <span>&amp;&amp;</span> sudo mv winetricks /usr/local/bin/
+</span></span></code></pre></div><h2>4. Wine指令用法<span><a href="#4-wine%E6%8C%87%E4%BB%A4%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><p>相關文章：<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">
+Wine指令用法</a></p><p>裝好後就可以用以下組合，啟動Windows exe。啟動前需注意exe是32位元還是64位元。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 &lt;Windows exe執行檔&gt;
+</span></span><span><span>
+</span></span><span><span>box86 wine &lt;Windows exe執行檔&gt;
+</span></span></code></pre></div><p>注意Box86/Box64的3D繪圖圖形指令尚有部份未實作，Winetricks也不太穩定，建議先從簡單的小遊戲開始測試。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dfba03cb24.webp"><p>如果要區分32位元與64位元環境，可以用WINEPREFIX隔開不同程式的設定檔目錄</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 設定檔位於~/.wine64</span>
+</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 wine64 &lt;Windows exe執行檔&gt;
+</span></span><span><span>
+</span></span><span><span><span># 設定檔位於~/.wine，指定32位元</span>
+</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine <span>WINEARCH</span><span>=</span>win32 box86 wine &lt;Windows exe執行檔&gt;
+</span></span></code></pre></div><p>同理，Winetricks執行前，最好也先指定要裝到哪個Wine環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 winetricks
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md" target="_blank">box64/docs/X64WINE.md</a></li><li><a href="https://medium.com/@safiuddinkhan/how-to-install-box86-box64-and-wine-on-raspberry-pi-os-bullseye-64-bit-c88028052f8c" target="_blank">How to Install Box86, Box64 and Wine on Raspberry Pi OS Bullseye 64-bit - medium</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/box64-wine/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp"></a></p>
+<p>Wine是讓Linux跑Windows exe程式的轉譯技術。</p><p>儘管Wine有支援ARM架構，Raspbeery Pi OS套件庫也有收，然而Windows exe大多是x86架構，所以你不可以安裝ARM架構的Wine去跑x86架構的程式。</p><p>我們得想辦法搞到x86架構的Wine，交給Box64轉譯，進而執行Windows exe。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc3d6cb000.webp"><h2>1. 安裝Box64與Box86<span><a href="#1-%E5%AE%89%E8%A3%9Dbox64%E8%88%87box86" aria-label="定位點">#</a></span></h2><p>參見<a href="https://ivonblog.com/posts/box86-box64-usage" target="_blank">
+Box86＋Box64使用教學</a></p><h2>2. 安裝Wine<span><a href="#2-%E5%AE%89%E8%A3%9Dwine" aria-label="定位點">#</a></span></h2><p>以<code>Raspbeery Pi OS Bookworm 64-Bit</code>來說，<strong>請不要直接用APT硬裝x86版Wine的deb套件</strong>，在此，我們使用Box64開發者推薦的的方式，用符號連接將Wine執行檔硬塞到系統裡面。</p><ol><li>Wine目前在16K page會有問題，所以必須在系統啟用4K page</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
+</span></span></span><span><span><span>kernel=kernel8.img
+</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="2"><li>啟用armhf架構支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
+</span></span><span><span>
+</span></span><span><span>sudo apt-get update
+</span></span></code></pre></div><ol start="3"><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install -y libasound2:armhf libc6:armhf libglib2.0-0:armhf libgphoto2-6:armhf libgphoto2-port12:armhf <span>\
+</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:armhf libgstreamer1.0-0:armhf libldap-common:armhf libopenal1:armhf libpcap0.8:armhf <span>\
+</span></span></span><span><span>		libpulse0:armhf libsane1:armhf libudev1:armhf libusb-1.0-0:armhf libvkd3d1:armhf libx11-6:armhf libxext6:armhf <span>\
+</span></span></span><span><span>		libasound2-plugins:armhf ocl-icd-libopencl1:armhf libncurses6:armhf libncurses5:armhf libcap2-bin:armhf libcups2:armhf <span>\
+</span></span></span><span><span>		libdbus-1-3:armhf libfontconfig1:armhf libfreetype6:armhf libglu1-mesa:armhf libglu1:armhf libgnutls30:armhf <span>\
+</span></span></span><span><span>		libgssapi-krb5-2:armhf libkrb5-3:armhf libodbc1:armhf libosmesa6:armhf libsdl2-2.0-0:armhf libv4l-0:armhf <span>\
+</span></span></span><span><span>		libxcomposite1:armhf libxcursor1:armhf libxfixes3:armhf libxi6:armhf libxinerama1:armhf libxrandr2:armhf <span>\
+</span></span></span><span><span>		libxrender1:armhf libxxf86vm1 libc6:armhf libcap2-bin:armhf
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span>sudo apt-get install -y libasound2:arm64 libc6:arm64 libglib2.0-0:arm64 libgphoto2-6:arm64 libgphoto2-port12:arm64 <span>\
+</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:arm64 libgstreamer1.0-0:arm64 libldap-common:arm64 libopenal1:arm64 libpcap0.8:arm64 <span>\
+</span></span></span><span><span>		libpulse0:arm64 libsane1:arm64 libudev1:arm64 libunwind8:arm64 libusb-1.0-0:arm64 libvkd3d1:arm64 libx11-6:arm64 libxext6:arm64 <span>\
+</span></span></span><span><span>		ocl-icd-libopencl1:arm64 libasound2-plugins:arm64 libncurses6:arm64 libncurses5:arm64 libcups2:arm64 <span>\
+</span></span></span><span><span>		libdbus-1-3:arm64 libfontconfig1:arm64 libfreetype6:arm64 libglu1-mesa:arm64 libgnutls30:arm64 <span>\
+</span></span></span><span><span>		libgssapi-krb5-2:arm64 libjpeg62-turbo:arm64 libkrb5-3:arm64 libodbc1:arm64 libosmesa6:arm64 libsdl2-2.0-0:arm64 libv4l-0:arm64 <span>\
+</span></span></span><span><span>		libxcomposite1:arm64 libxcursor1:arm64 libxfixes3:arm64 libxi6:arm64 libxinerama1:arm64 libxrandr2:arm64 <span>\
+</span></span></span><span><span>		libxrender1:arm64 libxxf86vm1:arm64 libc6:arm64 libcap2-bin:arm64
+</span></span><span><span>
+</span></span><span><span><span># 額外套件</span>
+</span></span><span><span>
+</span></span><span><span>wget -r -l1 -np -nd -A <span>"libfaudio0_*~bpo10+1_i386.deb"</span> http://ftp.us.debian.org/debian/pool/main/f/faudio/
+</span></span><span><span>
+</span></span><span><span>dpkg-deb -xv libfaudio0_*~bpo10+1_i386.deb libfaudio
+</span></span><span><span>
+</span></span><span><span>sudo cp -TRv libfaudio/usr/ /usr/
+</span></span><span><span>
+</span></span><span><span>rm libfaudio0_*~bpo10+1_i386.deb
+</span></span><span><span>
+</span></span><span><span>rm -rf libfaudio
+</span></span></code></pre></div><ol start="4"><li>下載Wine執行檔。由於WineHQ官網僅提供deb套件，故我們使用預先建置的版本。此處使用<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
+Kron4ek建置的Wine</a>。Box64尚未支援Wine 8.0以上的的Wow64，故下載Wine 7.0版本。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>tar -xvf wine-7.22-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>mv wine-7.22-amd64 wine
+</span></span><span><span>
+</span></span><span><span>rm wine-7.22-amd64.tar.xz
+</span></span></code></pre></div><ol start="5"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>~/wine/bin/wine</code>，下面的以此類推。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ln -s ~/wine/bin/wine /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wine64 /usr/local/bin/wine64
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wineboot /usr/local/bin/wineboot
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/winecfg /usr/local/bin/winecfg
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wineserver /usr/local/bin/wineserver
+</span></span><span><span>
+</span></span><span><span>sudo chmod +x /usr/local/bin/wine /usr/local/bin/wine64 /usr/local/bin/wineboot /usr/local/bin/winecfg /usr/local/bin/wineserver
+</span></span></code></pre></div><h2>3. 安裝Winetricks<span><a href="#3-%E5%AE%89%E8%A3%9Dwinetricks" aria-label="定位點">#</a></span></h2><p>Winetricks只是指令稿，沒有架構之分，直接安裝：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install cabextract
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/Downloads <span>&amp;&amp;</span> wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+</span></span><span><span>
+</span></span><span><span>sudo chmod +x winetricks <span>&amp;&amp;</span> sudo mv winetricks /usr/local/bin/
+</span></span></code></pre></div><h2>4. Wine指令用法<span><a href="#4-wine%E6%8C%87%E4%BB%A4%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><p>相關文章：<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">
+Wine指令用法</a></p><p>裝好後就可以用以下組合，啟動Windows exe。啟動前需注意exe是32位元還是64位元。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 &lt;Windows exe執行檔&gt;
+</span></span><span><span>
+</span></span><span><span>box86 wine &lt;Windows exe執行檔&gt;
+</span></span></code></pre></div><p>注意Box86/Box64的3D繪圖圖形指令尚有部份未實作，Winetricks也不太穩定，建議先從簡單的小遊戲開始測試。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dfba03cb24.webp"><p>如果要區分32位元與64位元環境，可以用WINEPREFIX隔開不同程式的設定檔目錄</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 設定檔位於~/.wine64</span>
+</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 wine64 &lt;Windows exe執行檔&gt;
+</span></span><span><span>
+</span></span><span><span><span># 設定檔位於~/.wine，指定32位元</span>
+</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine <span>WINEARCH</span><span>=</span>win32 box86 wine &lt;Windows exe執行檔&gt;
+</span></span></code></pre></div><p>同理，Winetricks執行前，最好也先指定要裝到哪個Wine環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 winetricks
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md" target="_blank">box64/docs/X64WINE.md</a></li><li><a href="https://medium.com/@safiuddinkhan/how-to-install-box86-box64-and-wine-on-raspberry-pi-os-bullseye-64-bit-c88028052f8c" target="_blank">How to Install Box86, Box64 and Wine on Raspberry Pi OS Bullseye 64-bit - medium</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/box64-wine/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp"></a></p>
+<p>Wine是讓Linux跑Windows exe程式的轉譯技術。</p><p>儘管Wine有支援ARM架構，Raspbeery Pi OS套件庫也有收，然而Windows exe大多是x86架構，所以你不可以安裝ARM架構的Wine去跑x86架構的程式。</p><p>我們得想辦法搞到x86架構的Wine，交給Box64轉譯，進而執行Windows exe。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc3d6cb000.webp"><h2>1. 安裝Box64與Box86<span><a href="#1-%E5%AE%89%E8%A3%9Dbox64%E8%88%87box86" aria-label="定位點">#</a></span></h2><p>參見<a href="https://ivonblog.com/posts/box86-box64-usage" target="_blank">
+Box86＋Box64使用教學</a></p><h2>2. 安裝Wine<span><a href="#2-%E5%AE%89%E8%A3%9Dwine" aria-label="定位點">#</a></span></h2><p>以<code>Raspbeery Pi OS Bookworm 64-Bit</code>來說，<strong>請不要直接用APT硬裝x86版Wine的deb套件</strong>，在此，我們使用Box64開發者推薦的的方式，用符號連接將Wine執行檔硬塞到系統裡面。</p><ol><li>Wine目前在16K page會有問題，所以必須在系統啟用4K page</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
+</span></span></span><span><span><span>kernel=kernel8.img
+</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="2"><li>啟用armhf架構支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
+</span></span><span><span>
+</span></span><span><span>sudo apt-get update
+</span></span></code></pre></div><ol start="3"><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install -y libasound2:armhf libc6:armhf libglib2.0-0:armhf libgphoto2-6:armhf libgphoto2-port12:armhf <span>\
+</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:armhf libgstreamer1.0-0:armhf libldap-common:armhf libopenal1:armhf libpcap0.8:armhf <span>\
+</span></span></span><span><span>		libpulse0:armhf libsane1:armhf libudev1:armhf libusb-1.0-0:armhf libvkd3d1:armhf libx11-6:armhf libxext6:armhf <span>\
+</span></span></span><span><span>		libasound2-plugins:armhf ocl-icd-libopencl1:armhf libncurses6:armhf libncurses5:armhf libcap2-bin:armhf libcups2:armhf <span>\
+</span></span></span><span><span>		libdbus-1-3:armhf libfontconfig1:armhf libfreetype6:armhf libglu1-mesa:armhf libglu1:armhf libgnutls30:armhf <span>\
+</span></span></span><span><span>		libgssapi-krb5-2:armhf libkrb5-3:armhf libodbc1:armhf libosmesa6:armhf libsdl2-2.0-0:armhf libv4l-0:armhf <span>\
+</span></span></span><span><span>		libxcomposite1:armhf libxcursor1:armhf libxfixes3:armhf libxi6:armhf libxinerama1:armhf libxrandr2:armhf <span>\
+</span></span></span><span><span>		libxrender1:armhf libxxf86vm1 libc6:armhf libcap2-bin:armhf
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span>sudo apt-get install -y libasound2:arm64 libc6:arm64 libglib2.0-0:arm64 libgphoto2-6:arm64 libgphoto2-port12:arm64 <span>\
+</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:arm64 libgstreamer1.0-0:arm64 libldap-common:arm64 libopenal1:arm64 libpcap0.8:arm64 <span>\
+</span></span></span><span><span>		libpulse0:arm64 libsane1:arm64 libudev1:arm64 libunwind8:arm64 libusb-1.0-0:arm64 libvkd3d1:arm64 libx11-6:arm64 libxext6:arm64 <span>\
+</span></span></span><span><span>		ocl-icd-libopencl1:arm64 libasound2-plugins:arm64 libncurses6:arm64 libncurses5:arm64 libcups2:arm64 <span>\
+</span></span></span><span><span>		libdbus-1-3:arm64 libfontconfig1:arm64 libfreetype6:arm64 libglu1-mesa:arm64 libgnutls30:arm64 <span>\
+</span></span></span><span><span>		libgssapi-krb5-2:arm64 libjpeg62-turbo:arm64 libkrb5-3:arm64 libodbc1:arm64 libosmesa6:arm64 libsdl2-2.0-0:arm64 libv4l-0:arm64 <span>\
+</span></span></span><span><span>		libxcomposite1:arm64 libxcursor1:arm64 libxfixes3:arm64 libxi6:arm64 libxinerama1:arm64 libxrandr2:arm64 <span>\
+</span></span></span><span><span>		libxrender1:arm64 libxxf86vm1:arm64 libc6:arm64 libcap2-bin:arm64
+</span></span><span><span>
+</span></span><span><span><span># 額外套件</span>
+</span></span><span><span>
+</span></span><span><span>wget -r -l1 -np -nd -A <span>"libfaudio0_*~bpo10+1_i386.deb"</span> http://ftp.us.debian.org/debian/pool/main/f/faudio/
+</span></span><span><span>
+</span></span><span><span>dpkg-deb -xv libfaudio0_*~bpo10+1_i386.deb libfaudio
+</span></span><span><span>
+</span></span><span><span>sudo cp -TRv libfaudio/usr/ /usr/
+</span></span><span><span>
+</span></span><span><span>rm libfaudio0_*~bpo10+1_i386.deb
+</span></span><span><span>
+</span></span><span><span>rm -rf libfaudio
+</span></span></code></pre></div><ol start="4"><li>下載Wine執行檔。由於WineHQ官網僅提供deb套件，故我們使用預先建置的版本。此處使用<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
+Kron4ek建置的Wine</a>。Box64尚未支援Wine 8.0以上的的Wow64，故下載Wine 7.0版本。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>tar -xvf wine-7.22-amd64.tar.xz
+</span></span><span><span>
+</span></span><span><span>mv wine-7.22-amd64 wine
+</span></span><span><span>
+</span></span><span><span>rm wine-7.22-amd64.tar.xz
+</span></span></code></pre></div><ol start="5"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>~/wine/bin/wine</code>，下面的以此類推。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ln -s ~/wine/bin/wine /usr/local/bin/wine
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wine64 /usr/local/bin/wine64
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wineboot /usr/local/bin/wineboot
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/winecfg /usr/local/bin/winecfg
+</span></span><span><span>
+</span></span><span><span>sudo ln -s ~/wine/bin/wineserver /usr/local/bin/wineserver
+</span></span><span><span>
+</span></span><span><span>sudo chmod +x /usr/local/bin/wine /usr/local/bin/wine64 /usr/local/bin/wineboot /usr/local/bin/winecfg /usr/local/bin/wineserver
+</span></span></code></pre></div><h2>3. 安裝Winetricks<span><a href="#3-%E5%AE%89%E8%A3%9Dwinetricks" aria-label="定位點">#</a></span></h2><p>Winetricks只是指令稿，沒有架構之分，直接安裝：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install cabextract
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/Downloads <span>&amp;&amp;</span> wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+</span></span><span><span>
+</span></span><span><span>sudo chmod +x winetricks <span>&amp;&amp;</span> sudo mv winetricks /usr/local/bin/
+</span></span></code></pre></div><h2>4. Wine指令用法<span><a href="#4-wine%E6%8C%87%E4%BB%A4%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><p>相關文章：<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">
+Wine指令用法</a></p><p>裝好後就可以用以下組合，啟動Windows exe。啟動前需注意exe是32位元還是64位元。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 &lt;Windows exe執行檔&gt;
+</span></span><span><span>
+</span></span><span><span>box86 wine &lt;Windows exe執行檔&gt;
+</span></span></code></pre></div><p>注意Box86/Box64的3D繪圖圖形指令尚有部份未實作，Winetricks也不太穩定，建議先從簡單的小遊戲開始測試。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dfba03cb24.webp"><p>如果要區分32位元與64位元環境，可以用WINEPREFIX隔開不同程式的設定檔目錄</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 設定檔位於~/.wine64</span>
+</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 wine64 &lt;Windows exe執行檔&gt;
+</span></span><span><span>
+</span></span><span><span><span># 設定檔位於~/.wine，指定32位元</span>
+</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine <span>WINEARCH</span><span>=</span>win32 box86 wine &lt;Windows exe執行檔&gt;
+</span></span></code></pre></div><p>同理，Winetricks執行前，最好也先指定要裝到哪個Wine環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 winetricks
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md" target="_blank">box64/docs/X64WINE.md</a></li><li><a href="https://medium.com/@safiuddinkhan/how-to-install-box86-box64-and-wine-on-raspberry-pi-os-bullseye-64-bit-c88028052f8c" target="_blank">How to Install Box86, Box64 and Wine on Raspberry Pi OS Bullseye 64-bit - medium</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp" medium="image"/>
+    <pubDate>Mon, 27 May 2024 19:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[如何在ARM架構樹莓派跑x86程式：Box86＋Box64使用教學]]></title>
+    <link>https://ivonblog.com/posts/box86-box64-usage/</link>
+    <itunes:title><![CDATA[如何在ARM架構樹莓派跑x86程式：Box86＋Box64使用教學]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/box86-box64-usage/featured.png" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a4eeab3a74.png"></a></p>
+<p>本文Ivon介紹如何使用Box86/Box64轉譯技術，在ARM架構的Linux電腦跑x86架構的程式。</p><p>Box86/Box64對樹莓派開發板、ARM筆電、Android手機的用戶來說十分有用，可以執行更多程式，而不用受到架構不同的困擾。</p><p>＊本文使用「x86」指稱架構名稱，與位元無關。另外在無特別說明下，「ARM」包含aarch64、arm64。</p><h2>1. 為什麼要採用Box86/Box64<span><a href="#1-%E7%82%BA%E4%BB%80%E9%BA%BC%E8%A6%81%E6%8E%A1%E7%94%A8box86box64" aria-label="定位點">#</a></span></h2><p>有時用ARM架構的電腦跑程式，會遇到部分程式只提供x86版本的情形，致使出現<code>exec format error</code>錯誤。</p><p>雖說用<code>qemu-user-static</code>模擬x86架構是個解法，例如有人做給Docker用的<a href="https://ivonblog.com/posts/run-x86-docker-image-on-arm-platform/" target="_blank">
+qus-docker</a>，然其效率低下。</p><p>此時，可以採用ptitSeb開發的「Box86/Box64」轉譯技術，更高效率地將x86指令轉譯成ARM指令。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d29d0a357c.png"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0fde395164.png"><p>該專案難能可貴的地方，在於它是開放原始碼的技術，而非Apple Rosseta2、華為ExaGear那樣的專有軟體。</p><p>其針對各種開發板和ARM處理器優化。分為二個部分：Box86負責轉譯32位元的x86指令集；Box64則是轉譯64位元的x86指令集。</p><p>Box86/Box64在userspace執行，使用"Dynamic recompilation"提升轉譯效率。根據下圖開發者ptitSeb的跑分比較，Box86的效率比QEMU和FEX的高很多，甚至可以比肩Apple的Rosetta2。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19d2a464cd.png"><p>更棒的是，Box86/Box64還支援轉譯3D繪圖指令，所以它是可以玩遊戲的。目前已經可以在ARM架構的Linux裝置，配合x86版本的Wine，跑一些x86的Windows遊戲。（見文末使用例）</p><h2>2. 編譯安裝Box86/Box64<span><a href="#2-%E7%B7%A8%E8%AD%AF%E5%AE%89%E8%A3%9Dbox86box64" aria-label="定位點">#</a></span></h2><p><a href="https://github.com/ptitSeb/box64/blob/main/docs/COMPILE.md" target="_blank">官方Github說明</a>有針對其他ARM開發板的編譯指示，此處以Raspberry Pi 5為例，作業系統為<code>Raspberry Pi OS Bookworm 64-bit</code>。</p><p>Box86/Box64專案處在積極開發的階段，儘管已經有第三方儲存庫提供編譯好的deb套件，仍建議從原始碼編譯安裝。如果只要跑64位元的x86程式，編譯Box64就夠了。</p><p>但是Box64不含任何32位元的轉譯程式，如果要跑32位元的x86程式，您還是得裝Box86。</p><h3>2.1. Box64<span><a href="#21-box64" aria-label="定位點">#</a></span></h3><ol><li>安裝編譯依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install build-essential mono-runtime git cmake
+</span></span></code></pre></div><ol start="2"><li>編譯安裝Box64</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/ptitSeb/box64
+</span></span><span><span>
+</span></span><span><span><span>cd</span> box64
+</span></span><span><span>
+</span></span><span><span>mkdir build<span>;</span> <span>cd</span> build<span>;</span> cmake .. -DRPI5ARM64<span>=</span><span>1</span> -DCMAKE_BUILD_TYPE<span>=</span>RelWithDebInfo
+</span></span><span><span>
+</span></span><span><span>make -j4
+</span></span><span><span>
+</span></span><span><span>sudo make install
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart systemd-binfmt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>rm -r ~/box64
+</span></span></code></pre></div><h3>2.2. Box86<span><a href="#22-box86" aria-label="定位點">#</a></span></h3><ol><li>啟用32位元儲存庫(armhf)支援，安裝編譯依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install gcc-arm-linux-gnueabihf
+</span></span></code></pre></div><ol start="2"><li>編譯安裝Box86</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/ptitSeb/box86
+</span></span><span><span>
+</span></span><span><span><span>cd</span> box86
+</span></span><span><span>
+</span></span><span><span>mkdir build<span>;</span> <span>cd</span> build<span>;</span> cmake .. -DRPI4ARM64<span>=</span><span>1</span> -DCMAKE_BUILD_TYPE<span>=</span>RelWithDebInfo
+</span></span><span><span>
+</span></span><span><span>make -j4
+</span></span><span><span>
+</span></span><span><span>sudo make install
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart systemd-binfmt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~ <span>&amp;&amp;</span> rm -r ~/box86
+</span></span></code></pre></div><h2>3. Box86/Box64基礎使用方式<span><a href="#3-box86box64%E5%9F%BA%E7%A4%8E%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>Box86/Box64的基礎功能就是執行x86程式啦，當然該程式得是Linux原生的執行檔，AppImage或許也可以。</p><p>Box86語法跟Box64很類似，此處以Box64為主，出現<code>64</code>的地方代換成<code>86</code>即可。</p><p>如果要執行x86架構程式：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 &lt;二進位執行檔路徑&gt;
+</span></span></code></pre></div><p>例如執行Minecraft基岩版伺服器：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.11.01.zip
+</span></span><span><span>
+</span></span><span><span>unzip bedrock-server-1.20.11.01.zip
+</span></span><span><span>
+</span></span><span><span>box64 <span>LD_LIBRARY_PATH</span><span>=</span>. ./bedrock_server
+</span></span></code></pre></div><p>不過因為Box64會自動向系統systemd-binfmt註冊的關係，所以大多數時候不需要在前面加上<code>box64</code>指令。系統一旦偵測到該執行檔為x86架構，就會自動交給Box64或Box86轉譯執行。</p><p>如果想執行x86架構的AppImage，需將其解出：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 &lt;AppImage執行檔路徑&gt; --appimage-extract
+</span></span></code></pre></div><h2>4. Box86/Box64重要的環境變數<span><a href="#4-box86box64%E9%87%8D%E8%A6%81%E7%9A%84%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8" aria-label="定位點">#</a></span></h2><p>Box86/Box64執行會輸出除錯訊息，不想看到的話請使用環境變數<code>export BOX64_NOBANNER=1</code>或<code>export BOX86_NOBANNER=1</code></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-53a19bb593.webp"><p>使用<code>BOX64_LD_LIBRARY_PATH</code>指定尋找動態連結檔的路徑，預設值為目前目錄下的<code>lib</code>，以及系統的<code>/usr/lib/x86_64-linux-gnu</code>和<code>/lib/x86_64-linux-gnu</code>。</p><p><code>BOX64_PATH</code>指令要尋找x86執行檔的路徑，預設值為目前目錄下的<code>bin</code>。</p><p>碰到需要以指令稿啟動的程式，可以用Box86作者提供的x86版Bash來啟動，例如：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://raw.githubusercontent.com/ptitSeb/box86/master/tests/bash
+</span></span><span><span>chmod +x ./bash
+</span></span><span><span>box86 ./bash ./start.sh
+</span></span></code></pre></div><h2>5. 其他Box86/Box64使用例<span><a href="#5-%E5%85%B6%E4%BB%96box86box64%E4%BD%BF%E7%94%A8%E4%BE%8B" aria-label="定位點">#</a></span></h2><ul><li><a href="https://ivonblog.com/posts/box64-wine" target="_blank">樹莓派安裝Box64與Wine，執行Windows exe</a></li><li><a href="https://ivonblog.com/posts/termux-proot-box86-box64/" target="_blank">Android手機Termux+Box86+Wine跑Windows exe，免root</a></li><li><a href="https://ivonblog.com/posts/linux-phone-box86-steam/" target="_blank">在Linux手機跑Steam Proton＋遊戲</a></li></ul><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box86/" target="_blank">Box86 - Linux Userspace x86 Emulator with a twist, targeted at ARM Linux devices - Github</a></li><li><a href="https://github.com/ptitSeb/box64" target="_blank">Box64 - Linux Userspace x86_64 Emulator with a twist, targeted at ARM64 Linux devices - Github</a></li><li><a href="https://box86.org/2022/03/box86-box64-vs-qemu-vs-fex-vs-rosetta2/" target="_blank">Box86/Box64 vs QEMU vs FEX (vs Rosetta2) - box86.org</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/box86-box64-usage/featured.png" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a4eeab3a74.png"></a></p>
+<p>本文Ivon介紹如何使用Box86/Box64轉譯技術，在ARM架構的Linux電腦跑x86架構的程式。</p><p>Box86/Box64對樹莓派開發板、ARM筆電、Android手機的用戶來說十分有用，可以執行更多程式，而不用受到架構不同的困擾。</p><p>＊本文使用「x86」指稱架構名稱，與位元無關。另外在無特別說明下，「ARM」包含aarch64、arm64。</p><h2>1. 為什麼要採用Box86/Box64<span><a href="#1-%E7%82%BA%E4%BB%80%E9%BA%BC%E8%A6%81%E6%8E%A1%E7%94%A8box86box64" aria-label="定位點">#</a></span></h2><p>有時用ARM架構的電腦跑程式，會遇到部分程式只提供x86版本的情形，致使出現<code>exec format error</code>錯誤。</p><p>雖說用<code>qemu-user-static</code>模擬x86架構是個解法，例如有人做給Docker用的<a href="https://ivonblog.com/posts/run-x86-docker-image-on-arm-platform/" target="_blank">
+qus-docker</a>，然其效率低下。</p><p>此時，可以採用ptitSeb開發的「Box86/Box64」轉譯技術，更高效率地將x86指令轉譯成ARM指令。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d29d0a357c.png"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0fde395164.png"><p>該專案難能可貴的地方，在於它是開放原始碼的技術，而非Apple Rosseta2、華為ExaGear那樣的專有軟體。</p><p>其針對各種開發板和ARM處理器優化。分為二個部分：Box86負責轉譯32位元的x86指令集；Box64則是轉譯64位元的x86指令集。</p><p>Box86/Box64在userspace執行，使用"Dynamic recompilation"提升轉譯效率。根據下圖開發者ptitSeb的跑分比較，Box86的效率比QEMU和FEX的高很多，甚至可以比肩Apple的Rosetta2。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19d2a464cd.png"><p>更棒的是，Box86/Box64還支援轉譯3D繪圖指令，所以它是可以玩遊戲的。目前已經可以在ARM架構的Linux裝置，配合x86版本的Wine，跑一些x86的Windows遊戲。（見文末使用例）</p><h2>2. 編譯安裝Box86/Box64<span><a href="#2-%E7%B7%A8%E8%AD%AF%E5%AE%89%E8%A3%9Dbox86box64" aria-label="定位點">#</a></span></h2><p><a href="https://github.com/ptitSeb/box64/blob/main/docs/COMPILE.md" target="_blank">官方Github說明</a>有針對其他ARM開發板的編譯指示，此處以Raspberry Pi 5為例，作業系統為<code>Raspberry Pi OS Bookworm 64-bit</code>。</p><p>Box86/Box64專案處在積極開發的階段，儘管已經有第三方儲存庫提供編譯好的deb套件，仍建議從原始碼編譯安裝。如果只要跑64位元的x86程式，編譯Box64就夠了。</p><p>但是Box64不含任何32位元的轉譯程式，如果要跑32位元的x86程式，您還是得裝Box86。</p><h3>2.1. Box64<span><a href="#21-box64" aria-label="定位點">#</a></span></h3><ol><li>安裝編譯依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install build-essential mono-runtime git cmake
+</span></span></code></pre></div><ol start="2"><li>編譯安裝Box64</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/ptitSeb/box64
+</span></span><span><span>
+</span></span><span><span><span>cd</span> box64
+</span></span><span><span>
+</span></span><span><span>mkdir build<span>;</span> <span>cd</span> build<span>;</span> cmake .. -DRPI5ARM64<span>=</span><span>1</span> -DCMAKE_BUILD_TYPE<span>=</span>RelWithDebInfo
+</span></span><span><span>
+</span></span><span><span>make -j4
+</span></span><span><span>
+</span></span><span><span>sudo make install
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart systemd-binfmt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>rm -r ~/box64
+</span></span></code></pre></div><h3>2.2. Box86<span><a href="#22-box86" aria-label="定位點">#</a></span></h3><ol><li>啟用32位元儲存庫(armhf)支援，安裝編譯依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install gcc-arm-linux-gnueabihf
+</span></span></code></pre></div><ol start="2"><li>編譯安裝Box86</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/ptitSeb/box86
+</span></span><span><span>
+</span></span><span><span><span>cd</span> box86
+</span></span><span><span>
+</span></span><span><span>mkdir build<span>;</span> <span>cd</span> build<span>;</span> cmake .. -DRPI4ARM64<span>=</span><span>1</span> -DCMAKE_BUILD_TYPE<span>=</span>RelWithDebInfo
+</span></span><span><span>
+</span></span><span><span>make -j4
+</span></span><span><span>
+</span></span><span><span>sudo make install
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart systemd-binfmt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~ <span>&amp;&amp;</span> rm -r ~/box86
+</span></span></code></pre></div><h2>3. Box86/Box64基礎使用方式<span><a href="#3-box86box64%E5%9F%BA%E7%A4%8E%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>Box86/Box64的基礎功能就是執行x86程式啦，當然該程式得是Linux原生的執行檔，AppImage或許也可以。</p><p>Box86語法跟Box64很類似，此處以Box64為主，出現<code>64</code>的地方代換成<code>86</code>即可。</p><p>如果要執行x86架構程式：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 &lt;二進位執行檔路徑&gt;
+</span></span></code></pre></div><p>例如執行Minecraft基岩版伺服器：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.11.01.zip
+</span></span><span><span>
+</span></span><span><span>unzip bedrock-server-1.20.11.01.zip
+</span></span><span><span>
+</span></span><span><span>box64 <span>LD_LIBRARY_PATH</span><span>=</span>. ./bedrock_server
+</span></span></code></pre></div><p>不過因為Box64會自動向系統systemd-binfmt註冊的關係，所以大多數時候不需要在前面加上<code>box64</code>指令。系統一旦偵測到該執行檔為x86架構，就會自動交給Box64或Box86轉譯執行。</p><p>如果想執行x86架構的AppImage，需將其解出：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 &lt;AppImage執行檔路徑&gt; --appimage-extract
+</span></span></code></pre></div><h2>4. Box86/Box64重要的環境變數<span><a href="#4-box86box64%E9%87%8D%E8%A6%81%E7%9A%84%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8" aria-label="定位點">#</a></span></h2><p>Box86/Box64執行會輸出除錯訊息，不想看到的話請使用環境變數<code>export BOX64_NOBANNER=1</code>或<code>export BOX86_NOBANNER=1</code></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-53a19bb593.webp"><p>使用<code>BOX64_LD_LIBRARY_PATH</code>指定尋找動態連結檔的路徑，預設值為目前目錄下的<code>lib</code>，以及系統的<code>/usr/lib/x86_64-linux-gnu</code>和<code>/lib/x86_64-linux-gnu</code>。</p><p><code>BOX64_PATH</code>指令要尋找x86執行檔的路徑，預設值為目前目錄下的<code>bin</code>。</p><p>碰到需要以指令稿啟動的程式，可以用Box86作者提供的x86版Bash來啟動，例如：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://raw.githubusercontent.com/ptitSeb/box86/master/tests/bash
+</span></span><span><span>chmod +x ./bash
+</span></span><span><span>box86 ./bash ./start.sh
+</span></span></code></pre></div><h2>5. 其他Box86/Box64使用例<span><a href="#5-%E5%85%B6%E4%BB%96box86box64%E4%BD%BF%E7%94%A8%E4%BE%8B" aria-label="定位點">#</a></span></h2><ul><li><a href="https://ivonblog.com/posts/box64-wine" target="_blank">樹莓派安裝Box64與Wine，執行Windows exe</a></li><li><a href="https://ivonblog.com/posts/termux-proot-box86-box64/" target="_blank">Android手機Termux+Box86+Wine跑Windows exe，免root</a></li><li><a href="https://ivonblog.com/posts/linux-phone-box86-steam/" target="_blank">在Linux手機跑Steam Proton＋遊戲</a></li></ul><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box86/" target="_blank">Box86 - Linux Userspace x86 Emulator with a twist, targeted at ARM Linux devices - Github</a></li><li><a href="https://github.com/ptitSeb/box64" target="_blank">Box64 - Linux Userspace x86_64 Emulator with a twist, targeted at ARM64 Linux devices - Github</a></li><li><a href="https://box86.org/2022/03/box86-box64-vs-qemu-vs-fex-vs-rosetta2/" target="_blank">Box86/Box64 vs QEMU vs FEX (vs Rosetta2) - box86.org</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/box86-box64-usage/featured.png" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a4eeab3a74.png"></a></p>
+<p>本文Ivon介紹如何使用Box86/Box64轉譯技術，在ARM架構的Linux電腦跑x86架構的程式。</p><p>Box86/Box64對樹莓派開發板、ARM筆電、Android手機的用戶來說十分有用，可以執行更多程式，而不用受到架構不同的困擾。</p><p>＊本文使用「x86」指稱架構名稱，與位元無關。另外在無特別說明下，「ARM」包含aarch64、arm64。</p><h2>1. 為什麼要採用Box86/Box64<span><a href="#1-%E7%82%BA%E4%BB%80%E9%BA%BC%E8%A6%81%E6%8E%A1%E7%94%A8box86box64" aria-label="定位點">#</a></span></h2><p>有時用ARM架構的電腦跑程式，會遇到部分程式只提供x86版本的情形，致使出現<code>exec format error</code>錯誤。</p><p>雖說用<code>qemu-user-static</code>模擬x86架構是個解法，例如有人做給Docker用的<a href="https://ivonblog.com/posts/run-x86-docker-image-on-arm-platform/" target="_blank">
+qus-docker</a>，然其效率低下。</p><p>此時，可以採用ptitSeb開發的「Box86/Box64」轉譯技術，更高效率地將x86指令轉譯成ARM指令。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d29d0a357c.png"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0fde395164.png"><p>該專案難能可貴的地方，在於它是開放原始碼的技術，而非Apple Rosseta2、華為ExaGear那樣的專有軟體。</p><p>其針對各種開發板和ARM處理器優化。分為二個部分：Box86負責轉譯32位元的x86指令集；Box64則是轉譯64位元的x86指令集。</p><p>Box86/Box64在userspace執行，使用"Dynamic recompilation"提升轉譯效率。根據下圖開發者ptitSeb的跑分比較，Box86的效率比QEMU和FEX的高很多，甚至可以比肩Apple的Rosetta2。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19d2a464cd.png"><p>更棒的是，Box86/Box64還支援轉譯3D繪圖指令，所以它是可以玩遊戲的。目前已經可以在ARM架構的Linux裝置，配合x86版本的Wine，跑一些x86的Windows遊戲。（見文末使用例）</p><h2>2. 編譯安裝Box86/Box64<span><a href="#2-%E7%B7%A8%E8%AD%AF%E5%AE%89%E8%A3%9Dbox86box64" aria-label="定位點">#</a></span></h2><p><a href="https://github.com/ptitSeb/box64/blob/main/docs/COMPILE.md" target="_blank">官方Github說明</a>有針對其他ARM開發板的編譯指示，此處以Raspberry Pi 5為例，作業系統為<code>Raspberry Pi OS Bookworm 64-bit</code>。</p><p>Box86/Box64專案處在積極開發的階段，儘管已經有第三方儲存庫提供編譯好的deb套件，仍建議從原始碼編譯安裝。如果只要跑64位元的x86程式，編譯Box64就夠了。</p><p>但是Box64不含任何32位元的轉譯程式，如果要跑32位元的x86程式，您還是得裝Box86。</p><h3>2.1. Box64<span><a href="#21-box64" aria-label="定位點">#</a></span></h3><ol><li>安裝編譯依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install build-essential mono-runtime git cmake
+</span></span></code></pre></div><ol start="2"><li>編譯安裝Box64</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/ptitSeb/box64
+</span></span><span><span>
+</span></span><span><span><span>cd</span> box64
+</span></span><span><span>
+</span></span><span><span>mkdir build<span>;</span> <span>cd</span> build<span>;</span> cmake .. -DRPI5ARM64<span>=</span><span>1</span> -DCMAKE_BUILD_TYPE<span>=</span>RelWithDebInfo
+</span></span><span><span>
+</span></span><span><span>make -j4
+</span></span><span><span>
+</span></span><span><span>sudo make install
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart systemd-binfmt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>rm -r ~/box64
+</span></span></code></pre></div><h3>2.2. Box86<span><a href="#22-box86" aria-label="定位點">#</a></span></h3><ol><li>啟用32位元儲存庫(armhf)支援，安裝編譯依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install gcc-arm-linux-gnueabihf
+</span></span></code></pre></div><ol start="2"><li>編譯安裝Box86</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/ptitSeb/box86
+</span></span><span><span>
+</span></span><span><span><span>cd</span> box86
+</span></span><span><span>
+</span></span><span><span>mkdir build<span>;</span> <span>cd</span> build<span>;</span> cmake .. -DRPI4ARM64<span>=</span><span>1</span> -DCMAKE_BUILD_TYPE<span>=</span>RelWithDebInfo
+</span></span><span><span>
+</span></span><span><span>make -j4
+</span></span><span><span>
+</span></span><span><span>sudo make install
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart systemd-binfmt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~ <span>&amp;&amp;</span> rm -r ~/box86
+</span></span></code></pre></div><h2>3. Box86/Box64基礎使用方式<span><a href="#3-box86box64%E5%9F%BA%E7%A4%8E%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>Box86/Box64的基礎功能就是執行x86程式啦，當然該程式得是Linux原生的執行檔，AppImage或許也可以。</p><p>Box86語法跟Box64很類似，此處以Box64為主，出現<code>64</code>的地方代換成<code>86</code>即可。</p><p>如果要執行x86架構程式：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 &lt;二進位執行檔路徑&gt;
+</span></span></code></pre></div><p>例如執行Minecraft基岩版伺服器：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://minecraft.azureedge.net/bin-linux/bedrock-server-1.20.11.01.zip
+</span></span><span><span>
+</span></span><span><span>unzip bedrock-server-1.20.11.01.zip
+</span></span><span><span>
+</span></span><span><span>box64 <span>LD_LIBRARY_PATH</span><span>=</span>. ./bedrock_server
+</span></span></code></pre></div><p>不過因為Box64會自動向系統systemd-binfmt註冊的關係，所以大多數時候不需要在前面加上<code>box64</code>指令。系統一旦偵測到該執行檔為x86架構，就會自動交給Box64或Box86轉譯執行。</p><p>如果想執行x86架構的AppImage，需將其解出：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 &lt;AppImage執行檔路徑&gt; --appimage-extract
+</span></span></code></pre></div><h2>4. Box86/Box64重要的環境變數<span><a href="#4-box86box64%E9%87%8D%E8%A6%81%E7%9A%84%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8" aria-label="定位點">#</a></span></h2><p>Box86/Box64執行會輸出除錯訊息，不想看到的話請使用環境變數<code>export BOX64_NOBANNER=1</code>或<code>export BOX86_NOBANNER=1</code></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-53a19bb593.webp"><p>使用<code>BOX64_LD_LIBRARY_PATH</code>指定尋找動態連結檔的路徑，預設值為目前目錄下的<code>lib</code>，以及系統的<code>/usr/lib/x86_64-linux-gnu</code>和<code>/lib/x86_64-linux-gnu</code>。</p><p><code>BOX64_PATH</code>指令要尋找x86執行檔的路徑，預設值為目前目錄下的<code>bin</code>。</p><p>碰到需要以指令稿啟動的程式，可以用Box86作者提供的x86版Bash來啟動，例如：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>wget https://raw.githubusercontent.com/ptitSeb/box86/master/tests/bash
+</span></span><span><span>chmod +x ./bash
+</span></span><span><span>box86 ./bash ./start.sh
+</span></span></code></pre></div><h2>5. 其他Box86/Box64使用例<span><a href="#5-%E5%85%B6%E4%BB%96box86box64%E4%BD%BF%E7%94%A8%E4%BE%8B" aria-label="定位點">#</a></span></h2><ul><li><a href="https://ivonblog.com/posts/box64-wine" target="_blank">樹莓派安裝Box64與Wine，執行Windows exe</a></li><li><a href="https://ivonblog.com/posts/termux-proot-box86-box64/" target="_blank">Android手機Termux+Box86+Wine跑Windows exe，免root</a></li><li><a href="https://ivonblog.com/posts/linux-phone-box86-steam/" target="_blank">在Linux手機跑Steam Proton＋遊戲</a></li></ul><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box86/" target="_blank">Box86 - Linux Userspace x86 Emulator with a twist, targeted at ARM Linux devices - Github</a></li><li><a href="https://github.com/ptitSeb/box64" target="_blank">Box64 - Linux Userspace x86_64 Emulator with a twist, targeted at ARM64 Linux devices - Github</a></li><li><a href="https://box86.org/2022/03/box86-box64-vs-qemu-vs-fex-vs-rosetta2/" target="_blank">Box86/Box64 vs QEMU vs FEX (vs Rosetta2) - box86.org</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a4eeab3a74.png"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a4eeab3a74.png" medium="image"/>
+    <pubDate>Mon, 27 May 2024 17:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Office Tool Plus教學，免費破解Microsoft Office 2021 & 365授權]]></title>
     <link>https://ivonblog.com/posts/office-tool-plus/</link>
     <itunes:title><![CDATA[Office Tool Plus教學，免費破解Microsoft Office 2021 & 365授權]]></itunes:title>
@@ -107,7 +515,8 @@ Office Tool Plus</a> 部署。</p></li><li><p>在應用程式列表搜尋「終�
     <itunes:title><![CDATA[Flatpak跨架構，aarch64模擬異質架構x86_64程式]]></itunes:title>
     <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
     <itunes:summary>
-      <![CDATA[<p>Running x86_64 Flatpak apps on aarch64 platform using qemu-static.</p><p>有些Flatpak軟體打包的時候只有x86_64版本，沒有顧及aarch64 (ARM64) 平台的需求，像是著名的Firefox。</p><p>這個時候可以利用Flatpak自身的模擬功能來執行，如果你的系統有安裝qemu-user套件，Flatpak就會利用Linux核心的binfmt功能，模擬執行異質架構的程式。這樣就可以在aarch64架構的系統跑x86_64架構的程式，反之亦然。</p><h2>1. 安裝qemu-user套件<span><a href="#1-%E5%AE%89%E8%A3%9Dqemu-user%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>以ARM架構的系統來說，這些套件似乎在Debian/Ubuntu系的系統才有收錄的樣子，Arch Linux ARM沒有這些套件。</p><p>以Raspberry Pi OS Bookworm為例子，安裝以下套件</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install qemu-user-static qemu-system-x86_64 qemu-system-aarch64
+      <![CDATA[<p><a href="https://ivonblog.com/posts/flatpak-qemu-emulation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-99d39ce90f.webp"></a></p>
+<p>Running x86_64 Flatpak apps on aarch64 platform using qemu-static.</p><p>有些Flatpak軟體打包的時候只有x86_64版本，沒有顧及aarch64 (ARM64) 平台的需求，像是著名的Firefox。</p><p>這個時候可以利用Flatpak自身的模擬功能來執行，如果你的系統有安裝qemu-user套件，Flatpak就會利用Linux核心的binfmt功能，模擬執行異質架構的程式。這樣就可以在aarch64架構的系統跑x86_64架構的程式，反之亦然。</p><h2>1. 安裝qemu-user套件<span><a href="#1-%E5%AE%89%E8%A3%9Dqemu-user%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>以ARM架構的系統來說，這些套件似乎在Debian/Ubuntu系的系統才有收錄的樣子，Arch Linux ARM沒有這些套件。</p><p>以Raspberry Pi OS Bookworm為例子，安裝以下套件</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install qemu-user-static qemu-system-x86_64 qemu-system-aarch64
 </span></span></code></pre></div><p>確認systemd-binfmt服務狀態</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl status systemd-binfmt
 </span></span></code></pre></div><h2>2. 模擬執行x86_64程式<span><a href="#2-%E6%A8%A1%E6%93%AC%E5%9F%B7%E8%A1%8Cx86_64%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>請注意，qemu-user效能比Box64/Box86轉譯差勁許多，不要期望有GPU加速。</p><p>可惜的是，Firefox這類大型程式在qmeu模擬會有許多函式庫找不到，所以我使用簡單的KDE時鐘來做示範。</p><ol><li><p>從套件管理器<a href="https://ivonblog.com/posts/linux-flatpak-introduction/" target="_blank">
 安裝Flatpak</a></p></li><li><p>因為現在是跑在aarch64架構上，所以要指定下載x86_64版本的程式</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>flatpak install --arch<span>=</span>x86_64 org.kde.kclock
@@ -115,20 +524,23 @@ Office Tool Plus</a> 部署。</p></li><li><p>在應用程式列表搜尋「終�
 </span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/flatpak/flatpak/issues/5736" target="_blank">Feature request: add the ability to use box64 instead of qemu for user mode emulation #5736</a></li><li><a href="https://www.reddit.com/r/linux/comments/n6x63p/til_that_flatpak_apps_can_emulate_nonnative_apps/" target="_blank">Flatpak can emulate non-native apps like Apple Rosetta.</a></li></ul>]]>
     </itunes:summary>
     <description>
-      <![CDATA[<p>Running x86_64 Flatpak apps on aarch64 platform using qemu-static.</p><p>有些Flatpak軟體打包的時候只有x86_64版本，沒有顧及aarch64 (ARM64) 平台的需求，像是著名的Firefox。</p><p>這個時候可以利用Flatpak自身的模擬功能來執行，如果你的系統有安裝qemu-user套件，Flatpak就會利用Linux核心的binfmt功能，模擬執行異質架構的程式。這樣就可以在aarch64架構的系統跑x86_64架構的程式，反之亦然。</p><h2>1. 安裝qemu-user套件<span><a href="#1-%E5%AE%89%E8%A3%9Dqemu-user%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>以ARM架構的系統來說，這些套件似乎在Debian/Ubuntu系的系統才有收錄的樣子，Arch Linux ARM沒有這些套件。</p><p>以Raspberry Pi OS Bookworm為例子，安裝以下套件</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install qemu-user-static qemu-system-x86_64 qemu-system-aarch64
+      <![CDATA[<p><a href="https://ivonblog.com/posts/flatpak-qemu-emulation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-99d39ce90f.webp"></a></p>
+<p>Running x86_64 Flatpak apps on aarch64 platform using qemu-static.</p><p>有些Flatpak軟體打包的時候只有x86_64版本，沒有顧及aarch64 (ARM64) 平台的需求，像是著名的Firefox。</p><p>這個時候可以利用Flatpak自身的模擬功能來執行，如果你的系統有安裝qemu-user套件，Flatpak就會利用Linux核心的binfmt功能，模擬執行異質架構的程式。這樣就可以在aarch64架構的系統跑x86_64架構的程式，反之亦然。</p><h2>1. 安裝qemu-user套件<span><a href="#1-%E5%AE%89%E8%A3%9Dqemu-user%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>以ARM架構的系統來說，這些套件似乎在Debian/Ubuntu系的系統才有收錄的樣子，Arch Linux ARM沒有這些套件。</p><p>以Raspberry Pi OS Bookworm為例子，安裝以下套件</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install qemu-user-static qemu-system-x86_64 qemu-system-aarch64
 </span></span></code></pre></div><p>確認systemd-binfmt服務狀態</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl status systemd-binfmt
 </span></span></code></pre></div><h2>2. 模擬執行x86_64程式<span><a href="#2-%E6%A8%A1%E6%93%AC%E5%9F%B7%E8%A1%8Cx86_64%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>請注意，qemu-user效能比Box64/Box86轉譯差勁許多，不要期望有GPU加速。</p><p>可惜的是，Firefox這類大型程式在qmeu模擬會有許多函式庫找不到，所以我使用簡單的KDE時鐘來做示範。</p><ol><li><p>從套件管理器<a href="https://ivonblog.com/posts/linux-flatpak-introduction/" target="_blank">
 安裝Flatpak</a></p></li><li><p>因為現在是跑在aarch64架構上，所以要指定下載x86_64版本的程式</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>flatpak install --arch<span>=</span>x86_64 org.kde.kclock
 </span></span></code></pre></div><ol start="3"><li>執行的時候指定架構，並加上verbose看錯誤訊息</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>flatpak run --arch<span>=</span>x86_64 org.kde.kclock
 </span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/flatpak/flatpak/issues/5736" target="_blank">Feature request: add the ability to use box64 instead of qemu for user mode emulation #5736</a></li><li><a href="https://www.reddit.com/r/linux/comments/n6x63p/til_that_flatpak_apps_can_emulate_nonnative_apps/" target="_blank">Flatpak can emulate non-native apps like Apple Rosetta.</a></li></ul>]]>
     </description>
-    <content:encoded><![CDATA[<p>Running x86_64 Flatpak apps on aarch64 platform using qemu-static.</p><p>有些Flatpak軟體打包的時候只有x86_64版本，沒有顧及aarch64 (ARM64) 平台的需求，像是著名的Firefox。</p><p>這個時候可以利用Flatpak自身的模擬功能來執行，如果你的系統有安裝qemu-user套件，Flatpak就會利用Linux核心的binfmt功能，模擬執行異質架構的程式。這樣就可以在aarch64架構的系統跑x86_64架構的程式，反之亦然。</p><h2>1. 安裝qemu-user套件<span><a href="#1-%E5%AE%89%E8%A3%9Dqemu-user%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>以ARM架構的系統來說，這些套件似乎在Debian/Ubuntu系的系統才有收錄的樣子，Arch Linux ARM沒有這些套件。</p><p>以Raspberry Pi OS Bookworm為例子，安裝以下套件</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install qemu-user-static qemu-system-x86_64 qemu-system-aarch64
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/flatpak-qemu-emulation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-99d39ce90f.webp"></a></p>
+<p>Running x86_64 Flatpak apps on aarch64 platform using qemu-static.</p><p>有些Flatpak軟體打包的時候只有x86_64版本，沒有顧及aarch64 (ARM64) 平台的需求，像是著名的Firefox。</p><p>這個時候可以利用Flatpak自身的模擬功能來執行，如果你的系統有安裝qemu-user套件，Flatpak就會利用Linux核心的binfmt功能，模擬執行異質架構的程式。這樣就可以在aarch64架構的系統跑x86_64架構的程式，反之亦然。</p><h2>1. 安裝qemu-user套件<span><a href="#1-%E5%AE%89%E8%A3%9Dqemu-user%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>以ARM架構的系統來說，這些套件似乎在Debian/Ubuntu系的系統才有收錄的樣子，Arch Linux ARM沒有這些套件。</p><p>以Raspberry Pi OS Bookworm為例子，安裝以下套件</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install qemu-user-static qemu-system-x86_64 qemu-system-aarch64
 </span></span></code></pre></div><p>確認systemd-binfmt服務狀態</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl status systemd-binfmt
 </span></span></code></pre></div><h2>2. 模擬執行x86_64程式<span><a href="#2-%E6%A8%A1%E6%93%AC%E5%9F%B7%E8%A1%8Cx86_64%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>請注意，qemu-user效能比Box64/Box86轉譯差勁許多，不要期望有GPU加速。</p><p>可惜的是，Firefox這類大型程式在qmeu模擬會有許多函式庫找不到，所以我使用簡單的KDE時鐘來做示範。</p><ol><li><p>從套件管理器<a href="https://ivonblog.com/posts/linux-flatpak-introduction/" target="_blank">
 安裝Flatpak</a></p></li><li><p>因為現在是跑在aarch64架構上，所以要指定下載x86_64版本的程式</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>flatpak install --arch<span>=</span>x86_64 org.kde.kclock
 </span></span></code></pre></div><ol start="3"><li>執行的時候指定架構，並加上verbose看錯誤訊息</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>flatpak run --arch<span>=</span>x86_64 org.kde.kclock
 </span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/flatpak/flatpak/issues/5736" target="_blank">Feature request: add the ability to use box64 instead of qemu for user mode emulation #5736</a></li><li><a href="https://www.reddit.com/r/linux/comments/n6x63p/til_that_flatpak_apps_can_emulate_nonnative_apps/" target="_blank">Flatpak can emulate non-native apps like Apple Rosetta.</a></li></ul>]]></content:encoded>
-    
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-99d39ce90f.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-99d39ce90f.webp" medium="image"/>
     <pubDate>Fri, 24 May 2024 14:00:00 +0800</pubDate>
   </item><item>
     <title><![CDATA[樹莓派5如何安裝Windows 11 ARM系統 ＆ 效能測試]]></title>
@@ -274,254 +686,5 @@ Kronos文件</a>指示，手動下載SEGA Saturn的BIOS檔案，將其放到<cod
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bda08df651.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bda08df651.webp" medium="image"/>
     <pubDate>Sat, 18 May 2024 22:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Tube Archivist：批次下載YT影片，打造離線版YouTube]]></title>
-    <link>https://ivonblog.com/posts/tube-archivist/</link>
-    <itunes:title><![CDATA[Tube Archivist：批次下載YT影片，打造離線版YouTube]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>你知道嗎，古巴以前曾經禁止人民觀看Youtube。於是在當地的黑市，商人販售含有最新Youtube影片的隨身碟給當地居民，用以滿足人們想看Youtube又沒辦法翻牆看的需求。</p><p>住在自由國家的我等，當珍惜自由觀看Youtube的權利。不過有時候Youtube的影片還是會因為各種原因從世界上消失，那麼你就需要一款Youtube影片批次下載工具。</p><p>今天分享的「Tube Archivist」軟體就是專為大量下載Youtube影片而生。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp"><p>它整合了yt-dlp工具，可以批次下載Youtube影片</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-68334dbf9a.webp"><p>Tube Archivist還有簡單的網頁界面，能夠在自己的電腦建立離線版Youtube</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b9d1feaea3.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-763a9d39e7.webp"><p>彷彿就像看線上Youtube一樣，不只能瀏覽頻道，播放清單下面還會推薦影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-6e46d748d9.webp"><p>但你可能會問說，大部分YouTube影片看過一次就不會再看了，使用這個服務的意義何在？</p><p>這裡舉幾個使用例：</p><ul><li>方便倉鼠症患者囤積與整理影片</li><li>讓需要翻牆上YouTube的用戶有管道大量爬取影片</li><li>保存愛po版權歌曲合集的頻道，防止優質頻道吃版權砲消失</li><li>下載音樂專輯，建置離線版Youtube Music，演算法由本機程式定之</li><li>建置離線版Youtube Kids，由你親自篩選過內容</li></ul><h2>1. 架設Tube Archivist<span><a href="#1-%E6%9E%B6%E8%A8%ADtube-archivist" aria-label="定位點">#</a></span></h2><p>Tube Archivist是開源軟體，兼具下載Youtube影片與索引YouTube影片的功能，下載技術使用的是<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
-yt-dlp</a>，支援高速下載4K畫質的影片和自動轉檔。</p><p>至於索引部份，Tube Archivist使用Elasticsearch當作本機搜尋引擎，再加上媒體伺服器功能。</p><p>由於yt-dlp下載的影片沒有加密，你還可以將Tube Archivist的下載目錄與界面更成熟的<a href="https://ivonblog.com/posts/self-hosting-jellyfin/" target="_blank">
-Jellyfin</a>共用，並透過<a href="https://github.com/tubearchivist/tubearchivist-jf-plugin" target="_blank">
-Jellyfin TubeArchivist Plugin</a>提供中繼資料給Jellyfin整理。</p><p>根據<a href="https://docs.tubearchivist.com/installation/docker-compose/" target="_blank">
-官方文件說明</a>，使用docker-compose架設。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">
-Docker</a></p></li><li><p>新增docker-compose</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/tubeArchivist
-</span></span><span><span><span>cd</span> tubeArchivist
-</span></span><span><span>vim docker-compose.yml
-</span></span></code></pre></div><ol start="3"><li>填入以下內容，注意註解。本docker-compose包含三個服務：Tube Archivist、Redis、 Elasticsearch。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.5'</span><span>
-</span></span></span><span><span><span>
-</span></span></span><span><span><span>services</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>tubearchivist</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>tubearchivist</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist</span><span>
-</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>8000</span><span>:</span><span>8000</span><span> </span><span># Tube Archivist網頁界面的通訊埠</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>media:/youtube </span><span> </span><span># 儲存影片的目錄，預設使用docker volume，可以改掛載其他目錄</span><span>
-</span></span></span><span><span><span>      </span>- <span>cache:/cache</span><span>
-</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>ES_URL=http://archivist-es:9200    </span><span> </span><span># 需要填寫http與port</span><span>
-</span></span></span><span><span><span>      </span>- <span>REDIS_HOST=archivist-redis         </span><span> </span><span># 不需要填http</span><span>
-</span></span></span><span><span><span>      </span>- <span>HOST_UID=1000</span><span>
-</span></span></span><span><span><span>      </span>- <span>HOST_GID=1000</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_HOST=tubearchivist.local        </span><span> </span><span># 必須修改成自己的hostname或IP</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_USERNAME=tubearchivist          </span><span> </span><span># 預設Tube Archivist帳號</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_PASSWORD=verysecret             </span><span> </span><span># 預設Tube Archivist密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>ELASTIC_PASSWORD=verysecret        </span><span> </span><span># Elasticsearch的密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>TZ=Asia/Taipei                </span><span> </span><span># 時區</span><span>
-</span></span></span><span><span><span>    </span><span>healthcheck</span><span>:</span><span>
-</span></span></span><span><span><span>      </span><span>test</span><span>:</span><span> </span><span>[</span><span>"CMD"</span><span>,</span><span> </span><span>"curl"</span><span>,</span><span> </span><span>"-f"</span><span>,</span><span> </span><span>"http://localhost:8000/health"</span><span>]</span><span>
-</span></span></span><span><span><span>      </span><span>interval</span><span>:</span><span> </span><span>2m</span><span>
-</span></span></span><span><span><span>      </span><span>timeout</span><span>:</span><span> </span><span>10s</span><span>
-</span></span></span><span><span><span>      </span><span>retries</span><span>:</span><span> </span><span>3</span><span>
-</span></span></span><span><span><span>      </span><span>start_period</span><span>:</span><span> </span><span>30s</span><span>
-</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-redis</span><span>
-</span></span></span><span><span><span>  </span><span>archivist-redis</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>redis/redis-stack-server</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-redis</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"6379"</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>redis:/data</span><span>
-</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
-</span></span></span><span><span><span>  </span><span>archivist-es</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist-es        </span><span> </span><span># 本映像檔僅支援AMD64架構，ARM64請用 docker.io/library/elasticsearch:8.13.2</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-es</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"ELASTIC_PASSWORD=verysecret"</span><span>       </span><span># 填入上述Elasticsearch的密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>"ES_JAVA_OPTS=-Xms512m -Xmx512m"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"xpack.security.enabled=true"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"discovery.type=single-node"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"path.repo=/usr/share/elasticsearch/data/snapshot"</span><span>
-</span></span></span><span><span><span>    </span><span>ulimits</span><span>:</span><span>
-</span></span></span><span><span><span>      </span><span>memlock</span><span>:</span><span>
-</span></span></span><span><span><span>        </span><span>soft</span><span>:</span><span> </span>-<span>1</span><span>
-</span></span></span><span><span><span>        </span><span>hard</span><span>:</span><span> </span>-<span>1</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>es:/usr/share/elasticsearch/data   </span><span> </span><span># 使用bind的時候檢查權限</span><span>
-</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"9200"</span><span>
-</span></span></span><span><span><span>
-</span></span></span><span><span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>media</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>cache</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>redis</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>es</span><span>:</span><span>
-</span></span></span></code></pre></div><ol start="4"><li>為了防止權限錯誤，事先將儲存影片的目錄權限修改</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown user:user <span>"/影片目錄/"</span>
-</span></span></code></pre></div><ol start="5"><li>啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>docker compose up -d
-</span></span></code></pre></div><ol start="6"><li>使用瀏覽器開啟<code>http://localhost:8000</code>開啟網頁頁面，使用docker-compose填寫的帳密登入。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ecb6917a3c.webp"></li></ol><h2>2. Tube Archivist的影片下載邏輯<span><a href="#2-tube-archivist%E7%9A%84%E5%BD%B1%E7%89%87%E4%B8%8B%E8%BC%89%E9%82%8F%E8%BC%AF" aria-label="定位點">#</a></span></h2><p>Tube Archivist有頻道(Channel)、播放清單{Playlist)的頁面，輸入URL或者播放清單ID新增訂閱列表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce701a7a9f.webp"><p>下載邏輯是這樣的：如果你直接訂閱(新增)頻道或者播放清單，則Tube Archivist會下載<strong>全部頻道</strong>內容的影片。</p><p>如果你只是想儲存特定影片，那麼推薦使用下載頁面的下載影片方式。</p><p>切Tube Archivist的downloads頁面。在這裡只要填入YoutTube影片或播放清單ID，再按Start Download就會開始下載影片。預設會抓最高畫質影片，你可以點Tube Archivist右上角設定，參考<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
-yt-dlp參數</a>調整詳細下載內容。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f4b220cf76.webp"><p>不論下載方式為何，Tube Archivist都會儲存影片的中繼資料，並將影片按照上傳者歸類，構成一個類似Youtube的界面。使用者可以瀏覽特定「頻道」已下載的所有影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fba7f3770f.webp"><p>實際下載的影片檔名以原始Youtube影片網址命名。而下載後檔案目錄的結構則為頻道名稱＋影片名稱：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-37e4ef792e.webp"><h2>3. 使用擴充功能下載影片<span><a href="#3-%E4%BD%BF%E7%94%A8%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD%E4%B8%8B%E8%BC%89%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>Tube Archivist的擴充功能可以讓你看到喜歡的影片就一鍵傳給Tube Archivist下載。</p><ol><li><p>點選Tube Archivist右上角設定 → User → User Management → Admin Interface → Auth Token，按Add，新增API金鑰</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0008750dc7.webp"></li><li><p>安裝Tube Archivist作者開發的擴充功能。<a href="https://addons.mozilla.org/zh-TW/firefox/addon/tubearchivist-companion/" target="_blank">
-Firefox</a>｜<a href="https://chromewebstore.google.com/detail/tubearchivist-companion/jjnkmicfnfojkkgobdfeieblocadmcie" target="_blank">
-Chrome</a></p></li><li><p>開啟擴充功能，填入Tube Archivist的網址和API金鑰。勾選Sync Youtube cookies可以方便你下載會員限定影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c3abc8d370.webp"></li><li><p>如此一來，Youtube網頁就會出現按鈕。Subscribe是訂閱頻道，「下載」按鈕為下載單部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d5a2db0fd7.webp"></li><li><p>只要一按下按鈕影片就會出現在Tube Archivist佇列。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d85e21df67.webp"></li></ol><h2>4. 訂閱並下載整個頻道的影片<span><a href="#4-%E8%A8%82%E9%96%B1%E4%B8%A6%E4%B8%8B%E8%BC%89%E6%95%B4%E5%80%8B%E9%A0%BB%E9%81%93%E7%9A%84%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>在channel填入Yotuube頻道的網址（播放清單同理，不過要填寫的是<code>&amp;list=</code>後面的ID）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-898a7c8835.webp"><p>之後到downloads頁面，點選Rescan subscriptions，它就會開始抓取該頻道的全部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fac6079eb.webp">]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>你知道嗎，古巴以前曾經禁止人民觀看Youtube。於是在當地的黑市，商人販售含有最新Youtube影片的隨身碟給當地居民，用以滿足人們想看Youtube又沒辦法翻牆看的需求。</p><p>住在自由國家的我等，當珍惜自由觀看Youtube的權利。不過有時候Youtube的影片還是會因為各種原因從世界上消失，那麼你就需要一款Youtube影片批次下載工具。</p><p>今天分享的「Tube Archivist」軟體就是專為大量下載Youtube影片而生。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp"><p>它整合了yt-dlp工具，可以批次下載Youtube影片</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-68334dbf9a.webp"><p>Tube Archivist還有簡單的網頁界面，能夠在自己的電腦建立離線版Youtube</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b9d1feaea3.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-763a9d39e7.webp"><p>彷彿就像看線上Youtube一樣，不只能瀏覽頻道，播放清單下面還會推薦影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-6e46d748d9.webp"><p>但你可能會問說，大部分YouTube影片看過一次就不會再看了，使用這個服務的意義何在？</p><p>這裡舉幾個使用例：</p><ul><li>方便倉鼠症患者囤積與整理影片</li><li>讓需要翻牆上YouTube的用戶有管道大量爬取影片</li><li>保存愛po版權歌曲合集的頻道，防止優質頻道吃版權砲消失</li><li>下載音樂專輯，建置離線版Youtube Music，演算法由本機程式定之</li><li>建置離線版Youtube Kids，由你親自篩選過內容</li></ul><h2>1. 架設Tube Archivist<span><a href="#1-%E6%9E%B6%E8%A8%ADtube-archivist" aria-label="定位點">#</a></span></h2><p>Tube Archivist是開源軟體，兼具下載Youtube影片與索引YouTube影片的功能，下載技術使用的是<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
-yt-dlp</a>，支援高速下載4K畫質的影片和自動轉檔。</p><p>至於索引部份，Tube Archivist使用Elasticsearch當作本機搜尋引擎，再加上媒體伺服器功能。</p><p>由於yt-dlp下載的影片沒有加密，你還可以將Tube Archivist的下載目錄與界面更成熟的<a href="https://ivonblog.com/posts/self-hosting-jellyfin/" target="_blank">
-Jellyfin</a>共用，並透過<a href="https://github.com/tubearchivist/tubearchivist-jf-plugin" target="_blank">
-Jellyfin TubeArchivist Plugin</a>提供中繼資料給Jellyfin整理。</p><p>根據<a href="https://docs.tubearchivist.com/installation/docker-compose/" target="_blank">
-官方文件說明</a>，使用docker-compose架設。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">
-Docker</a></p></li><li><p>新增docker-compose</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/tubeArchivist
-</span></span><span><span><span>cd</span> tubeArchivist
-</span></span><span><span>vim docker-compose.yml
-</span></span></code></pre></div><ol start="3"><li>填入以下內容，注意註解。本docker-compose包含三個服務：Tube Archivist、Redis、 Elasticsearch。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.5'</span><span>
-</span></span></span><span><span><span>
-</span></span></span><span><span><span>services</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>tubearchivist</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>tubearchivist</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist</span><span>
-</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>8000</span><span>:</span><span>8000</span><span> </span><span># Tube Archivist網頁界面的通訊埠</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>media:/youtube </span><span> </span><span># 儲存影片的目錄，預設使用docker volume，可以改掛載其他目錄</span><span>
-</span></span></span><span><span><span>      </span>- <span>cache:/cache</span><span>
-</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>ES_URL=http://archivist-es:9200    </span><span> </span><span># 需要填寫http與port</span><span>
-</span></span></span><span><span><span>      </span>- <span>REDIS_HOST=archivist-redis         </span><span> </span><span># 不需要填http</span><span>
-</span></span></span><span><span><span>      </span>- <span>HOST_UID=1000</span><span>
-</span></span></span><span><span><span>      </span>- <span>HOST_GID=1000</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_HOST=tubearchivist.local        </span><span> </span><span># 必須修改成自己的hostname或IP</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_USERNAME=tubearchivist          </span><span> </span><span># 預設Tube Archivist帳號</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_PASSWORD=verysecret             </span><span> </span><span># 預設Tube Archivist密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>ELASTIC_PASSWORD=verysecret        </span><span> </span><span># Elasticsearch的密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>TZ=Asia/Taipei                </span><span> </span><span># 時區</span><span>
-</span></span></span><span><span><span>    </span><span>healthcheck</span><span>:</span><span>
-</span></span></span><span><span><span>      </span><span>test</span><span>:</span><span> </span><span>[</span><span>"CMD"</span><span>,</span><span> </span><span>"curl"</span><span>,</span><span> </span><span>"-f"</span><span>,</span><span> </span><span>"http://localhost:8000/health"</span><span>]</span><span>
-</span></span></span><span><span><span>      </span><span>interval</span><span>:</span><span> </span><span>2m</span><span>
-</span></span></span><span><span><span>      </span><span>timeout</span><span>:</span><span> </span><span>10s</span><span>
-</span></span></span><span><span><span>      </span><span>retries</span><span>:</span><span> </span><span>3</span><span>
-</span></span></span><span><span><span>      </span><span>start_period</span><span>:</span><span> </span><span>30s</span><span>
-</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-redis</span><span>
-</span></span></span><span><span><span>  </span><span>archivist-redis</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>redis/redis-stack-server</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-redis</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"6379"</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>redis:/data</span><span>
-</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
-</span></span></span><span><span><span>  </span><span>archivist-es</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist-es        </span><span> </span><span># 本映像檔僅支援AMD64架構，ARM64請用 docker.io/library/elasticsearch:8.13.2</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-es</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"ELASTIC_PASSWORD=verysecret"</span><span>       </span><span># 填入上述Elasticsearch的密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>"ES_JAVA_OPTS=-Xms512m -Xmx512m"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"xpack.security.enabled=true"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"discovery.type=single-node"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"path.repo=/usr/share/elasticsearch/data/snapshot"</span><span>
-</span></span></span><span><span><span>    </span><span>ulimits</span><span>:</span><span>
-</span></span></span><span><span><span>      </span><span>memlock</span><span>:</span><span>
-</span></span></span><span><span><span>        </span><span>soft</span><span>:</span><span> </span>-<span>1</span><span>
-</span></span></span><span><span><span>        </span><span>hard</span><span>:</span><span> </span>-<span>1</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>es:/usr/share/elasticsearch/data   </span><span> </span><span># 使用bind的時候檢查權限</span><span>
-</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"9200"</span><span>
-</span></span></span><span><span><span>
-</span></span></span><span><span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>media</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>cache</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>redis</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>es</span><span>:</span><span>
-</span></span></span></code></pre></div><ol start="4"><li>為了防止權限錯誤，事先將儲存影片的目錄權限修改</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown user:user <span>"/影片目錄/"</span>
-</span></span></code></pre></div><ol start="5"><li>啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>docker compose up -d
-</span></span></code></pre></div><ol start="6"><li>使用瀏覽器開啟<code>http://localhost:8000</code>開啟網頁頁面，使用docker-compose填寫的帳密登入。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ecb6917a3c.webp"></li></ol><h2>2. Tube Archivist的影片下載邏輯<span><a href="#2-tube-archivist%E7%9A%84%E5%BD%B1%E7%89%87%E4%B8%8B%E8%BC%89%E9%82%8F%E8%BC%AF" aria-label="定位點">#</a></span></h2><p>Tube Archivist有頻道(Channel)、播放清單{Playlist)的頁面，輸入URL或者播放清單ID新增訂閱列表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce701a7a9f.webp"><p>下載邏輯是這樣的：如果你直接訂閱(新增)頻道或者播放清單，則Tube Archivist會下載<strong>全部頻道</strong>內容的影片。</p><p>如果你只是想儲存特定影片，那麼推薦使用下載頁面的下載影片方式。</p><p>切Tube Archivist的downloads頁面。在這裡只要填入YoutTube影片或播放清單ID，再按Start Download就會開始下載影片。預設會抓最高畫質影片，你可以點Tube Archivist右上角設定，參考<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
-yt-dlp參數</a>調整詳細下載內容。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f4b220cf76.webp"><p>不論下載方式為何，Tube Archivist都會儲存影片的中繼資料，並將影片按照上傳者歸類，構成一個類似Youtube的界面。使用者可以瀏覽特定「頻道」已下載的所有影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fba7f3770f.webp"><p>實際下載的影片檔名以原始Youtube影片網址命名。而下載後檔案目錄的結構則為頻道名稱＋影片名稱：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-37e4ef792e.webp"><h2>3. 使用擴充功能下載影片<span><a href="#3-%E4%BD%BF%E7%94%A8%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD%E4%B8%8B%E8%BC%89%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>Tube Archivist的擴充功能可以讓你看到喜歡的影片就一鍵傳給Tube Archivist下載。</p><ol><li><p>點選Tube Archivist右上角設定 → User → User Management → Admin Interface → Auth Token，按Add，新增API金鑰</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0008750dc7.webp"></li><li><p>安裝Tube Archivist作者開發的擴充功能。<a href="https://addons.mozilla.org/zh-TW/firefox/addon/tubearchivist-companion/" target="_blank">
-Firefox</a>｜<a href="https://chromewebstore.google.com/detail/tubearchivist-companion/jjnkmicfnfojkkgobdfeieblocadmcie" target="_blank">
-Chrome</a></p></li><li><p>開啟擴充功能，填入Tube Archivist的網址和API金鑰。勾選Sync Youtube cookies可以方便你下載會員限定影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c3abc8d370.webp"></li><li><p>如此一來，Youtube網頁就會出現按鈕。Subscribe是訂閱頻道，「下載」按鈕為下載單部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d5a2db0fd7.webp"></li><li><p>只要一按下按鈕影片就會出現在Tube Archivist佇列。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d85e21df67.webp"></li></ol><h2>4. 訂閱並下載整個頻道的影片<span><a href="#4-%E8%A8%82%E9%96%B1%E4%B8%A6%E4%B8%8B%E8%BC%89%E6%95%B4%E5%80%8B%E9%A0%BB%E9%81%93%E7%9A%84%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>在channel填入Yotuube頻道的網址（播放清單同理，不過要填寫的是<code>&amp;list=</code>後面的ID）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-898a7c8835.webp"><p>之後到downloads頁面，點選Rescan subscriptions，它就會開始抓取該頻道的全部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fac6079eb.webp">]]>
-    </description>
-    <content:encoded><![CDATA[<p>你知道嗎，古巴以前曾經禁止人民觀看Youtube。於是在當地的黑市，商人販售含有最新Youtube影片的隨身碟給當地居民，用以滿足人們想看Youtube又沒辦法翻牆看的需求。</p><p>住在自由國家的我等，當珍惜自由觀看Youtube的權利。不過有時候Youtube的影片還是會因為各種原因從世界上消失，那麼你就需要一款Youtube影片批次下載工具。</p><p>今天分享的「Tube Archivist」軟體就是專為大量下載Youtube影片而生。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp"><p>它整合了yt-dlp工具，可以批次下載Youtube影片</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-68334dbf9a.webp"><p>Tube Archivist還有簡單的網頁界面，能夠在自己的電腦建立離線版Youtube</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b9d1feaea3.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-763a9d39e7.webp"><p>彷彿就像看線上Youtube一樣，不只能瀏覽頻道，播放清單下面還會推薦影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-6e46d748d9.webp"><p>但你可能會問說，大部分YouTube影片看過一次就不會再看了，使用這個服務的意義何在？</p><p>這裡舉幾個使用例：</p><ul><li>方便倉鼠症患者囤積與整理影片</li><li>讓需要翻牆上YouTube的用戶有管道大量爬取影片</li><li>保存愛po版權歌曲合集的頻道，防止優質頻道吃版權砲消失</li><li>下載音樂專輯，建置離線版Youtube Music，演算法由本機程式定之</li><li>建置離線版Youtube Kids，由你親自篩選過內容</li></ul><h2>1. 架設Tube Archivist<span><a href="#1-%E6%9E%B6%E8%A8%ADtube-archivist" aria-label="定位點">#</a></span></h2><p>Tube Archivist是開源軟體，兼具下載Youtube影片與索引YouTube影片的功能，下載技術使用的是<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
-yt-dlp</a>，支援高速下載4K畫質的影片和自動轉檔。</p><p>至於索引部份，Tube Archivist使用Elasticsearch當作本機搜尋引擎，再加上媒體伺服器功能。</p><p>由於yt-dlp下載的影片沒有加密，你還可以將Tube Archivist的下載目錄與界面更成熟的<a href="https://ivonblog.com/posts/self-hosting-jellyfin/" target="_blank">
-Jellyfin</a>共用，並透過<a href="https://github.com/tubearchivist/tubearchivist-jf-plugin" target="_blank">
-Jellyfin TubeArchivist Plugin</a>提供中繼資料給Jellyfin整理。</p><p>根據<a href="https://docs.tubearchivist.com/installation/docker-compose/" target="_blank">
-官方文件說明</a>，使用docker-compose架設。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">
-Docker</a></p></li><li><p>新增docker-compose</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/tubeArchivist
-</span></span><span><span><span>cd</span> tubeArchivist
-</span></span><span><span>vim docker-compose.yml
-</span></span></code></pre></div><ol start="3"><li>填入以下內容，注意註解。本docker-compose包含三個服務：Tube Archivist、Redis、 Elasticsearch。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.5'</span><span>
-</span></span></span><span><span><span>
-</span></span></span><span><span><span>services</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>tubearchivist</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>tubearchivist</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist</span><span>
-</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>8000</span><span>:</span><span>8000</span><span> </span><span># Tube Archivist網頁界面的通訊埠</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>media:/youtube </span><span> </span><span># 儲存影片的目錄，預設使用docker volume，可以改掛載其他目錄</span><span>
-</span></span></span><span><span><span>      </span>- <span>cache:/cache</span><span>
-</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>ES_URL=http://archivist-es:9200    </span><span> </span><span># 需要填寫http與port</span><span>
-</span></span></span><span><span><span>      </span>- <span>REDIS_HOST=archivist-redis         </span><span> </span><span># 不需要填http</span><span>
-</span></span></span><span><span><span>      </span>- <span>HOST_UID=1000</span><span>
-</span></span></span><span><span><span>      </span>- <span>HOST_GID=1000</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_HOST=tubearchivist.local        </span><span> </span><span># 必須修改成自己的hostname或IP</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_USERNAME=tubearchivist          </span><span> </span><span># 預設Tube Archivist帳號</span><span>
-</span></span></span><span><span><span>      </span>- <span>TA_PASSWORD=verysecret             </span><span> </span><span># 預設Tube Archivist密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>ELASTIC_PASSWORD=verysecret        </span><span> </span><span># Elasticsearch的密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>TZ=Asia/Taipei                </span><span> </span><span># 時區</span><span>
-</span></span></span><span><span><span>    </span><span>healthcheck</span><span>:</span><span>
-</span></span></span><span><span><span>      </span><span>test</span><span>:</span><span> </span><span>[</span><span>"CMD"</span><span>,</span><span> </span><span>"curl"</span><span>,</span><span> </span><span>"-f"</span><span>,</span><span> </span><span>"http://localhost:8000/health"</span><span>]</span><span>
-</span></span></span><span><span><span>      </span><span>interval</span><span>:</span><span> </span><span>2m</span><span>
-</span></span></span><span><span><span>      </span><span>timeout</span><span>:</span><span> </span><span>10s</span><span>
-</span></span></span><span><span><span>      </span><span>retries</span><span>:</span><span> </span><span>3</span><span>
-</span></span></span><span><span><span>      </span><span>start_period</span><span>:</span><span> </span><span>30s</span><span>
-</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-redis</span><span>
-</span></span></span><span><span><span>  </span><span>archivist-redis</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>redis/redis-stack-server</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-redis</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"6379"</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>redis:/data</span><span>
-</span></span></span><span><span><span>    </span><span>depends_on</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>archivist-es</span><span>
-</span></span></span><span><span><span>  </span><span>archivist-es</span><span>:</span><span>
-</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>bbilly1/tubearchivist-es        </span><span> </span><span># 本映像檔僅支援AMD64架構，ARM64請用 docker.io/library/elasticsearch:8.13.2</span><span>
-</span></span></span><span><span><span>    </span><span>container_name</span><span>:</span><span> </span><span>archivist-es</span><span>
-</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>unless-stopped</span><span>
-</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"ELASTIC_PASSWORD=verysecret"</span><span>       </span><span># 填入上述Elasticsearch的密碼</span><span>
-</span></span></span><span><span><span>      </span>- <span>"ES_JAVA_OPTS=-Xms512m -Xmx512m"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"xpack.security.enabled=true"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"discovery.type=single-node"</span><span>
-</span></span></span><span><span><span>      </span>- <span>"path.repo=/usr/share/elasticsearch/data/snapshot"</span><span>
-</span></span></span><span><span><span>    </span><span>ulimits</span><span>:</span><span>
-</span></span></span><span><span><span>      </span><span>memlock</span><span>:</span><span>
-</span></span></span><span><span><span>        </span><span>soft</span><span>:</span><span> </span>-<span>1</span><span>
-</span></span></span><span><span><span>        </span><span>hard</span><span>:</span><span> </span>-<span>1</span><span>
-</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>es:/usr/share/elasticsearch/data   </span><span> </span><span># 使用bind的時候檢查權限</span><span>
-</span></span></span><span><span><span>    </span><span>expose</span><span>:</span><span>
-</span></span></span><span><span><span>      </span>- <span>"9200"</span><span>
-</span></span></span><span><span><span>
-</span></span></span><span><span><span>volumes</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>media</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>cache</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>redis</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>es</span><span>:</span><span>
-</span></span></span></code></pre></div><ol start="4"><li>為了防止權限錯誤，事先將儲存影片的目錄權限修改</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown user:user <span>"/影片目錄/"</span>
-</span></span></code></pre></div><ol start="5"><li>啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>docker compose up -d
-</span></span></code></pre></div><ol start="6"><li>使用瀏覽器開啟<code>http://localhost:8000</code>開啟網頁頁面，使用docker-compose填寫的帳密登入。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ecb6917a3c.webp"></li></ol><h2>2. Tube Archivist的影片下載邏輯<span><a href="#2-tube-archivist%E7%9A%84%E5%BD%B1%E7%89%87%E4%B8%8B%E8%BC%89%E9%82%8F%E8%BC%AF" aria-label="定位點">#</a></span></h2><p>Tube Archivist有頻道(Channel)、播放清單{Playlist)的頁面，輸入URL或者播放清單ID新增訂閱列表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce701a7a9f.webp"><p>下載邏輯是這樣的：如果你直接訂閱(新增)頻道或者播放清單，則Tube Archivist會下載<strong>全部頻道</strong>內容的影片。</p><p>如果你只是想儲存特定影片，那麼推薦使用下載頁面的下載影片方式。</p><p>切Tube Archivist的downloads頁面。在這裡只要填入YoutTube影片或播放清單ID，再按Start Download就會開始下載影片。預設會抓最高畫質影片，你可以點Tube Archivist右上角設定，參考<a href="https://ivonblog.com/posts/yt-dlp-usage/" target="_blank">
-yt-dlp參數</a>調整詳細下載內容。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f4b220cf76.webp"><p>不論下載方式為何，Tube Archivist都會儲存影片的中繼資料，並將影片按照上傳者歸類，構成一個類似Youtube的界面。使用者可以瀏覽特定「頻道」已下載的所有影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fba7f3770f.webp"><p>實際下載的影片檔名以原始Youtube影片網址命名。而下載後檔案目錄的結構則為頻道名稱＋影片名稱：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-37e4ef792e.webp"><h2>3. 使用擴充功能下載影片<span><a href="#3-%E4%BD%BF%E7%94%A8%E6%93%B4%E5%85%85%E5%8A%9F%E8%83%BD%E4%B8%8B%E8%BC%89%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>Tube Archivist的擴充功能可以讓你看到喜歡的影片就一鍵傳給Tube Archivist下載。</p><ol><li><p>點選Tube Archivist右上角設定 → User → User Management → Admin Interface → Auth Token，按Add，新增API金鑰</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0008750dc7.webp"></li><li><p>安裝Tube Archivist作者開發的擴充功能。<a href="https://addons.mozilla.org/zh-TW/firefox/addon/tubearchivist-companion/" target="_blank">
-Firefox</a>｜<a href="https://chromewebstore.google.com/detail/tubearchivist-companion/jjnkmicfnfojkkgobdfeieblocadmcie" target="_blank">
-Chrome</a></p></li><li><p>開啟擴充功能，填入Tube Archivist的網址和API金鑰。勾選Sync Youtube cookies可以方便你下載會員限定影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c3abc8d370.webp"></li><li><p>如此一來，Youtube網頁就會出現按鈕。Subscribe是訂閱頻道，「下載」按鈕為下載單部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d5a2db0fd7.webp"></li><li><p>只要一按下按鈕影片就會出現在Tube Archivist佇列。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d85e21df67.webp"></li></ol><h2>4. 訂閱並下載整個頻道的影片<span><a href="#4-%E8%A8%82%E9%96%B1%E4%B8%A6%E4%B8%8B%E8%BC%89%E6%95%B4%E5%80%8B%E9%A0%BB%E9%81%93%E7%9A%84%E5%BD%B1%E7%89%87" aria-label="定位點">#</a></span></h2><p>在channel填入Yotuube頻道的網址（播放清單同理，不過要填寫的是<code>&amp;list=</code>後面的ID）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-898a7c8835.webp"><p>之後到downloads頁面，點選Rescan subscriptions，它就會開始抓取該頻道的全部影片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fac6079eb.webp">]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6f3e7de0f0.webp" medium="image"/>
-    <pubDate>Wed, 15 May 2024 15:00:00 +0800</pubDate>
   </item></channel>
 </rss>
