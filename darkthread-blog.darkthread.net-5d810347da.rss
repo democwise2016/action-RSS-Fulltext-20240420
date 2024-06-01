@@ -30,6 +30,324 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[復古精簡版 HTML5 動畫進度條 (CSS 圖層混色特效 + 香草自訂元素)]]></title>
+    <link>https://blog.darkthread.net/blog/js-progress-bar/</link>
+    <itunes:title><![CDATA[復古精簡版 HTML5 動畫進度條 (CSS 圖層混色特效 + 香草自訂元素)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前幾天<a href="/blog/js-rolling-dice/">用 CSS + 自訂網頁元素刻了香草 3D 骰子</a>，好久沒寫前端寫出興趣來，最近有另一個需求是想做上傳進度條。類似的東西<a href="/blog/upload-progress-bar-w-xhr2/">十年前做過</a>，當時是用 Knockout.js MVVM。</p> <p>盤點十年下來我用的前端框架從 Knockout.js 換 Angular.js 再轉到 Vue.js，經歷過兩次砍掉重練。前端框架與工具更換速度之快，素來讓人聞風喪膽，我做全端只有淺嚐就夠嗆了，在此向以前端開發為志業的攻城獅們致敬!</p> <p>之前做的版本 UI 走精緻風，用陰影做立體效果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638528088732646418.png"></p> <p>這回我想玩玩不同風格，走純文字復古風，簡單文字加底色變化，底色涵蓋部分的文字顏色反白，像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638528087099698897.gif"></p> <p>這次最大收獲是學會用 CSS <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/mix-blend-mode">mix-blend-mode: difference</a> 依文字跟背景色差異值(絕對值)決定顯示顏色，我選用純藍 rgb(0,0,255) 跟純黃色 rgb(255,255,0) 實現白底藍字特效。要準備三個元素，示意如下：</p> <pre><code>&lt;div class="白底"&gt;
+&lt;div class="藍底" style="容器 P% 寬度"&gt;&lt;/div&gt;
+&lt;div class="黃字" style="mix-blend-mode: difference"&gt;文字&lt;/div&gt;
+&lt;/div&gt;
+</code></pre> <p>藍底未涵蓋範圍，黃字 rgb(255,255,0) 與白底 rgb(255,255,255) 計算差異值為 rgb(0,0,255) 為藍字。而有藍底的部分則為 rgb(255,255,0) - rgb(0,0,255) = rgb(255,255,255) 呈現白字。</p> <p>【延伸閱讀】</p> <ol><li><a href="https://www.webdesigns.com.tw/css_mix-blend-mode.asp">CSS mix-blend-mode－直接在網頁呈現Photoshop的圖層混合模式 by 一代網頁設計</a></li> <li><a href="https://dev.to/kaos/dynamic-text-effects-with-css-mix-blend-mode-242a">Dynamic text effects with css mix-blend-mode by Kai Oswald</a></li></ol> <p>如上面動畫展示看到的，這次我還是選擇把進度條包成自訂 HTML 元素 <code>&lt;progress-bar title="顯示文字" value="進度百分比" width="寬度"&gt;</code>，這回再多學了如何用 title、value、width 等 Attribute 決定顯示文字、進度百分比及寬度。做法是用 <code>observedAttributes()</code> 傳回要監聽的 Attribute 名稱，在 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#responding_to_attribute_changes"><code>attributeChangedCallback(name, oldValue, newValue)</code></a> 加上依 Attribute 值改變元素行為的程式邏輯。如此修改 value 值傳入 0 - 100 數字即可改變進度條百分比。</p> <p>完整程式碼如下，另外也有<a href="https://output.jsbin.com/virewik">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;
+:root {
+--pgb-fill-color: rgb(0, 0, 255);
+--pgb-text-color: rgb(255, 255, 0);
+}
+.pgb-bar {
+width: 400px;
+height: 1.5em;
+background-color: white;
+border: 1px solid var(--pgb-fill-color);
+position: relative;
+opacity: 0.85;
+font-size: 10pt;
+[pgb-bg] {
+background-color: var(--pgb-fill-color);
+position: absolute;
+width: 0%;
+height: 100%;
+top: 0;
+left: 0;
+filter: saturate(80%);
+}
+[pgb-tw] {
+color: var(--pgb-text-color);
+mix-blend-mode: difference;
+text-align: left;
+margin-left: 0.25em;;
+line-height: 1.5em;
+font-family: 'Courier New', Courier, monospace;
+[pgb-p] {
+float: right;
+margin-right: 0.25em;
+margin-top: 0.0.5em;
+}
+}
+}
+&lt;/style&gt;
+&lt;style&gt;
+progress-bar {
+display: block;
+margin: 10px 0;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;progress-bar id="pgb1" title="top-secret.txt downloading..." width="300"&gt;&lt;/progress-bar&gt;
+&lt;progress-bar id="pgb2" title="passwd cracking..." value="15"&gt;&lt;/progress-bar&gt;
+&lt;script&gt;
+class ProgressBar extends HTMLElement {
+static get observedAttributes() {
+return ['value', 'title', 'width'];
+}
+constructor() {
+super();
+this.innerHTML = `
+&lt;div class="pgb-bar"&gt;
+&lt;div pgb-bg&gt;&lt;/div&gt;
+&lt;div pgb-tw&gt;
+&lt;span pgb-t&gt;&lt;/span&gt;
+&lt;span pgb-p&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+`;
+}
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value') {
+let percentage = parseInt(newValue);
+if (isNaN(percentage) || percentage &lt; 0) percentage = 0;
+else if (percentage &gt; 100) percentage = 100;
+this.querySelector('[pgb-bg]').style.width = `${percentage}%`;
+this.querySelector('[pgb-p]').textContent = `${percentage}%`;
+}
+else if (name === 'title') {
+const title = newValue || 'title attr not defined';
+this.querySelector('[pgb-t]').textContent = newValue;
+}
+else if (name === 'width') {
+const width = parseInt(newValue) || 400;
+this.querySelector('.pgb-bar').style.width = `${newValue}px`;
+}
+}
+}
+customElements.define('progress-bar', ProgressBar);
+setInterval(() =&gt; {
+document.querySelectorAll('progress-bar').forEach(pgb =&gt; {
+let value = parseInt(pgb.getAttribute('value') || '0');
+value += 2;
+pgb.setAttribute('value', value);
+if (value &gt; 100) pgb.setAttribute('value', 0);
+});
+}, 100);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="js-progress-bar" data-title-en="A simple progress bar with CSS and vanilla JavaScript" data-catg="Web Development" data-fbimg="https://i.imgur.com/xpkUUE0.png#800#448">A simple progress bar made with custom HTML element with CSS mix-blend-mode: difference.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前幾天<a href="/blog/js-rolling-dice/">用 CSS + 自訂網頁元素刻了香草 3D 骰子</a>，好久沒寫前端寫出興趣來，最近有另一個需求是想做上傳進度條。類似的東西<a href="/blog/upload-progress-bar-w-xhr2/">十年前做過</a>，當時是用 Knockout.js MVVM。</p> <p>盤點十年下來我用的前端框架從 Knockout.js 換 Angular.js 再轉到 Vue.js，經歷過兩次砍掉重練。前端框架與工具更換速度之快，素來讓人聞風喪膽，我做全端只有淺嚐就夠嗆了，在此向以前端開發為志業的攻城獅們致敬!</p> <p>之前做的版本 UI 走精緻風，用陰影做立體效果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638528088732646418.png"></p> <p>這回我想玩玩不同風格，走純文字復古風，簡單文字加底色變化，底色涵蓋部分的文字顏色反白，像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638528087099698897.gif"></p> <p>這次最大收獲是學會用 CSS <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/mix-blend-mode">mix-blend-mode: difference</a> 依文字跟背景色差異值(絕對值)決定顯示顏色，我選用純藍 rgb(0,0,255) 跟純黃色 rgb(255,255,0) 實現白底藍字特效。要準備三個元素，示意如下：</p> <pre><code>&lt;div class="白底"&gt;
+&lt;div class="藍底" style="容器 P% 寬度"&gt;&lt;/div&gt;
+&lt;div class="黃字" style="mix-blend-mode: difference"&gt;文字&lt;/div&gt;
+&lt;/div&gt;
+</code></pre> <p>藍底未涵蓋範圍，黃字 rgb(255,255,0) 與白底 rgb(255,255,255) 計算差異值為 rgb(0,0,255) 為藍字。而有藍底的部分則為 rgb(255,255,0) - rgb(0,0,255) = rgb(255,255,255) 呈現白字。</p> <p>【延伸閱讀】</p> <ol><li><a href="https://www.webdesigns.com.tw/css_mix-blend-mode.asp">CSS mix-blend-mode－直接在網頁呈現Photoshop的圖層混合模式 by 一代網頁設計</a></li> <li><a href="https://dev.to/kaos/dynamic-text-effects-with-css-mix-blend-mode-242a">Dynamic text effects with css mix-blend-mode by Kai Oswald</a></li></ol> <p>如上面動畫展示看到的，這次我還是選擇把進度條包成自訂 HTML 元素 <code>&lt;progress-bar title="顯示文字" value="進度百分比" width="寬度"&gt;</code>，這回再多學了如何用 title、value、width 等 Attribute 決定顯示文字、進度百分比及寬度。做法是用 <code>observedAttributes()</code> 傳回要監聽的 Attribute 名稱，在 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#responding_to_attribute_changes"><code>attributeChangedCallback(name, oldValue, newValue)</code></a> 加上依 Attribute 值改變元素行為的程式邏輯。如此修改 value 值傳入 0 - 100 數字即可改變進度條百分比。</p> <p>完整程式碼如下，另外也有<a href="https://output.jsbin.com/virewik">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;
+:root {
+--pgb-fill-color: rgb(0, 0, 255);
+--pgb-text-color: rgb(255, 255, 0);
+}
+.pgb-bar {
+width: 400px;
+height: 1.5em;
+background-color: white;
+border: 1px solid var(--pgb-fill-color);
+position: relative;
+opacity: 0.85;
+font-size: 10pt;
+[pgb-bg] {
+background-color: var(--pgb-fill-color);
+position: absolute;
+width: 0%;
+height: 100%;
+top: 0;
+left: 0;
+filter: saturate(80%);
+}
+[pgb-tw] {
+color: var(--pgb-text-color);
+mix-blend-mode: difference;
+text-align: left;
+margin-left: 0.25em;;
+line-height: 1.5em;
+font-family: 'Courier New', Courier, monospace;
+[pgb-p] {
+float: right;
+margin-right: 0.25em;
+margin-top: 0.0.5em;
+}
+}
+}
+&lt;/style&gt;
+&lt;style&gt;
+progress-bar {
+display: block;
+margin: 10px 0;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;progress-bar id="pgb1" title="top-secret.txt downloading..." width="300"&gt;&lt;/progress-bar&gt;
+&lt;progress-bar id="pgb2" title="passwd cracking..." value="15"&gt;&lt;/progress-bar&gt;
+&lt;script&gt;
+class ProgressBar extends HTMLElement {
+static get observedAttributes() {
+return ['value', 'title', 'width'];
+}
+constructor() {
+super();
+this.innerHTML = `
+&lt;div class="pgb-bar"&gt;
+&lt;div pgb-bg&gt;&lt;/div&gt;
+&lt;div pgb-tw&gt;
+&lt;span pgb-t&gt;&lt;/span&gt;
+&lt;span pgb-p&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+`;
+}
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value') {
+let percentage = parseInt(newValue);
+if (isNaN(percentage) || percentage &lt; 0) percentage = 0;
+else if (percentage &gt; 100) percentage = 100;
+this.querySelector('[pgb-bg]').style.width = `${percentage}%`;
+this.querySelector('[pgb-p]').textContent = `${percentage}%`;
+}
+else if (name === 'title') {
+const title = newValue || 'title attr not defined';
+this.querySelector('[pgb-t]').textContent = newValue;
+}
+else if (name === 'width') {
+const width = parseInt(newValue) || 400;
+this.querySelector('.pgb-bar').style.width = `${newValue}px`;
+}
+}
+}
+customElements.define('progress-bar', ProgressBar);
+setInterval(() =&gt; {
+document.querySelectorAll('progress-bar').forEach(pgb =&gt; {
+let value = parseInt(pgb.getAttribute('value') || '0');
+value += 2;
+pgb.setAttribute('value', value);
+if (value &gt; 100) pgb.setAttribute('value', 0);
+});
+}, 100);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="js-progress-bar" data-title-en="A simple progress bar with CSS and vanilla JavaScript" data-catg="Web Development" data-fbimg="https://i.imgur.com/xpkUUE0.png#800#448">A simple progress bar made with custom HTML element with CSS mix-blend-mode: difference.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前幾天<a href="/blog/js-rolling-dice/">用 CSS + 自訂網頁元素刻了香草 3D 骰子</a>，好久沒寫前端寫出興趣來，最近有另一個需求是想做上傳進度條。類似的東西<a href="/blog/upload-progress-bar-w-xhr2/">十年前做過</a>，當時是用 Knockout.js MVVM。</p> <p>盤點十年下來我用的前端框架從 Knockout.js 換 Angular.js 再轉到 Vue.js，經歷過兩次砍掉重練。前端框架與工具更換速度之快，素來讓人聞風喪膽，我做全端只有淺嚐就夠嗆了，在此向以前端開發為志業的攻城獅們致敬!</p> <p>之前做的版本 UI 走精緻風，用陰影做立體效果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638528088732646418.png"></p> <p>這回我想玩玩不同風格，走純文字復古風，簡單文字加底色變化，底色涵蓋部分的文字顏色反白，像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638528087099698897.gif"></p> <p>這次最大收獲是學會用 CSS <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/mix-blend-mode">mix-blend-mode: difference</a> 依文字跟背景色差異值(絕對值)決定顯示顏色，我選用純藍 rgb(0,0,255) 跟純黃色 rgb(255,255,0) 實現白底藍字特效。要準備三個元素，示意如下：</p> <pre><code>&lt;div class="白底"&gt;
+&lt;div class="藍底" style="容器 P% 寬度"&gt;&lt;/div&gt;
+&lt;div class="黃字" style="mix-blend-mode: difference"&gt;文字&lt;/div&gt;
+&lt;/div&gt;
+</code></pre> <p>藍底未涵蓋範圍，黃字 rgb(255,255,0) 與白底 rgb(255,255,255) 計算差異值為 rgb(0,0,255) 為藍字。而有藍底的部分則為 rgb(255,255,0) - rgb(0,0,255) = rgb(255,255,255) 呈現白字。</p> <p>【延伸閱讀】</p> <ol><li><a href="https://www.webdesigns.com.tw/css_mix-blend-mode.asp">CSS mix-blend-mode－直接在網頁呈現Photoshop的圖層混合模式 by 一代網頁設計</a></li> <li><a href="https://dev.to/kaos/dynamic-text-effects-with-css-mix-blend-mode-242a">Dynamic text effects with css mix-blend-mode by Kai Oswald</a></li></ol> <p>如上面動畫展示看到的，這次我還是選擇把進度條包成自訂 HTML 元素 <code>&lt;progress-bar title="顯示文字" value="進度百分比" width="寬度"&gt;</code>，這回再多學了如何用 title、value、width 等 Attribute 決定顯示文字、進度百分比及寬度。做法是用 <code>observedAttributes()</code> 傳回要監聽的 Attribute 名稱，在 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#responding_to_attribute_changes"><code>attributeChangedCallback(name, oldValue, newValue)</code></a> 加上依 Attribute 值改變元素行為的程式邏輯。如此修改 value 值傳入 0 - 100 數字即可改變進度條百分比。</p> <p>完整程式碼如下，另外也有<a href="https://output.jsbin.com/virewik">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;
+:root {
+--pgb-fill-color: rgb(0, 0, 255);
+--pgb-text-color: rgb(255, 255, 0);
+}
+.pgb-bar {
+width: 400px;
+height: 1.5em;
+background-color: white;
+border: 1px solid var(--pgb-fill-color);
+position: relative;
+opacity: 0.85;
+font-size: 10pt;
+[pgb-bg] {
+background-color: var(--pgb-fill-color);
+position: absolute;
+width: 0%;
+height: 100%;
+top: 0;
+left: 0;
+filter: saturate(80%);
+}
+[pgb-tw] {
+color: var(--pgb-text-color);
+mix-blend-mode: difference;
+text-align: left;
+margin-left: 0.25em;;
+line-height: 1.5em;
+font-family: 'Courier New', Courier, monospace;
+[pgb-p] {
+float: right;
+margin-right: 0.25em;
+margin-top: 0.0.5em;
+}
+}
+}
+&lt;/style&gt;
+&lt;style&gt;
+progress-bar {
+display: block;
+margin: 10px 0;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;progress-bar id="pgb1" title="top-secret.txt downloading..." width="300"&gt;&lt;/progress-bar&gt;
+&lt;progress-bar id="pgb2" title="passwd cracking..." value="15"&gt;&lt;/progress-bar&gt;
+&lt;script&gt;
+class ProgressBar extends HTMLElement {
+static get observedAttributes() {
+return ['value', 'title', 'width'];
+}
+constructor() {
+super();
+this.innerHTML = `
+&lt;div class="pgb-bar"&gt;
+&lt;div pgb-bg&gt;&lt;/div&gt;
+&lt;div pgb-tw&gt;
+&lt;span pgb-t&gt;&lt;/span&gt;
+&lt;span pgb-p&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+`;
+}
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value') {
+let percentage = parseInt(newValue);
+if (isNaN(percentage) || percentage &lt; 0) percentage = 0;
+else if (percentage &gt; 100) percentage = 100;
+this.querySelector('[pgb-bg]').style.width = `${percentage}%`;
+this.querySelector('[pgb-p]').textContent = `${percentage}%`;
+}
+else if (name === 'title') {
+const title = newValue || 'title attr not defined';
+this.querySelector('[pgb-t]').textContent = newValue;
+}
+else if (name === 'width') {
+const width = parseInt(newValue) || 400;
+this.querySelector('.pgb-bar').style.width = `${newValue}px`;
+}
+}
+}
+customElements.define('progress-bar', ProgressBar);
+setInterval(() =&gt; {
+document.querySelectorAll('progress-bar').forEach(pgb =&gt; {
+let value = parseInt(pgb.getAttribute('value') || '0');
+value += 2;
+pgb.setAttribute('value', value);
+if (value &gt; 100) pgb.setAttribute('value', 0);
+});
+}, 100);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="js-progress-bar" data-title-en="A simple progress bar with CSS and vanilla JavaScript" data-catg="Web Development" data-fbimg="https://i.imgur.com/xpkUUE0.png#800#448">A simple progress bar made with custom HTML element with CSS mix-blend-mode: difference.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638528088732646418.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638528088732646418.png" medium="image"/>
+    <pubDate>Sat, 01 Jun 2024 03:13:11 GMT</pubDate>
+  </item><item>
     <title><![CDATA[前端小技巧 - 洗巴辣 CSS 骰子動畫/自訂網頁元素/async、await 應用]]></title>
     <link>https://blog.darkthread.net/blog/js-rolling-dice/</link>
     <itunes:title><![CDATA[前端小技巧 - 洗巴辣 CSS 骰子動畫/自訂網頁元素/async、await 應用]]></itunes:title>
@@ -1109,20 +1427,5 @@ wb.SaveAs("output.xlsx");
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638512095643698642.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638512095643698642.png" medium="image"/>
     <pubDate>Mon, 13 May 2024 15:03:53 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手筆記】openssl 匯出 pfx 在 Windows 密碼百敲不過]]></title>
-    <link>https://blog.darkthread.net/blog/openssl-pfx-windows-issue/</link>
-    <itunes:title><![CDATA[【茶包射手筆記】openssl 匯出 pfx 在 Windows 密碼百敲不過]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>同事分享的案例，使用 <code>openssl pkcs12 -export -out server.pfx -inkey server.key -in server.cer -certfile ca.cer</code> 匯出 .pfx 檔，過程需要設定密碼(且需輸入兩次確認沒打錯字)，但檔案拿到 Windows 要匯入時，密碼百敲不過，一直被抱怨密碼不正確。因有反覆重做三次，已排除手滑敲錯密碼的可能。(註：暫不考慮靈異事件或超自然現象)<br> 【延伸閱讀】<a href="https://blog.miniasp.com/post/2019/04/17/Convert-PFX-and-CER-format-using-OpenSSL">如何在收到 PFX 或 CER 憑證檔之後使用 OpenSSL 進行常見的格式轉換 by 保哥</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638509971834691266.png"><br> (示意圖)</p> <p>幸好這已算 FAQ，很快查到<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">解法</a>，指令加上 <code>-certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -nomac</code> 參數改成 <code>openssl pkcs12 -export -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -nomac -out server.pfx -inkey server.key -in server.cer -certfile ca.cer</code> 後藥到病除。</p> <p>整理茶包原委跟背景知識：</p> <ol><li>問題主要發生在 OpenSSL 3 + Windows 2012R2/Windows 2016 組合 (<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">討論</a>指出 OpenSSL 早期版本無此問題)</li> <li>PKCS12 產生 .pfx 時會使用 PBE (Password Based Encryption) 加密私鑰跟憑證，PBE 演算法有多種選擇</li> <li>openssl 預設使用 AES-256-CBC with PBKDF2 作為 PBE 演算法 <a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">參考</a><br> 檢查方式：<code>openssl pkcs12 -noout -info -in some.pfx</code> <a href="https://github.com/pyca/cryptography/issues/7043#issue-1193268253">參考</a></li> <li>Windows 2012R2/Windows 2016 不支援 .pfx 的 AES256-SHA256 演算法 <a href="https://learn.microsoft.com/en-us/answers/questions/1054881/windows-server-2016-2012r2-how-to-add-support-for?WT.mc_id=DOP-MVP-37580">參考</a></li> <li>解法是使用 openssl 參數 <code>-certpbe</code> 及 <code>-keypbe</code> 指定老 Windows 支援的加密演算法，另外有個 <code>-legacy</code> 參數會改用 RC2_CBC 或 3DES_CBC 應該也能解決問題。<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">參考</a></li></ol> <p data-slug="openssl-pfx-windows-issue" data-title-en="Solving the issue of importing PFX files generated by OpenSSL into Windows." data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2018/07/12/21/32/subscribe-3534409_960_720.jpg#960#720">This article discusses the common issue of a password error prompt when importing .pfx files exported using OpenSSL into Windows systems. By specifying certain encryption algorithm parameters, the problem can be addressed.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>同事分享的案例，使用 <code>openssl pkcs12 -export -out server.pfx -inkey server.key -in server.cer -certfile ca.cer</code> 匯出 .pfx 檔，過程需要設定密碼(且需輸入兩次確認沒打錯字)，但檔案拿到 Windows 要匯入時，密碼百敲不過，一直被抱怨密碼不正確。因有反覆重做三次，已排除手滑敲錯密碼的可能。(註：暫不考慮靈異事件或超自然現象)<br> 【延伸閱讀】<a href="https://blog.miniasp.com/post/2019/04/17/Convert-PFX-and-CER-format-using-OpenSSL">如何在收到 PFX 或 CER 憑證檔之後使用 OpenSSL 進行常見的格式轉換 by 保哥</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638509971834691266.png"><br> (示意圖)</p> <p>幸好這已算 FAQ，很快查到<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">解法</a>，指令加上 <code>-certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -nomac</code> 參數改成 <code>openssl pkcs12 -export -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -nomac -out server.pfx -inkey server.key -in server.cer -certfile ca.cer</code> 後藥到病除。</p> <p>整理茶包原委跟背景知識：</p> <ol><li>問題主要發生在 OpenSSL 3 + Windows 2012R2/Windows 2016 組合 (<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">討論</a>指出 OpenSSL 早期版本無此問題)</li> <li>PKCS12 產生 .pfx 時會使用 PBE (Password Based Encryption) 加密私鑰跟憑證，PBE 演算法有多種選擇</li> <li>openssl 預設使用 AES-256-CBC with PBKDF2 作為 PBE 演算法 <a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">參考</a><br> 檢查方式：<code>openssl pkcs12 -noout -info -in some.pfx</code> <a href="https://github.com/pyca/cryptography/issues/7043#issue-1193268253">參考</a></li> <li>Windows 2012R2/Windows 2016 不支援 .pfx 的 AES256-SHA256 演算法 <a href="https://learn.microsoft.com/en-us/answers/questions/1054881/windows-server-2016-2012r2-how-to-add-support-for?WT.mc_id=DOP-MVP-37580">參考</a></li> <li>解法是使用 openssl 參數 <code>-certpbe</code> 及 <code>-keypbe</code> 指定老 Windows 支援的加密演算法，另外有個 <code>-legacy</code> 參數會改用 RC2_CBC 或 3DES_CBC 應該也能解決問題。<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">參考</a></li></ol> <p data-slug="openssl-pfx-windows-issue" data-title-en="Solving the issue of importing PFX files generated by OpenSSL into Windows." data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2018/07/12/21/32/subscribe-3534409_960_720.jpg#960#720">This article discusses the common issue of a password error prompt when importing .pfx files exported using OpenSSL into Windows systems. By specifying certain encryption algorithm parameters, the problem can be addressed.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>同事分享的案例，使用 <code>openssl pkcs12 -export -out server.pfx -inkey server.key -in server.cer -certfile ca.cer</code> 匯出 .pfx 檔，過程需要設定密碼(且需輸入兩次確認沒打錯字)，但檔案拿到 Windows 要匯入時，密碼百敲不過，一直被抱怨密碼不正確。因有反覆重做三次，已排除手滑敲錯密碼的可能。(註：暫不考慮靈異事件或超自然現象)<br> 【延伸閱讀】<a href="https://blog.miniasp.com/post/2019/04/17/Convert-PFX-and-CER-format-using-OpenSSL">如何在收到 PFX 或 CER 憑證檔之後使用 OpenSSL 進行常見的格式轉換 by 保哥</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638509971834691266.png"><br> (示意圖)</p> <p>幸好這已算 FAQ，很快查到<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">解法</a>，指令加上 <code>-certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -nomac</code> 參數改成 <code>openssl pkcs12 -export -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -nomac -out server.pfx -inkey server.key -in server.cer -certfile ca.cer</code> 後藥到病除。</p> <p>整理茶包原委跟背景知識：</p> <ol><li>問題主要發生在 OpenSSL 3 + Windows 2012R2/Windows 2016 組合 (<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">討論</a>指出 OpenSSL 早期版本無此問題)</li> <li>PKCS12 產生 .pfx 時會使用 PBE (Password Based Encryption) 加密私鑰跟憑證，PBE 演算法有多種選擇</li> <li>openssl 預設使用 AES-256-CBC with PBKDF2 作為 PBE 演算法 <a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">參考</a><br> 檢查方式：<code>openssl pkcs12 -noout -info -in some.pfx</code> <a href="https://github.com/pyca/cryptography/issues/7043#issue-1193268253">參考</a></li> <li>Windows 2012R2/Windows 2016 不支援 .pfx 的 AES256-SHA256 演算法 <a href="https://learn.microsoft.com/en-us/answers/questions/1054881/windows-server-2016-2012r2-how-to-add-support-for?WT.mc_id=DOP-MVP-37580">參考</a></li> <li>解法是使用 openssl 參數 <code>-certpbe</code> 及 <code>-keypbe</code> 指定老 Windows 支援的加密演算法，另外有個 <code>-legacy</code> 參數會改用 RC2_CBC 或 3DES_CBC 應該也能解決問題。<a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkcs12.html">參考</a></li></ol> <p data-slug="openssl-pfx-windows-issue" data-title-en="Solving the issue of importing PFX files generated by OpenSSL into Windows." data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2018/07/12/21/32/subscribe-3534409_960_720.jpg#960#720">This article discusses the common issue of a password error prompt when importing .pfx files exported using OpenSSL into Windows systems. By specifying certain encryption algorithm parameters, the problem can be addressed.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638509971834691266.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638509971834691266.png" medium="image"/>
-    <pubDate>Sat, 11 May 2024 03:47:16 GMT</pubDate>
   </item></channel>
 </rss>
