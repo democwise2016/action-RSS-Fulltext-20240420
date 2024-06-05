@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/486/800/800.jpg?hmac=YQuc7Bn_Jk8gnx5zD-yW3GC1tZd-AQijIjr0alhouH0</url>
+      <url>https://fastly.picsum.photos/id/56/800/800.jpg?hmac=5B8gBRYtt_SWDXeFri19ZpCTa5nSRpkmGTIIvi90avc</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,7 +28,7 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/486/800/800.jpg?hmac=YQuc7Bn_Jk8gnx5zD-yW3GC1tZd-AQijIjr0alhouH0"/>
+    <itunes:image href="https://fastly.picsum.photos/id/56/800/800.jpg?hmac=5B8gBRYtt_SWDXeFri19ZpCTa5nSRpkmGTIIvi90avc"/>
 <item>
     <title><![CDATA[Linux QEMU/KVM透過virglrenderer啟用虛擬機3D加速，免GPU直通]]></title>
     <link>https://ivonblog.com/posts/linux-qemu-virglrenderer/</link>
@@ -95,6 +95,197 @@ Windows WSL</a>的例子。</p><h2>1. virglrenderer運作條件<span><a href="#1
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-599eec7290.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-599eec7290.webp" medium="image"/>
     <pubDate>Thu, 06 Jun 2024 11:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[qemu-3dfx，給Windows XP/Widnows 98虛擬機啟用3D加速]]></title>
+    <link>https://ivonblog.com/posts/qemu-3dfx/</link>
+    <itunes:title><![CDATA[qemu-3dfx，給Windows XP/Widnows 98虛擬機啟用3D加速]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>分類虛擬機與容器技術</p><p>我們知道QEMU跑Windows虛擬機是很難獲得3D加速的，在虛擬機執行部份程式會出問題。</p><p>目前QEMU 8.0想取得3D加速，要嘛直通宿主機GPU，要嘛等待<a href="https://github.com/virtio-win/kvm-guest-drivers-windows/pull/943" target="_blank">
+max8rr8的Windows viogpu3d驅動的PR</a>完成。</p><p>現在有一個微妙的專案出現了，那就是「qemu-3dfx」</p><p>本專案由KJ Liew維護，專為<strong>Windows XP或更舊版的Windows虛擬機</strong>打造，可以讓你在虛擬機玩老遊戲的時候獲得3D加速。按照作者說法，這樣你就不用找奇怪的patch來在現代的作業系統玩老遊戲了。</p><p>（不過老實說，想要3D加速，Windows XP以前的舊遊戲在Linux Wine都能很好的執行，再不濟還有VirtualBox SoftGPU和DosBox 3dfx Voodoo嘛，qemu-3dfx屬實有點太複雜了。）</p><h2>1. 系統需求<span><a href="#1-%E7%B3%BB%E7%B5%B1%E9%9C%80%E6%B1%82" aria-label="定位點">#</a></span></h2><p>哪些系統可以作為宿主機？qemu-3dfx支援Linux、Windows、macOS系統。Android的Vectra VM軟體也有整合此技術。</p><p>虛擬機系統部份，建議使用Windows XP或更早的版本，包括Windows 2000、Windows 98等系統。至於要裝32位元還64位元就看你跑得遊戲而定。</p><p>遊戲的話，qemu-3dfx最高支援到DirectX 9.0。</p><hr><p>本文Ivon使用Ubuntu LTS做為宿主機，並用Windows XP SP3 64bit當作虛擬機示範。請先<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+設定好QEMU/KVM</a>。</p><h2>2. 編譯QEMU和Guest Wrapper<span><a href="#2-%E7%B7%A8%E8%AD%AFqemu%E5%92%8Cguest-wrapper" aria-label="定位點">#</a></span></h2><p>目前qemu-3dfx需要手動對QEMU打patch才可使用，作者要你捐款89.99美元才會提供現成執行檔。</p><p>所以我們這些窮鬼得按照<a href="https://github.com/kjliew/qemu-3dfx?tab=readme-ov-file#building-qemu" target="_blank">
+作者Github指示</a>手動編譯自訂版本的QEMU。</p><ol><li>Ubuntu 22.04 LTS需要安裝以下前置套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev git libglib2.0-dev libfdt-dev libpixman-1-dev libncurses5-dev libncursesw5-dev ninja-build libslirp-dev unzip mingw-w64-tools gcc-mingw-w64 libdigest-sha-perl gcc-mingw-w64-x86-64-win32
+</span></span></code></pre></div><ol start="2"><li>開始編譯QEMU 8.2.1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/myqemu <span>&amp;&amp;</span> <span>cd</span> ~/myqemu
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/kjliew/qemu-3dfx.git
+</span></span><span><span><span>cd</span> qemu-3dfx
+</span></span><span><span>wget https://download.qemu.org/qemu-8.2.1.tar.xz
+</span></span><span><span>tar xf qemu-8.2.1.tar.xz
+</span></span><span><span><span>cd</span> qemu-8.2.1
+</span></span><span><span>rsync -r ../qemu-0/hw/3dfx ../qemu-1/hw/mesa ./hw/
+</span></span><span><span>patch -p0 -i ../00-qemu82x-mesa-glide.patch
+</span></span><span><span>bash ../scripts/sign_commit
+</span></span><span><span>
+</span></span><span><span>mkdir ../build <span>&amp;&amp;</span> <span>cd</span> ../build
+</span></span><span><span>../qemu-8.2.1/configure --enable-slirp --enable-opengl --enable-debug
+</span></span><span><span>make -j4
+</span></span></code></pre></div><ol start="3"><li><p>最後得到自訂的qemu-system-x86_64執行檔，位於<code> ~/myqemu/qemu-3dfx/build/qemu-system-x86_64</code>。</p></li><li><p>接著編譯qemu-3dfx的Guest Wrappers。作者的編譯環境似乎是為Windows上的MingGW準備的，Ubuntu編譯不起來？</p></li><li><p>作者指定需要GCC 7.5.0並啟用DJGPP支援。參照另一個專案<a href="https://github.com/andrewwutw/build-djgpp" target="_blank">
+andrewwutw/build-djgpp</a>來編譯i686-pc-msdosdjgpp。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/andrewwutw/build-djgpp.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> build-djgpp
+</span></span><span><span>
+</span></span><span><span><span># 修改"scripts/7.5.0"和"setenv/setenv"，把所有i586字串換成i686</span>
+</span></span><span><span>
+</span></span><span><span>sudo ./build-djgpp.sh 7.5.0
+</span></span></code></pre></div><ol start="6"><li>使用舊版GCC 7.5.0編譯Wrapper，針對Windows XP編譯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>DJGPP_PREFIX</span><span>=</span>/usr/local/djgpp/bin/i686-pc-msdosdjgpp
+</span></span><span><span><span>export</span> <span>PATH</span><span>=</span>/usr/local/djgpp/bin/i686-pc-msdosdjgpp/bin/:<span>$PATH</span>
+</span></span><span><span><span>export</span> <span>GCC_EXEC_PREFIX</span><span>=</span>/usr/local/djgpp/lib/gcc/
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/myqemu/qemu-3dfx/wrappers/3dfx
+</span></span><span><span>mkdir build <span>&amp;&amp;</span> <span>cd</span> build
+</span></span><span><span>bash ../../../scripts/conf_wrapper
+</span></span><span><span>make <span>&amp;&amp;</span> make clean
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/myqemu/qemu-3dfx/wrappers/mesa
+</span></span><span><span>mkdir build <span>&amp;&amp;</span> <span>cd</span> build
+</span></span><span><span>bash ../../../scripts/conf_wrapper
+</span></span><span><span>make <span>&amp;&amp;</span> make clean
+</span></span></code></pre></div><ol start="7"><li>之後檔案會放在<code>~/myqemu/qemu-3dfx/wrappers/3dfx/build</code>和<code>~/myqemu/qemu-3dfx/wrappers/mesa/build</code></li></ol><h2>3. Windows虛擬機安裝qemu-3dfx檔案<span><a href="#3-windows%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dqemu-3dfx%E6%AA%94%E6%A1%88" aria-label="定位點">#</a></span></h2><ol><li>開啟Virt Manager，新增Windows XP虛擬機</li></ol><p>2.在新增虛擬機之後，到Virt Manager的XML編輯欄位，修改<code>&lt;emulator&gt;&lt;/emulator&gt;</code>數值，填寫剛剛編譯的QEMU的路徑，使其使用自訂QEMU（AppArmor可能會擋自訂QEMU路徑，請參考<a href="https://unix.stackexchange.com/questions/471345/changing-libvirt-emulator-permission-denied" target="_blank">
+stackexchange答案</a>修改權限）</p><ol start="3"><li>或者使用命令行跑QEMU虛擬機：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 建立虛擬硬碟</span>
+</span></span><span><span>qemu-img create -f qcow2 WindowsXP.qcow2 64G
+</span></span><span><span>
+</span></span><span><span><span># 開機</span>
+</span></span><span><span><span>"/home/user/myqemu/qemu-3dfx/build/qemu-system-x86_64"</span> <span>\
+</span></span></span><span><span>-name <span>"Windows XP"</span> <span>\
+</span></span></span><span><span>-enable-kvm <span>\
+</span></span></span><span><span>-machine pc -L pc-bios -nodefaults -machine <span>hpet</span><span>=</span>off <span>\
+</span></span></span><span><span>-rtc <span>base</span><span>=</span>localtime,clock<span>=</span>host<span>\
+</span></span></span><span><span>-cpu qemu64 -smp <span>cores</span><span>=</span>4,threads<span>=</span>1,sockets<span>=</span><span>1</span> <span>\
+</span></span></span><span><span>-m <span>4096</span> <span>\
+</span></span></span><span><span>-drive <span>id</span><span>=</span>root,format<span>=</span>raw,file<span>=</span>WindowsXP.qcow2 <span>\
+</span></span></span><span><span>-drive <span>id</span><span>=</span>drive1,media<span>=</span>cdrom,file<span>=</span><span>"Windows XP ISO路徑"</span> <span>\
+</span></span></span><span><span>-boot c <span>\
+</span></span></span><span><span>-device rtl8139,netdev<span>=</span>net0 <span>\
+</span></span></span><span><span>-netdev user,id<span>=</span>net0,hostfwd<span>=</span>tcp::8080-:80,hostfwd<span>=</span>tcp::2222-:22 <span>\
+</span></span></span><span><span>-display sdl -device VGA  <span>\
+</span></span></span><span><span>-audiodev pa,id<span>=</span>snd0 -device AC97,audiodev<span>=</span>snd0  <span>\
+</span></span></span></code></pre></div><ol start="4"><li><p>開機進入虛擬機。Windows XP能用的瀏覽器不多了，請用<a href="https://github.com/win32ss/supermium" target="_blank">
+Supermium</a>上網吧。</p></li><li><p>手動安裝Guest Wrappers必要檔案到指定位置。</p></li></ol><p>將<code>FXPTL.SYS</code>放到<code>%SystemRoot%\system32\drivers</code></p><p><code>GLIDE.DLL</code>,、<code>GLIDE2X.DLL</code> 、 <code>GLIDE3X.DLL</code> 放到<code>%SystemRoot%\system32</code></p><p><code>OPENGL32.DLL</code>放到遊戲程式所在的資料夾。</p><p>使用系統管理員身份執行<code>INSTDRV.EXE</code></p><h2>4. 測試qemu-3dfx效能<span><a href="#4-%E6%B8%AC%E8%A9%A6qemu-3dfx%E6%95%88%E8%83%BD" aria-label="定位點">#</a></span></h2><p>尚未親自測試</p><p>下面是原作者的測試結果，可見舊版的3DMark有吃到3D加速。</p><div><iframe src="https://www.youtube.com/embed/U5UDzgg5cHw" allowfullscreen="" frameborder="0"></iframe></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li>QEMU命令行 <a href="https://wiki.archlinux.org/title/QEMU" target="_blank">QEMU - ArchWiki</a></li><li><a href="https://github.com/kjliew/qemu-3dfx" target="_blank">kjliew/qemu-3dfx</a></li><li><a href="https://github.com/andrewwutw/build-djgpp" target="_blank">andrewwutw/build-djgpp</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>分類虛擬機與容器技術</p><p>我們知道QEMU跑Windows虛擬機是很難獲得3D加速的，在虛擬機執行部份程式會出問題。</p><p>目前QEMU 8.0想取得3D加速，要嘛直通宿主機GPU，要嘛等待<a href="https://github.com/virtio-win/kvm-guest-drivers-windows/pull/943" target="_blank">
+max8rr8的Windows viogpu3d驅動的PR</a>完成。</p><p>現在有一個微妙的專案出現了，那就是「qemu-3dfx」</p><p>本專案由KJ Liew維護，專為<strong>Windows XP或更舊版的Windows虛擬機</strong>打造，可以讓你在虛擬機玩老遊戲的時候獲得3D加速。按照作者說法，這樣你就不用找奇怪的patch來在現代的作業系統玩老遊戲了。</p><p>（不過老實說，想要3D加速，Windows XP以前的舊遊戲在Linux Wine都能很好的執行，再不濟還有VirtualBox SoftGPU和DosBox 3dfx Voodoo嘛，qemu-3dfx屬實有點太複雜了。）</p><h2>1. 系統需求<span><a href="#1-%E7%B3%BB%E7%B5%B1%E9%9C%80%E6%B1%82" aria-label="定位點">#</a></span></h2><p>哪些系統可以作為宿主機？qemu-3dfx支援Linux、Windows、macOS系統。Android的Vectra VM軟體也有整合此技術。</p><p>虛擬機系統部份，建議使用Windows XP或更早的版本，包括Windows 2000、Windows 98等系統。至於要裝32位元還64位元就看你跑得遊戲而定。</p><p>遊戲的話，qemu-3dfx最高支援到DirectX 9.0。</p><hr><p>本文Ivon使用Ubuntu LTS做為宿主機，並用Windows XP SP3 64bit當作虛擬機示範。請先<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+設定好QEMU/KVM</a>。</p><h2>2. 編譯QEMU和Guest Wrapper<span><a href="#2-%E7%B7%A8%E8%AD%AFqemu%E5%92%8Cguest-wrapper" aria-label="定位點">#</a></span></h2><p>目前qemu-3dfx需要手動對QEMU打patch才可使用，作者要你捐款89.99美元才會提供現成執行檔。</p><p>所以我們這些窮鬼得按照<a href="https://github.com/kjliew/qemu-3dfx?tab=readme-ov-file#building-qemu" target="_blank">
+作者Github指示</a>手動編譯自訂版本的QEMU。</p><ol><li>Ubuntu 22.04 LTS需要安裝以下前置套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev git libglib2.0-dev libfdt-dev libpixman-1-dev libncurses5-dev libncursesw5-dev ninja-build libslirp-dev unzip mingw-w64-tools gcc-mingw-w64 libdigest-sha-perl gcc-mingw-w64-x86-64-win32
+</span></span></code></pre></div><ol start="2"><li>開始編譯QEMU 8.2.1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/myqemu <span>&amp;&amp;</span> <span>cd</span> ~/myqemu
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/kjliew/qemu-3dfx.git
+</span></span><span><span><span>cd</span> qemu-3dfx
+</span></span><span><span>wget https://download.qemu.org/qemu-8.2.1.tar.xz
+</span></span><span><span>tar xf qemu-8.2.1.tar.xz
+</span></span><span><span><span>cd</span> qemu-8.2.1
+</span></span><span><span>rsync -r ../qemu-0/hw/3dfx ../qemu-1/hw/mesa ./hw/
+</span></span><span><span>patch -p0 -i ../00-qemu82x-mesa-glide.patch
+</span></span><span><span>bash ../scripts/sign_commit
+</span></span><span><span>
+</span></span><span><span>mkdir ../build <span>&amp;&amp;</span> <span>cd</span> ../build
+</span></span><span><span>../qemu-8.2.1/configure --enable-slirp --enable-opengl --enable-debug
+</span></span><span><span>make -j4
+</span></span></code></pre></div><ol start="3"><li><p>最後得到自訂的qemu-system-x86_64執行檔，位於<code> ~/myqemu/qemu-3dfx/build/qemu-system-x86_64</code>。</p></li><li><p>接著編譯qemu-3dfx的Guest Wrappers。作者的編譯環境似乎是為Windows上的MingGW準備的，Ubuntu編譯不起來？</p></li><li><p>作者指定需要GCC 7.5.0並啟用DJGPP支援。參照另一個專案<a href="https://github.com/andrewwutw/build-djgpp" target="_blank">
+andrewwutw/build-djgpp</a>來編譯i686-pc-msdosdjgpp。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/andrewwutw/build-djgpp.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> build-djgpp
+</span></span><span><span>
+</span></span><span><span><span># 修改"scripts/7.5.0"和"setenv/setenv"，把所有i586字串換成i686</span>
+</span></span><span><span>
+</span></span><span><span>sudo ./build-djgpp.sh 7.5.0
+</span></span></code></pre></div><ol start="6"><li>使用舊版GCC 7.5.0編譯Wrapper，針對Windows XP編譯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>DJGPP_PREFIX</span><span>=</span>/usr/local/djgpp/bin/i686-pc-msdosdjgpp
+</span></span><span><span><span>export</span> <span>PATH</span><span>=</span>/usr/local/djgpp/bin/i686-pc-msdosdjgpp/bin/:<span>$PATH</span>
+</span></span><span><span><span>export</span> <span>GCC_EXEC_PREFIX</span><span>=</span>/usr/local/djgpp/lib/gcc/
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/myqemu/qemu-3dfx/wrappers/3dfx
+</span></span><span><span>mkdir build <span>&amp;&amp;</span> <span>cd</span> build
+</span></span><span><span>bash ../../../scripts/conf_wrapper
+</span></span><span><span>make <span>&amp;&amp;</span> make clean
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/myqemu/qemu-3dfx/wrappers/mesa
+</span></span><span><span>mkdir build <span>&amp;&amp;</span> <span>cd</span> build
+</span></span><span><span>bash ../../../scripts/conf_wrapper
+</span></span><span><span>make <span>&amp;&amp;</span> make clean
+</span></span></code></pre></div><ol start="7"><li>之後檔案會放在<code>~/myqemu/qemu-3dfx/wrappers/3dfx/build</code>和<code>~/myqemu/qemu-3dfx/wrappers/mesa/build</code></li></ol><h2>3. Windows虛擬機安裝qemu-3dfx檔案<span><a href="#3-windows%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dqemu-3dfx%E6%AA%94%E6%A1%88" aria-label="定位點">#</a></span></h2><ol><li>開啟Virt Manager，新增Windows XP虛擬機</li></ol><p>2.在新增虛擬機之後，到Virt Manager的XML編輯欄位，修改<code>&lt;emulator&gt;&lt;/emulator&gt;</code>數值，填寫剛剛編譯的QEMU的路徑，使其使用自訂QEMU（AppArmor可能會擋自訂QEMU路徑，請參考<a href="https://unix.stackexchange.com/questions/471345/changing-libvirt-emulator-permission-denied" target="_blank">
+stackexchange答案</a>修改權限）</p><ol start="3"><li>或者使用命令行跑QEMU虛擬機：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 建立虛擬硬碟</span>
+</span></span><span><span>qemu-img create -f qcow2 WindowsXP.qcow2 64G
+</span></span><span><span>
+</span></span><span><span><span># 開機</span>
+</span></span><span><span><span>"/home/user/myqemu/qemu-3dfx/build/qemu-system-x86_64"</span> <span>\
+</span></span></span><span><span>-name <span>"Windows XP"</span> <span>\
+</span></span></span><span><span>-enable-kvm <span>\
+</span></span></span><span><span>-machine pc -L pc-bios -nodefaults -machine <span>hpet</span><span>=</span>off <span>\
+</span></span></span><span><span>-rtc <span>base</span><span>=</span>localtime,clock<span>=</span>host<span>\
+</span></span></span><span><span>-cpu qemu64 -smp <span>cores</span><span>=</span>4,threads<span>=</span>1,sockets<span>=</span><span>1</span> <span>\
+</span></span></span><span><span>-m <span>4096</span> <span>\
+</span></span></span><span><span>-drive <span>id</span><span>=</span>root,format<span>=</span>raw,file<span>=</span>WindowsXP.qcow2 <span>\
+</span></span></span><span><span>-drive <span>id</span><span>=</span>drive1,media<span>=</span>cdrom,file<span>=</span><span>"Windows XP ISO路徑"</span> <span>\
+</span></span></span><span><span>-boot c <span>\
+</span></span></span><span><span>-device rtl8139,netdev<span>=</span>net0 <span>\
+</span></span></span><span><span>-netdev user,id<span>=</span>net0,hostfwd<span>=</span>tcp::8080-:80,hostfwd<span>=</span>tcp::2222-:22 <span>\
+</span></span></span><span><span>-display sdl -device VGA  <span>\
+</span></span></span><span><span>-audiodev pa,id<span>=</span>snd0 -device AC97,audiodev<span>=</span>snd0  <span>\
+</span></span></span></code></pre></div><ol start="4"><li><p>開機進入虛擬機。Windows XP能用的瀏覽器不多了，請用<a href="https://github.com/win32ss/supermium" target="_blank">
+Supermium</a>上網吧。</p></li><li><p>手動安裝Guest Wrappers必要檔案到指定位置。</p></li></ol><p>將<code>FXPTL.SYS</code>放到<code>%SystemRoot%\system32\drivers</code></p><p><code>GLIDE.DLL</code>,、<code>GLIDE2X.DLL</code> 、 <code>GLIDE3X.DLL</code> 放到<code>%SystemRoot%\system32</code></p><p><code>OPENGL32.DLL</code>放到遊戲程式所在的資料夾。</p><p>使用系統管理員身份執行<code>INSTDRV.EXE</code></p><h2>4. 測試qemu-3dfx效能<span><a href="#4-%E6%B8%AC%E8%A9%A6qemu-3dfx%E6%95%88%E8%83%BD" aria-label="定位點">#</a></span></h2><p>尚未親自測試</p><p>下面是原作者的測試結果，可見舊版的3DMark有吃到3D加速。</p><div><iframe src="https://www.youtube.com/embed/U5UDzgg5cHw" allowfullscreen="" frameborder="0"></iframe></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li>QEMU命令行 <a href="https://wiki.archlinux.org/title/QEMU" target="_blank">QEMU - ArchWiki</a></li><li><a href="https://github.com/kjliew/qemu-3dfx" target="_blank">kjliew/qemu-3dfx</a></li><li><a href="https://github.com/andrewwutw/build-djgpp" target="_blank">andrewwutw/build-djgpp</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p>分類虛擬機與容器技術</p><p>我們知道QEMU跑Windows虛擬機是很難獲得3D加速的，在虛擬機執行部份程式會出問題。</p><p>目前QEMU 8.0想取得3D加速，要嘛直通宿主機GPU，要嘛等待<a href="https://github.com/virtio-win/kvm-guest-drivers-windows/pull/943" target="_blank">
+max8rr8的Windows viogpu3d驅動的PR</a>完成。</p><p>現在有一個微妙的專案出現了，那就是「qemu-3dfx」</p><p>本專案由KJ Liew維護，專為<strong>Windows XP或更舊版的Windows虛擬機</strong>打造，可以讓你在虛擬機玩老遊戲的時候獲得3D加速。按照作者說法，這樣你就不用找奇怪的patch來在現代的作業系統玩老遊戲了。</p><p>（不過老實說，想要3D加速，Windows XP以前的舊遊戲在Linux Wine都能很好的執行，再不濟還有VirtualBox SoftGPU和DosBox 3dfx Voodoo嘛，qemu-3dfx屬實有點太複雜了。）</p><h2>1. 系統需求<span><a href="#1-%E7%B3%BB%E7%B5%B1%E9%9C%80%E6%B1%82" aria-label="定位點">#</a></span></h2><p>哪些系統可以作為宿主機？qemu-3dfx支援Linux、Windows、macOS系統。Android的Vectra VM軟體也有整合此技術。</p><p>虛擬機系統部份，建議使用Windows XP或更早的版本，包括Windows 2000、Windows 98等系統。至於要裝32位元還64位元就看你跑得遊戲而定。</p><p>遊戲的話，qemu-3dfx最高支援到DirectX 9.0。</p><hr><p>本文Ivon使用Ubuntu LTS做為宿主機，並用Windows XP SP3 64bit當作虛擬機示範。請先<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+設定好QEMU/KVM</a>。</p><h2>2. 編譯QEMU和Guest Wrapper<span><a href="#2-%E7%B7%A8%E8%AD%AFqemu%E5%92%8Cguest-wrapper" aria-label="定位點">#</a></span></h2><p>目前qemu-3dfx需要手動對QEMU打patch才可使用，作者要你捐款89.99美元才會提供現成執行檔。</p><p>所以我們這些窮鬼得按照<a href="https://github.com/kjliew/qemu-3dfx?tab=readme-ov-file#building-qemu" target="_blank">
+作者Github指示</a>手動編譯自訂版本的QEMU。</p><ol><li>Ubuntu 22.04 LTS需要安裝以下前置套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install autoconf automake autotools-dev curl libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev git libglib2.0-dev libfdt-dev libpixman-1-dev libncurses5-dev libncursesw5-dev ninja-build libslirp-dev unzip mingw-w64-tools gcc-mingw-w64 libdigest-sha-perl gcc-mingw-w64-x86-64-win32
+</span></span></code></pre></div><ol start="2"><li>開始編譯QEMU 8.2.1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/myqemu <span>&amp;&amp;</span> <span>cd</span> ~/myqemu
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/kjliew/qemu-3dfx.git
+</span></span><span><span><span>cd</span> qemu-3dfx
+</span></span><span><span>wget https://download.qemu.org/qemu-8.2.1.tar.xz
+</span></span><span><span>tar xf qemu-8.2.1.tar.xz
+</span></span><span><span><span>cd</span> qemu-8.2.1
+</span></span><span><span>rsync -r ../qemu-0/hw/3dfx ../qemu-1/hw/mesa ./hw/
+</span></span><span><span>patch -p0 -i ../00-qemu82x-mesa-glide.patch
+</span></span><span><span>bash ../scripts/sign_commit
+</span></span><span><span>
+</span></span><span><span>mkdir ../build <span>&amp;&amp;</span> <span>cd</span> ../build
+</span></span><span><span>../qemu-8.2.1/configure --enable-slirp --enable-opengl --enable-debug
+</span></span><span><span>make -j4
+</span></span></code></pre></div><ol start="3"><li><p>最後得到自訂的qemu-system-x86_64執行檔，位於<code> ~/myqemu/qemu-3dfx/build/qemu-system-x86_64</code>。</p></li><li><p>接著編譯qemu-3dfx的Guest Wrappers。作者的編譯環境似乎是為Windows上的MingGW準備的，Ubuntu編譯不起來？</p></li><li><p>作者指定需要GCC 7.5.0並啟用DJGPP支援。參照另一個專案<a href="https://github.com/andrewwutw/build-djgpp" target="_blank">
+andrewwutw/build-djgpp</a>來編譯i686-pc-msdosdjgpp。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/andrewwutw/build-djgpp.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> build-djgpp
+</span></span><span><span>
+</span></span><span><span><span># 修改"scripts/7.5.0"和"setenv/setenv"，把所有i586字串換成i686</span>
+</span></span><span><span>
+</span></span><span><span>sudo ./build-djgpp.sh 7.5.0
+</span></span></code></pre></div><ol start="6"><li>使用舊版GCC 7.5.0編譯Wrapper，針對Windows XP編譯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>DJGPP_PREFIX</span><span>=</span>/usr/local/djgpp/bin/i686-pc-msdosdjgpp
+</span></span><span><span><span>export</span> <span>PATH</span><span>=</span>/usr/local/djgpp/bin/i686-pc-msdosdjgpp/bin/:<span>$PATH</span>
+</span></span><span><span><span>export</span> <span>GCC_EXEC_PREFIX</span><span>=</span>/usr/local/djgpp/lib/gcc/
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/myqemu/qemu-3dfx/wrappers/3dfx
+</span></span><span><span>mkdir build <span>&amp;&amp;</span> <span>cd</span> build
+</span></span><span><span>bash ../../../scripts/conf_wrapper
+</span></span><span><span>make <span>&amp;&amp;</span> make clean
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ~/myqemu/qemu-3dfx/wrappers/mesa
+</span></span><span><span>mkdir build <span>&amp;&amp;</span> <span>cd</span> build
+</span></span><span><span>bash ../../../scripts/conf_wrapper
+</span></span><span><span>make <span>&amp;&amp;</span> make clean
+</span></span></code></pre></div><ol start="7"><li>之後檔案會放在<code>~/myqemu/qemu-3dfx/wrappers/3dfx/build</code>和<code>~/myqemu/qemu-3dfx/wrappers/mesa/build</code></li></ol><h2>3. Windows虛擬機安裝qemu-3dfx檔案<span><a href="#3-windows%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dqemu-3dfx%E6%AA%94%E6%A1%88" aria-label="定位點">#</a></span></h2><ol><li>開啟Virt Manager，新增Windows XP虛擬機</li></ol><p>2.在新增虛擬機之後，到Virt Manager的XML編輯欄位，修改<code>&lt;emulator&gt;&lt;/emulator&gt;</code>數值，填寫剛剛編譯的QEMU的路徑，使其使用自訂QEMU（AppArmor可能會擋自訂QEMU路徑，請參考<a href="https://unix.stackexchange.com/questions/471345/changing-libvirt-emulator-permission-denied" target="_blank">
+stackexchange答案</a>修改權限）</p><ol start="3"><li>或者使用命令行跑QEMU虛擬機：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 建立虛擬硬碟</span>
+</span></span><span><span>qemu-img create -f qcow2 WindowsXP.qcow2 64G
+</span></span><span><span>
+</span></span><span><span><span># 開機</span>
+</span></span><span><span><span>"/home/user/myqemu/qemu-3dfx/build/qemu-system-x86_64"</span> <span>\
+</span></span></span><span><span>-name <span>"Windows XP"</span> <span>\
+</span></span></span><span><span>-enable-kvm <span>\
+</span></span></span><span><span>-machine pc -L pc-bios -nodefaults -machine <span>hpet</span><span>=</span>off <span>\
+</span></span></span><span><span>-rtc <span>base</span><span>=</span>localtime,clock<span>=</span>host<span>\
+</span></span></span><span><span>-cpu qemu64 -smp <span>cores</span><span>=</span>4,threads<span>=</span>1,sockets<span>=</span><span>1</span> <span>\
+</span></span></span><span><span>-m <span>4096</span> <span>\
+</span></span></span><span><span>-drive <span>id</span><span>=</span>root,format<span>=</span>raw,file<span>=</span>WindowsXP.qcow2 <span>\
+</span></span></span><span><span>-drive <span>id</span><span>=</span>drive1,media<span>=</span>cdrom,file<span>=</span><span>"Windows XP ISO路徑"</span> <span>\
+</span></span></span><span><span>-boot c <span>\
+</span></span></span><span><span>-device rtl8139,netdev<span>=</span>net0 <span>\
+</span></span></span><span><span>-netdev user,id<span>=</span>net0,hostfwd<span>=</span>tcp::8080-:80,hostfwd<span>=</span>tcp::2222-:22 <span>\
+</span></span></span><span><span>-display sdl -device VGA  <span>\
+</span></span></span><span><span>-audiodev pa,id<span>=</span>snd0 -device AC97,audiodev<span>=</span>snd0  <span>\
+</span></span></span></code></pre></div><ol start="4"><li><p>開機進入虛擬機。Windows XP能用的瀏覽器不多了，請用<a href="https://github.com/win32ss/supermium" target="_blank">
+Supermium</a>上網吧。</p></li><li><p>手動安裝Guest Wrappers必要檔案到指定位置。</p></li></ol><p>將<code>FXPTL.SYS</code>放到<code>%SystemRoot%\system32\drivers</code></p><p><code>GLIDE.DLL</code>,、<code>GLIDE2X.DLL</code> 、 <code>GLIDE3X.DLL</code> 放到<code>%SystemRoot%\system32</code></p><p><code>OPENGL32.DLL</code>放到遊戲程式所在的資料夾。</p><p>使用系統管理員身份執行<code>INSTDRV.EXE</code></p><h2>4. 測試qemu-3dfx效能<span><a href="#4-%E6%B8%AC%E8%A9%A6qemu-3dfx%E6%95%88%E8%83%BD" aria-label="定位點">#</a></span></h2><p>尚未親自測試</p><p>下面是原作者的測試結果，可見舊版的3DMark有吃到3D加速。</p><div><iframe src="https://www.youtube.com/embed/U5UDzgg5cHw" allowfullscreen="" frameborder="0"></iframe></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li>QEMU命令行 <a href="https://wiki.archlinux.org/title/QEMU" target="_blank">QEMU - ArchWiki</a></li><li><a href="https://github.com/kjliew/qemu-3dfx" target="_blank">kjliew/qemu-3dfx</a></li><li><a href="https://github.com/andrewwutw/build-djgpp" target="_blank">andrewwutw/build-djgpp</a></li></ul>]]></content:encoded>
+    
+    <pubDate>Wed, 05 Jun 2024 08:00:00 +0800</pubDate>
   </item><item>
     <title><![CDATA[已不再支援Adobe Flash Player？透過Ruffle.rs在最新瀏覽器遊玩Flash遊戲，手機也可以喔]]></title>
     <link>https://ivonblog.com/posts/ruffle-flash-emulator/</link>
