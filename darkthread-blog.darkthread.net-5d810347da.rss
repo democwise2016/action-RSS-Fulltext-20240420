@@ -30,6 +30,255 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[PowerShell 小工具 - 簡易檔案編碼識別]]></title>
+    <link>https://blog.darkthread.net/blog/ps-enc-detector/</link>
+    <itunes:title><![CDATA[PowerShell 小工具 - 簡易檔案編碼識別]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>我有個小需求是要檢查專案程式檔是否混雜 Unicode、BIG5 等非 UTF-8 編碼，類似任務過去用 C# 寫過，例如：<a href="/blog/big5-gb2312-auto-detect/">BIG5 GB2312繁簡編碼快篩</a>、<a href="/blog/big5-utf8-source-code-batch-converter/">潛盾機－解決VS2015程式檔BIG5相容問題</a>，為了方便在工作上應用，我想寫個 PowerShell 版，以上是本次的企劃。</p> <p>由於只需識別 UTF-8、Unicode、BIG5 三種編碼，且輸出結果是作為檢核警示，後續會有人工確認，不需要花太多時間涵蓋各種語系，邏輯也不需要 100% 精準，算是一次簡單任務。我的構想是用 <code>File.ReadAllBytes()</code> 讀入檔案 byte[] 後分別用 Encoding.UTF8、Encoding.Unicode 的 GetString() 轉成字串，檢測其中是否出現轉碼失敗的 � 字元來推測。</p> <p>BIG5 的部分比較麻煩，如 GB2312 簡體中文或 Shift JIS 日文等泛 ANSI 類編碼，用 Encoding.GetEncoding(950) 轉字串，大部分字元可以對映到有效的繁體字碼區，但非中文常用字，無法對映的無效字元會變成 ?。我慣用的解法是用「無效字元*3 + 次常用字) / 總字元數」計算 BadSmell 指數，猜測它不是 BIG5 的機率。</p> <p>程式範例如下：</p> <pre><code>function IsBig5([byte[]]$data) {
+$symbol = 0
+$common = 0
+$rare = 0
+$unknow = 0
+$ascii = 0
+$isDblBytes = $false
+$dblByteHi = 0
+foreach ($b in $data) {
+if ($isDblBytes) {
+if (($b -ge 0x40 -and $b -le 0x7e) -or ($b -ge 0xa1 -and $b -le 0xfe)) {
+$c = $dblByteHi * 0x100 + $b
+if ($c -ge 0xa140 -and $c -le 0xa3bf) {
+$symbol++
+}
+elseif ($c -ge 0xa440 -and $c -le 0xc67e) {
+$common++
+}
+elseif ($c -ge 0xc940 -and $c -le 0xf9d5) {
+$rare++
+}
+else {
+$unknow++
+}
+}
+else {
+$unknow++
+}
+$isDblBytes = $false
+}
+elseif ($b -ge 0x80 -and $b -le 0xfe) {
+$isDblBytes = $true
+$dblByteHi = $b
+}
+elseif ($b -lt 0x80) {
+$ascii++
+}
+}
+$total = $ascii + $symbol + $common + $rare + $unknow
+$badSmell = [float]($rare + $unknow * 3) / $total
+return $badSmell -lt 0.1;
+}
+function RoughDetectEncoding {
+param(
+[Parameter(Mandatory = $true)][string]$fileName
+)
+$res = @{
+Encoding = 'unknown'
+Content = ''
+};
+$bytes = [System.IO.File]::ReadAllBytes($fileName)
+$res.Content = [BitConverter]::ToString($bytes)
+$utf8Test = [System.Text.Encoding]::UTF8.GetString($bytes)
+if (!$utf8Test.Contains("�")) {
+$res.Encoding = 'utf-8'
+$res.Content = $utf8Test
+return $res
+}
+$unicodeTest = [System.Text.Encoding]::Unicode.GetString($bytes)
+if (!$unicodeTest.Contains("�")) {
+$res.Encoding = 'unicode'
+$res.Content = $unicodeTest
+return $res
+}
+$big5Test = [System.Text.Encoding]::GetEncoding(950).GetString($bytes)
+if (!$big5Test.Contains("?") -and (IsBig5 $bytes)) {
+$res.Encoding = 'big5'
+$res.Content = $big5Test
+return $res
+}
+return $res
+}
+@('utf8.txt', 'unicode.txt', 'big5.txt', 'gb2312.txt', 'jis.txt') | ForEach-Object {
+$fileName = $_
+$res = RoughDetectEncoding -fileName $fileName
+Write-Host "File: $fileName, Encoding: $($res.Encoding)" -ForegroundColor Cyan
+Write-Host "$($res.Content)" -ForegroundColor White
+}
+</code></pre> <p>我弄了簡單測試，同一段文字分別用 UTF-8、Unicode、BIG5 儲存，再加上簡體中文跟日文：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638532835532753597.png"></p> <p>測試成功：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638532835534430976.png"></p> <p data-slug="ps-enc-detector" data-title-en="A rough file encoding detector by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/11/23/01/08/lion-tailed-macaque-216227_960_720.jpg#960#720">This article provide a rough but simple to to detect the encoding of text file with PowerShell.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>我有個小需求是要檢查專案程式檔是否混雜 Unicode、BIG5 等非 UTF-8 編碼，類似任務過去用 C# 寫過，例如：<a href="/blog/big5-gb2312-auto-detect/">BIG5 GB2312繁簡編碼快篩</a>、<a href="/blog/big5-utf8-source-code-batch-converter/">潛盾機－解決VS2015程式檔BIG5相容問題</a>，為了方便在工作上應用，我想寫個 PowerShell 版，以上是本次的企劃。</p> <p>由於只需識別 UTF-8、Unicode、BIG5 三種編碼，且輸出結果是作為檢核警示，後續會有人工確認，不需要花太多時間涵蓋各種語系，邏輯也不需要 100% 精準，算是一次簡單任務。我的構想是用 <code>File.ReadAllBytes()</code> 讀入檔案 byte[] 後分別用 Encoding.UTF8、Encoding.Unicode 的 GetString() 轉成字串，檢測其中是否出現轉碼失敗的 � 字元來推測。</p> <p>BIG5 的部分比較麻煩，如 GB2312 簡體中文或 Shift JIS 日文等泛 ANSI 類編碼，用 Encoding.GetEncoding(950) 轉字串，大部分字元可以對映到有效的繁體字碼區，但非中文常用字，無法對映的無效字元會變成 ?。我慣用的解法是用「無效字元*3 + 次常用字) / 總字元數」計算 BadSmell 指數，猜測它不是 BIG5 的機率。</p> <p>程式範例如下：</p> <pre><code>function IsBig5([byte[]]$data) {
+$symbol = 0
+$common = 0
+$rare = 0
+$unknow = 0
+$ascii = 0
+$isDblBytes = $false
+$dblByteHi = 0
+foreach ($b in $data) {
+if ($isDblBytes) {
+if (($b -ge 0x40 -and $b -le 0x7e) -or ($b -ge 0xa1 -and $b -le 0xfe)) {
+$c = $dblByteHi * 0x100 + $b
+if ($c -ge 0xa140 -and $c -le 0xa3bf) {
+$symbol++
+}
+elseif ($c -ge 0xa440 -and $c -le 0xc67e) {
+$common++
+}
+elseif ($c -ge 0xc940 -and $c -le 0xf9d5) {
+$rare++
+}
+else {
+$unknow++
+}
+}
+else {
+$unknow++
+}
+$isDblBytes = $false
+}
+elseif ($b -ge 0x80 -and $b -le 0xfe) {
+$isDblBytes = $true
+$dblByteHi = $b
+}
+elseif ($b -lt 0x80) {
+$ascii++
+}
+}
+$total = $ascii + $symbol + $common + $rare + $unknow
+$badSmell = [float]($rare + $unknow * 3) / $total
+return $badSmell -lt 0.1;
+}
+function RoughDetectEncoding {
+param(
+[Parameter(Mandatory = $true)][string]$fileName
+)
+$res = @{
+Encoding = 'unknown'
+Content = ''
+};
+$bytes = [System.IO.File]::ReadAllBytes($fileName)
+$res.Content = [BitConverter]::ToString($bytes)
+$utf8Test = [System.Text.Encoding]::UTF8.GetString($bytes)
+if (!$utf8Test.Contains("�")) {
+$res.Encoding = 'utf-8'
+$res.Content = $utf8Test
+return $res
+}
+$unicodeTest = [System.Text.Encoding]::Unicode.GetString($bytes)
+if (!$unicodeTest.Contains("�")) {
+$res.Encoding = 'unicode'
+$res.Content = $unicodeTest
+return $res
+}
+$big5Test = [System.Text.Encoding]::GetEncoding(950).GetString($bytes)
+if (!$big5Test.Contains("?") -and (IsBig5 $bytes)) {
+$res.Encoding = 'big5'
+$res.Content = $big5Test
+return $res
+}
+return $res
+}
+@('utf8.txt', 'unicode.txt', 'big5.txt', 'gb2312.txt', 'jis.txt') | ForEach-Object {
+$fileName = $_
+$res = RoughDetectEncoding -fileName $fileName
+Write-Host "File: $fileName, Encoding: $($res.Encoding)" -ForegroundColor Cyan
+Write-Host "$($res.Content)" -ForegroundColor White
+}
+</code></pre> <p>我弄了簡單測試，同一段文字分別用 UTF-8、Unicode、BIG5 儲存，再加上簡體中文跟日文：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638532835532753597.png"></p> <p>測試成功：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638532835534430976.png"></p> <p data-slug="ps-enc-detector" data-title-en="A rough file encoding detector by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/11/23/01/08/lion-tailed-macaque-216227_960_720.jpg#960#720">This article provide a rough but simple to to detect the encoding of text file with PowerShell.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>我有個小需求是要檢查專案程式檔是否混雜 Unicode、BIG5 等非 UTF-8 編碼，類似任務過去用 C# 寫過，例如：<a href="/blog/big5-gb2312-auto-detect/">BIG5 GB2312繁簡編碼快篩</a>、<a href="/blog/big5-utf8-source-code-batch-converter/">潛盾機－解決VS2015程式檔BIG5相容問題</a>，為了方便在工作上應用，我想寫個 PowerShell 版，以上是本次的企劃。</p> <p>由於只需識別 UTF-8、Unicode、BIG5 三種編碼，且輸出結果是作為檢核警示，後續會有人工確認，不需要花太多時間涵蓋各種語系，邏輯也不需要 100% 精準，算是一次簡單任務。我的構想是用 <code>File.ReadAllBytes()</code> 讀入檔案 byte[] 後分別用 Encoding.UTF8、Encoding.Unicode 的 GetString() 轉成字串，檢測其中是否出現轉碼失敗的 � 字元來推測。</p> <p>BIG5 的部分比較麻煩，如 GB2312 簡體中文或 Shift JIS 日文等泛 ANSI 類編碼，用 Encoding.GetEncoding(950) 轉字串，大部分字元可以對映到有效的繁體字碼區，但非中文常用字，無法對映的無效字元會變成 ?。我慣用的解法是用「無效字元*3 + 次常用字) / 總字元數」計算 BadSmell 指數，猜測它不是 BIG5 的機率。</p> <p>程式範例如下：</p> <pre><code>function IsBig5([byte[]]$data) {
+$symbol = 0
+$common = 0
+$rare = 0
+$unknow = 0
+$ascii = 0
+$isDblBytes = $false
+$dblByteHi = 0
+foreach ($b in $data) {
+if ($isDblBytes) {
+if (($b -ge 0x40 -and $b -le 0x7e) -or ($b -ge 0xa1 -and $b -le 0xfe)) {
+$c = $dblByteHi * 0x100 + $b
+if ($c -ge 0xa140 -and $c -le 0xa3bf) {
+$symbol++
+}
+elseif ($c -ge 0xa440 -and $c -le 0xc67e) {
+$common++
+}
+elseif ($c -ge 0xc940 -and $c -le 0xf9d5) {
+$rare++
+}
+else {
+$unknow++
+}
+}
+else {
+$unknow++
+}
+$isDblBytes = $false
+}
+elseif ($b -ge 0x80 -and $b -le 0xfe) {
+$isDblBytes = $true
+$dblByteHi = $b
+}
+elseif ($b -lt 0x80) {
+$ascii++
+}
+}
+$total = $ascii + $symbol + $common + $rare + $unknow
+$badSmell = [float]($rare + $unknow * 3) / $total
+return $badSmell -lt 0.1;
+}
+function RoughDetectEncoding {
+param(
+[Parameter(Mandatory = $true)][string]$fileName
+)
+$res = @{
+Encoding = 'unknown'
+Content = ''
+};
+$bytes = [System.IO.File]::ReadAllBytes($fileName)
+$res.Content = [BitConverter]::ToString($bytes)
+$utf8Test = [System.Text.Encoding]::UTF8.GetString($bytes)
+if (!$utf8Test.Contains("�")) {
+$res.Encoding = 'utf-8'
+$res.Content = $utf8Test
+return $res
+}
+$unicodeTest = [System.Text.Encoding]::Unicode.GetString($bytes)
+if (!$unicodeTest.Contains("�")) {
+$res.Encoding = 'unicode'
+$res.Content = $unicodeTest
+return $res
+}
+$big5Test = [System.Text.Encoding]::GetEncoding(950).GetString($bytes)
+if (!$big5Test.Contains("?") -and (IsBig5 $bytes)) {
+$res.Encoding = 'big5'
+$res.Content = $big5Test
+return $res
+}
+return $res
+}
+@('utf8.txt', 'unicode.txt', 'big5.txt', 'gb2312.txt', 'jis.txt') | ForEach-Object {
+$fileName = $_
+$res = RoughDetectEncoding -fileName $fileName
+Write-Host "File: $fileName, Encoding: $($res.Encoding)" -ForegroundColor Cyan
+Write-Host "$($res.Content)" -ForegroundColor White
+}
+</code></pre> <p>我弄了簡單測試，同一段文字分別用 UTF-8、Unicode、BIG5 儲存，再加上簡體中文跟日文：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638532835532753597.png"></p> <p>測試成功：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638532835534430976.png"></p> <p data-slug="ps-enc-detector" data-title-en="A rough file encoding detector by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/11/23/01/08/lion-tailed-macaque-216227_960_720.jpg#960#720">This article provide a rough but simple to to detect the encoding of text file with PowerShell.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638532835532753597.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638532835532753597.png" medium="image"/>
+    <pubDate>Thu, 06 Jun 2024 15:11:52 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【茶包射手筆記】ASP.NET 3.5 專案無法編譯：aspnet_merge Error 1027]]></title>
     <link>https://blog.darkthread.net/blog/aspnet-merge-error-1027/</link>
     <itunes:title><![CDATA[【茶包射手筆記】ASP.NET 3.5 專案無法編譯：aspnet_merge Error 1027]]></itunes:title>
@@ -1625,44 +1874,5 @@ Write-Host $decoded
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638518146287878999.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638518146287878999.png" medium="image"/>
     <pubDate>Mon, 20 May 2024 15:10:37 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Git 小技巧 - 切換為特定 Github 帳號維護專案]]></title>
-    <link>https://blog.darkthread.net/blog/git-with-multi-github-accounts/</link>
-    <itunes:title><![CDATA[Git 小技巧 - 切換為特定 Github 帳號維護專案]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>這個小技巧適用於在一台電腦上同時使用多個 Github 帳號的情境，像是開發 Side Project 時都用個人 Github 帳號，但工作專案則要改由公務用 Github 帳號 Commit 及 Push。</p> <p>這算實務常見需求，很快就找到<a href="https://stackoverflow.com/a/27407168/288936">解答</a>。</p> <p>江湖一點訣：來源 Github URL 加上 Github 使用者名稱即可，若在專案中的署名及 Email 名稱與全域設定不同，記得也要修改。</p> <p>借用我的 <a href="https://github.com/darkthread/passkey-demo">Passkey Demo</a> 專案當例子，Github 使用者名稱是 darkthread、專案名稱 passkey-demo。</p> <p>假設我在某台電腦都是用另一個 Github 帳號 blahblah 在維護專案，獨獨這個專案要改用 darkthread。在沒特別設定的情況下，若我 clone 專案開新 branch 再 push，一定會被擋下來，因為 blahblah 沒有更新權限：</p> <pre><code>git clone https://github.com/darkthread/passkey-demo
-cd passkey-demo
-git checkout -b beta
-git push --set-upstream origin beta
-</code></pre> <p>如下圖所示，push 會得到 HTTP 403，原因為 Permission Denied：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png"></p> <p>此時我們用 git 指令修改設定，在 origin URL 前方加上 <code>darkthread@</code> 並設定姓名及 Email (記得勿加 -g，這個設定只套用在專案而非全域)：</p> <pre><code># git remote set-url origin https://&lt;USERNAME&gt;@github.com/&lt;USERNAME&gt;/&lt;PROJECTNAME&gt;.git
-git remote set-url origin https://darkthread@github.com/darkthread/passkey-demo
-git config user.name Jeffrey
-git config user.email example@hotmail.com
-</code></pre> <p>修改完成再 git push 便會彈出登入提示：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638516984746802943.png"></p> <p>成功登入後，就會改用 darkthread 帳號 push 了。而使用 Windows 密碼管理員檢視，可發現多了一筆 <code>git:https://&lt;username&gt;@github.com</code>，如此就可實現切換不同 Github 帳號維護特定專案囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638516984748491198.png"></p> <p data-slug="git-with-multi-github-accounts" data-fbimg="https://cdn.pixabay.com/photo/2016/08/01/11/09/british-1560838_1280.jpg#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>這個小技巧適用於在一台電腦上同時使用多個 Github 帳號的情境，像是開發 Side Project 時都用個人 Github 帳號，但工作專案則要改由公務用 Github 帳號 Commit 及 Push。</p> <p>這算實務常見需求，很快就找到<a href="https://stackoverflow.com/a/27407168/288936">解答</a>。</p> <p>江湖一點訣：來源 Github URL 加上 Github 使用者名稱即可，若在專案中的署名及 Email 名稱與全域設定不同，記得也要修改。</p> <p>借用我的 <a href="https://github.com/darkthread/passkey-demo">Passkey Demo</a> 專案當例子，Github 使用者名稱是 darkthread、專案名稱 passkey-demo。</p> <p>假設我在某台電腦都是用另一個 Github 帳號 blahblah 在維護專案，獨獨這個專案要改用 darkthread。在沒特別設定的情況下，若我 clone 專案開新 branch 再 push，一定會被擋下來，因為 blahblah 沒有更新權限：</p> <pre><code>git clone https://github.com/darkthread/passkey-demo
-cd passkey-demo
-git checkout -b beta
-git push --set-upstream origin beta
-</code></pre> <p>如下圖所示，push 會得到 HTTP 403，原因為 Permission Denied：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png"></p> <p>此時我們用 git 指令修改設定，在 origin URL 前方加上 <code>darkthread@</code> 並設定姓名及 Email (記得勿加 -g，這個設定只套用在專案而非全域)：</p> <pre><code># git remote set-url origin https://&lt;USERNAME&gt;@github.com/&lt;USERNAME&gt;/&lt;PROJECTNAME&gt;.git
-git remote set-url origin https://darkthread@github.com/darkthread/passkey-demo
-git config user.name Jeffrey
-git config user.email example@hotmail.com
-</code></pre> <p>修改完成再 git push 便會彈出登入提示：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638516984746802943.png"></p> <p>成功登入後，就會改用 darkthread 帳號 push 了。而使用 Windows 密碼管理員檢視，可發現多了一筆 <code>git:https://&lt;username&gt;@github.com</code>，如此就可實現切換不同 Github 帳號維護特定專案囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638516984748491198.png"></p> <p data-slug="git-with-multi-github-accounts" data-fbimg="https://cdn.pixabay.com/photo/2016/08/01/11/09/british-1560838_1280.jpg#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>這個小技巧適用於在一台電腦上同時使用多個 Github 帳號的情境，像是開發 Side Project 時都用個人 Github 帳號，但工作專案則要改由公務用 Github 帳號 Commit 及 Push。</p> <p>這算實務常見需求，很快就找到<a href="https://stackoverflow.com/a/27407168/288936">解答</a>。</p> <p>江湖一點訣：來源 Github URL 加上 Github 使用者名稱即可，若在專案中的署名及 Email 名稱與全域設定不同，記得也要修改。</p> <p>借用我的 <a href="https://github.com/darkthread/passkey-demo">Passkey Demo</a> 專案當例子，Github 使用者名稱是 darkthread、專案名稱 passkey-demo。</p> <p>假設我在某台電腦都是用另一個 Github 帳號 blahblah 在維護專案，獨獨這個專案要改用 darkthread。在沒特別設定的情況下，若我 clone 專案開新 branch 再 push，一定會被擋下來，因為 blahblah 沒有更新權限：</p> <pre><code>git clone https://github.com/darkthread/passkey-demo
-cd passkey-demo
-git checkout -b beta
-git push --set-upstream origin beta
-</code></pre> <p>如下圖所示，push 會得到 HTTP 403，原因為 Permission Denied：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png"></p> <p>此時我們用 git 指令修改設定，在 origin URL 前方加上 <code>darkthread@</code> 並設定姓名及 Email (記得勿加 -g，這個設定只套用在專案而非全域)：</p> <pre><code># git remote set-url origin https://&lt;USERNAME&gt;@github.com/&lt;USERNAME&gt;/&lt;PROJECTNAME&gt;.git
-git remote set-url origin https://darkthread@github.com/darkthread/passkey-demo
-git config user.name Jeffrey
-git config user.email example@hotmail.com
-</code></pre> <p>修改完成再 git push 便會彈出登入提示：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638516984746802943.png"></p> <p>成功登入後，就會改用 darkthread 帳號 push 了。而使用 Windows 密碼管理員檢視，可發現多了一筆 <code>git:https://&lt;username&gt;@github.com</code>，如此就可實現切換不同 Github 帳號維護特定專案囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638516984748491198.png"></p> <p data-slug="git-with-multi-github-accounts" data-fbimg="https://cdn.pixabay.com/photo/2016/08/01/11/09/british-1560838_1280.jpg#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638516984745166537.png" medium="image"/>
-    <pubDate>Sun, 19 May 2024 06:53:26 GMT</pubDate>
   </item></channel>
 </rss>
