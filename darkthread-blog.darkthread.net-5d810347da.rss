@@ -30,6 +30,69 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手日記】JPG 照片上傳到網站後變亮且鮮豔到失真？]]></title>
+    <link>https://blog.darkthread.net/blog/cmyk-jpg-issue/</link>
+    <itunes:title><![CDATA[【茶包射手日記】JPG 照片上傳到網站後變亮且鮮豔到失真？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>使用者反映：有張電腦上看起來色彩正常的 JPG 檔，上傳到網站後，照片偏亮且鮮豔到浮誇，詢問程式是否在上傳過程修圖？</p> <p>聽完心想，我寫的檔案上傳向來都是<del>Garbage In Garbage Out</del>原封不動搬資料，何德何能還會修圖(連該用什麼演算法我都沒概念)，莫非 ChatGPT 已開始要接管地球了？先從幫愚蠢的人類改良程式開始。</p> <p>經過一番研究，對視覺設計、攝影修圖、色彩管理一知半解的門外漢上了一課，學到幾則設計師攝影師眼中的常識，對程式設計師則算冷知識。</p> <ol><li>電腦色彩學有所謂的色彩空間 (Color Space)，實務上常用的有 RGB、CMYK、sRGB、Lab、AdobeRGB... 等，這塊水很深，但這裡知道可採用不同系統表示顏色就夠了。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg"><br> 參考來源：<a href="https://www.soongrow.com/professional-printing-packaging/1440/">電腦色彩學 – CMYK與RGB 的差異與設定</a></li> <li>我本以為 JPG 檔是用 RGB 存顏色，事實上 RGB 會轉換成 YUV 色彩空間再進行壓縮[<a href="https://zh.wikipedia.org/zh-tw/JPEG">參考</a>]。而 JPG 規格支援多種色彩空間，如：sRGB (最常用)、RGB、GRAY、CMYK、LAB... [<a href="https://imagemagick.org/script/formats.php#colorspace">參考</a>]。</li> <li><a href="https://zh.wikipedia.org/zh-tw/ICC%E8%89%B2%E5%BD%A9%E7%89%B9%E6%80%A7%E6%96%87%E4%BB%B6">ICC 色彩特性文件 (ICC Profile)</a>可協助正確顯示顏色及轉換色彩空間。</li></ol> <p>我在維基百科找到一張 <a href="https://en.wikipedia.org/wiki/File:Channel_digital_image_CMYK_color.jpg">CMYK 格式的 JPG 範例</a>，稍作修改後，重現瀏覽器顯示[3]硬是比 Windows 預覽[1]及內建圖片檢視器[2]鮮豔一大截的狀況，感覺飽和度調過頭：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638533715176301231.jpg"></p> <p>CMYK 模式 JPG 要在電腦螢幕顯示必須轉換成 RGB 模式，由結果來看，Windows 預覽及圖片檢視 App 的轉換結果較接近原圖，而瀏覽器轉換出的色彩有較嚴重的偏差。</p> <p>接下來，介紹如何從工程師視角偵察及排除這類問題。</p> <p>要檢查 JPG 使用何種色彩空間，最直覺的方法是用 Adobe 家族或開源的 GIMP 等繪圖軟體開圖檔檢查，但這些不是攻城獅常備及擅長的兵器。開發人員常用的開源 CLI 工具有兩套： <a href="https://exiftool.org/">ExifTool</a>(網站滿滿的古典工程師風格，就是要這味兒沒錯)、<a href="https://imagemagick.org/index.php">ImageMagick</a>。</p> <p>先看怎麼檢查 JPG 使用何種色彩空間(或稱色彩模式)？試用心得，ImageMagicK 使用上較簡便，故後面幾 imagick CLI 示範。</p> <pre><code># 檢視 CMKY.jpg 資訊
+magick identify CMYK.jpg
+# 輸出結果：CMYK.jpg JPEG 500x333 500x333+0+0 8-bit CMYK 731616B 0.002u 0:00.001
+# 將其轉為 sRBG
+magick convert CMYK.jpg -colorspace sRGB sRGB.jpg
+# 檢視轉換後的 sRGB.jpg
+magick identify sRGB.jpg
+# 輸出結果：sRGB.jpg JPEG 500x333 500x333+0+0 8-bit sRGB 142508B 0.001u 0:00.001
+</code></pre> <p>而比較 CMYK.jpg、sRGB.jpg，sRGB 便接近瀏覽器所看到的加亮加豔版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638533715178052160.jpg"></p> <p>但這裡有個疑團，剛說 CMYK JPG 用瀏覽器看會加亮加豔，為什麼那張範例照片在維基網頁上看起來色彩是正常的？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638533715180141690.jpg"></p> <p>是的，你猜對了，JPG 檔可以內嵌 ICC Profile 協助軟體正確解析色彩。</p> <p>使用 <code>magick identify --verbose filename.jpg | findstr icc</code> (Cmder/Linux/macOS 可用 grep icc) 可查詢 JPG 內嵌的 ICC Profile，比較 Wiki 原圖跟我移除 ICC Profiles 的版本，可看出差別，Channel_digita_image_CMYK_color.jpg 有個名為 U.S. Web Coated (SWOP) v2 的 ICC Profile <a href="https://www.idealliancetaiwan.org/post/swopandgracol">參考</a>，而 CMYK.jpg 沒有：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638533715181953066.png"></p> <p>最後，簡單示範怎麼從 JPG 匯出及刪除 ICC Profile？</p> <pre><code># 匯出 ICC Profile 存成 swop.icc
+magick convert Channel_digital_image_CMYK_color.jpg icc:swop.icc
+# 查詢 ICC Profile 資訊
+magick identify -verbose swop.icc
+# 移除 ICC Profile 另存成 CMYK.jpg
+magick Channel_digital_image_CMYK_color.jpg +profile "*" CMYK.jpg
+# 嵌入 ICC Profile
+magick convert CMYK.jpg -profile swop.icc CMYK-icc.jpg
+</code></pre> <p>活到老學到老，用了幾十年 Jpeg，今天再多認識了一層。</p> <p data-slug="cmyk-jpg-issue" data-title-en="CMYK jpg display issue in browser" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/1684187/pexels-photo-1684187.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">A JPG photo appeared overly bright and vivid after being uploaded to a website due to differences in color spaces and the absence of ICC profiles. Tools like ImageMagick can identify and convert color spaces to ensure consistency. Embedding or removing ICC profiles can also help maintain accurate colors across different platforms.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>使用者反映：有張電腦上看起來色彩正常的 JPG 檔，上傳到網站後，照片偏亮且鮮豔到浮誇，詢問程式是否在上傳過程修圖？</p> <p>聽完心想，我寫的檔案上傳向來都是<del>Garbage In Garbage Out</del>原封不動搬資料，何德何能還會修圖(連該用什麼演算法我都沒概念)，莫非 ChatGPT 已開始要接管地球了？先從幫愚蠢的人類改良程式開始。</p> <p>經過一番研究，對視覺設計、攝影修圖、色彩管理一知半解的門外漢上了一課，學到幾則設計師攝影師眼中的常識，對程式設計師則算冷知識。</p> <ol><li>電腦色彩學有所謂的色彩空間 (Color Space)，實務上常用的有 RGB、CMYK、sRGB、Lab、AdobeRGB... 等，這塊水很深，但這裡知道可採用不同系統表示顏色就夠了。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg"><br> 參考來源：<a href="https://www.soongrow.com/professional-printing-packaging/1440/">電腦色彩學 – CMYK與RGB 的差異與設定</a></li> <li>我本以為 JPG 檔是用 RGB 存顏色，事實上 RGB 會轉換成 YUV 色彩空間再進行壓縮[<a href="https://zh.wikipedia.org/zh-tw/JPEG">參考</a>]。而 JPG 規格支援多種色彩空間，如：sRGB (最常用)、RGB、GRAY、CMYK、LAB... [<a href="https://imagemagick.org/script/formats.php#colorspace">參考</a>]。</li> <li><a href="https://zh.wikipedia.org/zh-tw/ICC%E8%89%B2%E5%BD%A9%E7%89%B9%E6%80%A7%E6%96%87%E4%BB%B6">ICC 色彩特性文件 (ICC Profile)</a>可協助正確顯示顏色及轉換色彩空間。</li></ol> <p>我在維基百科找到一張 <a href="https://en.wikipedia.org/wiki/File:Channel_digital_image_CMYK_color.jpg">CMYK 格式的 JPG 範例</a>，稍作修改後，重現瀏覽器顯示[3]硬是比 Windows 預覽[1]及內建圖片檢視器[2]鮮豔一大截的狀況，感覺飽和度調過頭：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638533715176301231.jpg"></p> <p>CMYK 模式 JPG 要在電腦螢幕顯示必須轉換成 RGB 模式，由結果來看，Windows 預覽及圖片檢視 App 的轉換結果較接近原圖，而瀏覽器轉換出的色彩有較嚴重的偏差。</p> <p>接下來，介紹如何從工程師視角偵察及排除這類問題。</p> <p>要檢查 JPG 使用何種色彩空間，最直覺的方法是用 Adobe 家族或開源的 GIMP 等繪圖軟體開圖檔檢查，但這些不是攻城獅常備及擅長的兵器。開發人員常用的開源 CLI 工具有兩套： <a href="https://exiftool.org/">ExifTool</a>(網站滿滿的古典工程師風格，就是要這味兒沒錯)、<a href="https://imagemagick.org/index.php">ImageMagick</a>。</p> <p>先看怎麼檢查 JPG 使用何種色彩空間(或稱色彩模式)？試用心得，ImageMagicK 使用上較簡便，故後面幾 imagick CLI 示範。</p> <pre><code># 檢視 CMKY.jpg 資訊
+magick identify CMYK.jpg
+# 輸出結果：CMYK.jpg JPEG 500x333 500x333+0+0 8-bit CMYK 731616B 0.002u 0:00.001
+# 將其轉為 sRBG
+magick convert CMYK.jpg -colorspace sRGB sRGB.jpg
+# 檢視轉換後的 sRGB.jpg
+magick identify sRGB.jpg
+# 輸出結果：sRGB.jpg JPEG 500x333 500x333+0+0 8-bit sRGB 142508B 0.001u 0:00.001
+</code></pre> <p>而比較 CMYK.jpg、sRGB.jpg，sRGB 便接近瀏覽器所看到的加亮加豔版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638533715178052160.jpg"></p> <p>但這裡有個疑團，剛說 CMYK JPG 用瀏覽器看會加亮加豔，為什麼那張範例照片在維基網頁上看起來色彩是正常的？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638533715180141690.jpg"></p> <p>是的，你猜對了，JPG 檔可以內嵌 ICC Profile 協助軟體正確解析色彩。</p> <p>使用 <code>magick identify --verbose filename.jpg | findstr icc</code> (Cmder/Linux/macOS 可用 grep icc) 可查詢 JPG 內嵌的 ICC Profile，比較 Wiki 原圖跟我移除 ICC Profiles 的版本，可看出差別，Channel_digita_image_CMYK_color.jpg 有個名為 U.S. Web Coated (SWOP) v2 的 ICC Profile <a href="https://www.idealliancetaiwan.org/post/swopandgracol">參考</a>，而 CMYK.jpg 沒有：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638533715181953066.png"></p> <p>最後，簡單示範怎麼從 JPG 匯出及刪除 ICC Profile？</p> <pre><code># 匯出 ICC Profile 存成 swop.icc
+magick convert Channel_digital_image_CMYK_color.jpg icc:swop.icc
+# 查詢 ICC Profile 資訊
+magick identify -verbose swop.icc
+# 移除 ICC Profile 另存成 CMYK.jpg
+magick Channel_digital_image_CMYK_color.jpg +profile "*" CMYK.jpg
+# 嵌入 ICC Profile
+magick convert CMYK.jpg -profile swop.icc CMYK-icc.jpg
+</code></pre> <p>活到老學到老，用了幾十年 Jpeg，今天再多認識了一層。</p> <p data-slug="cmyk-jpg-issue" data-title-en="CMYK jpg display issue in browser" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/1684187/pexels-photo-1684187.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">A JPG photo appeared overly bright and vivid after being uploaded to a website due to differences in color spaces and the absence of ICC profiles. Tools like ImageMagick can identify and convert color spaces to ensure consistency. Embedding or removing ICC profiles can also help maintain accurate colors across different platforms.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>使用者反映：有張電腦上看起來色彩正常的 JPG 檔，上傳到網站後，照片偏亮且鮮豔到浮誇，詢問程式是否在上傳過程修圖？</p> <p>聽完心想，我寫的檔案上傳向來都是<del>Garbage In Garbage Out</del>原封不動搬資料，何德何能還會修圖(連該用什麼演算法我都沒概念)，莫非 ChatGPT 已開始要接管地球了？先從幫愚蠢的人類改良程式開始。</p> <p>經過一番研究，對視覺設計、攝影修圖、色彩管理一知半解的門外漢上了一課，學到幾則設計師攝影師眼中的常識，對程式設計師則算冷知識。</p> <ol><li>電腦色彩學有所謂的色彩空間 (Color Space)，實務上常用的有 RGB、CMYK、sRGB、Lab、AdobeRGB... 等，這塊水很深，但這裡知道可採用不同系統表示顏色就夠了。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg"><br> 參考來源：<a href="https://www.soongrow.com/professional-printing-packaging/1440/">電腦色彩學 – CMYK與RGB 的差異與設定</a></li> <li>我本以為 JPG 檔是用 RGB 存顏色，事實上 RGB 會轉換成 YUV 色彩空間再進行壓縮[<a href="https://zh.wikipedia.org/zh-tw/JPEG">參考</a>]。而 JPG 規格支援多種色彩空間，如：sRGB (最常用)、RGB、GRAY、CMYK、LAB... [<a href="https://imagemagick.org/script/formats.php#colorspace">參考</a>]。</li> <li><a href="https://zh.wikipedia.org/zh-tw/ICC%E8%89%B2%E5%BD%A9%E7%89%B9%E6%80%A7%E6%96%87%E4%BB%B6">ICC 色彩特性文件 (ICC Profile)</a>可協助正確顯示顏色及轉換色彩空間。</li></ol> <p>我在維基百科找到一張 <a href="https://en.wikipedia.org/wiki/File:Channel_digital_image_CMYK_color.jpg">CMYK 格式的 JPG 範例</a>，稍作修改後，重現瀏覽器顯示[3]硬是比 Windows 預覽[1]及內建圖片檢視器[2]鮮豔一大截的狀況，感覺飽和度調過頭：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638533715176301231.jpg"></p> <p>CMYK 模式 JPG 要在電腦螢幕顯示必須轉換成 RGB 模式，由結果來看，Windows 預覽及圖片檢視 App 的轉換結果較接近原圖，而瀏覽器轉換出的色彩有較嚴重的偏差。</p> <p>接下來，介紹如何從工程師視角偵察及排除這類問題。</p> <p>要檢查 JPG 使用何種色彩空間，最直覺的方法是用 Adobe 家族或開源的 GIMP 等繪圖軟體開圖檔檢查，但這些不是攻城獅常備及擅長的兵器。開發人員常用的開源 CLI 工具有兩套： <a href="https://exiftool.org/">ExifTool</a>(網站滿滿的古典工程師風格，就是要這味兒沒錯)、<a href="https://imagemagick.org/index.php">ImageMagick</a>。</p> <p>先看怎麼檢查 JPG 使用何種色彩空間(或稱色彩模式)？試用心得，ImageMagicK 使用上較簡便，故後面幾 imagick CLI 示範。</p> <pre><code># 檢視 CMKY.jpg 資訊
+magick identify CMYK.jpg
+# 輸出結果：CMYK.jpg JPEG 500x333 500x333+0+0 8-bit CMYK 731616B 0.002u 0:00.001
+# 將其轉為 sRBG
+magick convert CMYK.jpg -colorspace sRGB sRGB.jpg
+# 檢視轉換後的 sRGB.jpg
+magick identify sRGB.jpg
+# 輸出結果：sRGB.jpg JPEG 500x333 500x333+0+0 8-bit sRGB 142508B 0.001u 0:00.001
+</code></pre> <p>而比較 CMYK.jpg、sRGB.jpg，sRGB 便接近瀏覽器所看到的加亮加豔版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638533715178052160.jpg"></p> <p>但這裡有個疑團，剛說 CMYK JPG 用瀏覽器看會加亮加豔，為什麼那張範例照片在維基網頁上看起來色彩是正常的？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638533715180141690.jpg"></p> <p>是的，你猜對了，JPG 檔可以內嵌 ICC Profile 協助軟體正確解析色彩。</p> <p>使用 <code>magick identify --verbose filename.jpg | findstr icc</code> (Cmder/Linux/macOS 可用 grep icc) 可查詢 JPG 內嵌的 ICC Profile，比較 Wiki 原圖跟我移除 ICC Profiles 的版本，可看出差別，Channel_digita_image_CMYK_color.jpg 有個名為 U.S. Web Coated (SWOP) v2 的 ICC Profile <a href="https://www.idealliancetaiwan.org/post/swopandgracol">參考</a>，而 CMYK.jpg 沒有：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638533715181953066.png"></p> <p>最後，簡單示範怎麼從 JPG 匯出及刪除 ICC Profile？</p> <pre><code># 匯出 ICC Profile 存成 swop.icc
+magick convert Channel_digital_image_CMYK_color.jpg icc:swop.icc
+# 查詢 ICC Profile 資訊
+magick identify -verbose swop.icc
+# 移除 ICC Profile 另存成 CMYK.jpg
+magick Channel_digital_image_CMYK_color.jpg +profile "*" CMYK.jpg
+# 嵌入 ICC Profile
+magick convert CMYK.jpg -profile swop.icc CMYK-icc.jpg
+</code></pre> <p>活到老學到老，用了幾十年 Jpeg，今天再多認識了一層。</p> <p data-slug="cmyk-jpg-issue" data-title-en="CMYK jpg display issue in browser" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/1684187/pexels-photo-1684187.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">A JPG photo appeared overly bright and vivid after being uploaded to a website due to differences in color spaces and the absence of ICC profiles. Tools like ImageMagick can identify and convert color spaces to ensure consistency. Embedding or removing ICC profiles can also help maintain accurate colors across different platforms.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg" medium="image"/>
+    <pubDate>Fri, 07 Jun 2024 15:31:42 GMT</pubDate>
+  </item><item>
     <title><![CDATA[PowerShell 小工具 - 簡易檔案編碼識別]]></title>
     <link>https://blog.darkthread.net/blog/ps-enc-detector/</link>
     <itunes:title><![CDATA[PowerShell 小工具 - 簡易檔案編碼識別]]></itunes:title>
@@ -1829,50 +1892,5 @@ document.querySelector('#result').textContent = json;
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638519921406037266.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638519921406037266.jpg" medium="image"/>
     <pubDate>Wed, 22 May 2024 16:24:06 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Coding4Fun - 還原 Outlook 中文亂碼信]]></title>
-    <link>https://blog.darkthread.net/blog/decode-garbled-cht-chars/</link>
-    <itunes:title><![CDATA[Coding4Fun - 還原 Outlook 中文亂碼信]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>偶爾在 Outlook 會收到中文亂碼信，產生亂碼多半是用傳送過程某次或多次字串/二進位轉換用錯編碼，例如：用繁體中文 BIG5 去解 UTF-8，用簡體中文 GB2312 去解 BIG5 ... 等。</p> <p>有些亂碼無法逆轉，有些則可透過一點小技巧還原出原文。無法逆轉案例像是用 BIG5 解析 Unicode 文字，因 BIG5 字數較少，對映不到字元時便會產生問號或 ¿ 符號，從而生出<a href="/blog/oracle-encoding-crumbled-character/">"蕞蕞蕞蕞"之類的亂碼</a>；都變成問號了，想當然爾就不可能再反推它原本是什麼字元。另外還有用 UTF8 解 BIG5 再用 UTF8 解一次的 <a href="/blog/utf8-big5-encoding-ef-bf-bd-issue/">嚙踝蕭亂</a>、簡體中文轉換常見的「<a href="https://zh.m.wikipedia.org/wiki/%E4%B8%AD%E6%96%87%E4%BA%82%E7%A2%BC#%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E7%BC%96%E7%A0%81%E4%BD%93%E7%B3%BB%E4%BA%A7%E7%94%9F%E7%9A%84%E4%B9%B1%E7%A0%81">手持兩把錕斤拷，口中疾呼燙燙燙。 腳踏千朵屯屯屯，笑看萬物鍩鍩鍩。</a>」，其共同特徵是會重複相同的亂碼，一般就屬於不可逆的狀況，神仙難救。</p> <p>但像下面這類案例比較不一樣，它沒有反覆出現相同的亂碼片段，也沒有太多問號，通常就代表還有救。依經驗多是 BIG5 被當成 GB2312，因為 GB2312 與 BIG5 的字碼區重疊性高，不太會變成問號，只是 A 字對映成 B 字，這種情況只需簡單轉換多半能還原出原文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638518146287878999.png"></p> <p>先用一個簡單測試證明這是 BIG5 被當成 GB2312 造成。亂碼信的主旨通常是正常中文，且主旨文字一般也會在內文出現，因此我們可以把主旨跟內文片段貼到<a href="/blog/cea-release/">線上中文編碼解析工具</a>進行分析：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638518146291109025.png"></p> <p>如上圖所示，「公」的 BIG5 編碼 A4 BD 與 「そ」的 GB2312 編碼 A4 BD 相同，這不是巧合，基本上就是 BIG5 被解讀成 GB2312 的徵兆。</p> <p>確認編碼錯亂原因，我們只需寫幾行 PowerShell 就能還原出原文：</p> <pre><code>$s = @"
-そガら2012/12/15
-钡琌ソらㄓ羬セいみ盢氨ゎ矗ㄑ兜戈癟╰参狝叭ㄢぱ絋粄妮店佩︽確
-既氨丁2012/12/20 いと 12  2012/12/22 いと 12 
-硑Θぃ獽穛叫ǎ教
-狠мいみ 穛
-"@
-$binary = [System.Text.Encoding]::GetEncoding('gb2312').GetBytes($s)
-$decoded = [System.Text.Encoding]::GetEncoding('big5').GetString($binary)
-Write-Host $decoded
-</code></pre> <p>成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638518146292824084.png"></p> <p data-slug="decode-garbled-cht-chars" data-title-en="Decoding garbled Chinese text in Outlook email" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/1089438/pexels-photo-1089438.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article introduces common types of Chinese garbled text and demonstrates how to use PowerShell to restore the original text from incorrectly converted GB2312/BIG5 garbled text.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>偶爾在 Outlook 會收到中文亂碼信，產生亂碼多半是用傳送過程某次或多次字串/二進位轉換用錯編碼，例如：用繁體中文 BIG5 去解 UTF-8，用簡體中文 GB2312 去解 BIG5 ... 等。</p> <p>有些亂碼無法逆轉，有些則可透過一點小技巧還原出原文。無法逆轉案例像是用 BIG5 解析 Unicode 文字，因 BIG5 字數較少，對映不到字元時便會產生問號或 ¿ 符號，從而生出<a href="/blog/oracle-encoding-crumbled-character/">"蕞蕞蕞蕞"之類的亂碼</a>；都變成問號了，想當然爾就不可能再反推它原本是什麼字元。另外還有用 UTF8 解 BIG5 再用 UTF8 解一次的 <a href="/blog/utf8-big5-encoding-ef-bf-bd-issue/">嚙踝蕭亂</a>、簡體中文轉換常見的「<a href="https://zh.m.wikipedia.org/wiki/%E4%B8%AD%E6%96%87%E4%BA%82%E7%A2%BC#%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E7%BC%96%E7%A0%81%E4%BD%93%E7%B3%BB%E4%BA%A7%E7%94%9F%E7%9A%84%E4%B9%B1%E7%A0%81">手持兩把錕斤拷，口中疾呼燙燙燙。 腳踏千朵屯屯屯，笑看萬物鍩鍩鍩。</a>」，其共同特徵是會重複相同的亂碼，一般就屬於不可逆的狀況，神仙難救。</p> <p>但像下面這類案例比較不一樣，它沒有反覆出現相同的亂碼片段，也沒有太多問號，通常就代表還有救。依經驗多是 BIG5 被當成 GB2312，因為 GB2312 與 BIG5 的字碼區重疊性高，不太會變成問號，只是 A 字對映成 B 字，這種情況只需簡單轉換多半能還原出原文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638518146287878999.png"></p> <p>先用一個簡單測試證明這是 BIG5 被當成 GB2312 造成。亂碼信的主旨通常是正常中文，且主旨文字一般也會在內文出現，因此我們可以把主旨跟內文片段貼到<a href="/blog/cea-release/">線上中文編碼解析工具</a>進行分析：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638518146291109025.png"></p> <p>如上圖所示，「公」的 BIG5 編碼 A4 BD 與 「そ」的 GB2312 編碼 A4 BD 相同，這不是巧合，基本上就是 BIG5 被解讀成 GB2312 的徵兆。</p> <p>確認編碼錯亂原因，我們只需寫幾行 PowerShell 就能還原出原文：</p> <pre><code>$s = @"
-そガら2012/12/15
-钡琌ソらㄓ羬セいみ盢氨ゎ矗ㄑ兜戈癟╰参狝叭ㄢぱ絋粄妮店佩︽確
-既氨丁2012/12/20 いと 12  2012/12/22 いと 12 
-硑Θぃ獽穛叫ǎ教
-狠мいみ 穛
-"@
-$binary = [System.Text.Encoding]::GetEncoding('gb2312').GetBytes($s)
-$decoded = [System.Text.Encoding]::GetEncoding('big5').GetString($binary)
-Write-Host $decoded
-</code></pre> <p>成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638518146292824084.png"></p> <p data-slug="decode-garbled-cht-chars" data-title-en="Decoding garbled Chinese text in Outlook email" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/1089438/pexels-photo-1089438.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article introduces common types of Chinese garbled text and demonstrates how to use PowerShell to restore the original text from incorrectly converted GB2312/BIG5 garbled text.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>偶爾在 Outlook 會收到中文亂碼信，產生亂碼多半是用傳送過程某次或多次字串/二進位轉換用錯編碼，例如：用繁體中文 BIG5 去解 UTF-8，用簡體中文 GB2312 去解 BIG5 ... 等。</p> <p>有些亂碼無法逆轉，有些則可透過一點小技巧還原出原文。無法逆轉案例像是用 BIG5 解析 Unicode 文字，因 BIG5 字數較少，對映不到字元時便會產生問號或 ¿ 符號，從而生出<a href="/blog/oracle-encoding-crumbled-character/">"蕞蕞蕞蕞"之類的亂碼</a>；都變成問號了，想當然爾就不可能再反推它原本是什麼字元。另外還有用 UTF8 解 BIG5 再用 UTF8 解一次的 <a href="/blog/utf8-big5-encoding-ef-bf-bd-issue/">嚙踝蕭亂</a>、簡體中文轉換常見的「<a href="https://zh.m.wikipedia.org/wiki/%E4%B8%AD%E6%96%87%E4%BA%82%E7%A2%BC#%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%E7%BC%96%E7%A0%81%E4%BD%93%E7%B3%BB%E4%BA%A7%E7%94%9F%E7%9A%84%E4%B9%B1%E7%A0%81">手持兩把錕斤拷，口中疾呼燙燙燙。 腳踏千朵屯屯屯，笑看萬物鍩鍩鍩。</a>」，其共同特徵是會重複相同的亂碼，一般就屬於不可逆的狀況，神仙難救。</p> <p>但像下面這類案例比較不一樣，它沒有反覆出現相同的亂碼片段，也沒有太多問號，通常就代表還有救。依經驗多是 BIG5 被當成 GB2312，因為 GB2312 與 BIG5 的字碼區重疊性高，不太會變成問號，只是 A 字對映成 B 字，這種情況只需簡單轉換多半能還原出原文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638518146287878999.png"></p> <p>先用一個簡單測試證明這是 BIG5 被當成 GB2312 造成。亂碼信的主旨通常是正常中文，且主旨文字一般也會在內文出現，因此我們可以把主旨跟內文片段貼到<a href="/blog/cea-release/">線上中文編碼解析工具</a>進行分析：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638518146291109025.png"></p> <p>如上圖所示，「公」的 BIG5 編碼 A4 BD 與 「そ」的 GB2312 編碼 A4 BD 相同，這不是巧合，基本上就是 BIG5 被解讀成 GB2312 的徵兆。</p> <p>確認編碼錯亂原因，我們只需寫幾行 PowerShell 就能還原出原文：</p> <pre><code>$s = @"
-そガら2012/12/15
-钡琌ソらㄓ羬セいみ盢氨ゎ矗ㄑ兜戈癟╰参狝叭ㄢぱ絋粄妮店佩︽確
-既氨丁2012/12/20 いと 12  2012/12/22 いと 12 
-硑Θぃ獽穛叫ǎ教
-狠мいみ 穛
-"@
-$binary = [System.Text.Encoding]::GetEncoding('gb2312').GetBytes($s)
-$decoded = [System.Text.Encoding]::GetEncoding('big5').GetString($binary)
-Write-Host $decoded
-</code></pre> <p>成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638518146292824084.png"></p> <p data-slug="decode-garbled-cht-chars" data-title-en="Decoding garbled Chinese text in Outlook email" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/1089438/pexels-photo-1089438.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This article introduces common types of Chinese garbled text and demonstrates how to use PowerShell to restore the original text from incorrectly converted GB2312/BIG5 garbled text.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638518146287878999.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638518146287878999.png" medium="image"/>
-    <pubDate>Mon, 20 May 2024 15:10:37 GMT</pubDate>
   </item></channel>
 </rss>
