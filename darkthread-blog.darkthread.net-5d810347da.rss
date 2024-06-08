@@ -30,6 +30,291 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[體驗美妙的輕前端 MVVM - Vue.js 入門教學資源]]></title>
+    <link>https://blog.darkthread.net/blog/vue-mvvm-tutorial/</link>
+    <itunes:title><![CDATA[體驗美妙的輕前端 MVVM - Vue.js 入門教學資源]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>有讀者提到：常聽人說「寫過 MVVM 網頁就回不去了」，想試試卻不知如何入門。</p> <p>看來，不少全端同學仍依賴 JavaScript / jQuery 掛事件串元素的傳統做法寫網頁，沒體驗過 MVVM 的美麗新世界。但當今前端框架(VAR, Vue.js、Angular、React.js)主流做法多需安裝 Node.js、npm 載程式庫、把網頁拆解成元件，經過編譯發佈才產生網頁，與傳統 HTML 網頁掛 .js 搞定的單純做法天差地別，陡峭的學習曲線讓人卻步。尤其是寫網頁只是全端攻城獅的眾多任務之一，需不需要投入大量心力重學一套全新的前端開發方法(然後幾年後可能整套換掉)，會是個好問題。</p> <p>如果你想維持在 HTML 載入 .js/.css，直接在 VSCode 寫 JavaScript 寫完網頁的簡單做法，又想用主流前端框架實現美妙的 MVVM，那 Vue.js 是你唯一的選擇。延伸閱讀：<a href="/blog/vue-3-release/">Vue 3.0 正式版 - 輕前端視角</a></p> <p>Vue.js 是一個漸進式框架，允許你像 jQuery 一樣 <code>&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;</code> 載入程式庫就開始使用，不用安裝任何開發軟體或套件，用記事本也能寫網頁。(當然，正常人會用 VSCode 啦)</p> <p>以下是一個簡單的 Vue.js MVVM 範例：<a href="%E7%B7%9A%E4%B8%8A%E5%B1%95%E7%A4%BA">https://output.jsbin.com/bejigen</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638534238792864553.gif"></p> <p>簡單的新增修改刪除資料維護，輸入欄位的變更即時反映在資料顯示，大家可以想想若用 jQuery 寫要怎麼實現？猜猜用 MVVM 做出上面的功能要寫幾行程式？</p> <p>答案是 JavaScript 連 HTML/CSS，不用 100 行。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Vue.js MVVM Demo&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body { font-size: 10pt; }
+.op {
+&gt; * {
+margin: 2px; height: 1.6em; box-sizing: border-box; vertical-align: middle;
+}
+}
+table {
+font-size: 9pt;
+width: 280px; border-collapse: collapse; margin-top: 12px;
+td,th { border: 1px solid gray; padding: 2px; text-align: center; }
+td:first-child { text-align: left; }
+th { background-color: #f0f0f0; }
+a { cursor: pointer; text-decoration: underline; color: blue; margin-right: 3px; }
+}
+pre { background-color: #eee; font-size: 9pt; margin-top: 12px; padding: 12px; width: 260px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div class="op"&gt;
+&lt;input v-model="editJob.job" placeholder="待辦事項"&gt;
+&lt;select v-model="editJob.catg"&gt;
+&lt;option v-for="catgOpt in catgOptions" :value="catgOpt"&gt;{{catgOpt}}&lt;/option&gt;
+&lt;/select&gt;
+&lt;button v-show="editJobIdx == -1" :disabled="!editJob.job" @click="addJob"&gt;新增&lt;/button&gt;
+&lt;button v-show="editJobIdx &gt; -1" :disabled="!editJob.job" @click="updateJob"&gt;確定&lt;/button&gt;
+&lt;/div&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;th width="120"&gt;待辦事項&lt;/th&gt;
+&lt;th width="50"&gt;類別&lt;/th&gt;
+&lt;th width="60"&gt;操作&lt;/th&gt;
+&lt;/tr&gt;
+&lt;tr v-for="(job, index) in jobs"&gt;
+&lt;td&gt;{{job.job}}&lt;/td&gt;
+&lt;td&gt;{{job.catg}}&lt;/td&gt;
+&lt;td&gt;
+&lt;a @click="editJob = job; editJobIdx = index"&gt;修改&lt;/a&gt;
+&lt;a @click="delJob(index)"&gt;刪除&lt;/a&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;pre&gt;{{jobs}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;script&gt;
+class Job {
+constructor(job, catg) {
+this.job = job;
+this.catg = catg;
+}
+}
+const app = Vue.createApp({
+data() {
+return {
+editJob: new Job('', '工作'),
+editJobIdx: -1,
+catgOptions: ['工作', '家庭', '休閒'],
+jobs: [
+new Job('X專案前端程式', '工作'),
+new Job('換排風扇', '家庭'),
+]
+}
+},
+methods: {
+reset() {
+this.editJob = new Job('', '工作');
+this.editJobIdx = -1;
+},
+addJob() {
+this.jobs.push(this.editJob);
+this.reset();
+},
+updateJob() {
+this.reset();
+},
+delJob(index) {
+this.jobs.splice(index, 1);
+}
+}
+});
+app.mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>如果你只會用 jQuery 寫網頁，上面的展示有讓你心動想試試 MVVM 但不知怎麼開始，以下有兩個輕前端 Vue.js 入門教學可以參考：</p> <ul><li>微軟官方的初學者教學：<a href="https://learn.microsoft.com/zh-tw/training/modules/vue-get-started/?WT.mc_id=DOP-MVP-37580">使用 Vue.js 邁出第一步 / 開始使用 Vue</a><br> 以初學者為對象，手把手式逐步教學，包含 VSCode、git、Live Server 預覽結果... 等實用前端開發技能，大推!<br> 我有為這套教學寫過筆記也可以參考：<a href="/blog/ms-learn-vuejs-training/">來自微軟官方的 Vue.js 手把手入門教學</a><br> 註：教學提到的 <a href="/blog/unpkg-vue-next-broken/">unpkg.com/vue@next CDN 網址已失效</a>，要改成 <code>unpkg.com/vue@3</code></li> <li>Kuro 大人的<a href="https://book.vue.tw/CH1/1-1-introduction.html">重新認識 Vue.js</a>電子書<br> 基礎入門及元件系統章節也是採輕前端模式，比微軟的入門教學更完整深入，並且有介紹 <a href="https://book.vue.tw/CH1/1-1-introduction.html#vue-js-%E8%88%87-mvvm-%E6%A8%A1%E5%BC%8F">MVVM 概念</a>，可做為繼續向前推進的參考。</li></ul> <p>祝還掛事件串欄位的同學們早日體驗到 MVVM 的美妙開發方式，加入回不去的行列。</p> <p data-slug="vue-mvvm-tutorial" data-title-en="Vue.js MVVM tutorials" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/08/11/13/52/young-2631059_960_720.jpg#960#720">This article introduces how to use a script to load vue.js to write an MVVM webpage, enjoying a simple and easy development experience.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>有讀者提到：常聽人說「寫過 MVVM 網頁就回不去了」，想試試卻不知如何入門。</p> <p>看來，不少全端同學仍依賴 JavaScript / jQuery 掛事件串元素的傳統做法寫網頁，沒體驗過 MVVM 的美麗新世界。但當今前端框架(VAR, Vue.js、Angular、React.js)主流做法多需安裝 Node.js、npm 載程式庫、把網頁拆解成元件，經過編譯發佈才產生網頁，與傳統 HTML 網頁掛 .js 搞定的單純做法天差地別，陡峭的學習曲線讓人卻步。尤其是寫網頁只是全端攻城獅的眾多任務之一，需不需要投入大量心力重學一套全新的前端開發方法(然後幾年後可能整套換掉)，會是個好問題。</p> <p>如果你想維持在 HTML 載入 .js/.css，直接在 VSCode 寫 JavaScript 寫完網頁的簡單做法，又想用主流前端框架實現美妙的 MVVM，那 Vue.js 是你唯一的選擇。延伸閱讀：<a href="/blog/vue-3-release/">Vue 3.0 正式版 - 輕前端視角</a></p> <p>Vue.js 是一個漸進式框架，允許你像 jQuery 一樣 <code>&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;</code> 載入程式庫就開始使用，不用安裝任何開發軟體或套件，用記事本也能寫網頁。(當然，正常人會用 VSCode 啦)</p> <p>以下是一個簡單的 Vue.js MVVM 範例：<a href="%E7%B7%9A%E4%B8%8A%E5%B1%95%E7%A4%BA">https://output.jsbin.com/bejigen</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638534238792864553.gif"></p> <p>簡單的新增修改刪除資料維護，輸入欄位的變更即時反映在資料顯示，大家可以想想若用 jQuery 寫要怎麼實現？猜猜用 MVVM 做出上面的功能要寫幾行程式？</p> <p>答案是 JavaScript 連 HTML/CSS，不用 100 行。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Vue.js MVVM Demo&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body { font-size: 10pt; }
+.op {
+&gt; * {
+margin: 2px; height: 1.6em; box-sizing: border-box; vertical-align: middle;
+}
+}
+table {
+font-size: 9pt;
+width: 280px; border-collapse: collapse; margin-top: 12px;
+td,th { border: 1px solid gray; padding: 2px; text-align: center; }
+td:first-child { text-align: left; }
+th { background-color: #f0f0f0; }
+a { cursor: pointer; text-decoration: underline; color: blue; margin-right: 3px; }
+}
+pre { background-color: #eee; font-size: 9pt; margin-top: 12px; padding: 12px; width: 260px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div class="op"&gt;
+&lt;input v-model="editJob.job" placeholder="待辦事項"&gt;
+&lt;select v-model="editJob.catg"&gt;
+&lt;option v-for="catgOpt in catgOptions" :value="catgOpt"&gt;{{catgOpt}}&lt;/option&gt;
+&lt;/select&gt;
+&lt;button v-show="editJobIdx == -1" :disabled="!editJob.job" @click="addJob"&gt;新增&lt;/button&gt;
+&lt;button v-show="editJobIdx &gt; -1" :disabled="!editJob.job" @click="updateJob"&gt;確定&lt;/button&gt;
+&lt;/div&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;th width="120"&gt;待辦事項&lt;/th&gt;
+&lt;th width="50"&gt;類別&lt;/th&gt;
+&lt;th width="60"&gt;操作&lt;/th&gt;
+&lt;/tr&gt;
+&lt;tr v-for="(job, index) in jobs"&gt;
+&lt;td&gt;{{job.job}}&lt;/td&gt;
+&lt;td&gt;{{job.catg}}&lt;/td&gt;
+&lt;td&gt;
+&lt;a @click="editJob = job; editJobIdx = index"&gt;修改&lt;/a&gt;
+&lt;a @click="delJob(index)"&gt;刪除&lt;/a&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;pre&gt;{{jobs}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;script&gt;
+class Job {
+constructor(job, catg) {
+this.job = job;
+this.catg = catg;
+}
+}
+const app = Vue.createApp({
+data() {
+return {
+editJob: new Job('', '工作'),
+editJobIdx: -1,
+catgOptions: ['工作', '家庭', '休閒'],
+jobs: [
+new Job('X專案前端程式', '工作'),
+new Job('換排風扇', '家庭'),
+]
+}
+},
+methods: {
+reset() {
+this.editJob = new Job('', '工作');
+this.editJobIdx = -1;
+},
+addJob() {
+this.jobs.push(this.editJob);
+this.reset();
+},
+updateJob() {
+this.reset();
+},
+delJob(index) {
+this.jobs.splice(index, 1);
+}
+}
+});
+app.mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>如果你只會用 jQuery 寫網頁，上面的展示有讓你心動想試試 MVVM 但不知怎麼開始，以下有兩個輕前端 Vue.js 入門教學可以參考：</p> <ul><li>微軟官方的初學者教學：<a href="https://learn.microsoft.com/zh-tw/training/modules/vue-get-started/?WT.mc_id=DOP-MVP-37580">使用 Vue.js 邁出第一步 / 開始使用 Vue</a><br> 以初學者為對象，手把手式逐步教學，包含 VSCode、git、Live Server 預覽結果... 等實用前端開發技能，大推!<br> 我有為這套教學寫過筆記也可以參考：<a href="/blog/ms-learn-vuejs-training/">來自微軟官方的 Vue.js 手把手入門教學</a><br> 註：教學提到的 <a href="/blog/unpkg-vue-next-broken/">unpkg.com/vue@next CDN 網址已失效</a>，要改成 <code>unpkg.com/vue@3</code></li> <li>Kuro 大人的<a href="https://book.vue.tw/CH1/1-1-introduction.html">重新認識 Vue.js</a>電子書<br> 基礎入門及元件系統章節也是採輕前端模式，比微軟的入門教學更完整深入，並且有介紹 <a href="https://book.vue.tw/CH1/1-1-introduction.html#vue-js-%E8%88%87-mvvm-%E6%A8%A1%E5%BC%8F">MVVM 概念</a>，可做為繼續向前推進的參考。</li></ul> <p>祝還掛事件串欄位的同學們早日體驗到 MVVM 的美妙開發方式，加入回不去的行列。</p> <p data-slug="vue-mvvm-tutorial" data-title-en="Vue.js MVVM tutorials" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/08/11/13/52/young-2631059_960_720.jpg#960#720">This article introduces how to use a script to load vue.js to write an MVVM webpage, enjoying a simple and easy development experience.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>有讀者提到：常聽人說「寫過 MVVM 網頁就回不去了」，想試試卻不知如何入門。</p> <p>看來，不少全端同學仍依賴 JavaScript / jQuery 掛事件串元素的傳統做法寫網頁，沒體驗過 MVVM 的美麗新世界。但當今前端框架(VAR, Vue.js、Angular、React.js)主流做法多需安裝 Node.js、npm 載程式庫、把網頁拆解成元件，經過編譯發佈才產生網頁，與傳統 HTML 網頁掛 .js 搞定的單純做法天差地別，陡峭的學習曲線讓人卻步。尤其是寫網頁只是全端攻城獅的眾多任務之一，需不需要投入大量心力重學一套全新的前端開發方法(然後幾年後可能整套換掉)，會是個好問題。</p> <p>如果你想維持在 HTML 載入 .js/.css，直接在 VSCode 寫 JavaScript 寫完網頁的簡單做法，又想用主流前端框架實現美妙的 MVVM，那 Vue.js 是你唯一的選擇。延伸閱讀：<a href="/blog/vue-3-release/">Vue 3.0 正式版 - 輕前端視角</a></p> <p>Vue.js 是一個漸進式框架，允許你像 jQuery 一樣 <code>&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;</code> 載入程式庫就開始使用，不用安裝任何開發軟體或套件，用記事本也能寫網頁。(當然，正常人會用 VSCode 啦)</p> <p>以下是一個簡單的 Vue.js MVVM 範例：<a href="%E7%B7%9A%E4%B8%8A%E5%B1%95%E7%A4%BA">https://output.jsbin.com/bejigen</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638534238792864553.gif"></p> <p>簡單的新增修改刪除資料維護，輸入欄位的變更即時反映在資料顯示，大家可以想想若用 jQuery 寫要怎麼實現？猜猜用 MVVM 做出上面的功能要寫幾行程式？</p> <p>答案是 JavaScript 連 HTML/CSS，不用 100 行。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Vue.js MVVM Demo&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body { font-size: 10pt; }
+.op {
+&gt; * {
+margin: 2px; height: 1.6em; box-sizing: border-box; vertical-align: middle;
+}
+}
+table {
+font-size: 9pt;
+width: 280px; border-collapse: collapse; margin-top: 12px;
+td,th { border: 1px solid gray; padding: 2px; text-align: center; }
+td:first-child { text-align: left; }
+th { background-color: #f0f0f0; }
+a { cursor: pointer; text-decoration: underline; color: blue; margin-right: 3px; }
+}
+pre { background-color: #eee; font-size: 9pt; margin-top: 12px; padding: 12px; width: 260px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div class="op"&gt;
+&lt;input v-model="editJob.job" placeholder="待辦事項"&gt;
+&lt;select v-model="editJob.catg"&gt;
+&lt;option v-for="catgOpt in catgOptions" :value="catgOpt"&gt;{{catgOpt}}&lt;/option&gt;
+&lt;/select&gt;
+&lt;button v-show="editJobIdx == -1" :disabled="!editJob.job" @click="addJob"&gt;新增&lt;/button&gt;
+&lt;button v-show="editJobIdx &gt; -1" :disabled="!editJob.job" @click="updateJob"&gt;確定&lt;/button&gt;
+&lt;/div&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;th width="120"&gt;待辦事項&lt;/th&gt;
+&lt;th width="50"&gt;類別&lt;/th&gt;
+&lt;th width="60"&gt;操作&lt;/th&gt;
+&lt;/tr&gt;
+&lt;tr v-for="(job, index) in jobs"&gt;
+&lt;td&gt;{{job.job}}&lt;/td&gt;
+&lt;td&gt;{{job.catg}}&lt;/td&gt;
+&lt;td&gt;
+&lt;a @click="editJob = job; editJobIdx = index"&gt;修改&lt;/a&gt;
+&lt;a @click="delJob(index)"&gt;刪除&lt;/a&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;pre&gt;{{jobs}}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;script&gt;
+class Job {
+constructor(job, catg) {
+this.job = job;
+this.catg = catg;
+}
+}
+const app = Vue.createApp({
+data() {
+return {
+editJob: new Job('', '工作'),
+editJobIdx: -1,
+catgOptions: ['工作', '家庭', '休閒'],
+jobs: [
+new Job('X專案前端程式', '工作'),
+new Job('換排風扇', '家庭'),
+]
+}
+},
+methods: {
+reset() {
+this.editJob = new Job('', '工作');
+this.editJobIdx = -1;
+},
+addJob() {
+this.jobs.push(this.editJob);
+this.reset();
+},
+updateJob() {
+this.reset();
+},
+delJob(index) {
+this.jobs.splice(index, 1);
+}
+}
+});
+app.mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>如果你只會用 jQuery 寫網頁，上面的展示有讓你心動想試試 MVVM 但不知怎麼開始，以下有兩個輕前端 Vue.js 入門教學可以參考：</p> <ul><li>微軟官方的初學者教學：<a href="https://learn.microsoft.com/zh-tw/training/modules/vue-get-started/?WT.mc_id=DOP-MVP-37580">使用 Vue.js 邁出第一步 / 開始使用 Vue</a><br> 以初學者為對象，手把手式逐步教學，包含 VSCode、git、Live Server 預覽結果... 等實用前端開發技能，大推!<br> 我有為這套教學寫過筆記也可以參考：<a href="/blog/ms-learn-vuejs-training/">來自微軟官方的 Vue.js 手把手入門教學</a><br> 註：教學提到的 <a href="/blog/unpkg-vue-next-broken/">unpkg.com/vue@next CDN 網址已失效</a>，要改成 <code>unpkg.com/vue@3</code></li> <li>Kuro 大人的<a href="https://book.vue.tw/CH1/1-1-introduction.html">重新認識 Vue.js</a>電子書<br> 基礎入門及元件系統章節也是採輕前端模式，比微軟的入門教學更完整深入，並且有介紹 <a href="https://book.vue.tw/CH1/1-1-introduction.html#vue-js-%E8%88%87-mvvm-%E6%A8%A1%E5%BC%8F">MVVM 概念</a>，可做為繼續向前推進的參考。</li></ul> <p>祝還掛事件串欄位的同學們早日體驗到 MVVM 的美妙開發方式，加入回不去的行列。</p> <p data-slug="vue-mvvm-tutorial" data-title-en="Vue.js MVVM tutorials" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/08/11/13/52/young-2631059_960_720.jpg#960#720">This article introduces how to use a script to load vue.js to write an MVVM webpage, enjoying a simple and easy development experience.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638534238792864553.gif"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638534238792864553.gif" medium="image"/>
+    <pubDate>Sat, 08 Jun 2024 06:10:01 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【茶包射手日記】JPG 照片上傳到網站後變亮且鮮豔到失真？]]></title>
     <link>https://blog.darkthread.net/blog/cmyk-jpg-issue/</link>
     <itunes:title><![CDATA[【茶包射手日記】JPG 照片上傳到網站後變亮且鮮豔到失真？]]></itunes:title>
@@ -1877,20 +2162,5 @@ document.querySelector('#result').textContent = json;
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638520755170430623.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638520755170430623.png" medium="image"/>
     <pubDate>Thu, 23 May 2024 15:38:59 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Build 2024 開發者大會雜記 1 - Keynote 關鍵字整理]]></title>
-    <link>https://blog.darkthread.net/blog/build-2024-notes-1/</link>
-    <itunes:title><![CDATA[Build 2024 開發者大會雜記 1 - Keynote 關鍵字整理]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>繼上週 OpenAI 發佈 GPT-4o、Google I/O 開發者大會，這幾天輪到<a href="https://news.microsoft.com/zh-tw/microsoft-build-2024/?WT.mc_id=DOP-MVP-37580">微軟 Build 2024 開發者大會</a> (呃... 開發者會不會太忙了點？)，一如預期，焦點全在 AI，而且火力全開。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638519921406037266.jpg"></p> <p>我只先看了微軟 CEO Satya 的 Keynote，也不出意外，滿滿沒學過、不熟的新名詞、關鍵字連發，看影片全程差不多是這種感覺：</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig1_637966527299619184.jpg"></p> <p>這篇且讓我緩一緩，先整理我個人印象深刻的一些關鍵字：</p> <ol><li><p><a href="https://learn.microsoft.com/zh-tw/copilot/overview?WT.mc_id=DOP-MVP-37580">Microsoft Copilot</a> - 就是原本的 Bing Chat，現在 Microsoft Copilot 成為一個共用服務，支持 <a href="https://copilot.microsoft.com">https://copilot.microsoft.com</a>、<a href="https://www.bing.com/chat">https://www.bing.com/chat</a>、 Copilot Microsoft Edge (Edge 右上角點開的右側視窗)、 <a href="https://support.microsoft.com/zh-tw/windows/%E6%AD%A1%E8%BF%8E%E4%BD%BF%E7%94%A8-windows-%E4%B8%AD%E7%9A%84-copilot-675708af-8c16-4675-afeb-85a5a476ccb0?WT.mc_id=DOP-MVP-37580">Windows Copilot</a> (新版 Windows 工作列 Copilot 圖示點開)運作。</p> </li> <li><p><a href="https://developer.microsoft.com/zh-tw/copilot?WT.mc_id=DOP-MVP-37580">Copilot Stack</a> (Copilot 開發堆疊) - 供開發人員打造 Copilot 相關應用的技術平台與工具，從 Low Code 到寫 Code 寫到爽都有相關產品，另外 VSCode 跟<a href="/blog/github-copilot-demo/">魔法武器 Github Copilot</a> 照例還是 Stack 的主力擔當之一。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638519921407723721.png"></p> </li> <li><p><a href="https://zh.wikipedia.org/wiki/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%8A%A0%E9%80%9F%E5%99%A8">NPU</a> - Neural Processing Unit，神經處理器，未來 CPU 會內建用於 AI 計算的專用處理器，可取代 GPU 處理一些輕量級 AI 運算，算力比不上 GPU，但 NPU 耗能低且內建，適合一些不需要牛刀的情境。</p> </li> <li><p>Copilot+ PC - 前陣子喊得震天價響的 AI PC，算是有較具體的樣貌了，可簡單定義成搭載 NPU，可配合 Windows 在本機跑小模型及 AI 運算的電腦主機。</p> </li> <li><p>Phi Silica - 微軟推出自家小型語言模型(SLM) Phi，Phi Silica 是最小版本，只有 3.3B 參數(33 億)，由於規模小，在 Copilot+ PC 也能順順跑，每秒生成約 27 個 Token。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/overview?WT.mc_id=DOP-MVP-37580">Windows Copilot Runtime</a>：簡單說，就是為 Windows 加入原生的 AI 支援，包含 AI Frameworks + Toolchains、Windows Copilot Library + On-device models、Application + Experiences 三塊。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/overview?WT.mc_id=DOP-MVP-37580#windows-copilot-runtime-and-windows-copilot-library">Windows Copilot Library</a> - 提供一堆 AI 功能的 API，如：</p> <ul><li>Studio Effects - 為相機及音訊加入背景效果、眼部接觸校正、自動框架、語音焦點、模糊、光源和濾鏡(使用本機 NPU 加速運算)</li> <li>Recall - 記錄你在裝置上的活動，保留擷圖方便事後回顧查詢 (註：有人擔心隱私外流疑慮)</li> <li>Phi Silica - 呼叫 Phi 語言模型進行自然語言處理</li> <li>Text Recognition: 光學字元識別，圖像轉文字</li> <li>即時字幕翻譯</li></ul> <p>今年稍後還會再補上 RAG、向量 Embedding、文字摘要等功能，可使用本機模型完成(支援 40 多種地端模型)，不需連雲端服務。</p> </li> <li><p>AI Frameworks + Toolchains 方面，Windows 會直接內建 PyTorch 支援跟 Web Neural Network。<br> <a href="https://learn.microsoft.com/zh-tw/windows/ai/directml/webnn-overview?WT.mc_id=DOP-MVP-37580">Web Neural Network, WebNN</a> 是一套新的 Web API 標準，讓網頁應用程式可以利用 CPU、GPU、NPU 來加速神經網路運算。<br> <a href="https://zh.wikipedia.org/zh-tw/PyTorch">PyTorch</a> 則是目前主流的 Python 機器學習程式庫。<br> Windows 透過 DirectML 支援二者充分發揮 CPU/GPU/NPU 的效能。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/directml/dml?WT.mc_id=DOP-MVP-37580">DirectML</a> 是 Windows 提供的低階機器學習 API，屬於低階硬體抽象層，可透過它在任何 DirectX 12 相容 GPU 執行機器學習相關運算。(未來會加入 NPU)</p> </li> <li><p><a href="https://github.blog/2024-05-21-introducing-github-copilot-extensions/">Github Copiot Extension</a> - 企業可客製化 Github Copilot，整合自家資料庫、服務，在 VSCode 裡做完大小事。</p> </li> <li><p><a href="https://www.microsoft.com/zh-tw/microsoft-copilot/microsoft-copilot-studio?WT.mc_id=DOP-MVP-37580">Copilot Studio</a> - Low Code/No Code 工具，依需求設計專屬 AI 助理(Agent)。</p> </li> <li><p><a href="https://www.youtube.com/watch?v=4k2T5sfGIP4">Team Copilot</a> - 與 Teams 整合，可以擔任會議主持人、管理議程、記錄討論事項。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/fabric/get-started/microsoft-fabric-overview?WT.mc_id=DOP-MVP-37580">Microsoft Fabric</a> - 雲端資料分析平台，新增 Real-Time Intelligence 服務。</p> </li></ol> <p data-slug="build-2024-notes-1" data-fbimg="https://i.imgur.com/fqBxTke.png#2049#1097"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>繼上週 OpenAI 發佈 GPT-4o、Google I/O 開發者大會，這幾天輪到<a href="https://news.microsoft.com/zh-tw/microsoft-build-2024/?WT.mc_id=DOP-MVP-37580">微軟 Build 2024 開發者大會</a> (呃... 開發者會不會太忙了點？)，一如預期，焦點全在 AI，而且火力全開。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638519921406037266.jpg"></p> <p>我只先看了微軟 CEO Satya 的 Keynote，也不出意外，滿滿沒學過、不熟的新名詞、關鍵字連發，看影片全程差不多是這種感覺：</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig1_637966527299619184.jpg"></p> <p>這篇且讓我緩一緩，先整理我個人印象深刻的一些關鍵字：</p> <ol><li><p><a href="https://learn.microsoft.com/zh-tw/copilot/overview?WT.mc_id=DOP-MVP-37580">Microsoft Copilot</a> - 就是原本的 Bing Chat，現在 Microsoft Copilot 成為一個共用服務，支持 <a href="https://copilot.microsoft.com">https://copilot.microsoft.com</a>、<a href="https://www.bing.com/chat">https://www.bing.com/chat</a>、 Copilot Microsoft Edge (Edge 右上角點開的右側視窗)、 <a href="https://support.microsoft.com/zh-tw/windows/%E6%AD%A1%E8%BF%8E%E4%BD%BF%E7%94%A8-windows-%E4%B8%AD%E7%9A%84-copilot-675708af-8c16-4675-afeb-85a5a476ccb0?WT.mc_id=DOP-MVP-37580">Windows Copilot</a> (新版 Windows 工作列 Copilot 圖示點開)運作。</p> </li> <li><p><a href="https://developer.microsoft.com/zh-tw/copilot?WT.mc_id=DOP-MVP-37580">Copilot Stack</a> (Copilot 開發堆疊) - 供開發人員打造 Copilot 相關應用的技術平台與工具，從 Low Code 到寫 Code 寫到爽都有相關產品，另外 VSCode 跟<a href="/blog/github-copilot-demo/">魔法武器 Github Copilot</a> 照例還是 Stack 的主力擔當之一。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638519921407723721.png"></p> </li> <li><p><a href="https://zh.wikipedia.org/wiki/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%8A%A0%E9%80%9F%E5%99%A8">NPU</a> - Neural Processing Unit，神經處理器，未來 CPU 會內建用於 AI 計算的專用處理器，可取代 GPU 處理一些輕量級 AI 運算，算力比不上 GPU，但 NPU 耗能低且內建，適合一些不需要牛刀的情境。</p> </li> <li><p>Copilot+ PC - 前陣子喊得震天價響的 AI PC，算是有較具體的樣貌了，可簡單定義成搭載 NPU，可配合 Windows 在本機跑小模型及 AI 運算的電腦主機。</p> </li> <li><p>Phi Silica - 微軟推出自家小型語言模型(SLM) Phi，Phi Silica 是最小版本，只有 3.3B 參數(33 億)，由於規模小，在 Copilot+ PC 也能順順跑，每秒生成約 27 個 Token。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/overview?WT.mc_id=DOP-MVP-37580">Windows Copilot Runtime</a>：簡單說，就是為 Windows 加入原生的 AI 支援，包含 AI Frameworks + Toolchains、Windows Copilot Library + On-device models、Application + Experiences 三塊。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/overview?WT.mc_id=DOP-MVP-37580#windows-copilot-runtime-and-windows-copilot-library">Windows Copilot Library</a> - 提供一堆 AI 功能的 API，如：</p> <ul><li>Studio Effects - 為相機及音訊加入背景效果、眼部接觸校正、自動框架、語音焦點、模糊、光源和濾鏡(使用本機 NPU 加速運算)</li> <li>Recall - 記錄你在裝置上的活動，保留擷圖方便事後回顧查詢 (註：有人擔心隱私外流疑慮)</li> <li>Phi Silica - 呼叫 Phi 語言模型進行自然語言處理</li> <li>Text Recognition: 光學字元識別，圖像轉文字</li> <li>即時字幕翻譯</li></ul> <p>今年稍後還會再補上 RAG、向量 Embedding、文字摘要等功能，可使用本機模型完成(支援 40 多種地端模型)，不需連雲端服務。</p> </li> <li><p>AI Frameworks + Toolchains 方面，Windows 會直接內建 PyTorch 支援跟 Web Neural Network。<br> <a href="https://learn.microsoft.com/zh-tw/windows/ai/directml/webnn-overview?WT.mc_id=DOP-MVP-37580">Web Neural Network, WebNN</a> 是一套新的 Web API 標準，讓網頁應用程式可以利用 CPU、GPU、NPU 來加速神經網路運算。<br> <a href="https://zh.wikipedia.org/zh-tw/PyTorch">PyTorch</a> 則是目前主流的 Python 機器學習程式庫。<br> Windows 透過 DirectML 支援二者充分發揮 CPU/GPU/NPU 的效能。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/directml/dml?WT.mc_id=DOP-MVP-37580">DirectML</a> 是 Windows 提供的低階機器學習 API，屬於低階硬體抽象層，可透過它在任何 DirectX 12 相容 GPU 執行機器學習相關運算。(未來會加入 NPU)</p> </li> <li><p><a href="https://github.blog/2024-05-21-introducing-github-copilot-extensions/">Github Copiot Extension</a> - 企業可客製化 Github Copilot，整合自家資料庫、服務，在 VSCode 裡做完大小事。</p> </li> <li><p><a href="https://www.microsoft.com/zh-tw/microsoft-copilot/microsoft-copilot-studio?WT.mc_id=DOP-MVP-37580">Copilot Studio</a> - Low Code/No Code 工具，依需求設計專屬 AI 助理(Agent)。</p> </li> <li><p><a href="https://www.youtube.com/watch?v=4k2T5sfGIP4">Team Copilot</a> - 與 Teams 整合，可以擔任會議主持人、管理議程、記錄討論事項。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/fabric/get-started/microsoft-fabric-overview?WT.mc_id=DOP-MVP-37580">Microsoft Fabric</a> - 雲端資料分析平台，新增 Real-Time Intelligence 服務。</p> </li></ol> <p data-slug="build-2024-notes-1" data-fbimg="https://i.imgur.com/fqBxTke.png#2049#1097"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>繼上週 OpenAI 發佈 GPT-4o、Google I/O 開發者大會，這幾天輪到<a href="https://news.microsoft.com/zh-tw/microsoft-build-2024/?WT.mc_id=DOP-MVP-37580">微軟 Build 2024 開發者大會</a> (呃... 開發者會不會太忙了點？)，一如預期，焦點全在 AI，而且火力全開。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638519921406037266.jpg"></p> <p>我只先看了微軟 CEO Satya 的 Keynote，也不出意外，滿滿沒學過、不熟的新名詞、關鍵字連發，看影片全程差不多是這種感覺：</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig1_637966527299619184.jpg"></p> <p>這篇且讓我緩一緩，先整理我個人印象深刻的一些關鍵字：</p> <ol><li><p><a href="https://learn.microsoft.com/zh-tw/copilot/overview?WT.mc_id=DOP-MVP-37580">Microsoft Copilot</a> - 就是原本的 Bing Chat，現在 Microsoft Copilot 成為一個共用服務，支持 <a href="https://copilot.microsoft.com">https://copilot.microsoft.com</a>、<a href="https://www.bing.com/chat">https://www.bing.com/chat</a>、 Copilot Microsoft Edge (Edge 右上角點開的右側視窗)、 <a href="https://support.microsoft.com/zh-tw/windows/%E6%AD%A1%E8%BF%8E%E4%BD%BF%E7%94%A8-windows-%E4%B8%AD%E7%9A%84-copilot-675708af-8c16-4675-afeb-85a5a476ccb0?WT.mc_id=DOP-MVP-37580">Windows Copilot</a> (新版 Windows 工作列 Copilot 圖示點開)運作。</p> </li> <li><p><a href="https://developer.microsoft.com/zh-tw/copilot?WT.mc_id=DOP-MVP-37580">Copilot Stack</a> (Copilot 開發堆疊) - 供開發人員打造 Copilot 相關應用的技術平台與工具，從 Low Code 到寫 Code 寫到爽都有相關產品，另外 VSCode 跟<a href="/blog/github-copilot-demo/">魔法武器 Github Copilot</a> 照例還是 Stack 的主力擔當之一。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638519921407723721.png"></p> </li> <li><p><a href="https://zh.wikipedia.org/wiki/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%8A%A0%E9%80%9F%E5%99%A8">NPU</a> - Neural Processing Unit，神經處理器，未來 CPU 會內建用於 AI 計算的專用處理器，可取代 GPU 處理一些輕量級 AI 運算，算力比不上 GPU，但 NPU 耗能低且內建，適合一些不需要牛刀的情境。</p> </li> <li><p>Copilot+ PC - 前陣子喊得震天價響的 AI PC，算是有較具體的樣貌了，可簡單定義成搭載 NPU，可配合 Windows 在本機跑小模型及 AI 運算的電腦主機。</p> </li> <li><p>Phi Silica - 微軟推出自家小型語言模型(SLM) Phi，Phi Silica 是最小版本，只有 3.3B 參數(33 億)，由於規模小，在 Copilot+ PC 也能順順跑，每秒生成約 27 個 Token。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/overview?WT.mc_id=DOP-MVP-37580">Windows Copilot Runtime</a>：簡單說，就是為 Windows 加入原生的 AI 支援，包含 AI Frameworks + Toolchains、Windows Copilot Library + On-device models、Application + Experiences 三塊。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/overview?WT.mc_id=DOP-MVP-37580#windows-copilot-runtime-and-windows-copilot-library">Windows Copilot Library</a> - 提供一堆 AI 功能的 API，如：</p> <ul><li>Studio Effects - 為相機及音訊加入背景效果、眼部接觸校正、自動框架、語音焦點、模糊、光源和濾鏡(使用本機 NPU 加速運算)</li> <li>Recall - 記錄你在裝置上的活動，保留擷圖方便事後回顧查詢 (註：有人擔心隱私外流疑慮)</li> <li>Phi Silica - 呼叫 Phi 語言模型進行自然語言處理</li> <li>Text Recognition: 光學字元識別，圖像轉文字</li> <li>即時字幕翻譯</li></ul> <p>今年稍後還會再補上 RAG、向量 Embedding、文字摘要等功能，可使用本機模型完成(支援 40 多種地端模型)，不需連雲端服務。</p> </li> <li><p>AI Frameworks + Toolchains 方面，Windows 會直接內建 PyTorch 支援跟 Web Neural Network。<br> <a href="https://learn.microsoft.com/zh-tw/windows/ai/directml/webnn-overview?WT.mc_id=DOP-MVP-37580">Web Neural Network, WebNN</a> 是一套新的 Web API 標準，讓網頁應用程式可以利用 CPU、GPU、NPU 來加速神經網路運算。<br> <a href="https://zh.wikipedia.org/zh-tw/PyTorch">PyTorch</a> 則是目前主流的 Python 機器學習程式庫。<br> Windows 透過 DirectML 支援二者充分發揮 CPU/GPU/NPU 的效能。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/windows/ai/directml/dml?WT.mc_id=DOP-MVP-37580">DirectML</a> 是 Windows 提供的低階機器學習 API，屬於低階硬體抽象層，可透過它在任何 DirectX 12 相容 GPU 執行機器學習相關運算。(未來會加入 NPU)</p> </li> <li><p><a href="https://github.blog/2024-05-21-introducing-github-copilot-extensions/">Github Copiot Extension</a> - 企業可客製化 Github Copilot，整合自家資料庫、服務，在 VSCode 裡做完大小事。</p> </li> <li><p><a href="https://www.microsoft.com/zh-tw/microsoft-copilot/microsoft-copilot-studio?WT.mc_id=DOP-MVP-37580">Copilot Studio</a> - Low Code/No Code 工具，依需求設計專屬 AI 助理(Agent)。</p> </li> <li><p><a href="https://www.youtube.com/watch?v=4k2T5sfGIP4">Team Copilot</a> - 與 Teams 整合，可以擔任會議主持人、管理議程、記錄討論事項。</p> </li> <li><p><a href="https://learn.microsoft.com/zh-tw/fabric/get-started/microsoft-fabric-overview?WT.mc_id=DOP-MVP-37580">Microsoft Fabric</a> - 雲端資料分析平台，新增 Real-Time Intelligence 服務。</p> </li></ol> <p data-slug="build-2024-notes-1" data-fbimg="https://i.imgur.com/fqBxTke.png#2049#1097"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638519921406037266.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638519921406037266.jpg" medium="image"/>
-    <pubDate>Wed, 22 May 2024 16:24:06 GMT</pubDate>
   </item></channel>
 </rss>
