@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/210/800/800.jpg?hmac=oEh7MEs07PUiz6xaG2p220vaa0crOu3q3rUcKmjsdtY</url>
+      <url>https://fastly.picsum.photos/id/669/800/800.jpg?hmac=LteqK1ZD8dOyQmRTDNqdC4k6ySuo9zMjdHoh2Z2AbdU</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,74 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/210/800/800.jpg?hmac=oEh7MEs07PUiz6xaG2p220vaa0crOu3q3rUcKmjsdtY"/>
+    <itunes:image href="https://fastly.picsum.photos/id/669/800/800.jpg?hmac=LteqK1ZD8dOyQmRTDNqdC4k6ySuo9zMjdHoh2Z2AbdU"/>
 <item>
+    <title><![CDATA[給Linux螢幕進行色彩管理，套用ICC設定檔，並調整螢幕色溫]]></title>
+    <link>https://ivonblog.com/posts/linux-icc-profiles/</link>
+    <itunes:title><![CDATA[給Linux螢幕進行色彩管理，套用ICC設定檔，並調整螢幕色溫]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-icc-profiles/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0d7c7c17f4.webp"></a></p>
+<p>Linux系統本身是支援色彩管理的，至於應用程式支援度則不一定，主流瀏覽器、GIMP、CUPS印表機是支援色彩管理的，看圖軟體Gwenview也支援讀取內嵌icc設定檔的圖片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3178f81e71.webp"><p>通常色彩管理會用到描述色彩轉換情況的ICC設定檔(ICC Profiles)，附檔名為.icm，那麼本文就來討論如何於Linux使用ICC。</p><h2>1. 前置條件<span><a href="#1-%E5%89%8D%E7%BD%AE%E6%A2%9D%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>撰文當下，GNOME最新版本45、KDE最新版本6.0.5</p><p>要使用色彩管理請使用X11協定。</p><p>Wayland色彩管理不成熟，順帶一提Linux X11根本不支援HDR。未來Wayland的發展有望改善Linux X11根本不支援HDR的問題。2023年Wayland的新色彩管理協定草案已經送出！</p><h2>2. 取得ICC設定檔<span><a href="#2-%E5%8F%96%E5%BE%97icc%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>試試使用現有ICC檔案。可以從Windows得到.icm檔案，資料夾位於<code>C:\Windows\System32\spool\drivers\color</code></p><p>順帶一提<a href="https://www.notebookcheck.net/" target="_blank">
+NotebookCheck網站</a>在寫評測的時候也會附上他們校色過的.icm檔供下載，特別適合筆電用戶參考。</p><p>如果要絕對準確度，就是在Linux下進行校色了。<a href="https://displaycal.net/" target="_blank">
+DisplayCAL</a>有Linux版，可以搭配校色器使用，藉此產生準確的ICC設定檔。</p><h2>3. 載入ICC設定檔<span><a href="#3-%E8%BC%89%E5%85%A5icc%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>ICC設定檔以<code>.icm</code>結尾，請放到<code>/usr/local/share/color/icc</code></p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo cp /home/user/N156HCE.icm /usr/local/share/color/icc
+</span></span></code></pre></div><p>Linux的ICC設定檔是交由桌面環境的常駐程式載入</p><p>比如GNOME是<code>gnome-color-manager</code></p><p>KDE為<code>kde-colord</code></p><p>其他桌面環境可以用<code>xcalib</code></p><p>這樣子在系統設定的「色彩管理」介面就可以調整螢幕的ICC設定檔。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa8b1dabf5.webp"><figcaption>KDE</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4eea12fe5d.webp"><figcaption>GNOME</figcaption><hr><p>如果系統選單無法讓你挑icc檔案，就用colormgr指令改</p><p>使用colormgr指令列出螢幕ID</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr get-devices
+</span></span></code></pre></div><p>列出可用ICC設定檔ID。ID為一長串英數組合</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr get-profiles
+</span></span></code></pre></div><p>再給螢幕新增ICC設定檔</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr device-add-profile <span>"xrandr-Chimei Innolux Corporation"</span> <span>"icc-0e818279fc2a0a06ba8adb7c1b11b37d"</span>
+</span></span></code></pre></div><p>然後設定該ICC設定檔為預設</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr device-make-profile-default <span>"xrandr-Chimei Innolux Corporation"</span> <span>"icc-0e818279fc2a0a06ba8adb7c1b11b37d"</span>
+</span></span></code></pre></div><h2>4. 附註：調整螢幕色溫、Gamma值、對比度<span><a href="#4-%E9%99%84%E8%A8%BB%E8%AA%BF%E6%95%B4%E8%9E%A2%E5%B9%95%E8%89%B2%E6%BA%ABgamma%E5%80%BC%E5%B0%8D%E6%AF%94%E5%BA%A6" aria-label="定位點">#</a></span></h2><p><a href="https://github.com/jonls/redshift" target="_blank">Redshift</a>工具可以調整色溫，從1000K到25000K都有，還有隨地理位置自動調整達成夜間光線的效果。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>redshift -P -O <span>5500</span>
+</span></span></code></pre></div><p><a href="https://wiki.archlinux.org/title/Xrandr" target="_blank">xrandr</a>工具包辦了對比度、Gamma值、亮度、RGB動態範圍的設定。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 列出螢幕</span>
+</span></span><span><span>xrandr --current
+</span></span><span><span>
+</span></span><span><span><span># 調整eDP-1螢幕的Gamma值與亮度</span>
+</span></span><span><span>xrandr --output eDP-1 --gamma 1:1:1 --brightness 1.0
+</span></span><span><span>
+</span></span><span><span><span># 調整RGB動態範圍</span>
+</span></span><span><span>xrandr --output eDP-1 --set <span>"Broadcast RGB"</span> <span>"Full"</span>
+</span></span></code></pre></div><p>KDE的系統設定裡面也有Gamma與RGB顏色的調整選項。</p><p>如果Linux使用Nvidia閉源驅動，則Nvidia Settings裡面也可以調螢幕的亮度與對比度。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/ICC_profiles" target="_blank">ICC Porfiles - Arch Wiki</a></li><li><a href="https://help.ubuntu.com/stable/ubuntu-help/color-howtoimport.html.en" target="_blank">How do I import color profiles? - Ubuntu Help</a></li><li>2023年9月23日 <a href="https://www.phoronix.com/news/Wayland-CM-Weston" target="_blank">Wayland Color Management Protocol Posted For Weston</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-icc-profiles/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0d7c7c17f4.webp"></a></p>
+<p>Linux系統本身是支援色彩管理的，至於應用程式支援度則不一定，主流瀏覽器、GIMP、CUPS印表機是支援色彩管理的，看圖軟體Gwenview也支援讀取內嵌icc設定檔的圖片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3178f81e71.webp"><p>通常色彩管理會用到描述色彩轉換情況的ICC設定檔(ICC Profiles)，附檔名為.icm，那麼本文就來討論如何於Linux使用ICC。</p><h2>1. 前置條件<span><a href="#1-%E5%89%8D%E7%BD%AE%E6%A2%9D%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>撰文當下，GNOME最新版本45、KDE最新版本6.0.5</p><p>要使用色彩管理請使用X11協定。</p><p>Wayland色彩管理不成熟，順帶一提Linux X11根本不支援HDR。未來Wayland的發展有望改善Linux X11根本不支援HDR的問題。2023年Wayland的新色彩管理協定草案已經送出！</p><h2>2. 取得ICC設定檔<span><a href="#2-%E5%8F%96%E5%BE%97icc%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>試試使用現有ICC檔案。可以從Windows得到.icm檔案，資料夾位於<code>C:\Windows\System32\spool\drivers\color</code></p><p>順帶一提<a href="https://www.notebookcheck.net/" target="_blank">
+NotebookCheck網站</a>在寫評測的時候也會附上他們校色過的.icm檔供下載，特別適合筆電用戶參考。</p><p>如果要絕對準確度，就是在Linux下進行校色了。<a href="https://displaycal.net/" target="_blank">
+DisplayCAL</a>有Linux版，可以搭配校色器使用，藉此產生準確的ICC設定檔。</p><h2>3. 載入ICC設定檔<span><a href="#3-%E8%BC%89%E5%85%A5icc%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>ICC設定檔以<code>.icm</code>結尾，請放到<code>/usr/local/share/color/icc</code></p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo cp /home/user/N156HCE.icm /usr/local/share/color/icc
+</span></span></code></pre></div><p>Linux的ICC設定檔是交由桌面環境的常駐程式載入</p><p>比如GNOME是<code>gnome-color-manager</code></p><p>KDE為<code>kde-colord</code></p><p>其他桌面環境可以用<code>xcalib</code></p><p>這樣子在系統設定的「色彩管理」介面就可以調整螢幕的ICC設定檔。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa8b1dabf5.webp"><figcaption>KDE</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4eea12fe5d.webp"><figcaption>GNOME</figcaption><hr><p>如果系統選單無法讓你挑icc檔案，就用colormgr指令改</p><p>使用colormgr指令列出螢幕ID</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr get-devices
+</span></span></code></pre></div><p>列出可用ICC設定檔ID。ID為一長串英數組合</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr get-profiles
+</span></span></code></pre></div><p>再給螢幕新增ICC設定檔</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr device-add-profile <span>"xrandr-Chimei Innolux Corporation"</span> <span>"icc-0e818279fc2a0a06ba8adb7c1b11b37d"</span>
+</span></span></code></pre></div><p>然後設定該ICC設定檔為預設</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr device-make-profile-default <span>"xrandr-Chimei Innolux Corporation"</span> <span>"icc-0e818279fc2a0a06ba8adb7c1b11b37d"</span>
+</span></span></code></pre></div><h2>4. 附註：調整螢幕色溫、Gamma值、對比度<span><a href="#4-%E9%99%84%E8%A8%BB%E8%AA%BF%E6%95%B4%E8%9E%A2%E5%B9%95%E8%89%B2%E6%BA%ABgamma%E5%80%BC%E5%B0%8D%E6%AF%94%E5%BA%A6" aria-label="定位點">#</a></span></h2><p><a href="https://github.com/jonls/redshift" target="_blank">Redshift</a>工具可以調整色溫，從1000K到25000K都有，還有隨地理位置自動調整達成夜間光線的效果。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>redshift -P -O <span>5500</span>
+</span></span></code></pre></div><p><a href="https://wiki.archlinux.org/title/Xrandr" target="_blank">xrandr</a>工具包辦了對比度、Gamma值、亮度、RGB動態範圍的設定。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 列出螢幕</span>
+</span></span><span><span>xrandr --current
+</span></span><span><span>
+</span></span><span><span><span># 調整eDP-1螢幕的Gamma值與亮度</span>
+</span></span><span><span>xrandr --output eDP-1 --gamma 1:1:1 --brightness 1.0
+</span></span><span><span>
+</span></span><span><span><span># 調整RGB動態範圍</span>
+</span></span><span><span>xrandr --output eDP-1 --set <span>"Broadcast RGB"</span> <span>"Full"</span>
+</span></span></code></pre></div><p>KDE的系統設定裡面也有Gamma與RGB顏色的調整選項。</p><p>如果Linux使用Nvidia閉源驅動，則Nvidia Settings裡面也可以調螢幕的亮度與對比度。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/ICC_profiles" target="_blank">ICC Porfiles - Arch Wiki</a></li><li><a href="https://help.ubuntu.com/stable/ubuntu-help/color-howtoimport.html.en" target="_blank">How do I import color profiles? - Ubuntu Help</a></li><li>2023年9月23日 <a href="https://www.phoronix.com/news/Wayland-CM-Weston" target="_blank">Wayland Color Management Protocol Posted For Weston</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/linux-icc-profiles/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0d7c7c17f4.webp"></a></p>
+<p>Linux系統本身是支援色彩管理的，至於應用程式支援度則不一定，主流瀏覽器、GIMP、CUPS印表機是支援色彩管理的，看圖軟體Gwenview也支援讀取內嵌icc設定檔的圖片。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3178f81e71.webp"><p>通常色彩管理會用到描述色彩轉換情況的ICC設定檔(ICC Profiles)，附檔名為.icm，那麼本文就來討論如何於Linux使用ICC。</p><h2>1. 前置條件<span><a href="#1-%E5%89%8D%E7%BD%AE%E6%A2%9D%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>撰文當下，GNOME最新版本45、KDE最新版本6.0.5</p><p>要使用色彩管理請使用X11協定。</p><p>Wayland色彩管理不成熟，順帶一提Linux X11根本不支援HDR。未來Wayland的發展有望改善Linux X11根本不支援HDR的問題。2023年Wayland的新色彩管理協定草案已經送出！</p><h2>2. 取得ICC設定檔<span><a href="#2-%E5%8F%96%E5%BE%97icc%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>試試使用現有ICC檔案。可以從Windows得到.icm檔案，資料夾位於<code>C:\Windows\System32\spool\drivers\color</code></p><p>順帶一提<a href="https://www.notebookcheck.net/" target="_blank">
+NotebookCheck網站</a>在寫評測的時候也會附上他們校色過的.icm檔供下載，特別適合筆電用戶參考。</p><p>如果要絕對準確度，就是在Linux下進行校色了。<a href="https://displaycal.net/" target="_blank">
+DisplayCAL</a>有Linux版，可以搭配校色器使用，藉此產生準確的ICC設定檔。</p><h2>3. 載入ICC設定檔<span><a href="#3-%E8%BC%89%E5%85%A5icc%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>ICC設定檔以<code>.icm</code>結尾，請放到<code>/usr/local/share/color/icc</code></p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo cp /home/user/N156HCE.icm /usr/local/share/color/icc
+</span></span></code></pre></div><p>Linux的ICC設定檔是交由桌面環境的常駐程式載入</p><p>比如GNOME是<code>gnome-color-manager</code></p><p>KDE為<code>kde-colord</code></p><p>其他桌面環境可以用<code>xcalib</code></p><p>這樣子在系統設定的「色彩管理」介面就可以調整螢幕的ICC設定檔。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa8b1dabf5.webp"><figcaption>KDE</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4eea12fe5d.webp"><figcaption>GNOME</figcaption><hr><p>如果系統選單無法讓你挑icc檔案，就用colormgr指令改</p><p>使用colormgr指令列出螢幕ID</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr get-devices
+</span></span></code></pre></div><p>列出可用ICC設定檔ID。ID為一長串英數組合</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr get-profiles
+</span></span></code></pre></div><p>再給螢幕新增ICC設定檔</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr device-add-profile <span>"xrandr-Chimei Innolux Corporation"</span> <span>"icc-0e818279fc2a0a06ba8adb7c1b11b37d"</span>
+</span></span></code></pre></div><p>然後設定該ICC設定檔為預設</p><div><pre tabindex="0"><code data-lang="bash"><span><span>colormgr device-make-profile-default <span>"xrandr-Chimei Innolux Corporation"</span> <span>"icc-0e818279fc2a0a06ba8adb7c1b11b37d"</span>
+</span></span></code></pre></div><h2>4. 附註：調整螢幕色溫、Gamma值、對比度<span><a href="#4-%E9%99%84%E8%A8%BB%E8%AA%BF%E6%95%B4%E8%9E%A2%E5%B9%95%E8%89%B2%E6%BA%ABgamma%E5%80%BC%E5%B0%8D%E6%AF%94%E5%BA%A6" aria-label="定位點">#</a></span></h2><p><a href="https://github.com/jonls/redshift" target="_blank">Redshift</a>工具可以調整色溫，從1000K到25000K都有，還有隨地理位置自動調整達成夜間光線的效果。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>redshift -P -O <span>5500</span>
+</span></span></code></pre></div><p><a href="https://wiki.archlinux.org/title/Xrandr" target="_blank">xrandr</a>工具包辦了對比度、Gamma值、亮度、RGB動態範圍的設定。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 列出螢幕</span>
+</span></span><span><span>xrandr --current
+</span></span><span><span>
+</span></span><span><span><span># 調整eDP-1螢幕的Gamma值與亮度</span>
+</span></span><span><span>xrandr --output eDP-1 --gamma 1:1:1 --brightness 1.0
+</span></span><span><span>
+</span></span><span><span><span># 調整RGB動態範圍</span>
+</span></span><span><span>xrandr --output eDP-1 --set <span>"Broadcast RGB"</span> <span>"Full"</span>
+</span></span></code></pre></div><p>KDE的系統設定裡面也有Gamma與RGB顏色的調整選項。</p><p>如果Linux使用Nvidia閉源驅動，則Nvidia Settings裡面也可以調螢幕的亮度與對比度。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/ICC_profiles" target="_blank">ICC Porfiles - Arch Wiki</a></li><li><a href="https://help.ubuntu.com/stable/ubuntu-help/color-howtoimport.html.en" target="_blank">How do I import color profiles? - Ubuntu Help</a></li><li>2023年9月23日 <a href="https://www.phoronix.com/news/Wayland-CM-Weston" target="_blank">Wayland Color Management Protocol Posted For Weston</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0d7c7c17f4.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0d7c7c17f4.webp" medium="image"/>
+    <pubDate>Sun, 09 Jun 2024 08:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[解決中文地址搜尋問題，OsmAnd 借用Google地圖座標用OpenStreetMap導航]]></title>
     <link>https://ivonblog.com/posts/osmand-with-google-maps-coordinates/</link>
     <itunes:title><![CDATA[解決中文地址搜尋問題，OsmAnd 借用Google地圖座標用OpenStreetMap導航]]></itunes:title>
@@ -1622,248 +1688,5 @@ Koreader Sync Server</a></p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1fabaf0cfa.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1fabaf0cfa.webp" medium="image"/>
     <pubDate>Fri, 31 May 2024 08:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[樹莓派安裝Box64，使用Wine跑Windows exe程式]]></title>
-    <link>https://ivonblog.com/posts/box64-wine/</link>
-    <itunes:title><![CDATA[樹莓派安裝Box64，使用Wine跑Windows exe程式]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/box64-wine/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp"></a></p>
-<p>Wine是讓Linux跑Windows exe程式的轉譯技術。</p><p>儘管Wine有支援ARM架構，Raspbeery Pi OS套件庫也有收，然而Windows exe大多是x86架構，所以你不可以安裝ARM架構的Wine去跑x86架構的程式。</p><p>我們得想辦法搞到x86架構的Wine，交給Box64轉譯，進而執行Windows exe。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc3d6cb000.webp"><h2>1. 安裝Box64與Box86<span><a href="#1-%E5%AE%89%E8%A3%9Dbox64%E8%88%87box86" aria-label="定位點">#</a></span></h2><p>參見<a href="https://ivonblog.com/posts/box86-box64-usage" target="_blank">
-Box86＋Box64使用教學</a></p><h2>2. 安裝Wine<span><a href="#2-%E5%AE%89%E8%A3%9Dwine" aria-label="定位點">#</a></span></h2><p>以<code>Raspbeery Pi OS Bookworm 64-Bit</code>來說，<strong>請不要直接用APT硬裝x86版Wine的deb套件</strong>，在此，我們使用Box64開發者推薦的的方式，用符號連接將Wine執行檔硬塞到系統裡面。</p><ol><li>Wine目前在16K page會有問題，所以必須在系統啟用4K page</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
-</span></span></span><span><span><span>kernel=kernel8.img
-</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
-</span></span><span><span>
-</span></span><span><span>sudo reboot
-</span></span></code></pre></div><ol start="2"><li>啟用armhf架構支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
-</span></span><span><span>
-</span></span><span><span>sudo apt-get update
-</span></span></code></pre></div><ol start="3"><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install -y libasound2:armhf libc6:armhf libglib2.0-0:armhf libgphoto2-6:armhf libgphoto2-port12:armhf <span>\
-</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:armhf libgstreamer1.0-0:armhf libldap-common:armhf libopenal1:armhf libpcap0.8:armhf <span>\
-</span></span></span><span><span>		libpulse0:armhf libsane1:armhf libudev1:armhf libusb-1.0-0:armhf libvkd3d1:armhf libx11-6:armhf libxext6:armhf <span>\
-</span></span></span><span><span>		libasound2-plugins:armhf ocl-icd-libopencl1:armhf libncurses6:armhf libncurses5:armhf libcap2-bin:armhf libcups2:armhf <span>\
-</span></span></span><span><span>		libdbus-1-3:armhf libfontconfig1:armhf libfreetype6:armhf libglu1-mesa:armhf libglu1:armhf libgnutls30:armhf <span>\
-</span></span></span><span><span>		libgssapi-krb5-2:armhf libkrb5-3:armhf libodbc1:armhf libosmesa6:armhf libsdl2-2.0-0:armhf libv4l-0:armhf <span>\
-</span></span></span><span><span>		libxcomposite1:armhf libxcursor1:armhf libxfixes3:armhf libxi6:armhf libxinerama1:armhf libxrandr2:armhf <span>\
-</span></span></span><span><span>		libxrender1:armhf libxxf86vm1 libc6:armhf libcap2-bin:armhf
-</span></span><span><span>
-</span></span><span><span>
-</span></span><span><span>sudo apt-get install -y libasound2:arm64 libc6:arm64 libglib2.0-0:arm64 libgphoto2-6:arm64 libgphoto2-port12:arm64 <span>\
-</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:arm64 libgstreamer1.0-0:arm64 libldap-common:arm64 libopenal1:arm64 libpcap0.8:arm64 <span>\
-</span></span></span><span><span>		libpulse0:arm64 libsane1:arm64 libudev1:arm64 libunwind8:arm64 libusb-1.0-0:arm64 libvkd3d1:arm64 libx11-6:arm64 libxext6:arm64 <span>\
-</span></span></span><span><span>		ocl-icd-libopencl1:arm64 libasound2-plugins:arm64 libncurses6:arm64 libncurses5:arm64 libcups2:arm64 <span>\
-</span></span></span><span><span>		libdbus-1-3:arm64 libfontconfig1:arm64 libfreetype6:arm64 libglu1-mesa:arm64 libgnutls30:arm64 <span>\
-</span></span></span><span><span>		libgssapi-krb5-2:arm64 libjpeg62-turbo:arm64 libkrb5-3:arm64 libodbc1:arm64 libosmesa6:arm64 libsdl2-2.0-0:arm64 libv4l-0:arm64 <span>\
-</span></span></span><span><span>		libxcomposite1:arm64 libxcursor1:arm64 libxfixes3:arm64 libxi6:arm64 libxinerama1:arm64 libxrandr2:arm64 <span>\
-</span></span></span><span><span>		libxrender1:arm64 libxxf86vm1:arm64 libc6:arm64 libcap2-bin:arm64
-</span></span><span><span>
-</span></span><span><span><span># 額外套件</span>
-</span></span><span><span>
-</span></span><span><span>wget -r -l1 -np -nd -A <span>"libfaudio0_*~bpo10+1_i386.deb"</span> http://ftp.us.debian.org/debian/pool/main/f/faudio/
-</span></span><span><span>
-</span></span><span><span>dpkg-deb -xv libfaudio0_*~bpo10+1_i386.deb libfaudio
-</span></span><span><span>
-</span></span><span><span>sudo cp -TRv libfaudio/usr/ /usr/
-</span></span><span><span>
-</span></span><span><span>rm libfaudio0_*~bpo10+1_i386.deb
-</span></span><span><span>
-</span></span><span><span>rm -rf libfaudio
-</span></span></code></pre></div><ol start="4"><li>下載Wine執行檔。由於WineHQ官網僅提供deb套件，故我們使用預先建置的版本。此處使用<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
-Kron4ek建置的Wine</a>。Box64尚未支援Wine 8.0以上的的Wow64，故下載Wine 7.0版本。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
-</span></span><span><span>
-</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-amd64.tar.xz
-</span></span><span><span>
-</span></span><span><span>tar -xvf wine-7.22-amd64.tar.xz
-</span></span><span><span>
-</span></span><span><span>mv wine-7.22-amd64 wine
-</span></span><span><span>
-</span></span><span><span>rm wine-7.22-amd64.tar.xz
-</span></span></code></pre></div><ol start="5"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>~/wine/bin/wine</code>，下面的以此類推。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ln -s ~/wine/bin/wine /usr/local/bin/wine
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wine64 /usr/local/bin/wine64
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wineboot /usr/local/bin/wineboot
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/winecfg /usr/local/bin/winecfg
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wineserver /usr/local/bin/wineserver
-</span></span><span><span>
-</span></span><span><span>sudo chmod +x /usr/local/bin/wine /usr/local/bin/wine64 /usr/local/bin/wineboot /usr/local/bin/winecfg /usr/local/bin/wineserver
-</span></span></code></pre></div><h2>3. 安裝Winetricks<span><a href="#3-%E5%AE%89%E8%A3%9Dwinetricks" aria-label="定位點">#</a></span></h2><p>Winetricks只是指令稿，沒有架構之分，直接安裝：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install cabextract
-</span></span><span><span>
-</span></span><span><span><span>cd</span> ~/Downloads <span>&amp;&amp;</span> wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
-</span></span><span><span>
-</span></span><span><span>sudo chmod +x winetricks <span>&amp;&amp;</span> sudo mv winetricks /usr/local/bin/
-</span></span></code></pre></div><h2>4. Wine指令用法<span><a href="#4-wine%E6%8C%87%E4%BB%A4%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><p>相關文章：<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">
-Wine指令用法</a></p><p>裝好後就可以用以下組合，啟動Windows exe。啟動前需注意exe是32位元還是64位元。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 &lt;Windows exe執行檔&gt;
-</span></span><span><span>
-</span></span><span><span>box86 wine &lt;Windows exe執行檔&gt;
-</span></span></code></pre></div><p>注意Box86/Box64的3D繪圖圖形指令尚有部份未實作，Winetricks也不太穩定，建議先從簡單的小遊戲開始測試。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dfba03cb24.webp"><p>如果要區分32位元與64位元環境，可以用WINEPREFIX隔開不同程式的設定檔目錄</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 設定檔位於~/.wine64</span>
-</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 wine64 &lt;Windows exe執行檔&gt;
-</span></span><span><span>
-</span></span><span><span><span># 設定檔位於~/.wine，指定32位元</span>
-</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine <span>WINEARCH</span><span>=</span>win32 box86 wine &lt;Windows exe執行檔&gt;
-</span></span></code></pre></div><p>同理，Winetricks執行前，最好也先指定要裝到哪個Wine環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 winetricks
-</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md" target="_blank">box64/docs/X64WINE.md</a></li><li><a href="https://medium.com/@safiuddinkhan/how-to-install-box86-box64-and-wine-on-raspberry-pi-os-bullseye-64-bit-c88028052f8c" target="_blank">How to Install Box86, Box64 and Wine on Raspberry Pi OS Bullseye 64-bit - medium</a></li></ul>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/box64-wine/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp"></a></p>
-<p>Wine是讓Linux跑Windows exe程式的轉譯技術。</p><p>儘管Wine有支援ARM架構，Raspbeery Pi OS套件庫也有收，然而Windows exe大多是x86架構，所以你不可以安裝ARM架構的Wine去跑x86架構的程式。</p><p>我們得想辦法搞到x86架構的Wine，交給Box64轉譯，進而執行Windows exe。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc3d6cb000.webp"><h2>1. 安裝Box64與Box86<span><a href="#1-%E5%AE%89%E8%A3%9Dbox64%E8%88%87box86" aria-label="定位點">#</a></span></h2><p>參見<a href="https://ivonblog.com/posts/box86-box64-usage" target="_blank">
-Box86＋Box64使用教學</a></p><h2>2. 安裝Wine<span><a href="#2-%E5%AE%89%E8%A3%9Dwine" aria-label="定位點">#</a></span></h2><p>以<code>Raspbeery Pi OS Bookworm 64-Bit</code>來說，<strong>請不要直接用APT硬裝x86版Wine的deb套件</strong>，在此，我們使用Box64開發者推薦的的方式，用符號連接將Wine執行檔硬塞到系統裡面。</p><ol><li>Wine目前在16K page會有問題，所以必須在系統啟用4K page</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
-</span></span></span><span><span><span>kernel=kernel8.img
-</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
-</span></span><span><span>
-</span></span><span><span>sudo reboot
-</span></span></code></pre></div><ol start="2"><li>啟用armhf架構支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
-</span></span><span><span>
-</span></span><span><span>sudo apt-get update
-</span></span></code></pre></div><ol start="3"><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install -y libasound2:armhf libc6:armhf libglib2.0-0:armhf libgphoto2-6:armhf libgphoto2-port12:armhf <span>\
-</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:armhf libgstreamer1.0-0:armhf libldap-common:armhf libopenal1:armhf libpcap0.8:armhf <span>\
-</span></span></span><span><span>		libpulse0:armhf libsane1:armhf libudev1:armhf libusb-1.0-0:armhf libvkd3d1:armhf libx11-6:armhf libxext6:armhf <span>\
-</span></span></span><span><span>		libasound2-plugins:armhf ocl-icd-libopencl1:armhf libncurses6:armhf libncurses5:armhf libcap2-bin:armhf libcups2:armhf <span>\
-</span></span></span><span><span>		libdbus-1-3:armhf libfontconfig1:armhf libfreetype6:armhf libglu1-mesa:armhf libglu1:armhf libgnutls30:armhf <span>\
-</span></span></span><span><span>		libgssapi-krb5-2:armhf libkrb5-3:armhf libodbc1:armhf libosmesa6:armhf libsdl2-2.0-0:armhf libv4l-0:armhf <span>\
-</span></span></span><span><span>		libxcomposite1:armhf libxcursor1:armhf libxfixes3:armhf libxi6:armhf libxinerama1:armhf libxrandr2:armhf <span>\
-</span></span></span><span><span>		libxrender1:armhf libxxf86vm1 libc6:armhf libcap2-bin:armhf
-</span></span><span><span>
-</span></span><span><span>
-</span></span><span><span>sudo apt-get install -y libasound2:arm64 libc6:arm64 libglib2.0-0:arm64 libgphoto2-6:arm64 libgphoto2-port12:arm64 <span>\
-</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:arm64 libgstreamer1.0-0:arm64 libldap-common:arm64 libopenal1:arm64 libpcap0.8:arm64 <span>\
-</span></span></span><span><span>		libpulse0:arm64 libsane1:arm64 libudev1:arm64 libunwind8:arm64 libusb-1.0-0:arm64 libvkd3d1:arm64 libx11-6:arm64 libxext6:arm64 <span>\
-</span></span></span><span><span>		ocl-icd-libopencl1:arm64 libasound2-plugins:arm64 libncurses6:arm64 libncurses5:arm64 libcups2:arm64 <span>\
-</span></span></span><span><span>		libdbus-1-3:arm64 libfontconfig1:arm64 libfreetype6:arm64 libglu1-mesa:arm64 libgnutls30:arm64 <span>\
-</span></span></span><span><span>		libgssapi-krb5-2:arm64 libjpeg62-turbo:arm64 libkrb5-3:arm64 libodbc1:arm64 libosmesa6:arm64 libsdl2-2.0-0:arm64 libv4l-0:arm64 <span>\
-</span></span></span><span><span>		libxcomposite1:arm64 libxcursor1:arm64 libxfixes3:arm64 libxi6:arm64 libxinerama1:arm64 libxrandr2:arm64 <span>\
-</span></span></span><span><span>		libxrender1:arm64 libxxf86vm1:arm64 libc6:arm64 libcap2-bin:arm64
-</span></span><span><span>
-</span></span><span><span><span># 額外套件</span>
-</span></span><span><span>
-</span></span><span><span>wget -r -l1 -np -nd -A <span>"libfaudio0_*~bpo10+1_i386.deb"</span> http://ftp.us.debian.org/debian/pool/main/f/faudio/
-</span></span><span><span>
-</span></span><span><span>dpkg-deb -xv libfaudio0_*~bpo10+1_i386.deb libfaudio
-</span></span><span><span>
-</span></span><span><span>sudo cp -TRv libfaudio/usr/ /usr/
-</span></span><span><span>
-</span></span><span><span>rm libfaudio0_*~bpo10+1_i386.deb
-</span></span><span><span>
-</span></span><span><span>rm -rf libfaudio
-</span></span></code></pre></div><ol start="4"><li>下載Wine執行檔。由於WineHQ官網僅提供deb套件，故我們使用預先建置的版本。此處使用<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
-Kron4ek建置的Wine</a>。Box64尚未支援Wine 8.0以上的的Wow64，故下載Wine 7.0版本。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
-</span></span><span><span>
-</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-amd64.tar.xz
-</span></span><span><span>
-</span></span><span><span>tar -xvf wine-7.22-amd64.tar.xz
-</span></span><span><span>
-</span></span><span><span>mv wine-7.22-amd64 wine
-</span></span><span><span>
-</span></span><span><span>rm wine-7.22-amd64.tar.xz
-</span></span></code></pre></div><ol start="5"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>~/wine/bin/wine</code>，下面的以此類推。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ln -s ~/wine/bin/wine /usr/local/bin/wine
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wine64 /usr/local/bin/wine64
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wineboot /usr/local/bin/wineboot
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/winecfg /usr/local/bin/winecfg
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wineserver /usr/local/bin/wineserver
-</span></span><span><span>
-</span></span><span><span>sudo chmod +x /usr/local/bin/wine /usr/local/bin/wine64 /usr/local/bin/wineboot /usr/local/bin/winecfg /usr/local/bin/wineserver
-</span></span></code></pre></div><h2>3. 安裝Winetricks<span><a href="#3-%E5%AE%89%E8%A3%9Dwinetricks" aria-label="定位點">#</a></span></h2><p>Winetricks只是指令稿，沒有架構之分，直接安裝：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install cabextract
-</span></span><span><span>
-</span></span><span><span><span>cd</span> ~/Downloads <span>&amp;&amp;</span> wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
-</span></span><span><span>
-</span></span><span><span>sudo chmod +x winetricks <span>&amp;&amp;</span> sudo mv winetricks /usr/local/bin/
-</span></span></code></pre></div><h2>4. Wine指令用法<span><a href="#4-wine%E6%8C%87%E4%BB%A4%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><p>相關文章：<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">
-Wine指令用法</a></p><p>裝好後就可以用以下組合，啟動Windows exe。啟動前需注意exe是32位元還是64位元。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 &lt;Windows exe執行檔&gt;
-</span></span><span><span>
-</span></span><span><span>box86 wine &lt;Windows exe執行檔&gt;
-</span></span></code></pre></div><p>注意Box86/Box64的3D繪圖圖形指令尚有部份未實作，Winetricks也不太穩定，建議先從簡單的小遊戲開始測試。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dfba03cb24.webp"><p>如果要區分32位元與64位元環境，可以用WINEPREFIX隔開不同程式的設定檔目錄</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 設定檔位於~/.wine64</span>
-</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 wine64 &lt;Windows exe執行檔&gt;
-</span></span><span><span>
-</span></span><span><span><span># 設定檔位於~/.wine，指定32位元</span>
-</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine <span>WINEARCH</span><span>=</span>win32 box86 wine &lt;Windows exe執行檔&gt;
-</span></span></code></pre></div><p>同理，Winetricks執行前，最好也先指定要裝到哪個Wine環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 winetricks
-</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md" target="_blank">box64/docs/X64WINE.md</a></li><li><a href="https://medium.com/@safiuddinkhan/how-to-install-box86-box64-and-wine-on-raspberry-pi-os-bullseye-64-bit-c88028052f8c" target="_blank">How to Install Box86, Box64 and Wine on Raspberry Pi OS Bullseye 64-bit - medium</a></li></ul>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/box64-wine/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp"></a></p>
-<p>Wine是讓Linux跑Windows exe程式的轉譯技術。</p><p>儘管Wine有支援ARM架構，Raspbeery Pi OS套件庫也有收，然而Windows exe大多是x86架構，所以你不可以安裝ARM架構的Wine去跑x86架構的程式。</p><p>我們得想辦法搞到x86架構的Wine，交給Box64轉譯，進而執行Windows exe。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc3d6cb000.webp"><h2>1. 安裝Box64與Box86<span><a href="#1-%E5%AE%89%E8%A3%9Dbox64%E8%88%87box86" aria-label="定位點">#</a></span></h2><p>參見<a href="https://ivonblog.com/posts/box86-box64-usage" target="_blank">
-Box86＋Box64使用教學</a></p><h2>2. 安裝Wine<span><a href="#2-%E5%AE%89%E8%A3%9Dwine" aria-label="定位點">#</a></span></h2><p>以<code>Raspbeery Pi OS Bookworm 64-Bit</code>來說，<strong>請不要直接用APT硬裝x86版Wine的deb套件</strong>，在此，我們使用Box64開發者推薦的的方式，用符號連接將Wine執行檔硬塞到系統裡面。</p><ol><li>Wine目前在16K page會有問題，所以必須在系統啟用4K page</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
-</span></span></span><span><span><span>kernel=kernel8.img
-</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
-</span></span><span><span>
-</span></span><span><span>sudo reboot
-</span></span></code></pre></div><ol start="2"><li>啟用armhf架構支援</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo dpkg --add-architecture armhf
-</span></span><span><span>
-</span></span><span><span>sudo apt-get update
-</span></span></code></pre></div><ol start="3"><li>安裝依賴套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install -y libasound2:armhf libc6:armhf libglib2.0-0:armhf libgphoto2-6:armhf libgphoto2-port12:armhf <span>\
-</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:armhf libgstreamer1.0-0:armhf libldap-common:armhf libopenal1:armhf libpcap0.8:armhf <span>\
-</span></span></span><span><span>		libpulse0:armhf libsane1:armhf libudev1:armhf libusb-1.0-0:armhf libvkd3d1:armhf libx11-6:armhf libxext6:armhf <span>\
-</span></span></span><span><span>		libasound2-plugins:armhf ocl-icd-libopencl1:armhf libncurses6:armhf libncurses5:armhf libcap2-bin:armhf libcups2:armhf <span>\
-</span></span></span><span><span>		libdbus-1-3:armhf libfontconfig1:armhf libfreetype6:armhf libglu1-mesa:armhf libglu1:armhf libgnutls30:armhf <span>\
-</span></span></span><span><span>		libgssapi-krb5-2:armhf libkrb5-3:armhf libodbc1:armhf libosmesa6:armhf libsdl2-2.0-0:armhf libv4l-0:armhf <span>\
-</span></span></span><span><span>		libxcomposite1:armhf libxcursor1:armhf libxfixes3:armhf libxi6:armhf libxinerama1:armhf libxrandr2:armhf <span>\
-</span></span></span><span><span>		libxrender1:armhf libxxf86vm1 libc6:armhf libcap2-bin:armhf
-</span></span><span><span>
-</span></span><span><span>
-</span></span><span><span>sudo apt-get install -y libasound2:arm64 libc6:arm64 libglib2.0-0:arm64 libgphoto2-6:arm64 libgphoto2-port12:arm64 <span>\
-</span></span></span><span><span>		libgstreamer-plugins-base1.0-0:arm64 libgstreamer1.0-0:arm64 libldap-common:arm64 libopenal1:arm64 libpcap0.8:arm64 <span>\
-</span></span></span><span><span>		libpulse0:arm64 libsane1:arm64 libudev1:arm64 libunwind8:arm64 libusb-1.0-0:arm64 libvkd3d1:arm64 libx11-6:arm64 libxext6:arm64 <span>\
-</span></span></span><span><span>		ocl-icd-libopencl1:arm64 libasound2-plugins:arm64 libncurses6:arm64 libncurses5:arm64 libcups2:arm64 <span>\
-</span></span></span><span><span>		libdbus-1-3:arm64 libfontconfig1:arm64 libfreetype6:arm64 libglu1-mesa:arm64 libgnutls30:arm64 <span>\
-</span></span></span><span><span>		libgssapi-krb5-2:arm64 libjpeg62-turbo:arm64 libkrb5-3:arm64 libodbc1:arm64 libosmesa6:arm64 libsdl2-2.0-0:arm64 libv4l-0:arm64 <span>\
-</span></span></span><span><span>		libxcomposite1:arm64 libxcursor1:arm64 libxfixes3:arm64 libxi6:arm64 libxinerama1:arm64 libxrandr2:arm64 <span>\
-</span></span></span><span><span>		libxrender1:arm64 libxxf86vm1:arm64 libc6:arm64 libcap2-bin:arm64
-</span></span><span><span>
-</span></span><span><span><span># 額外套件</span>
-</span></span><span><span>
-</span></span><span><span>wget -r -l1 -np -nd -A <span>"libfaudio0_*~bpo10+1_i386.deb"</span> http://ftp.us.debian.org/debian/pool/main/f/faudio/
-</span></span><span><span>
-</span></span><span><span>dpkg-deb -xv libfaudio0_*~bpo10+1_i386.deb libfaudio
-</span></span><span><span>
-</span></span><span><span>sudo cp -TRv libfaudio/usr/ /usr/
-</span></span><span><span>
-</span></span><span><span>rm libfaudio0_*~bpo10+1_i386.deb
-</span></span><span><span>
-</span></span><span><span>rm -rf libfaudio
-</span></span></code></pre></div><ol start="4"><li>下載Wine執行檔。由於WineHQ官網僅提供deb套件，故我們使用預先建置的版本。此處使用<a href="https://github.com/Kron4ek/Wine-Builds/releases" target="_blank">
-Kron4ek建置的Wine</a>。Box64尚未支援Wine 8.0以上的的Wow64，故下載Wine 7.0版本。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
-</span></span><span><span>
-</span></span><span><span>wget https://github.com/Kron4ek/Wine-Builds/releases/download/7.22/wine-7.22-amd64.tar.xz
-</span></span><span><span>
-</span></span><span><span>tar -xvf wine-7.22-amd64.tar.xz
-</span></span><span><span>
-</span></span><span><span>mv wine-7.22-amd64 wine
-</span></span><span><span>
-</span></span><span><span>rm wine-7.22-amd64.tar.xz
-</span></span></code></pre></div><ol start="5"><li>建立符號連結，將<code>/usr/local/bin/wine</code>指向<code>~/wine/bin/wine</code>，下面的以此類推。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ln -s ~/wine/bin/wine /usr/local/bin/wine
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wine64 /usr/local/bin/wine64
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wineboot /usr/local/bin/wineboot
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/winecfg /usr/local/bin/winecfg
-</span></span><span><span>
-</span></span><span><span>sudo ln -s ~/wine/bin/wineserver /usr/local/bin/wineserver
-</span></span><span><span>
-</span></span><span><span>sudo chmod +x /usr/local/bin/wine /usr/local/bin/wine64 /usr/local/bin/wineboot /usr/local/bin/winecfg /usr/local/bin/wineserver
-</span></span></code></pre></div><h2>3. 安裝Winetricks<span><a href="#3-%E5%AE%89%E8%A3%9Dwinetricks" aria-label="定位點">#</a></span></h2><p>Winetricks只是指令稿，沒有架構之分，直接安裝：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt-get install cabextract
-</span></span><span><span>
-</span></span><span><span><span>cd</span> ~/Downloads <span>&amp;&amp;</span> wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
-</span></span><span><span>
-</span></span><span><span>sudo chmod +x winetricks <span>&amp;&amp;</span> sudo mv winetricks /usr/local/bin/
-</span></span></code></pre></div><h2>4. Wine指令用法<span><a href="#4-wine%E6%8C%87%E4%BB%A4%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><p>相關文章：<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">
-Wine指令用法</a></p><p>裝好後就可以用以下組合，啟動Windows exe。啟動前需注意exe是32位元還是64位元。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>box64 wine64 &lt;Windows exe執行檔&gt;
-</span></span><span><span>
-</span></span><span><span>box86 wine &lt;Windows exe執行檔&gt;
-</span></span></code></pre></div><p>注意Box86/Box64的3D繪圖圖形指令尚有部份未實作，Winetricks也不太穩定，建議先從簡單的小遊戲開始測試。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dfba03cb24.webp"><p>如果要區分32位元與64位元環境，可以用WINEPREFIX隔開不同程式的設定檔目錄</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 設定檔位於~/.wine64</span>
-</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 wine64 &lt;Windows exe執行檔&gt;
-</span></span><span><span>
-</span></span><span><span><span># 設定檔位於~/.wine，指定32位元</span>
-</span></span><span><span><span>WINEPREFIX</span><span>=</span>~/.wine <span>WINEARCH</span><span>=</span>win32 box86 wine &lt;Windows exe執行檔&gt;
-</span></span></code></pre></div><p>同理，Winetricks執行前，最好也先指定要裝到哪個Wine環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WINEPREFIX</span><span>=</span>~/.wine64 box64 winetricks
-</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md" target="_blank">box64/docs/X64WINE.md</a></li><li><a href="https://medium.com/@safiuddinkhan/how-to-install-box86-box64-and-wine-on-raspberry-pi-os-bullseye-64-bit-c88028052f8c" target="_blank">How to Install Box86, Box64 and Wine on Raspberry Pi OS Bullseye 64-bit - medium</a></li></ul>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa618f8e46.webp" medium="image"/>
-    <pubDate>Mon, 27 May 2024 19:00:00 +0800</pubDate>
   </item></channel>
 </rss>
