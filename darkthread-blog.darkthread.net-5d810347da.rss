@@ -30,6 +30,105 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手筆記】Chrome/Edge 中文輸入時 JavaScript keydown 事件失效]]></title>
+    <link>https://blog.darkthread.net/blog/keydown-event-not-triggered-in-ime/</link>
+    <itunes:title><![CDATA[【茶包射手筆記】Chrome/Edge 中文輸入時 JavaScript keydown 事件失效]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>使用者反應，上線超過十年的 <a href="/blog/jquery-autocomplete-sample/">jQuery 自動完成套件</a>最近常失靈，使用者輸入字元時沒反應，但時好時壞，有時是好的，有時會壞掉。</p> <p>無法 100% 重現的茶包最麻煩了，連我們在測試台嘗試重現問題，也是有時可以有時不行，理不出頭緒。費了番手腳，終於找出容易重現問題的關鍵(但也非 100% 可重現) - 啟用中文輸入(注音、倉頡)並切成中文輸入：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638539751225096992.png"></p> <p>我寫了一個極簡版網頁，用幾行 JavaScript 重現問題：<a href="https://output.jsbin.com/juqogowulu">JSBin 線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;
+div { padding: 2px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;input class="vn" place="input something here" autocomplete="no-autofill"&gt;
+&lt;/div&gt;
+&lt;button&gt;Clear&lt;/button&gt;
+&lt;ul&gt;
+&lt;/ul&gt;
+&lt;script&gt;
+var vn = document.querySelector('.vn');
+let c = 0;
+vn.addEventListener('keydown', function (event) {
+console.log(`${c++}: ${event.keyCode}`);
+});
+document.querySelector('button').addEventListener('click', function () {
+console.clear();
+vn.value = '';
+c = 0;
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638539751231416373.gif"></p> <p>以上操作情境為「啟用注音輸入 + 使用數字鍵盤輸入數字」，過程都沒觸發 keydown 事件，但按 Backspace、Delete、方向鍵則有正常觸發 keydown。</p> <p>不過，有時在中文輸入模式敲數字還是會觸發 keydown，keyCode 為 229，這是預期的行為。參考：<a href="/blog/keypress-event-under-ime/">中文輸入法與 KeyDown/KeyPress 事件</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638539751696898615.gif"></p> <p>爬文查到一篇 Chromium 問題回報：<a href="https://issues.chromium.org/issues/341846848">keydown event does not fire intermittently in ime-mode like korean(hangul mode)</a>，有網友反應從 125 版起輸入韓文不會觸發 keydown，但在 124 版時是正常的。討論串裡有使用中文、日文輸入法的網友紛紛跳出來喊 ME TOO，而這個問題在 Chrome/Edge 都會發生。</p> <p>有網友找到一個 Workaround 是將視窗焦點切到其他應用程式再切回瀏覽器，如此即可暫時恢復正常。(這點可能也是先前測試時好時壞的干擾變因)</p> <p>爬文至此，可確定是 Chromium Bug 無誤，暫時沒想到好解法，先提供使用者「切成英文輸入」跟「視窗切換法」的暫時解法，再來就待官方修復了。</p> <p data-slug="keydown-event-not-triggered-in-ime" data-title-en="Keydown event not triggered in IME mode for Chrome/Edge" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2012/02/21/07/46/cress-15084_1280.jpg#1280#720">The jQuery autocomplete plugin, which has been in use for over a decade, recently started malfunctioning intermittently, especially when using Chinese input methods like Zhuyin or Cangjie. The issue is identified as a Chromium bug where keydown events do not consistently fire in IME modes, and a temporary workaround involves switching the window focus to another application and back.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>使用者反應，上線超過十年的 <a href="/blog/jquery-autocomplete-sample/">jQuery 自動完成套件</a>最近常失靈，使用者輸入字元時沒反應，但時好時壞，有時是好的，有時會壞掉。</p> <p>無法 100% 重現的茶包最麻煩了，連我們在測試台嘗試重現問題，也是有時可以有時不行，理不出頭緒。費了番手腳，終於找出容易重現問題的關鍵(但也非 100% 可重現) - 啟用中文輸入(注音、倉頡)並切成中文輸入：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638539751225096992.png"></p> <p>我寫了一個極簡版網頁，用幾行 JavaScript 重現問題：<a href="https://output.jsbin.com/juqogowulu">JSBin 線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;
+div { padding: 2px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;input class="vn" place="input something here" autocomplete="no-autofill"&gt;
+&lt;/div&gt;
+&lt;button&gt;Clear&lt;/button&gt;
+&lt;ul&gt;
+&lt;/ul&gt;
+&lt;script&gt;
+var vn = document.querySelector('.vn');
+let c = 0;
+vn.addEventListener('keydown', function (event) {
+console.log(`${c++}: ${event.keyCode}`);
+});
+document.querySelector('button').addEventListener('click', function () {
+console.clear();
+vn.value = '';
+c = 0;
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638539751231416373.gif"></p> <p>以上操作情境為「啟用注音輸入 + 使用數字鍵盤輸入數字」，過程都沒觸發 keydown 事件，但按 Backspace、Delete、方向鍵則有正常觸發 keydown。</p> <p>不過，有時在中文輸入模式敲數字還是會觸發 keydown，keyCode 為 229，這是預期的行為。參考：<a href="/blog/keypress-event-under-ime/">中文輸入法與 KeyDown/KeyPress 事件</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638539751696898615.gif"></p> <p>爬文查到一篇 Chromium 問題回報：<a href="https://issues.chromium.org/issues/341846848">keydown event does not fire intermittently in ime-mode like korean(hangul mode)</a>，有網友反應從 125 版起輸入韓文不會觸發 keydown，但在 124 版時是正常的。討論串裡有使用中文、日文輸入法的網友紛紛跳出來喊 ME TOO，而這個問題在 Chrome/Edge 都會發生。</p> <p>有網友找到一個 Workaround 是將視窗焦點切到其他應用程式再切回瀏覽器，如此即可暫時恢復正常。(這點可能也是先前測試時好時壞的干擾變因)</p> <p>爬文至此，可確定是 Chromium Bug 無誤，暫時沒想到好解法，先提供使用者「切成英文輸入」跟「視窗切換法」的暫時解法，再來就待官方修復了。</p> <p data-slug="keydown-event-not-triggered-in-ime" data-title-en="Keydown event not triggered in IME mode for Chrome/Edge" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2012/02/21/07/46/cress-15084_1280.jpg#1280#720">The jQuery autocomplete plugin, which has been in use for over a decade, recently started malfunctioning intermittently, especially when using Chinese input methods like Zhuyin or Cangjie. The issue is identified as a Chromium bug where keydown events do not consistently fire in IME modes, and a temporary workaround involves switching the window focus to another application and back.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>使用者反應，上線超過十年的 <a href="/blog/jquery-autocomplete-sample/">jQuery 自動完成套件</a>最近常失靈，使用者輸入字元時沒反應，但時好時壞，有時是好的，有時會壞掉。</p> <p>無法 100% 重現的茶包最麻煩了，連我們在測試台嘗試重現問題，也是有時可以有時不行，理不出頭緒。費了番手腳，終於找出容易重現問題的關鍵(但也非 100% 可重現) - 啟用中文輸入(注音、倉頡)並切成中文輸入：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638539751225096992.png"></p> <p>我寫了一個極簡版網頁，用幾行 JavaScript 重現問題：<a href="https://output.jsbin.com/juqogowulu">JSBin 線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;style&gt;
+div { padding: 2px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;input class="vn" place="input something here" autocomplete="no-autofill"&gt;
+&lt;/div&gt;
+&lt;button&gt;Clear&lt;/button&gt;
+&lt;ul&gt;
+&lt;/ul&gt;
+&lt;script&gt;
+var vn = document.querySelector('.vn');
+let c = 0;
+vn.addEventListener('keydown', function (event) {
+console.log(`${c++}: ${event.keyCode}`);
+});
+document.querySelector('button').addEventListener('click', function () {
+console.clear();
+vn.value = '';
+c = 0;
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638539751231416373.gif"></p> <p>以上操作情境為「啟用注音輸入 + 使用數字鍵盤輸入數字」，過程都沒觸發 keydown 事件，但按 Backspace、Delete、方向鍵則有正常觸發 keydown。</p> <p>不過，有時在中文輸入模式敲數字還是會觸發 keydown，keyCode 為 229，這是預期的行為。參考：<a href="/blog/keypress-event-under-ime/">中文輸入法與 KeyDown/KeyPress 事件</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638539751696898615.gif"></p> <p>爬文查到一篇 Chromium 問題回報：<a href="https://issues.chromium.org/issues/341846848">keydown event does not fire intermittently in ime-mode like korean(hangul mode)</a>，有網友反應從 125 版起輸入韓文不會觸發 keydown，但在 124 版時是正常的。討論串裡有使用中文、日文輸入法的網友紛紛跳出來喊 ME TOO，而這個問題在 Chrome/Edge 都會發生。</p> <p>有網友找到一個 Workaround 是將視窗焦點切到其他應用程式再切回瀏覽器，如此即可暫時恢復正常。(這點可能也是先前測試時好時壞的干擾變因)</p> <p>爬文至此，可確定是 Chromium Bug 無誤，暫時沒想到好解法，先提供使用者「切成英文輸入」跟「視窗切換法」的暫時解法，再來就待官方修復了。</p> <p data-slug="keydown-event-not-triggered-in-ime" data-title-en="Keydown event not triggered in IME mode for Chrome/Edge" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2012/02/21/07/46/cress-15084_1280.jpg#1280#720">The jQuery autocomplete plugin, which has been in use for over a decade, recently started malfunctioning intermittently, especially when using Chinese input methods like Zhuyin or Cangjie. The issue is identified as a Chromium bug where keydown events do not consistently fire in IME modes, and a temporary workaround involves switching the window focus to another application and back.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638539751225096992.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638539751225096992.png" medium="image"/>
+    <pubDate>Fri, 14 Jun 2024 15:17:59 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【茶包射手筆記】Windows 11 找不到 Notepad (記事本)]]></title>
     <link>https://blog.darkthread.net/blog/win11-install-notepad/</link>
     <itunes:title><![CDATA[【茶包射手筆記】Windows 11 找不到 Notepad (記事本)]]></itunes:title>
@@ -1883,284 +1982,5 @@ await this.roll(this.randomFace());
     <itunes:image href="https://darkthread.github.io/rolling-dice/rolling-cube.gif"/>
           <media:content url="https://darkthread.github.io/rolling-dice/rolling-cube.gif" medium="image"/>
     <pubDate>Sun, 26 May 2024 15:09:18 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[JavaScript 小把戲 - 讓 JSON.stringify 日期時保留時區資訊]]></title>
-    <link>https://blog.darkthread.net/blog/json-stringify-date-with-timezone/</link>
-    <itunes:title><![CDATA[JavaScript 小把戲 - 讓 JSON.stringify 日期時保留時區資訊]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>JavaScript 在 JSON.stringify() 時會將 Date 型別轉成 ISO 8601 格式，而時區則一律轉成 UTC 時間 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString">參考</a>，故在網頁 new Date() 取得台北時間轉成 JSON 時會減 8 小時變成 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code> 格式。</p> <p>然而 <a href="https://zh.wikipedia.org/zh-tw/ISO_8601">ISO 8601</a> 除了 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code>，也可以在後方加上 <code>+HH:mm</code> 或 <code>-HH:mm</code> 標註時區，例如：<code>2024-01-01T12:34:56.789+08:00</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png"></p> <p>而 .NET 端在處理時，能區別出含時區的 ISO 8601 正確解析，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638521996322262546.png"></p> <p>因此，我想擴充 JavaScript JSON.stringify()，視需求可將 Date 轉成含時區的 ISO 8601 格式：<code>YYYY-MM-DDTHH:mm:ss+08:00</code>，這樣就可以直接傳台北時間給 API，伺服器端不需再做轉換。</p> <p>這個問題在 <a href="/blog/json-date-timezone-issue">JSON 日期轉換的時區陷阱</a>有研究過，改寫 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/tojson">Date.toJSON()</a> 即可，但我不想全面覆寫 JSON 行為，而是擴充成靠額外設定改變行為，所以決定玩點小把戲，為 Date 擴充一個 jsonDateKind 屬性，當設成 'local' 時再改傳有 '+08:00' 的格式，另外，我加一個 <code>Date.newLocalKindDate()</code> 方法，傳入參數與 <code>new Date(...)</code> 一致，但建立的 Date 物件會設定 .jsonDateKind = 'local'。程式碼很簡單，透過 Date.prototype 修改 Date 屬性及行為而已，另外，有用到上回研究的 <a href="/blog/js-date-yyyymmdd-hhmmss/">JSON UTC 時間轉 yyyy-MM-mm HH:mm:ss 格式極簡解法</a>，平日累積的小東西總會有適當時機發揮功效。</p> <pre><code>Date.prototype.jsonDateKind = 'utc';
-Date.prototype.toJSON = function () {
-if (this.jsonDateKind === 'local') {
-var tzDiffHours = this.getTimezoneOffset() / 60;
-var tzDiffMinutes = this.getTimezoneOffset() % 60;
-return this.toLocaleString('sv').replace(' ', 'T') +
-(this.getMilliseconds() &gt; 0 ?
-'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
-(tzDiffHours &gt; 0 ? '-' : '+') +
-Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
-tzDiffMinutes.toString().padStart(2, '0');
-} else {
-return this.toISOString();
-}
-};
-Date.newLocalKindDate = function () {
-const date = new Date(...arguments);
-date.jsonDateKind = 'local';
-return date;
-}
-</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638521996323965420.png"></p> <p>附上原始碼跟<a href="https://output.jsbin.com/zozodec">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;Date jsonDateKind Property&lt;/title&gt;
-&lt;style&gt;
-#script {
-width: calc(100% - 24px);
-height: 210px;
-padding: 12px;
-}
-#result {
-width: calc(100% - 24px);
-height: 150px;
-background-color: #eee;
-padding: 10px;
-margin-top: 10px;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;textarea id="script"&gt;
-const now = new Date();
-now.jsonDateKind = 'local';
-const date = new Date(2024, 0, 1, 12, 34, 56, 789);
-date.jsonDateKind = 'local';
-const cust = Date.newLocalKindDate(2012, 11, 21, 12, 21, 0, 0);
-var data = {
-s: "Hello World!",
-i: 1234,
-d1: new Date(),
-d2: now,
-d3: date,
-d4: cust
-};
-&lt;/textarea&gt;
-&lt;button id="btn"&gt;Convert to Json&lt;/button&gt;
-&lt;pre id="result"&gt;
-&lt;/pre&gt;
-&lt;script&gt;
-Date.prototype.jsonDateKind = 'utc';
-Date.prototype.toJSON = function () {
-if (this.jsonDateKind === 'local') {
-var tzDiffHours = this.getTimezoneOffset() / 60;
-var tzDiffMinutes = this.getTimezoneOffset() % 60;
-return this.toLocaleString('sv').replace(' ', 'T') +
-(this.getMilliseconds() &gt; 0 ?
-'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
-(tzDiffHours &gt; 0 ? '-' : '+') +
-Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
-tzDiffMinutes.toString().padStart(2, '0');
-} else {
-return this.toISOString();
-}
-};
-Date.newLocalKindDate = function () {
-const date = new Date(...arguments);
-date.jsonDateKind = 'local';
-return date;
-}
-document.getElementById('btn').addEventListener('click', function () {
-var script = document.querySelector('#script').textContent;
-eval(script);
-var json = JSON.stringify(data, null, 2);
-document.querySelector('#result').textContent = json;
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="json-stringify-date-with-timezone" data-title-en="JSON.stringify() Date with timezone" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720">This article demonstrates how to use JavaScript prototype to extend the Date object, implementing control over whether to include timezone information when JSON is stringified.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>JavaScript 在 JSON.stringify() 時會將 Date 型別轉成 ISO 8601 格式，而時區則一律轉成 UTC 時間 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString">參考</a>，故在網頁 new Date() 取得台北時間轉成 JSON 時會減 8 小時變成 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code> 格式。</p> <p>然而 <a href="https://zh.wikipedia.org/zh-tw/ISO_8601">ISO 8601</a> 除了 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code>，也可以在後方加上 <code>+HH:mm</code> 或 <code>-HH:mm</code> 標註時區，例如：<code>2024-01-01T12:34:56.789+08:00</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png"></p> <p>而 .NET 端在處理時，能區別出含時區的 ISO 8601 正確解析，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638521996322262546.png"></p> <p>因此，我想擴充 JavaScript JSON.stringify()，視需求可將 Date 轉成含時區的 ISO 8601 格式：<code>YYYY-MM-DDTHH:mm:ss+08:00</code>，這樣就可以直接傳台北時間給 API，伺服器端不需再做轉換。</p> <p>這個問題在 <a href="/blog/json-date-timezone-issue">JSON 日期轉換的時區陷阱</a>有研究過，改寫 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/tojson">Date.toJSON()</a> 即可，但我不想全面覆寫 JSON 行為，而是擴充成靠額外設定改變行為，所以決定玩點小把戲，為 Date 擴充一個 jsonDateKind 屬性，當設成 'local' 時再改傳有 '+08:00' 的格式，另外，我加一個 <code>Date.newLocalKindDate()</code> 方法，傳入參數與 <code>new Date(...)</code> 一致，但建立的 Date 物件會設定 .jsonDateKind = 'local'。程式碼很簡單，透過 Date.prototype 修改 Date 屬性及行為而已，另外，有用到上回研究的 <a href="/blog/js-date-yyyymmdd-hhmmss/">JSON UTC 時間轉 yyyy-MM-mm HH:mm:ss 格式極簡解法</a>，平日累積的小東西總會有適當時機發揮功效。</p> <pre><code>Date.prototype.jsonDateKind = 'utc';
-Date.prototype.toJSON = function () {
-if (this.jsonDateKind === 'local') {
-var tzDiffHours = this.getTimezoneOffset() / 60;
-var tzDiffMinutes = this.getTimezoneOffset() % 60;
-return this.toLocaleString('sv').replace(' ', 'T') +
-(this.getMilliseconds() &gt; 0 ?
-'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
-(tzDiffHours &gt; 0 ? '-' : '+') +
-Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
-tzDiffMinutes.toString().padStart(2, '0');
-} else {
-return this.toISOString();
-}
-};
-Date.newLocalKindDate = function () {
-const date = new Date(...arguments);
-date.jsonDateKind = 'local';
-return date;
-}
-</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638521996323965420.png"></p> <p>附上原始碼跟<a href="https://output.jsbin.com/zozodec">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;Date jsonDateKind Property&lt;/title&gt;
-&lt;style&gt;
-#script {
-width: calc(100% - 24px);
-height: 210px;
-padding: 12px;
-}
-#result {
-width: calc(100% - 24px);
-height: 150px;
-background-color: #eee;
-padding: 10px;
-margin-top: 10px;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;textarea id="script"&gt;
-const now = new Date();
-now.jsonDateKind = 'local';
-const date = new Date(2024, 0, 1, 12, 34, 56, 789);
-date.jsonDateKind = 'local';
-const cust = Date.newLocalKindDate(2012, 11, 21, 12, 21, 0, 0);
-var data = {
-s: "Hello World!",
-i: 1234,
-d1: new Date(),
-d2: now,
-d3: date,
-d4: cust
-};
-&lt;/textarea&gt;
-&lt;button id="btn"&gt;Convert to Json&lt;/button&gt;
-&lt;pre id="result"&gt;
-&lt;/pre&gt;
-&lt;script&gt;
-Date.prototype.jsonDateKind = 'utc';
-Date.prototype.toJSON = function () {
-if (this.jsonDateKind === 'local') {
-var tzDiffHours = this.getTimezoneOffset() / 60;
-var tzDiffMinutes = this.getTimezoneOffset() % 60;
-return this.toLocaleString('sv').replace(' ', 'T') +
-(this.getMilliseconds() &gt; 0 ?
-'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
-(tzDiffHours &gt; 0 ? '-' : '+') +
-Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
-tzDiffMinutes.toString().padStart(2, '0');
-} else {
-return this.toISOString();
-}
-};
-Date.newLocalKindDate = function () {
-const date = new Date(...arguments);
-date.jsonDateKind = 'local';
-return date;
-}
-document.getElementById('btn').addEventListener('click', function () {
-var script = document.querySelector('#script').textContent;
-eval(script);
-var json = JSON.stringify(data, null, 2);
-document.querySelector('#result').textContent = json;
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="json-stringify-date-with-timezone" data-title-en="JSON.stringify() Date with timezone" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720">This article demonstrates how to use JavaScript prototype to extend the Date object, implementing control over whether to include timezone information when JSON is stringified.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>JavaScript 在 JSON.stringify() 時會將 Date 型別轉成 ISO 8601 格式，而時區則一律轉成 UTC 時間 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString">參考</a>，故在網頁 new Date() 取得台北時間轉成 JSON 時會減 8 小時變成 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code> 格式。</p> <p>然而 <a href="https://zh.wikipedia.org/zh-tw/ISO_8601">ISO 8601</a> 除了 <code>YYYY-MM-DDTHH:mm:ss.sssZ</code>，也可以在後方加上 <code>+HH:mm</code> 或 <code>-HH:mm</code> 標註時區，例如：<code>2024-01-01T12:34:56.789+08:00</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png"></p> <p>而 .NET 端在處理時，能區別出含時區的 ISO 8601 正確解析，例如：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638521996322262546.png"></p> <p>因此，我想擴充 JavaScript JSON.stringify()，視需求可將 Date 轉成含時區的 ISO 8601 格式：<code>YYYY-MM-DDTHH:mm:ss+08:00</code>，這樣就可以直接傳台北時間給 API，伺服器端不需再做轉換。</p> <p>這個問題在 <a href="/blog/json-date-timezone-issue">JSON 日期轉換的時區陷阱</a>有研究過，改寫 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Date/tojson">Date.toJSON()</a> 即可，但我不想全面覆寫 JSON 行為，而是擴充成靠額外設定改變行為，所以決定玩點小把戲，為 Date 擴充一個 jsonDateKind 屬性，當設成 'local' 時再改傳有 '+08:00' 的格式，另外，我加一個 <code>Date.newLocalKindDate()</code> 方法，傳入參數與 <code>new Date(...)</code> 一致，但建立的 Date 物件會設定 .jsonDateKind = 'local'。程式碼很簡單，透過 Date.prototype 修改 Date 屬性及行為而已，另外，有用到上回研究的 <a href="/blog/js-date-yyyymmdd-hhmmss/">JSON UTC 時間轉 yyyy-MM-mm HH:mm:ss 格式極簡解法</a>，平日累積的小東西總會有適當時機發揮功效。</p> <pre><code>Date.prototype.jsonDateKind = 'utc';
-Date.prototype.toJSON = function () {
-if (this.jsonDateKind === 'local') {
-var tzDiffHours = this.getTimezoneOffset() / 60;
-var tzDiffMinutes = this.getTimezoneOffset() % 60;
-return this.toLocaleString('sv').replace(' ', 'T') +
-(this.getMilliseconds() &gt; 0 ?
-'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
-(tzDiffHours &gt; 0 ? '-' : '+') +
-Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
-tzDiffMinutes.toString().padStart(2, '0');
-} else {
-return this.toISOString();
-}
-};
-Date.newLocalKindDate = function () {
-const date = new Date(...arguments);
-date.jsonDateKind = 'local';
-return date;
-}
-</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638521996323965420.png"></p> <p>附上原始碼跟<a href="https://output.jsbin.com/zozodec">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;Date jsonDateKind Property&lt;/title&gt;
-&lt;style&gt;
-#script {
-width: calc(100% - 24px);
-height: 210px;
-padding: 12px;
-}
-#result {
-width: calc(100% - 24px);
-height: 150px;
-background-color: #eee;
-padding: 10px;
-margin-top: 10px;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;textarea id="script"&gt;
-const now = new Date();
-now.jsonDateKind = 'local';
-const date = new Date(2024, 0, 1, 12, 34, 56, 789);
-date.jsonDateKind = 'local';
-const cust = Date.newLocalKindDate(2012, 11, 21, 12, 21, 0, 0);
-var data = {
-s: "Hello World!",
-i: 1234,
-d1: new Date(),
-d2: now,
-d3: date,
-d4: cust
-};
-&lt;/textarea&gt;
-&lt;button id="btn"&gt;Convert to Json&lt;/button&gt;
-&lt;pre id="result"&gt;
-&lt;/pre&gt;
-&lt;script&gt;
-Date.prototype.jsonDateKind = 'utc';
-Date.prototype.toJSON = function () {
-if (this.jsonDateKind === 'local') {
-var tzDiffHours = this.getTimezoneOffset() / 60;
-var tzDiffMinutes = this.getTimezoneOffset() % 60;
-return this.toLocaleString('sv').replace(' ', 'T') +
-(this.getMilliseconds() &gt; 0 ?
-'.' + this.getMilliseconds().toString().padStart(3, '0') : '') +
-(tzDiffHours &gt; 0 ? '-' : '+') +
-Math.abs(tzDiffHours).toString().padStart(2, '0') + ':' +
-tzDiffMinutes.toString().padStart(2, '0');
-} else {
-return this.toISOString();
-}
-};
-Date.newLocalKindDate = function () {
-const date = new Date(...arguments);
-date.jsonDateKind = 'local';
-return date;
-}
-document.getElementById('btn').addEventListener('click', function () {
-var script = document.querySelector('#script').textContent;
-eval(script);
-var json = JSON.stringify(data, null, 2);
-document.querySelector('#result').textContent = json;
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="json-stringify-date-with-timezone" data-title-en="JSON.stringify() Date with timezone" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/05/20/13/59/artist-775460_960_720.jpg#960#720">This article demonstrates how to use JavaScript prototype to extend the Date object, implementing control over whether to include timezone information when JSON is stringified.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638521996320610449.png" medium="image"/>
-    <pubDate>Sat, 25 May 2024 02:06:39 GMT</pubDate>
   </item></channel>
 </rss>
