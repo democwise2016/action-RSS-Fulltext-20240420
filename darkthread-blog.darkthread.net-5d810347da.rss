@@ -30,6 +30,75 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[HTML 知識更新包 - keydown/keyup 事件勿再用 keyCode 取值]]></title>
+    <link>https://blog.darkthread.net/blog/no-more-keycode/</link>
+    <itunes:title><![CDATA[HTML 知識更新包 - keydown/keyup 事件勿再用 keyCode 取值]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>身為十幾年前開始學 JavaScript 的老人，腦中總有些過時的觀念與知識，就像聊天時偶爾會脫口說出小叮噹、神奇寶貝般不合時宜，當場曝露年紀。</p> <p>昨天談到 <a href="/blog/keydown-event-not-triggered-in-ime/">Chromium keydown Bug</a>，讀者 Chester Fung 提醒，keydown/keyup 事件中已不該再用 keyCode 取得按鍵值，查了一下，真是如此!</p> <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode">MDN: KeyboardEvent: keyCode property</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png"></p> <p>依據官方文件建議，keyCode 的嫌惡等級為：「如果可能，請避免使用」[1]、「如果可能，有用它的程式碼也改一下吧」[2]。</p> <p>keyCode 的主要問題在於部分特殊鍵在不同的瀏覽器和不同平台(Windows、Mac、Linux)的結果不一致，<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode#browser_compatibility">MDN 文件</a>有提供對照表，如下圖可以找到一些不同瀏覽器不同 OS 結果不同的案例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638540179074670227.png"></p> <p>知道 keyCode 將作廢，要改用 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code">KeyboardEvent.code</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">KeyboardEvent.key</a> 倒也沒啥難度。我寫了一個簡單範例：<a href="https://output.jsbin.com/jivotej">線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;KeyboardEvent code and key test&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;textarea placeholder="type something here" rows="4" cols="40"&gt;&lt;/textarea&gt;
+&lt;ul&gt;&lt;/ul&gt;
+&lt;script&gt;
+document.querySelector('textarea').addEventListener('keydown', function (event) {
+var ul = document.querySelector('ul');
+var li = document.createElement('li');
+li.appendChild(document.createTextNode(`code: ${event.code}, key: ${event.key}`));
+ul.appendChild(li);
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638540179076341109.png"></p> <p>code 改以字串表示，不再需要用數字查表，<code>ShiftLeft</code>、<code>ArrowLeft</code> 一目瞭然，對開發者十分友善。</p> <p>未來再寫到 keydown、keyup 就別再用 keyCode 了，跟上時代的腳步吧。<br> (所以開發知識不只是要學會，還必須時時 Update，累~~~)</p> <p data-slug="no-more-keycode" data-title-en="Don't use keyCode in keydown/keyup events" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/10/23/16/58/phone-499991_1280.jpg#1280#720">The article discusses the outdated use of keyCode for handling keyboard events in JavaScript and recommends switching to KeyboardEvent.code and KeyboardEvent.key for better consistency across different browsers and platforms. It also provides a simple example to illustrate the ease of using the newer properties.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>身為十幾年前開始學 JavaScript 的老人，腦中總有些過時的觀念與知識，就像聊天時偶爾會脫口說出小叮噹、神奇寶貝般不合時宜，當場曝露年紀。</p> <p>昨天談到 <a href="/blog/keydown-event-not-triggered-in-ime/">Chromium keydown Bug</a>，讀者 Chester Fung 提醒，keydown/keyup 事件中已不該再用 keyCode 取得按鍵值，查了一下，真是如此!</p> <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode">MDN: KeyboardEvent: keyCode property</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png"></p> <p>依據官方文件建議，keyCode 的嫌惡等級為：「如果可能，請避免使用」[1]、「如果可能，有用它的程式碼也改一下吧」[2]。</p> <p>keyCode 的主要問題在於部分特殊鍵在不同的瀏覽器和不同平台(Windows、Mac、Linux)的結果不一致，<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode#browser_compatibility">MDN 文件</a>有提供對照表，如下圖可以找到一些不同瀏覽器不同 OS 結果不同的案例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638540179074670227.png"></p> <p>知道 keyCode 將作廢，要改用 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code">KeyboardEvent.code</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">KeyboardEvent.key</a> 倒也沒啥難度。我寫了一個簡單範例：<a href="https://output.jsbin.com/jivotej">線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;KeyboardEvent code and key test&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;textarea placeholder="type something here" rows="4" cols="40"&gt;&lt;/textarea&gt;
+&lt;ul&gt;&lt;/ul&gt;
+&lt;script&gt;
+document.querySelector('textarea').addEventListener('keydown', function (event) {
+var ul = document.querySelector('ul');
+var li = document.createElement('li');
+li.appendChild(document.createTextNode(`code: ${event.code}, key: ${event.key}`));
+ul.appendChild(li);
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638540179076341109.png"></p> <p>code 改以字串表示，不再需要用數字查表，<code>ShiftLeft</code>、<code>ArrowLeft</code> 一目瞭然，對開發者十分友善。</p> <p>未來再寫到 keydown、keyup 就別再用 keyCode 了，跟上時代的腳步吧。<br> (所以開發知識不只是要學會，還必須時時 Update，累~~~)</p> <p data-slug="no-more-keycode" data-title-en="Don't use keyCode in keydown/keyup events" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/10/23/16/58/phone-499991_1280.jpg#1280#720">The article discusses the outdated use of keyCode for handling keyboard events in JavaScript and recommends switching to KeyboardEvent.code and KeyboardEvent.key for better consistency across different browsers and platforms. It also provides a simple example to illustrate the ease of using the newer properties.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>身為十幾年前開始學 JavaScript 的老人，腦中總有些過時的觀念與知識，就像聊天時偶爾會脫口說出小叮噹、神奇寶貝般不合時宜，當場曝露年紀。</p> <p>昨天談到 <a href="/blog/keydown-event-not-triggered-in-ime/">Chromium keydown Bug</a>，讀者 Chester Fung 提醒，keydown/keyup 事件中已不該再用 keyCode 取得按鍵值，查了一下，真是如此!</p> <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode">MDN: KeyboardEvent: keyCode property</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png"></p> <p>依據官方文件建議，keyCode 的嫌惡等級為：「如果可能，請避免使用」[1]、「如果可能，有用它的程式碼也改一下吧」[2]。</p> <p>keyCode 的主要問題在於部分特殊鍵在不同的瀏覽器和不同平台(Windows、Mac、Linux)的結果不一致，<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode#browser_compatibility">MDN 文件</a>有提供對照表，如下圖可以找到一些不同瀏覽器不同 OS 結果不同的案例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638540179074670227.png"></p> <p>知道 keyCode 將作廢，要改用 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code">KeyboardEvent.code</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">KeyboardEvent.key</a> 倒也沒啥難度。我寫了一個簡單範例：<a href="https://output.jsbin.com/jivotej">線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;KeyboardEvent code and key test&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;textarea placeholder="type something here" rows="4" cols="40"&gt;&lt;/textarea&gt;
+&lt;ul&gt;&lt;/ul&gt;
+&lt;script&gt;
+document.querySelector('textarea').addEventListener('keydown', function (event) {
+var ul = document.querySelector('ul');
+var li = document.createElement('li');
+li.appendChild(document.createTextNode(`code: ${event.code}, key: ${event.key}`));
+ul.appendChild(li);
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638540179076341109.png"></p> <p>code 改以字串表示，不再需要用數字查表，<code>ShiftLeft</code>、<code>ArrowLeft</code> 一目瞭然，對開發者十分友善。</p> <p>未來再寫到 keydown、keyup 就別再用 keyCode 了，跟上時代的腳步吧。<br> (所以開發知識不只是要學會，還必須時時 Update，累~~~)</p> <p data-slug="no-more-keycode" data-title-en="Don't use keyCode in keydown/keyup events" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/10/23/16/58/phone-499991_1280.jpg#1280#720">The article discusses the outdated use of keyCode for handling keyboard events in JavaScript and recommends switching to KeyboardEvent.code and KeyboardEvent.key for better consistency across different browsers and platforms. It also provides a simple example to illustrate the ease of using the newer properties.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png" medium="image"/>
+    <pubDate>Sat, 15 Jun 2024 03:05:17 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【茶包射手筆記】Chrome/Edge 中文輸入時 JavaScript keydown 事件失效]]></title>
     <link>https://blog.darkthread.net/blog/keydown-event-not-triggered-in-ime/</link>
     <itunes:title><![CDATA[【茶包射手筆記】Chrome/Edge 中文輸入時 JavaScript keydown 事件失效]]></itunes:title>
@@ -1751,236 +1820,5 @@ if (value &gt; 100) pgb.setAttribute('value', 0);
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638528088732646418.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638528088732646418.png" medium="image"/>
     <pubDate>Sat, 01 Jun 2024 03:13:11 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[前端小技巧 - 洗巴辣 CSS 骰子動畫/自訂網頁元素/async、await 應用]]></title>
-    <link>https://blog.darkthread.net/blog/js-rolling-dice/</link>
-    <itunes:title><![CDATA[前端小技巧 - 洗巴辣 CSS 骰子動畫/自訂網頁元素/async、await 應用]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>故事是這樣的，在網路上查到一個很酷的 CSS <a href="https://3dtransforms.desandro.com/cube">3D 旋轉方塊教學</a>：</p> <p><img src="https://darkthread.github.io/rolling-dice/rolling-cube.gif"></p> <p>看到後禁不住手癢，馬上照著刻了一套洗巴辣擲骰子動畫：</p> <p><img src="https://darkthread.github.io/rolling-dice/rolling-dice.gif"></p> <p>嚴格來說，我的 HTML 5 CSS 跟 JavaScript 技能等級只到中上，過去要挑戰這種題目屬越級打怪，少不了爬文地獄加撞牆撞到飽。現在有了 <a href="/blog/github-copilot-demo/">Github Copliot 黑魔法</a>，我已不是昔日的吳下阿蒙，居然只花一個小時就寫好惹~</p> <p>給個方向起個頭，Copilot 接手把剩下十幾行補齊；有個模糊概念但沒細想實際要怎麼寫，打個註解 Copilot 幫你寫出來，連爬文時間都省了。只要你有能力鑑別程式碼好壞，把 Copilot 出錯或不足的地方改好，這種人與 AI 協作模式，比只說需求全權委託 AI 生成可靠，速度又比人工開發至少快一倍，是我心中最理想的 AI 輔助開發模式。</p> <p>ChatGPT 跟 Github Copilot 推出後，寫程式這檔事已邁入另一個紀元。不會或不愛寫程式的人，正熱烈期盼再也不用碰鍵盤敲 Code 的一天；而我這種太久沒寫 Code 手會抖的重度成癮者，則完全相反，正盡情享受靠 AI 推平學習曲線與加快開發速度，把 Code 寫好寫滿，Coding 樂趣翻倍。感覺就像手上的武器從自動步槍升級到加特林，遇到低等怪閉著眼睛扣扳機直接掃光，把時間精力留下來對付魔王。</p> <p>扯遠了。完整程式碼我已丟在 <a href="https://github.com/darkthread/darkthread.github.io/tree/master/rolling-dice">Github</a> 了，想玩的話有<a href="https://darkthread.github.io/rolling-dice/dice.html">線上展示</a>。這篇主要分享我這回邊做邊學到的 HTML5 技巧，對專業前端攻城獅可能是常識，但對我這種前端知識停在十年前的老全端，每每看到 Github Copilot 示範，就不自主發出「靠! 原來可以這樣」的讚嘆。因此，花點時間整理並補上參考資料，讓知識更完整。</p> <ol><li><p>3D 立方體是用六個 <code>&lt;div&gt;</code> 元素開 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-style"><code>transform-style: preserve-3d</code></a> 轉 3D 呈現，再用 <code>transform rotateY()</code> 轉出前後左右四面，<code>transform rotateX()</code> 轉出頂面跟底面，接著調整 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ"><code>translateZ()</code></a> 產生透視感，相關原理推薦這篇：<a href="https://3dtransforms.desandro.com/cube">Intro to CSS 3D transforms</a>，文章有步驟分解說明。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638523330204500553.png"></p> </li> <li><p>骰子的六面點數是用 SVG 繪製，確保可無鋸齒縮放。猜猜我怎麼做出來的？這類小圖示簡單歸簡單，要刻意找免姓名標示授權版本都要找好久，攻城獅繪圖工具不熟自己畫得摸索半天，現在則可以請 GPT 生成：<br> (GPT 一開始聽不懂指令沒做出圓角，但若懂點 SVG 原理加上 path 提示就會成功。會寫程式，調線條粗細、改點數自然不成問題。所以我不認同有 AI 以後大腦可以放空，技能跟知識愈足，同樣的 AI 工具用起來火力就是比別人強，還是能提高競爭力的)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638523330209246178.png"></p> </li> <li><p>現代瀏覽器已內建 CSS 巢狀 Seletor 支援及 calc() 計算、var() 變數<br> <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting">巢狀 Selector (CSS Nesting)</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/calc">calc() 計算</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/var">var() 變數</a> 對我不算新鮮事，但在我的過時認知中得用 <a href="https://hackmd.io/@Heidi-Liu/sass-css-preprocessor">Sass/SCSS</a> 寫再編譯成 css，現在除了一些 <a href="https://caniuse.com/css-nesting">上古瀏覽器</a>外，這些 CSS 功能已是瀏覽器標配了。</p> <pre><code>:root {
---dice-size: 50px;
---dice-bg-size: calc(var(--dice-size) * 1.28);
---trans-z-face: calc(var(--dice-size) / 2);
---trans-z-show: calc(var(--trans-z-face) * -1);
-}
-.dice-cube {
-* {
-box-sizing: border-box;
-}
-&amp;.focus {
-}
-display: inline-block;
-width: var(--dice-size);
-perspective: calc(var(--dice-size) * 4);
-}
-</code></pre> </li> <li><p>不用前端框架也能自訂 <code>&lt;my-component&gt;</code><br> 是的，你可以像下面這樣<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂網頁元素</a>，宣告一個 DiceCube 元件並設計方法跟屬性，註冊後便可在 HTML 用 <code>&lt;dice-cube id="d1"&gt;&lt;/dice-cube&gt;</code> 加入一顆骰子，用 <code>document.getElementById('d1').roll('top');</code> 轉骰子，用 <code>console.log(document.getElementById('d1').points);</code> 讀點數，全程只用香草 JavaScript，不添加任何人工香料。</p> <pre><code>class DiceCube extends HTMLElement {
-constructor() {
-super();
-this.innerHTML = `
-&lt;div class="dice-cube"&gt;
-&lt;div class="cube"&gt;
-&lt;div class="cube__face cube__face--front"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--back"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--right"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--left"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--top"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--bottom"&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-`;
-this.face = 'front';
-}
-get points() {
-return faces.indexOf(this.face) + 1;
-}
-roll() {
-let cube = this.querySelector('.cube');
-cube.className = 'cube';
-cube.classList.add(`show-${face}`);
-this.face = face;
-}
-}
-customElements.define('dice-cube', DiceCube);
-</code></pre> </li> <li><p>如何等 n 秒再繼續？善用 async、await 簡化程式寫法<br> 在上面的例子中，roll() 設定 CSS 樣式需等 0.25 秒動畫顯示最後點數，我的擲骰子亂數決定點數的方法 throw()，設計成連轉 20 次隨機點數演示過程，最後才決定結果，故要等待動畫播完再 throw() 第二次，一個直覺做法是呼叫 roll() 時卡住 0.25 秒後再跑下一行。<br> 過去 JavaScript 要搞非同步等待很麻煩，得靠複雜的 Queue、setTimeout 或 setInterval 實現。如今，善用 async、await，程式碼可以變得很簡單：</p> <pre><code>   roll(face) {
-let cube = this.querySelector('.cube');
-cube.className = 'cube';
-cube.classList.add(`show-${face}`);
-this.prevFace = this.side;
-this.face = face;
-// 傳回 Promise、0.22 秒後觸發 then
-return new Promise(resolve =&gt; { setTimeout(() =&gt; { resolve(); }, 220);  });
-}
-randomFace() {
-return faces[Math.floor(Math.random() * faces.length)];
-}
-// 宣告 async 以便使用 await 等待
-async throw() {
-const times = 20;
-for (let i = 0; i &lt; times; i++) {
-let nextFace;
-do {
-nextFace = this.randomFace();
-} while (nextFace === this.face || // 排除與現來相同
-nextFace === this.prevFace || // 排除逆轉回上一面
-nextFace === oppsiteFaces[this.face] // 排除直接轉 180 度
-);
-// 呼叫 .roll() 並等待點數確認
-await this.roll(nextFace);
-}
-await this.roll(this.randomFace());
-}
-</code></pre> <p>看似沒什麼用的 CSS 動畫，過程還是學到有用的技巧與知識，學程式，寫就對了。</p> <p data-slug="js-rolling-dice" data-title-en="Rolling dice with CSS preserve-3d and custom web component" data-catg="Web Development" data-fbimg="https://i.imgur.com/BwV6yO6.png#1280#720">This article demostrating a CSS 3D dice animation using HTML5, CSS, and JavaScript, aided by Github Copilot. They highlight techniques such as CSS 3D transforms, SVG for scalable faces, modern CSS features, custom web components, and async/await for timing.</p> </li></ol>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>故事是這樣的，在網路上查到一個很酷的 CSS <a href="https://3dtransforms.desandro.com/cube">3D 旋轉方塊教學</a>：</p> <p><img src="https://darkthread.github.io/rolling-dice/rolling-cube.gif"></p> <p>看到後禁不住手癢，馬上照著刻了一套洗巴辣擲骰子動畫：</p> <p><img src="https://darkthread.github.io/rolling-dice/rolling-dice.gif"></p> <p>嚴格來說，我的 HTML 5 CSS 跟 JavaScript 技能等級只到中上，過去要挑戰這種題目屬越級打怪，少不了爬文地獄加撞牆撞到飽。現在有了 <a href="/blog/github-copilot-demo/">Github Copliot 黑魔法</a>，我已不是昔日的吳下阿蒙，居然只花一個小時就寫好惹~</p> <p>給個方向起個頭，Copilot 接手把剩下十幾行補齊；有個模糊概念但沒細想實際要怎麼寫，打個註解 Copilot 幫你寫出來，連爬文時間都省了。只要你有能力鑑別程式碼好壞，把 Copilot 出錯或不足的地方改好，這種人與 AI 協作模式，比只說需求全權委託 AI 生成可靠，速度又比人工開發至少快一倍，是我心中最理想的 AI 輔助開發模式。</p> <p>ChatGPT 跟 Github Copilot 推出後，寫程式這檔事已邁入另一個紀元。不會或不愛寫程式的人，正熱烈期盼再也不用碰鍵盤敲 Code 的一天；而我這種太久沒寫 Code 手會抖的重度成癮者，則完全相反，正盡情享受靠 AI 推平學習曲線與加快開發速度，把 Code 寫好寫滿，Coding 樂趣翻倍。感覺就像手上的武器從自動步槍升級到加特林，遇到低等怪閉著眼睛扣扳機直接掃光，把時間精力留下來對付魔王。</p> <p>扯遠了。完整程式碼我已丟在 <a href="https://github.com/darkthread/darkthread.github.io/tree/master/rolling-dice">Github</a> 了，想玩的話有<a href="https://darkthread.github.io/rolling-dice/dice.html">線上展示</a>。這篇主要分享我這回邊做邊學到的 HTML5 技巧，對專業前端攻城獅可能是常識，但對我這種前端知識停在十年前的老全端，每每看到 Github Copilot 示範，就不自主發出「靠! 原來可以這樣」的讚嘆。因此，花點時間整理並補上參考資料，讓知識更完整。</p> <ol><li><p>3D 立方體是用六個 <code>&lt;div&gt;</code> 元素開 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-style"><code>transform-style: preserve-3d</code></a> 轉 3D 呈現，再用 <code>transform rotateY()</code> 轉出前後左右四面，<code>transform rotateX()</code> 轉出頂面跟底面，接著調整 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ"><code>translateZ()</code></a> 產生透視感，相關原理推薦這篇：<a href="https://3dtransforms.desandro.com/cube">Intro to CSS 3D transforms</a>，文章有步驟分解說明。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638523330204500553.png"></p> </li> <li><p>骰子的六面點數是用 SVG 繪製，確保可無鋸齒縮放。猜猜我怎麼做出來的？這類小圖示簡單歸簡單，要刻意找免姓名標示授權版本都要找好久，攻城獅繪圖工具不熟自己畫得摸索半天，現在則可以請 GPT 生成：<br> (GPT 一開始聽不懂指令沒做出圓角，但若懂點 SVG 原理加上 path 提示就會成功。會寫程式，調線條粗細、改點數自然不成問題。所以我不認同有 AI 以後大腦可以放空，技能跟知識愈足，同樣的 AI 工具用起來火力就是比別人強，還是能提高競爭力的)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638523330209246178.png"></p> </li> <li><p>現代瀏覽器已內建 CSS 巢狀 Seletor 支援及 calc() 計算、var() 變數<br> <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting">巢狀 Selector (CSS Nesting)</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/calc">calc() 計算</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/var">var() 變數</a> 對我不算新鮮事，但在我的過時認知中得用 <a href="https://hackmd.io/@Heidi-Liu/sass-css-preprocessor">Sass/SCSS</a> 寫再編譯成 css，現在除了一些 <a href="https://caniuse.com/css-nesting">上古瀏覽器</a>外，這些 CSS 功能已是瀏覽器標配了。</p> <pre><code>:root {
---dice-size: 50px;
---dice-bg-size: calc(var(--dice-size) * 1.28);
---trans-z-face: calc(var(--dice-size) / 2);
---trans-z-show: calc(var(--trans-z-face) * -1);
-}
-.dice-cube {
-* {
-box-sizing: border-box;
-}
-&amp;.focus {
-}
-display: inline-block;
-width: var(--dice-size);
-perspective: calc(var(--dice-size) * 4);
-}
-</code></pre> </li> <li><p>不用前端框架也能自訂 <code>&lt;my-component&gt;</code><br> 是的，你可以像下面這樣<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂網頁元素</a>，宣告一個 DiceCube 元件並設計方法跟屬性，註冊後便可在 HTML 用 <code>&lt;dice-cube id="d1"&gt;&lt;/dice-cube&gt;</code> 加入一顆骰子，用 <code>document.getElementById('d1').roll('top');</code> 轉骰子，用 <code>console.log(document.getElementById('d1').points);</code> 讀點數，全程只用香草 JavaScript，不添加任何人工香料。</p> <pre><code>class DiceCube extends HTMLElement {
-constructor() {
-super();
-this.innerHTML = `
-&lt;div class="dice-cube"&gt;
-&lt;div class="cube"&gt;
-&lt;div class="cube__face cube__face--front"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--back"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--right"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--left"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--top"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--bottom"&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-`;
-this.face = 'front';
-}
-get points() {
-return faces.indexOf(this.face) + 1;
-}
-roll() {
-let cube = this.querySelector('.cube');
-cube.className = 'cube';
-cube.classList.add(`show-${face}`);
-this.face = face;
-}
-}
-customElements.define('dice-cube', DiceCube);
-</code></pre> </li> <li><p>如何等 n 秒再繼續？善用 async、await 簡化程式寫法<br> 在上面的例子中，roll() 設定 CSS 樣式需等 0.25 秒動畫顯示最後點數，我的擲骰子亂數決定點數的方法 throw()，設計成連轉 20 次隨機點數演示過程，最後才決定結果，故要等待動畫播完再 throw() 第二次，一個直覺做法是呼叫 roll() 時卡住 0.25 秒後再跑下一行。<br> 過去 JavaScript 要搞非同步等待很麻煩，得靠複雜的 Queue、setTimeout 或 setInterval 實現。如今，善用 async、await，程式碼可以變得很簡單：</p> <pre><code>   roll(face) {
-let cube = this.querySelector('.cube');
-cube.className = 'cube';
-cube.classList.add(`show-${face}`);
-this.prevFace = this.side;
-this.face = face;
-// 傳回 Promise、0.22 秒後觸發 then
-return new Promise(resolve =&gt; { setTimeout(() =&gt; { resolve(); }, 220);  });
-}
-randomFace() {
-return faces[Math.floor(Math.random() * faces.length)];
-}
-// 宣告 async 以便使用 await 等待
-async throw() {
-const times = 20;
-for (let i = 0; i &lt; times; i++) {
-let nextFace;
-do {
-nextFace = this.randomFace();
-} while (nextFace === this.face || // 排除與現來相同
-nextFace === this.prevFace || // 排除逆轉回上一面
-nextFace === oppsiteFaces[this.face] // 排除直接轉 180 度
-);
-// 呼叫 .roll() 並等待點數確認
-await this.roll(nextFace);
-}
-await this.roll(this.randomFace());
-}
-</code></pre> <p>看似沒什麼用的 CSS 動畫，過程還是學到有用的技巧與知識，學程式，寫就對了。</p> <p data-slug="js-rolling-dice" data-title-en="Rolling dice with CSS preserve-3d and custom web component" data-catg="Web Development" data-fbimg="https://i.imgur.com/BwV6yO6.png#1280#720">This article demostrating a CSS 3D dice animation using HTML5, CSS, and JavaScript, aided by Github Copilot. They highlight techniques such as CSS 3D transforms, SVG for scalable faces, modern CSS features, custom web components, and async/await for timing.</p> </li></ol>]]>
-    </description>
-    <content:encoded><![CDATA[<p>故事是這樣的，在網路上查到一個很酷的 CSS <a href="https://3dtransforms.desandro.com/cube">3D 旋轉方塊教學</a>：</p> <p><img src="https://darkthread.github.io/rolling-dice/rolling-cube.gif"></p> <p>看到後禁不住手癢，馬上照著刻了一套洗巴辣擲骰子動畫：</p> <p><img src="https://darkthread.github.io/rolling-dice/rolling-dice.gif"></p> <p>嚴格來說，我的 HTML 5 CSS 跟 JavaScript 技能等級只到中上，過去要挑戰這種題目屬越級打怪，少不了爬文地獄加撞牆撞到飽。現在有了 <a href="/blog/github-copilot-demo/">Github Copliot 黑魔法</a>，我已不是昔日的吳下阿蒙，居然只花一個小時就寫好惹~</p> <p>給個方向起個頭，Copilot 接手把剩下十幾行補齊；有個模糊概念但沒細想實際要怎麼寫，打個註解 Copilot 幫你寫出來，連爬文時間都省了。只要你有能力鑑別程式碼好壞，把 Copilot 出錯或不足的地方改好，這種人與 AI 協作模式，比只說需求全權委託 AI 生成可靠，速度又比人工開發至少快一倍，是我心中最理想的 AI 輔助開發模式。</p> <p>ChatGPT 跟 Github Copilot 推出後，寫程式這檔事已邁入另一個紀元。不會或不愛寫程式的人，正熱烈期盼再也不用碰鍵盤敲 Code 的一天；而我這種太久沒寫 Code 手會抖的重度成癮者，則完全相反，正盡情享受靠 AI 推平學習曲線與加快開發速度，把 Code 寫好寫滿，Coding 樂趣翻倍。感覺就像手上的武器從自動步槍升級到加特林，遇到低等怪閉著眼睛扣扳機直接掃光，把時間精力留下來對付魔王。</p> <p>扯遠了。完整程式碼我已丟在 <a href="https://github.com/darkthread/darkthread.github.io/tree/master/rolling-dice">Github</a> 了，想玩的話有<a href="https://darkthread.github.io/rolling-dice/dice.html">線上展示</a>。這篇主要分享我這回邊做邊學到的 HTML5 技巧，對專業前端攻城獅可能是常識，但對我這種前端知識停在十年前的老全端，每每看到 Github Copilot 示範，就不自主發出「靠! 原來可以這樣」的讚嘆。因此，花點時間整理並補上參考資料，讓知識更完整。</p> <ol><li><p>3D 立方體是用六個 <code>&lt;div&gt;</code> 元素開 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-style"><code>transform-style: preserve-3d</code></a> 轉 3D 呈現，再用 <code>transform rotateY()</code> 轉出前後左右四面，<code>transform rotateX()</code> 轉出頂面跟底面，接著調整 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/translateZ"><code>translateZ()</code></a> 產生透視感，相關原理推薦這篇：<a href="https://3dtransforms.desandro.com/cube">Intro to CSS 3D transforms</a>，文章有步驟分解說明。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638523330204500553.png"></p> </li> <li><p>骰子的六面點數是用 SVG 繪製，確保可無鋸齒縮放。猜猜我怎麼做出來的？這類小圖示簡單歸簡單，要刻意找免姓名標示授權版本都要找好久，攻城獅繪圖工具不熟自己畫得摸索半天，現在則可以請 GPT 生成：<br> (GPT 一開始聽不懂指令沒做出圓角，但若懂點 SVG 原理加上 path 提示就會成功。會寫程式，調線條粗細、改點數自然不成問題。所以我不認同有 AI 以後大腦可以放空，技能跟知識愈足，同樣的 AI 工具用起來火力就是比別人強，還是能提高競爭力的)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638523330209246178.png"></p> </li> <li><p>現代瀏覽器已內建 CSS 巢狀 Seletor 支援及 calc() 計算、var() 變數<br> <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting">巢狀 Selector (CSS Nesting)</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/calc">calc() 計算</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/var">var() 變數</a> 對我不算新鮮事，但在我的過時認知中得用 <a href="https://hackmd.io/@Heidi-Liu/sass-css-preprocessor">Sass/SCSS</a> 寫再編譯成 css，現在除了一些 <a href="https://caniuse.com/css-nesting">上古瀏覽器</a>外，這些 CSS 功能已是瀏覽器標配了。</p> <pre><code>:root {
---dice-size: 50px;
---dice-bg-size: calc(var(--dice-size) * 1.28);
---trans-z-face: calc(var(--dice-size) / 2);
---trans-z-show: calc(var(--trans-z-face) * -1);
-}
-.dice-cube {
-* {
-box-sizing: border-box;
-}
-&amp;.focus {
-}
-display: inline-block;
-width: var(--dice-size);
-perspective: calc(var(--dice-size) * 4);
-}
-</code></pre> </li> <li><p>不用前端框架也能自訂 <code>&lt;my-component&gt;</code><br> 是的，你可以像下面這樣<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂網頁元素</a>，宣告一個 DiceCube 元件並設計方法跟屬性，註冊後便可在 HTML 用 <code>&lt;dice-cube id="d1"&gt;&lt;/dice-cube&gt;</code> 加入一顆骰子，用 <code>document.getElementById('d1').roll('top');</code> 轉骰子，用 <code>console.log(document.getElementById('d1').points);</code> 讀點數，全程只用香草 JavaScript，不添加任何人工香料。</p> <pre><code>class DiceCube extends HTMLElement {
-constructor() {
-super();
-this.innerHTML = `
-&lt;div class="dice-cube"&gt;
-&lt;div class="cube"&gt;
-&lt;div class="cube__face cube__face--front"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--back"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--right"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--left"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--top"&gt;&lt;/div&gt;
-&lt;div class="cube__face cube__face--bottom"&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-`;
-this.face = 'front';
-}
-get points() {
-return faces.indexOf(this.face) + 1;
-}
-roll() {
-let cube = this.querySelector('.cube');
-cube.className = 'cube';
-cube.classList.add(`show-${face}`);
-this.face = face;
-}
-}
-customElements.define('dice-cube', DiceCube);
-</code></pre> </li> <li><p>如何等 n 秒再繼續？善用 async、await 簡化程式寫法<br> 在上面的例子中，roll() 設定 CSS 樣式需等 0.25 秒動畫顯示最後點數，我的擲骰子亂數決定點數的方法 throw()，設計成連轉 20 次隨機點數演示過程，最後才決定結果，故要等待動畫播完再 throw() 第二次，一個直覺做法是呼叫 roll() 時卡住 0.25 秒後再跑下一行。<br> 過去 JavaScript 要搞非同步等待很麻煩，得靠複雜的 Queue、setTimeout 或 setInterval 實現。如今，善用 async、await，程式碼可以變得很簡單：</p> <pre><code>   roll(face) {
-let cube = this.querySelector('.cube');
-cube.className = 'cube';
-cube.classList.add(`show-${face}`);
-this.prevFace = this.side;
-this.face = face;
-// 傳回 Promise、0.22 秒後觸發 then
-return new Promise(resolve =&gt; { setTimeout(() =&gt; { resolve(); }, 220);  });
-}
-randomFace() {
-return faces[Math.floor(Math.random() * faces.length)];
-}
-// 宣告 async 以便使用 await 等待
-async throw() {
-const times = 20;
-for (let i = 0; i &lt; times; i++) {
-let nextFace;
-do {
-nextFace = this.randomFace();
-} while (nextFace === this.face || // 排除與現來相同
-nextFace === this.prevFace || // 排除逆轉回上一面
-nextFace === oppsiteFaces[this.face] // 排除直接轉 180 度
-);
-// 呼叫 .roll() 並等待點數確認
-await this.roll(nextFace);
-}
-await this.roll(this.randomFace());
-}
-</code></pre> <p>看似沒什麼用的 CSS 動畫，過程還是學到有用的技巧與知識，學程式，寫就對了。</p> <p data-slug="js-rolling-dice" data-title-en="Rolling dice with CSS preserve-3d and custom web component" data-catg="Web Development" data-fbimg="https://i.imgur.com/BwV6yO6.png#1280#720">This article demostrating a CSS 3D dice animation using HTML5, CSS, and JavaScript, aided by Github Copilot. They highlight techniques such as CSS 3D transforms, SVG for scalable faces, modern CSS features, custom web components, and async/await for timing.</p> </li></ol>]]></content:encoded>
-    <itunes:image href="https://darkthread.github.io/rolling-dice/rolling-cube.gif"/>
-          <media:content url="https://darkthread.github.io/rolling-dice/rolling-cube.gif" medium="image"/>
-    <pubDate>Sun, 26 May 2024 15:09:18 GMT</pubDate>
   </item></channel>
 </rss>
