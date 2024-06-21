@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/705/800/800.jpg?hmac=WFMGhX_YRJ6urz4nDXMBtczbImBOnwE4dxmUDNasUE0</url>
+      <url>https://fastly.picsum.photos/id/187/800/800.jpg?hmac=7fYu_FprTIjBOTORFQgcsAoYIumPs-iqw112Ll7otpk</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,158 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/705/800/800.jpg?hmac=WFMGhX_YRJ6urz4nDXMBtczbImBOnwE4dxmUDNasUE0"/>
+    <itunes:image href="https://fastly.picsum.photos/id/187/800/800.jpg?hmac=7fYu_FprTIjBOTORFQgcsAoYIumPs-iqw112Ll7otpk"/>
 <item>
+    <title><![CDATA[Rclone 簡單搞定Linux電腦雲端硬碟同步，支援Google雲端、OneDrive、DropBox、MEGA]]></title>
+    <link>https://ivonblog.com/posts/rclone-linux/</link>
+    <itunes:title><![CDATA[Rclone 簡單搞定Linux電腦雲端硬碟同步，支援Google雲端、OneDrive、DropBox、MEGA]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/rclone-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-befa8556b9.webp"></a></p>
+<p>你的雲端硬碟供應商沒有提供Linux版桌面客戶端嗎？Rclone一個全部包辦！</p><p>Rclone是受Rsync所啟發的軟體，作者稱其為"rsync for cloud storage"</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-97326338f2.webp"><p>Rclone特色功能如下：</p><ul><li>比Rsync效能更好，加入多執行緒支援</li><li>開源軟體，不會蒐集使用者資料</li><li>跨平台支援Linux/Windows/macOS</li><li>使用靈活，可以用純文字指令操作，也有網頁圖形介面</li><li>支援許多雲端硬碟，例如Google Drive、OneDrive、Dropbox、pCloud、MEGA、NextCloud、Amazon S3、Blackblaze B2等等。</li><li>因為能連線到多個雲端硬碟，所以能在不同雲端之間同步檔案</li><li>支援本機加密後再上傳檔案</li><li>透過FUSE掛載雲端到到本機，直接修改遠端檔案。</li><li>支援掛載遠端FTP、WebDAV伺服器、檔案系統，當作rsync備份檔案之用。</li></ul><p>本文Ivon示範如何在Linux安裝rclone，討論如何連線到Google雲端硬碟，並將其掛載到本機硬碟的作法。最後介紹rclone排程備份的作法。</p><p>其他家雲端的操作概念大同小異。</p><h2>1. 安裝Rclone<span><a href="#1-%E5%AE%89%E8%A3%9Drclone" aria-label="定位點">#</a></span></h2><ol><li>參照<a href="https://rclone.org/install/" target="_blank">
+安裝指示</a>，x86_64架構的Linux可以直接下載最新版的執行檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
+</span></span><span><span>unzip rclone-current-linux-amd64.zip
+</span></span><span><span><span>cd</span> rclone-*-linux-amd64
+</span></span><span><span>
+</span></span><span><span>sudo cp rclone /usr/bin/
+</span></span><span><span>sudo chown root:root /usr/bin/rclone
+</span></span><span><span>sudo chmod <span>755</span> /usr/bin/rclone
+</span></span><span><span>
+</span></span><span><span>sudo mkdir -p /usr/local/share/man/man1
+</span></span><span><span>sudo cp rclone.1 /usr/local/share/man/man1/
+</span></span><span><span>sudo mandb
+</span></span></code></pre></div><ol start="2"><li>Linux設定檔位置用指令<code>rclone config file</code>查看，通常位於<code> ~/.config/rclone/rclone.conf</code></li></ol><h2>2. 啟動Rclone圖形界面<span><a href="#2-%E5%95%9F%E5%8B%95rclone%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>Rclone最近的版本加入了React寫成的網頁，讓一些基本操作可以用圖形界面完成。</p><p>WebUI所做的變更會自動寫入<code>rclone.conf</code>，所以指令和WebUI二者可以交替使用。</p><p>使用以下指令啟動WebUI，設定帳號為admin，密碼為password</p><div><pre tabindex="0"><code data-lang="bash"><span><span>rclone rcd --rc-web-gui --rc-user<span>=</span>admin --rc-pass<span>=</span>password --rc-addr localhost:5572
+</span></span></code></pre></div><p>之後使用瀏覽器開啟<code>http://localhost:5572</code>。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-806e02f494.webp"><h2>3. 連線到Google雲端硬碟<span><a href="#3-%E9%80%A3%E7%B7%9A%E5%88%B0google%E9%9B%B2%E7%AB%AF%E7%A1%AC%E7%A2%9F" aria-label="定位點">#</a></span></h2><p>根據<a href="https://rclone.org/drive/#making-your-own-client-id" target="_blank">
+官方指示</a>，Google雲端硬碟需要使用Google API完成。</p><ol><li><p>到<a href="https://console.cloud.google.com" target="_blank">
+Google Cloud Console</a>，點選左上角新增專案</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98510d7c3a.webp"></li><li><p>點選左邊側邊欄→ API程式庫，新增Google Drive API</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-351dca046a.webp"></li><li><p>回到上一頁，點選左邊側邊欄 → 新增OAuth同意畫面，User Type設定為External</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7486376ea5.webp"></li><li><p>應用程式資訊設定為rclone</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a4cd04afb.webp"></li><li><p>如圖勾選以下範圍(scope)</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1d4861405d.webp"></li><li><p>把自己的電子郵件加入測試使用者</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-76594cca31.webp"></li><li><p>點選左邊側邊欄 → 憑證 → 建立憑證 → 新增OAuth用戶端ID</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-92068e7df1.webp"></li><li><p>之後會得到一組OAuth Client ID和OAuth Secret</p></li><li><p>在Rclone WebUI的Configs界面新增Google Drive，填寫Client Auth和Client Secret，再登入Google帳號即可。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0f3c74913b.webp"></li><li><p>這樣在Rclone WebUI的Browser界面就可以檢視Google雲端檔案了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bbe022f243.webp"></li></ol><h2>4. 掛載Google雲端硬碟到本機<span><a href="#4-%E6%8E%9B%E8%BC%89google%E9%9B%B2%E7%AB%AF%E7%A1%AC%E7%A2%9F%E5%88%B0%E6%9C%AC%E6%A9%9F" aria-label="定位點">#</a></span></h2><p>讓Google雲端可以用Linux檔案管理員存取。</p><ol><li>Rclone的這個功能是透過FUSE實現的，確認Linux的FUSE套件版本：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fusermount -V
+</span></span></code></pre></div><ol start="2"><li>新增Google雲端硬碟的掛載點，並將權限設定為目前的使用者（我的使用者為<code>user</code>，屬於<code>user</code>群組）</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir /run/media/user/GoogleDrive
+</span></span><span><span>
+</span></span><span><span>sudo chown user:user /run/media/user/GoogleDrive
+</span></span></code></pre></div><ol start="3"><li><p>在Rclone WebUI的Mount界面新增Google Drive，輸入掛載點</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a0dc4fabf.webp"></li><li><p>這樣就能夠用Linux的檔案管理員開啟Google雲端的目錄了，直接新增檔案。惟網速影響可能載入速度會慢些。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d50899c958.webp"></li></ol><h2>5. 排程備份本機目錄到Google雲端<span><a href="#5-%E6%8E%92%E7%A8%8B%E5%82%99%E4%BB%BD%E6%9C%AC%E6%A9%9F%E7%9B%AE%E9%8C%84%E5%88%B0google%E9%9B%B2%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>如果要自動定期將某個目錄備份到雲端呢？FUSE有點太慢了，此時就得使用Rclone指令。</p><p>Rclone提供<a href="https://rclone.org/commands/rclone_copy/" target="_blank">
+rclone copy</a>以及<a href="https://rclone.org/commands/rclone_sync/" target="_blank">
+rclone sync</a>兩種指令，copy指的是上傳檔案，不刪除多餘檔案；sync則是讓遠端與本機目錄的檔案同步，有多餘的檔案會刪除。</p><p>所以我們使用copy上傳檔案。至於排程備份部份，我使用Systemd Timer。</p><ol><li>下面的指令，是將本機的目錄<code>/hom/user/Documents</code>上傳到Google雲端的<code>/Backup</code>目錄。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rclone copy -v <span>"/home/user/Documents"</span> <span>"GoogleDrive:/Backup"</span>
+</span></span></code></pre></div><ol start="2"><li><p>rclone copy是複製一個目錄下的全部內容，假設<code>Documents</code>下有複數個檔案和目錄，那麼上傳到<code>Backup</code>的就是那些檔案，目錄結構亦會保留，但不包含<code>Documents</code>這個目錄。</p></li><li><p>為目前使用者新增Systemd Unit</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/systemd/user/rclonebackup.service
+</span></span></code></pre></div><ol start="4"><li>填入以下內容</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
+</span></span><span><span><span>Description</span><span>=</span>Rclone backup
+</span></span><span><span>
+</span></span><span><span><span>[</span>Service<span>]</span>
+</span></span><span><span><span>ExecStart</span><span>=</span>/usr/bin/rclone copy -v <span>"/home/user/Documents"</span> <span>"GoogleDrive:/Backup"</span>
+</span></span><span><span>
+</span></span><span><span><span>[</span>Install<span>]</span>
+</span></span><span><span><span>WantedBy</span><span>=</span>multi-user.target
+</span></span></code></pre></div><ol start="5"><li>再新增Timer</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/systemd/user/rclonebackup.timer
+</span></span></code></pre></div><ol start="6"><li>設定為每一小時執行一次</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
+</span></span><span><span><span>Description</span><span>=</span>Rclone backup
+</span></span><span><span>
+</span></span><span><span><span>[</span>Timer<span>]</span>
+</span></span><span><span><span>OnUnitActiveSec</span><span>=</span>1h
+</span></span><span><span><span>Unit</span><span>=</span>rclonebackup.service
+</span></span><span><span>
+</span></span><span><span><span>[</span>Install<span>]</span>
+</span></span><span><span><span>WantedBy</span><span>=</span>multi-user.target
+</span></span></code></pre></div><ol start="7"><li>啟用服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl --user daemon-reload
+</span></span><span><span>
+</span></span><span><span>systemctl --user <span>enable</span> --now rclonebackup.timer
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://rclone.org/docs/" target="_blank">Rclone Documentation</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/rclone-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-befa8556b9.webp"></a></p>
+<p>你的雲端硬碟供應商沒有提供Linux版桌面客戶端嗎？Rclone一個全部包辦！</p><p>Rclone是受Rsync所啟發的軟體，作者稱其為"rsync for cloud storage"</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-97326338f2.webp"><p>Rclone特色功能如下：</p><ul><li>比Rsync效能更好，加入多執行緒支援</li><li>開源軟體，不會蒐集使用者資料</li><li>跨平台支援Linux/Windows/macOS</li><li>使用靈活，可以用純文字指令操作，也有網頁圖形介面</li><li>支援許多雲端硬碟，例如Google Drive、OneDrive、Dropbox、pCloud、MEGA、NextCloud、Amazon S3、Blackblaze B2等等。</li><li>因為能連線到多個雲端硬碟，所以能在不同雲端之間同步檔案</li><li>支援本機加密後再上傳檔案</li><li>透過FUSE掛載雲端到到本機，直接修改遠端檔案。</li><li>支援掛載遠端FTP、WebDAV伺服器、檔案系統，當作rsync備份檔案之用。</li></ul><p>本文Ivon示範如何在Linux安裝rclone，討論如何連線到Google雲端硬碟，並將其掛載到本機硬碟的作法。最後介紹rclone排程備份的作法。</p><p>其他家雲端的操作概念大同小異。</p><h2>1. 安裝Rclone<span><a href="#1-%E5%AE%89%E8%A3%9Drclone" aria-label="定位點">#</a></span></h2><ol><li>參照<a href="https://rclone.org/install/" target="_blank">
+安裝指示</a>，x86_64架構的Linux可以直接下載最新版的執行檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
+</span></span><span><span>unzip rclone-current-linux-amd64.zip
+</span></span><span><span><span>cd</span> rclone-*-linux-amd64
+</span></span><span><span>
+</span></span><span><span>sudo cp rclone /usr/bin/
+</span></span><span><span>sudo chown root:root /usr/bin/rclone
+</span></span><span><span>sudo chmod <span>755</span> /usr/bin/rclone
+</span></span><span><span>
+</span></span><span><span>sudo mkdir -p /usr/local/share/man/man1
+</span></span><span><span>sudo cp rclone.1 /usr/local/share/man/man1/
+</span></span><span><span>sudo mandb
+</span></span></code></pre></div><ol start="2"><li>Linux設定檔位置用指令<code>rclone config file</code>查看，通常位於<code> ~/.config/rclone/rclone.conf</code></li></ol><h2>2. 啟動Rclone圖形界面<span><a href="#2-%E5%95%9F%E5%8B%95rclone%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>Rclone最近的版本加入了React寫成的網頁，讓一些基本操作可以用圖形界面完成。</p><p>WebUI所做的變更會自動寫入<code>rclone.conf</code>，所以指令和WebUI二者可以交替使用。</p><p>使用以下指令啟動WebUI，設定帳號為admin，密碼為password</p><div><pre tabindex="0"><code data-lang="bash"><span><span>rclone rcd --rc-web-gui --rc-user<span>=</span>admin --rc-pass<span>=</span>password --rc-addr localhost:5572
+</span></span></code></pre></div><p>之後使用瀏覽器開啟<code>http://localhost:5572</code>。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-806e02f494.webp"><h2>3. 連線到Google雲端硬碟<span><a href="#3-%E9%80%A3%E7%B7%9A%E5%88%B0google%E9%9B%B2%E7%AB%AF%E7%A1%AC%E7%A2%9F" aria-label="定位點">#</a></span></h2><p>根據<a href="https://rclone.org/drive/#making-your-own-client-id" target="_blank">
+官方指示</a>，Google雲端硬碟需要使用Google API完成。</p><ol><li><p>到<a href="https://console.cloud.google.com" target="_blank">
+Google Cloud Console</a>，點選左上角新增專案</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98510d7c3a.webp"></li><li><p>點選左邊側邊欄→ API程式庫，新增Google Drive API</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-351dca046a.webp"></li><li><p>回到上一頁，點選左邊側邊欄 → 新增OAuth同意畫面，User Type設定為External</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7486376ea5.webp"></li><li><p>應用程式資訊設定為rclone</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a4cd04afb.webp"></li><li><p>如圖勾選以下範圍(scope)</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1d4861405d.webp"></li><li><p>把自己的電子郵件加入測試使用者</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-76594cca31.webp"></li><li><p>點選左邊側邊欄 → 憑證 → 建立憑證 → 新增OAuth用戶端ID</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-92068e7df1.webp"></li><li><p>之後會得到一組OAuth Client ID和OAuth Secret</p></li><li><p>在Rclone WebUI的Configs界面新增Google Drive，填寫Client Auth和Client Secret，再登入Google帳號即可。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0f3c74913b.webp"></li><li><p>這樣在Rclone WebUI的Browser界面就可以檢視Google雲端檔案了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bbe022f243.webp"></li></ol><h2>4. 掛載Google雲端硬碟到本機<span><a href="#4-%E6%8E%9B%E8%BC%89google%E9%9B%B2%E7%AB%AF%E7%A1%AC%E7%A2%9F%E5%88%B0%E6%9C%AC%E6%A9%9F" aria-label="定位點">#</a></span></h2><p>讓Google雲端可以用Linux檔案管理員存取。</p><ol><li>Rclone的這個功能是透過FUSE實現的，確認Linux的FUSE套件版本：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fusermount -V
+</span></span></code></pre></div><ol start="2"><li>新增Google雲端硬碟的掛載點，並將權限設定為目前的使用者（我的使用者為<code>user</code>，屬於<code>user</code>群組）</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir /run/media/user/GoogleDrive
+</span></span><span><span>
+</span></span><span><span>sudo chown user:user /run/media/user/GoogleDrive
+</span></span></code></pre></div><ol start="3"><li><p>在Rclone WebUI的Mount界面新增Google Drive，輸入掛載點</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a0dc4fabf.webp"></li><li><p>這樣就能夠用Linux的檔案管理員開啟Google雲端的目錄了，直接新增檔案。惟網速影響可能載入速度會慢些。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d50899c958.webp"></li></ol><h2>5. 排程備份本機目錄到Google雲端<span><a href="#5-%E6%8E%92%E7%A8%8B%E5%82%99%E4%BB%BD%E6%9C%AC%E6%A9%9F%E7%9B%AE%E9%8C%84%E5%88%B0google%E9%9B%B2%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>如果要自動定期將某個目錄備份到雲端呢？FUSE有點太慢了，此時就得使用Rclone指令。</p><p>Rclone提供<a href="https://rclone.org/commands/rclone_copy/" target="_blank">
+rclone copy</a>以及<a href="https://rclone.org/commands/rclone_sync/" target="_blank">
+rclone sync</a>兩種指令，copy指的是上傳檔案，不刪除多餘檔案；sync則是讓遠端與本機目錄的檔案同步，有多餘的檔案會刪除。</p><p>所以我們使用copy上傳檔案。至於排程備份部份，我使用Systemd Timer。</p><ol><li>下面的指令，是將本機的目錄<code>/hom/user/Documents</code>上傳到Google雲端的<code>/Backup</code>目錄。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rclone copy -v <span>"/home/user/Documents"</span> <span>"GoogleDrive:/Backup"</span>
+</span></span></code></pre></div><ol start="2"><li><p>rclone copy是複製一個目錄下的全部內容，假設<code>Documents</code>下有複數個檔案和目錄，那麼上傳到<code>Backup</code>的就是那些檔案，目錄結構亦會保留，但不包含<code>Documents</code>這個目錄。</p></li><li><p>為目前使用者新增Systemd Unit</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/systemd/user/rclonebackup.service
+</span></span></code></pre></div><ol start="4"><li>填入以下內容</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
+</span></span><span><span><span>Description</span><span>=</span>Rclone backup
+</span></span><span><span>
+</span></span><span><span><span>[</span>Service<span>]</span>
+</span></span><span><span><span>ExecStart</span><span>=</span>/usr/bin/rclone copy -v <span>"/home/user/Documents"</span> <span>"GoogleDrive:/Backup"</span>
+</span></span><span><span>
+</span></span><span><span><span>[</span>Install<span>]</span>
+</span></span><span><span><span>WantedBy</span><span>=</span>multi-user.target
+</span></span></code></pre></div><ol start="5"><li>再新增Timer</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/systemd/user/rclonebackup.timer
+</span></span></code></pre></div><ol start="6"><li>設定為每一小時執行一次</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
+</span></span><span><span><span>Description</span><span>=</span>Rclone backup
+</span></span><span><span>
+</span></span><span><span><span>[</span>Timer<span>]</span>
+</span></span><span><span><span>OnUnitActiveSec</span><span>=</span>1h
+</span></span><span><span><span>Unit</span><span>=</span>rclonebackup.service
+</span></span><span><span>
+</span></span><span><span><span>[</span>Install<span>]</span>
+</span></span><span><span><span>WantedBy</span><span>=</span>multi-user.target
+</span></span></code></pre></div><ol start="7"><li>啟用服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl --user daemon-reload
+</span></span><span><span>
+</span></span><span><span>systemctl --user <span>enable</span> --now rclonebackup.timer
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://rclone.org/docs/" target="_blank">Rclone Documentation</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/rclone-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-befa8556b9.webp"></a></p>
+<p>你的雲端硬碟供應商沒有提供Linux版桌面客戶端嗎？Rclone一個全部包辦！</p><p>Rclone是受Rsync所啟發的軟體，作者稱其為"rsync for cloud storage"</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-97326338f2.webp"><p>Rclone特色功能如下：</p><ul><li>比Rsync效能更好，加入多執行緒支援</li><li>開源軟體，不會蒐集使用者資料</li><li>跨平台支援Linux/Windows/macOS</li><li>使用靈活，可以用純文字指令操作，也有網頁圖形介面</li><li>支援許多雲端硬碟，例如Google Drive、OneDrive、Dropbox、pCloud、MEGA、NextCloud、Amazon S3、Blackblaze B2等等。</li><li>因為能連線到多個雲端硬碟，所以能在不同雲端之間同步檔案</li><li>支援本機加密後再上傳檔案</li><li>透過FUSE掛載雲端到到本機，直接修改遠端檔案。</li><li>支援掛載遠端FTP、WebDAV伺服器、檔案系統，當作rsync備份檔案之用。</li></ul><p>本文Ivon示範如何在Linux安裝rclone，討論如何連線到Google雲端硬碟，並將其掛載到本機硬碟的作法。最後介紹rclone排程備份的作法。</p><p>其他家雲端的操作概念大同小異。</p><h2>1. 安裝Rclone<span><a href="#1-%E5%AE%89%E8%A3%9Drclone" aria-label="定位點">#</a></span></h2><ol><li>參照<a href="https://rclone.org/install/" target="_blank">
+安裝指示</a>，x86_64架構的Linux可以直接下載最新版的執行檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
+</span></span><span><span>unzip rclone-current-linux-amd64.zip
+</span></span><span><span><span>cd</span> rclone-*-linux-amd64
+</span></span><span><span>
+</span></span><span><span>sudo cp rclone /usr/bin/
+</span></span><span><span>sudo chown root:root /usr/bin/rclone
+</span></span><span><span>sudo chmod <span>755</span> /usr/bin/rclone
+</span></span><span><span>
+</span></span><span><span>sudo mkdir -p /usr/local/share/man/man1
+</span></span><span><span>sudo cp rclone.1 /usr/local/share/man/man1/
+</span></span><span><span>sudo mandb
+</span></span></code></pre></div><ol start="2"><li>Linux設定檔位置用指令<code>rclone config file</code>查看，通常位於<code> ~/.config/rclone/rclone.conf</code></li></ol><h2>2. 啟動Rclone圖形界面<span><a href="#2-%E5%95%9F%E5%8B%95rclone%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>Rclone最近的版本加入了React寫成的網頁，讓一些基本操作可以用圖形界面完成。</p><p>WebUI所做的變更會自動寫入<code>rclone.conf</code>，所以指令和WebUI二者可以交替使用。</p><p>使用以下指令啟動WebUI，設定帳號為admin，密碼為password</p><div><pre tabindex="0"><code data-lang="bash"><span><span>rclone rcd --rc-web-gui --rc-user<span>=</span>admin --rc-pass<span>=</span>password --rc-addr localhost:5572
+</span></span></code></pre></div><p>之後使用瀏覽器開啟<code>http://localhost:5572</code>。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-806e02f494.webp"><h2>3. 連線到Google雲端硬碟<span><a href="#3-%E9%80%A3%E7%B7%9A%E5%88%B0google%E9%9B%B2%E7%AB%AF%E7%A1%AC%E7%A2%9F" aria-label="定位點">#</a></span></h2><p>根據<a href="https://rclone.org/drive/#making-your-own-client-id" target="_blank">
+官方指示</a>，Google雲端硬碟需要使用Google API完成。</p><ol><li><p>到<a href="https://console.cloud.google.com" target="_blank">
+Google Cloud Console</a>，點選左上角新增專案</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98510d7c3a.webp"></li><li><p>點選左邊側邊欄→ API程式庫，新增Google Drive API</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-351dca046a.webp"></li><li><p>回到上一頁，點選左邊側邊欄 → 新增OAuth同意畫面，User Type設定為External</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7486376ea5.webp"></li><li><p>應用程式資訊設定為rclone</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a4cd04afb.webp"></li><li><p>如圖勾選以下範圍(scope)</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1d4861405d.webp"></li><li><p>把自己的電子郵件加入測試使用者</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-76594cca31.webp"></li><li><p>點選左邊側邊欄 → 憑證 → 建立憑證 → 新增OAuth用戶端ID</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-92068e7df1.webp"></li><li><p>之後會得到一組OAuth Client ID和OAuth Secret</p></li><li><p>在Rclone WebUI的Configs界面新增Google Drive，填寫Client Auth和Client Secret，再登入Google帳號即可。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0f3c74913b.webp"></li><li><p>這樣在Rclone WebUI的Browser界面就可以檢視Google雲端檔案了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bbe022f243.webp"></li></ol><h2>4. 掛載Google雲端硬碟到本機<span><a href="#4-%E6%8E%9B%E8%BC%89google%E9%9B%B2%E7%AB%AF%E7%A1%AC%E7%A2%9F%E5%88%B0%E6%9C%AC%E6%A9%9F" aria-label="定位點">#</a></span></h2><p>讓Google雲端可以用Linux檔案管理員存取。</p><ol><li>Rclone的這個功能是透過FUSE實現的，確認Linux的FUSE套件版本：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fusermount -V
+</span></span></code></pre></div><ol start="2"><li>新增Google雲端硬碟的掛載點，並將權限設定為目前的使用者（我的使用者為<code>user</code>，屬於<code>user</code>群組）</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir /run/media/user/GoogleDrive
+</span></span><span><span>
+</span></span><span><span>sudo chown user:user /run/media/user/GoogleDrive
+</span></span></code></pre></div><ol start="3"><li><p>在Rclone WebUI的Mount界面新增Google Drive，輸入掛載點</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a0dc4fabf.webp"></li><li><p>這樣就能夠用Linux的檔案管理員開啟Google雲端的目錄了，直接新增檔案。惟網速影響可能載入速度會慢些。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d50899c958.webp"></li></ol><h2>5. 排程備份本機目錄到Google雲端<span><a href="#5-%E6%8E%92%E7%A8%8B%E5%82%99%E4%BB%BD%E6%9C%AC%E6%A9%9F%E7%9B%AE%E9%8C%84%E5%88%B0google%E9%9B%B2%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>如果要自動定期將某個目錄備份到雲端呢？FUSE有點太慢了，此時就得使用Rclone指令。</p><p>Rclone提供<a href="https://rclone.org/commands/rclone_copy/" target="_blank">
+rclone copy</a>以及<a href="https://rclone.org/commands/rclone_sync/" target="_blank">
+rclone sync</a>兩種指令，copy指的是上傳檔案，不刪除多餘檔案；sync則是讓遠端與本機目錄的檔案同步，有多餘的檔案會刪除。</p><p>所以我們使用copy上傳檔案。至於排程備份部份，我使用Systemd Timer。</p><ol><li>下面的指令，是將本機的目錄<code>/hom/user/Documents</code>上傳到Google雲端的<code>/Backup</code>目錄。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rclone copy -v <span>"/home/user/Documents"</span> <span>"GoogleDrive:/Backup"</span>
+</span></span></code></pre></div><ol start="2"><li><p>rclone copy是複製一個目錄下的全部內容，假設<code>Documents</code>下有複數個檔案和目錄，那麼上傳到<code>Backup</code>的就是那些檔案，目錄結構亦會保留，但不包含<code>Documents</code>這個目錄。</p></li><li><p>為目前使用者新增Systemd Unit</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/systemd/user/rclonebackup.service
+</span></span></code></pre></div><ol start="4"><li>填入以下內容</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
+</span></span><span><span><span>Description</span><span>=</span>Rclone backup
+</span></span><span><span>
+</span></span><span><span><span>[</span>Service<span>]</span>
+</span></span><span><span><span>ExecStart</span><span>=</span>/usr/bin/rclone copy -v <span>"/home/user/Documents"</span> <span>"GoogleDrive:/Backup"</span>
+</span></span><span><span>
+</span></span><span><span><span>[</span>Install<span>]</span>
+</span></span><span><span><span>WantedBy</span><span>=</span>multi-user.target
+</span></span></code></pre></div><ol start="5"><li>再新增Timer</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/systemd/user/rclonebackup.timer
+</span></span></code></pre></div><ol start="6"><li>設定為每一小時執行一次</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
+</span></span><span><span><span>Description</span><span>=</span>Rclone backup
+</span></span><span><span>
+</span></span><span><span><span>[</span>Timer<span>]</span>
+</span></span><span><span><span>OnUnitActiveSec</span><span>=</span>1h
+</span></span><span><span><span>Unit</span><span>=</span>rclonebackup.service
+</span></span><span><span>
+</span></span><span><span><span>[</span>Install<span>]</span>
+</span></span><span><span><span>WantedBy</span><span>=</span>multi-user.target
+</span></span></code></pre></div><ol start="7"><li>啟用服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl --user daemon-reload
+</span></span><span><span>
+</span></span><span><span>systemctl --user <span>enable</span> --now rclonebackup.timer
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://rclone.org/docs/" target="_blank">Rclone Documentation</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-befa8556b9.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-befa8556b9.webp" medium="image"/>
+    <pubDate>Fri, 21 Jun 2024 17:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Spice Guest Tools用法，與QEMU/KVM虛擬機共享資料夾、自動縮放解析度]]></title>
     <link>https://ivonblog.com/posts/spice-guest-tools/</link>
     <itunes:title><![CDATA[Spice Guest Tools用法，與QEMU/KVM虛擬機共享資料夾、自動縮放解析度]]></itunes:title>
@@ -1014,23 +1164,5 @@ DisplayCAL</a>有Linux版，可以搭配校色器使用，藉此產生準確的I
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-731c69dc17.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-731c69dc17.webp" medium="image"/>
     <pubDate>Sat, 08 Jun 2024 10:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[最適合刷機的高性能Android手機：小米Pocophone F1，體驗Android / Linux / Windows系統]]></title>
-    <link>https://ivonblog.com/posts/xiaomi-pocophone-f1-custom-rom-review/</link>
-    <itunes:title><![CDATA[最適合刷機的高性能Android手機：小米Pocophone F1，體驗Android / Linux / Windows系統]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/xiaomi-pocophone-f1-custom-rom-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d205afa857.webp"></a></p>
-<p>Best phone for custom ROM support.</p><p>小米Pocophone F1與一加One Plus 6T，我個人認為是近代最強的二個刷機之王。</p><p>二者規格類似，小米Pocophone F1又比OnePlus 6T便宜一些。不過這二台在台灣都沒有上市，二手市場可能有點難找就是了。</p><p>Pocophone F1於2019年上市。現在2024年，Pocophone F1二手價不到3000台幣就能入手。</p><p>這款手機最大特色就是支援刷入Android以外的作業系統。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e4ee64053a.webp"><figcaption>小米Pocophone F1執行postmarketOS</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0fd2531dee.webp"><figcaption>小米Pocophone F1執行Windows 11</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-227cc344fe.webp"><figcaption>小米Pocophone F1執行Ubuntu Touch</figcaption><h2>Pocophone F1的頂級硬體<span><a href="#pocophone-f1%E7%9A%84%E9%A0%82%E7%B4%9A%E7%A1%AC%E9%AB%94" aria-label="定位點">#</a></span></h2><p>Pocophone F1搭載Qualcomm Snapdragon 845 ＋ 6GB RAM ＋ UFS 2.1，兼具效能與實用性。放在今天2024年來看還是中上水準。</p><p>市面上刷機相對友善的手機：Pine64 PinePhone Pro、Purism Librem 5、Fairphone 5</p><p>就硬體部份，Pocophone F1的效能碾壓上述一眾手機。</p><p>Pocophone F1的喇叭有點破，這個是舊小米手機的通病。Android有Viper4X，Linux則是有EasyEffect改善。</p><p>至於礙眼的劉海可以用軟體遮擋。</p><hr><p>順帶一提，Google Pixel其實也廣受第三方ROM支援，但是仍以Android為主。Google Pixel 6以後的型號是次佳的人選，因Tensor處理器可以用pkvm跑其他系統的虛擬機，但是沒辦法把系統真的裝到手機上。</p><h2>Pocophone F1支援的作業系統<span><a href="#pocophone-f1%E6%94%AF%E6%8F%B4%E7%9A%84%E4%BD%9C%E6%A5%AD%E7%B3%BB%E7%B5%B1" aria-label="定位點">#</a></span></h2><p>如果你想要體驗Android以外的Linux行動作業系統，那麼Poco F1是個好選擇。這都要多虧開發者撿到Qualcomm遺留在SD845筆電的驅動，Poco F1已經能夠跑Mainline Linux Kernel，除了相機以外的功能都能運作。</p><p>Pocophone F1什麼系統都能刷，經實測支援以下系統，即使原廠的MIUI已經停止更新，不少系統到現在仍提供更新。</p><ul><li>MIUI</li><li>LineageOS</li><li>/e/OS</li><li>ArrowOS</li><li>Windows 11 ARM：由Renegade Project提供支援，某種意義上的復活Windows Phone</li><li>postmarketOS：適合日常使用的系統</li><li>Ubuntu touch：適合日常使用的系統</li><li>Mobian</li></ul><p>以上是我實測安裝過的系統，在Windows 11 ARM加持下還玩了GTA IV的大型遊戲。</p><p>刷寫！不斷的刷寫！不斷的刷寫！刷寫到儲存晶片壞掉為止，即使弄亂分區表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7788860850.webp"><p>在Android以外的系統，Pocophone F1硬體也幾乎都能驅動起來。但請注意Pocophone F1的相機只有在Android和Ubuntu Touch系統能成功驅動。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/xiaomi-pocophone-f1-custom-rom-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d205afa857.webp"></a></p>
-<p>Best phone for custom ROM support.</p><p>小米Pocophone F1與一加One Plus 6T，我個人認為是近代最強的二個刷機之王。</p><p>二者規格類似，小米Pocophone F1又比OnePlus 6T便宜一些。不過這二台在台灣都沒有上市，二手市場可能有點難找就是了。</p><p>Pocophone F1於2019年上市。現在2024年，Pocophone F1二手價不到3000台幣就能入手。</p><p>這款手機最大特色就是支援刷入Android以外的作業系統。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e4ee64053a.webp"><figcaption>小米Pocophone F1執行postmarketOS</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0fd2531dee.webp"><figcaption>小米Pocophone F1執行Windows 11</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-227cc344fe.webp"><figcaption>小米Pocophone F1執行Ubuntu Touch</figcaption><h2>Pocophone F1的頂級硬體<span><a href="#pocophone-f1%E7%9A%84%E9%A0%82%E7%B4%9A%E7%A1%AC%E9%AB%94" aria-label="定位點">#</a></span></h2><p>Pocophone F1搭載Qualcomm Snapdragon 845 ＋ 6GB RAM ＋ UFS 2.1，兼具效能與實用性。放在今天2024年來看還是中上水準。</p><p>市面上刷機相對友善的手機：Pine64 PinePhone Pro、Purism Librem 5、Fairphone 5</p><p>就硬體部份，Pocophone F1的效能碾壓上述一眾手機。</p><p>Pocophone F1的喇叭有點破，這個是舊小米手機的通病。Android有Viper4X，Linux則是有EasyEffect改善。</p><p>至於礙眼的劉海可以用軟體遮擋。</p><hr><p>順帶一提，Google Pixel其實也廣受第三方ROM支援，但是仍以Android為主。Google Pixel 6以後的型號是次佳的人選，因Tensor處理器可以用pkvm跑其他系統的虛擬機，但是沒辦法把系統真的裝到手機上。</p><h2>Pocophone F1支援的作業系統<span><a href="#pocophone-f1%E6%94%AF%E6%8F%B4%E7%9A%84%E4%BD%9C%E6%A5%AD%E7%B3%BB%E7%B5%B1" aria-label="定位點">#</a></span></h2><p>如果你想要體驗Android以外的Linux行動作業系統，那麼Poco F1是個好選擇。這都要多虧開發者撿到Qualcomm遺留在SD845筆電的驅動，Poco F1已經能夠跑Mainline Linux Kernel，除了相機以外的功能都能運作。</p><p>Pocophone F1什麼系統都能刷，經實測支援以下系統，即使原廠的MIUI已經停止更新，不少系統到現在仍提供更新。</p><ul><li>MIUI</li><li>LineageOS</li><li>/e/OS</li><li>ArrowOS</li><li>Windows 11 ARM：由Renegade Project提供支援，某種意義上的復活Windows Phone</li><li>postmarketOS：適合日常使用的系統</li><li>Ubuntu touch：適合日常使用的系統</li><li>Mobian</li></ul><p>以上是我實測安裝過的系統，在Windows 11 ARM加持下還玩了GTA IV的大型遊戲。</p><p>刷寫！不斷的刷寫！不斷的刷寫！刷寫到儲存晶片壞掉為止，即使弄亂分區表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7788860850.webp"><p>在Android以外的系統，Pocophone F1硬體也幾乎都能驅動起來。但請注意Pocophone F1的相機只有在Android和Ubuntu Touch系統能成功驅動。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/xiaomi-pocophone-f1-custom-rom-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d205afa857.webp"></a></p>
-<p>Best phone for custom ROM support.</p><p>小米Pocophone F1與一加One Plus 6T，我個人認為是近代最強的二個刷機之王。</p><p>二者規格類似，小米Pocophone F1又比OnePlus 6T便宜一些。不過這二台在台灣都沒有上市，二手市場可能有點難找就是了。</p><p>Pocophone F1於2019年上市。現在2024年，Pocophone F1二手價不到3000台幣就能入手。</p><p>這款手機最大特色就是支援刷入Android以外的作業系統。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e4ee64053a.webp"><figcaption>小米Pocophone F1執行postmarketOS</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0fd2531dee.webp"><figcaption>小米Pocophone F1執行Windows 11</figcaption><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-227cc344fe.webp"><figcaption>小米Pocophone F1執行Ubuntu Touch</figcaption><h2>Pocophone F1的頂級硬體<span><a href="#pocophone-f1%E7%9A%84%E9%A0%82%E7%B4%9A%E7%A1%AC%E9%AB%94" aria-label="定位點">#</a></span></h2><p>Pocophone F1搭載Qualcomm Snapdragon 845 ＋ 6GB RAM ＋ UFS 2.1，兼具效能與實用性。放在今天2024年來看還是中上水準。</p><p>市面上刷機相對友善的手機：Pine64 PinePhone Pro、Purism Librem 5、Fairphone 5</p><p>就硬體部份，Pocophone F1的效能碾壓上述一眾手機。</p><p>Pocophone F1的喇叭有點破，這個是舊小米手機的通病。Android有Viper4X，Linux則是有EasyEffect改善。</p><p>至於礙眼的劉海可以用軟體遮擋。</p><hr><p>順帶一提，Google Pixel其實也廣受第三方ROM支援，但是仍以Android為主。Google Pixel 6以後的型號是次佳的人選，因Tensor處理器可以用pkvm跑其他系統的虛擬機，但是沒辦法把系統真的裝到手機上。</p><h2>Pocophone F1支援的作業系統<span><a href="#pocophone-f1%E6%94%AF%E6%8F%B4%E7%9A%84%E4%BD%9C%E6%A5%AD%E7%B3%BB%E7%B5%B1" aria-label="定位點">#</a></span></h2><p>如果你想要體驗Android以外的Linux行動作業系統，那麼Poco F1是個好選擇。這都要多虧開發者撿到Qualcomm遺留在SD845筆電的驅動，Poco F1已經能夠跑Mainline Linux Kernel，除了相機以外的功能都能運作。</p><p>Pocophone F1什麼系統都能刷，經實測支援以下系統，即使原廠的MIUI已經停止更新，不少系統到現在仍提供更新。</p><ul><li>MIUI</li><li>LineageOS</li><li>/e/OS</li><li>ArrowOS</li><li>Windows 11 ARM：由Renegade Project提供支援，某種意義上的復活Windows Phone</li><li>postmarketOS：適合日常使用的系統</li><li>Ubuntu touch：適合日常使用的系統</li><li>Mobian</li></ul><p>以上是我實測安裝過的系統，在Windows 11 ARM加持下還玩了GTA IV的大型遊戲。</p><p>刷寫！不斷的刷寫！不斷的刷寫！刷寫到儲存晶片壞掉為止，即使弄亂分區表。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7788860850.webp"><p>在Android以外的系統，Pocophone F1硬體也幾乎都能驅動起來。但請注意Pocophone F1的相機只有在Android和Ubuntu Touch系統能成功驅動。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d205afa857.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d205afa857.webp" medium="image"/>
-    <pubDate>Sat, 08 Jun 2024 09:00:00 +0800</pubDate>
   </item></channel>
 </rss>
