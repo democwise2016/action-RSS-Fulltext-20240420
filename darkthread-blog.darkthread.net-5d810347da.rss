@@ -30,6 +30,192 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[走出 Wintel 舒適圈，初試 Arm64 Windows]]></title>
+    <link>https://blog.darkthread.net/blog/windows-on-arm/</link>
+    <itunes:title><![CDATA[走出 Wintel 舒適圈，初試 Arm64 Windows]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>上個月的 <a href="/blog/build-2024-notes-1/">Build 2024 開發者大會</a>，除了滿滿的 AI 與 Copilot，另一大焦點莫過於見證 Arm 處理器在首波 AI PC 新機潮站上浪尖。</p> <p>聯想、惠普、戴爾、華碩、宏碁及三星等一線 PC 品牌，預計 6 月開始出貨支援微軟 Copilot+ PC 標準的 AI PC，用的不是 Intel / AMD CPU，而是高通的 Snapdragon X Elite 處理器。</p> <p>從 1980 年代起，Windows 作業系統 + Intel CPU 的「<a href="https://zh.wikipedia.org/zh-tw/Wintel">Wintel</a>」組合已稱霸 PC 界超過 40 年。但近年來 <a href="https://zh.wikipedia.org/zh-tw/ARM%E6%9E%B6%E6%A7%8B">ARM 架構</a>處理器被普遍應用在智慧手機、蘋果系列，靠著低功耗 + 高效能大放異彩。微軟在 2016 年發佈 <a href="https://learn.microsoft.com/zh-tw/windows/arm/overview?WT.mc_id=DOP-MVP-37580">Winodws on Arm (WOA)</a>，開始讓 Windows 也支援 Arm 處理器，但一開始的 Surface RT、Windows Phone 仍至於 Surface Pro X 都不算成功。直到首波 AI PC 清一色被 Arm 拿下，遲鈍如我，也知道該好好認識一下 Arm64 Windows 惹。(延伸閱讀：<a href="https://www.bnext.com.tw/article/79311/ai-pc-copilot-arm-pc-cpu">AI PC點火CPU戰場，高通Arm架構狂搶英特爾生意！by 數位時代</a>)</p> <p>等等，我連設備都沒有，要試個毛？</p> <p>不慌，Azure 支援 Arm VM，可建立<a href="https://azure.microsoft.com/en-us/blog/azure-virtual-machines-with-ampere-altra-arm-based-processors-generally-available/?WT.mc_id=DOP-MVP-37580">採用 Ampere Altra Arm 處理器的虛擬機</a>，照著<a href="https://learn.microsoft.com/zh-tw/windows/arm/create-arm-vm?WT.mc_id=DOP-MVP-37580">教學文件</a>花幾分鐘便建好一台跑 Windows 11 Pro 的 Arm 主機。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638544937447784598.png"></p> <p>我把 Arm VM 當成一般的 x64 Windows 亂測，照著<a href="/blog/choco-install-notes-for-new-windows/">新裝機 Chocolatey 安裝清單</a>裝好常用工具，其中 Notepad++、7-Zip、Git、VSCode 均可直接用 Chocolatey 裝好及使用；Chrome 需改用瀏覽器去下載 Win11 Arm 版，也能順利過關；只有 Cmder 可能用了某些 Hacking 手法而不相容。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638544937449472291.png"></p> <p>Arm64 Windows 對 x64/x86 程式的相容性比我想像好，查了一下，原來 Windows on Arm 會自動改用模擬器(Emulator)跑 x64/x86 程式，而 Windows 11 24H2 新推出<a href="https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation?WT.mc_id=DOP-MVP-37580#prism">名為 Prism 的新版模擬器</a>，號稱可進一步提升執行效能及降低 CPU 使用率。</p> <p>模擬器會即時將 x86 指令區塊編譯為 Arm64 指令，並有服務快取編譯結果以便與其他應用程式共用。模擬器只支援 User Mode 不支援 Kernel Mode，故核心元件或驅動程式必須乖乖編譯成 Arm64 版本。而既然是模擬器，效能一定不如原生版本，故若條件允許，應用程式另外提供 Arm64 版本，還是較好的做法。</p> <p>如下圖，從工作管理員程序的架構欄可看出程式是原生 Arm64 還是用模擬器跑 x64/x86 模式：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638544937451163305.png"></p> <p>至於要開發 Arm64 專用版應用程式，最方便的選擇是 .NET 6+ 是 .NET 4.8.1，開發方式不變，編譯時改建置成 win-arm64 平台就好。其他語言的話，有 clang-cl、Qt for Windows, Boost C++ Library、Bazel、Linaro... 等，完整資訊可參考<a href="https://learn.microsoft.com/en-us/windows/arm/add-arm-support?WT.mc_id=DOP-MVP-37580#toolchain-for-windows-on-arm">官方文件</a>。</p> <p>最後，我準備小試一下，比較用 x64 模擬器跟編譯成原生 Arm64 版，效能差多少？</p> <p>原本請 ChatGPT 寫了一段 BenchmarkDotNet 跑排序的 C# 效能測試程式，但編譯成 win-x64 會遇到奇怪的錯誤無法執行：</p> <pre><code>// * Warnings *
+Environment
+Summary -&gt; Detected error exit code from one of the benchmarks. It might be caused by following antivirus software:
+- Windows Defender (windowsdefender://)
+Use InProcessEmitToolchain or InProcessNoEmitToolchain to avoid new process creation.
+Summary -&gt; Benchmark was executed on the virtual machine with Hyper-V hypervisor. Virtualization can affect the measurement result.
+</code></pre> <p>不想失焦跑去射茶包，決定改用 Stopwatch 簡單測試就好，程式如下：</p> <pre><code>using System;
+using System.Diagnostics;
+public class BenchmarkDemo
+{
+const int N = 1000;
+static int[] data;
+static void Setup()
+{
+data = new int[N];
+var random = new Random();
+for (int i = 0; i &lt; N; i++)
+{
+data[i] = random.Next(0, N);
+}
+}
+static void BubbleSort()
+{
+var array = (int[])data.Clone();
+for (int i = 0; i &lt; array.Length - 1; i++)
+{
+for (int j = 0; j &lt; array.Length - i - 1; j++)
+{
+if (array[j] &gt; array[j + 1])
+{
+int temp = array[j];
+array[j] = array[j + 1];
+array[j + 1] = temp;
+}
+}
+}
+}
+static void ArraySort()
+{
+var array = (int[])data.Clone();
+Array.Sort(array);
+}
+public static void Main(string[] args)
+{
+Setup();
+int times = 10000;
+var sw = new Stopwatch();
+sw.Start();
+for (var i = 0; i &lt; times; i++) BubbleSort();
+sw.Stop();
+Console.WriteLine($"BubbleSort: {sw.ElapsedMilliseconds:n0}ms");
+sw.Restart();
+for (var i = 0; i &lt; times; i++) ArraySort();
+sw.Stop();
+Console.WriteLine($"ArraySort: {sw.ElapsedMilliseconds:n0}ms");
+}
+}
+</code></pre> <p>使用 <code>dotnet publish -r win-x64 --no-self-contained</code> 及 <code>dotnet publish -r win-arm64 --no-self-contained</code> 編譯成 x64 版跟 arm64 版，猜猜兩個速度差多少？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638544937452889647.png"></p> <p>14s vs 8.6s，從 win-x64 改成 win-arm64，速度提升大約 40%。</p> <p>結論是，如果程式要部署到 Arm64 Windows 執行，投資時間改編譯成 win-arm64 是值得的。</p> <p data-slug="windows-on-arm" data-title-en="Developing application for Windows on Arm" data-catg=".NET" data-fbimg="https://i.imgur.com/XV3EMas.jpg#1280#720">At Build 2024, aside from AI and Copilot, a major focus was ARM CPUs in AI PCs with Snapdragon X Elite processors. The dominance of the “Wintel” combination is challenged by ARM processors, now supported by Windows on ARM. Azure offers ARM VMs for testing. ARM64 Windows shows good compatibility via emulation but native ARM64 apps offer better performance, as demonstrated by a 40% speed increase in a benchmark test.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>上個月的 <a href="/blog/build-2024-notes-1/">Build 2024 開發者大會</a>，除了滿滿的 AI 與 Copilot，另一大焦點莫過於見證 Arm 處理器在首波 AI PC 新機潮站上浪尖。</p> <p>聯想、惠普、戴爾、華碩、宏碁及三星等一線 PC 品牌，預計 6 月開始出貨支援微軟 Copilot+ PC 標準的 AI PC，用的不是 Intel / AMD CPU，而是高通的 Snapdragon X Elite 處理器。</p> <p>從 1980 年代起，Windows 作業系統 + Intel CPU 的「<a href="https://zh.wikipedia.org/zh-tw/Wintel">Wintel</a>」組合已稱霸 PC 界超過 40 年。但近年來 <a href="https://zh.wikipedia.org/zh-tw/ARM%E6%9E%B6%E6%A7%8B">ARM 架構</a>處理器被普遍應用在智慧手機、蘋果系列，靠著低功耗 + 高效能大放異彩。微軟在 2016 年發佈 <a href="https://learn.microsoft.com/zh-tw/windows/arm/overview?WT.mc_id=DOP-MVP-37580">Winodws on Arm (WOA)</a>，開始讓 Windows 也支援 Arm 處理器，但一開始的 Surface RT、Windows Phone 仍至於 Surface Pro X 都不算成功。直到首波 AI PC 清一色被 Arm 拿下，遲鈍如我，也知道該好好認識一下 Arm64 Windows 惹。(延伸閱讀：<a href="https://www.bnext.com.tw/article/79311/ai-pc-copilot-arm-pc-cpu">AI PC點火CPU戰場，高通Arm架構狂搶英特爾生意！by 數位時代</a>)</p> <p>等等，我連設備都沒有，要試個毛？</p> <p>不慌，Azure 支援 Arm VM，可建立<a href="https://azure.microsoft.com/en-us/blog/azure-virtual-machines-with-ampere-altra-arm-based-processors-generally-available/?WT.mc_id=DOP-MVP-37580">採用 Ampere Altra Arm 處理器的虛擬機</a>，照著<a href="https://learn.microsoft.com/zh-tw/windows/arm/create-arm-vm?WT.mc_id=DOP-MVP-37580">教學文件</a>花幾分鐘便建好一台跑 Windows 11 Pro 的 Arm 主機。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638544937447784598.png"></p> <p>我把 Arm VM 當成一般的 x64 Windows 亂測，照著<a href="/blog/choco-install-notes-for-new-windows/">新裝機 Chocolatey 安裝清單</a>裝好常用工具，其中 Notepad++、7-Zip、Git、VSCode 均可直接用 Chocolatey 裝好及使用；Chrome 需改用瀏覽器去下載 Win11 Arm 版，也能順利過關；只有 Cmder 可能用了某些 Hacking 手法而不相容。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638544937449472291.png"></p> <p>Arm64 Windows 對 x64/x86 程式的相容性比我想像好，查了一下，原來 Windows on Arm 會自動改用模擬器(Emulator)跑 x64/x86 程式，而 Windows 11 24H2 新推出<a href="https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation?WT.mc_id=DOP-MVP-37580#prism">名為 Prism 的新版模擬器</a>，號稱可進一步提升執行效能及降低 CPU 使用率。</p> <p>模擬器會即時將 x86 指令區塊編譯為 Arm64 指令，並有服務快取編譯結果以便與其他應用程式共用。模擬器只支援 User Mode 不支援 Kernel Mode，故核心元件或驅動程式必須乖乖編譯成 Arm64 版本。而既然是模擬器，效能一定不如原生版本，故若條件允許，應用程式另外提供 Arm64 版本，還是較好的做法。</p> <p>如下圖，從工作管理員程序的架構欄可看出程式是原生 Arm64 還是用模擬器跑 x64/x86 模式：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638544937451163305.png"></p> <p>至於要開發 Arm64 專用版應用程式，最方便的選擇是 .NET 6+ 是 .NET 4.8.1，開發方式不變，編譯時改建置成 win-arm64 平台就好。其他語言的話，有 clang-cl、Qt for Windows, Boost C++ Library、Bazel、Linaro... 等，完整資訊可參考<a href="https://learn.microsoft.com/en-us/windows/arm/add-arm-support?WT.mc_id=DOP-MVP-37580#toolchain-for-windows-on-arm">官方文件</a>。</p> <p>最後，我準備小試一下，比較用 x64 模擬器跟編譯成原生 Arm64 版，效能差多少？</p> <p>原本請 ChatGPT 寫了一段 BenchmarkDotNet 跑排序的 C# 效能測試程式，但編譯成 win-x64 會遇到奇怪的錯誤無法執行：</p> <pre><code>// * Warnings *
+Environment
+Summary -&gt; Detected error exit code from one of the benchmarks. It might be caused by following antivirus software:
+- Windows Defender (windowsdefender://)
+Use InProcessEmitToolchain or InProcessNoEmitToolchain to avoid new process creation.
+Summary -&gt; Benchmark was executed on the virtual machine with Hyper-V hypervisor. Virtualization can affect the measurement result.
+</code></pre> <p>不想失焦跑去射茶包，決定改用 Stopwatch 簡單測試就好，程式如下：</p> <pre><code>using System;
+using System.Diagnostics;
+public class BenchmarkDemo
+{
+const int N = 1000;
+static int[] data;
+static void Setup()
+{
+data = new int[N];
+var random = new Random();
+for (int i = 0; i &lt; N; i++)
+{
+data[i] = random.Next(0, N);
+}
+}
+static void BubbleSort()
+{
+var array = (int[])data.Clone();
+for (int i = 0; i &lt; array.Length - 1; i++)
+{
+for (int j = 0; j &lt; array.Length - i - 1; j++)
+{
+if (array[j] &gt; array[j + 1])
+{
+int temp = array[j];
+array[j] = array[j + 1];
+array[j + 1] = temp;
+}
+}
+}
+}
+static void ArraySort()
+{
+var array = (int[])data.Clone();
+Array.Sort(array);
+}
+public static void Main(string[] args)
+{
+Setup();
+int times = 10000;
+var sw = new Stopwatch();
+sw.Start();
+for (var i = 0; i &lt; times; i++) BubbleSort();
+sw.Stop();
+Console.WriteLine($"BubbleSort: {sw.ElapsedMilliseconds:n0}ms");
+sw.Restart();
+for (var i = 0; i &lt; times; i++) ArraySort();
+sw.Stop();
+Console.WriteLine($"ArraySort: {sw.ElapsedMilliseconds:n0}ms");
+}
+}
+</code></pre> <p>使用 <code>dotnet publish -r win-x64 --no-self-contained</code> 及 <code>dotnet publish -r win-arm64 --no-self-contained</code> 編譯成 x64 版跟 arm64 版，猜猜兩個速度差多少？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638544937452889647.png"></p> <p>14s vs 8.6s，從 win-x64 改成 win-arm64，速度提升大約 40%。</p> <p>結論是，如果程式要部署到 Arm64 Windows 執行，投資時間改編譯成 win-arm64 是值得的。</p> <p data-slug="windows-on-arm" data-title-en="Developing application for Windows on Arm" data-catg=".NET" data-fbimg="https://i.imgur.com/XV3EMas.jpg#1280#720">At Build 2024, aside from AI and Copilot, a major focus was ARM CPUs in AI PCs with Snapdragon X Elite processors. The dominance of the “Wintel” combination is challenged by ARM processors, now supported by Windows on ARM. Azure offers ARM VMs for testing. ARM64 Windows shows good compatibility via emulation but native ARM64 apps offer better performance, as demonstrated by a 40% speed increase in a benchmark test.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>上個月的 <a href="/blog/build-2024-notes-1/">Build 2024 開發者大會</a>，除了滿滿的 AI 與 Copilot，另一大焦點莫過於見證 Arm 處理器在首波 AI PC 新機潮站上浪尖。</p> <p>聯想、惠普、戴爾、華碩、宏碁及三星等一線 PC 品牌，預計 6 月開始出貨支援微軟 Copilot+ PC 標準的 AI PC，用的不是 Intel / AMD CPU，而是高通的 Snapdragon X Elite 處理器。</p> <p>從 1980 年代起，Windows 作業系統 + Intel CPU 的「<a href="https://zh.wikipedia.org/zh-tw/Wintel">Wintel</a>」組合已稱霸 PC 界超過 40 年。但近年來 <a href="https://zh.wikipedia.org/zh-tw/ARM%E6%9E%B6%E6%A7%8B">ARM 架構</a>處理器被普遍應用在智慧手機、蘋果系列，靠著低功耗 + 高效能大放異彩。微軟在 2016 年發佈 <a href="https://learn.microsoft.com/zh-tw/windows/arm/overview?WT.mc_id=DOP-MVP-37580">Winodws on Arm (WOA)</a>，開始讓 Windows 也支援 Arm 處理器，但一開始的 Surface RT、Windows Phone 仍至於 Surface Pro X 都不算成功。直到首波 AI PC 清一色被 Arm 拿下，遲鈍如我，也知道該好好認識一下 Arm64 Windows 惹。(延伸閱讀：<a href="https://www.bnext.com.tw/article/79311/ai-pc-copilot-arm-pc-cpu">AI PC點火CPU戰場，高通Arm架構狂搶英特爾生意！by 數位時代</a>)</p> <p>等等，我連設備都沒有，要試個毛？</p> <p>不慌，Azure 支援 Arm VM，可建立<a href="https://azure.microsoft.com/en-us/blog/azure-virtual-machines-with-ampere-altra-arm-based-processors-generally-available/?WT.mc_id=DOP-MVP-37580">採用 Ampere Altra Arm 處理器的虛擬機</a>，照著<a href="https://learn.microsoft.com/zh-tw/windows/arm/create-arm-vm?WT.mc_id=DOP-MVP-37580">教學文件</a>花幾分鐘便建好一台跑 Windows 11 Pro 的 Arm 主機。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638544937447784598.png"></p> <p>我把 Arm VM 當成一般的 x64 Windows 亂測，照著<a href="/blog/choco-install-notes-for-new-windows/">新裝機 Chocolatey 安裝清單</a>裝好常用工具，其中 Notepad++、7-Zip、Git、VSCode 均可直接用 Chocolatey 裝好及使用；Chrome 需改用瀏覽器去下載 Win11 Arm 版，也能順利過關；只有 Cmder 可能用了某些 Hacking 手法而不相容。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638544937449472291.png"></p> <p>Arm64 Windows 對 x64/x86 程式的相容性比我想像好，查了一下，原來 Windows on Arm 會自動改用模擬器(Emulator)跑 x64/x86 程式，而 Windows 11 24H2 新推出<a href="https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation?WT.mc_id=DOP-MVP-37580#prism">名為 Prism 的新版模擬器</a>，號稱可進一步提升執行效能及降低 CPU 使用率。</p> <p>模擬器會即時將 x86 指令區塊編譯為 Arm64 指令，並有服務快取編譯結果以便與其他應用程式共用。模擬器只支援 User Mode 不支援 Kernel Mode，故核心元件或驅動程式必須乖乖編譯成 Arm64 版本。而既然是模擬器，效能一定不如原生版本，故若條件允許，應用程式另外提供 Arm64 版本，還是較好的做法。</p> <p>如下圖，從工作管理員程序的架構欄可看出程式是原生 Arm64 還是用模擬器跑 x64/x86 模式：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638544937451163305.png"></p> <p>至於要開發 Arm64 專用版應用程式，最方便的選擇是 .NET 6+ 是 .NET 4.8.1，開發方式不變，編譯時改建置成 win-arm64 平台就好。其他語言的話，有 clang-cl、Qt for Windows, Boost C++ Library、Bazel、Linaro... 等，完整資訊可參考<a href="https://learn.microsoft.com/en-us/windows/arm/add-arm-support?WT.mc_id=DOP-MVP-37580#toolchain-for-windows-on-arm">官方文件</a>。</p> <p>最後，我準備小試一下，比較用 x64 模擬器跟編譯成原生 Arm64 版，效能差多少？</p> <p>原本請 ChatGPT 寫了一段 BenchmarkDotNet 跑排序的 C# 效能測試程式，但編譯成 win-x64 會遇到奇怪的錯誤無法執行：</p> <pre><code>// * Warnings *
+Environment
+Summary -&gt; Detected error exit code from one of the benchmarks. It might be caused by following antivirus software:
+- Windows Defender (windowsdefender://)
+Use InProcessEmitToolchain or InProcessNoEmitToolchain to avoid new process creation.
+Summary -&gt; Benchmark was executed on the virtual machine with Hyper-V hypervisor. Virtualization can affect the measurement result.
+</code></pre> <p>不想失焦跑去射茶包，決定改用 Stopwatch 簡單測試就好，程式如下：</p> <pre><code>using System;
+using System.Diagnostics;
+public class BenchmarkDemo
+{
+const int N = 1000;
+static int[] data;
+static void Setup()
+{
+data = new int[N];
+var random = new Random();
+for (int i = 0; i &lt; N; i++)
+{
+data[i] = random.Next(0, N);
+}
+}
+static void BubbleSort()
+{
+var array = (int[])data.Clone();
+for (int i = 0; i &lt; array.Length - 1; i++)
+{
+for (int j = 0; j &lt; array.Length - i - 1; j++)
+{
+if (array[j] &gt; array[j + 1])
+{
+int temp = array[j];
+array[j] = array[j + 1];
+array[j + 1] = temp;
+}
+}
+}
+}
+static void ArraySort()
+{
+var array = (int[])data.Clone();
+Array.Sort(array);
+}
+public static void Main(string[] args)
+{
+Setup();
+int times = 10000;
+var sw = new Stopwatch();
+sw.Start();
+for (var i = 0; i &lt; times; i++) BubbleSort();
+sw.Stop();
+Console.WriteLine($"BubbleSort: {sw.ElapsedMilliseconds:n0}ms");
+sw.Restart();
+for (var i = 0; i &lt; times; i++) ArraySort();
+sw.Stop();
+Console.WriteLine($"ArraySort: {sw.ElapsedMilliseconds:n0}ms");
+}
+}
+</code></pre> <p>使用 <code>dotnet publish -r win-x64 --no-self-contained</code> 及 <code>dotnet publish -r win-arm64 --no-self-contained</code> 編譯成 x64 版跟 arm64 版，猜猜兩個速度差多少？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638544937452889647.png"></p> <p>14s vs 8.6s，從 win-x64 改成 win-arm64，速度提升大約 40%。</p> <p>結論是，如果程式要部署到 Arm64 Windows 執行，投資時間改編譯成 win-arm64 是值得的。</p> <p data-slug="windows-on-arm" data-title-en="Developing application for Windows on Arm" data-catg=".NET" data-fbimg="https://i.imgur.com/XV3EMas.jpg#1280#720">At Build 2024, aside from AI and Copilot, a major focus was ARM CPUs in AI PCs with Snapdragon X Elite processors. The dominance of the “Wintel” combination is challenged by ARM processors, now supported by Windows on ARM. Azure offers ARM VMs for testing. ARM64 Windows shows good compatibility via emulation but native ARM64 apps offer better performance, as demonstrated by a 40% speed increase in a benchmark test.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638544937447784598.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638544937447784598.png" medium="image"/>
+    <pubDate>Thu, 20 Jun 2024 15:15:25 GMT</pubDate>
+  </item><item>
     <title><![CDATA[PS 小工具 - 檢查哪些群組或帳號可以本機登入]]></title>
     <link>https://blog.darkthread.net/blog/accesschk-ps-version/</link>
     <itunes:title><![CDATA[PS 小工具 - 檢查哪些群組或帳號可以本機登入]]></itunes:title>
@@ -1105,668 +1291,5 @@ Write-Host "$($res.Content)" -ForegroundColor White
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638531016280846817.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638531016280846817.png" medium="image"/>
     <pubDate>Tue, 04 Jun 2024 12:36:06 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[JavaScript 拖拉檔案上傳(香草版)]]></title>
-    <link>https://blog.darkthread.net/blog/js-drop-n-upload/</link>
-    <itunes:title><![CDATA[JavaScript 拖拉檔案上傳(香草版)]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>自從 <a href="/blog/ie-eos/">IE「榮退」</a>(雖然我也曾是「IE 必須死」派，念在當全端攻城獅靠他吃了十幾年飯不能忘本，該有的尊敬還是要給)、Edge 也投靠 Chromium 幫，瀏覽器再次進入大一統時代，寫企業應用前端介面頓時簡單許多，不必再為跨瀏覽器傷透腦筋。</p> <p>而隨著 HTML5 / CSS / 瀏覽器 API 規格日益完備，過往需要用 jQuery 找第三方程式庫才能完成的一般需求，現在用香草 JavaScript 便能搞定，不知怎麼寫？讓 <a href="/blog/github-copilot-demo/">Github Copilot 手把手教你</a>吧~</p> <p>總之，Github Copilot 上手後，我新開專案已經很久沒有載入 jQuery 了，幾乎都是 Vue.js + 香䓍 JavaScript KO。依此態勢，jQuery 能不能再戰十年？好問題。延伸閱讀：<a href="/blog/jquery-no-more-10-yr/">AI 來襲，jQuery 還能再戰 10 年？</a></p> <p>十年前寫過<a href="/blog/upload-progress-bar-w-xhr2/">有進度條的 HTML5 檔案上傳</a>，為證明時代進步我也有進度，這回來挑戰香草版的網頁拖拉檔案上傳!</p> <p>先看結果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638530184180077098.gif"></p> <p>這個功能還蠻常見的，用起來很直覺流暢，現在我們也能自己做，程式還不難，讓人感嘆時代的進步。</p> <p>整理用到的 API：</p> <ol><li>HTML 元素支援 <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/drop_event">drop 事件</a>，能對拖拉操作做出反應。拖拉檔案到元素放開，在 drop 事件可由 <code>event.dataTransfer.items</code> 取得拖拉項目，由 <code>.kind == 'file'</code> 判斷是否為檔案。若是，呼叫 <code>.getAsFile()</code> 可取得檔案物件。</li> <li>讀取檔案內容用 <code>new FileReader().readAsArrayBuffer(fileItem)</code>，在 <code>FileReader.onload()</code> 事件可拿到檔案內容 ArrayBuffer (相當於 byte[])，再呼叫我們的 WebAPI 上傳檔案。</li> <li>遇到檔案較多、較大時，上傳需要一些時間，加上<a href="/blog/js-progress-bar/">復古精簡版動畫進度條</a>顯示進度，具有降低焦慮、提高滿意度的效果。研究發現 fetch 不提供上傳下載進度資訊，要回頭用 XMLHttpRequest (XHR) 靠 <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/progress_event">onprogress 事件</a>實現。</li> <li>順手也加上列出檔案清單、下載檔案連結及刪除功能，讓整個展示更完整一點。</li></ol> <p>WebAPI 在本例中僅為配角，我用 ASP.NET Core Minimal API 簡單搭了一下，提供查詢檔案清單、上傳、下載及刪除 API。其中用到上回介紹的 <a href="/blog/organizing-min-api/">MapGroup() 分群技巧</a>，把 WebAPI Action 集中在 "/api" 路由下。</p> <pre><code>using Microsoft.AspNetCore.Mvc;
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
-var storePath = "D:\\Store";
-var apiGroup = app.MapGroup("/api");
-apiGroup.MapGet("/", () =&gt; {
-return Results.Json(Directory.GetFiles(storePath).Select(o =&gt; Path.GetFileName(o)));
-});
-// TODO: Add necessary authorization checks，實務應用時應加上權限檢查並啟用 Antiforgery 驗證
-apiGroup.MapPost("/{fileName}", async (string fileName, HttpContext ctx) =&gt; {
-using var fs = new FileStream(Path.Combine(storePath, fileName), FileMode.Create);
-await ctx.Request.Body.CopyToAsync(fs);
-return Results.Ok();
-}).DisableAntiforgery();
-apiGroup.MapGet("/{fileName}", (string fileName) =&gt; {
-var fileStream = new FileStream(Path.Combine(storePath, fileName), FileMode.Open);
-return Results.File(fileStream, "application/octet-stream", fileName, enableRangeProcessing: false);
-});
-apiGroup.MapDelete("/{fileName}", (string fileName) =&gt; {
-File.Delete(Path.Combine(storePath, fileName));
-return Results.Ok();
-});
-app.UseFileServer();
-app.UseDefaultFiles();
-app.Run();
-</code></pre> <p>就醬，一個自製拖拉檔案上傳網頁就完成囉~ 附上完整 HTML 及 JavaScript 程式碼。</p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;Drop and Upload&lt;/title&gt;
-&lt;script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"&gt;&lt;/script&gt;
-&lt;style&gt;
-body,
-textarea {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-textarea {
-box-sizing: border-box;
-display: block;
-width: 100%;
-height: 60px;
-background-color: #eee;
-margin: 10px 0;
-resize: none;
-text-align: center;
-line-height: 50px;
-font-size: 16pt;
-}
-span.delete {
-color: red;
-cursor: pointer;
-}
-:root {
---pgb-fill-color: rgb(0, 0, 255);
---pgb-text-color: rgb(255, 255, 0);
-}
-.pgb-bar {
-width: 400px;
-height: 1.5em;
-background-color: white;
-border: 1px solid var(--pgb-fill-color);
-position: relative;
-opacity: 0.75;
-margin-bottom: 6px;
-font-size: 10pt;
-[pgb-bg] {
-background-color: var(--pgb-fill-color);
-position: absolute;
-width: 0%;
-height: 100%;
-top: 0;
-left: 0;
-filter: saturate(80%);
-}
-[pgb-tw] {
-color: var(--pgb-text-color);
-mix-blend-mode: difference;
-text-align: left;
-margin-left: 0.25em;
-;
-line-height: 1.5em;
-font-family: 'Courier New', Courier, monospace;
-[pgb-p] {
-float: right;
-margin-right: 0.25em;
-margin-top: 0.0.5em;
-}
-}
-}
-#app {
-width: 400px;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id="app"&gt;
-&lt;div class="paste-area"&gt;
-&lt;textarea readonly placeholder="Drop here" @dragover.prevent @drop="handleDrop"&gt;&lt;/textarea&gt;
-&lt;/div&gt;
-&lt;div class="dir"&gt;
-&lt;ul&gt;
-&lt;li v-for="file in files"&gt;
-&lt;a :href="`api/${file}`" target="download"&gt;{{ file }}&lt;/a&gt; &lt;span class="delete"
-@click="deleteFile(file)"&gt;X&lt;/span&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;div class="progress"&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;iframe name="download" style="display:none"&gt;&lt;/iframe&gt;
-&lt;script&gt;
-class ProgressBar extends HTMLElement {
-static get observedAttributes() {
-return ['value', 'title', 'width'];
-}
-constructor() {
-super();
-}
-connectedCallback() {
-this.innerHTML = `
-&lt;div class="pgb-bar"&gt;
-&lt;div pgb-bg&gt;&lt;/div&gt;
-&lt;div pgb-tw&gt;&lt;span pgb-t&gt;&lt;/span&gt;&lt;span pgb-p&gt;&lt;/span&gt;&lt;/div&gt;
-&lt;/div&gt;
-`;
-}
-attributeChangedCallback(name, oldValue, newValue) {
-if (name === 'value') {
-let percentage = parseInt(newValue);
-if (isNaN(percentage) || percentage &lt; 0) percentage = 0; else if (percentage &gt; 100) percentage = 100;
-this.querySelector('[pgb-bg]').style.width = `${percentage}%`;
-this.querySelector('[pgb-p]').textContent = `${percentage}%`;
-}
-else if (name === 'title') {
-let title = newValue || 'title attr not defined';
-if (title.length &gt; 24) title = title.substr(0, 24) + '...';
-this.querySelector('[pgb-t]').textContent = title;
-}
-else if (name === 'width') {
-const width = parseInt(newValue) || 400;
-this.querySelector('.pgb-bar').style.width = `${newValue}px`;
-}
-}
-}
-customElements.define('progress-bar', ProgressBar);
-&lt;/script&gt;
-&lt;script&gt;
-const app = Vue.createApp({
-data() {
-return {
-files: []
-};
-},
-methods: {
-handleDrop(event) {
-event.preventDefault();
-if (event.dataTransfer.items) {
-for (var i = 0; i &lt; event.dataTransfer.items.length; i++) {
-if (event.dataTransfer.items[i].kind === 'file') {
-var file = event.dataTransfer.items[i].getAsFile();
-this.push(file);
-}
-}
-} // IE use event.dataTransfer.files, ignored here
-},
-push(file) {
-const reader = new FileReader();
-const self = this;
-reader.onload = async (event) =&gt; {
-const fileContent = event.target.result;
-// use xhr instead of fetch to send fileContent and attach onprogress event
-const xhr = new XMLHttpRequest();
-xhr.open('POST', `api/${file.name}`, true);
-xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-const progressBar = document.createElement('progress-bar');
-document.querySelector('.progress').appendChild(progressBar);
-progressBar.setAttribute('title', file.name);
-progressBar.setAttribute('width', '400');
-xhr.upload.onprogress = (event) =&gt; {
-if (event.lengthComputable)
-progressBar.setAttribute('value', event.loaded * 100 / event.total);
-};
-xhr.onload = () =&gt; {
-progressBar.setAttribute('value', 100);
-setTimeout(() =&gt; {
-progressBar.remove();
-if (!document.querySelectorAll('progress-bar').length)
-self.dir();
-}, 500);
-};
-xhr.send(fileContent);
-};
-reader.readAsArrayBuffer(file);
-},
-async deleteFile(file) {
-await fetch(`api/${file}`, {
-method: 'DELETE'
-});
-this.dir();
-},
-dir() {
-const self = this;
-fetch(`api/`)
-.then(response =&gt; response.json())
-.then(data =&gt; {
-self.files = data;
-});
-}
-},
-mounted() {
-this.dir();
-}
-});
-const vm = app.mount('#app');
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="js-drop-n-upload" data-title-en="Creating a drop and upload file web page with JavaScript" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/04/13/43/aerial-658795_960_720.jpg#1280#720">The retirement of IE and Edge’s shift to Chromium have simplified cross-browser development. HTML5/CSS advancements make jQuery often unnecessary. A project demonstrates modern file upload using vanilla JavaScript, highlighting progress over the past decade.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>自從 <a href="/blog/ie-eos/">IE「榮退」</a>(雖然我也曾是「IE 必須死」派，念在當全端攻城獅靠他吃了十幾年飯不能忘本，該有的尊敬還是要給)、Edge 也投靠 Chromium 幫，瀏覽器再次進入大一統時代，寫企業應用前端介面頓時簡單許多，不必再為跨瀏覽器傷透腦筋。</p> <p>而隨著 HTML5 / CSS / 瀏覽器 API 規格日益完備，過往需要用 jQuery 找第三方程式庫才能完成的一般需求，現在用香草 JavaScript 便能搞定，不知怎麼寫？讓 <a href="/blog/github-copilot-demo/">Github Copilot 手把手教你</a>吧~</p> <p>總之，Github Copilot 上手後，我新開專案已經很久沒有載入 jQuery 了，幾乎都是 Vue.js + 香䓍 JavaScript KO。依此態勢，jQuery 能不能再戰十年？好問題。延伸閱讀：<a href="/blog/jquery-no-more-10-yr/">AI 來襲，jQuery 還能再戰 10 年？</a></p> <p>十年前寫過<a href="/blog/upload-progress-bar-w-xhr2/">有進度條的 HTML5 檔案上傳</a>，為證明時代進步我也有進度，這回來挑戰香草版的網頁拖拉檔案上傳!</p> <p>先看結果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638530184180077098.gif"></p> <p>這個功能還蠻常見的，用起來很直覺流暢，現在我們也能自己做，程式還不難，讓人感嘆時代的進步。</p> <p>整理用到的 API：</p> <ol><li>HTML 元素支援 <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/drop_event">drop 事件</a>，能對拖拉操作做出反應。拖拉檔案到元素放開，在 drop 事件可由 <code>event.dataTransfer.items</code> 取得拖拉項目，由 <code>.kind == 'file'</code> 判斷是否為檔案。若是，呼叫 <code>.getAsFile()</code> 可取得檔案物件。</li> <li>讀取檔案內容用 <code>new FileReader().readAsArrayBuffer(fileItem)</code>，在 <code>FileReader.onload()</code> 事件可拿到檔案內容 ArrayBuffer (相當於 byte[])，再呼叫我們的 WebAPI 上傳檔案。</li> <li>遇到檔案較多、較大時，上傳需要一些時間，加上<a href="/blog/js-progress-bar/">復古精簡版動畫進度條</a>顯示進度，具有降低焦慮、提高滿意度的效果。研究發現 fetch 不提供上傳下載進度資訊，要回頭用 XMLHttpRequest (XHR) 靠 <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/progress_event">onprogress 事件</a>實現。</li> <li>順手也加上列出檔案清單、下載檔案連結及刪除功能，讓整個展示更完整一點。</li></ol> <p>WebAPI 在本例中僅為配角，我用 ASP.NET Core Minimal API 簡單搭了一下，提供查詢檔案清單、上傳、下載及刪除 API。其中用到上回介紹的 <a href="/blog/organizing-min-api/">MapGroup() 分群技巧</a>，把 WebAPI Action 集中在 "/api" 路由下。</p> <pre><code>using Microsoft.AspNetCore.Mvc;
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
-var storePath = "D:\\Store";
-var apiGroup = app.MapGroup("/api");
-apiGroup.MapGet("/", () =&gt; {
-return Results.Json(Directory.GetFiles(storePath).Select(o =&gt; Path.GetFileName(o)));
-});
-// TODO: Add necessary authorization checks，實務應用時應加上權限檢查並啟用 Antiforgery 驗證
-apiGroup.MapPost("/{fileName}", async (string fileName, HttpContext ctx) =&gt; {
-using var fs = new FileStream(Path.Combine(storePath, fileName), FileMode.Create);
-await ctx.Request.Body.CopyToAsync(fs);
-return Results.Ok();
-}).DisableAntiforgery();
-apiGroup.MapGet("/{fileName}", (string fileName) =&gt; {
-var fileStream = new FileStream(Path.Combine(storePath, fileName), FileMode.Open);
-return Results.File(fileStream, "application/octet-stream", fileName, enableRangeProcessing: false);
-});
-apiGroup.MapDelete("/{fileName}", (string fileName) =&gt; {
-File.Delete(Path.Combine(storePath, fileName));
-return Results.Ok();
-});
-app.UseFileServer();
-app.UseDefaultFiles();
-app.Run();
-</code></pre> <p>就醬，一個自製拖拉檔案上傳網頁就完成囉~ 附上完整 HTML 及 JavaScript 程式碼。</p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;Drop and Upload&lt;/title&gt;
-&lt;script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"&gt;&lt;/script&gt;
-&lt;style&gt;
-body,
-textarea {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-textarea {
-box-sizing: border-box;
-display: block;
-width: 100%;
-height: 60px;
-background-color: #eee;
-margin: 10px 0;
-resize: none;
-text-align: center;
-line-height: 50px;
-font-size: 16pt;
-}
-span.delete {
-color: red;
-cursor: pointer;
-}
-:root {
---pgb-fill-color: rgb(0, 0, 255);
---pgb-text-color: rgb(255, 255, 0);
-}
-.pgb-bar {
-width: 400px;
-height: 1.5em;
-background-color: white;
-border: 1px solid var(--pgb-fill-color);
-position: relative;
-opacity: 0.75;
-margin-bottom: 6px;
-font-size: 10pt;
-[pgb-bg] {
-background-color: var(--pgb-fill-color);
-position: absolute;
-width: 0%;
-height: 100%;
-top: 0;
-left: 0;
-filter: saturate(80%);
-}
-[pgb-tw] {
-color: var(--pgb-text-color);
-mix-blend-mode: difference;
-text-align: left;
-margin-left: 0.25em;
-;
-line-height: 1.5em;
-font-family: 'Courier New', Courier, monospace;
-[pgb-p] {
-float: right;
-margin-right: 0.25em;
-margin-top: 0.0.5em;
-}
-}
-}
-#app {
-width: 400px;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id="app"&gt;
-&lt;div class="paste-area"&gt;
-&lt;textarea readonly placeholder="Drop here" @dragover.prevent @drop="handleDrop"&gt;&lt;/textarea&gt;
-&lt;/div&gt;
-&lt;div class="dir"&gt;
-&lt;ul&gt;
-&lt;li v-for="file in files"&gt;
-&lt;a :href="`api/${file}`" target="download"&gt;{{ file }}&lt;/a&gt; &lt;span class="delete"
-@click="deleteFile(file)"&gt;X&lt;/span&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;div class="progress"&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;iframe name="download" style="display:none"&gt;&lt;/iframe&gt;
-&lt;script&gt;
-class ProgressBar extends HTMLElement {
-static get observedAttributes() {
-return ['value', 'title', 'width'];
-}
-constructor() {
-super();
-}
-connectedCallback() {
-this.innerHTML = `
-&lt;div class="pgb-bar"&gt;
-&lt;div pgb-bg&gt;&lt;/div&gt;
-&lt;div pgb-tw&gt;&lt;span pgb-t&gt;&lt;/span&gt;&lt;span pgb-p&gt;&lt;/span&gt;&lt;/div&gt;
-&lt;/div&gt;
-`;
-}
-attributeChangedCallback(name, oldValue, newValue) {
-if (name === 'value') {
-let percentage = parseInt(newValue);
-if (isNaN(percentage) || percentage &lt; 0) percentage = 0; else if (percentage &gt; 100) percentage = 100;
-this.querySelector('[pgb-bg]').style.width = `${percentage}%`;
-this.querySelector('[pgb-p]').textContent = `${percentage}%`;
-}
-else if (name === 'title') {
-let title = newValue || 'title attr not defined';
-if (title.length &gt; 24) title = title.substr(0, 24) + '...';
-this.querySelector('[pgb-t]').textContent = title;
-}
-else if (name === 'width') {
-const width = parseInt(newValue) || 400;
-this.querySelector('.pgb-bar').style.width = `${newValue}px`;
-}
-}
-}
-customElements.define('progress-bar', ProgressBar);
-&lt;/script&gt;
-&lt;script&gt;
-const app = Vue.createApp({
-data() {
-return {
-files: []
-};
-},
-methods: {
-handleDrop(event) {
-event.preventDefault();
-if (event.dataTransfer.items) {
-for (var i = 0; i &lt; event.dataTransfer.items.length; i++) {
-if (event.dataTransfer.items[i].kind === 'file') {
-var file = event.dataTransfer.items[i].getAsFile();
-this.push(file);
-}
-}
-} // IE use event.dataTransfer.files, ignored here
-},
-push(file) {
-const reader = new FileReader();
-const self = this;
-reader.onload = async (event) =&gt; {
-const fileContent = event.target.result;
-// use xhr instead of fetch to send fileContent and attach onprogress event
-const xhr = new XMLHttpRequest();
-xhr.open('POST', `api/${file.name}`, true);
-xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-const progressBar = document.createElement('progress-bar');
-document.querySelector('.progress').appendChild(progressBar);
-progressBar.setAttribute('title', file.name);
-progressBar.setAttribute('width', '400');
-xhr.upload.onprogress = (event) =&gt; {
-if (event.lengthComputable)
-progressBar.setAttribute('value', event.loaded * 100 / event.total);
-};
-xhr.onload = () =&gt; {
-progressBar.setAttribute('value', 100);
-setTimeout(() =&gt; {
-progressBar.remove();
-if (!document.querySelectorAll('progress-bar').length)
-self.dir();
-}, 500);
-};
-xhr.send(fileContent);
-};
-reader.readAsArrayBuffer(file);
-},
-async deleteFile(file) {
-await fetch(`api/${file}`, {
-method: 'DELETE'
-});
-this.dir();
-},
-dir() {
-const self = this;
-fetch(`api/`)
-.then(response =&gt; response.json())
-.then(data =&gt; {
-self.files = data;
-});
-}
-},
-mounted() {
-this.dir();
-}
-});
-const vm = app.mount('#app');
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="js-drop-n-upload" data-title-en="Creating a drop and upload file web page with JavaScript" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/04/13/43/aerial-658795_960_720.jpg#1280#720">The retirement of IE and Edge’s shift to Chromium have simplified cross-browser development. HTML5/CSS advancements make jQuery often unnecessary. A project demonstrates modern file upload using vanilla JavaScript, highlighting progress over the past decade.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>自從 <a href="/blog/ie-eos/">IE「榮退」</a>(雖然我也曾是「IE 必須死」派，念在當全端攻城獅靠他吃了十幾年飯不能忘本，該有的尊敬還是要給)、Edge 也投靠 Chromium 幫，瀏覽器再次進入大一統時代，寫企業應用前端介面頓時簡單許多，不必再為跨瀏覽器傷透腦筋。</p> <p>而隨著 HTML5 / CSS / 瀏覽器 API 規格日益完備，過往需要用 jQuery 找第三方程式庫才能完成的一般需求，現在用香草 JavaScript 便能搞定，不知怎麼寫？讓 <a href="/blog/github-copilot-demo/">Github Copilot 手把手教你</a>吧~</p> <p>總之，Github Copilot 上手後，我新開專案已經很久沒有載入 jQuery 了，幾乎都是 Vue.js + 香䓍 JavaScript KO。依此態勢，jQuery 能不能再戰十年？好問題。延伸閱讀：<a href="/blog/jquery-no-more-10-yr/">AI 來襲，jQuery 還能再戰 10 年？</a></p> <p>十年前寫過<a href="/blog/upload-progress-bar-w-xhr2/">有進度條的 HTML5 檔案上傳</a>，為證明時代進步我也有進度，這回來挑戰香草版的網頁拖拉檔案上傳!</p> <p>先看結果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638530184180077098.gif"></p> <p>這個功能還蠻常見的，用起來很直覺流暢，現在我們也能自己做，程式還不難，讓人感嘆時代的進步。</p> <p>整理用到的 API：</p> <ol><li>HTML 元素支援 <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/drop_event">drop 事件</a>，能對拖拉操作做出反應。拖拉檔案到元素放開，在 drop 事件可由 <code>event.dataTransfer.items</code> 取得拖拉項目，由 <code>.kind == 'file'</code> 判斷是否為檔案。若是，呼叫 <code>.getAsFile()</code> 可取得檔案物件。</li> <li>讀取檔案內容用 <code>new FileReader().readAsArrayBuffer(fileItem)</code>，在 <code>FileReader.onload()</code> 事件可拿到檔案內容 ArrayBuffer (相當於 byte[])，再呼叫我們的 WebAPI 上傳檔案。</li> <li>遇到檔案較多、較大時，上傳需要一些時間，加上<a href="/blog/js-progress-bar/">復古精簡版動畫進度條</a>顯示進度，具有降低焦慮、提高滿意度的效果。研究發現 fetch 不提供上傳下載進度資訊，要回頭用 XMLHttpRequest (XHR) 靠 <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/progress_event">onprogress 事件</a>實現。</li> <li>順手也加上列出檔案清單、下載檔案連結及刪除功能，讓整個展示更完整一點。</li></ol> <p>WebAPI 在本例中僅為配角，我用 ASP.NET Core Minimal API 簡單搭了一下，提供查詢檔案清單、上傳、下載及刪除 API。其中用到上回介紹的 <a href="/blog/organizing-min-api/">MapGroup() 分群技巧</a>，把 WebAPI Action 集中在 "/api" 路由下。</p> <pre><code>using Microsoft.AspNetCore.Mvc;
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
-var storePath = "D:\\Store";
-var apiGroup = app.MapGroup("/api");
-apiGroup.MapGet("/", () =&gt; {
-return Results.Json(Directory.GetFiles(storePath).Select(o =&gt; Path.GetFileName(o)));
-});
-// TODO: Add necessary authorization checks，實務應用時應加上權限檢查並啟用 Antiforgery 驗證
-apiGroup.MapPost("/{fileName}", async (string fileName, HttpContext ctx) =&gt; {
-using var fs = new FileStream(Path.Combine(storePath, fileName), FileMode.Create);
-await ctx.Request.Body.CopyToAsync(fs);
-return Results.Ok();
-}).DisableAntiforgery();
-apiGroup.MapGet("/{fileName}", (string fileName) =&gt; {
-var fileStream = new FileStream(Path.Combine(storePath, fileName), FileMode.Open);
-return Results.File(fileStream, "application/octet-stream", fileName, enableRangeProcessing: false);
-});
-apiGroup.MapDelete("/{fileName}", (string fileName) =&gt; {
-File.Delete(Path.Combine(storePath, fileName));
-return Results.Ok();
-});
-app.UseFileServer();
-app.UseDefaultFiles();
-app.Run();
-</code></pre> <p>就醬，一個自製拖拉檔案上傳網頁就完成囉~ 附上完整 HTML 及 JavaScript 程式碼。</p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;Drop and Upload&lt;/title&gt;
-&lt;script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"&gt;&lt;/script&gt;
-&lt;style&gt;
-body,
-textarea {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-textarea {
-box-sizing: border-box;
-display: block;
-width: 100%;
-height: 60px;
-background-color: #eee;
-margin: 10px 0;
-resize: none;
-text-align: center;
-line-height: 50px;
-font-size: 16pt;
-}
-span.delete {
-color: red;
-cursor: pointer;
-}
-:root {
---pgb-fill-color: rgb(0, 0, 255);
---pgb-text-color: rgb(255, 255, 0);
-}
-.pgb-bar {
-width: 400px;
-height: 1.5em;
-background-color: white;
-border: 1px solid var(--pgb-fill-color);
-position: relative;
-opacity: 0.75;
-margin-bottom: 6px;
-font-size: 10pt;
-[pgb-bg] {
-background-color: var(--pgb-fill-color);
-position: absolute;
-width: 0%;
-height: 100%;
-top: 0;
-left: 0;
-filter: saturate(80%);
-}
-[pgb-tw] {
-color: var(--pgb-text-color);
-mix-blend-mode: difference;
-text-align: left;
-margin-left: 0.25em;
-;
-line-height: 1.5em;
-font-family: 'Courier New', Courier, monospace;
-[pgb-p] {
-float: right;
-margin-right: 0.25em;
-margin-top: 0.0.5em;
-}
-}
-}
-#app {
-width: 400px;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id="app"&gt;
-&lt;div class="paste-area"&gt;
-&lt;textarea readonly placeholder="Drop here" @dragover.prevent @drop="handleDrop"&gt;&lt;/textarea&gt;
-&lt;/div&gt;
-&lt;div class="dir"&gt;
-&lt;ul&gt;
-&lt;li v-for="file in files"&gt;
-&lt;a :href="`api/${file}`" target="download"&gt;{{ file }}&lt;/a&gt; &lt;span class="delete"
-@click="deleteFile(file)"&gt;X&lt;/span&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;div class="progress"&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;iframe name="download" style="display:none"&gt;&lt;/iframe&gt;
-&lt;script&gt;
-class ProgressBar extends HTMLElement {
-static get observedAttributes() {
-return ['value', 'title', 'width'];
-}
-constructor() {
-super();
-}
-connectedCallback() {
-this.innerHTML = `
-&lt;div class="pgb-bar"&gt;
-&lt;div pgb-bg&gt;&lt;/div&gt;
-&lt;div pgb-tw&gt;&lt;span pgb-t&gt;&lt;/span&gt;&lt;span pgb-p&gt;&lt;/span&gt;&lt;/div&gt;
-&lt;/div&gt;
-`;
-}
-attributeChangedCallback(name, oldValue, newValue) {
-if (name === 'value') {
-let percentage = parseInt(newValue);
-if (isNaN(percentage) || percentage &lt; 0) percentage = 0; else if (percentage &gt; 100) percentage = 100;
-this.querySelector('[pgb-bg]').style.width = `${percentage}%`;
-this.querySelector('[pgb-p]').textContent = `${percentage}%`;
-}
-else if (name === 'title') {
-let title = newValue || 'title attr not defined';
-if (title.length &gt; 24) title = title.substr(0, 24) + '...';
-this.querySelector('[pgb-t]').textContent = title;
-}
-else if (name === 'width') {
-const width = parseInt(newValue) || 400;
-this.querySelector('.pgb-bar').style.width = `${newValue}px`;
-}
-}
-}
-customElements.define('progress-bar', ProgressBar);
-&lt;/script&gt;
-&lt;script&gt;
-const app = Vue.createApp({
-data() {
-return {
-files: []
-};
-},
-methods: {
-handleDrop(event) {
-event.preventDefault();
-if (event.dataTransfer.items) {
-for (var i = 0; i &lt; event.dataTransfer.items.length; i++) {
-if (event.dataTransfer.items[i].kind === 'file') {
-var file = event.dataTransfer.items[i].getAsFile();
-this.push(file);
-}
-}
-} // IE use event.dataTransfer.files, ignored here
-},
-push(file) {
-const reader = new FileReader();
-const self = this;
-reader.onload = async (event) =&gt; {
-const fileContent = event.target.result;
-// use xhr instead of fetch to send fileContent and attach onprogress event
-const xhr = new XMLHttpRequest();
-xhr.open('POST', `api/${file.name}`, true);
-xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-const progressBar = document.createElement('progress-bar');
-document.querySelector('.progress').appendChild(progressBar);
-progressBar.setAttribute('title', file.name);
-progressBar.setAttribute('width', '400');
-xhr.upload.onprogress = (event) =&gt; {
-if (event.lengthComputable)
-progressBar.setAttribute('value', event.loaded * 100 / event.total);
-};
-xhr.onload = () =&gt; {
-progressBar.setAttribute('value', 100);
-setTimeout(() =&gt; {
-progressBar.remove();
-if (!document.querySelectorAll('progress-bar').length)
-self.dir();
-}, 500);
-};
-xhr.send(fileContent);
-};
-reader.readAsArrayBuffer(file);
-},
-async deleteFile(file) {
-await fetch(`api/${file}`, {
-method: 'DELETE'
-});
-this.dir();
-},
-dir() {
-const self = this;
-fetch(`api/`)
-.then(response =&gt; response.json())
-.then(data =&gt; {
-self.files = data;
-});
-}
-},
-mounted() {
-this.dir();
-}
-});
-const vm = app.mount('#app');
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="js-drop-n-upload" data-title-en="Creating a drop and upload file web page with JavaScript" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/04/13/43/aerial-658795_960_720.jpg#1280#720">The retirement of IE and Edge’s shift to Chromium have simplified cross-browser development. HTML5/CSS advancements make jQuery often unnecessary. A project demonstrates modern file upload using vanilla JavaScript, highlighting progress over the past decade.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638530184180077098.gif"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638530184180077098.gif" medium="image"/>
-    <pubDate>Mon, 03 Jun 2024 13:33:03 GMT</pubDate>
   </item></channel>
 </rss>
