@@ -30,6 +30,282 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[小試 YARP - 架設 Reverse Proxy 魔改網站內容]]></title>
+    <link>https://blog.darkthread.net/blog/yarp-lab/</link>
+    <itunes:title><![CDATA[小試 YARP - 架設 Reverse Proxy 魔改網站內容]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>黑暗女王最近有個困擾，某線上小說網站貌似啟用了新的蓋版廣告。當免費仔幫忙看廣告贊助天經地義，但程式沒寫好，用平板看會被蓋版廣告蓋到無邊無際，找不到關閉鈕關不掉。這下可好，廣告都看了不給內容是怎樣？女王震怒大事不妙，只得快使出資訊專長以安太座。</p> <p>由於平板沒法安裝瀏覽器外掛、也沒法<a href="/blog/ms-learn-lang-switch/">用 TamperMonkey 寫 JavaScript 自力救濟</a>，我想到一個解法是在 <a href="/blog/minipc-as-centos-server/">CentOS 迷你家用伺服器</a>上裝個 Reverse Proxy 當中間人，從中幫網站修 Bug。雖有用大砲打小鳥之嫌，反正家裡伺服器平日很閒，找點事讓它做也好。</p> <p>nginx 可以<a href="https://techoverflow.net/2021/09/11/how-to-replace-http-response-data-in-nginx-using-lua/">寫 Lua 腳本修改回應內容</a>，應是最簡便的解法，但我比較想練習用 .NET 解決，解決問題兼充實本職學能。</p> <p><a href="https://microsoft.github.io/reverse-proxy/">YARP (Yet Another Reverse Proxy)</a> 是微軟的一個開源專案，起源是微軟內部有一堆 Reverse Proxy 需求，索性一群人合作開發出一套共用的 .NET 程式庫。業界優秀的 Reverse Proxy 很多(例如：nginx，它是我<a href="/blog/aspnetcore-with-nginx/">跑 ASP.NET Core Docker 的首選</a>，還寫了<a href="/blog/nginx-certbot-auto-setup/">安裝懶人包</a>)，所以專案取名 Yet Another (又一套)，YARP 的效能還不錯，用 C# 開發是它最大的優點，可跟 .NET 專案無縫接軌。因此，本案例用 YARP 做，再適合也不過。</p> <p>查到一篇不錯的介紹：<a href="https://medium.com/@lynnmaxwell0706/reverse-proxy-%E7%9A%84%E6%96%B0%E9%81%B8%E6%93%87-yarp-6af4f805a8d9">Reverse Proxy 的新選擇 — Yarp by OrangeRed</a>，要啟用 YARP 很簡單，參照 Yarp.ReverseProxy 套件、在 appsettings.json 加入設定、在 ASP.NET Minimal API 加兩行就大功告成了。</p> <p>這裡選了內容農場「壹讀」練兵，來試試串接 YARP 移除網頁廣告。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638547534752858071.png"></p> <p>開發過程累積一些實戰經驗及處理的眉角，整理如下：</p> <ol><li>在 YARP 要修改請求或回應，被歸類在 <a href="https://microsoft.github.io/reverse-proxy/articles/transforms.html">Transform 功能</a>，內建功能以 Header 及 URL 改寫為主，要修改回應內容則需用 <a href="https://microsoft.github.io/reverse-proxy/articles/transforms.html#response-body-transforms">AddResponseTransform()</a> 寫一段，Lambda 由 <code>ProxyResponse.Content.ReadAsStreamAsync()</code> 取得 Stream 改寫後，再用 <code>HttpContext.Response.Body.WriteAsync()</code> 輸出。</li> <li><code>ProxyResponse.Content.ReadAsStreamAsync()</code> 讀取的來源網站串流可能被壓縮過，需解壓才能讀到 HTML。我的解法是檢查來源設定 Content-Encoding 時，串接 <code>new GZipStream(stream, CompressionMode.Decompress)</code> 解壓縮再用 <code>new StreamReader(stream)</code> 讀取文字內容。輸出時可選擇重新壓縮或改傳非壓縮版本，我採用後者，移除 Content-Encoding Header 再用標準 <code>Response.Body.WriteAsync()</code> 輸出 HTML，簡單搞定。</li> <li>移掉廣告部分，我是用 String.Rlace() 把 HTML 中原本原本 <code>&lt;script src="ad-script-url"&gt;</code> 載入廣告腳本部分改成 <code>&lt;script _="invalid-ad-script-url"&gt;</code> 使其失效。</li> <li>照片部分意外多花了點工夫。來源網站照片都另外放在 <code>&lt;img-host-name&gt;.read01.com</code>，圖床有多台且會限定自家網頁使用。YARP 轉接後網址改變，沿用原本 <code>&lt;img&gt;</code> 內嵌圖檔會得到 HTTP 403 無法存取(Referrer 比對不符)。我的解法是用 JavaScript 將圖檔 URL 改為 <code>/imgbed-&lt;img-host-name&gt;/path-to-image</code>，再用 ASP.NET Core 基本技巧寫個 <code>app.MapGet("/imgbed-{hostName}/{**path}",...)</code> 處理圖檔下載，用 HttpClient 從圖床主機取得照片回傳。</li></ol> <p>成品如下，連上 <code>http://localhost:5121</code> 會看到壹讀網站，照片正確顯示，無廣告，成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638547534755179109.png"></p> <p>實作心得是 YARP 的使用方式比預期簡單，本次案例用到的設定跟程式都不多。設定檔如下：</p> <pre><code>{
+"Logging": {
+"LogLevel": {
+"Default": "Information",
+"Microsoft.AspNetCore": "Warning"
+}
+},
+"AllowedHosts": "*",
+"ReverseProxy": {
+"Routes": {
+"route1" : {
+"ClusterId": "cluster1",
+"Match": {
+"Path": "{**catch-all}"
+}
+}
+},
+"Clusters": {
+"cluster1": {
+"Destinations": {
+"destination1": {
+"Address": "https://read01.com/"
+}
+}
+}
+}
+}
+}
+</code></pre> <p>全部程式如下，大約 60 行搞定。</p> <pre><code>using System.IO.Compression;
+using System.Text;
+using Microsoft.AspNetCore.Components.Forms;
+using Yarp.ReverseProxy.Transforms;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddReverseProxy()
+.LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+.AddTransforms(context =&gt; {
+context.AddResponseTransform(async respCtx =&gt; {
+var resp = respCtx.HttpContext.Response;
+var req = respCtx.HttpContext.Request;
+var srcResp = respCtx.ProxyResponse;
+if ((srcResp?.Content.Headers.ContentType?.MediaType ?? string.Empty).Contains("html")) {
+var stream = await srcResp?.Content.ReadAsStreamAsync()!;
+// Decompress the response stream if needed
+if (srcResp.Content.Headers.ContentEncoding.Any()) {
+resp.Headers.Remove("Content-Encoding");
+stream = new GZipStream(stream, CompressionMode.Decompress);
+}
+using var reader = new StreamReader(stream);
+// TODO: size limits, timeouts
+var body = await reader.ReadToEndAsync();
+if (!string.IsNullOrEmpty(body)) {
+respCtx.SuppressResponseBody = true;
+// 停用廣告相關 JavaScript
+body = body.Replace("src=\"//pagead2", "_=\"");
+body = body.Replace("src=\"https://pagead2", "_=\"");
+body = body.Replace("src=\"https://player.gliacloud.com", "_=\"");
+// 將圖片連結轉換為本地代理、移除廣告區塊
+body = body.Replace("&lt;/body&gt;", @"&lt;script&gt;
+document.querySelectorAll('img[data-src]').forEach(img =&gt; {
+let src = img.getAttribute('data-src'); // 原程式採 Lazy-Loading，檢視到才下載，URL 在 data-src
+img.setAttribute('data-src', src.replace(/https:\/\/([^.]+).read01.com/, '/imgbed-$1'));
+});
+document.querySelectorAll('.axslot').forEach(o =&gt; o.remove());
+&lt;/script&gt;&lt;/body&gt;");
+var bytes = Encoding.UTF8.GetBytes(body);
+resp.ContentLength = bytes.Length;
+await respCtx.HttpContext.Response.Body.WriteAsync(bytes);
+}
+}
+});
+});
+var app = builder.Build();
+// 處理圖床照片下載
+app.MapGet("/imgbed-{hostName}/{**path}", async (HttpContext ctx, string hostName, string path) =&gt; {
+var url = $"https://{hostName}.read01.com/{path}";
+var client = new HttpClient();
+var resp = await client.GetAsync(url);
+if (resp.IsSuccessStatusCode) {
+var contentType = resp.Content.Headers.ContentType!.ToString();
+ctx.Response.ContentType = contentType;
+await resp.Content.CopyToAsync(ctx.Response.Body);
+} else {
+ctx.Response.StatusCode = (int)resp.StatusCode;
+}
+});
+app.MapReverseProxy();
+app.Run();
+</code></pre> <p>YARP 技能點數 +1。</p> <p data-slug="yarp-lab" data-title-en="Creating no-ad version of web by YARP" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/11/28/10/48/child-1864718_960_720.jpg#960#720">A new overlay ad on an online novel site is causing issues on tablets. The author sets up a Reverse Proxy using YARP on their home server to remove ads. They share their implementation process and code.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>黑暗女王最近有個困擾，某線上小說網站貌似啟用了新的蓋版廣告。當免費仔幫忙看廣告贊助天經地義，但程式沒寫好，用平板看會被蓋版廣告蓋到無邊無際，找不到關閉鈕關不掉。這下可好，廣告都看了不給內容是怎樣？女王震怒大事不妙，只得快使出資訊專長以安太座。</p> <p>由於平板沒法安裝瀏覽器外掛、也沒法<a href="/blog/ms-learn-lang-switch/">用 TamperMonkey 寫 JavaScript 自力救濟</a>，我想到一個解法是在 <a href="/blog/minipc-as-centos-server/">CentOS 迷你家用伺服器</a>上裝個 Reverse Proxy 當中間人，從中幫網站修 Bug。雖有用大砲打小鳥之嫌，反正家裡伺服器平日很閒，找點事讓它做也好。</p> <p>nginx 可以<a href="https://techoverflow.net/2021/09/11/how-to-replace-http-response-data-in-nginx-using-lua/">寫 Lua 腳本修改回應內容</a>，應是最簡便的解法，但我比較想練習用 .NET 解決，解決問題兼充實本職學能。</p> <p><a href="https://microsoft.github.io/reverse-proxy/">YARP (Yet Another Reverse Proxy)</a> 是微軟的一個開源專案，起源是微軟內部有一堆 Reverse Proxy 需求，索性一群人合作開發出一套共用的 .NET 程式庫。業界優秀的 Reverse Proxy 很多(例如：nginx，它是我<a href="/blog/aspnetcore-with-nginx/">跑 ASP.NET Core Docker 的首選</a>，還寫了<a href="/blog/nginx-certbot-auto-setup/">安裝懶人包</a>)，所以專案取名 Yet Another (又一套)，YARP 的效能還不錯，用 C# 開發是它最大的優點，可跟 .NET 專案無縫接軌。因此，本案例用 YARP 做，再適合也不過。</p> <p>查到一篇不錯的介紹：<a href="https://medium.com/@lynnmaxwell0706/reverse-proxy-%E7%9A%84%E6%96%B0%E9%81%B8%E6%93%87-yarp-6af4f805a8d9">Reverse Proxy 的新選擇 — Yarp by OrangeRed</a>，要啟用 YARP 很簡單，參照 Yarp.ReverseProxy 套件、在 appsettings.json 加入設定、在 ASP.NET Minimal API 加兩行就大功告成了。</p> <p>這裡選了內容農場「壹讀」練兵，來試試串接 YARP 移除網頁廣告。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638547534752858071.png"></p> <p>開發過程累積一些實戰經驗及處理的眉角，整理如下：</p> <ol><li>在 YARP 要修改請求或回應，被歸類在 <a href="https://microsoft.github.io/reverse-proxy/articles/transforms.html">Transform 功能</a>，內建功能以 Header 及 URL 改寫為主，要修改回應內容則需用 <a href="https://microsoft.github.io/reverse-proxy/articles/transforms.html#response-body-transforms">AddResponseTransform()</a> 寫一段，Lambda 由 <code>ProxyResponse.Content.ReadAsStreamAsync()</code> 取得 Stream 改寫後，再用 <code>HttpContext.Response.Body.WriteAsync()</code> 輸出。</li> <li><code>ProxyResponse.Content.ReadAsStreamAsync()</code> 讀取的來源網站串流可能被壓縮過，需解壓才能讀到 HTML。我的解法是檢查來源設定 Content-Encoding 時，串接 <code>new GZipStream(stream, CompressionMode.Decompress)</code> 解壓縮再用 <code>new StreamReader(stream)</code> 讀取文字內容。輸出時可選擇重新壓縮或改傳非壓縮版本，我採用後者，移除 Content-Encoding Header 再用標準 <code>Response.Body.WriteAsync()</code> 輸出 HTML，簡單搞定。</li> <li>移掉廣告部分，我是用 String.Rlace() 把 HTML 中原本原本 <code>&lt;script src="ad-script-url"&gt;</code> 載入廣告腳本部分改成 <code>&lt;script _="invalid-ad-script-url"&gt;</code> 使其失效。</li> <li>照片部分意外多花了點工夫。來源網站照片都另外放在 <code>&lt;img-host-name&gt;.read01.com</code>，圖床有多台且會限定自家網頁使用。YARP 轉接後網址改變，沿用原本 <code>&lt;img&gt;</code> 內嵌圖檔會得到 HTTP 403 無法存取(Referrer 比對不符)。我的解法是用 JavaScript 將圖檔 URL 改為 <code>/imgbed-&lt;img-host-name&gt;/path-to-image</code>，再用 ASP.NET Core 基本技巧寫個 <code>app.MapGet("/imgbed-{hostName}/{**path}",...)</code> 處理圖檔下載，用 HttpClient 從圖床主機取得照片回傳。</li></ol> <p>成品如下，連上 <code>http://localhost:5121</code> 會看到壹讀網站，照片正確顯示，無廣告，成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638547534755179109.png"></p> <p>實作心得是 YARP 的使用方式比預期簡單，本次案例用到的設定跟程式都不多。設定檔如下：</p> <pre><code>{
+"Logging": {
+"LogLevel": {
+"Default": "Information",
+"Microsoft.AspNetCore": "Warning"
+}
+},
+"AllowedHosts": "*",
+"ReverseProxy": {
+"Routes": {
+"route1" : {
+"ClusterId": "cluster1",
+"Match": {
+"Path": "{**catch-all}"
+}
+}
+},
+"Clusters": {
+"cluster1": {
+"Destinations": {
+"destination1": {
+"Address": "https://read01.com/"
+}
+}
+}
+}
+}
+}
+</code></pre> <p>全部程式如下，大約 60 行搞定。</p> <pre><code>using System.IO.Compression;
+using System.Text;
+using Microsoft.AspNetCore.Components.Forms;
+using Yarp.ReverseProxy.Transforms;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddReverseProxy()
+.LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+.AddTransforms(context =&gt; {
+context.AddResponseTransform(async respCtx =&gt; {
+var resp = respCtx.HttpContext.Response;
+var req = respCtx.HttpContext.Request;
+var srcResp = respCtx.ProxyResponse;
+if ((srcResp?.Content.Headers.ContentType?.MediaType ?? string.Empty).Contains("html")) {
+var stream = await srcResp?.Content.ReadAsStreamAsync()!;
+// Decompress the response stream if needed
+if (srcResp.Content.Headers.ContentEncoding.Any()) {
+resp.Headers.Remove("Content-Encoding");
+stream = new GZipStream(stream, CompressionMode.Decompress);
+}
+using var reader = new StreamReader(stream);
+// TODO: size limits, timeouts
+var body = await reader.ReadToEndAsync();
+if (!string.IsNullOrEmpty(body)) {
+respCtx.SuppressResponseBody = true;
+// 停用廣告相關 JavaScript
+body = body.Replace("src=\"//pagead2", "_=\"");
+body = body.Replace("src=\"https://pagead2", "_=\"");
+body = body.Replace("src=\"https://player.gliacloud.com", "_=\"");
+// 將圖片連結轉換為本地代理、移除廣告區塊
+body = body.Replace("&lt;/body&gt;", @"&lt;script&gt;
+document.querySelectorAll('img[data-src]').forEach(img =&gt; {
+let src = img.getAttribute('data-src'); // 原程式採 Lazy-Loading，檢視到才下載，URL 在 data-src
+img.setAttribute('data-src', src.replace(/https:\/\/([^.]+).read01.com/, '/imgbed-$1'));
+});
+document.querySelectorAll('.axslot').forEach(o =&gt; o.remove());
+&lt;/script&gt;&lt;/body&gt;");
+var bytes = Encoding.UTF8.GetBytes(body);
+resp.ContentLength = bytes.Length;
+await respCtx.HttpContext.Response.Body.WriteAsync(bytes);
+}
+}
+});
+});
+var app = builder.Build();
+// 處理圖床照片下載
+app.MapGet("/imgbed-{hostName}/{**path}", async (HttpContext ctx, string hostName, string path) =&gt; {
+var url = $"https://{hostName}.read01.com/{path}";
+var client = new HttpClient();
+var resp = await client.GetAsync(url);
+if (resp.IsSuccessStatusCode) {
+var contentType = resp.Content.Headers.ContentType!.ToString();
+ctx.Response.ContentType = contentType;
+await resp.Content.CopyToAsync(ctx.Response.Body);
+} else {
+ctx.Response.StatusCode = (int)resp.StatusCode;
+}
+});
+app.MapReverseProxy();
+app.Run();
+</code></pre> <p>YARP 技能點數 +1。</p> <p data-slug="yarp-lab" data-title-en="Creating no-ad version of web by YARP" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/11/28/10/48/child-1864718_960_720.jpg#960#720">A new overlay ad on an online novel site is causing issues on tablets. The author sets up a Reverse Proxy using YARP on their home server to remove ads. They share their implementation process and code.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>黑暗女王最近有個困擾，某線上小說網站貌似啟用了新的蓋版廣告。當免費仔幫忙看廣告贊助天經地義，但程式沒寫好，用平板看會被蓋版廣告蓋到無邊無際，找不到關閉鈕關不掉。這下可好，廣告都看了不給內容是怎樣？女王震怒大事不妙，只得快使出資訊專長以安太座。</p> <p>由於平板沒法安裝瀏覽器外掛、也沒法<a href="/blog/ms-learn-lang-switch/">用 TamperMonkey 寫 JavaScript 自力救濟</a>，我想到一個解法是在 <a href="/blog/minipc-as-centos-server/">CentOS 迷你家用伺服器</a>上裝個 Reverse Proxy 當中間人，從中幫網站修 Bug。雖有用大砲打小鳥之嫌，反正家裡伺服器平日很閒，找點事讓它做也好。</p> <p>nginx 可以<a href="https://techoverflow.net/2021/09/11/how-to-replace-http-response-data-in-nginx-using-lua/">寫 Lua 腳本修改回應內容</a>，應是最簡便的解法，但我比較想練習用 .NET 解決，解決問題兼充實本職學能。</p> <p><a href="https://microsoft.github.io/reverse-proxy/">YARP (Yet Another Reverse Proxy)</a> 是微軟的一個開源專案，起源是微軟內部有一堆 Reverse Proxy 需求，索性一群人合作開發出一套共用的 .NET 程式庫。業界優秀的 Reverse Proxy 很多(例如：nginx，它是我<a href="/blog/aspnetcore-with-nginx/">跑 ASP.NET Core Docker 的首選</a>，還寫了<a href="/blog/nginx-certbot-auto-setup/">安裝懶人包</a>)，所以專案取名 Yet Another (又一套)，YARP 的效能還不錯，用 C# 開發是它最大的優點，可跟 .NET 專案無縫接軌。因此，本案例用 YARP 做，再適合也不過。</p> <p>查到一篇不錯的介紹：<a href="https://medium.com/@lynnmaxwell0706/reverse-proxy-%E7%9A%84%E6%96%B0%E9%81%B8%E6%93%87-yarp-6af4f805a8d9">Reverse Proxy 的新選擇 — Yarp by OrangeRed</a>，要啟用 YARP 很簡單，參照 Yarp.ReverseProxy 套件、在 appsettings.json 加入設定、在 ASP.NET Minimal API 加兩行就大功告成了。</p> <p>這裡選了內容農場「壹讀」練兵，來試試串接 YARP 移除網頁廣告。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638547534752858071.png"></p> <p>開發過程累積一些實戰經驗及處理的眉角，整理如下：</p> <ol><li>在 YARP 要修改請求或回應，被歸類在 <a href="https://microsoft.github.io/reverse-proxy/articles/transforms.html">Transform 功能</a>，內建功能以 Header 及 URL 改寫為主，要修改回應內容則需用 <a href="https://microsoft.github.io/reverse-proxy/articles/transforms.html#response-body-transforms">AddResponseTransform()</a> 寫一段，Lambda 由 <code>ProxyResponse.Content.ReadAsStreamAsync()</code> 取得 Stream 改寫後，再用 <code>HttpContext.Response.Body.WriteAsync()</code> 輸出。</li> <li><code>ProxyResponse.Content.ReadAsStreamAsync()</code> 讀取的來源網站串流可能被壓縮過，需解壓才能讀到 HTML。我的解法是檢查來源設定 Content-Encoding 時，串接 <code>new GZipStream(stream, CompressionMode.Decompress)</code> 解壓縮再用 <code>new StreamReader(stream)</code> 讀取文字內容。輸出時可選擇重新壓縮或改傳非壓縮版本，我採用後者，移除 Content-Encoding Header 再用標準 <code>Response.Body.WriteAsync()</code> 輸出 HTML，簡單搞定。</li> <li>移掉廣告部分，我是用 String.Rlace() 把 HTML 中原本原本 <code>&lt;script src="ad-script-url"&gt;</code> 載入廣告腳本部分改成 <code>&lt;script _="invalid-ad-script-url"&gt;</code> 使其失效。</li> <li>照片部分意外多花了點工夫。來源網站照片都另外放在 <code>&lt;img-host-name&gt;.read01.com</code>，圖床有多台且會限定自家網頁使用。YARP 轉接後網址改變，沿用原本 <code>&lt;img&gt;</code> 內嵌圖檔會得到 HTTP 403 無法存取(Referrer 比對不符)。我的解法是用 JavaScript 將圖檔 URL 改為 <code>/imgbed-&lt;img-host-name&gt;/path-to-image</code>，再用 ASP.NET Core 基本技巧寫個 <code>app.MapGet("/imgbed-{hostName}/{**path}",...)</code> 處理圖檔下載，用 HttpClient 從圖床主機取得照片回傳。</li></ol> <p>成品如下，連上 <code>http://localhost:5121</code> 會看到壹讀網站，照片正確顯示，無廣告，成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638547534755179109.png"></p> <p>實作心得是 YARP 的使用方式比預期簡單，本次案例用到的設定跟程式都不多。設定檔如下：</p> <pre><code>{
+"Logging": {
+"LogLevel": {
+"Default": "Information",
+"Microsoft.AspNetCore": "Warning"
+}
+},
+"AllowedHosts": "*",
+"ReverseProxy": {
+"Routes": {
+"route1" : {
+"ClusterId": "cluster1",
+"Match": {
+"Path": "{**catch-all}"
+}
+}
+},
+"Clusters": {
+"cluster1": {
+"Destinations": {
+"destination1": {
+"Address": "https://read01.com/"
+}
+}
+}
+}
+}
+}
+</code></pre> <p>全部程式如下，大約 60 行搞定。</p> <pre><code>using System.IO.Compression;
+using System.Text;
+using Microsoft.AspNetCore.Components.Forms;
+using Yarp.ReverseProxy.Transforms;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddReverseProxy()
+.LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+.AddTransforms(context =&gt; {
+context.AddResponseTransform(async respCtx =&gt; {
+var resp = respCtx.HttpContext.Response;
+var req = respCtx.HttpContext.Request;
+var srcResp = respCtx.ProxyResponse;
+if ((srcResp?.Content.Headers.ContentType?.MediaType ?? string.Empty).Contains("html")) {
+var stream = await srcResp?.Content.ReadAsStreamAsync()!;
+// Decompress the response stream if needed
+if (srcResp.Content.Headers.ContentEncoding.Any()) {
+resp.Headers.Remove("Content-Encoding");
+stream = new GZipStream(stream, CompressionMode.Decompress);
+}
+using var reader = new StreamReader(stream);
+// TODO: size limits, timeouts
+var body = await reader.ReadToEndAsync();
+if (!string.IsNullOrEmpty(body)) {
+respCtx.SuppressResponseBody = true;
+// 停用廣告相關 JavaScript
+body = body.Replace("src=\"//pagead2", "_=\"");
+body = body.Replace("src=\"https://pagead2", "_=\"");
+body = body.Replace("src=\"https://player.gliacloud.com", "_=\"");
+// 將圖片連結轉換為本地代理、移除廣告區塊
+body = body.Replace("&lt;/body&gt;", @"&lt;script&gt;
+document.querySelectorAll('img[data-src]').forEach(img =&gt; {
+let src = img.getAttribute('data-src'); // 原程式採 Lazy-Loading，檢視到才下載，URL 在 data-src
+img.setAttribute('data-src', src.replace(/https:\/\/([^.]+).read01.com/, '/imgbed-$1'));
+});
+document.querySelectorAll('.axslot').forEach(o =&gt; o.remove());
+&lt;/script&gt;&lt;/body&gt;");
+var bytes = Encoding.UTF8.GetBytes(body);
+resp.ContentLength = bytes.Length;
+await respCtx.HttpContext.Response.Body.WriteAsync(bytes);
+}
+}
+});
+});
+var app = builder.Build();
+// 處理圖床照片下載
+app.MapGet("/imgbed-{hostName}/{**path}", async (HttpContext ctx, string hostName, string path) =&gt; {
+var url = $"https://{hostName}.read01.com/{path}";
+var client = new HttpClient();
+var resp = await client.GetAsync(url);
+if (resp.IsSuccessStatusCode) {
+var contentType = resp.Content.Headers.ContentType!.ToString();
+ctx.Response.ContentType = contentType;
+await resp.Content.CopyToAsync(ctx.Response.Body);
+} else {
+ctx.Response.StatusCode = (int)resp.StatusCode;
+}
+});
+app.MapReverseProxy();
+app.Run();
+</code></pre> <p>YARP 技能點數 +1。</p> <p data-slug="yarp-lab" data-title-en="Creating no-ad version of web by YARP" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/11/28/10/48/child-1864718_960_720.jpg#960#720">A new overlay ad on an online novel site is causing issues on tablets. The author sets up a Reverse Proxy using YARP on their home server to remove ads. They share their implementation process and code.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638547534752858071.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638547534752858071.png" medium="image"/>
+    <pubDate>Sun, 23 Jun 2024 15:30:18 GMT</pubDate>
+  </item><item>
     <title><![CDATA[PowerShell 小工具 - 偵測新增檔案自動分類]]></title>
     <link>https://blog.darkthread.net/blog/ps-file-watcher/</link>
     <itunes:title><![CDATA[PowerShell 小工具 - 偵測新增檔案自動分類]]></itunes:title>
@@ -1123,68 +1399,5 @@ app.mount('#app');
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638534238792864553.gif"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638534238792864553.gif" medium="image"/>
     <pubDate>Sat, 08 Jun 2024 06:10:01 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手日記】JPG 照片上傳到網站後變亮且鮮豔到失真？]]></title>
-    <link>https://blog.darkthread.net/blog/cmyk-jpg-issue/</link>
-    <itunes:title><![CDATA[【茶包射手日記】JPG 照片上傳到網站後變亮且鮮豔到失真？]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>使用者反映：有張電腦上看起來色彩正常的 JPG 檔，上傳到網站後，照片偏亮且鮮豔到浮誇，詢問程式是否在上傳過程修圖？</p> <p>聽完心想，我寫的檔案上傳向來都是<del>Garbage In Garbage Out</del>原封不動搬資料，何德何能還會修圖(連該用什麼演算法我都沒概念)，莫非 ChatGPT 已開始要接管地球了？先從幫愚蠢的人類改良程式開始。</p> <p>經過一番研究，對視覺設計、攝影修圖、色彩管理一知半解的門外漢上了一課，學到幾則設計師攝影師眼中的常識，對程式設計師則算冷知識。</p> <ol><li>電腦色彩學有所謂的色彩空間 (Color Space)，實務上常用的有 RGB、CMYK、sRGB、Lab、AdobeRGB... 等，這塊水很深，但這裡知道可採用不同系統表示顏色就夠了。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg"><br> 參考來源：<a href="https://www.soongrow.com/professional-printing-packaging/1440/">電腦色彩學 – CMYK與RGB 的差異與設定</a></li> <li>我本以為 JPG 檔是用 RGB 存顏色，事實上 RGB 會轉換成 YUV 色彩空間再進行壓縮[<a href="https://zh.wikipedia.org/zh-tw/JPEG">參考</a>]。而 JPG 規格支援多種色彩空間，如：sRGB (最常用)、RGB、GRAY、CMYK、LAB... [<a href="https://imagemagick.org/script/formats.php#colorspace">參考</a>]。</li> <li><a href="https://zh.wikipedia.org/zh-tw/ICC%E8%89%B2%E5%BD%A9%E7%89%B9%E6%80%A7%E6%96%87%E4%BB%B6">ICC 色彩特性文件 (ICC Profile)</a>可協助正確顯示顏色及轉換色彩空間。</li></ol> <p>我在維基百科找到一張 <a href="https://en.wikipedia.org/wiki/File:Channel_digital_image_CMYK_color.jpg">CMYK 格式的 JPG 範例</a>，稍作修改後，重現瀏覽器顯示[3]硬是比 Windows 預覽[1]及內建圖片檢視器[2]鮮豔一大截的狀況，感覺飽和度調過頭：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638533715176301231.jpg"></p> <p>CMYK 模式 JPG 要在電腦螢幕顯示必須轉換成 RGB 模式，由結果來看，Windows 預覽及圖片檢視 App 的轉換結果較接近原圖，而瀏覽器轉換出的色彩有較嚴重的偏差。</p> <p>接下來，介紹如何從工程師視角偵察及排除這類問題。</p> <p>要檢查 JPG 使用何種色彩空間，最直覺的方法是用 Adobe 家族或開源的 GIMP 等繪圖軟體開圖檔檢查，但這些不是攻城獅常備及擅長的兵器。開發人員常用的開源 CLI 工具有兩套： <a href="https://exiftool.org/">ExifTool</a>(網站滿滿的古典工程師風格，就是要這味兒沒錯)、<a href="https://imagemagick.org/index.php">ImageMagick</a>。</p> <p>先看怎麼檢查 JPG 使用何種色彩空間(或稱色彩模式)？試用心得，ImageMagicK 使用上較簡便，故後面幾 imagick CLI 示範。</p> <pre><code># 檢視 CMKY.jpg 資訊
-magick identify CMYK.jpg
-# 輸出結果：CMYK.jpg JPEG 500x333 500x333+0+0 8-bit CMYK 731616B 0.002u 0:00.001
-# 將其轉為 sRBG
-magick convert CMYK.jpg -colorspace sRGB sRGB.jpg
-# 檢視轉換後的 sRGB.jpg
-magick identify sRGB.jpg
-# 輸出結果：sRGB.jpg JPEG 500x333 500x333+0+0 8-bit sRGB 142508B 0.001u 0:00.001
-</code></pre> <p>而比較 CMYK.jpg、sRGB.jpg，sRGB 便接近瀏覽器所看到的加亮加豔版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638533715178052160.jpg"></p> <p>但這裡有個疑團，剛說 CMYK JPG 用瀏覽器看會加亮加豔，為什麼那張範例照片在維基網頁上看起來色彩是正常的？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638533715180141690.jpg"></p> <p>是的，你猜對了，JPG 檔可以內嵌 ICC Profile 協助軟體正確解析色彩。</p> <p>使用 <code>magick identify --verbose filename.jpg | findstr icc</code> (Cmder/Linux/macOS 可用 grep icc) 可查詢 JPG 內嵌的 ICC Profile，比較 Wiki 原圖跟我移除 ICC Profiles 的版本，可看出差別，Channel_digita_image_CMYK_color.jpg 有個名為 U.S. Web Coated (SWOP) v2 的 ICC Profile <a href="https://www.idealliancetaiwan.org/post/swopandgracol">參考</a>，而 CMYK.jpg 沒有：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638533715181953066.png"></p> <p>最後，簡單示範怎麼從 JPG 匯出及刪除 ICC Profile？</p> <pre><code># 匯出 ICC Profile 存成 swop.icc
-magick convert Channel_digital_image_CMYK_color.jpg icc:swop.icc
-# 查詢 ICC Profile 資訊
-magick identify -verbose swop.icc
-# 移除 ICC Profile 另存成 CMYK.jpg
-magick Channel_digital_image_CMYK_color.jpg +profile "*" CMYK.jpg
-# 嵌入 ICC Profile
-magick convert CMYK.jpg -profile swop.icc CMYK-icc.jpg
-</code></pre> <p>活到老學到老，用了幾十年 Jpeg，今天再多認識了一層。</p> <p data-slug="cmyk-jpg-issue" data-title-en="CMYK jpg display issue in browser" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/1684187/pexels-photo-1684187.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">A JPG photo appeared overly bright and vivid after being uploaded to a website due to differences in color spaces and the absence of ICC profiles. Tools like ImageMagick can identify and convert color spaces to ensure consistency. Embedding or removing ICC profiles can also help maintain accurate colors across different platforms.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>使用者反映：有張電腦上看起來色彩正常的 JPG 檔，上傳到網站後，照片偏亮且鮮豔到浮誇，詢問程式是否在上傳過程修圖？</p> <p>聽完心想，我寫的檔案上傳向來都是<del>Garbage In Garbage Out</del>原封不動搬資料，何德何能還會修圖(連該用什麼演算法我都沒概念)，莫非 ChatGPT 已開始要接管地球了？先從幫愚蠢的人類改良程式開始。</p> <p>經過一番研究，對視覺設計、攝影修圖、色彩管理一知半解的門外漢上了一課，學到幾則設計師攝影師眼中的常識，對程式設計師則算冷知識。</p> <ol><li>電腦色彩學有所謂的色彩空間 (Color Space)，實務上常用的有 RGB、CMYK、sRGB、Lab、AdobeRGB... 等，這塊水很深，但這裡知道可採用不同系統表示顏色就夠了。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg"><br> 參考來源：<a href="https://www.soongrow.com/professional-printing-packaging/1440/">電腦色彩學 – CMYK與RGB 的差異與設定</a></li> <li>我本以為 JPG 檔是用 RGB 存顏色，事實上 RGB 會轉換成 YUV 色彩空間再進行壓縮[<a href="https://zh.wikipedia.org/zh-tw/JPEG">參考</a>]。而 JPG 規格支援多種色彩空間，如：sRGB (最常用)、RGB、GRAY、CMYK、LAB... [<a href="https://imagemagick.org/script/formats.php#colorspace">參考</a>]。</li> <li><a href="https://zh.wikipedia.org/zh-tw/ICC%E8%89%B2%E5%BD%A9%E7%89%B9%E6%80%A7%E6%96%87%E4%BB%B6">ICC 色彩特性文件 (ICC Profile)</a>可協助正確顯示顏色及轉換色彩空間。</li></ol> <p>我在維基百科找到一張 <a href="https://en.wikipedia.org/wiki/File:Channel_digital_image_CMYK_color.jpg">CMYK 格式的 JPG 範例</a>，稍作修改後，重現瀏覽器顯示[3]硬是比 Windows 預覽[1]及內建圖片檢視器[2]鮮豔一大截的狀況，感覺飽和度調過頭：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638533715176301231.jpg"></p> <p>CMYK 模式 JPG 要在電腦螢幕顯示必須轉換成 RGB 模式，由結果來看，Windows 預覽及圖片檢視 App 的轉換結果較接近原圖，而瀏覽器轉換出的色彩有較嚴重的偏差。</p> <p>接下來，介紹如何從工程師視角偵察及排除這類問題。</p> <p>要檢查 JPG 使用何種色彩空間，最直覺的方法是用 Adobe 家族或開源的 GIMP 等繪圖軟體開圖檔檢查，但這些不是攻城獅常備及擅長的兵器。開發人員常用的開源 CLI 工具有兩套： <a href="https://exiftool.org/">ExifTool</a>(網站滿滿的古典工程師風格，就是要這味兒沒錯)、<a href="https://imagemagick.org/index.php">ImageMagick</a>。</p> <p>先看怎麼檢查 JPG 使用何種色彩空間(或稱色彩模式)？試用心得，ImageMagicK 使用上較簡便，故後面幾 imagick CLI 示範。</p> <pre><code># 檢視 CMKY.jpg 資訊
-magick identify CMYK.jpg
-# 輸出結果：CMYK.jpg JPEG 500x333 500x333+0+0 8-bit CMYK 731616B 0.002u 0:00.001
-# 將其轉為 sRBG
-magick convert CMYK.jpg -colorspace sRGB sRGB.jpg
-# 檢視轉換後的 sRGB.jpg
-magick identify sRGB.jpg
-# 輸出結果：sRGB.jpg JPEG 500x333 500x333+0+0 8-bit sRGB 142508B 0.001u 0:00.001
-</code></pre> <p>而比較 CMYK.jpg、sRGB.jpg，sRGB 便接近瀏覽器所看到的加亮加豔版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638533715178052160.jpg"></p> <p>但這裡有個疑團，剛說 CMYK JPG 用瀏覽器看會加亮加豔，為什麼那張範例照片在維基網頁上看起來色彩是正常的？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638533715180141690.jpg"></p> <p>是的，你猜對了，JPG 檔可以內嵌 ICC Profile 協助軟體正確解析色彩。</p> <p>使用 <code>magick identify --verbose filename.jpg | findstr icc</code> (Cmder/Linux/macOS 可用 grep icc) 可查詢 JPG 內嵌的 ICC Profile，比較 Wiki 原圖跟我移除 ICC Profiles 的版本，可看出差別，Channel_digita_image_CMYK_color.jpg 有個名為 U.S. Web Coated (SWOP) v2 的 ICC Profile <a href="https://www.idealliancetaiwan.org/post/swopandgracol">參考</a>，而 CMYK.jpg 沒有：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638533715181953066.png"></p> <p>最後，簡單示範怎麼從 JPG 匯出及刪除 ICC Profile？</p> <pre><code># 匯出 ICC Profile 存成 swop.icc
-magick convert Channel_digital_image_CMYK_color.jpg icc:swop.icc
-# 查詢 ICC Profile 資訊
-magick identify -verbose swop.icc
-# 移除 ICC Profile 另存成 CMYK.jpg
-magick Channel_digital_image_CMYK_color.jpg +profile "*" CMYK.jpg
-# 嵌入 ICC Profile
-magick convert CMYK.jpg -profile swop.icc CMYK-icc.jpg
-</code></pre> <p>活到老學到老，用了幾十年 Jpeg，今天再多認識了一層。</p> <p data-slug="cmyk-jpg-issue" data-title-en="CMYK jpg display issue in browser" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/1684187/pexels-photo-1684187.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">A JPG photo appeared overly bright and vivid after being uploaded to a website due to differences in color spaces and the absence of ICC profiles. Tools like ImageMagick can identify and convert color spaces to ensure consistency. Embedding or removing ICC profiles can also help maintain accurate colors across different platforms.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>使用者反映：有張電腦上看起來色彩正常的 JPG 檔，上傳到網站後，照片偏亮且鮮豔到浮誇，詢問程式是否在上傳過程修圖？</p> <p>聽完心想，我寫的檔案上傳向來都是<del>Garbage In Garbage Out</del>原封不動搬資料，何德何能還會修圖(連該用什麼演算法我都沒概念)，莫非 ChatGPT 已開始要接管地球了？先從幫愚蠢的人類改良程式開始。</p> <p>經過一番研究，對視覺設計、攝影修圖、色彩管理一知半解的門外漢上了一課，學到幾則設計師攝影師眼中的常識，對程式設計師則算冷知識。</p> <ol><li>電腦色彩學有所謂的色彩空間 (Color Space)，實務上常用的有 RGB、CMYK、sRGB、Lab、AdobeRGB... 等，這塊水很深，但這裡知道可採用不同系統表示顏色就夠了。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg"><br> 參考來源：<a href="https://www.soongrow.com/professional-printing-packaging/1440/">電腦色彩學 – CMYK與RGB 的差異與設定</a></li> <li>我本以為 JPG 檔是用 RGB 存顏色，事實上 RGB 會轉換成 YUV 色彩空間再進行壓縮[<a href="https://zh.wikipedia.org/zh-tw/JPEG">參考</a>]。而 JPG 規格支援多種色彩空間，如：sRGB (最常用)、RGB、GRAY、CMYK、LAB... [<a href="https://imagemagick.org/script/formats.php#colorspace">參考</a>]。</li> <li><a href="https://zh.wikipedia.org/zh-tw/ICC%E8%89%B2%E5%BD%A9%E7%89%B9%E6%80%A7%E6%96%87%E4%BB%B6">ICC 色彩特性文件 (ICC Profile)</a>可協助正確顯示顏色及轉換色彩空間。</li></ol> <p>我在維基百科找到一張 <a href="https://en.wikipedia.org/wiki/File:Channel_digital_image_CMYK_color.jpg">CMYK 格式的 JPG 範例</a>，稍作修改後，重現瀏覽器顯示[3]硬是比 Windows 預覽[1]及內建圖片檢視器[2]鮮豔一大截的狀況，感覺飽和度調過頭：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638533715176301231.jpg"></p> <p>CMYK 模式 JPG 要在電腦螢幕顯示必須轉換成 RGB 模式，由結果來看，Windows 預覽及圖片檢視 App 的轉換結果較接近原圖，而瀏覽器轉換出的色彩有較嚴重的偏差。</p> <p>接下來，介紹如何從工程師視角偵察及排除這類問題。</p> <p>要檢查 JPG 使用何種色彩空間，最直覺的方法是用 Adobe 家族或開源的 GIMP 等繪圖軟體開圖檔檢查，但這些不是攻城獅常備及擅長的兵器。開發人員常用的開源 CLI 工具有兩套： <a href="https://exiftool.org/">ExifTool</a>(網站滿滿的古典工程師風格，就是要這味兒沒錯)、<a href="https://imagemagick.org/index.php">ImageMagick</a>。</p> <p>先看怎麼檢查 JPG 使用何種色彩空間(或稱色彩模式)？試用心得，ImageMagicK 使用上較簡便，故後面幾 imagick CLI 示範。</p> <pre><code># 檢視 CMKY.jpg 資訊
-magick identify CMYK.jpg
-# 輸出結果：CMYK.jpg JPEG 500x333 500x333+0+0 8-bit CMYK 731616B 0.002u 0:00.001
-# 將其轉為 sRBG
-magick convert CMYK.jpg -colorspace sRGB sRGB.jpg
-# 檢視轉換後的 sRGB.jpg
-magick identify sRGB.jpg
-# 輸出結果：sRGB.jpg JPEG 500x333 500x333+0+0 8-bit sRGB 142508B 0.001u 0:00.001
-</code></pre> <p>而比較 CMYK.jpg、sRGB.jpg，sRGB 便接近瀏覽器所看到的加亮加豔版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638533715178052160.jpg"></p> <p>但這裡有個疑團，剛說 CMYK JPG 用瀏覽器看會加亮加豔，為什麼那張範例照片在維基網頁上看起來色彩是正常的？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638533715180141690.jpg"></p> <p>是的，你猜對了，JPG 檔可以內嵌 ICC Profile 協助軟體正確解析色彩。</p> <p>使用 <code>magick identify --verbose filename.jpg | findstr icc</code> (Cmder/Linux/macOS 可用 grep icc) 可查詢 JPG 內嵌的 ICC Profile，比較 Wiki 原圖跟我移除 ICC Profiles 的版本，可看出差別，Channel_digita_image_CMYK_color.jpg 有個名為 U.S. Web Coated (SWOP) v2 的 ICC Profile <a href="https://www.idealliancetaiwan.org/post/swopandgracol">參考</a>，而 CMYK.jpg 沒有：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638533715181953066.png"></p> <p>最後，簡單示範怎麼從 JPG 匯出及刪除 ICC Profile？</p> <pre><code># 匯出 ICC Profile 存成 swop.icc
-magick convert Channel_digital_image_CMYK_color.jpg icc:swop.icc
-# 查詢 ICC Profile 資訊
-magick identify -verbose swop.icc
-# 移除 ICC Profile 另存成 CMYK.jpg
-magick Channel_digital_image_CMYK_color.jpg +profile "*" CMYK.jpg
-# 嵌入 ICC Profile
-magick convert CMYK.jpg -profile swop.icc CMYK-icc.jpg
-</code></pre> <p>活到老學到老，用了幾十年 Jpeg，今天再多認識了一層。</p> <p data-slug="cmyk-jpg-issue" data-title-en="CMYK jpg display issue in browser" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/1684187/pexels-photo-1684187.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">A JPG photo appeared overly bright and vivid after being uploaded to a website due to differences in color spaces and the absence of ICC profiles. Tools like ImageMagick can identify and convert color spaces to ensure consistency. Embedding or removing ICC profiles can also help maintain accurate colors across different platforms.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638533715171359822.jpg" medium="image"/>
-    <pubDate>Fri, 07 Jun 2024 15:31:42 GMT</pubDate>
   </item></channel>
 </rss>
