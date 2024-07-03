@@ -30,6 +30,255 @@
     </itunes:owner>
     <itunes:image href="https://www.minwt.com/images/Icon@2.png"/>
 <item>
+    <title><![CDATA[Google Cloud Platform (GCP)雲端主機中安裝HestiaCP圖像化的管理介面]]></title>
+    <link>https://www.minwt.com/website/wordpress/24272.html</link>
+    <itunes:title><![CDATA[Google Cloud Platform (GCP)雲端主機中安裝HestiaCP圖像化的管理介面]]></itunes:title>
+    <itunes:author><![CDATA[梅問題．教學網[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<div><img alt="梅問題－Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/00.jpg"></div>
+一直以來梅干除了使用雲端主機外，最常使用的就是虛擬主機，最主要的原因就在於，一般的虛擬主機都會內建cPanel或是Plesk的圖像化的管理後台，方便操作與設定，但使用雲端主機與VPS時，就只能透過指令的方式進行管理，這對於梅干來說覺得有些麻煩，最主要的原因就於梅干不是指令控，再加上這些指令也不是常常在用，因此只要一段時間沒用就忘光了，還是圖像式的操作比較簡易好上手。
+但使用雲端主機與VPS主機，內建是沒有包含cPanel與Plesk，因此若想要有圖像式的管理介面，梅干目前使用起來Hestia不但簡易好操控，甚至完全Free同時還內建SSL憑證的安裝，以及一鍵式的WordPress安裝，而先前已介紹過如何在VPS中安裝Hestia，今天梅干要來分享，如何在GCP主機下，安裝Hestia的圖像式的管理後台，讓你也可輕鬆的使用GCP主機啦！
+<hr>
+<font size="3"><b>Step1</b></font><br>
+首先先建立一台主機，這邊梅干是選擇GCP中最入門的方案E2。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/01.jpg">
+<hr>
+<font size="3"><b>Step2</b></font><br>
+在選定好規格後，接著選擇系統，而預設是<b>Debian</b>。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/02.jpg">
+<hr>
+<font size="3"><b>Step3</b></font><br>
+而梅干習慣用的是系統是Ubuntu。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/03.jpg">
+<hr>
+<font size="3"><b>Step4</b></font><br>
+在選定好規格與系統後，接著將防火牆的HTTP與HTTPS開啟。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/04.jpg">
+<hr>
+<font size="3"><b>Step5</b></font><br>
+過一回在主機建立好後，就可點SSH後方的三角形，選擇在「<b>瀏覽器視窗中開啟</b>」。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/05.jpg">
+<hr>
+<font size="3"><b>Step6</b></font><br>
+在登入主機後，輸入<b>sudo su –&nbsp;</b>。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/06.jpg">
+<hr>
+<font size="3"><b>Step7</b></font><br>
+接著再輸入下方指令，將hestiacp的程式下載到主機中。
+<div>wget https://raw.githubusercontent.com/hestiacp/hestiacp/release/install/hst-install.sh<br>
+apt-get update &amp;&amp; apt-get install ca-certificates</div>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/07.jpg">
+<hr>
+<font size="3"><b>Step8</b></font><br>
+在下載完畢後，再輸入下方指令，進行安裝，在過程中只需按y與輸入域名，接著就放著給它跑。
+<div>bash hst-install.sh</div>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/08.jpg">
+<hr>
+<font size="3"><b>Step9</b></font><br>
+在安裝完成後，接著任意按一個鍵，重啟主機。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/09.jpg">
+<hr>
+<font size="3"><b>Step10</b></font><br>
+在重啟的同時，接著再到防火牆設定hestiacp管理介面的埠號。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/010.jpg">
+<hr>
+<font size="3"><b>Step11</b></font><br>
+進入後再點上方的「<b>建立防火牆規則</b>」。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/011.jpg">
+<hr>
+<font size="3"><b>Step12</b></font><br>
+接著輸入8083。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/012.jpg">
+<hr>
+<font size="3"><b>Step13</b></font><br>
+接著開啟瀏覽器，輸入網址與8083後，再按下方的進階鈕，就可進入登入畫面。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/013.jpg">
+<hr>
+<font size="3"><b>Step14</b></font><br>
+接著輸入帳號與密碼，就能登入hestiacp的管理後台啦！<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/014.jpg">
+<hr>
+<font size="3"><b>Step15</b></font><br>
+這樣就可順利的登入hestiacp後台。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/015.jpg">
+<hr>
+<font size="3"><b>Step16</b></font><br>
+而hestiacp也可一鍵的安裝WordPress。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/016.jpg">
+<hr>
+<font size="3"><b>Step17</b></font><br>
+這樣就可快速的安裝起WordPress，以及有圖像式的管理後台啦！因此想用GCP的朋友，不妨也可試試看囉！<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/017.jpg">
+<hr>
+<span>更改埠號與密碼(無需加引號)</span>
+<div>v-change-user-password admin “new_password"<br>
+v-change-sys-port "8080"</div>
+<br>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<div><img alt="梅問題－Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/00.jpg"></div>
+一直以來梅干除了使用雲端主機外，最常使用的就是虛擬主機，最主要的原因就在於，一般的虛擬主機都會內建cPanel或是Plesk的圖像化的管理後台，方便操作與設定，但使用雲端主機與VPS時，就只能透過指令的方式進行管理，這對於梅干來說覺得有些麻煩，最主要的原因就於梅干不是指令控，再加上這些指令也不是常常在用，因此只要一段時間沒用就忘光了，還是圖像式的操作比較簡易好上手。
+但使用雲端主機與VPS主機，內建是沒有包含cPanel與Plesk，因此若想要有圖像式的管理介面，梅干目前使用起來Hestia不但簡易好操控，甚至完全Free同時還內建SSL憑證的安裝，以及一鍵式的WordPress安裝，而先前已介紹過如何在VPS中安裝Hestia，今天梅干要來分享，如何在GCP主機下，安裝Hestia的圖像式的管理後台，讓你也可輕鬆的使用GCP主機啦！
+<hr>
+<font size="3"><b>Step1</b></font><br>
+首先先建立一台主機，這邊梅干是選擇GCP中最入門的方案E2。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/01.jpg">
+<hr>
+<font size="3"><b>Step2</b></font><br>
+在選定好規格後，接著選擇系統，而預設是<b>Debian</b>。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/02.jpg">
+<hr>
+<font size="3"><b>Step3</b></font><br>
+而梅干習慣用的是系統是Ubuntu。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/03.jpg">
+<hr>
+<font size="3"><b>Step4</b></font><br>
+在選定好規格與系統後，接著將防火牆的HTTP與HTTPS開啟。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/04.jpg">
+<hr>
+<font size="3"><b>Step5</b></font><br>
+過一回在主機建立好後，就可點SSH後方的三角形，選擇在「<b>瀏覽器視窗中開啟</b>」。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/05.jpg">
+<hr>
+<font size="3"><b>Step6</b></font><br>
+在登入主機後，輸入<b>sudo su –&nbsp;</b>。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/06.jpg">
+<hr>
+<font size="3"><b>Step7</b></font><br>
+接著再輸入下方指令，將hestiacp的程式下載到主機中。
+<div>wget https://raw.githubusercontent.com/hestiacp/hestiacp/release/install/hst-install.sh<br>
+apt-get update &amp;&amp; apt-get install ca-certificates</div>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/07.jpg">
+<hr>
+<font size="3"><b>Step8</b></font><br>
+在下載完畢後，再輸入下方指令，進行安裝，在過程中只需按y與輸入域名，接著就放著給它跑。
+<div>bash hst-install.sh</div>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/08.jpg">
+<hr>
+<font size="3"><b>Step9</b></font><br>
+在安裝完成後，接著任意按一個鍵，重啟主機。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/09.jpg">
+<hr>
+<font size="3"><b>Step10</b></font><br>
+在重啟的同時，接著再到防火牆設定hestiacp管理介面的埠號。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/010.jpg">
+<hr>
+<font size="3"><b>Step11</b></font><br>
+進入後再點上方的「<b>建立防火牆規則</b>」。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/011.jpg">
+<hr>
+<font size="3"><b>Step12</b></font><br>
+接著輸入8083。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/012.jpg">
+<hr>
+<font size="3"><b>Step13</b></font><br>
+接著開啟瀏覽器，輸入網址與8083後，再按下方的進階鈕，就可進入登入畫面。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/013.jpg">
+<hr>
+<font size="3"><b>Step14</b></font><br>
+接著輸入帳號與密碼，就能登入hestiacp的管理後台啦！<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/014.jpg">
+<hr>
+<font size="3"><b>Step15</b></font><br>
+這樣就可順利的登入hestiacp後台。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/015.jpg">
+<hr>
+<font size="3"><b>Step16</b></font><br>
+而hestiacp也可一鍵的安裝WordPress。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/016.jpg">
+<hr>
+<font size="3"><b>Step17</b></font><br>
+這樣就可快速的安裝起WordPress，以及有圖像式的管理後台啦！因此想用GCP的朋友，不妨也可試試看囉！<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/017.jpg">
+<hr>
+<span>更改埠號與密碼(無需加引號)</span>
+<div>v-change-user-password admin “new_password"<br>
+v-change-sys-port "8080"</div>
+<br>]]>
+    </description>
+    <content:encoded><![CDATA[<div><img alt="梅問題－Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/00.jpg"></div>
+一直以來梅干除了使用雲端主機外，最常使用的就是虛擬主機，最主要的原因就在於，一般的虛擬主機都會內建cPanel或是Plesk的圖像化的管理後台，方便操作與設定，但使用雲端主機與VPS時，就只能透過指令的方式進行管理，這對於梅干來說覺得有些麻煩，最主要的原因就於梅干不是指令控，再加上這些指令也不是常常在用，因此只要一段時間沒用就忘光了，還是圖像式的操作比較簡易好上手。
+但使用雲端主機與VPS主機，內建是沒有包含cPanel與Plesk，因此若想要有圖像式的管理介面，梅干目前使用起來Hestia不但簡易好操控，甚至完全Free同時還內建SSL憑證的安裝，以及一鍵式的WordPress安裝，而先前已介紹過如何在VPS中安裝Hestia，今天梅干要來分享，如何在GCP主機下，安裝Hestia的圖像式的管理後台，讓你也可輕鬆的使用GCP主機啦！
+<hr>
+<font size="3"><b>Step1</b></font><br>
+首先先建立一台主機，這邊梅干是選擇GCP中最入門的方案E2。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/01.jpg">
+<hr>
+<font size="3"><b>Step2</b></font><br>
+在選定好規格後，接著選擇系統，而預設是<b>Debian</b>。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/02.jpg">
+<hr>
+<font size="3"><b>Step3</b></font><br>
+而梅干習慣用的是系統是Ubuntu。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/03.jpg">
+<hr>
+<font size="3"><b>Step4</b></font><br>
+在選定好規格與系統後，接著將防火牆的HTTP與HTTPS開啟。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/04.jpg">
+<hr>
+<font size="3"><b>Step5</b></font><br>
+過一回在主機建立好後，就可點SSH後方的三角形，選擇在「<b>瀏覽器視窗中開啟</b>」。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/05.jpg">
+<hr>
+<font size="3"><b>Step6</b></font><br>
+在登入主機後，輸入<b>sudo su –&nbsp;</b>。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/06.jpg">
+<hr>
+<font size="3"><b>Step7</b></font><br>
+接著再輸入下方指令，將hestiacp的程式下載到主機中。
+<div>wget https://raw.githubusercontent.com/hestiacp/hestiacp/release/install/hst-install.sh<br>
+apt-get update &amp;&amp; apt-get install ca-certificates</div>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/07.jpg">
+<hr>
+<font size="3"><b>Step8</b></font><br>
+在下載完畢後，再輸入下方指令，進行安裝，在過程中只需按y與輸入域名，接著就放著給它跑。
+<div>bash hst-install.sh</div>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/08.jpg">
+<hr>
+<font size="3"><b>Step9</b></font><br>
+在安裝完成後，接著任意按一個鍵，重啟主機。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/09.jpg">
+<hr>
+<font size="3"><b>Step10</b></font><br>
+在重啟的同時，接著再到防火牆設定hestiacp管理介面的埠號。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/010.jpg">
+<hr>
+<font size="3"><b>Step11</b></font><br>
+進入後再點上方的「<b>建立防火牆規則</b>」。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/011.jpg">
+<hr>
+<font size="3"><b>Step12</b></font><br>
+接著輸入8083。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/012.jpg">
+<hr>
+<font size="3"><b>Step13</b></font><br>
+接著開啟瀏覽器，輸入網址與8083後，再按下方的進階鈕，就可進入登入畫面。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/013.jpg">
+<hr>
+<font size="3"><b>Step14</b></font><br>
+接著輸入帳號與密碼，就能登入hestiacp的管理後台啦！<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/014.jpg">
+<hr>
+<font size="3"><b>Step15</b></font><br>
+這樣就可順利的登入hestiacp後台。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/015.jpg">
+<hr>
+<font size="3"><b>Step16</b></font><br>
+而hestiacp也可一鍵的安裝WordPress。<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/016.jpg">
+<hr>
+<font size="3"><b>Step17</b></font><br>
+這樣就可快速的安裝起WordPress，以及有圖像式的管理後台啦！因此想用GCP的朋友，不妨也可試試看囉！<br>
+<img alt="梅問題-Google Cloud Platform (GCP)雲端主機中安裝Hestia圖像化的管理介面" src="https://photo.minwt.com/img/Content/server/gce-hcp/017.jpg">
+<hr>
+<span>更改埠號與密碼(無需加引號)</span>
+<div>v-change-user-password admin “new_password"<br>
+v-change-sys-port "8080"</div>
+<br>]]></content:encoded>
+    <itunes:image href="https://photo.minwt.com/img/Content/server/gce-hcp/00.jpg"/>
+          <media:content url="https://photo.minwt.com/img/Content/server/gce-hcp/00.jpg" medium="image"/>
+    <pubDate>Wed, 03 Jul 2024 10:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[小姐好蠟-新莊店 讓你的機車煥然一新｜新莊機車美容推薦、三重機車鍍膜、蘆洲機車打蠟拋光、新北洗車首選、2024機車清潔保養]]></title>
     <link>https://www.minwt.com/life/24269.html</link>
     <itunes:title><![CDATA[小姐好蠟-新莊店 讓你的機車煥然一新｜新莊機車美容推薦、三重機車鍍膜、蘆洲機車打蠟拋光、新北洗車首選、2024機車清潔保養]]></itunes:title>
@@ -1733,143 +1982,5 @@ NordVPN的網狀網路（Meshnet）可以說是更為私人的一個的虛擬人
     <itunes:image href="https://photo.minwt.com/img/Content/ai/huggingface/00.jpg"/>
           <media:content url="https://photo.minwt.com/img/Content/ai/huggingface/00.jpg" medium="image"/>
     <pubDate>Thu, 21 Mar 2024 11:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速]]></title>
-    <link>https://www.minwt.com/website/server/24232.html</link>
-    <itunes:title><![CDATA[如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速]]></itunes:title>
-    <itunes:author><![CDATA[梅問題．教學網[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<div><img alt="梅問題－如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/00.jpg"></div>
-用過許多的VPS主機，但Vultr最深得梅干喜歡，除了速度快、價格合理外，再來就是內建有許多的模組可使用，那天無意間發現在Vultr的模組中，竟然有OpenLiteSpeed WordPress，而有在使用WordPress的朋友，應該對於LiteSpeed不感陌生，LiteSpeed不但具有Apache的相容性，同時又兼具Nginx的快速與輕巧，再加上OpenLiteSpeed 是由LiteSpeed 公司所推出的免費的版本，因此有在使用WordPress的朋友，想要讓你的WordPress運行起來更順更快，不妨也一塊來看看吧！如何在Vultr VPS主機中架設OpenLiteSpeed吧！
-<hr>
-<p><font size="3"><b>Step1</b></font><br>
-首先註冊後，再進入安裝模組，就會看到<b>OpenLiteSpeed WordPress</b>的選項，點一下再按右下的<b>Deploy Now</b>。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/01.jpg">
-</p><hr>
-<font size="3"><b>Step2</b></font><br>
-在創建好後，再以SSH登入你的後台。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-進入後，分別輸入域名與mail。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-在輸入完域名時，記得將DNS指向這台主機中，這時系統就會開始安裝，並且也會將該網域配發SSL憑證，當一切都安裝完成後，就會看到下方的文字。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-這時輸入網址，就會開啟WordPress的安裝畫面。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-只要輸入基本資訊就可完成安裝啦！真的很方便。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-而LiteSpeed的後台為7080埠號，因此再SSH中，輸下方的指令來開啟防火牆，以及設定管理者的帳密。
-<div><b>開啟防火牆：</b>ufw allow from 主機IP to any port 7080<br>
-<b>設定管理者帳密：</b>cd /usr/local/lsws/admin/misc<br>
-./admpass.sh</div>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-在設定完畢後，就可順利的登入OpenLiteSpeed的管理後台啦！<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-而網站的根目錄為/var/www/html/。好啦！那就介紹到這邊，各位若操作上有任何問題，再請告知囉！<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/09.jpg">
-<br>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<div><img alt="梅問題－如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/00.jpg"></div>
-用過許多的VPS主機，但Vultr最深得梅干喜歡，除了速度快、價格合理外，再來就是內建有許多的模組可使用，那天無意間發現在Vultr的模組中，竟然有OpenLiteSpeed WordPress，而有在使用WordPress的朋友，應該對於LiteSpeed不感陌生，LiteSpeed不但具有Apache的相容性，同時又兼具Nginx的快速與輕巧，再加上OpenLiteSpeed 是由LiteSpeed 公司所推出的免費的版本，因此有在使用WordPress的朋友，想要讓你的WordPress運行起來更順更快，不妨也一塊來看看吧！如何在Vultr VPS主機中架設OpenLiteSpeed吧！
-<hr>
-<p><font size="3"><b>Step1</b></font><br>
-首先註冊後，再進入安裝模組，就會看到<b>OpenLiteSpeed WordPress</b>的選項，點一下再按右下的<b>Deploy Now</b>。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/01.jpg">
-</p><hr>
-<font size="3"><b>Step2</b></font><br>
-在創建好後，再以SSH登入你的後台。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-進入後，分別輸入域名與mail。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-在輸入完域名時，記得將DNS指向這台主機中，這時系統就會開始安裝，並且也會將該網域配發SSL憑證，當一切都安裝完成後，就會看到下方的文字。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-這時輸入網址，就會開啟WordPress的安裝畫面。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-只要輸入基本資訊就可完成安裝啦！真的很方便。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-而LiteSpeed的後台為7080埠號，因此再SSH中，輸下方的指令來開啟防火牆，以及設定管理者的帳密。
-<div><b>開啟防火牆：</b>ufw allow from 主機IP to any port 7080<br>
-<b>設定管理者帳密：</b>cd /usr/local/lsws/admin/misc<br>
-./admpass.sh</div>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-在設定完畢後，就可順利的登入OpenLiteSpeed的管理後台啦！<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-而網站的根目錄為/var/www/html/。好啦！那就介紹到這邊，各位若操作上有任何問題，再請告知囉！<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/09.jpg">
-<br>]]>
-    </description>
-    <content:encoded><![CDATA[<div><img alt="梅問題－如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/00.jpg"></div>
-用過許多的VPS主機，但Vultr最深得梅干喜歡，除了速度快、價格合理外，再來就是內建有許多的模組可使用，那天無意間發現在Vultr的模組中，竟然有OpenLiteSpeed WordPress，而有在使用WordPress的朋友，應該對於LiteSpeed不感陌生，LiteSpeed不但具有Apache的相容性，同時又兼具Nginx的快速與輕巧，再加上OpenLiteSpeed 是由LiteSpeed 公司所推出的免費的版本，因此有在使用WordPress的朋友，想要讓你的WordPress運行起來更順更快，不妨也一塊來看看吧！如何在Vultr VPS主機中架設OpenLiteSpeed吧！
-<hr>
-<p><font size="3"><b>Step1</b></font><br>
-首先註冊後，再進入安裝模組，就會看到<b>OpenLiteSpeed WordPress</b>的選項，點一下再按右下的<b>Deploy Now</b>。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/01.jpg">
-</p><hr>
-<font size="3"><b>Step2</b></font><br>
-在創建好後，再以SSH登入你的後台。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-進入後，分別輸入域名與mail。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-在輸入完域名時，記得將DNS指向這台主機中，這時系統就會開始安裝，並且也會將該網域配發SSL憑證，當一切都安裝完成後，就會看到下方的文字。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-這時輸入網址，就會開啟WordPress的安裝畫面。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-只要輸入基本資訊就可完成安裝啦！真的很方便。<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-而LiteSpeed的後台為7080埠號，因此再SSH中，輸下方的指令來開啟防火牆，以及設定管理者的帳密。
-<div><b>開啟防火牆：</b>ufw allow from 主機IP to any port 7080<br>
-<b>設定管理者帳密：</b>cd /usr/local/lsws/admin/misc<br>
-./admpass.sh</div>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-在設定完畢後，就可順利的登入OpenLiteSpeed的管理後台啦！<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-而網站的根目錄為/var/www/html/。好啦！那就介紹到這邊，各位若操作上有任何問題，再請告知囉！<br>
-<img alt="梅問題-如何在VPS主機中，架設OpenLiteSpeed讓WordPress執行起來更快速" src="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/09.jpg">
-<br>]]></content:encoded>
-    <itunes:image href="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/00.jpg"/>
-          <media:content url="https://photo.minwt.com/img/Content/server/vultr-wp-litespeed/00.jpg" medium="image"/>
-    <pubDate>Tue, 19 Mar 2024 10:00:00 +0800</pubDate>
   </item></channel>
 </rss>
