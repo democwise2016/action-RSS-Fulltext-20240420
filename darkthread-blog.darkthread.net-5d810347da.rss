@@ -30,6 +30,21 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【笨問題】如何用 Windows 檔案總管瀏覽 WSL 的資料夾]]></title>
+    <link>https://blog.darkthread.net/blog/access-wsl-folder-from-win/</link>
+    <itunes:title><![CDATA[【笨問題】如何用 Windows 檔案總管瀏覽 WSL 的資料夾]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這幾年來，Windows 與 Linux 的界限對我愈來愈模糊。即便 Windows 仍是我的主要作業環境，但愈來愈多場合我會改用 Linux 處理，尤其是要編譯 C/C++ 專案時(例如先前為 <a href="/blog/low-cost-diy-usb-security-key/">USB 實體金鑰</a>製作 Gnuk Image)，你通常一定可以找到用 Linux 編譯的說明與範例，想搬到 Windows 做就得自己摸索修改 Makefile 及調整參數的方法，身為 C/C++ 麻瓜我直接投降，轉戰 Linux 頻道才是明智之舉。另外有不少開源專案，雖然可用 Docker 跑，但操作或測試腳本往往是用 Linux Shell ，在 Linux 可直接執行，方便多了。因此，三不五時改用 Linux 做事，對我已是常態。</p> <p>Windows 10 起內建 <a href="https://learn.microsoft.com/zh-tw/windows/wsl/about?WT.mc_id=DOP-MVP-37580">Linux 子系統(Windows Subsystem for Linux)</a>，讓你在 Windows 可以一言不合就開台 Linux 玩玩，比架 VM 或裝實體機簡單，又能與 Windows 無縫整合，開個 Windows Terminal 就切進 Linux 環境做事。</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig6_638046361188807264.png"></p> <p>甚至還能在 Widows 桌面跑 <a href="/blog/wsl2-gui/">X Window 的 GUI 程式</a>：</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig4_638046361186598857.png"></p> <p>用著用著，我遇到一個小問題：若我想用檔案總管開啟 WSL <code>~/tmp/hello</code> 資料夾修改檔案，該去 C 槽還是 D 槽找呢？</p> <p>答案是在地址列輸入 <code>\\wsl$\Ubuntu</code>(若不是安裝 Ubuntu，可輸入 <code>\\wsl$\</code> 瀏覽)，便能進入 WSL 根目錄囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556151198553215.png"></p> <p>註：2020 前的版本要從 <code>%LOCALAPPDATA%\Packages\</code> 存取。<a href="https://superuser.com/a/1280916/264724">參考</a></p> <p>【2024-7-3 更新】感謝讀者 Heresy Ku 分享，新版 Windows 在左側導覽列已有捷徑：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556162601449879.png"></p> <p data-slug="access-wsl-folder-from-win" data-title-en="Access WSL folder from Windows" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/05/22/21/47/garlic-5207282_1280.jpg#1280#720">Tips of how to use file explorer to browse folders under WSL.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這幾年來，Windows 與 Linux 的界限對我愈來愈模糊。即便 Windows 仍是我的主要作業環境，但愈來愈多場合我會改用 Linux 處理，尤其是要編譯 C/C++ 專案時(例如先前為 <a href="/blog/low-cost-diy-usb-security-key/">USB 實體金鑰</a>製作 Gnuk Image)，你通常一定可以找到用 Linux 編譯的說明與範例，想搬到 Windows 做就得自己摸索修改 Makefile 及調整參數的方法，身為 C/C++ 麻瓜我直接投降，轉戰 Linux 頻道才是明智之舉。另外有不少開源專案，雖然可用 Docker 跑，但操作或測試腳本往往是用 Linux Shell ，在 Linux 可直接執行，方便多了。因此，三不五時改用 Linux 做事，對我已是常態。</p> <p>Windows 10 起內建 <a href="https://learn.microsoft.com/zh-tw/windows/wsl/about?WT.mc_id=DOP-MVP-37580">Linux 子系統(Windows Subsystem for Linux)</a>，讓你在 Windows 可以一言不合就開台 Linux 玩玩，比架 VM 或裝實體機簡單，又能與 Windows 無縫整合，開個 Windows Terminal 就切進 Linux 環境做事。</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig6_638046361188807264.png"></p> <p>甚至還能在 Widows 桌面跑 <a href="/blog/wsl2-gui/">X Window 的 GUI 程式</a>：</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig4_638046361186598857.png"></p> <p>用著用著，我遇到一個小問題：若我想用檔案總管開啟 WSL <code>~/tmp/hello</code> 資料夾修改檔案，該去 C 槽還是 D 槽找呢？</p> <p>答案是在地址列輸入 <code>\\wsl$\Ubuntu</code>(若不是安裝 Ubuntu，可輸入 <code>\\wsl$\</code> 瀏覽)，便能進入 WSL 根目錄囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556151198553215.png"></p> <p>註：2020 前的版本要從 <code>%LOCALAPPDATA%\Packages\</code> 存取。<a href="https://superuser.com/a/1280916/264724">參考</a></p> <p>【2024-7-3 更新】感謝讀者 Heresy Ku 分享，新版 Windows 在左側導覽列已有捷徑：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556162601449879.png"></p> <p data-slug="access-wsl-folder-from-win" data-title-en="Access WSL folder from Windows" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/05/22/21/47/garlic-5207282_1280.jpg#1280#720">Tips of how to use file explorer to browse folders under WSL.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這幾年來，Windows 與 Linux 的界限對我愈來愈模糊。即便 Windows 仍是我的主要作業環境，但愈來愈多場合我會改用 Linux 處理，尤其是要編譯 C/C++ 專案時(例如先前為 <a href="/blog/low-cost-diy-usb-security-key/">USB 實體金鑰</a>製作 Gnuk Image)，你通常一定可以找到用 Linux 編譯的說明與範例，想搬到 Windows 做就得自己摸索修改 Makefile 及調整參數的方法，身為 C/C++ 麻瓜我直接投降，轉戰 Linux 頻道才是明智之舉。另外有不少開源專案，雖然可用 Docker 跑，但操作或測試腳本往往是用 Linux Shell ，在 Linux 可直接執行，方便多了。因此，三不五時改用 Linux 做事，對我已是常態。</p> <p>Windows 10 起內建 <a href="https://learn.microsoft.com/zh-tw/windows/wsl/about?WT.mc_id=DOP-MVP-37580">Linux 子系統(Windows Subsystem for Linux)</a>，讓你在 Windows 可以一言不合就開台 Linux 玩玩，比架 VM 或裝實體機簡單，又能與 Windows 無縫整合，開個 Windows Terminal 就切進 Linux 環境做事。</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig6_638046361188807264.png"></p> <p>甚至還能在 Widows 桌面跑 <a href="/blog/wsl2-gui/">X Window 的 GUI 程式</a>：</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig4_638046361186598857.png"></p> <p>用著用著，我遇到一個小問題：若我想用檔案總管開啟 WSL <code>~/tmp/hello</code> 資料夾修改檔案，該去 C 槽還是 D 槽找呢？</p> <p>答案是在地址列輸入 <code>\\wsl$\Ubuntu</code>(若不是安裝 Ubuntu，可輸入 <code>\\wsl$\</code> 瀏覽)，便能進入 WSL 根目錄囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556151198553215.png"></p> <p>註：2020 前的版本要從 <code>%LOCALAPPDATA%\Packages\</code> 存取。<a href="https://superuser.com/a/1280916/264724">參考</a></p> <p>【2024-7-3 更新】感謝讀者 Heresy Ku 分享，新版 Windows 在左側導覽列已有捷徑：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556162601449879.png"></p> <p data-slug="access-wsl-folder-from-win" data-title-en="Access WSL folder from Windows" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/05/22/21/47/garlic-5207282_1280.jpg#1280#720">Tips of how to use file explorer to browse folders under WSL.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/Fig6_638046361188807264.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/Fig6_638046361188807264.png" medium="image"/>
+    <pubDate>Wed, 03 Jul 2024 14:51:18 GMT</pubDate>
+  </item><item>
     <title><![CDATA[開源授權常識補充包(2024 版)]]></title>
     <link>https://blog.darkthread.net/blog/opensource-licenses/</link>
     <itunes:title><![CDATA[開源授權常識補充包(2024 版)]]></itunes:title>
@@ -1042,74 +1057,5 @@ PSAccessChk.ps1 # 列出全部權限及其授與對象
     <content:encoded><![CDATA[<p>這陣子查資料時發現有愈來愈多專案是用 Rust 語言開發，想起去年有則新聞：<a href="https://www.ithome.com.tw/news/158975">微軟要讓開發者以 Rust 編寫 Windows 驅動程式</a>，讓我開始觀注 Rust 這個新掘起的程式語言。</p> <p>Rust 的核心精神格外講求安全性、速度及併行性，尤其在記憶體安全性的強化，可根本解決 C/C++ 揮之不去的<a href="https://zh.wikipedia.org/zh-tw/%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA">緩衝區溢位</a>、<a href="https://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F">記憶體漏失</a>... 等問題(尤其緩衝區溢位問題，一直是駭客眼中挖掘資安漏洞的金礦坑)，Rust 因此常為被視為替代 C/C++ 的優秀選擇，這也是連微軟也力推用它取代 C/C++ 寫驅動程式的主要理由。</p> <p>但，我對 Rust 的了解僅止於「跟 C/C++ 一樣有效率，但更安全」，這幾天無意滑到一部 YouTube 影片，談 Rust 在 JavaScript 生態圈日益重要的角色，挺有意思，其中談到不少 Rust 的特性，順手整理成筆記。</p> <p><a href="https://www.youtube.com/watch?v=pDYTDU4yx4c">Rust，JavaScript 的未來？</a></p> <ol><li>Rust 1.0 發佈於 2015 年，隔年起連續六年在 Stackoverflow 開發者調查被票選為最受歡迎的程式語言。由於推出時間較晚，Rust 有很多很現代化的設計，吸收了眾多語言的優點。</li> <li>Rust 是靜態編譯語言，但不像 Go/C#/Java 有 GC (垃圾回收)這類記憶體管理機制，省去時時檢查記憶體存取位址，藉此換取大幅效能提升，達到跟 C/C++ 同等級的執行速度。</li> <li>Rust 採行所謂的「共享不可變，可變不共享」原則，有效避免多執行緒執行時的衝突與錯誤，並透過強大的編譯器確保記憶體管理的安全。</li> <li>Rust 非常重度依賴編譯器，Runtime 盡可能輕量化及最小化到幾乎沒有，大量優化檢查都是在編譯期確定，編譯時包含許多嚴格檢查，常要費盡心力才成功編譯，讓開發者常想起被編譯器支配的恐懼。但能通過考驗編譯出的程式自帶優秀基因，安全性及效能不用擔心。</li> <li>傳統 JavaScript 生態系的開發工具幾乎都是用 JavaScript 寫的，像是 babel、webpack、eslint、prettier。理由是這類工具的作者常常也是前端開發者，不必為了寫工具多學一種語言。</li> <li>隨著前端專案規模變大，開發流程越來越複雜，編譯打包專案所需的時間開始長到難以忍耐，已非單靠優化程式碼所能改善，JavaScript 是直譯式語言，CPU 密集型計算作業不是其強項，於是 Rust 和 Go 這類兼顧運行效能和開發效率的編譯型語言開始被列入考量。</li> <li>esbuild 和 swc 出現後，開發者們驚訝發現，相同功能從 JavaScript 改成用 Rust 實現，效率可以提升 10 到 20 倍。像 next.js 12、parcel 使用 swc 作為編譯器獲得 5 倍效能提升；deno 的靜態檢測、程式碼格式化以及文件生成器也是用 swc 實現；vite 使用 esbuild 作為 dev build 的工具，大幅提升編譯效能。</li> <li>Rust 還可以直接編譯成 WASM，用 Rust 編寫 Web 應用程式也成為一個可行方案。像 <a href="https://github.com/yewstack/yew">Yew</a> 便是一個建立多執行緒前端網頁應用程式的 WebAssembly 框架。另外，<a href="https://tauri.app/">TAURI</a> 則是使用 Rust 打造，類似於 Electron.js 的跨平台應用程式框架，Tauri 使用 Rust Binding 不同系統的 WebView 及系統 API，體積縮小到 3MB 起跳。註：Electron 應用程式大約 80-120MB，我自己則偏好<a href="/blog/electron-net-alternative/">用 ASP.NET Core Minimal API 寫桌面小工具</a>。</li> <li>Rust 是一門好語言，在記憶體管理、運行效能和並行性表現出色，它不像動態語言可以讓你快速啟動一個應用和專案，但 Rust 編譯器會在一開始便引導開發者做正確的事，長遠來看，比用動態語言開發能避開許多技術債。但這是有代價的，Rust 的學習曲線偏陡峭，需要投入很多時間精力方能上手(沒有 21 天精通這種事)，且 Rust 的應用領域不如 JavaScrpit 廣泛，苦學而成的投資報酬率不怎麼高。</li></ol> <p>OS：感覺 Rust 特別能吸引追求自我實現的開發者，是留給願意爬過<a href="https://www.youtube.com/watch?v=hSyLqtJxD7c">天堂路</a>享受特種部隊榮耀的那群人吧~ 😄</p> <p data-slug="rust-in-js-ecosystem" data-fbimg="https://i.imgur.com/kBqnsHE.png#1280#720"> </p>]]></content:encoded>
     
     <pubDate>Mon, 17 Jun 2024 15:01:52 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[HTML 知識更新包 - keydown/keyup 事件勿再用 keyCode 取值]]></title>
-    <link>https://blog.darkthread.net/blog/no-more-keycode/</link>
-    <itunes:title><![CDATA[HTML 知識更新包 - keydown/keyup 事件勿再用 keyCode 取值]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>身為十幾年前開始學 JavaScript 的老人，腦中總有些過時的觀念與知識，就像聊天時偶爾會脫口說出小叮噹、神奇寶貝般不合時宜，當場曝露年紀。</p> <p>昨天談到 <a href="/blog/keydown-event-not-triggered-in-ime/">Chromium keydown Bug</a>，讀者 Chester Fung 提醒，keydown/keyup 事件中已不該再用 keyCode 取得按鍵值，查了一下，真是如此!</p> <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode">MDN: KeyboardEvent: keyCode property</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png"></p> <p>依據官方文件建議，keyCode 的嫌惡等級為：「如果可能，請避免使用」[1]、「如果可能，有用它的程式碼也改一下吧」[2]。</p> <p>keyCode 的主要問題在於部分特殊鍵在不同的瀏覽器和不同平台(Windows、Mac、Linux)的結果不一致，<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode#browser_compatibility">MDN 文件</a>有提供對照表，如下圖可以找到一些不同瀏覽器不同 OS 結果不同的案例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638540179074670227.png"></p> <p>知道 keyCode 將作廢，要改用 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code">KeyboardEvent.code</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">KeyboardEvent.key</a> 倒也沒啥難度。我寫了一個簡單範例：<a href="https://output.jsbin.com/jivotej">線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;KeyboardEvent code and key test&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;textarea placeholder="type something here" rows="4" cols="40"&gt;&lt;/textarea&gt;
-&lt;ul&gt;&lt;/ul&gt;
-&lt;script&gt;
-document.querySelector('textarea').addEventListener('keydown', function (event) {
-var ul = document.querySelector('ul');
-var li = document.createElement('li');
-li.appendChild(document.createTextNode(`code: ${event.code}, key: ${event.key}`));
-ul.appendChild(li);
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638540179076341109.png"></p> <p>code 改以字串表示，不再需要用數字查表，<code>ShiftLeft</code>、<code>ArrowLeft</code> 一目瞭然，對開發者十分友善。</p> <p>未來再寫到 keydown、keyup 就別再用 keyCode 了，跟上時代的腳步吧。<br> (所以開發知識不只是要學會，還必須時時 Update，累~~~)</p> <p data-slug="no-more-keycode" data-title-en="Don't use keyCode in keydown/keyup events" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/10/23/16/58/phone-499991_1280.jpg#1280#720">The article discusses the outdated use of keyCode for handling keyboard events in JavaScript and recommends switching to KeyboardEvent.code and KeyboardEvent.key for better consistency across different browsers and platforms. It also provides a simple example to illustrate the ease of using the newer properties.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>身為十幾年前開始學 JavaScript 的老人，腦中總有些過時的觀念與知識，就像聊天時偶爾會脫口說出小叮噹、神奇寶貝般不合時宜，當場曝露年紀。</p> <p>昨天談到 <a href="/blog/keydown-event-not-triggered-in-ime/">Chromium keydown Bug</a>，讀者 Chester Fung 提醒，keydown/keyup 事件中已不該再用 keyCode 取得按鍵值，查了一下，真是如此!</p> <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode">MDN: KeyboardEvent: keyCode property</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png"></p> <p>依據官方文件建議，keyCode 的嫌惡等級為：「如果可能，請避免使用」[1]、「如果可能，有用它的程式碼也改一下吧」[2]。</p> <p>keyCode 的主要問題在於部分特殊鍵在不同的瀏覽器和不同平台(Windows、Mac、Linux)的結果不一致，<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode#browser_compatibility">MDN 文件</a>有提供對照表，如下圖可以找到一些不同瀏覽器不同 OS 結果不同的案例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638540179074670227.png"></p> <p>知道 keyCode 將作廢，要改用 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code">KeyboardEvent.code</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">KeyboardEvent.key</a> 倒也沒啥難度。我寫了一個簡單範例：<a href="https://output.jsbin.com/jivotej">線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;KeyboardEvent code and key test&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;textarea placeholder="type something here" rows="4" cols="40"&gt;&lt;/textarea&gt;
-&lt;ul&gt;&lt;/ul&gt;
-&lt;script&gt;
-document.querySelector('textarea').addEventListener('keydown', function (event) {
-var ul = document.querySelector('ul');
-var li = document.createElement('li');
-li.appendChild(document.createTextNode(`code: ${event.code}, key: ${event.key}`));
-ul.appendChild(li);
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638540179076341109.png"></p> <p>code 改以字串表示，不再需要用數字查表，<code>ShiftLeft</code>、<code>ArrowLeft</code> 一目瞭然，對開發者十分友善。</p> <p>未來再寫到 keydown、keyup 就別再用 keyCode 了，跟上時代的腳步吧。<br> (所以開發知識不只是要學會，還必須時時 Update，累~~~)</p> <p data-slug="no-more-keycode" data-title-en="Don't use keyCode in keydown/keyup events" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/10/23/16/58/phone-499991_1280.jpg#1280#720">The article discusses the outdated use of keyCode for handling keyboard events in JavaScript and recommends switching to KeyboardEvent.code and KeyboardEvent.key for better consistency across different browsers and platforms. It also provides a simple example to illustrate the ease of using the newer properties.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>身為十幾年前開始學 JavaScript 的老人，腦中總有些過時的觀念與知識，就像聊天時偶爾會脫口說出小叮噹、神奇寶貝般不合時宜，當場曝露年紀。</p> <p>昨天談到 <a href="/blog/keydown-event-not-triggered-in-ime/">Chromium keydown Bug</a>，讀者 Chester Fung 提醒，keydown/keyup 事件中已不該再用 keyCode 取得按鍵值，查了一下，真是如此!</p> <p><a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode">MDN: KeyboardEvent: keyCode property</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png"></p> <p>依據官方文件建議，keyCode 的嫌惡等級為：「如果可能，請避免使用」[1]、「如果可能，有用它的程式碼也改一下吧」[2]。</p> <p>keyCode 的主要問題在於部分特殊鍵在不同的瀏覽器和不同平台(Windows、Mac、Linux)的結果不一致，<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode#browser_compatibility">MDN 文件</a>有提供對照表，如下圖可以找到一些不同瀏覽器不同 OS 結果不同的案例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638540179074670227.png"></p> <p>知道 keyCode 將作廢，要改用 <a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code">KeyboardEvent.code</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key">KeyboardEvent.key</a> 倒也沒啥難度。我寫了一個簡單範例：<a href="https://output.jsbin.com/jivotej">線上測試</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;title&gt;KeyboardEvent code and key test&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;textarea placeholder="type something here" rows="4" cols="40"&gt;&lt;/textarea&gt;
-&lt;ul&gt;&lt;/ul&gt;
-&lt;script&gt;
-document.querySelector('textarea').addEventListener('keydown', function (event) {
-var ul = document.querySelector('ul');
-var li = document.createElement('li');
-li.appendChild(document.createTextNode(`code: ${event.code}, key: ${event.key}`));
-ul.appendChild(li);
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638540179076341109.png"></p> <p>code 改以字串表示，不再需要用數字查表，<code>ShiftLeft</code>、<code>ArrowLeft</code> 一目瞭然，對開發者十分友善。</p> <p>未來再寫到 keydown、keyup 就別再用 keyCode 了，跟上時代的腳步吧。<br> (所以開發知識不只是要學會，還必須時時 Update，累~~~)</p> <p data-slug="no-more-keycode" data-title-en="Don't use keyCode in keydown/keyup events" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/10/23/16/58/phone-499991_1280.jpg#1280#720">The article discusses the outdated use of keyCode for handling keyboard events in JavaScript and recommends switching to KeyboardEvent.code and KeyboardEvent.key for better consistency across different browsers and platforms. It also provides a simple example to illustrate the ease of using the newer properties.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638540179072412479.png" medium="image"/>
-    <pubDate>Sat, 15 Jun 2024 03:05:17 GMT</pubDate>
   </item></channel>
 </rss>
