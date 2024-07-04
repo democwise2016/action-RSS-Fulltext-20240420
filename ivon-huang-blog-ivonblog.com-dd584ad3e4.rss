@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/569/800/800.jpg?hmac=kGRrhWvFPSkrOEpZNDfsEPRGwz1PnmqrwjF6N4yUnM4</url>
+      <url>https://fastly.picsum.photos/id/681/800/800.jpg?hmac=16sZuG66oDTwOeNwKHmYrnptguDNAEhHG_nt-fh1pTw</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,161 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/569/800/800.jpg?hmac=kGRrhWvFPSkrOEpZNDfsEPRGwz1PnmqrwjF6N4yUnM4"/>
+    <itunes:image href="https://fastly.picsum.photos/id/681/800/800.jpg?hmac=16sZuG66oDTwOeNwKHmYrnptguDNAEhHG_nt-fh1pTw"/>
 <item>
+    <title><![CDATA[安裝FreeBSD虛擬機 ＋ KDE桌面 ＋ Fcitx5中文輸入法紀錄]]></title>
+    <link>https://ivonblog.com/posts/install-freebsd-qemu-kvm-on-linux/</link>
+    <itunes:title><![CDATA[安裝FreeBSD虛擬機 ＋ KDE桌面 ＋ Fcitx5中文輸入法紀錄]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/install-freebsd-qemu-kvm-on-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d6ae287aad.webp"></a></p>
+<p>安裝一個中文桌面環境的FreeBSD系統。</p><p>上次安裝FreeBSD是兩年前暑假心情煩悶的時候安裝的，我還嘗試安裝FreeBSD 13在實機上，結果因為對Xorg不熟悉卡在純文字界面，遂<a href="https://ivonblog.com/posts/install-ghostbsd-on-msi-modern-15-a10" target="_blank">
+改用懶人版的GhostBSD</a>，可這怎麼會有趣呢！隨後換回Arch Linux。</p><p>這次我要再次挑戰手工安裝FreeBSD，這次的理由除了心情煩悶，還有些東西想在FreeBSD測試。於是就來安裝FreeBSD解悶，結果是越debug越悶…所幸後來還是裝成功了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e9df8a2d4c.webp"><p>本次用QEMU/KVM虛擬機練習，之後會搞PCI Passthrough直通使其逼近實機狀況。</p><p>用Linux的Virt Manager安裝FreeBSD虛擬機，並不像安裝其他Linux發行版一樣簡單。Libvirt會透過SPICE與虛擬機溝通，大部份Linux發行版會自動偵測，開箱即用，但是FreeBSD得手動設定服務，否則沒畫面，滑鼠也不會動。…怎覺得比裝Gentoo還麻煩，但起碼比Hackintosh簡單。要謹記，雖然Linux跟FreeBSD很像，但是檔案系統目錄不同，觀念要轉一下。Linux慣用的操作不見得適用FreeBSD，故安裝前需以FreeBSD手冊的內容為準。</p><p>桌面環境部份，我是有想過裝GNOME 42，但太多功能依賴Linux了，不少GNOME核心程式沒移植，且目前FreeBSD的Wayland支援度不佳，只得用X11。FreeBSD的GNOME相較Linux殘廢許多，實測也有很多問題。所以，我選KDE Plasma 5；如果想要輕量的桌面環境可以裝XFCE 4。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>宿主機：Ubuntu 24.04 LTS</li><li>虛擬機：FreeBSD 14.0 Release</li><li>虛擬機軟體：Virt Manager + QEMU/KVM 8.0</li></ul><h2>2. 新增FreeBSD虛擬機組態<span><a href="#2-%E6%96%B0%E5%A2%9Efreebsd%E8%99%9B%E6%93%AC%E6%A9%9F%E7%B5%84%E6%85%8B" aria-label="定位點">#</a></span></h2><ol><li><p>安裝<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+QEMU/KVM與Virt Manager</a></p></li><li><p>到<a href="https://www.freebsd.org/zh-tw/where/" target="_blank">
+FreeBSD官網</a>下載<code>FreeBSD 14.0-RELEASE</code>的DVD ISO，這是目前的最新穩定版本</p></li><li><p>開啟Virt Manager，新增Q35＋UEFI的機器</p></li><li><p>將FreeBSD的ISO掛接為CDROM</p></li><li><p>新增硬體「Evtouch圖形數位板」，這樣才能在虛擬機與宿主機間切換滑鼠</p></li><li><p>音效卡設定為<code>HDA (ICH9)</code></p></li><li><p>QXL在FreeBSD理論上是有<code>xf86-video-qxl</code>驅動支援…但我不知道怎設定，開機黑螢幕，許是Ubuntu的QXL有bug？所以顯示卡不使用QXL，改用支援度較佳的VMware vmvga。但這個似乎只能在QEMU命令行使用，故手動編輯顯示卡區段的XML，填入以下內容：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>&lt;video&gt;
+</span></span><span><span>  &lt;model <span>type</span><span>=</span><span>"vmvga"</span> <span>vram</span><span>=</span><span>"65536"</span> <span>heads</span><span>=</span><span>"1"</span> <span>primary</span><span>=</span><span>"yes"</span>/&gt;
+</span></span><span><span>  &lt;<span>alias</span> <span>name</span><span>=</span><span>"video0"</span>/&gt;
+</span></span><span><span>  &lt;address <span>type</span><span>=</span><span>"pci"</span> <span>domain</span><span>=</span><span>"0x0000"</span> <span>bus</span><span>=</span><span>"0x00"</span> <span>slot</span><span>=</span><span>"0x01"</span> <span>function</span><span>=</span><span>"0x0"</span>/&gt;
+</span></span><span><span>&lt;/video&gt;
+</span></span></code></pre></div><ol start="8"><li>然後開機安裝</li></ol><h2>3. 安裝FreeBSD基本系統<span><a href="#3-%E5%AE%89%E8%A3%9Dfreebsd%E5%9F%BA%E6%9C%AC%E7%B3%BB%E7%B5%B1" aria-label="定位點">#</a></span></h2><ol><li><p>開機按1進入安裝器</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a536a5f2f1.webp"></li><li><p>按照畫面指示，安裝base system和kernel</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6b58fda579.webp"></li><li><p>系統分區使用Auto (ZFS)</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-692ab44e8d.webp"></li><li><p>新增一般使用者<code>user</code>，並將其加入到wheel群組</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d9168b64fd.webp"></li><li><p>安裝後重開機</p></li><li><p>開機後應該是純文字環境，登入root</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>root
+</span></span></code></pre></div><ol start="7"><li>安裝sudo</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install sudo vim
+</span></span></code></pre></div><ol start="8"><li>將一般使用者加入到sudo群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>visudo
+</span></span></code></pre></div><ol start="9"><li>填入：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>root <span>ALL</span><span>=(</span>ALL:ALL<span>)</span> ALL
+</span></span><span><span>user <span>ALL</span><span>=(</span>ALL:ALL<span>)</span> ALL
+</span></span></code></pre></div><ol start="10"><li>登出，用一般使用者登入</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>exit</span>
+</span></span></code></pre></div><h2>4. 設定圖形驅動程式<span><a href="#4-%E8%A8%AD%E5%AE%9A%E5%9C%96%E5%BD%A2%E9%A9%85%E5%8B%95%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><ol><li>安裝Xorg套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install xorg
+</span></span></code></pre></div><ol start="2"><li>將使用者user加入video群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pw groupmod video -m user
+</span></span></code></pre></div><ol start="3"><li>顯示卡驅動使用vmware-xga的驅動。安裝以下套件，重開機後應該會自行載入，不需要手動寫xorg.conf。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install xf86-video-vmware
+</span></span></code></pre></div><details><summary>附錄：萬策盡的時候才使用xf86-video-scfb軟體渲染。</summary><p>注意scfb驅動會鎖死解析度。</p><p>Virt Manager虛擬顯示卡選VGA，使用scfb驅動</p><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install xf86-video-scfb
+</span></span></code></pre></div><p>調整Xorg設定</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /usr/local/etc/X11/xorg.conf/driver-scfb.conf
+</span></span></code></pre></div><p>填入以下內容：</p><div><pre tabindex="0"><code data-lang="bash"><span><span> Section <span>"Device"</span>
+</span></span><span><span>     Identifier    <span>"Card0"</span>
+</span></span><span><span>     Driver        <span>"scfb"</span>
+</span></span><span><span> EndSection
+</span></span></code></pre></div><p>xorg.conf.d目錄下應該只有scfb驅動的設定，不要有其他驅動的設定檔。</p></details><ol start="4"><li><p>使用sysrc指令編輯開機啟動的項目（實際上是寫入到<code>/etc/rc.conf</code>這個檔案）</p></li><li><p>將HDA的音訊模組加入到開機自動啟動</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>snd_hda_load</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="6"><li>將dbus和hald加入開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>dbus_enable</span><span>=</span><span>"YES"</span>
+</span></span><span><span>sudo sysrc <span>hald_enable</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="7"><li>編輯<code>/boot/loader.conf</code>設定自動載入hms，這是USB滑鼠與光碟的驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>hw.usb.usbhid.enable<span>=</span><span>1</span>
+</span></span><span><span><span>usbhid_load</span><span>=</span><span>"YES"</span>
+</span></span><span><span><span>hms_load</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><h2>5. 安裝KDE桌面環境<span><a href="#5-%E5%AE%89%E8%A3%9Dkde%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><p>目前FreeBSD穩定的KDE版本是Plasma 5，不支援Wayland。</p><ol><li>這個套件會把常用的KDE應用程式一併拉進來</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install kde5 packagekit
+</span></span></code></pre></div><ol start="2"><li>KDE建議把網路空間調大一點防止出bug：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysctl net.local.stream.recvspace<span>=</span><span>65536</span>
+</span></span><span><span>sudo sysctl net.local.stream.sendspace<span>=</span><span>65536</span>
+</span></span></code></pre></div><ol start="3"><li>我覺得用顯示管理器登入比較簡單，所以安裝SDDM</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install plasma5-sddm-kcm sddm
+</span></span></code></pre></div><ol start="4"><li>將SDDM加入到開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>sddm_enable</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="5"><li>重開機後就可以登入KDE了。剛登入如果畫面太大請在桌面按右鍵調整解析度。KDE的Discover無法用來下載FreeBSD的套件，所以就當作擺設。</li></ol><h2>6. 中文化與輸入法<span><a href="#6-%E4%B8%AD%E6%96%87%E5%8C%96%E8%88%87%E8%BC%B8%E5%85%A5%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>安裝Noto字體。這會把全部語言的字體拉進來，如果只要正體中文那就<code>noto-sans-tc</code>。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install noto
+</span></span></code></pre></div><ol start="2"><li>編輯<code>/etc/login.conf</code>，找到default區塊的<code>:lang:\</code>，改成正體中文</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>:lang<span>=</span>zh_TW.UTF-8:<span>\
+</span></span></span></code></pre></div><ol start="3"><li>更新資料庫</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo cap_mkdb /etc/login.conf
+</span></span></code></pre></div><ol start="4"><li>編輯<code>~/.profile</code>，設定系統語言為正體中文</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>LANG</span><span>=</span>zh_TW.UTF-8
+</span></span><span><span><span>export</span> <span>MM_CHARSET</span><span>=</span>zh_TW.UTF-8
+</span></span></code></pre></div><ol start="5"><li>最後安裝Fcitx5搭配新酷音輸入法</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install fcitx5 fcitx5-configtool <span>\
+</span></span></span><span><span>fcitx5-gtk-common fcitx5-gtk-3 fcitx5-gtk-4 <span>\
+</span></span></span><span><span>fcitx5-qt-common zh-fcitx5-chewing zh-fcitx5-chinese-addons
+</span></span></code></pre></div><ol start="6"><li>編輯<code>~/.profile</code>，指定輸入法模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>GTK_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>export</span> <span>QT_IM_MODULE</span><span>=</span>fcitx
+</span></span></code></pre></div><ol start="7"><li>設定登入桌面自動啟動Fcitx5</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cp /usr/local/share/applications/org.fcitx.Fcitx5.desktop ~/.config/autostart/
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.freebsd.org/en/books/handbook/" target="_blank">FreeBSD Handbook</a></li><li><a href="https://www.server-world.info/en/note?os=FreeBSD_14&amp;p=install" target="_blank">FreeBSD 14 Configuration Tutorials : Server World</a></li><li><a href="https://community.kde.org/FreeBSD/Setup" target="_blank">FreeBSD/Setup - KDE Community Wiki</a></li><li><a href="https://forums.freebsd.org/threads/mouse-doesnt-work-on-freebsd-13-running-on-qemu-linux-vm.80777/" target="_blank">Solved Mouse doesn’t work on FreeBSD 13 running on QEMU linux VM - The FreeBSD Forums</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/install-freebsd-qemu-kvm-on-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d6ae287aad.webp"></a></p>
+<p>安裝一個中文桌面環境的FreeBSD系統。</p><p>上次安裝FreeBSD是兩年前暑假心情煩悶的時候安裝的，我還嘗試安裝FreeBSD 13在實機上，結果因為對Xorg不熟悉卡在純文字界面，遂<a href="https://ivonblog.com/posts/install-ghostbsd-on-msi-modern-15-a10" target="_blank">
+改用懶人版的GhostBSD</a>，可這怎麼會有趣呢！隨後換回Arch Linux。</p><p>這次我要再次挑戰手工安裝FreeBSD，這次的理由除了心情煩悶，還有些東西想在FreeBSD測試。於是就來安裝FreeBSD解悶，結果是越debug越悶…所幸後來還是裝成功了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e9df8a2d4c.webp"><p>本次用QEMU/KVM虛擬機練習，之後會搞PCI Passthrough直通使其逼近實機狀況。</p><p>用Linux的Virt Manager安裝FreeBSD虛擬機，並不像安裝其他Linux發行版一樣簡單。Libvirt會透過SPICE與虛擬機溝通，大部份Linux發行版會自動偵測，開箱即用，但是FreeBSD得手動設定服務，否則沒畫面，滑鼠也不會動。…怎覺得比裝Gentoo還麻煩，但起碼比Hackintosh簡單。要謹記，雖然Linux跟FreeBSD很像，但是檔案系統目錄不同，觀念要轉一下。Linux慣用的操作不見得適用FreeBSD，故安裝前需以FreeBSD手冊的內容為準。</p><p>桌面環境部份，我是有想過裝GNOME 42，但太多功能依賴Linux了，不少GNOME核心程式沒移植，且目前FreeBSD的Wayland支援度不佳，只得用X11。FreeBSD的GNOME相較Linux殘廢許多，實測也有很多問題。所以，我選KDE Plasma 5；如果想要輕量的桌面環境可以裝XFCE 4。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>宿主機：Ubuntu 24.04 LTS</li><li>虛擬機：FreeBSD 14.0 Release</li><li>虛擬機軟體：Virt Manager + QEMU/KVM 8.0</li></ul><h2>2. 新增FreeBSD虛擬機組態<span><a href="#2-%E6%96%B0%E5%A2%9Efreebsd%E8%99%9B%E6%93%AC%E6%A9%9F%E7%B5%84%E6%85%8B" aria-label="定位點">#</a></span></h2><ol><li><p>安裝<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+QEMU/KVM與Virt Manager</a></p></li><li><p>到<a href="https://www.freebsd.org/zh-tw/where/" target="_blank">
+FreeBSD官網</a>下載<code>FreeBSD 14.0-RELEASE</code>的DVD ISO，這是目前的最新穩定版本</p></li><li><p>開啟Virt Manager，新增Q35＋UEFI的機器</p></li><li><p>將FreeBSD的ISO掛接為CDROM</p></li><li><p>新增硬體「Evtouch圖形數位板」，這樣才能在虛擬機與宿主機間切換滑鼠</p></li><li><p>音效卡設定為<code>HDA (ICH9)</code></p></li><li><p>QXL在FreeBSD理論上是有<code>xf86-video-qxl</code>驅動支援…但我不知道怎設定，開機黑螢幕，許是Ubuntu的QXL有bug？所以顯示卡不使用QXL，改用支援度較佳的VMware vmvga。但這個似乎只能在QEMU命令行使用，故手動編輯顯示卡區段的XML，填入以下內容：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>&lt;video&gt;
+</span></span><span><span>  &lt;model <span>type</span><span>=</span><span>"vmvga"</span> <span>vram</span><span>=</span><span>"65536"</span> <span>heads</span><span>=</span><span>"1"</span> <span>primary</span><span>=</span><span>"yes"</span>/&gt;
+</span></span><span><span>  &lt;<span>alias</span> <span>name</span><span>=</span><span>"video0"</span>/&gt;
+</span></span><span><span>  &lt;address <span>type</span><span>=</span><span>"pci"</span> <span>domain</span><span>=</span><span>"0x0000"</span> <span>bus</span><span>=</span><span>"0x00"</span> <span>slot</span><span>=</span><span>"0x01"</span> <span>function</span><span>=</span><span>"0x0"</span>/&gt;
+</span></span><span><span>&lt;/video&gt;
+</span></span></code></pre></div><ol start="8"><li>然後開機安裝</li></ol><h2>3. 安裝FreeBSD基本系統<span><a href="#3-%E5%AE%89%E8%A3%9Dfreebsd%E5%9F%BA%E6%9C%AC%E7%B3%BB%E7%B5%B1" aria-label="定位點">#</a></span></h2><ol><li><p>開機按1進入安裝器</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a536a5f2f1.webp"></li><li><p>按照畫面指示，安裝base system和kernel</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6b58fda579.webp"></li><li><p>系統分區使用Auto (ZFS)</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-692ab44e8d.webp"></li><li><p>新增一般使用者<code>user</code>，並將其加入到wheel群組</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d9168b64fd.webp"></li><li><p>安裝後重開機</p></li><li><p>開機後應該是純文字環境，登入root</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>root
+</span></span></code></pre></div><ol start="7"><li>安裝sudo</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install sudo vim
+</span></span></code></pre></div><ol start="8"><li>將一般使用者加入到sudo群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>visudo
+</span></span></code></pre></div><ol start="9"><li>填入：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>root <span>ALL</span><span>=(</span>ALL:ALL<span>)</span> ALL
+</span></span><span><span>user <span>ALL</span><span>=(</span>ALL:ALL<span>)</span> ALL
+</span></span></code></pre></div><ol start="10"><li>登出，用一般使用者登入</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>exit</span>
+</span></span></code></pre></div><h2>4. 設定圖形驅動程式<span><a href="#4-%E8%A8%AD%E5%AE%9A%E5%9C%96%E5%BD%A2%E9%A9%85%E5%8B%95%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><ol><li>安裝Xorg套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install xorg
+</span></span></code></pre></div><ol start="2"><li>將使用者user加入video群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pw groupmod video -m user
+</span></span></code></pre></div><ol start="3"><li>顯示卡驅動使用vmware-xga的驅動。安裝以下套件，重開機後應該會自行載入，不需要手動寫xorg.conf。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install xf86-video-vmware
+</span></span></code></pre></div><details><summary>附錄：萬策盡的時候才使用xf86-video-scfb軟體渲染。</summary><p>注意scfb驅動會鎖死解析度。</p><p>Virt Manager虛擬顯示卡選VGA，使用scfb驅動</p><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install xf86-video-scfb
+</span></span></code></pre></div><p>調整Xorg設定</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /usr/local/etc/X11/xorg.conf/driver-scfb.conf
+</span></span></code></pre></div><p>填入以下內容：</p><div><pre tabindex="0"><code data-lang="bash"><span><span> Section <span>"Device"</span>
+</span></span><span><span>     Identifier    <span>"Card0"</span>
+</span></span><span><span>     Driver        <span>"scfb"</span>
+</span></span><span><span> EndSection
+</span></span></code></pre></div><p>xorg.conf.d目錄下應該只有scfb驅動的設定，不要有其他驅動的設定檔。</p></details><ol start="4"><li><p>使用sysrc指令編輯開機啟動的項目（實際上是寫入到<code>/etc/rc.conf</code>這個檔案）</p></li><li><p>將HDA的音訊模組加入到開機自動啟動</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>snd_hda_load</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="6"><li>將dbus和hald加入開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>dbus_enable</span><span>=</span><span>"YES"</span>
+</span></span><span><span>sudo sysrc <span>hald_enable</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="7"><li>編輯<code>/boot/loader.conf</code>設定自動載入hms，這是USB滑鼠與光碟的驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>hw.usb.usbhid.enable<span>=</span><span>1</span>
+</span></span><span><span><span>usbhid_load</span><span>=</span><span>"YES"</span>
+</span></span><span><span><span>hms_load</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><h2>5. 安裝KDE桌面環境<span><a href="#5-%E5%AE%89%E8%A3%9Dkde%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><p>目前FreeBSD穩定的KDE版本是Plasma 5，不支援Wayland。</p><ol><li>這個套件會把常用的KDE應用程式一併拉進來</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install kde5 packagekit
+</span></span></code></pre></div><ol start="2"><li>KDE建議把網路空間調大一點防止出bug：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysctl net.local.stream.recvspace<span>=</span><span>65536</span>
+</span></span><span><span>sudo sysctl net.local.stream.sendspace<span>=</span><span>65536</span>
+</span></span></code></pre></div><ol start="3"><li>我覺得用顯示管理器登入比較簡單，所以安裝SDDM</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install plasma5-sddm-kcm sddm
+</span></span></code></pre></div><ol start="4"><li>將SDDM加入到開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>sddm_enable</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="5"><li>重開機後就可以登入KDE了。剛登入如果畫面太大請在桌面按右鍵調整解析度。KDE的Discover無法用來下載FreeBSD的套件，所以就當作擺設。</li></ol><h2>6. 中文化與輸入法<span><a href="#6-%E4%B8%AD%E6%96%87%E5%8C%96%E8%88%87%E8%BC%B8%E5%85%A5%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>安裝Noto字體。這會把全部語言的字體拉進來，如果只要正體中文那就<code>noto-sans-tc</code>。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install noto
+</span></span></code></pre></div><ol start="2"><li>編輯<code>/etc/login.conf</code>，找到default區塊的<code>:lang:\</code>，改成正體中文</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>:lang<span>=</span>zh_TW.UTF-8:<span>\
+</span></span></span></code></pre></div><ol start="3"><li>更新資料庫</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo cap_mkdb /etc/login.conf
+</span></span></code></pre></div><ol start="4"><li>編輯<code>~/.profile</code>，設定系統語言為正體中文</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>LANG</span><span>=</span>zh_TW.UTF-8
+</span></span><span><span><span>export</span> <span>MM_CHARSET</span><span>=</span>zh_TW.UTF-8
+</span></span></code></pre></div><ol start="5"><li>最後安裝Fcitx5搭配新酷音輸入法</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install fcitx5 fcitx5-configtool <span>\
+</span></span></span><span><span>fcitx5-gtk-common fcitx5-gtk-3 fcitx5-gtk-4 <span>\
+</span></span></span><span><span>fcitx5-qt-common zh-fcitx5-chewing zh-fcitx5-chinese-addons
+</span></span></code></pre></div><ol start="6"><li>編輯<code>~/.profile</code>，指定輸入法模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>GTK_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>export</span> <span>QT_IM_MODULE</span><span>=</span>fcitx
+</span></span></code></pre></div><ol start="7"><li>設定登入桌面自動啟動Fcitx5</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cp /usr/local/share/applications/org.fcitx.Fcitx5.desktop ~/.config/autostart/
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.freebsd.org/en/books/handbook/" target="_blank">FreeBSD Handbook</a></li><li><a href="https://www.server-world.info/en/note?os=FreeBSD_14&amp;p=install" target="_blank">FreeBSD 14 Configuration Tutorials : Server World</a></li><li><a href="https://community.kde.org/FreeBSD/Setup" target="_blank">FreeBSD/Setup - KDE Community Wiki</a></li><li><a href="https://forums.freebsd.org/threads/mouse-doesnt-work-on-freebsd-13-running-on-qemu-linux-vm.80777/" target="_blank">Solved Mouse doesn’t work on FreeBSD 13 running on QEMU linux VM - The FreeBSD Forums</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/install-freebsd-qemu-kvm-on-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d6ae287aad.webp"></a></p>
+<p>安裝一個中文桌面環境的FreeBSD系統。</p><p>上次安裝FreeBSD是兩年前暑假心情煩悶的時候安裝的，我還嘗試安裝FreeBSD 13在實機上，結果因為對Xorg不熟悉卡在純文字界面，遂<a href="https://ivonblog.com/posts/install-ghostbsd-on-msi-modern-15-a10" target="_blank">
+改用懶人版的GhostBSD</a>，可這怎麼會有趣呢！隨後換回Arch Linux。</p><p>這次我要再次挑戰手工安裝FreeBSD，這次的理由除了心情煩悶，還有些東西想在FreeBSD測試。於是就來安裝FreeBSD解悶，結果是越debug越悶…所幸後來還是裝成功了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e9df8a2d4c.webp"><p>本次用QEMU/KVM虛擬機練習，之後會搞PCI Passthrough直通使其逼近實機狀況。</p><p>用Linux的Virt Manager安裝FreeBSD虛擬機，並不像安裝其他Linux發行版一樣簡單。Libvirt會透過SPICE與虛擬機溝通，大部份Linux發行版會自動偵測，開箱即用，但是FreeBSD得手動設定服務，否則沒畫面，滑鼠也不會動。…怎覺得比裝Gentoo還麻煩，但起碼比Hackintosh簡單。要謹記，雖然Linux跟FreeBSD很像，但是檔案系統目錄不同，觀念要轉一下。Linux慣用的操作不見得適用FreeBSD，故安裝前需以FreeBSD手冊的內容為準。</p><p>桌面環境部份，我是有想過裝GNOME 42，但太多功能依賴Linux了，不少GNOME核心程式沒移植，且目前FreeBSD的Wayland支援度不佳，只得用X11。FreeBSD的GNOME相較Linux殘廢許多，實測也有很多問題。所以，我選KDE Plasma 5；如果想要輕量的桌面環境可以裝XFCE 4。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>宿主機：Ubuntu 24.04 LTS</li><li>虛擬機：FreeBSD 14.0 Release</li><li>虛擬機軟體：Virt Manager + QEMU/KVM 8.0</li></ul><h2>2. 新增FreeBSD虛擬機組態<span><a href="#2-%E6%96%B0%E5%A2%9Efreebsd%E8%99%9B%E6%93%AC%E6%A9%9F%E7%B5%84%E6%85%8B" aria-label="定位點">#</a></span></h2><ol><li><p>安裝<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+QEMU/KVM與Virt Manager</a></p></li><li><p>到<a href="https://www.freebsd.org/zh-tw/where/" target="_blank">
+FreeBSD官網</a>下載<code>FreeBSD 14.0-RELEASE</code>的DVD ISO，這是目前的最新穩定版本</p></li><li><p>開啟Virt Manager，新增Q35＋UEFI的機器</p></li><li><p>將FreeBSD的ISO掛接為CDROM</p></li><li><p>新增硬體「Evtouch圖形數位板」，這樣才能在虛擬機與宿主機間切換滑鼠</p></li><li><p>音效卡設定為<code>HDA (ICH9)</code></p></li><li><p>QXL在FreeBSD理論上是有<code>xf86-video-qxl</code>驅動支援…但我不知道怎設定，開機黑螢幕，許是Ubuntu的QXL有bug？所以顯示卡不使用QXL，改用支援度較佳的VMware vmvga。但這個似乎只能在QEMU命令行使用，故手動編輯顯示卡區段的XML，填入以下內容：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>&lt;video&gt;
+</span></span><span><span>  &lt;model <span>type</span><span>=</span><span>"vmvga"</span> <span>vram</span><span>=</span><span>"65536"</span> <span>heads</span><span>=</span><span>"1"</span> <span>primary</span><span>=</span><span>"yes"</span>/&gt;
+</span></span><span><span>  &lt;<span>alias</span> <span>name</span><span>=</span><span>"video0"</span>/&gt;
+</span></span><span><span>  &lt;address <span>type</span><span>=</span><span>"pci"</span> <span>domain</span><span>=</span><span>"0x0000"</span> <span>bus</span><span>=</span><span>"0x00"</span> <span>slot</span><span>=</span><span>"0x01"</span> <span>function</span><span>=</span><span>"0x0"</span>/&gt;
+</span></span><span><span>&lt;/video&gt;
+</span></span></code></pre></div><ol start="8"><li>然後開機安裝</li></ol><h2>3. 安裝FreeBSD基本系統<span><a href="#3-%E5%AE%89%E8%A3%9Dfreebsd%E5%9F%BA%E6%9C%AC%E7%B3%BB%E7%B5%B1" aria-label="定位點">#</a></span></h2><ol><li><p>開機按1進入安裝器</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a536a5f2f1.webp"></li><li><p>按照畫面指示，安裝base system和kernel</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6b58fda579.webp"></li><li><p>系統分區使用Auto (ZFS)</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-692ab44e8d.webp"></li><li><p>新增一般使用者<code>user</code>，並將其加入到wheel群組</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d9168b64fd.webp"></li><li><p>安裝後重開機</p></li><li><p>開機後應該是純文字環境，登入root</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>root
+</span></span></code></pre></div><ol start="7"><li>安裝sudo</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install sudo vim
+</span></span></code></pre></div><ol start="8"><li>將一般使用者加入到sudo群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>visudo
+</span></span></code></pre></div><ol start="9"><li>填入：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>root <span>ALL</span><span>=(</span>ALL:ALL<span>)</span> ALL
+</span></span><span><span>user <span>ALL</span><span>=(</span>ALL:ALL<span>)</span> ALL
+</span></span></code></pre></div><ol start="10"><li>登出，用一般使用者登入</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>exit</span>
+</span></span></code></pre></div><h2>4. 設定圖形驅動程式<span><a href="#4-%E8%A8%AD%E5%AE%9A%E5%9C%96%E5%BD%A2%E9%A9%85%E5%8B%95%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><ol><li>安裝Xorg套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install xorg
+</span></span></code></pre></div><ol start="2"><li>將使用者user加入video群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pw groupmod video -m user
+</span></span></code></pre></div><ol start="3"><li>顯示卡驅動使用vmware-xga的驅動。安裝以下套件，重開機後應該會自行載入，不需要手動寫xorg.conf。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install xf86-video-vmware
+</span></span></code></pre></div><details><summary>附錄：萬策盡的時候才使用xf86-video-scfb軟體渲染。</summary><p>注意scfb驅動會鎖死解析度。</p><p>Virt Manager虛擬顯示卡選VGA，使用scfb驅動</p><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install xf86-video-scfb
+</span></span></code></pre></div><p>調整Xorg設定</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /usr/local/etc/X11/xorg.conf/driver-scfb.conf
+</span></span></code></pre></div><p>填入以下內容：</p><div><pre tabindex="0"><code data-lang="bash"><span><span> Section <span>"Device"</span>
+</span></span><span><span>     Identifier    <span>"Card0"</span>
+</span></span><span><span>     Driver        <span>"scfb"</span>
+</span></span><span><span> EndSection
+</span></span></code></pre></div><p>xorg.conf.d目錄下應該只有scfb驅動的設定，不要有其他驅動的設定檔。</p></details><ol start="4"><li><p>使用sysrc指令編輯開機啟動的項目（實際上是寫入到<code>/etc/rc.conf</code>這個檔案）</p></li><li><p>將HDA的音訊模組加入到開機自動啟動</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>snd_hda_load</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="6"><li>將dbus和hald加入開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>dbus_enable</span><span>=</span><span>"YES"</span>
+</span></span><span><span>sudo sysrc <span>hald_enable</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="7"><li>編輯<code>/boot/loader.conf</code>設定自動載入hms，這是USB滑鼠與光碟的驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>hw.usb.usbhid.enable<span>=</span><span>1</span>
+</span></span><span><span><span>usbhid_load</span><span>=</span><span>"YES"</span>
+</span></span><span><span><span>hms_load</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><h2>5. 安裝KDE桌面環境<span><a href="#5-%E5%AE%89%E8%A3%9Dkde%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><p>目前FreeBSD穩定的KDE版本是Plasma 5，不支援Wayland。</p><ol><li>這個套件會把常用的KDE應用程式一併拉進來</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install kde5 packagekit
+</span></span></code></pre></div><ol start="2"><li>KDE建議把網路空間調大一點防止出bug：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysctl net.local.stream.recvspace<span>=</span><span>65536</span>
+</span></span><span><span>sudo sysctl net.local.stream.sendspace<span>=</span><span>65536</span>
+</span></span></code></pre></div><ol start="3"><li>我覺得用顯示管理器登入比較簡單，所以安裝SDDM</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install plasma5-sddm-kcm sddm
+</span></span></code></pre></div><ol start="4"><li>將SDDM加入到開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sysrc <span>sddm_enable</span><span>=</span><span>"YES"</span>
+</span></span></code></pre></div><ol start="5"><li>重開機後就可以登入KDE了。剛登入如果畫面太大請在桌面按右鍵調整解析度。KDE的Discover無法用來下載FreeBSD的套件，所以就當作擺設。</li></ol><h2>6. 中文化與輸入法<span><a href="#6-%E4%B8%AD%E6%96%87%E5%8C%96%E8%88%87%E8%BC%B8%E5%85%A5%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>安裝Noto字體。這會把全部語言的字體拉進來，如果只要正體中文那就<code>noto-sans-tc</code>。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install noto
+</span></span></code></pre></div><ol start="2"><li>編輯<code>/etc/login.conf</code>，找到default區塊的<code>:lang:\</code>，改成正體中文</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>:lang<span>=</span>zh_TW.UTF-8:<span>\
+</span></span></span></code></pre></div><ol start="3"><li>更新資料庫</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo cap_mkdb /etc/login.conf
+</span></span></code></pre></div><ol start="4"><li>編輯<code>~/.profile</code>，設定系統語言為正體中文</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>LANG</span><span>=</span>zh_TW.UTF-8
+</span></span><span><span><span>export</span> <span>MM_CHARSET</span><span>=</span>zh_TW.UTF-8
+</span></span></code></pre></div><ol start="5"><li>最後安裝Fcitx5搭配新酷音輸入法</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pkg install fcitx5 fcitx5-configtool <span>\
+</span></span></span><span><span>fcitx5-gtk-common fcitx5-gtk-3 fcitx5-gtk-4 <span>\
+</span></span></span><span><span>fcitx5-qt-common zh-fcitx5-chewing zh-fcitx5-chinese-addons
+</span></span></code></pre></div><ol start="6"><li>編輯<code>~/.profile</code>，指定輸入法模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>export</span> <span>GTK_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>export</span> <span>QT_IM_MODULE</span><span>=</span>fcitx
+</span></span></code></pre></div><ol start="7"><li>設定登入桌面自動啟動Fcitx5</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cp /usr/local/share/applications/org.fcitx.Fcitx5.desktop ~/.config/autostart/
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.freebsd.org/en/books/handbook/" target="_blank">FreeBSD Handbook</a></li><li><a href="https://www.server-world.info/en/note?os=FreeBSD_14&amp;p=install" target="_blank">FreeBSD 14 Configuration Tutorials : Server World</a></li><li><a href="https://community.kde.org/FreeBSD/Setup" target="_blank">FreeBSD/Setup - KDE Community Wiki</a></li><li><a href="https://forums.freebsd.org/threads/mouse-doesnt-work-on-freebsd-13-running-on-qemu-linux-vm.80777/" target="_blank">Solved Mouse doesn’t work on FreeBSD 13 running on QEMU linux VM - The FreeBSD Forums</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d6ae287aad.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d6ae287aad.webp" medium="image"/>
+    <pubDate>Thu, 04 Jul 2024 13:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Linux KVM啟用巢狀虛擬化，在虛擬機裡面跑虛擬機]]></title>
     <link>https://ivonblog.com/posts/nested-kvm-virtualization/</link>
     <itunes:title><![CDATA[Linux KVM啟用巢狀虛擬化，在虛擬機裡面跑虛擬機]]></itunes:title>
