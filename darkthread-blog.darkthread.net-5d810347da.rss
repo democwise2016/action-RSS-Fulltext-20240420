@@ -30,6 +30,285 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[PowerShell 整合 ChatGPT API 執行批次任務]]></title>
+    <link>https://blog.darkthread.net/blog/call-chatgpt-api-in-ps/</link>
+    <itunes:title><![CDATA[PowerShell 整合 ChatGPT API 執行批次任務]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>處理資料時請 ChatGPT 幫忙已成日常，就算是寫 PowerShell 時也不例外。因此，我想要有個函式，希望能做到傳 Prompt 批次呼叫 ChatGPT API 執行翻譯、摘要等的任務，隨時隨地想要 AI 就有 AI。</p> <p>舉個例子，假設我有個 JSON 檔 demo.json：</p> <pre><code>[
+{ "id": 1, "name_en": "Harry Potter and the Philosopher's Stone" },
+{ "id": 2, "name_en": "The Bridges of Madison County"},
+{ "id": 3, "name_en": "The Da Vinci Code"},
+{ "id": 4, "name_en": "Anne of Green Gables"}
+]
+</code></pre> <p>希望能用短短幾行 PowerShell 程式為 JSON 裡的英文書加上台灣翻譯書名：</p> <pre><code>. .\gpt-chat.ps1
+SetSystemPrompt '你是暢銷書專家，請將以下英文書名翻譯成台灣發行書名(只需回答書名即可)：'
+Get-Content .\demo.json | ConvertFrom-Json | ForEach-Object {
+$item = [PSCustomObject]$_
+$name_cht = CallComplete $_.name_en
+# 迴圈呼叫時，實務上可能要加點時間間隔避免超過流量上限
+# 更有效率的做法是改成一次查詢多筆，再從回答解析取出多筆結果
+Start-Sleep -Seconds 1
+$item | Add-Member -MemberType NoteProperty -Name name_cht -Value $name_cht
+return $item
+} | ConvertTo-Json
+</code></pre> <p>期望執行後得到以下內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png"></p> <p>這個 gpt-chat.ps1 要怎麼寫呢？一點也不難。</p> <p>若你有 Azure OpenAI API 服務，開啟 Azure OpenAI Studio 的聊天遊樂場，裡面有個【檢視程式碼】功能：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556973467820183.png"></p> <p>上面有 C#、Python、JavaScript、Java、Go 的程式範例，PowerShell 的話，則可參考 curl 寫法，改寫成 Invoke-WebRequets 或 Invoke-RestMethod 即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638556973469601554.png"></p> <p>實測發現 PowerShell 5 的 Invoke-RestMethod 的 UTF8 支援不佳，索性改用 WebClient 物件較好控制細節；PowerShell 6+ 則可直接用 Invoke-RestMethod。而依照慣例，我不愛 API Key 用碼存，故花了點工夫<a href="/blog/ps-secure-string/">用 SecretString 加密</a>，而首次使用會詢問 URL 跟 API Key (如下圖)，參考上圖 curl 範例中的網址跟 API 金鑰填入存成 .settings JSON 檔，之後就可以愉快使用了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638556982473437812.png"></p> <p>以下是完整程式碼：</p> <pre><code>param ([string]$question)
+$ErrorActionPreference = "Stop"
+$settingsPath = '.\azure-openai.settings'
+function ReadApiSettings() {
+try {
+if (Test-Path $settingsPath) {
+$settings = Get-Content $settingsPath | ConvertFrom-Json
+$apiUrl = $settings.apiUrl
+$apiKey = $settings.apiKey
+}
+}
+catch {  }
+if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
+Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
+if ([string]::IsNullOrEmpty($apiUrl)) {
+Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
+Write-Host "API Url: " -ForegroundColor Cyan
+$apiUrl = Read-Host
+}
+if ([string]::IsNullOrEmpty($apiKey)) {
+Write-Host "API Key: " -ForegroundColor Cyan
+$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
+}
+@{
+apiUrl = $apiUrl
+apiKey = $apiKey
+} | ConvertTo-Json | Set-Content -Path $settingsPath
+}
+$Global:apiUrl = $apiUrl
+$Global:apiKey = $apiKey
+}
+ReadApiSettings
+$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
+function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
+function DecryptApiKey() {
+$secStr = $Global:apiKey | ConvertTo-SecureString
+$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
+return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role = "system"
+content = @(
+[PSCustomObject]@{
+type = "text"
+text = $fullPrompt
+temperature=0.7
+top_p = 0.95
+max_tokens = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+# PowerShell 6+，可直接用 Invoke-RestMethod
+# $response = Invoke-RestMethod -Uri $Global:apiUrl -Method POST -Headers $headers -Body $json
+# PowerShell 5.1，需用 WebClient 自行處理編碼問題
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$response = $wc.UploadData($Global:apiUrl,  [System.Text.Encoding]::UTF8.GetBytes($json))
+$response = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+return $response.choices[0].message.content
+}
+if ($question -ne '') {
+CallComplete($question)
+}
+</code></pre> <p>就醬，未來在 PowerShell 要整合 ChatGPT API 就方便多了。</p> <p data-slug="call-chatgpt-api-in-ps" data-title-en="Calling Azure OpenAI Api in PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/11/27/22/51/skate-2982419_960_720.jpg#960#720">Example of how to call Azure OpenAI api in PowerShell to provide chatting or translation function.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>處理資料時請 ChatGPT 幫忙已成日常，就算是寫 PowerShell 時也不例外。因此，我想要有個函式，希望能做到傳 Prompt 批次呼叫 ChatGPT API 執行翻譯、摘要等的任務，隨時隨地想要 AI 就有 AI。</p> <p>舉個例子，假設我有個 JSON 檔 demo.json：</p> <pre><code>[
+{ "id": 1, "name_en": "Harry Potter and the Philosopher's Stone" },
+{ "id": 2, "name_en": "The Bridges of Madison County"},
+{ "id": 3, "name_en": "The Da Vinci Code"},
+{ "id": 4, "name_en": "Anne of Green Gables"}
+]
+</code></pre> <p>希望能用短短幾行 PowerShell 程式為 JSON 裡的英文書加上台灣翻譯書名：</p> <pre><code>. .\gpt-chat.ps1
+SetSystemPrompt '你是暢銷書專家，請將以下英文書名翻譯成台灣發行書名(只需回答書名即可)：'
+Get-Content .\demo.json | ConvertFrom-Json | ForEach-Object {
+$item = [PSCustomObject]$_
+$name_cht = CallComplete $_.name_en
+# 迴圈呼叫時，實務上可能要加點時間間隔避免超過流量上限
+# 更有效率的做法是改成一次查詢多筆，再從回答解析取出多筆結果
+Start-Sleep -Seconds 1
+$item | Add-Member -MemberType NoteProperty -Name name_cht -Value $name_cht
+return $item
+} | ConvertTo-Json
+</code></pre> <p>期望執行後得到以下內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png"></p> <p>這個 gpt-chat.ps1 要怎麼寫呢？一點也不難。</p> <p>若你有 Azure OpenAI API 服務，開啟 Azure OpenAI Studio 的聊天遊樂場，裡面有個【檢視程式碼】功能：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556973467820183.png"></p> <p>上面有 C#、Python、JavaScript、Java、Go 的程式範例，PowerShell 的話，則可參考 curl 寫法，改寫成 Invoke-WebRequets 或 Invoke-RestMethod 即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638556973469601554.png"></p> <p>實測發現 PowerShell 5 的 Invoke-RestMethod 的 UTF8 支援不佳，索性改用 WebClient 物件較好控制細節；PowerShell 6+ 則可直接用 Invoke-RestMethod。而依照慣例，我不愛 API Key 用碼存，故花了點工夫<a href="/blog/ps-secure-string/">用 SecretString 加密</a>，而首次使用會詢問 URL 跟 API Key (如下圖)，參考上圖 curl 範例中的網址跟 API 金鑰填入存成 .settings JSON 檔，之後就可以愉快使用了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638556982473437812.png"></p> <p>以下是完整程式碼：</p> <pre><code>param ([string]$question)
+$ErrorActionPreference = "Stop"
+$settingsPath = '.\azure-openai.settings'
+function ReadApiSettings() {
+try {
+if (Test-Path $settingsPath) {
+$settings = Get-Content $settingsPath | ConvertFrom-Json
+$apiUrl = $settings.apiUrl
+$apiKey = $settings.apiKey
+}
+}
+catch {  }
+if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
+Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
+if ([string]::IsNullOrEmpty($apiUrl)) {
+Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
+Write-Host "API Url: " -ForegroundColor Cyan
+$apiUrl = Read-Host
+}
+if ([string]::IsNullOrEmpty($apiKey)) {
+Write-Host "API Key: " -ForegroundColor Cyan
+$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
+}
+@{
+apiUrl = $apiUrl
+apiKey = $apiKey
+} | ConvertTo-Json | Set-Content -Path $settingsPath
+}
+$Global:apiUrl = $apiUrl
+$Global:apiKey = $apiKey
+}
+ReadApiSettings
+$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
+function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
+function DecryptApiKey() {
+$secStr = $Global:apiKey | ConvertTo-SecureString
+$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
+return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role = "system"
+content = @(
+[PSCustomObject]@{
+type = "text"
+text = $fullPrompt
+temperature=0.7
+top_p = 0.95
+max_tokens = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+# PowerShell 6+，可直接用 Invoke-RestMethod
+# $response = Invoke-RestMethod -Uri $Global:apiUrl -Method POST -Headers $headers -Body $json
+# PowerShell 5.1，需用 WebClient 自行處理編碼問題
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$response = $wc.UploadData($Global:apiUrl,  [System.Text.Encoding]::UTF8.GetBytes($json))
+$response = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+return $response.choices[0].message.content
+}
+if ($question -ne '') {
+CallComplete($question)
+}
+</code></pre> <p>就醬，未來在 PowerShell 要整合 ChatGPT API 就方便多了。</p> <p data-slug="call-chatgpt-api-in-ps" data-title-en="Calling Azure OpenAI Api in PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/11/27/22/51/skate-2982419_960_720.jpg#960#720">Example of how to call Azure OpenAI api in PowerShell to provide chatting or translation function.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>處理資料時請 ChatGPT 幫忙已成日常，就算是寫 PowerShell 時也不例外。因此，我想要有個函式，希望能做到傳 Prompt 批次呼叫 ChatGPT API 執行翻譯、摘要等的任務，隨時隨地想要 AI 就有 AI。</p> <p>舉個例子，假設我有個 JSON 檔 demo.json：</p> <pre><code>[
+{ "id": 1, "name_en": "Harry Potter and the Philosopher's Stone" },
+{ "id": 2, "name_en": "The Bridges of Madison County"},
+{ "id": 3, "name_en": "The Da Vinci Code"},
+{ "id": 4, "name_en": "Anne of Green Gables"}
+]
+</code></pre> <p>希望能用短短幾行 PowerShell 程式為 JSON 裡的英文書加上台灣翻譯書名：</p> <pre><code>. .\gpt-chat.ps1
+SetSystemPrompt '你是暢銷書專家，請將以下英文書名翻譯成台灣發行書名(只需回答書名即可)：'
+Get-Content .\demo.json | ConvertFrom-Json | ForEach-Object {
+$item = [PSCustomObject]$_
+$name_cht = CallComplete $_.name_en
+# 迴圈呼叫時，實務上可能要加點時間間隔避免超過流量上限
+# 更有效率的做法是改成一次查詢多筆，再從回答解析取出多筆結果
+Start-Sleep -Seconds 1
+$item | Add-Member -MemberType NoteProperty -Name name_cht -Value $name_cht
+return $item
+} | ConvertTo-Json
+</code></pre> <p>期望執行後得到以下內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png"></p> <p>這個 gpt-chat.ps1 要怎麼寫呢？一點也不難。</p> <p>若你有 Azure OpenAI API 服務，開啟 Azure OpenAI Studio 的聊天遊樂場，裡面有個【檢視程式碼】功能：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556973467820183.png"></p> <p>上面有 C#、Python、JavaScript、Java、Go 的程式範例，PowerShell 的話，則可參考 curl 寫法，改寫成 Invoke-WebRequets 或 Invoke-RestMethod 即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638556973469601554.png"></p> <p>實測發現 PowerShell 5 的 Invoke-RestMethod 的 UTF8 支援不佳，索性改用 WebClient 物件較好控制細節；PowerShell 6+ 則可直接用 Invoke-RestMethod。而依照慣例，我不愛 API Key 用碼存，故花了點工夫<a href="/blog/ps-secure-string/">用 SecretString 加密</a>，而首次使用會詢問 URL 跟 API Key (如下圖)，參考上圖 curl 範例中的網址跟 API 金鑰填入存成 .settings JSON 檔，之後就可以愉快使用了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638556982473437812.png"></p> <p>以下是完整程式碼：</p> <pre><code>param ([string]$question)
+$ErrorActionPreference = "Stop"
+$settingsPath = '.\azure-openai.settings'
+function ReadApiSettings() {
+try {
+if (Test-Path $settingsPath) {
+$settings = Get-Content $settingsPath | ConvertFrom-Json
+$apiUrl = $settings.apiUrl
+$apiKey = $settings.apiKey
+}
+}
+catch {  }
+if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
+Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
+if ([string]::IsNullOrEmpty($apiUrl)) {
+Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
+Write-Host "API Url: " -ForegroundColor Cyan
+$apiUrl = Read-Host
+}
+if ([string]::IsNullOrEmpty($apiKey)) {
+Write-Host "API Key: " -ForegroundColor Cyan
+$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
+}
+@{
+apiUrl = $apiUrl
+apiKey = $apiKey
+} | ConvertTo-Json | Set-Content -Path $settingsPath
+}
+$Global:apiUrl = $apiUrl
+$Global:apiKey = $apiKey
+}
+ReadApiSettings
+$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
+function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
+function DecryptApiKey() {
+$secStr = $Global:apiKey | ConvertTo-SecureString
+$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
+return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role = "system"
+content = @(
+[PSCustomObject]@{
+type = "text"
+text = $fullPrompt
+temperature=0.7
+top_p = 0.95
+max_tokens = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+# PowerShell 6+，可直接用 Invoke-RestMethod
+# $response = Invoke-RestMethod -Uri $Global:apiUrl -Method POST -Headers $headers -Body $json
+# PowerShell 5.1，需用 WebClient 自行處理編碼問題
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$response = $wc.UploadData($Global:apiUrl,  [System.Text.Encoding]::UTF8.GetBytes($json))
+$response = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+return $response.choices[0].message.content
+}
+if ($question -ne '') {
+CallComplete($question)
+}
+</code></pre> <p>就醬，未來在 PowerShell 要整合 ChatGPT API 就方便多了。</p> <p data-slug="call-chatgpt-api-in-ps" data-title-en="Calling Azure OpenAI Api in PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/11/27/22/51/skate-2982419_960_720.jpg#960#720">Example of how to call Azure OpenAI api in PowerShell to provide chatting or translation function.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png" medium="image"/>
+    <pubDate>Thu, 04 Jul 2024 13:41:59 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【笨問題】如何用 Windows 檔案總管瀏覽 WSL 的資料夾]]></title>
     <link>https://blog.darkthread.net/blog/access-wsl-folder-from-win/</link>
     <itunes:title><![CDATA[【笨問題】如何用 Windows 檔案總管瀏覽 WSL 的資料夾]]></itunes:title>
@@ -1043,19 +1322,5 @@ PSAccessChk.ps1 # 列出全部權限及其授與對象
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638543193206811429.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638543193206811429.png" medium="image"/>
     <pubDate>Tue, 18 Jun 2024 14:48:37 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[YT 筆記 - Rust 程式語言在 JavaScript 生態圈的角色]]></title>
-    <link>https://blog.darkthread.net/blog/rust-in-js-ecosystem/</link>
-    <itunes:title><![CDATA[YT 筆記 - Rust 程式語言在 JavaScript 生態圈的角色]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>這陣子查資料時發現有愈來愈多專案是用 Rust 語言開發，想起去年有則新聞：<a href="https://www.ithome.com.tw/news/158975">微軟要讓開發者以 Rust 編寫 Windows 驅動程式</a>，讓我開始觀注 Rust 這個新掘起的程式語言。</p> <p>Rust 的核心精神格外講求安全性、速度及併行性，尤其在記憶體安全性的強化，可根本解決 C/C++ 揮之不去的<a href="https://zh.wikipedia.org/zh-tw/%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA">緩衝區溢位</a>、<a href="https://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F">記憶體漏失</a>... 等問題(尤其緩衝區溢位問題，一直是駭客眼中挖掘資安漏洞的金礦坑)，Rust 因此常為被視為替代 C/C++ 的優秀選擇，這也是連微軟也力推用它取代 C/C++ 寫驅動程式的主要理由。</p> <p>但，我對 Rust 的了解僅止於「跟 C/C++ 一樣有效率，但更安全」，這幾天無意滑到一部 YouTube 影片，談 Rust 在 JavaScript 生態圈日益重要的角色，挺有意思，其中談到不少 Rust 的特性，順手整理成筆記。</p> <p><a href="https://www.youtube.com/watch?v=pDYTDU4yx4c">Rust，JavaScript 的未來？</a></p> <ol><li>Rust 1.0 發佈於 2015 年，隔年起連續六年在 Stackoverflow 開發者調查被票選為最受歡迎的程式語言。由於推出時間較晚，Rust 有很多很現代化的設計，吸收了眾多語言的優點。</li> <li>Rust 是靜態編譯語言，但不像 Go/C#/Java 有 GC (垃圾回收)這類記憶體管理機制，省去時時檢查記憶體存取位址，藉此換取大幅效能提升，達到跟 C/C++ 同等級的執行速度。</li> <li>Rust 採行所謂的「共享不可變，可變不共享」原則，有效避免多執行緒執行時的衝突與錯誤，並透過強大的編譯器確保記憶體管理的安全。</li> <li>Rust 非常重度依賴編譯器，Runtime 盡可能輕量化及最小化到幾乎沒有，大量優化檢查都是在編譯期確定，編譯時包含許多嚴格檢查，常要費盡心力才成功編譯，讓開發者常想起被編譯器支配的恐懼。但能通過考驗編譯出的程式自帶優秀基因，安全性及效能不用擔心。</li> <li>傳統 JavaScript 生態系的開發工具幾乎都是用 JavaScript 寫的，像是 babel、webpack、eslint、prettier。理由是這類工具的作者常常也是前端開發者，不必為了寫工具多學一種語言。</li> <li>隨著前端專案規模變大，開發流程越來越複雜，編譯打包專案所需的時間開始長到難以忍耐，已非單靠優化程式碼所能改善，JavaScript 是直譯式語言，CPU 密集型計算作業不是其強項，於是 Rust 和 Go 這類兼顧運行效能和開發效率的編譯型語言開始被列入考量。</li> <li>esbuild 和 swc 出現後，開發者們驚訝發現，相同功能從 JavaScript 改成用 Rust 實現，效率可以提升 10 到 20 倍。像 next.js 12、parcel 使用 swc 作為編譯器獲得 5 倍效能提升；deno 的靜態檢測、程式碼格式化以及文件生成器也是用 swc 實現；vite 使用 esbuild 作為 dev build 的工具，大幅提升編譯效能。</li> <li>Rust 還可以直接編譯成 WASM，用 Rust 編寫 Web 應用程式也成為一個可行方案。像 <a href="https://github.com/yewstack/yew">Yew</a> 便是一個建立多執行緒前端網頁應用程式的 WebAssembly 框架。另外，<a href="https://tauri.app/">TAURI</a> 則是使用 Rust 打造，類似於 Electron.js 的跨平台應用程式框架，Tauri 使用 Rust Binding 不同系統的 WebView 及系統 API，體積縮小到 3MB 起跳。註：Electron 應用程式大約 80-120MB，我自己則偏好<a href="/blog/electron-net-alternative/">用 ASP.NET Core Minimal API 寫桌面小工具</a>。</li> <li>Rust 是一門好語言，在記憶體管理、運行效能和並行性表現出色，它不像動態語言可以讓你快速啟動一個應用和專案，但 Rust 編譯器會在一開始便引導開發者做正確的事，長遠來看，比用動態語言開發能避開許多技術債。但這是有代價的，Rust 的學習曲線偏陡峭，需要投入很多時間精力方能上手(沒有 21 天精通這種事)，且 Rust 的應用領域不如 JavaScrpit 廣泛，苦學而成的投資報酬率不怎麼高。</li></ol> <p>OS：感覺 Rust 特別能吸引追求自我實現的開發者，是留給願意爬過<a href="https://www.youtube.com/watch?v=hSyLqtJxD7c">天堂路</a>享受特種部隊榮耀的那群人吧~ 😄</p> <p data-slug="rust-in-js-ecosystem" data-fbimg="https://i.imgur.com/kBqnsHE.png#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>這陣子查資料時發現有愈來愈多專案是用 Rust 語言開發，想起去年有則新聞：<a href="https://www.ithome.com.tw/news/158975">微軟要讓開發者以 Rust 編寫 Windows 驅動程式</a>，讓我開始觀注 Rust 這個新掘起的程式語言。</p> <p>Rust 的核心精神格外講求安全性、速度及併行性，尤其在記憶體安全性的強化，可根本解決 C/C++ 揮之不去的<a href="https://zh.wikipedia.org/zh-tw/%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA">緩衝區溢位</a>、<a href="https://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F">記憶體漏失</a>... 等問題(尤其緩衝區溢位問題，一直是駭客眼中挖掘資安漏洞的金礦坑)，Rust 因此常為被視為替代 C/C++ 的優秀選擇，這也是連微軟也力推用它取代 C/C++ 寫驅動程式的主要理由。</p> <p>但，我對 Rust 的了解僅止於「跟 C/C++ 一樣有效率，但更安全」，這幾天無意滑到一部 YouTube 影片，談 Rust 在 JavaScript 生態圈日益重要的角色，挺有意思，其中談到不少 Rust 的特性，順手整理成筆記。</p> <p><a href="https://www.youtube.com/watch?v=pDYTDU4yx4c">Rust，JavaScript 的未來？</a></p> <ol><li>Rust 1.0 發佈於 2015 年，隔年起連續六年在 Stackoverflow 開發者調查被票選為最受歡迎的程式語言。由於推出時間較晚，Rust 有很多很現代化的設計，吸收了眾多語言的優點。</li> <li>Rust 是靜態編譯語言，但不像 Go/C#/Java 有 GC (垃圾回收)這類記憶體管理機制，省去時時檢查記憶體存取位址，藉此換取大幅效能提升，達到跟 C/C++ 同等級的執行速度。</li> <li>Rust 採行所謂的「共享不可變，可變不共享」原則，有效避免多執行緒執行時的衝突與錯誤，並透過強大的編譯器確保記憶體管理的安全。</li> <li>Rust 非常重度依賴編譯器，Runtime 盡可能輕量化及最小化到幾乎沒有，大量優化檢查都是在編譯期確定，編譯時包含許多嚴格檢查，常要費盡心力才成功編譯，讓開發者常想起被編譯器支配的恐懼。但能通過考驗編譯出的程式自帶優秀基因，安全性及效能不用擔心。</li> <li>傳統 JavaScript 生態系的開發工具幾乎都是用 JavaScript 寫的，像是 babel、webpack、eslint、prettier。理由是這類工具的作者常常也是前端開發者，不必為了寫工具多學一種語言。</li> <li>隨著前端專案規模變大，開發流程越來越複雜，編譯打包專案所需的時間開始長到難以忍耐，已非單靠優化程式碼所能改善，JavaScript 是直譯式語言，CPU 密集型計算作業不是其強項，於是 Rust 和 Go 這類兼顧運行效能和開發效率的編譯型語言開始被列入考量。</li> <li>esbuild 和 swc 出現後，開發者們驚訝發現，相同功能從 JavaScript 改成用 Rust 實現，效率可以提升 10 到 20 倍。像 next.js 12、parcel 使用 swc 作為編譯器獲得 5 倍效能提升；deno 的靜態檢測、程式碼格式化以及文件生成器也是用 swc 實現；vite 使用 esbuild 作為 dev build 的工具，大幅提升編譯效能。</li> <li>Rust 還可以直接編譯成 WASM，用 Rust 編寫 Web 應用程式也成為一個可行方案。像 <a href="https://github.com/yewstack/yew">Yew</a> 便是一個建立多執行緒前端網頁應用程式的 WebAssembly 框架。另外，<a href="https://tauri.app/">TAURI</a> 則是使用 Rust 打造，類似於 Electron.js 的跨平台應用程式框架，Tauri 使用 Rust Binding 不同系統的 WebView 及系統 API，體積縮小到 3MB 起跳。註：Electron 應用程式大約 80-120MB，我自己則偏好<a href="/blog/electron-net-alternative/">用 ASP.NET Core Minimal API 寫桌面小工具</a>。</li> <li>Rust 是一門好語言，在記憶體管理、運行效能和並行性表現出色，它不像動態語言可以讓你快速啟動一個應用和專案，但 Rust 編譯器會在一開始便引導開發者做正確的事，長遠來看，比用動態語言開發能避開許多技術債。但這是有代價的，Rust 的學習曲線偏陡峭，需要投入很多時間精力方能上手(沒有 21 天精通這種事)，且 Rust 的應用領域不如 JavaScrpit 廣泛，苦學而成的投資報酬率不怎麼高。</li></ol> <p>OS：感覺 Rust 特別能吸引追求自我實現的開發者，是留給願意爬過<a href="https://www.youtube.com/watch?v=hSyLqtJxD7c">天堂路</a>享受特種部隊榮耀的那群人吧~ 😄</p> <p data-slug="rust-in-js-ecosystem" data-fbimg="https://i.imgur.com/kBqnsHE.png#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>這陣子查資料時發現有愈來愈多專案是用 Rust 語言開發，想起去年有則新聞：<a href="https://www.ithome.com.tw/news/158975">微軟要讓開發者以 Rust 編寫 Windows 驅動程式</a>，讓我開始觀注 Rust 這個新掘起的程式語言。</p> <p>Rust 的核心精神格外講求安全性、速度及併行性，尤其在記憶體安全性的強化，可根本解決 C/C++ 揮之不去的<a href="https://zh.wikipedia.org/zh-tw/%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA">緩衝區溢位</a>、<a href="https://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F">記憶體漏失</a>... 等問題(尤其緩衝區溢位問題，一直是駭客眼中挖掘資安漏洞的金礦坑)，Rust 因此常為被視為替代 C/C++ 的優秀選擇，這也是連微軟也力推用它取代 C/C++ 寫驅動程式的主要理由。</p> <p>但，我對 Rust 的了解僅止於「跟 C/C++ 一樣有效率，但更安全」，這幾天無意滑到一部 YouTube 影片，談 Rust 在 JavaScript 生態圈日益重要的角色，挺有意思，其中談到不少 Rust 的特性，順手整理成筆記。</p> <p><a href="https://www.youtube.com/watch?v=pDYTDU4yx4c">Rust，JavaScript 的未來？</a></p> <ol><li>Rust 1.0 發佈於 2015 年，隔年起連續六年在 Stackoverflow 開發者調查被票選為最受歡迎的程式語言。由於推出時間較晚，Rust 有很多很現代化的設計，吸收了眾多語言的優點。</li> <li>Rust 是靜態編譯語言，但不像 Go/C#/Java 有 GC (垃圾回收)這類記憶體管理機制，省去時時檢查記憶體存取位址，藉此換取大幅效能提升，達到跟 C/C++ 同等級的執行速度。</li> <li>Rust 採行所謂的「共享不可變，可變不共享」原則，有效避免多執行緒執行時的衝突與錯誤，並透過強大的編譯器確保記憶體管理的安全。</li> <li>Rust 非常重度依賴編譯器，Runtime 盡可能輕量化及最小化到幾乎沒有，大量優化檢查都是在編譯期確定，編譯時包含許多嚴格檢查，常要費盡心力才成功編譯，讓開發者常想起被編譯器支配的恐懼。但能通過考驗編譯出的程式自帶優秀基因，安全性及效能不用擔心。</li> <li>傳統 JavaScript 生態系的開發工具幾乎都是用 JavaScript 寫的，像是 babel、webpack、eslint、prettier。理由是這類工具的作者常常也是前端開發者，不必為了寫工具多學一種語言。</li> <li>隨著前端專案規模變大，開發流程越來越複雜，編譯打包專案所需的時間開始長到難以忍耐，已非單靠優化程式碼所能改善，JavaScript 是直譯式語言，CPU 密集型計算作業不是其強項，於是 Rust 和 Go 這類兼顧運行效能和開發效率的編譯型語言開始被列入考量。</li> <li>esbuild 和 swc 出現後，開發者們驚訝發現，相同功能從 JavaScript 改成用 Rust 實現，效率可以提升 10 到 20 倍。像 next.js 12、parcel 使用 swc 作為編譯器獲得 5 倍效能提升；deno 的靜態檢測、程式碼格式化以及文件生成器也是用 swc 實現；vite 使用 esbuild 作為 dev build 的工具，大幅提升編譯效能。</li> <li>Rust 還可以直接編譯成 WASM，用 Rust 編寫 Web 應用程式也成為一個可行方案。像 <a href="https://github.com/yewstack/yew">Yew</a> 便是一個建立多執行緒前端網頁應用程式的 WebAssembly 框架。另外，<a href="https://tauri.app/">TAURI</a> 則是使用 Rust 打造，類似於 Electron.js 的跨平台應用程式框架，Tauri 使用 Rust Binding 不同系統的 WebView 及系統 API，體積縮小到 3MB 起跳。註：Electron 應用程式大約 80-120MB，我自己則偏好<a href="/blog/electron-net-alternative/">用 ASP.NET Core Minimal API 寫桌面小工具</a>。</li> <li>Rust 是一門好語言，在記憶體管理、運行效能和並行性表現出色，它不像動態語言可以讓你快速啟動一個應用和專案，但 Rust 編譯器會在一開始便引導開發者做正確的事，長遠來看，比用動態語言開發能避開許多技術債。但這是有代價的，Rust 的學習曲線偏陡峭，需要投入很多時間精力方能上手(沒有 21 天精通這種事)，且 Rust 的應用領域不如 JavaScrpit 廣泛，苦學而成的投資報酬率不怎麼高。</li></ol> <p>OS：感覺 Rust 特別能吸引追求自我實現的開發者，是留給願意爬過<a href="https://www.youtube.com/watch?v=hSyLqtJxD7c">天堂路</a>享受特種部隊榮耀的那群人吧~ 😄</p> <p data-slug="rust-in-js-ecosystem" data-fbimg="https://i.imgur.com/kBqnsHE.png#1280#720"> </p>]]></content:encoded>
-    
-    <pubDate>Mon, 17 Jun 2024 15:01:52 GMT</pubDate>
   </item></channel>
 </rss>
