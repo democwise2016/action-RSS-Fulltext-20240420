@@ -30,6 +30,54 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[設定 WSL 開放遠端 SSH 登入]]></title>
+    <link>https://blog.darkthread.net/blog/remote-ssh-wsl/</link>
+    <itunes:title><![CDATA[設定 WSL 開放遠端 SSH 登入]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在 Azure VM <a href="/blog/hyper-v-on-azure-vm/">啟用了 WSL</a>，想用 SSH 直接連進 WSL，省去先 RDP 再開 Windows Terminal 的程序。</p> <p>研究後發現並非難事，但有好幾個步驟便是了。(以下為 Windows 11 22H2 的實測)</p> <p>第一步在 WSL 上啟用 SSH 伺服器，預設未安裝，故可用以下指令安裝、設定 sshd： (參考：<a href="https://medium.com/@wuzhenquan/windows-and-wsl-2-setup-for-ssh-remote-access-013955b2f421">WSL 2 Setup for SSH Remote Access by Tristan Wu</a>)</p> <pre><code># 安裝 sshd
+sudo apt install openssh-server -y
+# 設定 sshd_config
+# 將 #PasswordAuthentication yes 前方 # 移除，啟用密碼登入
+sudo nano /etc/ssh/sshd_config
+# 重啟 SSH 伺服器
+sudo service ssh restart
+</code></pre> <p>此時在本機應已可用 <code>ssh localhost</code> SSH 登入。接下來要將 127.0.0.1 22 Port 導向 Windows 對外 IP(本例為 10.0.0.5) 的 22 Port。</p> <p>學到新東西，原來 Windows 內建 Port Forwarding 功能 - <a href="https://learn.microsoft.com/zh-tw/windows-server/networking/technologies/netsh/netsh-interface-portproxy?WT.mc_id=DOP-MVP-37580"><code>netsh interface portproxy</code></a>，可監聽對外 IP 的 22 Port，將其 TCP 連線導向 127.0.0.1 的 22 Port。</p> <p>設定好記得要將 Windows 內建防火牆打開，這裡選擇用 netsh CLI 指令完成，未來要在其他主機設定，複製貼上即可，比滑滑鼠快十倍。</p> <p>設 Port Proxy 及開 Windows 防火牆指令如下：<br> 註：Azure VM 這類具有 Internet 公開 IP 的主機，直接開放 22 Port 很危險，<a href="/blog/azure-batch-set-nsg/">一晚上就能引來數百上千次試探</a>，強烈建議要限定來源 IP。</p> <pre><code># 將主機 IP 22 Port 導向 localhost 22 Port
+netsh interface portproxy add v4tov4 listenaddress=10.0.0.5 listenport=22 connectaddress=127.0.0.1 connectport=22
+# 因另有防火牆，此處不限定 remoteip
+netsh advfirewall firewall add rule name="Open SSH Port 22" dir=in action=allow protocol=TCP localport=22 remoteip=any
+</code></pre> <p>設定妥當後，就能直接從遠端 <code>ssh &lt;win-host&gt;</code> 連進 WSL囉。<br> 註：還可建立金鑰加入 <code>~/.ssh/authorized_keys</code>，之後改用金鑰登入，再省去被猜密碼的風險，會更安全。延伸閱讀：<a href="/blog/ssh-key-auth/">從 Windows 使用金鑰免密碼登入 SSH/SFTP/SCP</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638557873740951071.png"></p> <p data-slug="remote-ssh-wsl" data-fbimg="https://cdn.pixabay.com/photo/2017/05/08/02/22/game-2294201_1280.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在 Azure VM <a href="/blog/hyper-v-on-azure-vm/">啟用了 WSL</a>，想用 SSH 直接連進 WSL，省去先 RDP 再開 Windows Terminal 的程序。</p> <p>研究後發現並非難事，但有好幾個步驟便是了。(以下為 Windows 11 22H2 的實測)</p> <p>第一步在 WSL 上啟用 SSH 伺服器，預設未安裝，故可用以下指令安裝、設定 sshd： (參考：<a href="https://medium.com/@wuzhenquan/windows-and-wsl-2-setup-for-ssh-remote-access-013955b2f421">WSL 2 Setup for SSH Remote Access by Tristan Wu</a>)</p> <pre><code># 安裝 sshd
+sudo apt install openssh-server -y
+# 設定 sshd_config
+# 將 #PasswordAuthentication yes 前方 # 移除，啟用密碼登入
+sudo nano /etc/ssh/sshd_config
+# 重啟 SSH 伺服器
+sudo service ssh restart
+</code></pre> <p>此時在本機應已可用 <code>ssh localhost</code> SSH 登入。接下來要將 127.0.0.1 22 Port 導向 Windows 對外 IP(本例為 10.0.0.5) 的 22 Port。</p> <p>學到新東西，原來 Windows 內建 Port Forwarding 功能 - <a href="https://learn.microsoft.com/zh-tw/windows-server/networking/technologies/netsh/netsh-interface-portproxy?WT.mc_id=DOP-MVP-37580"><code>netsh interface portproxy</code></a>，可監聽對外 IP 的 22 Port，將其 TCP 連線導向 127.0.0.1 的 22 Port。</p> <p>設定好記得要將 Windows 內建防火牆打開，這裡選擇用 netsh CLI 指令完成，未來要在其他主機設定，複製貼上即可，比滑滑鼠快十倍。</p> <p>設 Port Proxy 及開 Windows 防火牆指令如下：<br> 註：Azure VM 這類具有 Internet 公開 IP 的主機，直接開放 22 Port 很危險，<a href="/blog/azure-batch-set-nsg/">一晚上就能引來數百上千次試探</a>，強烈建議要限定來源 IP。</p> <pre><code># 將主機 IP 22 Port 導向 localhost 22 Port
+netsh interface portproxy add v4tov4 listenaddress=10.0.0.5 listenport=22 connectaddress=127.0.0.1 connectport=22
+# 因另有防火牆，此處不限定 remoteip
+netsh advfirewall firewall add rule name="Open SSH Port 22" dir=in action=allow protocol=TCP localport=22 remoteip=any
+</code></pre> <p>設定妥當後，就能直接從遠端 <code>ssh &lt;win-host&gt;</code> 連進 WSL囉。<br> 註：還可建立金鑰加入 <code>~/.ssh/authorized_keys</code>，之後改用金鑰登入，再省去被猜密碼的風險，會更安全。延伸閱讀：<a href="/blog/ssh-key-auth/">從 Windows 使用金鑰免密碼登入 SSH/SFTP/SCP</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638557873740951071.png"></p> <p data-slug="remote-ssh-wsl" data-fbimg="https://cdn.pixabay.com/photo/2017/05/08/02/22/game-2294201_1280.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在 Azure VM <a href="/blog/hyper-v-on-azure-vm/">啟用了 WSL</a>，想用 SSH 直接連進 WSL，省去先 RDP 再開 Windows Terminal 的程序。</p> <p>研究後發現並非難事，但有好幾個步驟便是了。(以下為 Windows 11 22H2 的實測)</p> <p>第一步在 WSL 上啟用 SSH 伺服器，預設未安裝，故可用以下指令安裝、設定 sshd： (參考：<a href="https://medium.com/@wuzhenquan/windows-and-wsl-2-setup-for-ssh-remote-access-013955b2f421">WSL 2 Setup for SSH Remote Access by Tristan Wu</a>)</p> <pre><code># 安裝 sshd
+sudo apt install openssh-server -y
+# 設定 sshd_config
+# 將 #PasswordAuthentication yes 前方 # 移除，啟用密碼登入
+sudo nano /etc/ssh/sshd_config
+# 重啟 SSH 伺服器
+sudo service ssh restart
+</code></pre> <p>此時在本機應已可用 <code>ssh localhost</code> SSH 登入。接下來要將 127.0.0.1 22 Port 導向 Windows 對外 IP(本例為 10.0.0.5) 的 22 Port。</p> <p>學到新東西，原來 Windows 內建 Port Forwarding 功能 - <a href="https://learn.microsoft.com/zh-tw/windows-server/networking/technologies/netsh/netsh-interface-portproxy?WT.mc_id=DOP-MVP-37580"><code>netsh interface portproxy</code></a>，可監聽對外 IP 的 22 Port，將其 TCP 連線導向 127.0.0.1 的 22 Port。</p> <p>設定好記得要將 Windows 內建防火牆打開，這裡選擇用 netsh CLI 指令完成，未來要在其他主機設定，複製貼上即可，比滑滑鼠快十倍。</p> <p>設 Port Proxy 及開 Windows 防火牆指令如下：<br> 註：Azure VM 這類具有 Internet 公開 IP 的主機，直接開放 22 Port 很危險，<a href="/blog/azure-batch-set-nsg/">一晚上就能引來數百上千次試探</a>，強烈建議要限定來源 IP。</p> <pre><code># 將主機 IP 22 Port 導向 localhost 22 Port
+netsh interface portproxy add v4tov4 listenaddress=10.0.0.5 listenport=22 connectaddress=127.0.0.1 connectport=22
+# 因另有防火牆，此處不限定 remoteip
+netsh advfirewall firewall add rule name="Open SSH Port 22" dir=in action=allow protocol=TCP localport=22 remoteip=any
+</code></pre> <p>設定妥當後，就能直接從遠端 <code>ssh &lt;win-host&gt;</code> 連進 WSL囉。<br> 註：還可建立金鑰加入 <code>~/.ssh/authorized_keys</code>，之後改用金鑰登入，再省去被猜密碼的風險，會更安全。延伸閱讀：<a href="/blog/ssh-key-auth/">從 Windows 使用金鑰免密碼登入 SSH/SFTP/SCP</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638557873740951071.png"></p> <p data-slug="remote-ssh-wsl" data-fbimg="https://cdn.pixabay.com/photo/2017/05/08/02/22/game-2294201_1280.jpg#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638557873740951071.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638557873740951071.png" medium="image"/>
+    <pubDate>Fri, 05 Jul 2024 14:42:02 GMT</pubDate>
+  </item><item>
     <title><![CDATA[PowerShell 整合 ChatGPT API 執行批次任務]]></title>
     <link>https://blog.darkthread.net/blog/call-chatgpt-api-in-ps/</link>
     <itunes:title><![CDATA[PowerShell 整合 ChatGPT API 執行批次任務]]></itunes:title>
@@ -1055,272 +1103,5 @@ Console.WriteLine($"ArraySort: {sw.ElapsedMilliseconds:n0}ms");
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638544937447784598.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638544937447784598.png" medium="image"/>
     <pubDate>Thu, 20 Jun 2024 15:15:25 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[PS 小工具 - 檢查哪些群組或帳號可以本機登入]]></title>
-    <link>https://blog.darkthread.net/blog/accesschk-ps-version/</link>
-    <itunes:title><![CDATA[PS 小工具 - 檢查哪些群組或帳號可以本機登入]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>要查詢有哪些帳號或群組可以登入 Windows 本機操作，最簡單的做法是使用「本機安全性原則」查詢「使用者權限指派/允許本機登入」，而所謂「允許本機登入」對映的是名為 SeInteractiveLogonRight 的 Windows 使用者權限。延伸閱讀：<a href="/blog/userright-admin-powershell/">使用 PowerShell 設定使用者權限(User Right)</a>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638543193206811429.png"></p> <p>如果嫌開 UI 太麻煩太繁瑣，想透過指令快速查詢或將結果轉存成檔案呢？可以使用 Sysinternals 超級工具包的 <a href="https://learn.microsoft.com/zh-tw/sysinternals/downloads/accesschk?WT.mc_id=DOP-MVP-37580">AccessChk</a>：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638543193209877959.png"></p> <p>如果因為環境特殊，不便下載或部署第三方工具，要怎麼用 PowerShell 完成？</p> <p>我用 80 行 PowerShell 寫了一個取代 AccessChk 的使用者權限查詢功能：(註：<a href="https://learn.microsoft.com/zh-tw/windows-server/administration/windows-commands/secedit-export?WT.mc_id=DOP-MVP-37580">secedit /export</a> 需管理者權限，程式有用到<a href="/blog/ps1-requireadministrator/">自動改用管理者權限執行 .ps1 的小技巧</a>)</p> <pre><code>param (
-[string]$Right,
-[switch]$Expand
-)
-$ErrorActionPreference = 'STOP'
-function ListRights($right, $expand) {
-# Call secedit to get the list of rights
-$tmpPath = [System.IO.Path]::GetTempFileName()
-secedit.exe /export /cfg $tmpPath | Out-Null
-$raw = Get-Content $tmpPath
-Remove-Item $tmpPath
-$rights = @{}
-$inZone = $false
-$raw | ForEach-Object {
-if ($inZone) {
-if ($_ -match '^\s*(\S+)\s*=\s*(\S+)\s*$') {
-$rightName = $matches[1]
-$rights[$rightName] = @()
-$matches[2].Split(',') | ForEach-Object {
-try {
-$name = $_
-if ($name -match '^\*') {
-$sid = New-Object System.Security.Principal.SecurityIdentifier($name.Trim('*'))
-$name = $sid.Translate([System.Security.Principal.NTAccount]).Value
-}
-}
-catch {
-Write-Host "Failed to translate $_" -ForegroundColor Red
-}
-$rights[$rightName] += $name
-}
-}
-elseif ($_ -match '^\[') {
-$inZone = $false
-}
-}
-elseif ($_ -eq '[Privilege Rights]') {
-$inZone = $true
-}
-}
-if ($right) {
-Write-Host $right
-Write-Host ('-' * 60)
-if ($expand) {
-$localGroupMembers = @{}
-Get-LocalGroup | ForEach-Object {
-$sid = New-Object System.Security.Principal.SecurityIdentifier($_.Sid)
-$acnt = $sid.Translate([System.Security.Principal.NTAccount]).Value
-$localGroupMembers[$acnt] = Get-LocalGroupMember $_ | Select-Object -ExpandProperty Name
-}
-$rights[$right] | ForEach-Object {
-Write-Host $_
-$grpName = $_
-if ($localGroupMembers.ContainsKey($grpName)) {
-$localGroupMembers[$grpName] | ForEach-Object {
-Write-Host "  - $_"
-}
-}
-else {
-Write-Host "  (No members)"
-}
-}
-}
-else {
-$rights[$right]
-}
-}
-else {
-$rights
-}
-}
-$wp = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
-if (-Not $wp.IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-$rawCmd = $MyInvocation.Line
-$rawArgs = $rawCmd.Substring($rawCmd.IndexOf('.ps1') + 4)
-if ($rawCmd.StartsWith('if')) { $rawArgs = '' }
-Start-Process Powershell -Verb RunAs -ArgumentList "$PSCommandPath $rawArgs"
-}
-else {
-ListRights $Right $Expand
-}
-</code></pre> <p>共三種用法：</p> <pre><code>PSAccessChk.ps1 SeInteractiveLogonRight # 查本機登入權限對象
-PSAccessChk.ps1 SeInteractiveLogonRight -Expand # 查本機登入權限對象並展開本機群組成員
-PSAccessChk.ps1 # 列出全部權限及其授與對象
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638543193212196917.png"></p> <p data-slug="accesschk-ps-version" data-title-en="List granted accounts or groupds for specified user right with PowerShell" data-catg=".NET" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360">To check which accounts or groups can log into a Windows machine, the simplest method is to use the “Local Security Policy” to query “User Rights Assignment/Allow log on locally.” For a quicker command-based method, you can use the Sysinternals tool AccessChk. Alternatively, if third-party tools are not an option, an 80-line PowerShell script can be used to perform the same function, listing and expanding user rights and group members.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>要查詢有哪些帳號或群組可以登入 Windows 本機操作，最簡單的做法是使用「本機安全性原則」查詢「使用者權限指派/允許本機登入」，而所謂「允許本機登入」對映的是名為 SeInteractiveLogonRight 的 Windows 使用者權限。延伸閱讀：<a href="/blog/userright-admin-powershell/">使用 PowerShell 設定使用者權限(User Right)</a>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638543193206811429.png"></p> <p>如果嫌開 UI 太麻煩太繁瑣，想透過指令快速查詢或將結果轉存成檔案呢？可以使用 Sysinternals 超級工具包的 <a href="https://learn.microsoft.com/zh-tw/sysinternals/downloads/accesschk?WT.mc_id=DOP-MVP-37580">AccessChk</a>：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638543193209877959.png"></p> <p>如果因為環境特殊，不便下載或部署第三方工具，要怎麼用 PowerShell 完成？</p> <p>我用 80 行 PowerShell 寫了一個取代 AccessChk 的使用者權限查詢功能：(註：<a href="https://learn.microsoft.com/zh-tw/windows-server/administration/windows-commands/secedit-export?WT.mc_id=DOP-MVP-37580">secedit /export</a> 需管理者權限，程式有用到<a href="/blog/ps1-requireadministrator/">自動改用管理者權限執行 .ps1 的小技巧</a>)</p> <pre><code>param (
-[string]$Right,
-[switch]$Expand
-)
-$ErrorActionPreference = 'STOP'
-function ListRights($right, $expand) {
-# Call secedit to get the list of rights
-$tmpPath = [System.IO.Path]::GetTempFileName()
-secedit.exe /export /cfg $tmpPath | Out-Null
-$raw = Get-Content $tmpPath
-Remove-Item $tmpPath
-$rights = @{}
-$inZone = $false
-$raw | ForEach-Object {
-if ($inZone) {
-if ($_ -match '^\s*(\S+)\s*=\s*(\S+)\s*$') {
-$rightName = $matches[1]
-$rights[$rightName] = @()
-$matches[2].Split(',') | ForEach-Object {
-try {
-$name = $_
-if ($name -match '^\*') {
-$sid = New-Object System.Security.Principal.SecurityIdentifier($name.Trim('*'))
-$name = $sid.Translate([System.Security.Principal.NTAccount]).Value
-}
-}
-catch {
-Write-Host "Failed to translate $_" -ForegroundColor Red
-}
-$rights[$rightName] += $name
-}
-}
-elseif ($_ -match '^\[') {
-$inZone = $false
-}
-}
-elseif ($_ -eq '[Privilege Rights]') {
-$inZone = $true
-}
-}
-if ($right) {
-Write-Host $right
-Write-Host ('-' * 60)
-if ($expand) {
-$localGroupMembers = @{}
-Get-LocalGroup | ForEach-Object {
-$sid = New-Object System.Security.Principal.SecurityIdentifier($_.Sid)
-$acnt = $sid.Translate([System.Security.Principal.NTAccount]).Value
-$localGroupMembers[$acnt] = Get-LocalGroupMember $_ | Select-Object -ExpandProperty Name
-}
-$rights[$right] | ForEach-Object {
-Write-Host $_
-$grpName = $_
-if ($localGroupMembers.ContainsKey($grpName)) {
-$localGroupMembers[$grpName] | ForEach-Object {
-Write-Host "  - $_"
-}
-}
-else {
-Write-Host "  (No members)"
-}
-}
-}
-else {
-$rights[$right]
-}
-}
-else {
-$rights
-}
-}
-$wp = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
-if (-Not $wp.IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-$rawCmd = $MyInvocation.Line
-$rawArgs = $rawCmd.Substring($rawCmd.IndexOf('.ps1') + 4)
-if ($rawCmd.StartsWith('if')) { $rawArgs = '' }
-Start-Process Powershell -Verb RunAs -ArgumentList "$PSCommandPath $rawArgs"
-}
-else {
-ListRights $Right $Expand
-}
-</code></pre> <p>共三種用法：</p> <pre><code>PSAccessChk.ps1 SeInteractiveLogonRight # 查本機登入權限對象
-PSAccessChk.ps1 SeInteractiveLogonRight -Expand # 查本機登入權限對象並展開本機群組成員
-PSAccessChk.ps1 # 列出全部權限及其授與對象
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638543193212196917.png"></p> <p data-slug="accesschk-ps-version" data-title-en="List granted accounts or groupds for specified user right with PowerShell" data-catg=".NET" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360">To check which accounts or groups can log into a Windows machine, the simplest method is to use the “Local Security Policy” to query “User Rights Assignment/Allow log on locally.” For a quicker command-based method, you can use the Sysinternals tool AccessChk. Alternatively, if third-party tools are not an option, an 80-line PowerShell script can be used to perform the same function, listing and expanding user rights and group members.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>要查詢有哪些帳號或群組可以登入 Windows 本機操作，最簡單的做法是使用「本機安全性原則」查詢「使用者權限指派/允許本機登入」，而所謂「允許本機登入」對映的是名為 SeInteractiveLogonRight 的 Windows 使用者權限。延伸閱讀：<a href="/blog/userright-admin-powershell/">使用 PowerShell 設定使用者權限(User Right)</a>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638543193206811429.png"></p> <p>如果嫌開 UI 太麻煩太繁瑣，想透過指令快速查詢或將結果轉存成檔案呢？可以使用 Sysinternals 超級工具包的 <a href="https://learn.microsoft.com/zh-tw/sysinternals/downloads/accesschk?WT.mc_id=DOP-MVP-37580">AccessChk</a>：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638543193209877959.png"></p> <p>如果因為環境特殊，不便下載或部署第三方工具，要怎麼用 PowerShell 完成？</p> <p>我用 80 行 PowerShell 寫了一個取代 AccessChk 的使用者權限查詢功能：(註：<a href="https://learn.microsoft.com/zh-tw/windows-server/administration/windows-commands/secedit-export?WT.mc_id=DOP-MVP-37580">secedit /export</a> 需管理者權限，程式有用到<a href="/blog/ps1-requireadministrator/">自動改用管理者權限執行 .ps1 的小技巧</a>)</p> <pre><code>param (
-[string]$Right,
-[switch]$Expand
-)
-$ErrorActionPreference = 'STOP'
-function ListRights($right, $expand) {
-# Call secedit to get the list of rights
-$tmpPath = [System.IO.Path]::GetTempFileName()
-secedit.exe /export /cfg $tmpPath | Out-Null
-$raw = Get-Content $tmpPath
-Remove-Item $tmpPath
-$rights = @{}
-$inZone = $false
-$raw | ForEach-Object {
-if ($inZone) {
-if ($_ -match '^\s*(\S+)\s*=\s*(\S+)\s*$') {
-$rightName = $matches[1]
-$rights[$rightName] = @()
-$matches[2].Split(',') | ForEach-Object {
-try {
-$name = $_
-if ($name -match '^\*') {
-$sid = New-Object System.Security.Principal.SecurityIdentifier($name.Trim('*'))
-$name = $sid.Translate([System.Security.Principal.NTAccount]).Value
-}
-}
-catch {
-Write-Host "Failed to translate $_" -ForegroundColor Red
-}
-$rights[$rightName] += $name
-}
-}
-elseif ($_ -match '^\[') {
-$inZone = $false
-}
-}
-elseif ($_ -eq '[Privilege Rights]') {
-$inZone = $true
-}
-}
-if ($right) {
-Write-Host $right
-Write-Host ('-' * 60)
-if ($expand) {
-$localGroupMembers = @{}
-Get-LocalGroup | ForEach-Object {
-$sid = New-Object System.Security.Principal.SecurityIdentifier($_.Sid)
-$acnt = $sid.Translate([System.Security.Principal.NTAccount]).Value
-$localGroupMembers[$acnt] = Get-LocalGroupMember $_ | Select-Object -ExpandProperty Name
-}
-$rights[$right] | ForEach-Object {
-Write-Host $_
-$grpName = $_
-if ($localGroupMembers.ContainsKey($grpName)) {
-$localGroupMembers[$grpName] | ForEach-Object {
-Write-Host "  - $_"
-}
-}
-else {
-Write-Host "  (No members)"
-}
-}
-}
-else {
-$rights[$right]
-}
-}
-else {
-$rights
-}
-}
-$wp = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
-if (-Not $wp.IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-$rawCmd = $MyInvocation.Line
-$rawArgs = $rawCmd.Substring($rawCmd.IndexOf('.ps1') + 4)
-if ($rawCmd.StartsWith('if')) { $rawArgs = '' }
-Start-Process Powershell -Verb RunAs -ArgumentList "$PSCommandPath $rawArgs"
-}
-else {
-ListRights $Right $Expand
-}
-</code></pre> <p>共三種用法：</p> <pre><code>PSAccessChk.ps1 SeInteractiveLogonRight # 查本機登入權限對象
-PSAccessChk.ps1 SeInteractiveLogonRight -Expand # 查本機登入權限對象並展開本機群組成員
-PSAccessChk.ps1 # 列出全部權限及其授與對象
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638543193212196917.png"></p> <p data-slug="accesschk-ps-version" data-title-en="List granted accounts or groupds for specified user right with PowerShell" data-catg=".NET" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360">To check which accounts or groups can log into a Windows machine, the simplest method is to use the “Local Security Policy” to query “User Rights Assignment/Allow log on locally.” For a quicker command-based method, you can use the Sysinternals tool AccessChk. Alternatively, if third-party tools are not an option, an 80-line PowerShell script can be used to perform the same function, listing and expanding user rights and group members.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638543193206811429.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638543193206811429.png" medium="image"/>
-    <pubDate>Tue, 18 Jun 2024 14:48:37 GMT</pubDate>
   </item></channel>
 </rss>
