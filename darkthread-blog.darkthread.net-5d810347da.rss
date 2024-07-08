@@ -30,6 +30,609 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[ChatGpt API 速率限制實測與產能利用率最大化]]></title>
+    <link>https://blog.darkthread.net/blog/chatgpt-api-rate-limit/</link>
+    <itunes:title><![CDATA[ChatGpt API 速率限制實測與產能利用率最大化]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>為防止服務被濫用、伺服器過載及確保公平性，OpenAI 官方及 Azure 的 OpenAI API 都設有<a href="https://doc.chatgptcn.com/zh/guides/rate-limits">速率限制(Rate Limit)</a>，限定每分鐘請求數(RPM)及 Token 數量(TPM)上限。這是用 ChatGPT API 跑批次作業常要面對的問題，上回 <a href="/blog/call-chatgpt-api-in-ps/">PowerShell 整合 ChatGPT API 執行批次任務</a>已提過呼叫間加入延遲拉長呼叫間隔的簡易解法，但最大問題是間隔該抓多久，間隔太短會超過速率上限，過長則會形成無謂等待，拉長完成時間。因此，較理想做法是依呼叫速率動態調節，設法在上限內擠出最大流量。</p> <p>這篇文章將以 Azure OpenAI GPT-4o API 為例，簡單實測速率上限，並嘗試搾出最多流量充分利用產能。</p> <p>借用<a href="/blog/call-chatgpt-api-in-ps/">上回文章</a>的程式範例，我加上幾行程式碼解析回傳結果統計呼叫次數及已使用的 Token 數；超過速率上限時，系統會回傳 HTTP 429 TooManyRequests，透過 try catch System.Net.WebException 及 Exception.Response.GetResponseStream()，可取得詳細錯誤訊息。</p> <p>第一個實驗先測試 RPM 上限。</p> <pre><code>$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$tokenCountDict = @{}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role    = "system"
+content = @(
+[PSCustomObject]@{
+type        = "text"
+text        = $fullPrompt
+temperature = 0.7
+top_p       = 0.95
+max_tokens  = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$timeStampSecs = $sw.Elapsed.TotalSeconds.ToString('0.0')
+try {
+$response = $wc.UploadData($Global:apiUrl, [System.Text.Encoding]::UTF8.GetBytes($json))
+}
+catch [System.Net.WebException] {
+$response = $_.Exception.Response.GetResponseStream()
+$reader = New-Object System.IO.StreamReader($response)
+Write-Host $reader.ReadToEnd() -ForegroundColor Red
+throw
+}
+$result = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+$usage = $result.usage
+$Global:tokenCount += $usage.total_tokens
+$tokenCountDict[$timeStampSecs] = $usage.total_tokens
+$tokenCount = 0
+$reqCount = 0
+$lessThan1Min = $timeStampSecs - 60
+$minTimeStamp = [int]::MaxValue
+$tokenCountDict.GetEnumerator() | ForEach-Object {
+if ($_.Key -ge $lessThan1Min) {
+$tokenCount += $_.Value
+$reqCount++
+if ($_.Key -lt $minTimeStamp) {
+$minTimeStamp = $_.Key
+}
+}
+else {
+$tokenCountDict.Remove($_.Key)
+}
+}
+Write-Host "$($timeStampSecs)s $($usage.total_tokens)($($usage.prompt_tokens) + $($usage.completion_tokens)) tokens | $tokenCount TPM | $reqCount RPM | ($minTimeStamp ~ $timeStampSecs)" -ForegroundColor Magenta
+return $result.choices[0].message.content
+}
+SetSystemPrompt '請提供下列人名英文音譯：'
+[string[]] $names = "張飛、趙雲、黃忠、魏延、馬超、孔明、劉備、關羽、曹操、孫權、周瑜、孫策、呂布、袁紹、劉表、劉璋、張角、董卓、貂蟬、王允".Split("、")
+while ($true) {
+$names | ForEach-Object {
+$res = CallComplete $_
+Write-Host $res.Substring(0, [Math]::Min($res.Length, 32)) '...'
+}
+}
+</code></pre> <p>我設計了一個簡單的三國人名翻譯任務，輕鬆在 5 秒內集滿 10 次呼叫( Token 數不多，約三百出頭)，接著第 11 次便發生 HTTP 429，告知需等待 2 秒及 5 秒再試：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638560463102924197.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638560463104723285.png"></p> <p>試著加入 <code>Start-Sleep -Seconds 1</code> 放緩呼叫速度，使 10 次呼叫超過十秒，這回在 33s 累積 15 RPM 後才出現 HTTP 429，要求等待 26 秒再試：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638560463106550541.png"></p> <p>第二個實驗改做長篇文章總結，挑戰 TPM 上限。前後試了兩次(中間有間隔 60 秒以上)，分別在 8s 4532 / 5s 4543 TPM 時撞上 HTTP 429，要求等待 52s 及 55s 後再試。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638560463108453206.png"></p> <p>由上述測試結果，推測 TPM 上限是以分鐘為單位，上限約在 5K 左右，而超過上限等待時間可用 <code>60 - 連續呼叫秒數</code>推算(60-8 = 52, 60-5 = 55)。RPM 上限的統計方式感覺較複雜，至少已有十秒內累積 10 次或 30 秒內累積 15 次兩種狀況，前者要求等待 2 或 5 秒，依據不明；後者倒可用 <code>60 - 連續呼叫秒數</code>推算(60-33 接近 26)。<br> 註：速率上限與訂閱身分有關，企業帳號的上限應會比 MSDN 訂閱高一些。<a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/quotas-limits?WT.mc_id=DOP-MVP-37580#other-offer-types">參考</a></p> <p>綜合上述觀察，若同時有其他服務也在使用 API，很難藉由統計呼叫量掌握總體剩餘額度，依據系統回傳 HTTP 429 指定的等待時間暫停呼叫是較可行的做法。故將程式設計成「遇回傳 HTTP 429 錯誤時，先暫停指定等待秒數再重試」，理論上可達到速率限制內的最大流量。</p> <p>我簡單試做了一個版本，實測效果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638560463113170332.gif"></p> <p>完整程式範例如下，原理很簡單，catch System.Net.WebException 判斷是否狀態為 429，若是則進一步用 Regex 識別 <code>retry after (?&lt;s&gt;\d+) second</code> 指定秒數，用 Start-Sleep 等待足夠時間後再新發送請求，如此便可貼著速率上限執行批次作業，達到最大產能。</p> <pre><code>param ([string]$question)
+$ErrorActionPreference = "Stop"
+$settingsPath = '.\azure-openai.settings'
+function ReadApiSettings() {
+try {
+if (Test-Path $settingsPath) {
+$settings = Get-Content $settingsPath | ConvertFrom-Json
+$apiUrl = $settings.apiUrl
+$apiKey = $settings.apiKey
+}
+}
+catch {  }
+if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
+Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
+if ([string]::IsNullOrEmpty($apiUrl)) {
+Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
+Write-Host "API Url: " -ForegroundColor Cyan
+$apiUrl = Read-Host
+}
+if ([string]::IsNullOrEmpty($apiKey)) {
+Write-Host "API Key: " -ForegroundColor Cyan
+$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
+}
+@{
+apiUrl = $apiUrl
+apiKey = $apiKey
+} | ConvertTo-Json | Set-Content -Path $settingsPath
+}
+$Global:apiUrl = $apiUrl
+$Global:apiKey = $apiKey
+}
+ReadApiSettings
+$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
+function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
+function DecryptApiKey() {
+$secStr = $Global:apiKey | ConvertTo-SecureString
+$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
+return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+}
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$tokenCountDict = @{}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role    = "system"
+content = @(
+[PSCustomObject]@{
+type        = "text"
+text        = $fullPrompt
+temperature = 0.7
+top_p       = 0.95
+max_tokens  = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$timeStampSecs = $sw.Elapsed.TotalSeconds.ToString('0.0')
+$retry = 5
+while ($true) {
+try {
+$response = $wc.UploadData($Global:apiUrl, [System.Text.Encoding]::UTF8.GetBytes($json))
+break
+}
+catch [System.Net.WebException] {
+$response = $_.Exception.Response.GetResponseStream()
+$reader = New-Object System.IO.StreamReader($response)
+$respText = $reader.ReadToEnd()
+$result = $respText | ConvertFrom-Json
+if ($result.error.code -eq '429') {
+$msg = $result.error.message
+$retryAfter = [regex]::Match($msg, 'retry after (?&lt;s&gt;\d+) second')
+if ($retryAfter.Success) {
+$secs = [int]::Parse($retryAfter.Groups['s'].Value) + 1
+Write-Host "Token rate limit exceeded, wait for $secs seconds." -ForegroundColor Cyan
+while ($secs -gt 0) {
+Write-Host "`r * $secs seconds to retry..." -ForegroundColor Green -NoNewline
+Start-Sleep -Seconds 1
+$secs--
+}
+Write-Host "`r                                   `r" -NoNewline
+$retry--
+continue
+}
+else {
+Write-Host $msg -ForegroundColor Red
+}
+}
+throw
+}
+}
+if ($retry -le 0) {
+throw "Retry limit exceeded"
+}
+$result = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+$usage = $result.usage
+$Global:tokenCount += $usage.total_tokens
+$tokenCountDict[$timeStampSecs] = $usage.total_tokens
+$tokenCount = 0
+$reqCount = 0
+$lessThan1Min = $timeStampSecs - 60
+$minTimeStamp = [int]::MaxValue
+$tokenCountDict.GetEnumerator() | ForEach-Object {
+if ($_.Key -ge $lessThan1Min) {
+$tokenCount += $_.Value
+$reqCount++
+if ($_.Key -lt $minTimeStamp) {
+$minTimeStamp = $_.Key
+}
+}
+else {
+$tokenCountDict.Remove($_.Key)
+}
+}
+Write-Host "$($timeStampSecs)s $($usage.total_tokens)($($usage.prompt_tokens) + $($usage.completion_tokens)) tokens | $tokenCount TPM | $reqCount RPM | ($minTimeStamp ~ $timeStampSecs)" -ForegroundColor Magenta
+return $result.choices[0].message.content
+}
+SetSystemPrompt '請提供下列人名英文音譯：'
+[string[]] $names = "張飛、趙雲、黃忠、魏延、馬超、孔明、劉備、關羽、曹操、孫權、周瑜、孫策、呂布、袁紹、劉表、劉璋、張角、董卓、貂蟬、王允".Split("、")
+while ($true) {
+$names | ForEach-Object {
+$res = CallComplete $_
+Write-Host $res.Substring(0, [Math]::Min($res.Length, 32)) '...'
+}
+}
+</code></pre> <p data-slug="chatgpt-api-rate-limit" data-title-en="Introduction to OpenAI API rate limits and countermeasures" data-catg=".NET" data-fbimg="https://res-3.cloudinary.com/jnto/image/upload/w_2064,h_1300,c_fill,f_auto,fl_lossy,q_auto/v1514197983/toyama/Toyama1204_1#1413#889">This blog post addresses the issue of rate limits (RPM and TPM) set by OpenAI and Azure OpenAI API to prevent service abuse. The author provides a PowerShell script to dynamically adjust the calling rate to maximize throughput while avoiding HTTP 429 errors.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>為防止服務被濫用、伺服器過載及確保公平性，OpenAI 官方及 Azure 的 OpenAI API 都設有<a href="https://doc.chatgptcn.com/zh/guides/rate-limits">速率限制(Rate Limit)</a>，限定每分鐘請求數(RPM)及 Token 數量(TPM)上限。這是用 ChatGPT API 跑批次作業常要面對的問題，上回 <a href="/blog/call-chatgpt-api-in-ps/">PowerShell 整合 ChatGPT API 執行批次任務</a>已提過呼叫間加入延遲拉長呼叫間隔的簡易解法，但最大問題是間隔該抓多久，間隔太短會超過速率上限，過長則會形成無謂等待，拉長完成時間。因此，較理想做法是依呼叫速率動態調節，設法在上限內擠出最大流量。</p> <p>這篇文章將以 Azure OpenAI GPT-4o API 為例，簡單實測速率上限，並嘗試搾出最多流量充分利用產能。</p> <p>借用<a href="/blog/call-chatgpt-api-in-ps/">上回文章</a>的程式範例，我加上幾行程式碼解析回傳結果統計呼叫次數及已使用的 Token 數；超過速率上限時，系統會回傳 HTTP 429 TooManyRequests，透過 try catch System.Net.WebException 及 Exception.Response.GetResponseStream()，可取得詳細錯誤訊息。</p> <p>第一個實驗先測試 RPM 上限。</p> <pre><code>$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$tokenCountDict = @{}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role    = "system"
+content = @(
+[PSCustomObject]@{
+type        = "text"
+text        = $fullPrompt
+temperature = 0.7
+top_p       = 0.95
+max_tokens  = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$timeStampSecs = $sw.Elapsed.TotalSeconds.ToString('0.0')
+try {
+$response = $wc.UploadData($Global:apiUrl, [System.Text.Encoding]::UTF8.GetBytes($json))
+}
+catch [System.Net.WebException] {
+$response = $_.Exception.Response.GetResponseStream()
+$reader = New-Object System.IO.StreamReader($response)
+Write-Host $reader.ReadToEnd() -ForegroundColor Red
+throw
+}
+$result = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+$usage = $result.usage
+$Global:tokenCount += $usage.total_tokens
+$tokenCountDict[$timeStampSecs] = $usage.total_tokens
+$tokenCount = 0
+$reqCount = 0
+$lessThan1Min = $timeStampSecs - 60
+$minTimeStamp = [int]::MaxValue
+$tokenCountDict.GetEnumerator() | ForEach-Object {
+if ($_.Key -ge $lessThan1Min) {
+$tokenCount += $_.Value
+$reqCount++
+if ($_.Key -lt $minTimeStamp) {
+$minTimeStamp = $_.Key
+}
+}
+else {
+$tokenCountDict.Remove($_.Key)
+}
+}
+Write-Host "$($timeStampSecs)s $($usage.total_tokens)($($usage.prompt_tokens) + $($usage.completion_tokens)) tokens | $tokenCount TPM | $reqCount RPM | ($minTimeStamp ~ $timeStampSecs)" -ForegroundColor Magenta
+return $result.choices[0].message.content
+}
+SetSystemPrompt '請提供下列人名英文音譯：'
+[string[]] $names = "張飛、趙雲、黃忠、魏延、馬超、孔明、劉備、關羽、曹操、孫權、周瑜、孫策、呂布、袁紹、劉表、劉璋、張角、董卓、貂蟬、王允".Split("、")
+while ($true) {
+$names | ForEach-Object {
+$res = CallComplete $_
+Write-Host $res.Substring(0, [Math]::Min($res.Length, 32)) '...'
+}
+}
+</code></pre> <p>我設計了一個簡單的三國人名翻譯任務，輕鬆在 5 秒內集滿 10 次呼叫( Token 數不多，約三百出頭)，接著第 11 次便發生 HTTP 429，告知需等待 2 秒及 5 秒再試：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638560463102924197.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638560463104723285.png"></p> <p>試著加入 <code>Start-Sleep -Seconds 1</code> 放緩呼叫速度，使 10 次呼叫超過十秒，這回在 33s 累積 15 RPM 後才出現 HTTP 429，要求等待 26 秒再試：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638560463106550541.png"></p> <p>第二個實驗改做長篇文章總結，挑戰 TPM 上限。前後試了兩次(中間有間隔 60 秒以上)，分別在 8s 4532 / 5s 4543 TPM 時撞上 HTTP 429，要求等待 52s 及 55s 後再試。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638560463108453206.png"></p> <p>由上述測試結果，推測 TPM 上限是以分鐘為單位，上限約在 5K 左右，而超過上限等待時間可用 <code>60 - 連續呼叫秒數</code>推算(60-8 = 52, 60-5 = 55)。RPM 上限的統計方式感覺較複雜，至少已有十秒內累積 10 次或 30 秒內累積 15 次兩種狀況，前者要求等待 2 或 5 秒，依據不明；後者倒可用 <code>60 - 連續呼叫秒數</code>推算(60-33 接近 26)。<br> 註：速率上限與訂閱身分有關，企業帳號的上限應會比 MSDN 訂閱高一些。<a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/quotas-limits?WT.mc_id=DOP-MVP-37580#other-offer-types">參考</a></p> <p>綜合上述觀察，若同時有其他服務也在使用 API，很難藉由統計呼叫量掌握總體剩餘額度，依據系統回傳 HTTP 429 指定的等待時間暫停呼叫是較可行的做法。故將程式設計成「遇回傳 HTTP 429 錯誤時，先暫停指定等待秒數再重試」，理論上可達到速率限制內的最大流量。</p> <p>我簡單試做了一個版本，實測效果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638560463113170332.gif"></p> <p>完整程式範例如下，原理很簡單，catch System.Net.WebException 判斷是否狀態為 429，若是則進一步用 Regex 識別 <code>retry after (?&lt;s&gt;\d+) second</code> 指定秒數，用 Start-Sleep 等待足夠時間後再新發送請求，如此便可貼著速率上限執行批次作業，達到最大產能。</p> <pre><code>param ([string]$question)
+$ErrorActionPreference = "Stop"
+$settingsPath = '.\azure-openai.settings'
+function ReadApiSettings() {
+try {
+if (Test-Path $settingsPath) {
+$settings = Get-Content $settingsPath | ConvertFrom-Json
+$apiUrl = $settings.apiUrl
+$apiKey = $settings.apiKey
+}
+}
+catch {  }
+if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
+Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
+if ([string]::IsNullOrEmpty($apiUrl)) {
+Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
+Write-Host "API Url: " -ForegroundColor Cyan
+$apiUrl = Read-Host
+}
+if ([string]::IsNullOrEmpty($apiKey)) {
+Write-Host "API Key: " -ForegroundColor Cyan
+$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
+}
+@{
+apiUrl = $apiUrl
+apiKey = $apiKey
+} | ConvertTo-Json | Set-Content -Path $settingsPath
+}
+$Global:apiUrl = $apiUrl
+$Global:apiKey = $apiKey
+}
+ReadApiSettings
+$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
+function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
+function DecryptApiKey() {
+$secStr = $Global:apiKey | ConvertTo-SecureString
+$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
+return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+}
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$tokenCountDict = @{}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role    = "system"
+content = @(
+[PSCustomObject]@{
+type        = "text"
+text        = $fullPrompt
+temperature = 0.7
+top_p       = 0.95
+max_tokens  = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$timeStampSecs = $sw.Elapsed.TotalSeconds.ToString('0.0')
+$retry = 5
+while ($true) {
+try {
+$response = $wc.UploadData($Global:apiUrl, [System.Text.Encoding]::UTF8.GetBytes($json))
+break
+}
+catch [System.Net.WebException] {
+$response = $_.Exception.Response.GetResponseStream()
+$reader = New-Object System.IO.StreamReader($response)
+$respText = $reader.ReadToEnd()
+$result = $respText | ConvertFrom-Json
+if ($result.error.code -eq '429') {
+$msg = $result.error.message
+$retryAfter = [regex]::Match($msg, 'retry after (?&lt;s&gt;\d+) second')
+if ($retryAfter.Success) {
+$secs = [int]::Parse($retryAfter.Groups['s'].Value) + 1
+Write-Host "Token rate limit exceeded, wait for $secs seconds." -ForegroundColor Cyan
+while ($secs -gt 0) {
+Write-Host "`r * $secs seconds to retry..." -ForegroundColor Green -NoNewline
+Start-Sleep -Seconds 1
+$secs--
+}
+Write-Host "`r                                   `r" -NoNewline
+$retry--
+continue
+}
+else {
+Write-Host $msg -ForegroundColor Red
+}
+}
+throw
+}
+}
+if ($retry -le 0) {
+throw "Retry limit exceeded"
+}
+$result = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+$usage = $result.usage
+$Global:tokenCount += $usage.total_tokens
+$tokenCountDict[$timeStampSecs] = $usage.total_tokens
+$tokenCount = 0
+$reqCount = 0
+$lessThan1Min = $timeStampSecs - 60
+$minTimeStamp = [int]::MaxValue
+$tokenCountDict.GetEnumerator() | ForEach-Object {
+if ($_.Key -ge $lessThan1Min) {
+$tokenCount += $_.Value
+$reqCount++
+if ($_.Key -lt $minTimeStamp) {
+$minTimeStamp = $_.Key
+}
+}
+else {
+$tokenCountDict.Remove($_.Key)
+}
+}
+Write-Host "$($timeStampSecs)s $($usage.total_tokens)($($usage.prompt_tokens) + $($usage.completion_tokens)) tokens | $tokenCount TPM | $reqCount RPM | ($minTimeStamp ~ $timeStampSecs)" -ForegroundColor Magenta
+return $result.choices[0].message.content
+}
+SetSystemPrompt '請提供下列人名英文音譯：'
+[string[]] $names = "張飛、趙雲、黃忠、魏延、馬超、孔明、劉備、關羽、曹操、孫權、周瑜、孫策、呂布、袁紹、劉表、劉璋、張角、董卓、貂蟬、王允".Split("、")
+while ($true) {
+$names | ForEach-Object {
+$res = CallComplete $_
+Write-Host $res.Substring(0, [Math]::Min($res.Length, 32)) '...'
+}
+}
+</code></pre> <p data-slug="chatgpt-api-rate-limit" data-title-en="Introduction to OpenAI API rate limits and countermeasures" data-catg=".NET" data-fbimg="https://res-3.cloudinary.com/jnto/image/upload/w_2064,h_1300,c_fill,f_auto,fl_lossy,q_auto/v1514197983/toyama/Toyama1204_1#1413#889">This blog post addresses the issue of rate limits (RPM and TPM) set by OpenAI and Azure OpenAI API to prevent service abuse. The author provides a PowerShell script to dynamically adjust the calling rate to maximize throughput while avoiding HTTP 429 errors.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>為防止服務被濫用、伺服器過載及確保公平性，OpenAI 官方及 Azure 的 OpenAI API 都設有<a href="https://doc.chatgptcn.com/zh/guides/rate-limits">速率限制(Rate Limit)</a>，限定每分鐘請求數(RPM)及 Token 數量(TPM)上限。這是用 ChatGPT API 跑批次作業常要面對的問題，上回 <a href="/blog/call-chatgpt-api-in-ps/">PowerShell 整合 ChatGPT API 執行批次任務</a>已提過呼叫間加入延遲拉長呼叫間隔的簡易解法，但最大問題是間隔該抓多久，間隔太短會超過速率上限，過長則會形成無謂等待，拉長完成時間。因此，較理想做法是依呼叫速率動態調節，設法在上限內擠出最大流量。</p> <p>這篇文章將以 Azure OpenAI GPT-4o API 為例，簡單實測速率上限，並嘗試搾出最多流量充分利用產能。</p> <p>借用<a href="/blog/call-chatgpt-api-in-ps/">上回文章</a>的程式範例，我加上幾行程式碼解析回傳結果統計呼叫次數及已使用的 Token 數；超過速率上限時，系統會回傳 HTTP 429 TooManyRequests，透過 try catch System.Net.WebException 及 Exception.Response.GetResponseStream()，可取得詳細錯誤訊息。</p> <p>第一個實驗先測試 RPM 上限。</p> <pre><code>$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$tokenCountDict = @{}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role    = "system"
+content = @(
+[PSCustomObject]@{
+type        = "text"
+text        = $fullPrompt
+temperature = 0.7
+top_p       = 0.95
+max_tokens  = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$timeStampSecs = $sw.Elapsed.TotalSeconds.ToString('0.0')
+try {
+$response = $wc.UploadData($Global:apiUrl, [System.Text.Encoding]::UTF8.GetBytes($json))
+}
+catch [System.Net.WebException] {
+$response = $_.Exception.Response.GetResponseStream()
+$reader = New-Object System.IO.StreamReader($response)
+Write-Host $reader.ReadToEnd() -ForegroundColor Red
+throw
+}
+$result = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+$usage = $result.usage
+$Global:tokenCount += $usage.total_tokens
+$tokenCountDict[$timeStampSecs] = $usage.total_tokens
+$tokenCount = 0
+$reqCount = 0
+$lessThan1Min = $timeStampSecs - 60
+$minTimeStamp = [int]::MaxValue
+$tokenCountDict.GetEnumerator() | ForEach-Object {
+if ($_.Key -ge $lessThan1Min) {
+$tokenCount += $_.Value
+$reqCount++
+if ($_.Key -lt $minTimeStamp) {
+$minTimeStamp = $_.Key
+}
+}
+else {
+$tokenCountDict.Remove($_.Key)
+}
+}
+Write-Host "$($timeStampSecs)s $($usage.total_tokens)($($usage.prompt_tokens) + $($usage.completion_tokens)) tokens | $tokenCount TPM | $reqCount RPM | ($minTimeStamp ~ $timeStampSecs)" -ForegroundColor Magenta
+return $result.choices[0].message.content
+}
+SetSystemPrompt '請提供下列人名英文音譯：'
+[string[]] $names = "張飛、趙雲、黃忠、魏延、馬超、孔明、劉備、關羽、曹操、孫權、周瑜、孫策、呂布、袁紹、劉表、劉璋、張角、董卓、貂蟬、王允".Split("、")
+while ($true) {
+$names | ForEach-Object {
+$res = CallComplete $_
+Write-Host $res.Substring(0, [Math]::Min($res.Length, 32)) '...'
+}
+}
+</code></pre> <p>我設計了一個簡單的三國人名翻譯任務，輕鬆在 5 秒內集滿 10 次呼叫( Token 數不多，約三百出頭)，接著第 11 次便發生 HTTP 429，告知需等待 2 秒及 5 秒再試：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638560463102924197.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638560463104723285.png"></p> <p>試著加入 <code>Start-Sleep -Seconds 1</code> 放緩呼叫速度，使 10 次呼叫超過十秒，這回在 33s 累積 15 RPM 後才出現 HTTP 429，要求等待 26 秒再試：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638560463106550541.png"></p> <p>第二個實驗改做長篇文章總結，挑戰 TPM 上限。前後試了兩次(中間有間隔 60 秒以上)，分別在 8s 4532 / 5s 4543 TPM 時撞上 HTTP 429，要求等待 52s 及 55s 後再試。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638560463108453206.png"></p> <p>由上述測試結果，推測 TPM 上限是以分鐘為單位，上限約在 5K 左右，而超過上限等待時間可用 <code>60 - 連續呼叫秒數</code>推算(60-8 = 52, 60-5 = 55)。RPM 上限的統計方式感覺較複雜，至少已有十秒內累積 10 次或 30 秒內累積 15 次兩種狀況，前者要求等待 2 或 5 秒，依據不明；後者倒可用 <code>60 - 連續呼叫秒數</code>推算(60-33 接近 26)。<br> 註：速率上限與訂閱身分有關，企業帳號的上限應會比 MSDN 訂閱高一些。<a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/quotas-limits?WT.mc_id=DOP-MVP-37580#other-offer-types">參考</a></p> <p>綜合上述觀察，若同時有其他服務也在使用 API，很難藉由統計呼叫量掌握總體剩餘額度，依據系統回傳 HTTP 429 指定的等待時間暫停呼叫是較可行的做法。故將程式設計成「遇回傳 HTTP 429 錯誤時，先暫停指定等待秒數再重試」，理論上可達到速率限制內的最大流量。</p> <p>我簡單試做了一個版本，實測效果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638560463113170332.gif"></p> <p>完整程式範例如下，原理很簡單，catch System.Net.WebException 判斷是否狀態為 429，若是則進一步用 Regex 識別 <code>retry after (?&lt;s&gt;\d+) second</code> 指定秒數，用 Start-Sleep 等待足夠時間後再新發送請求，如此便可貼著速率上限執行批次作業，達到最大產能。</p> <pre><code>param ([string]$question)
+$ErrorActionPreference = "Stop"
+$settingsPath = '.\azure-openai.settings'
+function ReadApiSettings() {
+try {
+if (Test-Path $settingsPath) {
+$settings = Get-Content $settingsPath | ConvertFrom-Json
+$apiUrl = $settings.apiUrl
+$apiKey = $settings.apiKey
+}
+}
+catch {  }
+if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
+Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
+if ([string]::IsNullOrEmpty($apiUrl)) {
+Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
+Write-Host "API Url: " -ForegroundColor Cyan
+$apiUrl = Read-Host
+}
+if ([string]::IsNullOrEmpty($apiKey)) {
+Write-Host "API Key: " -ForegroundColor Cyan
+$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
+}
+@{
+apiUrl = $apiUrl
+apiKey = $apiKey
+} | ConvertTo-Json | Set-Content -Path $settingsPath
+}
+$Global:apiUrl = $apiUrl
+$Global:apiKey = $apiKey
+}
+ReadApiSettings
+$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
+function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
+function DecryptApiKey() {
+$secStr = $Global:apiKey | ConvertTo-SecureString
+$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
+return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+}
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$tokenCountDict = @{}
+function CallComplete($prompt) {
+$fullPrompt = $Global:systemPrompt + ' ' + $prompt
+$payLoad = [PSCustomObject]@{
+messages = @(
+[PSCustomObject]@{
+role    = "system"
+content = @(
+[PSCustomObject]@{
+type        = "text"
+text        = $fullPrompt
+temperature = 0.7
+top_p       = 0.95
+max_tokens  = 2048
+}
+)
+}
+)
+}
+$json = $payLoad | ConvertTo-Json -Depth 5
+$wc = New-Object System.Net.WebClient
+$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
+$wc.Headers.Add('api-key', (DecryptApiKey))
+$timeStampSecs = $sw.Elapsed.TotalSeconds.ToString('0.0')
+$retry = 5
+while ($true) {
+try {
+$response = $wc.UploadData($Global:apiUrl, [System.Text.Encoding]::UTF8.GetBytes($json))
+break
+}
+catch [System.Net.WebException] {
+$response = $_.Exception.Response.GetResponseStream()
+$reader = New-Object System.IO.StreamReader($response)
+$respText = $reader.ReadToEnd()
+$result = $respText | ConvertFrom-Json
+if ($result.error.code -eq '429') {
+$msg = $result.error.message
+$retryAfter = [regex]::Match($msg, 'retry after (?&lt;s&gt;\d+) second')
+if ($retryAfter.Success) {
+$secs = [int]::Parse($retryAfter.Groups['s'].Value) + 1
+Write-Host "Token rate limit exceeded, wait for $secs seconds." -ForegroundColor Cyan
+while ($secs -gt 0) {
+Write-Host "`r * $secs seconds to retry..." -ForegroundColor Green -NoNewline
+Start-Sleep -Seconds 1
+$secs--
+}
+Write-Host "`r                                   `r" -NoNewline
+$retry--
+continue
+}
+else {
+Write-Host $msg -ForegroundColor Red
+}
+}
+throw
+}
+}
+if ($retry -le 0) {
+throw "Retry limit exceeded"
+}
+$result = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
+$usage = $result.usage
+$Global:tokenCount += $usage.total_tokens
+$tokenCountDict[$timeStampSecs] = $usage.total_tokens
+$tokenCount = 0
+$reqCount = 0
+$lessThan1Min = $timeStampSecs - 60
+$minTimeStamp = [int]::MaxValue
+$tokenCountDict.GetEnumerator() | ForEach-Object {
+if ($_.Key -ge $lessThan1Min) {
+$tokenCount += $_.Value
+$reqCount++
+if ($_.Key -lt $minTimeStamp) {
+$minTimeStamp = $_.Key
+}
+}
+else {
+$tokenCountDict.Remove($_.Key)
+}
+}
+Write-Host "$($timeStampSecs)s $($usage.total_tokens)($($usage.prompt_tokens) + $($usage.completion_tokens)) tokens | $tokenCount TPM | $reqCount RPM | ($minTimeStamp ~ $timeStampSecs)" -ForegroundColor Magenta
+return $result.choices[0].message.content
+}
+SetSystemPrompt '請提供下列人名英文音譯：'
+[string[]] $names = "張飛、趙雲、黃忠、魏延、馬超、孔明、劉備、關羽、曹操、孫權、周瑜、孫策、呂布、袁紹、劉表、劉璋、張角、董卓、貂蟬、王允".Split("、")
+while ($true) {
+$names | ForEach-Object {
+$res = CallComplete $_
+Write-Host $res.Substring(0, [Math]::Min($res.Length, 32)) '...'
+}
+}
+</code></pre> <p data-slug="chatgpt-api-rate-limit" data-title-en="Introduction to OpenAI API rate limits and countermeasures" data-catg=".NET" data-fbimg="https://res-3.cloudinary.com/jnto/image/upload/w_2064,h_1300,c_fill,f_auto,fl_lossy,q_auto/v1514197983/toyama/Toyama1204_1#1413#889">This blog post addresses the issue of rate limits (RPM and TPM) set by OpenAI and Azure OpenAI API to prevent service abuse. The author provides a PowerShell script to dynamically adjust the calling rate to maximize throughput while avoiding HTTP 429 errors.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638560463102924197.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638560463102924197.png" medium="image"/>
+    <pubDate>Mon, 08 Jul 2024 14:36:06 GMT</pubDate>
+  </item><item>
     <title><![CDATA[相見恨晚的居家維修、電子手工藝好幫手 - UV 光固化膠]]></title>
     <link>https://blog.darkthread.net/blog/uv-resin/</link>
     <itunes:title><![CDATA[相見恨晚的居家維修、電子手工藝好幫手 - UV 光固化膠]]></itunes:title>
@@ -917,20 +1520,5 @@ $watcher.Dispose()
     <itunes:image href="https://darkthread.github.io/demo-gifs/ps-file-watcher.gif"/>
           <media:content url="https://darkthread.github.io/demo-gifs/ps-file-watcher.gif" medium="image"/>
     <pubDate>Sat, 22 Jun 2024 14:48:04 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手日記】ESP CH340 驅動程式錯誤]]></title>
-    <link>https://blog.darkthread.net/blog/ch340-driver/</link>
-    <itunes:title><![CDATA[【茶包射手日記】ESP CH340 驅動程式錯誤]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>很久沒做 <a href="/blog/esp32-for-iot/">ESP</a> 電子玩具了，想用便宜的 ESP8266 D1 Mini 做個簡單計時顯示，方便弄光固化膠時計算紫外光 LED 的照射時間。</p> <p>不意外地，茶包總是挑你想做正事時來攪局，一年多沒用，上傳程式功能它壞了。(想起經典橋段：原本只是要換個燈泡，最後變成修車... )</p> <p><a href="https://www.youtube.com/watch?v=AbSehcT19u0">換燈泡變修車</a></p> <p>上傳程式到 ESP 開發板冒出以下錯誤：<code>serial.serialutil.SerialException: Cannot configure port, something went wrong. Original message: PermissionError(13, '連結到系統的某個裝置失去作用。', None, 31)</code>。</p> <p>爬文清一色都說是 CH340 驅動程式問題，移除重裝可解決。很顯然這招對我無效，不然就不會有這篇文章了。</p> <p>距離上次用這塊 ESP 開發板有點久了，算算已超過一年，初步推測是 Windows 11 更新了驅動程式沒跟上造成不相容。查了目前用的 USB-SERIAL CH340 驅動程版本為 2.8.2023.2，是 2023 年 2 月出的，與官方網站找到的最新版相同，也是 Windows Update Catalog 上的最新版。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638545827329892965.png"></p> <p>會是 ESP 板子壞了？換了一塊 ESP 開發板錯誤依舊，排除是硬體故障(所以說，玩電子零件一定要多買備品呀，出問題時有對照組才不會瞎查)，將焦點拉回驅動程式。</p> <p>再用力爬文，在 StackExchange 查到<a href="https://superuser.com/questions/1781851/esptool-py-permissionerror-while-configuring-serial-port">討論串</a>，2023/05 有網友提到 CH340 在 <a href="https://superuser.com/a/1783460/264724">Windows 自動更新後壞了</a>，退回前一版本才恢復。另外找到一篇 CSDN 文章：<a href="https://blog.csdn.net/weixin_46475950/article/details/131197735">Arduino 下载程序到esp8266错误----踩坑记录</a> ，2023/08 的文章，相同錯誤訊息，也提到要安裝舊版驅動。</p> <p>由此推測 CH340 新版驅動搞鬼的機率頗高，隨便找了一個 3.4.2014.8 版換上，問題還真的就解決了。這一番折騰花了我一個多小時，補聲暗。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638545827331652095.png"></p> <p>附上計時器雛型展示。光顯示秒數太單調，找到一個佛心的 Arduino 動畫程式產生器，<a href="https://animator.wokwi.com/">Wokwi Animator</a>，兩分鐘生出沙漏動畫，好方便! 開源萬歲~</p> <p><img src="https://i.imgur.com/H7yXaff.gif"></p> <p data-slug="ch340-driver" data-fbimg="https://i.imgur.com/QjrugEO.png#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>很久沒做 <a href="/blog/esp32-for-iot/">ESP</a> 電子玩具了，想用便宜的 ESP8266 D1 Mini 做個簡單計時顯示，方便弄光固化膠時計算紫外光 LED 的照射時間。</p> <p>不意外地，茶包總是挑你想做正事時來攪局，一年多沒用，上傳程式功能它壞了。(想起經典橋段：原本只是要換個燈泡，最後變成修車... )</p> <p><a href="https://www.youtube.com/watch?v=AbSehcT19u0">換燈泡變修車</a></p> <p>上傳程式到 ESP 開發板冒出以下錯誤：<code>serial.serialutil.SerialException: Cannot configure port, something went wrong. Original message: PermissionError(13, '連結到系統的某個裝置失去作用。', None, 31)</code>。</p> <p>爬文清一色都說是 CH340 驅動程式問題，移除重裝可解決。很顯然這招對我無效，不然就不會有這篇文章了。</p> <p>距離上次用這塊 ESP 開發板有點久了，算算已超過一年，初步推測是 Windows 11 更新了驅動程式沒跟上造成不相容。查了目前用的 USB-SERIAL CH340 驅動程版本為 2.8.2023.2，是 2023 年 2 月出的，與官方網站找到的最新版相同，也是 Windows Update Catalog 上的最新版。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638545827329892965.png"></p> <p>會是 ESP 板子壞了？換了一塊 ESP 開發板錯誤依舊，排除是硬體故障(所以說，玩電子零件一定要多買備品呀，出問題時有對照組才不會瞎查)，將焦點拉回驅動程式。</p> <p>再用力爬文，在 StackExchange 查到<a href="https://superuser.com/questions/1781851/esptool-py-permissionerror-while-configuring-serial-port">討論串</a>，2023/05 有網友提到 CH340 在 <a href="https://superuser.com/a/1783460/264724">Windows 自動更新後壞了</a>，退回前一版本才恢復。另外找到一篇 CSDN 文章：<a href="https://blog.csdn.net/weixin_46475950/article/details/131197735">Arduino 下载程序到esp8266错误----踩坑记录</a> ，2023/08 的文章，相同錯誤訊息，也提到要安裝舊版驅動。</p> <p>由此推測 CH340 新版驅動搞鬼的機率頗高，隨便找了一個 3.4.2014.8 版換上，問題還真的就解決了。這一番折騰花了我一個多小時，補聲暗。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638545827331652095.png"></p> <p>附上計時器雛型展示。光顯示秒數太單調，找到一個佛心的 Arduino 動畫程式產生器，<a href="https://animator.wokwi.com/">Wokwi Animator</a>，兩分鐘生出沙漏動畫，好方便! 開源萬歲~</p> <p><img src="https://i.imgur.com/H7yXaff.gif"></p> <p data-slug="ch340-driver" data-fbimg="https://i.imgur.com/QjrugEO.png#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>很久沒做 <a href="/blog/esp32-for-iot/">ESP</a> 電子玩具了，想用便宜的 ESP8266 D1 Mini 做個簡單計時顯示，方便弄光固化膠時計算紫外光 LED 的照射時間。</p> <p>不意外地，茶包總是挑你想做正事時來攪局，一年多沒用，上傳程式功能它壞了。(想起經典橋段：原本只是要換個燈泡，最後變成修車... )</p> <p><a href="https://www.youtube.com/watch?v=AbSehcT19u0">換燈泡變修車</a></p> <p>上傳程式到 ESP 開發板冒出以下錯誤：<code>serial.serialutil.SerialException: Cannot configure port, something went wrong. Original message: PermissionError(13, '連結到系統的某個裝置失去作用。', None, 31)</code>。</p> <p>爬文清一色都說是 CH340 驅動程式問題，移除重裝可解決。很顯然這招對我無效，不然就不會有這篇文章了。</p> <p>距離上次用這塊 ESP 開發板有點久了，算算已超過一年，初步推測是 Windows 11 更新了驅動程式沒跟上造成不相容。查了目前用的 USB-SERIAL CH340 驅動程版本為 2.8.2023.2，是 2023 年 2 月出的，與官方網站找到的最新版相同，也是 Windows Update Catalog 上的最新版。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638545827329892965.png"></p> <p>會是 ESP 板子壞了？換了一塊 ESP 開發板錯誤依舊，排除是硬體故障(所以說，玩電子零件一定要多買備品呀，出問題時有對照組才不會瞎查)，將焦點拉回驅動程式。</p> <p>再用力爬文，在 StackExchange 查到<a href="https://superuser.com/questions/1781851/esptool-py-permissionerror-while-configuring-serial-port">討論串</a>，2023/05 有網友提到 CH340 在 <a href="https://superuser.com/a/1783460/264724">Windows 自動更新後壞了</a>，退回前一版本才恢復。另外找到一篇 CSDN 文章：<a href="https://blog.csdn.net/weixin_46475950/article/details/131197735">Arduino 下载程序到esp8266错误----踩坑记录</a> ，2023/08 的文章，相同錯誤訊息，也提到要安裝舊版驅動。</p> <p>由此推測 CH340 新版驅動搞鬼的機率頗高，隨便找了一個 3.4.2014.8 版換上，問題還真的就解決了。這一番折騰花了我一個多小時，補聲暗。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638545827331652095.png"></p> <p>附上計時器雛型展示。光顯示秒數太單調，找到一個佛心的 Arduino 動畫程式產生器，<a href="https://animator.wokwi.com/">Wokwi Animator</a>，兩分鐘生出沙漏動畫，好方便! 開源萬歲~</p> <p><img src="https://i.imgur.com/H7yXaff.gif"></p> <p data-slug="ch340-driver" data-fbimg="https://i.imgur.com/QjrugEO.png#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638545827329892965.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638545827329892965.png" medium="image"/>
-    <pubDate>Fri, 21 Jun 2024 15:58:00 GMT</pubDate>
   </item></channel>
 </rss>
