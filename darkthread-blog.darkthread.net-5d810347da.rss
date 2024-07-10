@@ -30,6 +30,300 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Git Diff 互動式程式異動對照表改良 - 忽略排版空格異動]]></title>
+    <link>https://blog.darkthread.net/blog/diff2html-ignore-whitespace-changes/</link>
+    <itunes:title><![CDATA[Git Diff 互動式程式異動對照表改良 - 忽略排版空格異動]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>三年多前用 diff2html.js 做了一個<a href="/blog/diff2html-large-file/">Git Diff 互動式程式異動表</a>，在工作上使用至今，最近接到顧客意見反應。</p> <p>使用 Visual Studio / VSCode 維護程式，有時改完程式會順手按一下自動排版、內縮由 Tab 改成空格、或是程式行間增加或刪除換行，這類排版調整原則上不該算是程式異動，但在 diff2html 檢視時都會標示出來。如下圖中身高體重輸入程式段落間的換行、顯示 BMI 時前方移除內縮、SQL 增加內縮空格... 等。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"></p> <p>有程式差異比較工具會忽略這類不可見字元 (Whitespace，包含空格、Tab、換行、\r、\v、\f... 等) 異動，例如：VSCode 便會忽略 SELECT 欄位前的空格變化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638562212041418056.png"></p> <p>我認同排除純 Whitespace 差異有助於降低干擾，聚焦在真正的程式異動上。於是我寫了幾行程式，用 querySelectorAll 篩選出被標示異動的行數，取出異動文字用 Regular Expression 濾掉不可見字元 <code>.replace(/\s/g, '')</code>，剩餘的可見文字若相同，代表新舊版只差在 Whitespace，便可用 CSS opacity: 0.25 將這類純排版差異調淡，方便眼睛忽略這些差異。</p> <p>改良版顯示結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638562212044040054.png"></p> <p>就醬，借用別人分享的成果遇到不同需求，自己改程式再分享，這也是開源的精神之一吧~</p> <p>程式範例如下：<a href="https://output.jsbin.com/rupabec">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta http-equiv="X-UA-Compatible" content="IE=Edge" /&gt;
+&lt;link rel="stylesheet" type="text/css" href="diff2html.min.css" /&gt;
+&lt;script src="diff2html.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body { height: 100%; margin: 0; padding: 6px; }
+.d2h-file-name{ font-size: 9pt; cursor: pointer; }
+.d2h-file-list-line { display: block; }
+.d2h-file-list-title button { font-size: 9pt; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=report&gt;
+&lt;div id=list&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function fadeWhiteSpaceDiff(diffHtml) {
+diffHtml.querySelectorAll('.d2h-files-diff').forEach(d =&gt; {
+const tables = d.querySelectorAll('table.d2h-diff-table');
+const leftRows = tables[0].querySelectorAll('tr');
+const rightRows = tables[1].querySelectorAll('tr');
+leftRows.forEach((leftRow, i) =&gt; {
+if (!leftRow.querySelector('.d2h-del,.d2h-ins')) return;
+const rightRow = rightRows[i];
+const rightContent = rightRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
+const leftContent = leftRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
+if (rightContent.replace(/\s/g, '') === leftContent.replace(/\s/g, '')) {
+leftRow.style.opacity = '0.25';
+rightRow.style.opacity = '0.25';
+}
+});
+});
+}
+function showLineByLine(a) {
+if (a.showDiff) {
+//IE doesn't support element.remove()
+var div = a.parentNode.nextElementSibling;
+div.parentNode.removeChild(div);
+a.showDiff = false;
+}
+else {
+var div = document.createElement("div");
+div.innerHTML = Diff2Html.getPrettySideBySideHtmlFromJson(a.diffContent);
+a.parentNode.parentNode.appendChild(div);
+fadeWhiteSpaceDiff(div);
+a.showDiff = true;
+}
+}
+function toggleAll(expand) {
+[].forEach.call(document.querySelectorAll('a.d2h-file-name'), function(a) {
+if (expand != a.showDiff) showLineByLine(a);
+});
+}
+function doGET(path, callback) {
+var xhr = new XMLHttpRequest();
+xhr.onreadystatechange = function() {
+if (xhr.readyState == 4) {
+if (xhr.status == 200) {
+callback(xhr.responseText);
+} else {
+callback(null);
+}
+}
+};
+xhr.open("GET", path);
+xhr.send();
+}
+doGET("diff.txt", function (diffText) {
+var diffFiles = Diff2Html.getJsonFromDiff(diffText);
+var diffHtml = Diff2Html.getPrettyHtmlFromJson(diffFiles, {
+showFiles: true,
+matching: 'lines',
+outputFormat: 'side-by-side',
+});
+//get the file list part
+var listHtml = diffHtml.substr(0, diffHtml.indexOf('&lt;div class="d2h-wrapper"'));
+document.getElementById('list').innerHTML = listHtml;
+[].forEach.call(document.querySelectorAll('a[href]'), function(a, i) {
+a.diffContent = [diffFiles[i]];
+a.removeAttribute("href");
+a.onclick = function() { showLineByLine(a); };
+});
+var title = document.querySelector('.d2h-file-list-title');
+title.innerHTML = title.innerText +
+" &lt;button onclick='toggleAll(true)'&gt;Expand All&lt;/button&gt;" +
+" &lt;button onclick='toggleAll(false)'&gt;Collapse All&lt;/button&gt;";
+toggleAll(true);
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="diff2html-ignore-whitespace-changes" data-title-en="Ignoring whitespace difference in diff2html" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/18/18/12/squirrel-4559855_960_720.jpg#960#720">The diff2html will show differences including whitespace changes, this article provide a simple way to fade these layout changes in comparison views.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>三年多前用 diff2html.js 做了一個<a href="/blog/diff2html-large-file/">Git Diff 互動式程式異動表</a>，在工作上使用至今，最近接到顧客意見反應。</p> <p>使用 Visual Studio / VSCode 維護程式，有時改完程式會順手按一下自動排版、內縮由 Tab 改成空格、或是程式行間增加或刪除換行，這類排版調整原則上不該算是程式異動，但在 diff2html 檢視時都會標示出來。如下圖中身高體重輸入程式段落間的換行、顯示 BMI 時前方移除內縮、SQL 增加內縮空格... 等。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"></p> <p>有程式差異比較工具會忽略這類不可見字元 (Whitespace，包含空格、Tab、換行、\r、\v、\f... 等) 異動，例如：VSCode 便會忽略 SELECT 欄位前的空格變化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638562212041418056.png"></p> <p>我認同排除純 Whitespace 差異有助於降低干擾，聚焦在真正的程式異動上。於是我寫了幾行程式，用 querySelectorAll 篩選出被標示異動的行數，取出異動文字用 Regular Expression 濾掉不可見字元 <code>.replace(/\s/g, '')</code>，剩餘的可見文字若相同，代表新舊版只差在 Whitespace，便可用 CSS opacity: 0.25 將這類純排版差異調淡，方便眼睛忽略這些差異。</p> <p>改良版顯示結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638562212044040054.png"></p> <p>就醬，借用別人分享的成果遇到不同需求，自己改程式再分享，這也是開源的精神之一吧~</p> <p>程式範例如下：<a href="https://output.jsbin.com/rupabec">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta http-equiv="X-UA-Compatible" content="IE=Edge" /&gt;
+&lt;link rel="stylesheet" type="text/css" href="diff2html.min.css" /&gt;
+&lt;script src="diff2html.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body { height: 100%; margin: 0; padding: 6px; }
+.d2h-file-name{ font-size: 9pt; cursor: pointer; }
+.d2h-file-list-line { display: block; }
+.d2h-file-list-title button { font-size: 9pt; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=report&gt;
+&lt;div id=list&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function fadeWhiteSpaceDiff(diffHtml) {
+diffHtml.querySelectorAll('.d2h-files-diff').forEach(d =&gt; {
+const tables = d.querySelectorAll('table.d2h-diff-table');
+const leftRows = tables[0].querySelectorAll('tr');
+const rightRows = tables[1].querySelectorAll('tr');
+leftRows.forEach((leftRow, i) =&gt; {
+if (!leftRow.querySelector('.d2h-del,.d2h-ins')) return;
+const rightRow = rightRows[i];
+const rightContent = rightRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
+const leftContent = leftRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
+if (rightContent.replace(/\s/g, '') === leftContent.replace(/\s/g, '')) {
+leftRow.style.opacity = '0.25';
+rightRow.style.opacity = '0.25';
+}
+});
+});
+}
+function showLineByLine(a) {
+if (a.showDiff) {
+//IE doesn't support element.remove()
+var div = a.parentNode.nextElementSibling;
+div.parentNode.removeChild(div);
+a.showDiff = false;
+}
+else {
+var div = document.createElement("div");
+div.innerHTML = Diff2Html.getPrettySideBySideHtmlFromJson(a.diffContent);
+a.parentNode.parentNode.appendChild(div);
+fadeWhiteSpaceDiff(div);
+a.showDiff = true;
+}
+}
+function toggleAll(expand) {
+[].forEach.call(document.querySelectorAll('a.d2h-file-name'), function(a) {
+if (expand != a.showDiff) showLineByLine(a);
+});
+}
+function doGET(path, callback) {
+var xhr = new XMLHttpRequest();
+xhr.onreadystatechange = function() {
+if (xhr.readyState == 4) {
+if (xhr.status == 200) {
+callback(xhr.responseText);
+} else {
+callback(null);
+}
+}
+};
+xhr.open("GET", path);
+xhr.send();
+}
+doGET("diff.txt", function (diffText) {
+var diffFiles = Diff2Html.getJsonFromDiff(diffText);
+var diffHtml = Diff2Html.getPrettyHtmlFromJson(diffFiles, {
+showFiles: true,
+matching: 'lines',
+outputFormat: 'side-by-side',
+});
+//get the file list part
+var listHtml = diffHtml.substr(0, diffHtml.indexOf('&lt;div class="d2h-wrapper"'));
+document.getElementById('list').innerHTML = listHtml;
+[].forEach.call(document.querySelectorAll('a[href]'), function(a, i) {
+a.diffContent = [diffFiles[i]];
+a.removeAttribute("href");
+a.onclick = function() { showLineByLine(a); };
+});
+var title = document.querySelector('.d2h-file-list-title');
+title.innerHTML = title.innerText +
+" &lt;button onclick='toggleAll(true)'&gt;Expand All&lt;/button&gt;" +
+" &lt;button onclick='toggleAll(false)'&gt;Collapse All&lt;/button&gt;";
+toggleAll(true);
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="diff2html-ignore-whitespace-changes" data-title-en="Ignoring whitespace difference in diff2html" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/18/18/12/squirrel-4559855_960_720.jpg#960#720">The diff2html will show differences including whitespace changes, this article provide a simple way to fade these layout changes in comparison views.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>三年多前用 diff2html.js 做了一個<a href="/blog/diff2html-large-file/">Git Diff 互動式程式異動表</a>，在工作上使用至今，最近接到顧客意見反應。</p> <p>使用 Visual Studio / VSCode 維護程式，有時改完程式會順手按一下自動排版、內縮由 Tab 改成空格、或是程式行間增加或刪除換行，這類排版調整原則上不該算是程式異動，但在 diff2html 檢視時都會標示出來。如下圖中身高體重輸入程式段落間的換行、顯示 BMI 時前方移除內縮、SQL 增加內縮空格... 等。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"></p> <p>有程式差異比較工具會忽略這類不可見字元 (Whitespace，包含空格、Tab、換行、\r、\v、\f... 等) 異動，例如：VSCode 便會忽略 SELECT 欄位前的空格變化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638562212041418056.png"></p> <p>我認同排除純 Whitespace 差異有助於降低干擾，聚焦在真正的程式異動上。於是我寫了幾行程式，用 querySelectorAll 篩選出被標示異動的行數，取出異動文字用 Regular Expression 濾掉不可見字元 <code>.replace(/\s/g, '')</code>，剩餘的可見文字若相同，代表新舊版只差在 Whitespace，便可用 CSS opacity: 0.25 將這類純排版差異調淡，方便眼睛忽略這些差異。</p> <p>改良版顯示結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638562212044040054.png"></p> <p>就醬，借用別人分享的成果遇到不同需求，自己改程式再分享，這也是開源的精神之一吧~</p> <p>程式範例如下：<a href="https://output.jsbin.com/rupabec">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta http-equiv="X-UA-Compatible" content="IE=Edge" /&gt;
+&lt;link rel="stylesheet" type="text/css" href="diff2html.min.css" /&gt;
+&lt;script src="diff2html.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body { height: 100%; margin: 0; padding: 6px; }
+.d2h-file-name{ font-size: 9pt; cursor: pointer; }
+.d2h-file-list-line { display: block; }
+.d2h-file-list-title button { font-size: 9pt; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=report&gt;
+&lt;div id=list&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function fadeWhiteSpaceDiff(diffHtml) {
+diffHtml.querySelectorAll('.d2h-files-diff').forEach(d =&gt; {
+const tables = d.querySelectorAll('table.d2h-diff-table');
+const leftRows = tables[0].querySelectorAll('tr');
+const rightRows = tables[1].querySelectorAll('tr');
+leftRows.forEach((leftRow, i) =&gt; {
+if (!leftRow.querySelector('.d2h-del,.d2h-ins')) return;
+const rightRow = rightRows[i];
+const rightContent = rightRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
+const leftContent = leftRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
+if (rightContent.replace(/\s/g, '') === leftContent.replace(/\s/g, '')) {
+leftRow.style.opacity = '0.25';
+rightRow.style.opacity = '0.25';
+}
+});
+});
+}
+function showLineByLine(a) {
+if (a.showDiff) {
+//IE doesn't support element.remove()
+var div = a.parentNode.nextElementSibling;
+div.parentNode.removeChild(div);
+a.showDiff = false;
+}
+else {
+var div = document.createElement("div");
+div.innerHTML = Diff2Html.getPrettySideBySideHtmlFromJson(a.diffContent);
+a.parentNode.parentNode.appendChild(div);
+fadeWhiteSpaceDiff(div);
+a.showDiff = true;
+}
+}
+function toggleAll(expand) {
+[].forEach.call(document.querySelectorAll('a.d2h-file-name'), function(a) {
+if (expand != a.showDiff) showLineByLine(a);
+});
+}
+function doGET(path, callback) {
+var xhr = new XMLHttpRequest();
+xhr.onreadystatechange = function() {
+if (xhr.readyState == 4) {
+if (xhr.status == 200) {
+callback(xhr.responseText);
+} else {
+callback(null);
+}
+}
+};
+xhr.open("GET", path);
+xhr.send();
+}
+doGET("diff.txt", function (diffText) {
+var diffFiles = Diff2Html.getJsonFromDiff(diffText);
+var diffHtml = Diff2Html.getPrettyHtmlFromJson(diffFiles, {
+showFiles: true,
+matching: 'lines',
+outputFormat: 'side-by-side',
+});
+//get the file list part
+var listHtml = diffHtml.substr(0, diffHtml.indexOf('&lt;div class="d2h-wrapper"'));
+document.getElementById('list').innerHTML = listHtml;
+[].forEach.call(document.querySelectorAll('a[href]'), function(a, i) {
+a.diffContent = [diffFiles[i]];
+a.removeAttribute("href");
+a.onclick = function() { showLineByLine(a); };
+});
+var title = document.querySelector('.d2h-file-list-title');
+title.innerHTML = title.innerText +
+" &lt;button onclick='toggleAll(true)'&gt;Expand All&lt;/button&gt;" +
+" &lt;button onclick='toggleAll(false)'&gt;Collapse All&lt;/button&gt;";
+toggleAll(true);
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p data-slug="diff2html-ignore-whitespace-changes" data-title-en="Ignoring whitespace difference in diff2html" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/18/18/12/squirrel-4559855_960_720.jpg#960#720">The diff2html will show differences including whitespace changes, this article provide a simple way to fade these layout changes in comparison views.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png" medium="image"/>
+    <pubDate>Wed, 10 Jul 2024 15:02:01 GMT</pubDate>
+  </item><item>
     <title><![CDATA[ChatGpt API 速率限制實測與產能利用率最大化]]></title>
     <link>https://blog.darkthread.net/blog/chatgpt-api-rate-limit/</link>
     <itunes:title><![CDATA[ChatGpt API 速率限制實測與產能利用率最大化]]></itunes:title>
@@ -1376,149 +1670,5 @@ app.Run();
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638547534752858071.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638547534752858071.png" medium="image"/>
     <pubDate>Sun, 23 Jun 2024 15:30:18 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[PowerShell 小工具 - 偵測新增檔案自動分類]]></title>
-    <link>https://blog.darkthread.net/blog/ps-file-watcher/</link>
-    <itunes:title><![CDATA[PowerShell 小工具 - 偵測新增檔案自動分類]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>手邊有個需求，要對放進某個資料夾進行特別處理。為了方便展示及說明，我們假想一個簡單的檔案分類功能，會自動將放進資料夾中的圖檔搬去 image 資料夾，.txt/.html/.xml 搬去 text 資料夾。</p> <p>這類需求，無腦做法是設個排程定期輪詢(Polling)，掃瞄該目錄是否出現新檔案，若有就依附檔名搬檔，簡單粗暴但有效。但輪詢的缺點是執行間隔難以決定，太頻繁浪費 CPU/IO 資源，拖太久即時性不佳。若使用 .NET 開發，有個較優雅的高級解法 - <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.io.filesystemwatcher?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">FileSystemWatcher</a>，可以用事件的概念監聽特定資料夾，當資料夾內的檔案出現異動(例如：新增、刪除、更新、更名)時呼叫你的程式碼，對檔案進行即時處理。FileSytemWatcher 從 .NET 1.1 就有了，不是什麼新鮮事，但這回我想用 PowerShell 來實現，就有些新東西可以學了。</p> <p>先看程式碼：</p> <pre><code>$ErrorActionPreference = 'Stop'
-$targetPath = Join-Path $PSScriptRoot 'src'
-if (-not (Test-Path $targetPath)) {
-New-Item -Path $targetPath -ItemType Directory
-}
-$watcher = New-Object System.IO.FileSystemWatcher -ArgumentList $targetPath, $filter -Property @{
-Filter = '*.*'
-IncludeSubdirectories = $false
-EnableRaisingEvents = $true
-}
-$global:mapper = @{
-'.txt' = Join-Path $PSScriptRoot 'text'
-'.html' = Join-Path $PSScriptRoot 'text'
-'.xml' = Join-Path $PSScriptRoot 'text'
-'.jpg' = Join-Path $PSScriptRoot 'image'
-'.png' = Join-Path $PSScriptRoot 'image'
-'.gif' = Join-Path $PSScriptRoot 'image'
-}
-$srcId = 'FileChanged'
-Register-ObjectEvent $watcher Created -SourceIdentifier $srcId -Action {
-# TODO: 設計機制確保檔案寫入完畢(例如：先寫 .unfinish 檔案，寫完後再改名)
-$filePath = $Event.SourceEventArgs.FullPath
-$extension = [System.IO.Path]::GetExtension($filePath)
-if ($global:mapper.ContainsKey($extension)) {
-try {
-Move-Item -Path $filePath -Destination $global:mapper[$extension] -Force
-Write-Host "$filePath moved to $($global:mapper[$extension])"
-}
-catch {
-Write-Host $_.Exception.Message
-}
-} else {
-Write-Host "Unknown file type: $filePath"
-}
-} | Out-Null
-try {
-while ($true) {
-Wait-Event -SourceIdentifier $srcId
-}
-} finally {
-Unregister-Event -SourceIdentifier $srcId
-$watcher.Dispose()
-}
-</code></pre> <p>在 PowerShell 裡我們以建立 <code>System.IO.FileSystemWatcher</code> 物件監聽檔案異動，但 PowerShell 註冊 .NET 物件事件的做法比較特殊，要用 <code>Register-ObjectEvent</code> 建立事件並定義事件處理程序，要注意一點，-Action 指定的事件腳本區塊(Script Block)會在另一個新的 Scope 執行，無法存取上一層的變數，故我把副檔名與資料夾對映表設定 $global:mapper，事件腳本區塊才能存得到。定義完事件後，用 <code>while ($true)</code> 無窮迴圈跑 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.utility/wait-event?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580"><code>Wait-Event -SourceIdenfier $srcId</code></a> 等待我們註冊的檔案新增事件發生。如果在等待過程還要處理其他邏輯，則可加上 <code>-Timeout 秒數</code>設定每次等待上限，逾時先決定做其他事，再繼續 while 的下一輪。</p> <p>由於 FileSystemWatcher 會佔用 Unmanaged 資源，故要用 try finally 確保取消事件註冊及 Dispose 物件。</p> <p>操作展示如下，先執行 file-dispatcher.ps1，我拖了六個不同型別的檔案到 src 資料夾，分類機制生效，.txt/.xml/.html 被搬到 text，.jpg/.png/.gif 被搬到 image，成功!</p> <p><img src="https://darkthread.github.io/demo-gifs/ps-file-watcher.gif"></p> <p>這裡留下一個問題，Created 事件會在開始寫檔時觸發，要是檔案很大或寫入速度很慢，我們有可能搬到還在寫入中的檔案，有可能因檔案鎖定無法搬移，也有可能搬到不完整的內容。不過，問題也不算難解，在寫檔時先將檔案取成 .in-process 之類的特殊副檔名，等寫入完成再將檔名換成正式名稱，這招在瀏覽器或 P2P 下載軟體還蠻常用的，這回我們也用到了。</p> <p data-slug="ps-file-watcher" data-title-en="Realtime file sorting script by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/11/10/22/29/odd-1037935_960_720.jpg#960#640">A simple file sorting script using PowerShell and FileSystemWatcher monitors a directory for new files and moves them based on their extensions. Text files (.txt, .html, .xml) go to a ‘text’ folder, and image files (.jpg, .png, .gif) go to an ‘image’ folder. The script uses Register-ObjectEvent for event handling and ensures disposal of resources properly.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>手邊有個需求，要對放進某個資料夾進行特別處理。為了方便展示及說明，我們假想一個簡單的檔案分類功能，會自動將放進資料夾中的圖檔搬去 image 資料夾，.txt/.html/.xml 搬去 text 資料夾。</p> <p>這類需求，無腦做法是設個排程定期輪詢(Polling)，掃瞄該目錄是否出現新檔案，若有就依附檔名搬檔，簡單粗暴但有效。但輪詢的缺點是執行間隔難以決定，太頻繁浪費 CPU/IO 資源，拖太久即時性不佳。若使用 .NET 開發，有個較優雅的高級解法 - <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.io.filesystemwatcher?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">FileSystemWatcher</a>，可以用事件的概念監聽特定資料夾，當資料夾內的檔案出現異動(例如：新增、刪除、更新、更名)時呼叫你的程式碼，對檔案進行即時處理。FileSytemWatcher 從 .NET 1.1 就有了，不是什麼新鮮事，但這回我想用 PowerShell 來實現，就有些新東西可以學了。</p> <p>先看程式碼：</p> <pre><code>$ErrorActionPreference = 'Stop'
-$targetPath = Join-Path $PSScriptRoot 'src'
-if (-not (Test-Path $targetPath)) {
-New-Item -Path $targetPath -ItemType Directory
-}
-$watcher = New-Object System.IO.FileSystemWatcher -ArgumentList $targetPath, $filter -Property @{
-Filter = '*.*'
-IncludeSubdirectories = $false
-EnableRaisingEvents = $true
-}
-$global:mapper = @{
-'.txt' = Join-Path $PSScriptRoot 'text'
-'.html' = Join-Path $PSScriptRoot 'text'
-'.xml' = Join-Path $PSScriptRoot 'text'
-'.jpg' = Join-Path $PSScriptRoot 'image'
-'.png' = Join-Path $PSScriptRoot 'image'
-'.gif' = Join-Path $PSScriptRoot 'image'
-}
-$srcId = 'FileChanged'
-Register-ObjectEvent $watcher Created -SourceIdentifier $srcId -Action {
-# TODO: 設計機制確保檔案寫入完畢(例如：先寫 .unfinish 檔案，寫完後再改名)
-$filePath = $Event.SourceEventArgs.FullPath
-$extension = [System.IO.Path]::GetExtension($filePath)
-if ($global:mapper.ContainsKey($extension)) {
-try {
-Move-Item -Path $filePath -Destination $global:mapper[$extension] -Force
-Write-Host "$filePath moved to $($global:mapper[$extension])"
-}
-catch {
-Write-Host $_.Exception.Message
-}
-} else {
-Write-Host "Unknown file type: $filePath"
-}
-} | Out-Null
-try {
-while ($true) {
-Wait-Event -SourceIdentifier $srcId
-}
-} finally {
-Unregister-Event -SourceIdentifier $srcId
-$watcher.Dispose()
-}
-</code></pre> <p>在 PowerShell 裡我們以建立 <code>System.IO.FileSystemWatcher</code> 物件監聽檔案異動，但 PowerShell 註冊 .NET 物件事件的做法比較特殊，要用 <code>Register-ObjectEvent</code> 建立事件並定義事件處理程序，要注意一點，-Action 指定的事件腳本區塊(Script Block)會在另一個新的 Scope 執行，無法存取上一層的變數，故我把副檔名與資料夾對映表設定 $global:mapper，事件腳本區塊才能存得到。定義完事件後，用 <code>while ($true)</code> 無窮迴圈跑 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.utility/wait-event?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580"><code>Wait-Event -SourceIdenfier $srcId</code></a> 等待我們註冊的檔案新增事件發生。如果在等待過程還要處理其他邏輯，則可加上 <code>-Timeout 秒數</code>設定每次等待上限，逾時先決定做其他事，再繼續 while 的下一輪。</p> <p>由於 FileSystemWatcher 會佔用 Unmanaged 資源，故要用 try finally 確保取消事件註冊及 Dispose 物件。</p> <p>操作展示如下，先執行 file-dispatcher.ps1，我拖了六個不同型別的檔案到 src 資料夾，分類機制生效，.txt/.xml/.html 被搬到 text，.jpg/.png/.gif 被搬到 image，成功!</p> <p><img src="https://darkthread.github.io/demo-gifs/ps-file-watcher.gif"></p> <p>這裡留下一個問題，Created 事件會在開始寫檔時觸發，要是檔案很大或寫入速度很慢，我們有可能搬到還在寫入中的檔案，有可能因檔案鎖定無法搬移，也有可能搬到不完整的內容。不過，問題也不算難解，在寫檔時先將檔案取成 .in-process 之類的特殊副檔名，等寫入完成再將檔名換成正式名稱，這招在瀏覽器或 P2P 下載軟體還蠻常用的，這回我們也用到了。</p> <p data-slug="ps-file-watcher" data-title-en="Realtime file sorting script by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/11/10/22/29/odd-1037935_960_720.jpg#960#640">A simple file sorting script using PowerShell and FileSystemWatcher monitors a directory for new files and moves them based on their extensions. Text files (.txt, .html, .xml) go to a ‘text’ folder, and image files (.jpg, .png, .gif) go to an ‘image’ folder. The script uses Register-ObjectEvent for event handling and ensures disposal of resources properly.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>手邊有個需求，要對放進某個資料夾進行特別處理。為了方便展示及說明，我們假想一個簡單的檔案分類功能，會自動將放進資料夾中的圖檔搬去 image 資料夾，.txt/.html/.xml 搬去 text 資料夾。</p> <p>這類需求，無腦做法是設個排程定期輪詢(Polling)，掃瞄該目錄是否出現新檔案，若有就依附檔名搬檔，簡單粗暴但有效。但輪詢的缺點是執行間隔難以決定，太頻繁浪費 CPU/IO 資源，拖太久即時性不佳。若使用 .NET 開發，有個較優雅的高級解法 - <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.io.filesystemwatcher?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">FileSystemWatcher</a>，可以用事件的概念監聽特定資料夾，當資料夾內的檔案出現異動(例如：新增、刪除、更新、更名)時呼叫你的程式碼，對檔案進行即時處理。FileSytemWatcher 從 .NET 1.1 就有了，不是什麼新鮮事，但這回我想用 PowerShell 來實現，就有些新東西可以學了。</p> <p>先看程式碼：</p> <pre><code>$ErrorActionPreference = 'Stop'
-$targetPath = Join-Path $PSScriptRoot 'src'
-if (-not (Test-Path $targetPath)) {
-New-Item -Path $targetPath -ItemType Directory
-}
-$watcher = New-Object System.IO.FileSystemWatcher -ArgumentList $targetPath, $filter -Property @{
-Filter = '*.*'
-IncludeSubdirectories = $false
-EnableRaisingEvents = $true
-}
-$global:mapper = @{
-'.txt' = Join-Path $PSScriptRoot 'text'
-'.html' = Join-Path $PSScriptRoot 'text'
-'.xml' = Join-Path $PSScriptRoot 'text'
-'.jpg' = Join-Path $PSScriptRoot 'image'
-'.png' = Join-Path $PSScriptRoot 'image'
-'.gif' = Join-Path $PSScriptRoot 'image'
-}
-$srcId = 'FileChanged'
-Register-ObjectEvent $watcher Created -SourceIdentifier $srcId -Action {
-# TODO: 設計機制確保檔案寫入完畢(例如：先寫 .unfinish 檔案，寫完後再改名)
-$filePath = $Event.SourceEventArgs.FullPath
-$extension = [System.IO.Path]::GetExtension($filePath)
-if ($global:mapper.ContainsKey($extension)) {
-try {
-Move-Item -Path $filePath -Destination $global:mapper[$extension] -Force
-Write-Host "$filePath moved to $($global:mapper[$extension])"
-}
-catch {
-Write-Host $_.Exception.Message
-}
-} else {
-Write-Host "Unknown file type: $filePath"
-}
-} | Out-Null
-try {
-while ($true) {
-Wait-Event -SourceIdentifier $srcId
-}
-} finally {
-Unregister-Event -SourceIdentifier $srcId
-$watcher.Dispose()
-}
-</code></pre> <p>在 PowerShell 裡我們以建立 <code>System.IO.FileSystemWatcher</code> 物件監聽檔案異動，但 PowerShell 註冊 .NET 物件事件的做法比較特殊，要用 <code>Register-ObjectEvent</code> 建立事件並定義事件處理程序，要注意一點，-Action 指定的事件腳本區塊(Script Block)會在另一個新的 Scope 執行，無法存取上一層的變數，故我把副檔名與資料夾對映表設定 $global:mapper，事件腳本區塊才能存得到。定義完事件後，用 <code>while ($true)</code> 無窮迴圈跑 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.utility/wait-event?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580"><code>Wait-Event -SourceIdenfier $srcId</code></a> 等待我們註冊的檔案新增事件發生。如果在等待過程還要處理其他邏輯，則可加上 <code>-Timeout 秒數</code>設定每次等待上限，逾時先決定做其他事，再繼續 while 的下一輪。</p> <p>由於 FileSystemWatcher 會佔用 Unmanaged 資源，故要用 try finally 確保取消事件註冊及 Dispose 物件。</p> <p>操作展示如下，先執行 file-dispatcher.ps1，我拖了六個不同型別的檔案到 src 資料夾，分類機制生效，.txt/.xml/.html 被搬到 text，.jpg/.png/.gif 被搬到 image，成功!</p> <p><img src="https://darkthread.github.io/demo-gifs/ps-file-watcher.gif"></p> <p>這裡留下一個問題，Created 事件會在開始寫檔時觸發，要是檔案很大或寫入速度很慢，我們有可能搬到還在寫入中的檔案，有可能因檔案鎖定無法搬移，也有可能搬到不完整的內容。不過，問題也不算難解，在寫檔時先將檔案取成 .in-process 之類的特殊副檔名，等寫入完成再將檔名換成正式名稱，這招在瀏覽器或 P2P 下載軟體還蠻常用的，這回我們也用到了。</p> <p data-slug="ps-file-watcher" data-title-en="Realtime file sorting script by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/11/10/22/29/odd-1037935_960_720.jpg#960#640">A simple file sorting script using PowerShell and FileSystemWatcher monitors a directory for new files and moves them based on their extensions. Text files (.txt, .html, .xml) go to a ‘text’ folder, and image files (.jpg, .png, .gif) go to an ‘image’ folder. The script uses Register-ObjectEvent for event handling and ensures disposal of resources properly.</p>]]></content:encoded>
-    <itunes:image href="https://darkthread.github.io/demo-gifs/ps-file-watcher.gif"/>
-          <media:content url="https://darkthread.github.io/demo-gifs/ps-file-watcher.gif" medium="image"/>
-    <pubDate>Sat, 22 Jun 2024 14:48:04 GMT</pubDate>
   </item></channel>
 </rss>
