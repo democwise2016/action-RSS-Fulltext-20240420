@@ -30,9 +30,9 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
-    <title><![CDATA[Git Diff 互動式程式異動對照表改良 - 忽略排版空格異動]]></title>
+    <title><![CDATA[Git Diff 互動式程式異動對照表改良 - 忽略排版空格差異]]></title>
     <link>https://blog.darkthread.net/blog/diff2html-ignore-whitespace-changes/</link>
-    <itunes:title><![CDATA[Git Diff 互動式程式異動對照表改良 - 忽略排版空格異動]]></itunes:title>
+    <itunes:title><![CDATA[Git Diff 互動式程式異動對照表改良 - 忽略排版空格差異]]></itunes:title>
     <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
     <itunes:summary>
       <![CDATA[<p>三年多前用 diff2html.js 做了一個<a href="/blog/diff2html-large-file/">Git Diff 互動式程式異動表</a>，在工作上使用至今，最近接到顧客意見反應。</p> <p>使用 Visual Studio / VSCode 維護程式，有時改完程式會順手按一下自動排版、內縮由 Tab 改成空格、或是程式行間增加或刪除換行，這類排版調整原則上不該算是程式異動，但在 diff2html 檢視時都會標示出來。如下圖中身高體重輸入程式段落間的換行、顯示 BMI 時前方移除內縮、SQL 增加內縮空格... 等。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"></p> <p>有程式差異比較工具會忽略這類不可見字元 (Whitespace，包含空格、Tab、換行、\r、\v、\f... 等) 異動，例如：VSCode 便會忽略 SELECT 欄位前的空格變化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638562212041418056.png"></p> <p>我認同排除純 Whitespace 差異有助於降低干擾，聚焦在真正的程式異動上。於是我寫了幾行程式，用 querySelectorAll 篩選出被標示異動的行數，取出異動文字用 Regular Expression 濾掉不可見字元 <code>.replace(/\s/g, '')</code>，剩餘的可見文字若相同，代表新舊版只差在 Whitespace，便可用 CSS opacity: 0.25 將這類純排版差異調淡，方便眼睛忽略這些差異。</p> <p>改良版顯示結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638562212044040054.png"></p> <p>就醬，借用別人分享的成果遇到不同需求，自己改程式再分享，這也是開源的精神之一吧~</p> <p>程式範例如下：<a href="https://output.jsbin.com/rupabec">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
