@@ -30,6 +30,750 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[打破砂鍋：Ctrl-C 擋不住 Console.ReadLine() 繼續執行？]]></title>
+    <link>https://blog.darkthread.net/blog/ctrl-c-on-readline/</link>
+    <itunes:title><![CDATA[打破砂鍋：Ctrl-C 擋不住 Console.ReadLine() 繼續執行？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前幾天被一個詭異的 .NET 程式茶包卡住，還在 <a href="https://www.facebook.com/darkthread.net/posts/pfbid02zi2M1CoTfQ3Sa8jfLypd1SKEVuAEi5ecaQoejVAitHk3T8U1eWVq2TXYWytmHfp1l">FB 貼文</a>請大家幫忙測試。</p> <p>我們都知道 .NET Console 程式執行過程，按下 Ctrl-C 可終止程式執行。若是在 Console.ReadLine() 等待輸入過程按下 Ctrl-C，直覺想法是既然 ReadLine() 會等待 Enter 鍵再繼續，Ctrl-C 非 Enter 鍵，又有終止程式的意義，程式應該會立即停止。</p> <p>但以下的測試結果就讓人有點匪夷所思了：</p> <pre><code>Console.WriteLine("Before ReadLine()");
+Console.Write("Enter something: ");
+var line = Console.ReadLine();
+Console.Write("Enter more: ");
+var line2 = Console.ReadLine();
+Console.WriteLine("After ReadLine()");
+</code></pre> <p>前後兩次 ReadLine()，第一次 ReadLine() 時按 Ctrl-C，程式會立刻結束；若第一次 ReadLine() 隨便給值按 Enter，第二次 ReadLine() 才按 Ctrl-C，則會印完 AfterReadLine() 程式才終止。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638564808426834074.png"></p> <p>蒐集我自己及網友的測試結果，發現同樣的程式碼，相同 .NET 版本，有的人可以重現，有的人不行 (Linux/macOS 則沒有重現案例)，而 <a href="https://dotblogs.com.tw/billchung">Bill 叔</a>更分享了「問題重現與否跟手速有關」的發現，意思是此現象在第一次 ReadLine() 也會發生。如下圖，我們在第一次 ReadLine() 按 Ctrl-C，若時機夠早，程式便會顯示完 "Enter more:" 才結束(下圖 [1], [3])；若稍等一下再按，程式則會直接結束。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638564808428508418.png"></p> <p>經過一番推敲，我釐清一件事實：判斷按下 Ctrl-C 的邏輯並不是由 ReadLine() 處理的，Ctrl-C 與 Ctrl-Break 對 Console 程式來說是種特殊訊號(SIGNINT、SIGBREAK)，設有專屬的機制處理，依據<a href="https://learn.microsoft.com/zh-tw/windows/console/ctrl-c-and-ctrl-break-signals?WT.mc_id=DOP-MVP-37580">官方文件</a>：這些訊號會傳遞到已連結至主控台的所有主控台程序，系統會在每個客戶端進程中建立新的線程來處理事件。</p> <p>故按下 Ctrl-C 時，Console 程式會啟動一條 Thread 負責結束程式(姑且稱之為自我了結 Thread)，而此時 Main Thread 的 ReadLine() 也會因為按了 Ctrl-C 而結束等待，繼續往下執行。若自我了結 Thread 的速度不夠快，在 Main Thread 跑完 Console.Write() 後才把程式停掉，便會出現按了 Ctrl-C 但 ReadLine() 的下一行還是繼續執行的現象。由於自我了結 Thread 與 Main Thread 二者會平行處理，誰快誰慢具有隨機性。想通「結束程式與 ReadLine() 後方邏輯會平行執行」這點，上面遇到的各式不同結果便都有了合理解釋，一切也可歸納為 It's by design, not a bug。</p> <p>至此本案的最大謎團算是解開了，但我還有個疑問：為什麼 Console.ReadLine() 遇到 Ctrl-C 會等同按了 Enter 繼續往下走？</p> <p>我決定追進 .NET 原始碼一探究竟。</p> <p>Console.ReadLine() 背後是呼叫 In.ReadLine()，而 In 是個 TextReader 型別，透過 ConsolePal.GetOrCreateReader() 建立。</p> <pre><code>public static TextReader In
+{
+get
+{
+return Volatile.Read(ref s_in) ?? EnsureInitialized();
+static TextReader EnsureInitialized()
+{
+// Must be placed outside s_syncObject lock. See Out getter.
+ConsolePal.EnsureConsoleInitialized();
+lock (s_syncObject) // Ensures In and InputEncoding are synchronized.
+{
+if (s_in == null)
+{
+Volatile.Write(ref s_in, ConsolePal.GetOrCreateReader());
+}
+return s_in;
+}
+}
+}
+}
+</code></pre> <p>追到 ConsolePal.GetOrCreateReader()，得知 TextReader 其實是個 StreamReader。</p> <pre><code>internal static TextReader GetOrCreateReader()
+{
+Stream inputStream = OpenStandardInput();
+return SyncTextReader.GetSynchronizedTextReader(inputStream == Stream.Null ?
+StreamReader.Null :
+new StreamReader(
+stream: inputStream,
+encoding: new ConsoleEncoding(Console.InputEncoding),
+detectEncodingFromByteOrderMarks: false,
+bufferSize: Console.ReadBufferSize,
+leaveOpen: true));
+}
+</code></pre> <p>而 StreamReader ReadLine() 邏輯如下，等待使用者輸入再繼續的關鍵在 ReadBuffer()：(註：可留意有 **** 標示的中文註解處)</p> <pre><code>// Reads a line. A line is defined as a sequence of characters followed by
+// a carriage return ('\r'), a line feed ('
+'), or a carriage return
+// immediately followed by a line feed. The resulting string does not
+// contain the terminating carriage return and/or line feed. The returned
+// value is null if the end of the input stream has been reached.
+//
+public override string? ReadLine()
+{
+ThrowIfDisposed();
+CheckAsyncTaskInProgress();
+if (_charPos == _charLen)
+{
+// **** 這裡會等待使用者輸入後再繼續
+if (ReadBuffer() == 0)
+{
+return null;
+}
+}
+var vsb = new ValueStringBuilder(stackalloc char[256]);
+do
+{
+// Look for '\r' or \'n'.
+ReadOnlySpan&lt;char&gt; charBufferSpan = _charBuffer.AsSpan(_charPos, _charLen - _charPos);
+Debug.Assert(!charBufferSpan.IsEmpty, "ReadBuffer returned &gt; 0 but didn't bump _charLen?");
+int idxOfNewline = charBufferSpan.IndexOfAny('\r', '
+');
+if (idxOfNewline &gt;= 0)
+{
+string retVal;
+if (vsb.Length == 0)
+{
+retVal = new string(charBufferSpan.Slice(0, idxOfNewline));
+}
+else
+{
+retVal = string.Concat(vsb.AsSpan(), charBufferSpan.Slice(0, idxOfNewline));
+vsb.Dispose();
+}
+char matchedChar = charBufferSpan[idxOfNewline];
+_charPos += idxOfNewline + 1;
+// If we found '\r', consume any immediately following '
+'.
+if (matchedChar == '\r')
+{
+if (_charPos &lt; _charLen || ReadBuffer() &gt; 0)
+{
+if (_charBuffer[_charPos] == '
+')
+{
+_charPos++;
+}
+}
+}
+return retVal;
+}
+// We didn't find '\r' or '
+'. Add it to the StringBuilder
+// and loop until we reach a newline or EOF.
+vsb.Append(charBufferSpan);
+} while (ReadBuffer() &gt; 0);
+return vsb.ToString();
+}
+</code></pre> <p>繼續追進 ReadBuffer()，等待輸入的過程來自 _stream.Read()，而實測：按下 Ctrl-C 或 Ctrl-Z 也會結束 .Read() 等待，但與直接按 Enter 結束的差異在於前者傳回的 _byteLen == 0，而後者 _byteLen == 2，_byteBuffer 內的資料則為 \r 及 
+：</p> <pre><code>internal virtual int ReadBuffer()
+{
+_charLen = 0;
+_charPos = 0;
+if (!_checkPreamble)
+{
+_byteLen = 0;
+}
+bool eofReached = false;
+do
+{
+if (_checkPreamble)
+{
+Debug.Assert(_bytePos &lt;= _encoding.Preamble.Length, "possible bug in _compressPreamble.  Are two threads using this StreamReader at the same time?");
+int len = _stream.Read(_byteBuffer, _bytePos, _byteBuffer.Length - _bytePos);
+Debug.Assert(len &gt;= 0, "Stream.Read returned a negative number!  This is a bug in your stream class.");
+if (len == 0)
+{
+eofReached = true;
+break;
+}
+_byteLen += len;
+}
+else
+{
+Debug.Assert(_bytePos == 0, "bytePos can be non zero only when we are trying to _checkPreamble.  Are two threads using this StreamReader at the same time?");
+// **** 在這裡等待使用者輸入
+_byteLen = _stream.Read(_byteBuffer, 0, _byteBuffer.Length);
+Debug.Assert(_byteLen &gt;= 0, "Stream.Read returned a negative number!  This is a bug in your stream class.");
+// 按下 Ctrl-C 或 Ctrl-Z 時也會到這行，但 _byteLen == 0 (按 Enter 的話 _byteLen == 2, 內容為 byte[] { '\r', '
+' })
+if (_byteLen == 0)
+{
+eofReached = true;
+break;
+}
+}
+// _isBlocked == whether we read fewer bytes than we asked for.
+// Note we must check it here because CompressBuffer or
+// DetectEncoding will change byteLen.
+_isBlocked = (_byteLen &lt; _byteBuffer.Length);
+// Check for preamble before detect encoding. This is not to override the
+// user supplied Encoding for the one we implicitly detect. The user could
+// customize the encoding which we will loose, such as ThrowOnError on UTF8
+if (IsPreamble())
+{
+continue;
+}
+// If we're supposed to detect the encoding and haven't done so yet,
+// do it.  Note this may need to be called more than once.
+if (_detectEncoding &amp;&amp; _byteLen &gt;= 2)
+{
+DetectEncoding();
+}
+Debug.Assert(_charPos == 0 &amp;&amp; _charLen == 0, "We shouldn't be trying to decode more data if we made progress in an earlier iteration.");
+_charLen = _decoder.GetChars(_byteBuffer, 0, _byteLen, _charBuffer, 0, flush: false);
+} while (_charLen == 0);
+if (eofReached)
+{
+// EOF has been reached - perform final flush.
+// We need to reset _bytePos and _byteLen just in case we hadn't
+// finished processing the preamble before we reached EOF.
+Debug.Assert(_charPos == 0 &amp;&amp; _charLen == 0, "We shouldn't be looking for EOF unless we have an empty char buffer.");
+_charLen = _decoder.GetChars(_byteBuffer, 0, _byteLen, _charBuffer, 0, flush: true);
+_bytePos = 0;
+_byteLen = 0;
+}
+return _charLen;
+}
+</code></pre> <p>追進 _stream.Read() 會來到 System.ConsolePal.WindowsConsoleStream.ReadFileNative()，這段已抵達 Unamanged 世界，再下去是作業系統 kernel32.dll 的 ReadFile() API。</p> <pre><code>// P/Invoke wrappers for writing to and from a file, nearly identical
+// to the ones on FileStream.  These are duplicated to save startup/hello
+// world working set and to avoid requiring a reference to the
+// System.IO.FileSystem contract.
+private static unsafe int ReadFileNative(IntPtr hFile, Span&lt;byte&gt; buffer, bool isPipe, out int bytesRead, bool useFileAPIs)
+{
+if (buffer.IsEmpty)
+{
+bytesRead = 0;
+return Interop.Errors.ERROR_SUCCESS;
+}
+bool readSuccess;
+fixed (byte* p = buffer)
+{
+if (useFileAPIs)
+{
+// **** 靠這段讀取使用者輸入，背後是 kernel32.dll 的 ReadFile API，
+readSuccess = (0 != Interop.Kernel32.ReadFile(hFile, p, buffer.Length, out bytesRead, IntPtr.Zero));
+}
+else
+{
+// If the code page could be Unicode, we should use ReadConsole instead, e.g.
+int charsRead;
+readSuccess = Interop.Kernel32.ReadConsole(hFile, p, buffer.Length / BytesPerWChar, out charsRead, IntPtr.Zero);
+bytesRead = charsRead * BytesPerWChar;
+}
+}
+// **** 實測按 Ctrl-C 時，readSuccess == true
+if (readSuccess)
+return Interop.Errors.ERROR_SUCCESS;
+// For pipes that are closing or broken, just stop.
+// (E.g. ERROR_NO_DATA ("pipe is being closed") is returned when we write to a console that is closing;
+// ERROR_BROKEN_PIPE ("pipe was closed") is returned when stdin was closed, which is not an error, but EOF.)
+int errorCode = Marshal.GetLastPInvokeError();
+if (errorCode == Interop.Errors.ERROR_NO_DATA || errorCode == Interop.Errors.ERROR_BROKEN_PIPE)
+return Interop.Errors.ERROR_SUCCESS;
+return errorCode;
+}
+internal static unsafe partial class Interop
+{
+internal static unsafe partial class Kernel32
+{
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Interop.LibraryImportGenerator", "8.0.10.26715")]
+internal static unsafe partial int ReadFile(nint handle, byte* bytes, int numBytesToRead, out int numBytesRead, nint mustBeZero)
+{
+int __lastError;
+global::System.Runtime.CompilerServices.Unsafe.SkipInit(out numBytesRead);
+int __retVal;
+// Pin - Pin data in preparation for calling the P/Invoke.
+fixed (int* __numBytesRead_native = &amp;numBytesRead)
+{
+global::System.Runtime.InteropServices.Marshal.SetLastSystemError(0);
+__retVal = __PInvoke(handle, bytes, numBytesToRead, __numBytesRead_native, mustBeZero);
+__lastError = global::System.Runtime.InteropServices.Marshal.GetLastSystemError();
+}
+global::System.Runtime.InteropServices.Marshal.SetLastPInvokeError(__lastError);
+return __retVal;
+// Local P/Invoke
+[global::System.Runtime.InteropServices.DllImportAttribute("kernel32.dll", EntryPoint = "ReadFile", ExactSpelling = true)]
+static extern unsafe int __PInvoke(nint __handle_native, byte* __bytes_native, int __numBytesToRead_native, int* __numBytesRead_native, nint __mustBeZero_native);
+}
+}
+}
+</code></pre> <p>至此可獲得結論：ReadLine() 是用作業系統 ReadFile() API 概念讀取使用者從鍵盤輸入的內容，當按下 Ctrl-C 或 Ctrl-Z 時，等同於讀取到檔案結尾；用 StreamReader.ReadLine() 讀取實體檔案時，讀到檔案結尾會傳回 null，可用於判斷已無資料。同理，若我們不希望 ReadLine() 在按 Ctrl-C 後繼續執行，在偵測結果為 null 時結束作業即可。</p> <p>修改程式如下，顯示 ReadLine() 讀取到的內容：</p> <pre><code>using System.Text;
+Console.WriteLine("Before ReadLine()");
+Console.Write("Enter something: ");
+var line = Console.ReadLine();
+Console.WriteLine($"line = {(line == null ? "null" :
+line == string.Empty ? "string.Empty" :
+BitConverter.ToString(Encoding.UTF8.GetBytes(line)))}");
+if (line == null) return;
+Console.WriteLine("After ReadLine()");
+</code></pre> <p>測試 1 - 3 為按下 Ctrl-C 的反應，4 為 Ctrl-Z，5 為直接按 Enter。如此，就可以成功避免 ReadLine() 後方的 Console.WriteLine() 在按 Ctrl-C 後執行。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638564808430167271.png"></p> <p>至此，終於可以宣告全案偵破，收工。</p> <p data-slug="ctrl-c-on-readline" data-title-en="Ctrl-C and Console.ReadLine()" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/04/02/16/18/police-3284258_960_720.jpg#960#720">This blog post explores a peculiar behavior in .NET Console applications when pressing Ctrl-C during Console.ReadLine(). I delves into the .NET source code to explain why ReadLine() continues execution after Ctrl-C and provides a workaround to properly handle this scenario.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前幾天被一個詭異的 .NET 程式茶包卡住，還在 <a href="https://www.facebook.com/darkthread.net/posts/pfbid02zi2M1CoTfQ3Sa8jfLypd1SKEVuAEi5ecaQoejVAitHk3T8U1eWVq2TXYWytmHfp1l">FB 貼文</a>請大家幫忙測試。</p> <p>我們都知道 .NET Console 程式執行過程，按下 Ctrl-C 可終止程式執行。若是在 Console.ReadLine() 等待輸入過程按下 Ctrl-C，直覺想法是既然 ReadLine() 會等待 Enter 鍵再繼續，Ctrl-C 非 Enter 鍵，又有終止程式的意義，程式應該會立即停止。</p> <p>但以下的測試結果就讓人有點匪夷所思了：</p> <pre><code>Console.WriteLine("Before ReadLine()");
+Console.Write("Enter something: ");
+var line = Console.ReadLine();
+Console.Write("Enter more: ");
+var line2 = Console.ReadLine();
+Console.WriteLine("After ReadLine()");
+</code></pre> <p>前後兩次 ReadLine()，第一次 ReadLine() 時按 Ctrl-C，程式會立刻結束；若第一次 ReadLine() 隨便給值按 Enter，第二次 ReadLine() 才按 Ctrl-C，則會印完 AfterReadLine() 程式才終止。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638564808426834074.png"></p> <p>蒐集我自己及網友的測試結果，發現同樣的程式碼，相同 .NET 版本，有的人可以重現，有的人不行 (Linux/macOS 則沒有重現案例)，而 <a href="https://dotblogs.com.tw/billchung">Bill 叔</a>更分享了「問題重現與否跟手速有關」的發現，意思是此現象在第一次 ReadLine() 也會發生。如下圖，我們在第一次 ReadLine() 按 Ctrl-C，若時機夠早，程式便會顯示完 "Enter more:" 才結束(下圖 [1], [3])；若稍等一下再按，程式則會直接結束。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638564808428508418.png"></p> <p>經過一番推敲，我釐清一件事實：判斷按下 Ctrl-C 的邏輯並不是由 ReadLine() 處理的，Ctrl-C 與 Ctrl-Break 對 Console 程式來說是種特殊訊號(SIGNINT、SIGBREAK)，設有專屬的機制處理，依據<a href="https://learn.microsoft.com/zh-tw/windows/console/ctrl-c-and-ctrl-break-signals?WT.mc_id=DOP-MVP-37580">官方文件</a>：這些訊號會傳遞到已連結至主控台的所有主控台程序，系統會在每個客戶端進程中建立新的線程來處理事件。</p> <p>故按下 Ctrl-C 時，Console 程式會啟動一條 Thread 負責結束程式(姑且稱之為自我了結 Thread)，而此時 Main Thread 的 ReadLine() 也會因為按了 Ctrl-C 而結束等待，繼續往下執行。若自我了結 Thread 的速度不夠快，在 Main Thread 跑完 Console.Write() 後才把程式停掉，便會出現按了 Ctrl-C 但 ReadLine() 的下一行還是繼續執行的現象。由於自我了結 Thread 與 Main Thread 二者會平行處理，誰快誰慢具有隨機性。想通「結束程式與 ReadLine() 後方邏輯會平行執行」這點，上面遇到的各式不同結果便都有了合理解釋，一切也可歸納為 It's by design, not a bug。</p> <p>至此本案的最大謎團算是解開了，但我還有個疑問：為什麼 Console.ReadLine() 遇到 Ctrl-C 會等同按了 Enter 繼續往下走？</p> <p>我決定追進 .NET 原始碼一探究竟。</p> <p>Console.ReadLine() 背後是呼叫 In.ReadLine()，而 In 是個 TextReader 型別，透過 ConsolePal.GetOrCreateReader() 建立。</p> <pre><code>public static TextReader In
+{
+get
+{
+return Volatile.Read(ref s_in) ?? EnsureInitialized();
+static TextReader EnsureInitialized()
+{
+// Must be placed outside s_syncObject lock. See Out getter.
+ConsolePal.EnsureConsoleInitialized();
+lock (s_syncObject) // Ensures In and InputEncoding are synchronized.
+{
+if (s_in == null)
+{
+Volatile.Write(ref s_in, ConsolePal.GetOrCreateReader());
+}
+return s_in;
+}
+}
+}
+}
+</code></pre> <p>追到 ConsolePal.GetOrCreateReader()，得知 TextReader 其實是個 StreamReader。</p> <pre><code>internal static TextReader GetOrCreateReader()
+{
+Stream inputStream = OpenStandardInput();
+return SyncTextReader.GetSynchronizedTextReader(inputStream == Stream.Null ?
+StreamReader.Null :
+new StreamReader(
+stream: inputStream,
+encoding: new ConsoleEncoding(Console.InputEncoding),
+detectEncodingFromByteOrderMarks: false,
+bufferSize: Console.ReadBufferSize,
+leaveOpen: true));
+}
+</code></pre> <p>而 StreamReader ReadLine() 邏輯如下，等待使用者輸入再繼續的關鍵在 ReadBuffer()：(註：可留意有 **** 標示的中文註解處)</p> <pre><code>// Reads a line. A line is defined as a sequence of characters followed by
+// a carriage return ('\r'), a line feed ('
+'), or a carriage return
+// immediately followed by a line feed. The resulting string does not
+// contain the terminating carriage return and/or line feed. The returned
+// value is null if the end of the input stream has been reached.
+//
+public override string? ReadLine()
+{
+ThrowIfDisposed();
+CheckAsyncTaskInProgress();
+if (_charPos == _charLen)
+{
+// **** 這裡會等待使用者輸入後再繼續
+if (ReadBuffer() == 0)
+{
+return null;
+}
+}
+var vsb = new ValueStringBuilder(stackalloc char[256]);
+do
+{
+// Look for '\r' or \'n'.
+ReadOnlySpan&lt;char&gt; charBufferSpan = _charBuffer.AsSpan(_charPos, _charLen - _charPos);
+Debug.Assert(!charBufferSpan.IsEmpty, "ReadBuffer returned &gt; 0 but didn't bump _charLen?");
+int idxOfNewline = charBufferSpan.IndexOfAny('\r', '
+');
+if (idxOfNewline &gt;= 0)
+{
+string retVal;
+if (vsb.Length == 0)
+{
+retVal = new string(charBufferSpan.Slice(0, idxOfNewline));
+}
+else
+{
+retVal = string.Concat(vsb.AsSpan(), charBufferSpan.Slice(0, idxOfNewline));
+vsb.Dispose();
+}
+char matchedChar = charBufferSpan[idxOfNewline];
+_charPos += idxOfNewline + 1;
+// If we found '\r', consume any immediately following '
+'.
+if (matchedChar == '\r')
+{
+if (_charPos &lt; _charLen || ReadBuffer() &gt; 0)
+{
+if (_charBuffer[_charPos] == '
+')
+{
+_charPos++;
+}
+}
+}
+return retVal;
+}
+// We didn't find '\r' or '
+'. Add it to the StringBuilder
+// and loop until we reach a newline or EOF.
+vsb.Append(charBufferSpan);
+} while (ReadBuffer() &gt; 0);
+return vsb.ToString();
+}
+</code></pre> <p>繼續追進 ReadBuffer()，等待輸入的過程來自 _stream.Read()，而實測：按下 Ctrl-C 或 Ctrl-Z 也會結束 .Read() 等待，但與直接按 Enter 結束的差異在於前者傳回的 _byteLen == 0，而後者 _byteLen == 2，_byteBuffer 內的資料則為 \r 及 
+：</p> <pre><code>internal virtual int ReadBuffer()
+{
+_charLen = 0;
+_charPos = 0;
+if (!_checkPreamble)
+{
+_byteLen = 0;
+}
+bool eofReached = false;
+do
+{
+if (_checkPreamble)
+{
+Debug.Assert(_bytePos &lt;= _encoding.Preamble.Length, "possible bug in _compressPreamble.  Are two threads using this StreamReader at the same time?");
+int len = _stream.Read(_byteBuffer, _bytePos, _byteBuffer.Length - _bytePos);
+Debug.Assert(len &gt;= 0, "Stream.Read returned a negative number!  This is a bug in your stream class.");
+if (len == 0)
+{
+eofReached = true;
+break;
+}
+_byteLen += len;
+}
+else
+{
+Debug.Assert(_bytePos == 0, "bytePos can be non zero only when we are trying to _checkPreamble.  Are two threads using this StreamReader at the same time?");
+// **** 在這裡等待使用者輸入
+_byteLen = _stream.Read(_byteBuffer, 0, _byteBuffer.Length);
+Debug.Assert(_byteLen &gt;= 0, "Stream.Read returned a negative number!  This is a bug in your stream class.");
+// 按下 Ctrl-C 或 Ctrl-Z 時也會到這行，但 _byteLen == 0 (按 Enter 的話 _byteLen == 2, 內容為 byte[] { '\r', '
+' })
+if (_byteLen == 0)
+{
+eofReached = true;
+break;
+}
+}
+// _isBlocked == whether we read fewer bytes than we asked for.
+// Note we must check it here because CompressBuffer or
+// DetectEncoding will change byteLen.
+_isBlocked = (_byteLen &lt; _byteBuffer.Length);
+// Check for preamble before detect encoding. This is not to override the
+// user supplied Encoding for the one we implicitly detect. The user could
+// customize the encoding which we will loose, such as ThrowOnError on UTF8
+if (IsPreamble())
+{
+continue;
+}
+// If we're supposed to detect the encoding and haven't done so yet,
+// do it.  Note this may need to be called more than once.
+if (_detectEncoding &amp;&amp; _byteLen &gt;= 2)
+{
+DetectEncoding();
+}
+Debug.Assert(_charPos == 0 &amp;&amp; _charLen == 0, "We shouldn't be trying to decode more data if we made progress in an earlier iteration.");
+_charLen = _decoder.GetChars(_byteBuffer, 0, _byteLen, _charBuffer, 0, flush: false);
+} while (_charLen == 0);
+if (eofReached)
+{
+// EOF has been reached - perform final flush.
+// We need to reset _bytePos and _byteLen just in case we hadn't
+// finished processing the preamble before we reached EOF.
+Debug.Assert(_charPos == 0 &amp;&amp; _charLen == 0, "We shouldn't be looking for EOF unless we have an empty char buffer.");
+_charLen = _decoder.GetChars(_byteBuffer, 0, _byteLen, _charBuffer, 0, flush: true);
+_bytePos = 0;
+_byteLen = 0;
+}
+return _charLen;
+}
+</code></pre> <p>追進 _stream.Read() 會來到 System.ConsolePal.WindowsConsoleStream.ReadFileNative()，這段已抵達 Unamanged 世界，再下去是作業系統 kernel32.dll 的 ReadFile() API。</p> <pre><code>// P/Invoke wrappers for writing to and from a file, nearly identical
+// to the ones on FileStream.  These are duplicated to save startup/hello
+// world working set and to avoid requiring a reference to the
+// System.IO.FileSystem contract.
+private static unsafe int ReadFileNative(IntPtr hFile, Span&lt;byte&gt; buffer, bool isPipe, out int bytesRead, bool useFileAPIs)
+{
+if (buffer.IsEmpty)
+{
+bytesRead = 0;
+return Interop.Errors.ERROR_SUCCESS;
+}
+bool readSuccess;
+fixed (byte* p = buffer)
+{
+if (useFileAPIs)
+{
+// **** 靠這段讀取使用者輸入，背後是 kernel32.dll 的 ReadFile API，
+readSuccess = (0 != Interop.Kernel32.ReadFile(hFile, p, buffer.Length, out bytesRead, IntPtr.Zero));
+}
+else
+{
+// If the code page could be Unicode, we should use ReadConsole instead, e.g.
+int charsRead;
+readSuccess = Interop.Kernel32.ReadConsole(hFile, p, buffer.Length / BytesPerWChar, out charsRead, IntPtr.Zero);
+bytesRead = charsRead * BytesPerWChar;
+}
+}
+// **** 實測按 Ctrl-C 時，readSuccess == true
+if (readSuccess)
+return Interop.Errors.ERROR_SUCCESS;
+// For pipes that are closing or broken, just stop.
+// (E.g. ERROR_NO_DATA ("pipe is being closed") is returned when we write to a console that is closing;
+// ERROR_BROKEN_PIPE ("pipe was closed") is returned when stdin was closed, which is not an error, but EOF.)
+int errorCode = Marshal.GetLastPInvokeError();
+if (errorCode == Interop.Errors.ERROR_NO_DATA || errorCode == Interop.Errors.ERROR_BROKEN_PIPE)
+return Interop.Errors.ERROR_SUCCESS;
+return errorCode;
+}
+internal static unsafe partial class Interop
+{
+internal static unsafe partial class Kernel32
+{
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Interop.LibraryImportGenerator", "8.0.10.26715")]
+internal static unsafe partial int ReadFile(nint handle, byte* bytes, int numBytesToRead, out int numBytesRead, nint mustBeZero)
+{
+int __lastError;
+global::System.Runtime.CompilerServices.Unsafe.SkipInit(out numBytesRead);
+int __retVal;
+// Pin - Pin data in preparation for calling the P/Invoke.
+fixed (int* __numBytesRead_native = &amp;numBytesRead)
+{
+global::System.Runtime.InteropServices.Marshal.SetLastSystemError(0);
+__retVal = __PInvoke(handle, bytes, numBytesToRead, __numBytesRead_native, mustBeZero);
+__lastError = global::System.Runtime.InteropServices.Marshal.GetLastSystemError();
+}
+global::System.Runtime.InteropServices.Marshal.SetLastPInvokeError(__lastError);
+return __retVal;
+// Local P/Invoke
+[global::System.Runtime.InteropServices.DllImportAttribute("kernel32.dll", EntryPoint = "ReadFile", ExactSpelling = true)]
+static extern unsafe int __PInvoke(nint __handle_native, byte* __bytes_native, int __numBytesToRead_native, int* __numBytesRead_native, nint __mustBeZero_native);
+}
+}
+}
+</code></pre> <p>至此可獲得結論：ReadLine() 是用作業系統 ReadFile() API 概念讀取使用者從鍵盤輸入的內容，當按下 Ctrl-C 或 Ctrl-Z 時，等同於讀取到檔案結尾；用 StreamReader.ReadLine() 讀取實體檔案時，讀到檔案結尾會傳回 null，可用於判斷已無資料。同理，若我們不希望 ReadLine() 在按 Ctrl-C 後繼續執行，在偵測結果為 null 時結束作業即可。</p> <p>修改程式如下，顯示 ReadLine() 讀取到的內容：</p> <pre><code>using System.Text;
+Console.WriteLine("Before ReadLine()");
+Console.Write("Enter something: ");
+var line = Console.ReadLine();
+Console.WriteLine($"line = {(line == null ? "null" :
+line == string.Empty ? "string.Empty" :
+BitConverter.ToString(Encoding.UTF8.GetBytes(line)))}");
+if (line == null) return;
+Console.WriteLine("After ReadLine()");
+</code></pre> <p>測試 1 - 3 為按下 Ctrl-C 的反應，4 為 Ctrl-Z，5 為直接按 Enter。如此，就可以成功避免 ReadLine() 後方的 Console.WriteLine() 在按 Ctrl-C 後執行。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638564808430167271.png"></p> <p>至此，終於可以宣告全案偵破，收工。</p> <p data-slug="ctrl-c-on-readline" data-title-en="Ctrl-C and Console.ReadLine()" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/04/02/16/18/police-3284258_960_720.jpg#960#720">This blog post explores a peculiar behavior in .NET Console applications when pressing Ctrl-C during Console.ReadLine(). I delves into the .NET source code to explain why ReadLine() continues execution after Ctrl-C and provides a workaround to properly handle this scenario.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前幾天被一個詭異的 .NET 程式茶包卡住，還在 <a href="https://www.facebook.com/darkthread.net/posts/pfbid02zi2M1CoTfQ3Sa8jfLypd1SKEVuAEi5ecaQoejVAitHk3T8U1eWVq2TXYWytmHfp1l">FB 貼文</a>請大家幫忙測試。</p> <p>我們都知道 .NET Console 程式執行過程，按下 Ctrl-C 可終止程式執行。若是在 Console.ReadLine() 等待輸入過程按下 Ctrl-C，直覺想法是既然 ReadLine() 會等待 Enter 鍵再繼續，Ctrl-C 非 Enter 鍵，又有終止程式的意義，程式應該會立即停止。</p> <p>但以下的測試結果就讓人有點匪夷所思了：</p> <pre><code>Console.WriteLine("Before ReadLine()");
+Console.Write("Enter something: ");
+var line = Console.ReadLine();
+Console.Write("Enter more: ");
+var line2 = Console.ReadLine();
+Console.WriteLine("After ReadLine()");
+</code></pre> <p>前後兩次 ReadLine()，第一次 ReadLine() 時按 Ctrl-C，程式會立刻結束；若第一次 ReadLine() 隨便給值按 Enter，第二次 ReadLine() 才按 Ctrl-C，則會印完 AfterReadLine() 程式才終止。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638564808426834074.png"></p> <p>蒐集我自己及網友的測試結果，發現同樣的程式碼，相同 .NET 版本，有的人可以重現，有的人不行 (Linux/macOS 則沒有重現案例)，而 <a href="https://dotblogs.com.tw/billchung">Bill 叔</a>更分享了「問題重現與否跟手速有關」的發現，意思是此現象在第一次 ReadLine() 也會發生。如下圖，我們在第一次 ReadLine() 按 Ctrl-C，若時機夠早，程式便會顯示完 "Enter more:" 才結束(下圖 [1], [3])；若稍等一下再按，程式則會直接結束。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638564808428508418.png"></p> <p>經過一番推敲，我釐清一件事實：判斷按下 Ctrl-C 的邏輯並不是由 ReadLine() 處理的，Ctrl-C 與 Ctrl-Break 對 Console 程式來說是種特殊訊號(SIGNINT、SIGBREAK)，設有專屬的機制處理，依據<a href="https://learn.microsoft.com/zh-tw/windows/console/ctrl-c-and-ctrl-break-signals?WT.mc_id=DOP-MVP-37580">官方文件</a>：這些訊號會傳遞到已連結至主控台的所有主控台程序，系統會在每個客戶端進程中建立新的線程來處理事件。</p> <p>故按下 Ctrl-C 時，Console 程式會啟動一條 Thread 負責結束程式(姑且稱之為自我了結 Thread)，而此時 Main Thread 的 ReadLine() 也會因為按了 Ctrl-C 而結束等待，繼續往下執行。若自我了結 Thread 的速度不夠快，在 Main Thread 跑完 Console.Write() 後才把程式停掉，便會出現按了 Ctrl-C 但 ReadLine() 的下一行還是繼續執行的現象。由於自我了結 Thread 與 Main Thread 二者會平行處理，誰快誰慢具有隨機性。想通「結束程式與 ReadLine() 後方邏輯會平行執行」這點，上面遇到的各式不同結果便都有了合理解釋，一切也可歸納為 It's by design, not a bug。</p> <p>至此本案的最大謎團算是解開了，但我還有個疑問：為什麼 Console.ReadLine() 遇到 Ctrl-C 會等同按了 Enter 繼續往下走？</p> <p>我決定追進 .NET 原始碼一探究竟。</p> <p>Console.ReadLine() 背後是呼叫 In.ReadLine()，而 In 是個 TextReader 型別，透過 ConsolePal.GetOrCreateReader() 建立。</p> <pre><code>public static TextReader In
+{
+get
+{
+return Volatile.Read(ref s_in) ?? EnsureInitialized();
+static TextReader EnsureInitialized()
+{
+// Must be placed outside s_syncObject lock. See Out getter.
+ConsolePal.EnsureConsoleInitialized();
+lock (s_syncObject) // Ensures In and InputEncoding are synchronized.
+{
+if (s_in == null)
+{
+Volatile.Write(ref s_in, ConsolePal.GetOrCreateReader());
+}
+return s_in;
+}
+}
+}
+}
+</code></pre> <p>追到 ConsolePal.GetOrCreateReader()，得知 TextReader 其實是個 StreamReader。</p> <pre><code>internal static TextReader GetOrCreateReader()
+{
+Stream inputStream = OpenStandardInput();
+return SyncTextReader.GetSynchronizedTextReader(inputStream == Stream.Null ?
+StreamReader.Null :
+new StreamReader(
+stream: inputStream,
+encoding: new ConsoleEncoding(Console.InputEncoding),
+detectEncodingFromByteOrderMarks: false,
+bufferSize: Console.ReadBufferSize,
+leaveOpen: true));
+}
+</code></pre> <p>而 StreamReader ReadLine() 邏輯如下，等待使用者輸入再繼續的關鍵在 ReadBuffer()：(註：可留意有 **** 標示的中文註解處)</p> <pre><code>// Reads a line. A line is defined as a sequence of characters followed by
+// a carriage return ('\r'), a line feed ('
+'), or a carriage return
+// immediately followed by a line feed. The resulting string does not
+// contain the terminating carriage return and/or line feed. The returned
+// value is null if the end of the input stream has been reached.
+//
+public override string? ReadLine()
+{
+ThrowIfDisposed();
+CheckAsyncTaskInProgress();
+if (_charPos == _charLen)
+{
+// **** 這裡會等待使用者輸入後再繼續
+if (ReadBuffer() == 0)
+{
+return null;
+}
+}
+var vsb = new ValueStringBuilder(stackalloc char[256]);
+do
+{
+// Look for '\r' or \'n'.
+ReadOnlySpan&lt;char&gt; charBufferSpan = _charBuffer.AsSpan(_charPos, _charLen - _charPos);
+Debug.Assert(!charBufferSpan.IsEmpty, "ReadBuffer returned &gt; 0 but didn't bump _charLen?");
+int idxOfNewline = charBufferSpan.IndexOfAny('\r', '
+');
+if (idxOfNewline &gt;= 0)
+{
+string retVal;
+if (vsb.Length == 0)
+{
+retVal = new string(charBufferSpan.Slice(0, idxOfNewline));
+}
+else
+{
+retVal = string.Concat(vsb.AsSpan(), charBufferSpan.Slice(0, idxOfNewline));
+vsb.Dispose();
+}
+char matchedChar = charBufferSpan[idxOfNewline];
+_charPos += idxOfNewline + 1;
+// If we found '\r', consume any immediately following '
+'.
+if (matchedChar == '\r')
+{
+if (_charPos &lt; _charLen || ReadBuffer() &gt; 0)
+{
+if (_charBuffer[_charPos] == '
+')
+{
+_charPos++;
+}
+}
+}
+return retVal;
+}
+// We didn't find '\r' or '
+'. Add it to the StringBuilder
+// and loop until we reach a newline or EOF.
+vsb.Append(charBufferSpan);
+} while (ReadBuffer() &gt; 0);
+return vsb.ToString();
+}
+</code></pre> <p>繼續追進 ReadBuffer()，等待輸入的過程來自 _stream.Read()，而實測：按下 Ctrl-C 或 Ctrl-Z 也會結束 .Read() 等待，但與直接按 Enter 結束的差異在於前者傳回的 _byteLen == 0，而後者 _byteLen == 2，_byteBuffer 內的資料則為 \r 及 
+：</p> <pre><code>internal virtual int ReadBuffer()
+{
+_charLen = 0;
+_charPos = 0;
+if (!_checkPreamble)
+{
+_byteLen = 0;
+}
+bool eofReached = false;
+do
+{
+if (_checkPreamble)
+{
+Debug.Assert(_bytePos &lt;= _encoding.Preamble.Length, "possible bug in _compressPreamble.  Are two threads using this StreamReader at the same time?");
+int len = _stream.Read(_byteBuffer, _bytePos, _byteBuffer.Length - _bytePos);
+Debug.Assert(len &gt;= 0, "Stream.Read returned a negative number!  This is a bug in your stream class.");
+if (len == 0)
+{
+eofReached = true;
+break;
+}
+_byteLen += len;
+}
+else
+{
+Debug.Assert(_bytePos == 0, "bytePos can be non zero only when we are trying to _checkPreamble.  Are two threads using this StreamReader at the same time?");
+// **** 在這裡等待使用者輸入
+_byteLen = _stream.Read(_byteBuffer, 0, _byteBuffer.Length);
+Debug.Assert(_byteLen &gt;= 0, "Stream.Read returned a negative number!  This is a bug in your stream class.");
+// 按下 Ctrl-C 或 Ctrl-Z 時也會到這行，但 _byteLen == 0 (按 Enter 的話 _byteLen == 2, 內容為 byte[] { '\r', '
+' })
+if (_byteLen == 0)
+{
+eofReached = true;
+break;
+}
+}
+// _isBlocked == whether we read fewer bytes than we asked for.
+// Note we must check it here because CompressBuffer or
+// DetectEncoding will change byteLen.
+_isBlocked = (_byteLen &lt; _byteBuffer.Length);
+// Check for preamble before detect encoding. This is not to override the
+// user supplied Encoding for the one we implicitly detect. The user could
+// customize the encoding which we will loose, such as ThrowOnError on UTF8
+if (IsPreamble())
+{
+continue;
+}
+// If we're supposed to detect the encoding and haven't done so yet,
+// do it.  Note this may need to be called more than once.
+if (_detectEncoding &amp;&amp; _byteLen &gt;= 2)
+{
+DetectEncoding();
+}
+Debug.Assert(_charPos == 0 &amp;&amp; _charLen == 0, "We shouldn't be trying to decode more data if we made progress in an earlier iteration.");
+_charLen = _decoder.GetChars(_byteBuffer, 0, _byteLen, _charBuffer, 0, flush: false);
+} while (_charLen == 0);
+if (eofReached)
+{
+// EOF has been reached - perform final flush.
+// We need to reset _bytePos and _byteLen just in case we hadn't
+// finished processing the preamble before we reached EOF.
+Debug.Assert(_charPos == 0 &amp;&amp; _charLen == 0, "We shouldn't be looking for EOF unless we have an empty char buffer.");
+_charLen = _decoder.GetChars(_byteBuffer, 0, _byteLen, _charBuffer, 0, flush: true);
+_bytePos = 0;
+_byteLen = 0;
+}
+return _charLen;
+}
+</code></pre> <p>追進 _stream.Read() 會來到 System.ConsolePal.WindowsConsoleStream.ReadFileNative()，這段已抵達 Unamanged 世界，再下去是作業系統 kernel32.dll 的 ReadFile() API。</p> <pre><code>// P/Invoke wrappers for writing to and from a file, nearly identical
+// to the ones on FileStream.  These are duplicated to save startup/hello
+// world working set and to avoid requiring a reference to the
+// System.IO.FileSystem contract.
+private static unsafe int ReadFileNative(IntPtr hFile, Span&lt;byte&gt; buffer, bool isPipe, out int bytesRead, bool useFileAPIs)
+{
+if (buffer.IsEmpty)
+{
+bytesRead = 0;
+return Interop.Errors.ERROR_SUCCESS;
+}
+bool readSuccess;
+fixed (byte* p = buffer)
+{
+if (useFileAPIs)
+{
+// **** 靠這段讀取使用者輸入，背後是 kernel32.dll 的 ReadFile API，
+readSuccess = (0 != Interop.Kernel32.ReadFile(hFile, p, buffer.Length, out bytesRead, IntPtr.Zero));
+}
+else
+{
+// If the code page could be Unicode, we should use ReadConsole instead, e.g.
+int charsRead;
+readSuccess = Interop.Kernel32.ReadConsole(hFile, p, buffer.Length / BytesPerWChar, out charsRead, IntPtr.Zero);
+bytesRead = charsRead * BytesPerWChar;
+}
+}
+// **** 實測按 Ctrl-C 時，readSuccess == true
+if (readSuccess)
+return Interop.Errors.ERROR_SUCCESS;
+// For pipes that are closing or broken, just stop.
+// (E.g. ERROR_NO_DATA ("pipe is being closed") is returned when we write to a console that is closing;
+// ERROR_BROKEN_PIPE ("pipe was closed") is returned when stdin was closed, which is not an error, but EOF.)
+int errorCode = Marshal.GetLastPInvokeError();
+if (errorCode == Interop.Errors.ERROR_NO_DATA || errorCode == Interop.Errors.ERROR_BROKEN_PIPE)
+return Interop.Errors.ERROR_SUCCESS;
+return errorCode;
+}
+internal static unsafe partial class Interop
+{
+internal static unsafe partial class Kernel32
+{
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Interop.LibraryImportGenerator", "8.0.10.26715")]
+internal static unsafe partial int ReadFile(nint handle, byte* bytes, int numBytesToRead, out int numBytesRead, nint mustBeZero)
+{
+int __lastError;
+global::System.Runtime.CompilerServices.Unsafe.SkipInit(out numBytesRead);
+int __retVal;
+// Pin - Pin data in preparation for calling the P/Invoke.
+fixed (int* __numBytesRead_native = &amp;numBytesRead)
+{
+global::System.Runtime.InteropServices.Marshal.SetLastSystemError(0);
+__retVal = __PInvoke(handle, bytes, numBytesToRead, __numBytesRead_native, mustBeZero);
+__lastError = global::System.Runtime.InteropServices.Marshal.GetLastSystemError();
+}
+global::System.Runtime.InteropServices.Marshal.SetLastPInvokeError(__lastError);
+return __retVal;
+// Local P/Invoke
+[global::System.Runtime.InteropServices.DllImportAttribute("kernel32.dll", EntryPoint = "ReadFile", ExactSpelling = true)]
+static extern unsafe int __PInvoke(nint __handle_native, byte* __bytes_native, int __numBytesToRead_native, int* __numBytesRead_native, nint __mustBeZero_native);
+}
+}
+}
+</code></pre> <p>至此可獲得結論：ReadLine() 是用作業系統 ReadFile() API 概念讀取使用者從鍵盤輸入的內容，當按下 Ctrl-C 或 Ctrl-Z 時，等同於讀取到檔案結尾；用 StreamReader.ReadLine() 讀取實體檔案時，讀到檔案結尾會傳回 null，可用於判斷已無資料。同理，若我們不希望 ReadLine() 在按 Ctrl-C 後繼續執行，在偵測結果為 null 時結束作業即可。</p> <p>修改程式如下，顯示 ReadLine() 讀取到的內容：</p> <pre><code>using System.Text;
+Console.WriteLine("Before ReadLine()");
+Console.Write("Enter something: ");
+var line = Console.ReadLine();
+Console.WriteLine($"line = {(line == null ? "null" :
+line == string.Empty ? "string.Empty" :
+BitConverter.ToString(Encoding.UTF8.GetBytes(line)))}");
+if (line == null) return;
+Console.WriteLine("After ReadLine()");
+</code></pre> <p>測試 1 - 3 為按下 Ctrl-C 的反應，4 為 Ctrl-Z，5 為直接按 Enter。如此，就可以成功避免 ReadLine() 後方的 Console.WriteLine() 在按 Ctrl-C 後執行。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638564808430167271.png"></p> <p>至此，終於可以宣告全案偵破，收工。</p> <p data-slug="ctrl-c-on-readline" data-title-en="Ctrl-C and Console.ReadLine()" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/04/02/16/18/police-3284258_960_720.jpg#960#720">This blog post explores a peculiar behavior in .NET Console applications when pressing Ctrl-C during Console.ReadLine(). I delves into the .NET source code to explain why ReadLine() continues execution after Ctrl-C and provides a workaround to properly handle this scenario.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638564808426834074.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638564808426834074.png" medium="image"/>
+    <pubDate>Sat, 13 Jul 2024 14:53:59 GMT</pubDate>
+  </item><item>
     <title><![CDATA[開源授權雜記 - Apache 2.0 授權字型怎麼用？為何 .js 沒 MIT 版權聲明？]]></title>
     <link>https://blog.darkthread.net/blog/apache-fonts-n-miss-mit-comment/</link>
     <itunes:title><![CDATA[開源授權雜記 - Apache 2.0 授權字型怎麼用？為何 .js 沒 MIT 版權聲明？]]></itunes:title>
@@ -1444,20 +2188,5 @@ nltk.download('treebank')
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638553523880338126.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638553523880338126.jpg" medium="image"/>
     <pubDate>Sun, 30 Jun 2024 13:50:25 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[我的跑步新裝備 - Fenix 7 Pro]]></title>
-    <link>https://blog.darkthread.net/blog/fenix7/</link>
-    <itunes:title><![CDATA[我的跑步新裝備 - Fenix 7 Pro]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>大家都知道，我惜物愛修東西又<del>摳門</del>節儉成性，以我的標準，設備堪用或損壞但尚可修復就換新，是一種犯罪行為。</p> <p><a href="/blog/my-fenix-3/">現役的運動錶 Fenix 3</a>購於 2015 年，原本預期 3C 產品壽命有限，沒想到它竟神奇地陪了我快九年，跑過兩萬公里。幾年前停修前多因高度計故障，送廠維修花了一千多元換新錶身，現在除了錶面滿是刮痕螢幕邊緣變色漏光，連電池都還很夠力，在我心中 Fenix 3 像是滿面風霜帶著驕傲刀疤的硬漢，準備與我一起創下十年黃金傳說。<br> (註：當年想說 3C 電子產品不比傳統石英錶能戴上數十年，至少電池就活不了那麼久，沒必要多花三千買藍寶石玻璃，徒留錶面完美無瑕的廢鐵也是枉然，沒想到戴了快十年)</p> <p>至少，我是這麼計劃的。</p> <p>不過呢，Fenix 3 老錶還是有些美中不足，像是沒有手腕心率計。我習慣帶 24 小時連洗澡都不摘，沒法觀測睡眠心率變化有點可惜。另外能測觸地時間跟左右平衡的 HRM-RUN 心率帶壞了，順利借來<a href="https://www.garmin.com.tw/products/accessories/010-12520-10_010-02063-30/#devices">小綠豆</a>(跑步動態感測器)，但明朝的 Fenix 3 不認得清朝的火砲沒法用。再來是 Garmin App 有些新功能像睡眠評分、能量指數... 等，只有新款手錶才支援。</p> <p>就在這麼一個「舊錶還很好，換新也不錯」的平衡中，前幾天深夜友人傳來邪惡私訊：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638553095316196680.jpg" alt="thumbnail"></p> <p>可惡，本斥但大。(註：本想大聲斥責，但誘惑實在太大)</p> <p>難得的機會，加上優惠價格很誘人(算下來竟比當年買 Fenix 3 還便宜)。總之，一陣催眠推坑後，我的新運動錶提早入手了。</p> <p>Garmin 錶款眾多，但 Fenix 的金屬殼及長待機時間始終最吸引我，引用舊文的理由：</p> <blockquote> <p>我愛 Fenix 的理由是它極其成功地隱藏自己是一支 GPS 運動錶的事實，配上指針錶面，誰會想到它是跑步爬山騎單車用來計里程測心跳用的工具？日常生活 24 小時佩戴完全不突兀，就算戴著它出席國宴、APEC 會議，甚至奧斯卡頒獎典禮，依然大方得體。（先生您哪位？）</p> </blockquote> <p>而歷經改版，新一代 Fenix 電池續航力又邁進了一大步，日常使用可達 18 天、GPS 模式可連用 57 小時，加上太陽能充電還能更久。這才叫手錶呀，像 Apple Watch 每天要充電是哪門子手錶？</p> <p>Fenix 7 Pro，就決定是你了!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638553095322496556.jpg" alt="thumbnail"><br> Fenix 3 榮退暨 Fenix 7 就職典禮紀念照</p> <p>Fenix 7 是去年上市的，網路上開箱文跟體驗影片滿坑滿谷，這裡就不多介紹了。而身為資深用戶，這次換錶對我只是一次「升級」，不再有劉姥姥進大觀園的新鮮感，簡單記幾則體驗心得。</p> <ol><li><p>GPS 精確度<br> 就像買新電腦一定要先用跑分軟體測試效能，我入手 GPS 錶的 SOP 是先來個「政大操場四百米跑道軌跡測試」(學長們的記錄：<a href="/blog/gps-watch/">GH-625M</a>、<a href="/blog/cardio-40h-vs-gh625m/">Cardio 40H vs GH-625m</a>、<a href="/blog/my-fenix-3/">Fenix 3</a>)。這回我採用的測試方法是左手 Fenix 7、右手 Fenix 3，同時記錄，儘可能排除變因。<br> 總共測了兩趟，第一跑道 8 圈 3.2 公里跟第八跑道跑 2 公里。資料傳到 App，發現連打開軌跡圖放大仔細比對都省了，光看縮圖就知道誰贏了。Fenix 3 的軌跡符合我原本所認知的「GPS 本來就會有誤差」，而 Fenix 7 則畫出出奇完美的橢圓，讓我讚嘆這八年來科技的演進。(不過我有懷疑，這該不會是演算法偵測繞跑道修正路徑後的結果？就像<a href="https://www.sogi.com.tw/articles/samsung_galaxy_s23_ultra/6259462">手機照月亮時自動啟動 AI 修圖</a>一樣)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638553095324239493.jpg"></p> </li> <li><p>手腕心率<br> 能 24 小時紀錄心率挺好的，新一代手錶還可以測 <a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/ecg/use/">ECG 心電圖</a>、<a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/respiration-rate/">呼吸速率</a>、血氧指數，並能用心率、呼吸率推算<a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/sleep-tracking/">睡眠階段</a>，這些算是錦上添花的養生保健指引，可以加減參考。<br> 現代的心率偵測比我想像來得方便與精準，錶不用綁到死緊就能測量，數據也還行。但運動時要密切觀察心率變化的話，胸式心率帶還是更準一點。</p> </li> <li><p>手電筒<br> 燈光鈕按兩下即可開啟手電筒，手錶隨時都在手上，用起來比手機又更方便，進房間不想開燈摸黑拿東西時格外好用。</p> </li> <li><p>太陽能充電<br> 有太陽能耶，所以手錶不用充電，每天照一下太陽就好了。(大誤)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638553095325919665.jpg" alt="thumbnail"><br> 手錶的太陽能板面積有限，而且需要陽光直射才有效，只能延緩掉電速度或是無充電設備時應急。我個人定位它最大的用途是當你在戶外被太陽曬到想罵髒話時，想著「嗯，手錶現在正在充電呢」可在心靈上獲得微小安慰。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638553095327779270.jpg" alt="thumbnail"></p> </li> <li><p>大字體<br> 不確定 Garmin 是不是收到滿坑滿谷的反應：字太小看不到、字太小看不到、字太小看不到... 總之，Fenix 7 錶面雖然比 Fenix 3 小，解析度更高，有些介面的字體被放大到讓我有被冒犯的感覺。像是兒女送上老人用孝親機，還不忘解釋「您眼睛不好，我特別選這支螢幕的字跟按鈕都很大...」，啃，我沒這麼老好嗎？<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638553095329510963.jpg" alt="thumbnail"><br> 研究了一下，我找不到地方可以把通知字體調小，而非正式民調顯示其他人都覺得這個字體大小還好，再小可能看不清楚。看來是我個人偏好背離主流民意，只能被迫接受 Fenix 的好意，忍受砂鍋大的通知文體，但希望未來軟體改版時能提供縮小字體的選項。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638553095331284540.jpg" alt="thumbnail"></p> </li> <li><p>螢幕反光問題<br> 不知是因為藍寶石玻璃錶面還是 <a href="https://www.garmin.com.tw/minisite/garmin-technology/wearable-science/chroma-display/">Chroma 反射式螢幕</a>(標榜 MIP，Memory in Pixel 設計，改變像素顏色時才耗電，類似電子紙) ，Fenix 7 的螢幕反光問題比 Fenix 3 嚴重，在室內或戶外陰暗處若未開啟背光，螢幕會因反光看不清楚，運動期間若光線充足則完全沒問題。Fenix 3 在一般室內光線下不需背光就很清楚，Fenix 7 則需靠抬手背光克服，背光會耗一些電，但 Fenix 7 續航力比 3 高出很多，故這樣的設計也還行。</p> </li></ol> <p>換錶載了三天，感覺還不錯，我的 <a href="/blog/my-first-fenix3-datafield/">RunnerWindow</a> 得改版才能支援 Fenix 7，而這八年時間，Garmin ConnectIQ SDK 改版也變化很多，我想趁此機會重構專案，分離 View 跟 Model，並將 UI 元素元件化... 默默 TODO 清單又多一個 Side Project 專案，哈!</p> <p data-slug="fenix7" data-fbimg="https://i.imgur.com/zfY55b4.png#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>大家都知道，我惜物愛修東西又<del>摳門</del>節儉成性，以我的標準，設備堪用或損壞但尚可修復就換新，是一種犯罪行為。</p> <p><a href="/blog/my-fenix-3/">現役的運動錶 Fenix 3</a>購於 2015 年，原本預期 3C 產品壽命有限，沒想到它竟神奇地陪了我快九年，跑過兩萬公里。幾年前停修前多因高度計故障，送廠維修花了一千多元換新錶身，現在除了錶面滿是刮痕螢幕邊緣變色漏光，連電池都還很夠力，在我心中 Fenix 3 像是滿面風霜帶著驕傲刀疤的硬漢，準備與我一起創下十年黃金傳說。<br> (註：當年想說 3C 電子產品不比傳統石英錶能戴上數十年，至少電池就活不了那麼久，沒必要多花三千買藍寶石玻璃，徒留錶面完美無瑕的廢鐵也是枉然，沒想到戴了快十年)</p> <p>至少，我是這麼計劃的。</p> <p>不過呢，Fenix 3 老錶還是有些美中不足，像是沒有手腕心率計。我習慣帶 24 小時連洗澡都不摘，沒法觀測睡眠心率變化有點可惜。另外能測觸地時間跟左右平衡的 HRM-RUN 心率帶壞了，順利借來<a href="https://www.garmin.com.tw/products/accessories/010-12520-10_010-02063-30/#devices">小綠豆</a>(跑步動態感測器)，但明朝的 Fenix 3 不認得清朝的火砲沒法用。再來是 Garmin App 有些新功能像睡眠評分、能量指數... 等，只有新款手錶才支援。</p> <p>就在這麼一個「舊錶還很好，換新也不錯」的平衡中，前幾天深夜友人傳來邪惡私訊：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638553095316196680.jpg" alt="thumbnail"></p> <p>可惡，本斥但大。(註：本想大聲斥責，但誘惑實在太大)</p> <p>難得的機會，加上優惠價格很誘人(算下來竟比當年買 Fenix 3 還便宜)。總之，一陣催眠推坑後，我的新運動錶提早入手了。</p> <p>Garmin 錶款眾多，但 Fenix 的金屬殼及長待機時間始終最吸引我，引用舊文的理由：</p> <blockquote> <p>我愛 Fenix 的理由是它極其成功地隱藏自己是一支 GPS 運動錶的事實，配上指針錶面，誰會想到它是跑步爬山騎單車用來計里程測心跳用的工具？日常生活 24 小時佩戴完全不突兀，就算戴著它出席國宴、APEC 會議，甚至奧斯卡頒獎典禮，依然大方得體。（先生您哪位？）</p> </blockquote> <p>而歷經改版，新一代 Fenix 電池續航力又邁進了一大步，日常使用可達 18 天、GPS 模式可連用 57 小時，加上太陽能充電還能更久。這才叫手錶呀，像 Apple Watch 每天要充電是哪門子手錶？</p> <p>Fenix 7 Pro，就決定是你了!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638553095322496556.jpg" alt="thumbnail"><br> Fenix 3 榮退暨 Fenix 7 就職典禮紀念照</p> <p>Fenix 7 是去年上市的，網路上開箱文跟體驗影片滿坑滿谷，這裡就不多介紹了。而身為資深用戶，這次換錶對我只是一次「升級」，不再有劉姥姥進大觀園的新鮮感，簡單記幾則體驗心得。</p> <ol><li><p>GPS 精確度<br> 就像買新電腦一定要先用跑分軟體測試效能，我入手 GPS 錶的 SOP 是先來個「政大操場四百米跑道軌跡測試」(學長們的記錄：<a href="/blog/gps-watch/">GH-625M</a>、<a href="/blog/cardio-40h-vs-gh625m/">Cardio 40H vs GH-625m</a>、<a href="/blog/my-fenix-3/">Fenix 3</a>)。這回我採用的測試方法是左手 Fenix 7、右手 Fenix 3，同時記錄，儘可能排除變因。<br> 總共測了兩趟，第一跑道 8 圈 3.2 公里跟第八跑道跑 2 公里。資料傳到 App，發現連打開軌跡圖放大仔細比對都省了，光看縮圖就知道誰贏了。Fenix 3 的軌跡符合我原本所認知的「GPS 本來就會有誤差」，而 Fenix 7 則畫出出奇完美的橢圓，讓我讚嘆這八年來科技的演進。(不過我有懷疑，這該不會是演算法偵測繞跑道修正路徑後的結果？就像<a href="https://www.sogi.com.tw/articles/samsung_galaxy_s23_ultra/6259462">手機照月亮時自動啟動 AI 修圖</a>一樣)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638553095324239493.jpg"></p> </li> <li><p>手腕心率<br> 能 24 小時紀錄心率挺好的，新一代手錶還可以測 <a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/ecg/use/">ECG 心電圖</a>、<a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/respiration-rate/">呼吸速率</a>、血氧指數，並能用心率、呼吸率推算<a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/sleep-tracking/">睡眠階段</a>，這些算是錦上添花的養生保健指引，可以加減參考。<br> 現代的心率偵測比我想像來得方便與精準，錶不用綁到死緊就能測量，數據也還行。但運動時要密切觀察心率變化的話，胸式心率帶還是更準一點。</p> </li> <li><p>手電筒<br> 燈光鈕按兩下即可開啟手電筒，手錶隨時都在手上，用起來比手機又更方便，進房間不想開燈摸黑拿東西時格外好用。</p> </li> <li><p>太陽能充電<br> 有太陽能耶，所以手錶不用充電，每天照一下太陽就好了。(大誤)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638553095325919665.jpg" alt="thumbnail"><br> 手錶的太陽能板面積有限，而且需要陽光直射才有效，只能延緩掉電速度或是無充電設備時應急。我個人定位它最大的用途是當你在戶外被太陽曬到想罵髒話時，想著「嗯，手錶現在正在充電呢」可在心靈上獲得微小安慰。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638553095327779270.jpg" alt="thumbnail"></p> </li> <li><p>大字體<br> 不確定 Garmin 是不是收到滿坑滿谷的反應：字太小看不到、字太小看不到、字太小看不到... 總之，Fenix 7 錶面雖然比 Fenix 3 小，解析度更高，有些介面的字體被放大到讓我有被冒犯的感覺。像是兒女送上老人用孝親機，還不忘解釋「您眼睛不好，我特別選這支螢幕的字跟按鈕都很大...」，啃，我沒這麼老好嗎？<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638553095329510963.jpg" alt="thumbnail"><br> 研究了一下，我找不到地方可以把通知字體調小，而非正式民調顯示其他人都覺得這個字體大小還好，再小可能看不清楚。看來是我個人偏好背離主流民意，只能被迫接受 Fenix 的好意，忍受砂鍋大的通知文體，但希望未來軟體改版時能提供縮小字體的選項。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638553095331284540.jpg" alt="thumbnail"></p> </li> <li><p>螢幕反光問題<br> 不知是因為藍寶石玻璃錶面還是 <a href="https://www.garmin.com.tw/minisite/garmin-technology/wearable-science/chroma-display/">Chroma 反射式螢幕</a>(標榜 MIP，Memory in Pixel 設計，改變像素顏色時才耗電，類似電子紙) ，Fenix 7 的螢幕反光問題比 Fenix 3 嚴重，在室內或戶外陰暗處若未開啟背光，螢幕會因反光看不清楚，運動期間若光線充足則完全沒問題。Fenix 3 在一般室內光線下不需背光就很清楚，Fenix 7 則需靠抬手背光克服，背光會耗一些電，但 Fenix 7 續航力比 3 高出很多，故這樣的設計也還行。</p> </li></ol> <p>換錶載了三天，感覺還不錯，我的 <a href="/blog/my-first-fenix3-datafield/">RunnerWindow</a> 得改版才能支援 Fenix 7，而這八年時間，Garmin ConnectIQ SDK 改版也變化很多，我想趁此機會重構專案，分離 View 跟 Model，並將 UI 元素元件化... 默默 TODO 清單又多一個 Side Project 專案，哈!</p> <p data-slug="fenix7" data-fbimg="https://i.imgur.com/zfY55b4.png#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>大家都知道，我惜物愛修東西又<del>摳門</del>節儉成性，以我的標準，設備堪用或損壞但尚可修復就換新，是一種犯罪行為。</p> <p><a href="/blog/my-fenix-3/">現役的運動錶 Fenix 3</a>購於 2015 年，原本預期 3C 產品壽命有限，沒想到它竟神奇地陪了我快九年，跑過兩萬公里。幾年前停修前多因高度計故障，送廠維修花了一千多元換新錶身，現在除了錶面滿是刮痕螢幕邊緣變色漏光，連電池都還很夠力，在我心中 Fenix 3 像是滿面風霜帶著驕傲刀疤的硬漢，準備與我一起創下十年黃金傳說。<br> (註：當年想說 3C 電子產品不比傳統石英錶能戴上數十年，至少電池就活不了那麼久，沒必要多花三千買藍寶石玻璃，徒留錶面完美無瑕的廢鐵也是枉然，沒想到戴了快十年)</p> <p>至少，我是這麼計劃的。</p> <p>不過呢，Fenix 3 老錶還是有些美中不足，像是沒有手腕心率計。我習慣帶 24 小時連洗澡都不摘，沒法觀測睡眠心率變化有點可惜。另外能測觸地時間跟左右平衡的 HRM-RUN 心率帶壞了，順利借來<a href="https://www.garmin.com.tw/products/accessories/010-12520-10_010-02063-30/#devices">小綠豆</a>(跑步動態感測器)，但明朝的 Fenix 3 不認得清朝的火砲沒法用。再來是 Garmin App 有些新功能像睡眠評分、能量指數... 等，只有新款手錶才支援。</p> <p>就在這麼一個「舊錶還很好，換新也不錯」的平衡中，前幾天深夜友人傳來邪惡私訊：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638553095316196680.jpg" alt="thumbnail"></p> <p>可惡，本斥但大。(註：本想大聲斥責，但誘惑實在太大)</p> <p>難得的機會，加上優惠價格很誘人(算下來竟比當年買 Fenix 3 還便宜)。總之，一陣催眠推坑後，我的新運動錶提早入手了。</p> <p>Garmin 錶款眾多，但 Fenix 的金屬殼及長待機時間始終最吸引我，引用舊文的理由：</p> <blockquote> <p>我愛 Fenix 的理由是它極其成功地隱藏自己是一支 GPS 運動錶的事實，配上指針錶面，誰會想到它是跑步爬山騎單車用來計里程測心跳用的工具？日常生活 24 小時佩戴完全不突兀，就算戴著它出席國宴、APEC 會議，甚至奧斯卡頒獎典禮，依然大方得體。（先生您哪位？）</p> </blockquote> <p>而歷經改版，新一代 Fenix 電池續航力又邁進了一大步，日常使用可達 18 天、GPS 模式可連用 57 小時，加上太陽能充電還能更久。這才叫手錶呀，像 Apple Watch 每天要充電是哪門子手錶？</p> <p>Fenix 7 Pro，就決定是你了!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638553095322496556.jpg" alt="thumbnail"><br> Fenix 3 榮退暨 Fenix 7 就職典禮紀念照</p> <p>Fenix 7 是去年上市的，網路上開箱文跟體驗影片滿坑滿谷，這裡就不多介紹了。而身為資深用戶，這次換錶對我只是一次「升級」，不再有劉姥姥進大觀園的新鮮感，簡單記幾則體驗心得。</p> <ol><li><p>GPS 精確度<br> 就像買新電腦一定要先用跑分軟體測試效能，我入手 GPS 錶的 SOP 是先來個「政大操場四百米跑道軌跡測試」(學長們的記錄：<a href="/blog/gps-watch/">GH-625M</a>、<a href="/blog/cardio-40h-vs-gh625m/">Cardio 40H vs GH-625m</a>、<a href="/blog/my-fenix-3/">Fenix 3</a>)。這回我採用的測試方法是左手 Fenix 7、右手 Fenix 3，同時記錄，儘可能排除變因。<br> 總共測了兩趟，第一跑道 8 圈 3.2 公里跟第八跑道跑 2 公里。資料傳到 App，發現連打開軌跡圖放大仔細比對都省了，光看縮圖就知道誰贏了。Fenix 3 的軌跡符合我原本所認知的「GPS 本來就會有誤差」，而 Fenix 7 則畫出出奇完美的橢圓，讓我讚嘆這八年來科技的演進。(不過我有懷疑，這該不會是演算法偵測繞跑道修正路徑後的結果？就像<a href="https://www.sogi.com.tw/articles/samsung_galaxy_s23_ultra/6259462">手機照月亮時自動啟動 AI 修圖</a>一樣)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638553095324239493.jpg"></p> </li> <li><p>手腕心率<br> 能 24 小時紀錄心率挺好的，新一代手錶還可以測 <a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/ecg/use/">ECG 心電圖</a>、<a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/respiration-rate/">呼吸速率</a>、血氧指數，並能用心率、呼吸率推算<a href="https://www.garmin.com.tw/minisite/garmin-technology/health-science/sleep-tracking/">睡眠階段</a>，這些算是錦上添花的養生保健指引，可以加減參考。<br> 現代的心率偵測比我想像來得方便與精準，錶不用綁到死緊就能測量，數據也還行。但運動時要密切觀察心率變化的話，胸式心率帶還是更準一點。</p> </li> <li><p>手電筒<br> 燈光鈕按兩下即可開啟手電筒，手錶隨時都在手上，用起來比手機又更方便，進房間不想開燈摸黑拿東西時格外好用。</p> </li> <li><p>太陽能充電<br> 有太陽能耶，所以手錶不用充電，每天照一下太陽就好了。(大誤)<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638553095325919665.jpg" alt="thumbnail"><br> 手錶的太陽能板面積有限，而且需要陽光直射才有效，只能延緩掉電速度或是無充電設備時應急。我個人定位它最大的用途是當你在戶外被太陽曬到想罵髒話時，想著「嗯，手錶現在正在充電呢」可在心靈上獲得微小安慰。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638553095327779270.jpg" alt="thumbnail"></p> </li> <li><p>大字體<br> 不確定 Garmin 是不是收到滿坑滿谷的反應：字太小看不到、字太小看不到、字太小看不到... 總之，Fenix 7 錶面雖然比 Fenix 3 小，解析度更高，有些介面的字體被放大到讓我有被冒犯的感覺。像是兒女送上老人用孝親機，還不忘解釋「您眼睛不好，我特別選這支螢幕的字跟按鈕都很大...」，啃，我沒這麼老好嗎？<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638553095329510963.jpg" alt="thumbnail"><br> 研究了一下，我找不到地方可以把通知字體調小，而非正式民調顯示其他人都覺得這個字體大小還好，再小可能看不清楚。看來是我個人偏好背離主流民意，只能被迫接受 Fenix 的好意，忍受砂鍋大的通知文體，但希望未來軟體改版時能提供縮小字體的選項。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638553095331284540.jpg" alt="thumbnail"></p> </li> <li><p>螢幕反光問題<br> 不知是因為藍寶石玻璃錶面還是 <a href="https://www.garmin.com.tw/minisite/garmin-technology/wearable-science/chroma-display/">Chroma 反射式螢幕</a>(標榜 MIP，Memory in Pixel 設計，改變像素顏色時才耗電，類似電子紙) ，Fenix 7 的螢幕反光問題比 Fenix 3 嚴重，在室內或戶外陰暗處若未開啟背光，螢幕會因反光看不清楚，運動期間若光線充足則完全沒問題。Fenix 3 在一般室內光線下不需背光就很清楚，Fenix 7 則需靠抬手背光克服，背光會耗一些電，但 Fenix 7 續航力比 3 高出很多，故這樣的設計也還行。</p> </li></ol> <p>換錶載了三天，感覺還不錯，我的 <a href="/blog/my-first-fenix3-datafield/">RunnerWindow</a> 得改版才能支援 Fenix 7，而這八年時間，Garmin ConnectIQ SDK 改版也變化很多，我想趁此機會重構專案，分離 View 跟 Model，並將 UI 元素元件化... 默默 TODO 清單又多一個 Side Project 專案，哈!</p> <p data-slug="fenix7" data-fbimg="https://i.imgur.com/zfY55b4.png#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638553095316196680.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638553095316196680.jpg" medium="image"/>
-    <pubDate>Sun, 30 Jun 2024 01:54:38 GMT</pubDate>
   </item></channel>
 </rss>
