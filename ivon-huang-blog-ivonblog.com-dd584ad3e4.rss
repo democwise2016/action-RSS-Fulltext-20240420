@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/62/800/800.jpg?hmac=Kaw8mMw2GQwa9bq3sdHObRXJEx-G9UnSKg-93KK7Fwo</url>
+      <url>https://fastly.picsum.photos/id/87/800/800.jpg?hmac=XNvXEr7-yfwfCI-aFAvhCslNktgg7by5hrs7BCvaDwc</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,7 +28,7 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/62/800/800.jpg?hmac=Kaw8mMw2GQwa9bq3sdHObRXJEx-G9UnSKg-93KK7Fwo"/>
+    <itunes:image href="https://fastly.picsum.photos/id/87/800/800.jpg?hmac=XNvXEr7-yfwfCI-aFAvhCslNktgg7by5hrs7BCvaDwc"/>
 <item>
     <title><![CDATA[如何下載Stable Diffusion模型＆網站分享]]></title>
     <link>https://ivonblog.com/posts/download-stable-diffusion-models/</link>
@@ -93,6 +93,102 @@ Git</a></p></li><li><p>開啟<code>ComfyUI/custom_nodes</code>目錄，開啟終
 </span></span></code></pre></div><ol start="3"><li><p>重新啟動ComfyUI，等待依賴套件裝完，之後ComfyUI界面就會出現ComfyUI Manager的圖示</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6cb5791bdf.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6ae16b0504.webp"></li><li><p>點選Custom Nodes Manager頁面，瀏覽線上擴充功能儲存庫。點選即可安裝擴充功能。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4d2b43d335.webp"></li></ol><p>如果擴充功能只有Github網址，那麼你也可以按右下角的「Install via Git URL」，自動複製Git儲存庫。</p>]]></content:encoded>
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a99c35b6d.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a99c35b6d.webp" medium="image"/>
+    <pubDate>Fri, 19 Jul 2024 10:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[Linux＆樹莓派當作藍芽喇叭接收器，電腦播放手機音樂]]></title>
+    <link>https://ivonblog.com/posts/linux-pc-as-bluetooth-speaker/</link>
+    <itunes:title><![CDATA[Linux＆樹莓派當作藍芽喇叭接收器，電腦播放手機音樂]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-pc-as-bluetooth-speaker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp"></a></p>
+<p>Turn Linux PC into a bluetooth recevier and speaker.</p><p>把Linux電腦變成藍芽喇叭接收器的概念，這樣就能將手機音樂在電腦喇叭上播放了。</p><p>本操作適用於有藍芽晶片的Ubuntu Linux電腦與樹莓派。手機端Android或iPhone都行。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-47ddae28fa.webp"><p>原理是利用PulseAudio或PipeWire內建的藍芽接收功能，用來接收藍芽訊號，這樣Linux裝置就會變成一個藍芽喇叭，從而用Linux的喇叭輸出音樂。</p><p>因為PulseAudio是大部分Linux發行版使用的音訊伺服器，不用另外架設什麼特別服務就能用。</p><p>最高音質…如果使用PulseAudio，最多只有到AAC吧，PipeWire提供更高的LDAC音質，但這也要看你的電腦藍芽晶片是否支援解碼就是了。另外，必要時請準備藍芽天線加強收訊。</p><h2>1. 將喇叭接上Linux裝置<span><a href="#1-%E5%B0%87%E5%96%87%E5%8F%AD%E6%8E%A5%E4%B8%8Alinux%E8%A3%9D%E7%BD%AE" aria-label="定位點">#</a></span></h2><p>一般的Linux電腦只要接上3.5mm的端子，確認可以輸出音效就可以了。</p><p>樹莓派亦同。不過Raspberry Pi 5之後竟然砍掉了3.5mm輸出端子，所以你得買一個USB轉接器才能夠接上喇叭。沒有圖形界面的情況下可用<code>espeaker-ng</code>指令，確認能不能輸出音效。</p><h2>2. 調整PulseAudio設定<span><a href="#2-%E8%AA%BF%E6%95%B4pulseaudio%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><p>PipeWire的藍芽接收功能似乎是預設啟動的，但因為尚未成為主流，所以我用比較常見的PulseAudio。</p><p>以Ubuntu LTS為例</p><ol><li>確認你現在是在使用PulseAudio，或者PipeWire相容模式下的PulseAudio</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactcl info
+</span></span></code></pre></div><ol start="2"><li>安裝PulseAudio的藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio-module-bluetooth
+</span></span></code></pre></div><ol start="3"><li>修改PulseAudio設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/pulse/system.pa
+</span></span></code></pre></div><ol start="4"><li>在檔案底部寫入內容，設定載入藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>load-module module-bluetooth-policy
+</span></span><span><span>load-module module-bluetooth-discover
+</span></span></code></pre></div><ol start="5"><li>重新啟動PulseAudio服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pulseaudio --kill
+</span></span><span><span>pulseaudio --start
+</span></span></code></pre></div><h2>3. 將手機與Linux裝置配對<span><a href="#3-%E5%B0%87%E6%89%8B%E6%A9%9F%E8%88%87linux%E8%A3%9D%E7%BD%AE%E9%85%8D%E5%B0%8D" aria-label="定位點">#</a></span></h2><ol><li><p>開啟Linux的系統設定，應該會有藍芽的頁面可以開關藍芽。 將手機與Linux藍芽配對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bfa7ab761.webp"></li><li><p>如果你的Linux沒有圖形界面，請嘗試用bluetoothctl控制：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>bluetoothctl
+</span></span><span><span>
+</span></span><span><span><span># 列出本機藍芽裝置</span>
+</span></span><span><span>list
+</span></span><span><span>
+</span></span><span><span><span># 選取藍芽裝置</span>
+</span></span><span><span><span>select</span> &lt;MAC位址&gt;
+</span></span><span><span>
+</span></span><span><span><span># 啟動藍芽裝置</span>
+</span></span><span><span>power on
+</span></span><span><span>
+</span></span><span><span><span># 掃描附近裝置</span>
+</span></span><span><span>scan on
+</span></span><span><span>
+</span></span><span><span><span># 配對藍芽裝置</span>
+</span></span><span><span>pair &lt;MAC位址&gt;
+</span></span></code></pre></div><ol start="3"><li><p>播放手機音樂的時候選取Linux裝置，聲音就會從Linux的喇叭出來
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-ed1018ff89.webp"></p></li><li><p>Linux的pavucontrol面板可以觀察到有手機的播放訊號源</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f24b307c81.webp"></li><li><p>音樂音量是由手機和Linux端同時決定的。如果要從手機控制Linux的音量，可以安裝<a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">
+KDE Connect</a>，這樣就能夠從手機控制Linux喇叭的音量。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-472e1f5c19.webp"></p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.cyberciti.biz/mobile-devices/linux-set-up-bluetooth-speaker-to-stream-audio-from-your-android-ios-mobile-phone/" target="_blank">Linux set up bluetooth speaker to stream audio from iOS/Android - nixCraft</a></li><li><a href="https://www.collabora.com/news-and-blog/blog/2022/09/02/using-a-raspberry-pi-as-a-bluetooth-speaker-with-pipewire-wireplumber/" target="_blank">Using a Raspberry Pi as a Bluetooth speaker with PipeWire - Collabora</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-pc-as-bluetooth-speaker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp"></a></p>
+<p>Turn Linux PC into a bluetooth recevier and speaker.</p><p>把Linux電腦變成藍芽喇叭接收器的概念，這樣就能將手機音樂在電腦喇叭上播放了。</p><p>本操作適用於有藍芽晶片的Ubuntu Linux電腦與樹莓派。手機端Android或iPhone都行。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-47ddae28fa.webp"><p>原理是利用PulseAudio或PipeWire內建的藍芽接收功能，用來接收藍芽訊號，這樣Linux裝置就會變成一個藍芽喇叭，從而用Linux的喇叭輸出音樂。</p><p>因為PulseAudio是大部分Linux發行版使用的音訊伺服器，不用另外架設什麼特別服務就能用。</p><p>最高音質…如果使用PulseAudio，最多只有到AAC吧，PipeWire提供更高的LDAC音質，但這也要看你的電腦藍芽晶片是否支援解碼就是了。另外，必要時請準備藍芽天線加強收訊。</p><h2>1. 將喇叭接上Linux裝置<span><a href="#1-%E5%B0%87%E5%96%87%E5%8F%AD%E6%8E%A5%E4%B8%8Alinux%E8%A3%9D%E7%BD%AE" aria-label="定位點">#</a></span></h2><p>一般的Linux電腦只要接上3.5mm的端子，確認可以輸出音效就可以了。</p><p>樹莓派亦同。不過Raspberry Pi 5之後竟然砍掉了3.5mm輸出端子，所以你得買一個USB轉接器才能夠接上喇叭。沒有圖形界面的情況下可用<code>espeaker-ng</code>指令，確認能不能輸出音效。</p><h2>2. 調整PulseAudio設定<span><a href="#2-%E8%AA%BF%E6%95%B4pulseaudio%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><p>PipeWire的藍芽接收功能似乎是預設啟動的，但因為尚未成為主流，所以我用比較常見的PulseAudio。</p><p>以Ubuntu LTS為例</p><ol><li>確認你現在是在使用PulseAudio，或者PipeWire相容模式下的PulseAudio</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactcl info
+</span></span></code></pre></div><ol start="2"><li>安裝PulseAudio的藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio-module-bluetooth
+</span></span></code></pre></div><ol start="3"><li>修改PulseAudio設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/pulse/system.pa
+</span></span></code></pre></div><ol start="4"><li>在檔案底部寫入內容，設定載入藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>load-module module-bluetooth-policy
+</span></span><span><span>load-module module-bluetooth-discover
+</span></span></code></pre></div><ol start="5"><li>重新啟動PulseAudio服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pulseaudio --kill
+</span></span><span><span>pulseaudio --start
+</span></span></code></pre></div><h2>3. 將手機與Linux裝置配對<span><a href="#3-%E5%B0%87%E6%89%8B%E6%A9%9F%E8%88%87linux%E8%A3%9D%E7%BD%AE%E9%85%8D%E5%B0%8D" aria-label="定位點">#</a></span></h2><ol><li><p>開啟Linux的系統設定，應該會有藍芽的頁面可以開關藍芽。 將手機與Linux藍芽配對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bfa7ab761.webp"></li><li><p>如果你的Linux沒有圖形界面，請嘗試用bluetoothctl控制：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>bluetoothctl
+</span></span><span><span>
+</span></span><span><span><span># 列出本機藍芽裝置</span>
+</span></span><span><span>list
+</span></span><span><span>
+</span></span><span><span><span># 選取藍芽裝置</span>
+</span></span><span><span><span>select</span> &lt;MAC位址&gt;
+</span></span><span><span>
+</span></span><span><span><span># 啟動藍芽裝置</span>
+</span></span><span><span>power on
+</span></span><span><span>
+</span></span><span><span><span># 掃描附近裝置</span>
+</span></span><span><span>scan on
+</span></span><span><span>
+</span></span><span><span><span># 配對藍芽裝置</span>
+</span></span><span><span>pair &lt;MAC位址&gt;
+</span></span></code></pre></div><ol start="3"><li><p>播放手機音樂的時候選取Linux裝置，聲音就會從Linux的喇叭出來
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-ed1018ff89.webp"></p></li><li><p>Linux的pavucontrol面板可以觀察到有手機的播放訊號源</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f24b307c81.webp"></li><li><p>音樂音量是由手機和Linux端同時決定的。如果要從手機控制Linux的音量，可以安裝<a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">
+KDE Connect</a>，這樣就能夠從手機控制Linux喇叭的音量。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-472e1f5c19.webp"></p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.cyberciti.biz/mobile-devices/linux-set-up-bluetooth-speaker-to-stream-audio-from-your-android-ios-mobile-phone/" target="_blank">Linux set up bluetooth speaker to stream audio from iOS/Android - nixCraft</a></li><li><a href="https://www.collabora.com/news-and-blog/blog/2022/09/02/using-a-raspberry-pi-as-a-bluetooth-speaker-with-pipewire-wireplumber/" target="_blank">Using a Raspberry Pi as a Bluetooth speaker with PipeWire - Collabora</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/linux-pc-as-bluetooth-speaker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp"></a></p>
+<p>Turn Linux PC into a bluetooth recevier and speaker.</p><p>把Linux電腦變成藍芽喇叭接收器的概念，這樣就能將手機音樂在電腦喇叭上播放了。</p><p>本操作適用於有藍芽晶片的Ubuntu Linux電腦與樹莓派。手機端Android或iPhone都行。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-47ddae28fa.webp"><p>原理是利用PulseAudio或PipeWire內建的藍芽接收功能，用來接收藍芽訊號，這樣Linux裝置就會變成一個藍芽喇叭，從而用Linux的喇叭輸出音樂。</p><p>因為PulseAudio是大部分Linux發行版使用的音訊伺服器，不用另外架設什麼特別服務就能用。</p><p>最高音質…如果使用PulseAudio，最多只有到AAC吧，PipeWire提供更高的LDAC音質，但這也要看你的電腦藍芽晶片是否支援解碼就是了。另外，必要時請準備藍芽天線加強收訊。</p><h2>1. 將喇叭接上Linux裝置<span><a href="#1-%E5%B0%87%E5%96%87%E5%8F%AD%E6%8E%A5%E4%B8%8Alinux%E8%A3%9D%E7%BD%AE" aria-label="定位點">#</a></span></h2><p>一般的Linux電腦只要接上3.5mm的端子，確認可以輸出音效就可以了。</p><p>樹莓派亦同。不過Raspberry Pi 5之後竟然砍掉了3.5mm輸出端子，所以你得買一個USB轉接器才能夠接上喇叭。沒有圖形界面的情況下可用<code>espeaker-ng</code>指令，確認能不能輸出音效。</p><h2>2. 調整PulseAudio設定<span><a href="#2-%E8%AA%BF%E6%95%B4pulseaudio%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><p>PipeWire的藍芽接收功能似乎是預設啟動的，但因為尚未成為主流，所以我用比較常見的PulseAudio。</p><p>以Ubuntu LTS為例</p><ol><li>確認你現在是在使用PulseAudio，或者PipeWire相容模式下的PulseAudio</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactcl info
+</span></span></code></pre></div><ol start="2"><li>安裝PulseAudio的藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio-module-bluetooth
+</span></span></code></pre></div><ol start="3"><li>修改PulseAudio設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/pulse/system.pa
+</span></span></code></pre></div><ol start="4"><li>在檔案底部寫入內容，設定載入藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>load-module module-bluetooth-policy
+</span></span><span><span>load-module module-bluetooth-discover
+</span></span></code></pre></div><ol start="5"><li>重新啟動PulseAudio服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pulseaudio --kill
+</span></span><span><span>pulseaudio --start
+</span></span></code></pre></div><h2>3. 將手機與Linux裝置配對<span><a href="#3-%E5%B0%87%E6%89%8B%E6%A9%9F%E8%88%87linux%E8%A3%9D%E7%BD%AE%E9%85%8D%E5%B0%8D" aria-label="定位點">#</a></span></h2><ol><li><p>開啟Linux的系統設定，應該會有藍芽的頁面可以開關藍芽。 將手機與Linux藍芽配對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bfa7ab761.webp"></li><li><p>如果你的Linux沒有圖形界面，請嘗試用bluetoothctl控制：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>bluetoothctl
+</span></span><span><span>
+</span></span><span><span><span># 列出本機藍芽裝置</span>
+</span></span><span><span>list
+</span></span><span><span>
+</span></span><span><span><span># 選取藍芽裝置</span>
+</span></span><span><span><span>select</span> &lt;MAC位址&gt;
+</span></span><span><span>
+</span></span><span><span><span># 啟動藍芽裝置</span>
+</span></span><span><span>power on
+</span></span><span><span>
+</span></span><span><span><span># 掃描附近裝置</span>
+</span></span><span><span>scan on
+</span></span><span><span>
+</span></span><span><span><span># 配對藍芽裝置</span>
+</span></span><span><span>pair &lt;MAC位址&gt;
+</span></span></code></pre></div><ol start="3"><li><p>播放手機音樂的時候選取Linux裝置，聲音就會從Linux的喇叭出來
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-ed1018ff89.webp"></p></li><li><p>Linux的pavucontrol面板可以觀察到有手機的播放訊號源</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f24b307c81.webp"></li><li><p>音樂音量是由手機和Linux端同時決定的。如果要從手機控制Linux的音量，可以安裝<a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">
+KDE Connect</a>，這樣就能夠從手機控制Linux喇叭的音量。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-472e1f5c19.webp"></p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.cyberciti.biz/mobile-devices/linux-set-up-bluetooth-speaker-to-stream-audio-from-your-android-ios-mobile-phone/" target="_blank">Linux set up bluetooth speaker to stream audio from iOS/Android - nixCraft</a></li><li><a href="https://www.collabora.com/news-and-blog/blog/2022/09/02/using-a-raspberry-pi-as-a-bluetooth-speaker-with-pipewire-wireplumber/" target="_blank">Using a Raspberry Pi as a Bluetooth speaker with PipeWire - Collabora</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp" medium="image"/>
     <pubDate>Fri, 19 Jul 2024 10:00:00 +0800</pubDate>
   </item><item>
     <title><![CDATA[如何設定ComfyUI命令列引數]]></title>
