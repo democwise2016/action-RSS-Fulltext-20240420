@@ -30,6 +30,243 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[跨系統整合 - 透過 Bash Script 執行 SFTP 傳輸 (初試 SUSE)]]></title>
+    <link>https://blog.darkthread.net/blog/sftp-w-bash-script/</link>
+    <itunes:title><![CDATA[跨系統整合 - 透過 Bash Script 執行 SFTP 傳輸 (初試 SUSE)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>異質系統整合，呼叫外部程式永遠是最簡單粗暴的手段，另起 Process 執行第三方工具再透過參數、檔案溝通，這種「外包給第三方執行檔」的做法，不管效能、資源耗用量或回應速度都會打折扣，但重點是 - 至少程式會跑能驗收呀! 這招永遠是沒有其他辦法時的救命稻草。<br> (話說：我出道的第一個網站專案是為 UNIX 工作站寫網站整合 Oracle，當時我還是只會 VB/VBScript/SQL 的菜鳥，被丟包到 UNIX 星球一整個驚慌，最後靠著寫 Perl 呼叫 <code>sqlplus user/pass@db_name @script_file</code> 大絕，竟也混到驗收結案。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)</p> <p>之後的開發生涯，遇到比較複雜的需求，找不到合適程式庫但有現成執行檔，我也常靠這招解決，醜歸醜，但省時又省力。(例子：<a href="/blog/stdout-stderr/">從 Linux 控制掃瞄器</a>、<a href="/blog/show-tls-certs/">呼叫 openssl 分析憑證</a>、<a href="/blog/print-pdf-with-c/">請 Acrobat Reader 幫忙列印</a>...)</p> <p>最近聽到一起案例，某 SUSE 作業系統上的軟體需要整合 SFTP 收發檔案，但該軟體對外溝通只提供「讀寫檔案」及「執行外部程式」兩種管道。嘿，擬好上傳下載指令再外包給 sftp CLI 不就解決了？加上環境 SUSE 是我從沒玩過的 Linux 版本，決定把它當成一道暖身練習題。</p> <p>SUSE 有眾多發行版本，伺服器應用主要會採用 openSUSE Leap 或 SUSE Linux Enterprise Server (SLES)，二者的關係差不多像 Fedora/CentOS Stream 與 RHEL (延伸閱讀：<a href="/blog/linux-server-os-survey/">Linux 作業系統考察</a>)，基於相同原始碼且高度相容，前者由社群開發維護，後者則為商業軟體，有廠商提供支援。因此，要學習及研究 SUSE，裝 openSUSE Leap 就對了，若工作領域遇到 SLE，技能跟經驗值可通用。</p> <p>順道一提：.NET 也<a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-opensuse?WT.mc_id=DOP-MVP-37580">支援 openSUSE 及 SLES</a> 哦! 所以下回再有聽到有人說 .NET 只能在 Windows 上跑，記得衝上去搖晃他肩膀說「快醒醒，時代早就不一樣了」。(謎之聲：其實並不需要這樣)</p> <p>本次測試我打算跑 Docker 當 SFTP Server，於是先試了在 openSUSE 上裝 Docker。<a href="https://en.opensuse.org/Docker">官方文件</a>寫得蠻詳細的，SUSE 的套件管理工具是 Zypper，使用上跟 Ubuntu 的 apt 一樣簡便，使用以下指令安裝 Docker，設成服務，並授與登入的使用者使用權限(未來呼叫 docker 時不需加 sudo)，安裝程序就完成了：</p> <pre><code>sudo zypper install docker docker-compose docker-compose-switch
+sudo usermod -G docker -a $USER
+sudo systemctl enable docker
+sudo systemctl start docker
+newgrp docker #or logout and login
+docker --version
+</code></pre> <p>由於只是實驗性質，我隨便找了一個 <a href="https://hub.docker.com/r/atmoz/sftp/">atmoz SFTP Server Docker Image</a>，透過 Docker 參數指定帳號密碼跟資料夾就能跑，簡單省力。至於 sftp CLI 的身分認證問題，<a href="/blog/github-copilot-demo/">Github Copilot</a> 教會我用 <a href="https://www.redhat.com/sysadmin/ssh-automation-sshpass">sshpass</a> (需用 Zypper 另外安裝)，可用檔案或環境變數(SSHPASS)記憶密碼(也支援明碼參數提供，但不建議)，再用 <code>sshpass -f /path/to/passwordfile ssh user@host</code> 或 <code>sshpass -e sftp user@host</code> 間接啟動 ssh 或 sftp，便能克服密碼輸入問題。當然，改用<a href="/blog/ssh-key-auth/">金鑰登入 SSH/SFTP/SCP</a>會更安全，但需要管理單位配合，密碼還是最通用的做法。</p> <p>啟動 SFTP 伺服器容器(SUSE 本身 22 Port 已用於 ssh，改映對到 2234 Port)，設好 sshpass，用 <code>sshpass -e sftp -P 2234 foo@localhost</code> 即可登入 SFTP：</p> <pre><code>docker run -p 2234:22 -d atmoz/sftp foo:pass:::upload
+sftp -P 2234 foo@localhost
+sudo zypper install sshpass
+export SSHPASS='pass'
+sshpass -e sftp -P 2234 foo@localhost
+</code></pre> <p>接下來，我排了一個段測試：登入 SFTP 後切換到 upload 目錄，建立 test 資料夾，上傳 hello.txt，另建 backup 資料夾，將 hello.txt 由 test 搬到 backup 下，刪除 hello.txt，刪除 test 及 backup 資料夾，測試結束。</p> <p>我對 Bash 腳本不熟，但有 Github Copilot 在不用怕，我學會兩個 Bash 腳本技巧：</p> <ol><li><a href="https://tldp.org/LDP/abs/html/here-docs.html">Here Document</a><br> 概念類似 C# @"..." 或 PowerShell 的 @"、"@，允許在腳本直接指定多行文字內容，保留其中的換行、縮排，而 Bash 的做法是取一個任意識別字串作為起始跟結尾，只要它在內文不會出現造成誤判就好，我覺得<code>EOF</code>是不錯的選擇。 <pre><code>COMMAND &lt;&lt;InputComesFromHERE
+...
+...
+...
+InputComesFromHERE
+</code></pre> 建目錄、上傳、搬檔、刪檔、刪目錄等一長串指令可寫成 Here Document 交給 sftp CLI 執行。</li> <li>用 time 測量程式執行時間<br> 在 Bash 可用 time 指令串接要測量時間的命令，可得到 real、user、sys 三個秒數，分別代表總時間、User Mode 耗用時間、Kernel Mode 耗用時間。在腳本中，則可用 <code>{ ... }</code> 包住一整段程式測量執行時間。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638570351373954685.png"></li></ol> <p>綜合以上概念，寫成 sftp-test.sh，<code>chmod u+x sftp-test.sh</code> 授與執行權限後可 <code>./sftp-test.sh</code> 測試：</p> <pre><code>#!/bin/bash
+echo "Hello World" &gt; hello.txt
+# use here document to pass commands to sftp
+time {
+sshpass -e sftp -P 2234 foo@localhost &lt;&lt;EOF
+cd upload
+mkdir test
+cd test
+put hello.txt
+ls -l
+cd ..
+mkdir backup
+rename test/hello.txt backup/hello.txt
+ls -l backup
+rmdir test
+rm backup/hello.txt
+rmdir backup
+bye
+EOF
+}
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638570351377151808.png"></p> <p>若 Linux 環境無 sshpass 可用怎麼辦？Github Copilot 再教會我 UNIX 有個古老自動化控制與測試工具 - <a href="https://zh.wikipedia.org/zh-tw/Expect">Expect</a>，用 spawn 啟動一個新 Process 跑 sftp、ssh，接著用 expect "..." 等待讓程式回應特定內容，用 send "..." 模擬輸入操作。可想成 20 年前的 CLI 版的 RPA (Robotic Process Automation，<a href="/blog/my-opinion-on-rpa/">機器人流程自動化</a>)。</p> <p>不費吹灰之力，Copilot 幫我改好 expect 版：</p> <pre><code>#!/usr/bin/env bash
+echo "Hello World" &gt; hello.txt
+# Use expect to automate SFTP session
+/usr/bin/expect &lt;&lt;EOF
+# Start the expect environment
+spawn sftp -oPort=2234 foo@localhost
+# Wait for the password prompt
+expect "password:"
+# Provide the password
+send "$SSHPASS\r"
+# SFTP commands
+expect "sftp&gt;"
+send "cd upload\r"
+expect "sftp&gt;"
+send "mkdir test\r"
+expect "sftp&gt;"
+send "cd test\r"
+expect "sftp&gt;"
+send "put hello.txt\r"
+expect "sftp&gt;"
+send "ls -l\r"
+expect "sftp&gt;"
+send "cd ..\r"
+expect "sftp&gt;"
+send "mkdir backup\r"
+expect "sftp&gt;"
+send "rename test/hello.txt backup/hello.txt\r"
+expect "sftp&gt;"
+send "ls -l backup\r"
+expect "sftp&gt;"
+send "rmdir test\r"
+expect "sftp&gt;"
+send "rm backup/hello.txt\r"
+expect "sftp&gt;"
+send "rmdir backup\r"
+expect "sftp&gt;"
+send "bye\r"
+EOF
+</code></pre> <p>測試得到相同結果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638570351378852399.png"></p> <p>經過這演練，對於如何使用 Bash 操控其他 CLI 做事算是有較清楚的概念，未來在 Linux 上要執行異質系統整合，除了寫 .NET 程式跟用 PowerShell 外，再多一個就地取材的好武器。</p> <p data-slug="sftp-w-bash-script" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/10/30/robot-2791671_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>異質系統整合，呼叫外部程式永遠是最簡單粗暴的手段，另起 Process 執行第三方工具再透過參數、檔案溝通，這種「外包給第三方執行檔」的做法，不管效能、資源耗用量或回應速度都會打折扣，但重點是 - 至少程式會跑能驗收呀! 這招永遠是沒有其他辦法時的救命稻草。<br> (話說：我出道的第一個網站專案是為 UNIX 工作站寫網站整合 Oracle，當時我還是只會 VB/VBScript/SQL 的菜鳥，被丟包到 UNIX 星球一整個驚慌，最後靠著寫 Perl 呼叫 <code>sqlplus user/pass@db_name @script_file</code> 大絕，竟也混到驗收結案。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)</p> <p>之後的開發生涯，遇到比較複雜的需求，找不到合適程式庫但有現成執行檔，我也常靠這招解決，醜歸醜，但省時又省力。(例子：<a href="/blog/stdout-stderr/">從 Linux 控制掃瞄器</a>、<a href="/blog/show-tls-certs/">呼叫 openssl 分析憑證</a>、<a href="/blog/print-pdf-with-c/">請 Acrobat Reader 幫忙列印</a>...)</p> <p>最近聽到一起案例，某 SUSE 作業系統上的軟體需要整合 SFTP 收發檔案，但該軟體對外溝通只提供「讀寫檔案」及「執行外部程式」兩種管道。嘿，擬好上傳下載指令再外包給 sftp CLI 不就解決了？加上環境 SUSE 是我從沒玩過的 Linux 版本，決定把它當成一道暖身練習題。</p> <p>SUSE 有眾多發行版本，伺服器應用主要會採用 openSUSE Leap 或 SUSE Linux Enterprise Server (SLES)，二者的關係差不多像 Fedora/CentOS Stream 與 RHEL (延伸閱讀：<a href="/blog/linux-server-os-survey/">Linux 作業系統考察</a>)，基於相同原始碼且高度相容，前者由社群開發維護，後者則為商業軟體，有廠商提供支援。因此，要學習及研究 SUSE，裝 openSUSE Leap 就對了，若工作領域遇到 SLE，技能跟經驗值可通用。</p> <p>順道一提：.NET 也<a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-opensuse?WT.mc_id=DOP-MVP-37580">支援 openSUSE 及 SLES</a> 哦! 所以下回再有聽到有人說 .NET 只能在 Windows 上跑，記得衝上去搖晃他肩膀說「快醒醒，時代早就不一樣了」。(謎之聲：其實並不需要這樣)</p> <p>本次測試我打算跑 Docker 當 SFTP Server，於是先試了在 openSUSE 上裝 Docker。<a href="https://en.opensuse.org/Docker">官方文件</a>寫得蠻詳細的，SUSE 的套件管理工具是 Zypper，使用上跟 Ubuntu 的 apt 一樣簡便，使用以下指令安裝 Docker，設成服務，並授與登入的使用者使用權限(未來呼叫 docker 時不需加 sudo)，安裝程序就完成了：</p> <pre><code>sudo zypper install docker docker-compose docker-compose-switch
+sudo usermod -G docker -a $USER
+sudo systemctl enable docker
+sudo systemctl start docker
+newgrp docker #or logout and login
+docker --version
+</code></pre> <p>由於只是實驗性質，我隨便找了一個 <a href="https://hub.docker.com/r/atmoz/sftp/">atmoz SFTP Server Docker Image</a>，透過 Docker 參數指定帳號密碼跟資料夾就能跑，簡單省力。至於 sftp CLI 的身分認證問題，<a href="/blog/github-copilot-demo/">Github Copilot</a> 教會我用 <a href="https://www.redhat.com/sysadmin/ssh-automation-sshpass">sshpass</a> (需用 Zypper 另外安裝)，可用檔案或環境變數(SSHPASS)記憶密碼(也支援明碼參數提供，但不建議)，再用 <code>sshpass -f /path/to/passwordfile ssh user@host</code> 或 <code>sshpass -e sftp user@host</code> 間接啟動 ssh 或 sftp，便能克服密碼輸入問題。當然，改用<a href="/blog/ssh-key-auth/">金鑰登入 SSH/SFTP/SCP</a>會更安全，但需要管理單位配合，密碼還是最通用的做法。</p> <p>啟動 SFTP 伺服器容器(SUSE 本身 22 Port 已用於 ssh，改映對到 2234 Port)，設好 sshpass，用 <code>sshpass -e sftp -P 2234 foo@localhost</code> 即可登入 SFTP：</p> <pre><code>docker run -p 2234:22 -d atmoz/sftp foo:pass:::upload
+sftp -P 2234 foo@localhost
+sudo zypper install sshpass
+export SSHPASS='pass'
+sshpass -e sftp -P 2234 foo@localhost
+</code></pre> <p>接下來，我排了一個段測試：登入 SFTP 後切換到 upload 目錄，建立 test 資料夾，上傳 hello.txt，另建 backup 資料夾，將 hello.txt 由 test 搬到 backup 下，刪除 hello.txt，刪除 test 及 backup 資料夾，測試結束。</p> <p>我對 Bash 腳本不熟，但有 Github Copilot 在不用怕，我學會兩個 Bash 腳本技巧：</p> <ol><li><a href="https://tldp.org/LDP/abs/html/here-docs.html">Here Document</a><br> 概念類似 C# @"..." 或 PowerShell 的 @"、"@，允許在腳本直接指定多行文字內容，保留其中的換行、縮排，而 Bash 的做法是取一個任意識別字串作為起始跟結尾，只要它在內文不會出現造成誤判就好，我覺得<code>EOF</code>是不錯的選擇。 <pre><code>COMMAND &lt;&lt;InputComesFromHERE
+...
+...
+...
+InputComesFromHERE
+</code></pre> 建目錄、上傳、搬檔、刪檔、刪目錄等一長串指令可寫成 Here Document 交給 sftp CLI 執行。</li> <li>用 time 測量程式執行時間<br> 在 Bash 可用 time 指令串接要測量時間的命令，可得到 real、user、sys 三個秒數，分別代表總時間、User Mode 耗用時間、Kernel Mode 耗用時間。在腳本中，則可用 <code>{ ... }</code> 包住一整段程式測量執行時間。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638570351373954685.png"></li></ol> <p>綜合以上概念，寫成 sftp-test.sh，<code>chmod u+x sftp-test.sh</code> 授與執行權限後可 <code>./sftp-test.sh</code> 測試：</p> <pre><code>#!/bin/bash
+echo "Hello World" &gt; hello.txt
+# use here document to pass commands to sftp
+time {
+sshpass -e sftp -P 2234 foo@localhost &lt;&lt;EOF
+cd upload
+mkdir test
+cd test
+put hello.txt
+ls -l
+cd ..
+mkdir backup
+rename test/hello.txt backup/hello.txt
+ls -l backup
+rmdir test
+rm backup/hello.txt
+rmdir backup
+bye
+EOF
+}
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638570351377151808.png"></p> <p>若 Linux 環境無 sshpass 可用怎麼辦？Github Copilot 再教會我 UNIX 有個古老自動化控制與測試工具 - <a href="https://zh.wikipedia.org/zh-tw/Expect">Expect</a>，用 spawn 啟動一個新 Process 跑 sftp、ssh，接著用 expect "..." 等待讓程式回應特定內容，用 send "..." 模擬輸入操作。可想成 20 年前的 CLI 版的 RPA (Robotic Process Automation，<a href="/blog/my-opinion-on-rpa/">機器人流程自動化</a>)。</p> <p>不費吹灰之力，Copilot 幫我改好 expect 版：</p> <pre><code>#!/usr/bin/env bash
+echo "Hello World" &gt; hello.txt
+# Use expect to automate SFTP session
+/usr/bin/expect &lt;&lt;EOF
+# Start the expect environment
+spawn sftp -oPort=2234 foo@localhost
+# Wait for the password prompt
+expect "password:"
+# Provide the password
+send "$SSHPASS\r"
+# SFTP commands
+expect "sftp&gt;"
+send "cd upload\r"
+expect "sftp&gt;"
+send "mkdir test\r"
+expect "sftp&gt;"
+send "cd test\r"
+expect "sftp&gt;"
+send "put hello.txt\r"
+expect "sftp&gt;"
+send "ls -l\r"
+expect "sftp&gt;"
+send "cd ..\r"
+expect "sftp&gt;"
+send "mkdir backup\r"
+expect "sftp&gt;"
+send "rename test/hello.txt backup/hello.txt\r"
+expect "sftp&gt;"
+send "ls -l backup\r"
+expect "sftp&gt;"
+send "rmdir test\r"
+expect "sftp&gt;"
+send "rm backup/hello.txt\r"
+expect "sftp&gt;"
+send "rmdir backup\r"
+expect "sftp&gt;"
+send "bye\r"
+EOF
+</code></pre> <p>測試得到相同結果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638570351378852399.png"></p> <p>經過這演練，對於如何使用 Bash 操控其他 CLI 做事算是有較清楚的概念，未來在 Linux 上要執行異質系統整合，除了寫 .NET 程式跟用 PowerShell 外，再多一個就地取材的好武器。</p> <p data-slug="sftp-w-bash-script" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/10/30/robot-2791671_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>異質系統整合，呼叫外部程式永遠是最簡單粗暴的手段，另起 Process 執行第三方工具再透過參數、檔案溝通，這種「外包給第三方執行檔」的做法，不管效能、資源耗用量或回應速度都會打折扣，但重點是 - 至少程式會跑能驗收呀! 這招永遠是沒有其他辦法時的救命稻草。<br> (話說：我出道的第一個網站專案是為 UNIX 工作站寫網站整合 Oracle，當時我還是只會 VB/VBScript/SQL 的菜鳥，被丟包到 UNIX 星球一整個驚慌，最後靠著寫 Perl 呼叫 <code>sqlplus user/pass@db_name @script_file</code> 大絕，竟也混到驗收結案。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)</p> <p>之後的開發生涯，遇到比較複雜的需求，找不到合適程式庫但有現成執行檔，我也常靠這招解決，醜歸醜，但省時又省力。(例子：<a href="/blog/stdout-stderr/">從 Linux 控制掃瞄器</a>、<a href="/blog/show-tls-certs/">呼叫 openssl 分析憑證</a>、<a href="/blog/print-pdf-with-c/">請 Acrobat Reader 幫忙列印</a>...)</p> <p>最近聽到一起案例，某 SUSE 作業系統上的軟體需要整合 SFTP 收發檔案，但該軟體對外溝通只提供「讀寫檔案」及「執行外部程式」兩種管道。嘿，擬好上傳下載指令再外包給 sftp CLI 不就解決了？加上環境 SUSE 是我從沒玩過的 Linux 版本，決定把它當成一道暖身練習題。</p> <p>SUSE 有眾多發行版本，伺服器應用主要會採用 openSUSE Leap 或 SUSE Linux Enterprise Server (SLES)，二者的關係差不多像 Fedora/CentOS Stream 與 RHEL (延伸閱讀：<a href="/blog/linux-server-os-survey/">Linux 作業系統考察</a>)，基於相同原始碼且高度相容，前者由社群開發維護，後者則為商業軟體，有廠商提供支援。因此，要學習及研究 SUSE，裝 openSUSE Leap 就對了，若工作領域遇到 SLE，技能跟經驗值可通用。</p> <p>順道一提：.NET 也<a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-opensuse?WT.mc_id=DOP-MVP-37580">支援 openSUSE 及 SLES</a> 哦! 所以下回再有聽到有人說 .NET 只能在 Windows 上跑，記得衝上去搖晃他肩膀說「快醒醒，時代早就不一樣了」。(謎之聲：其實並不需要這樣)</p> <p>本次測試我打算跑 Docker 當 SFTP Server，於是先試了在 openSUSE 上裝 Docker。<a href="https://en.opensuse.org/Docker">官方文件</a>寫得蠻詳細的，SUSE 的套件管理工具是 Zypper，使用上跟 Ubuntu 的 apt 一樣簡便，使用以下指令安裝 Docker，設成服務，並授與登入的使用者使用權限(未來呼叫 docker 時不需加 sudo)，安裝程序就完成了：</p> <pre><code>sudo zypper install docker docker-compose docker-compose-switch
+sudo usermod -G docker -a $USER
+sudo systemctl enable docker
+sudo systemctl start docker
+newgrp docker #or logout and login
+docker --version
+</code></pre> <p>由於只是實驗性質，我隨便找了一個 <a href="https://hub.docker.com/r/atmoz/sftp/">atmoz SFTP Server Docker Image</a>，透過 Docker 參數指定帳號密碼跟資料夾就能跑，簡單省力。至於 sftp CLI 的身分認證問題，<a href="/blog/github-copilot-demo/">Github Copilot</a> 教會我用 <a href="https://www.redhat.com/sysadmin/ssh-automation-sshpass">sshpass</a> (需用 Zypper 另外安裝)，可用檔案或環境變數(SSHPASS)記憶密碼(也支援明碼參數提供，但不建議)，再用 <code>sshpass -f /path/to/passwordfile ssh user@host</code> 或 <code>sshpass -e sftp user@host</code> 間接啟動 ssh 或 sftp，便能克服密碼輸入問題。當然，改用<a href="/blog/ssh-key-auth/">金鑰登入 SSH/SFTP/SCP</a>會更安全，但需要管理單位配合，密碼還是最通用的做法。</p> <p>啟動 SFTP 伺服器容器(SUSE 本身 22 Port 已用於 ssh，改映對到 2234 Port)，設好 sshpass，用 <code>sshpass -e sftp -P 2234 foo@localhost</code> 即可登入 SFTP：</p> <pre><code>docker run -p 2234:22 -d atmoz/sftp foo:pass:::upload
+sftp -P 2234 foo@localhost
+sudo zypper install sshpass
+export SSHPASS='pass'
+sshpass -e sftp -P 2234 foo@localhost
+</code></pre> <p>接下來，我排了一個段測試：登入 SFTP 後切換到 upload 目錄，建立 test 資料夾，上傳 hello.txt，另建 backup 資料夾，將 hello.txt 由 test 搬到 backup 下，刪除 hello.txt，刪除 test 及 backup 資料夾，測試結束。</p> <p>我對 Bash 腳本不熟，但有 Github Copilot 在不用怕，我學會兩個 Bash 腳本技巧：</p> <ol><li><a href="https://tldp.org/LDP/abs/html/here-docs.html">Here Document</a><br> 概念類似 C# @"..." 或 PowerShell 的 @"、"@，允許在腳本直接指定多行文字內容，保留其中的換行、縮排，而 Bash 的做法是取一個任意識別字串作為起始跟結尾，只要它在內文不會出現造成誤判就好，我覺得<code>EOF</code>是不錯的選擇。 <pre><code>COMMAND &lt;&lt;InputComesFromHERE
+...
+...
+...
+InputComesFromHERE
+</code></pre> 建目錄、上傳、搬檔、刪檔、刪目錄等一長串指令可寫成 Here Document 交給 sftp CLI 執行。</li> <li>用 time 測量程式執行時間<br> 在 Bash 可用 time 指令串接要測量時間的命令，可得到 real、user、sys 三個秒數，分別代表總時間、User Mode 耗用時間、Kernel Mode 耗用時間。在腳本中，則可用 <code>{ ... }</code> 包住一整段程式測量執行時間。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638570351373954685.png"></li></ol> <p>綜合以上概念，寫成 sftp-test.sh，<code>chmod u+x sftp-test.sh</code> 授與執行權限後可 <code>./sftp-test.sh</code> 測試：</p> <pre><code>#!/bin/bash
+echo "Hello World" &gt; hello.txt
+# use here document to pass commands to sftp
+time {
+sshpass -e sftp -P 2234 foo@localhost &lt;&lt;EOF
+cd upload
+mkdir test
+cd test
+put hello.txt
+ls -l
+cd ..
+mkdir backup
+rename test/hello.txt backup/hello.txt
+ls -l backup
+rmdir test
+rm backup/hello.txt
+rmdir backup
+bye
+EOF
+}
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638570351377151808.png"></p> <p>若 Linux 環境無 sshpass 可用怎麼辦？Github Copilot 再教會我 UNIX 有個古老自動化控制與測試工具 - <a href="https://zh.wikipedia.org/zh-tw/Expect">Expect</a>，用 spawn 啟動一個新 Process 跑 sftp、ssh，接著用 expect "..." 等待讓程式回應特定內容，用 send "..." 模擬輸入操作。可想成 20 年前的 CLI 版的 RPA (Robotic Process Automation，<a href="/blog/my-opinion-on-rpa/">機器人流程自動化</a>)。</p> <p>不費吹灰之力，Copilot 幫我改好 expect 版：</p> <pre><code>#!/usr/bin/env bash
+echo "Hello World" &gt; hello.txt
+# Use expect to automate SFTP session
+/usr/bin/expect &lt;&lt;EOF
+# Start the expect environment
+spawn sftp -oPort=2234 foo@localhost
+# Wait for the password prompt
+expect "password:"
+# Provide the password
+send "$SSHPASS\r"
+# SFTP commands
+expect "sftp&gt;"
+send "cd upload\r"
+expect "sftp&gt;"
+send "mkdir test\r"
+expect "sftp&gt;"
+send "cd test\r"
+expect "sftp&gt;"
+send "put hello.txt\r"
+expect "sftp&gt;"
+send "ls -l\r"
+expect "sftp&gt;"
+send "cd ..\r"
+expect "sftp&gt;"
+send "mkdir backup\r"
+expect "sftp&gt;"
+send "rename test/hello.txt backup/hello.txt\r"
+expect "sftp&gt;"
+send "ls -l backup\r"
+expect "sftp&gt;"
+send "rmdir test\r"
+expect "sftp&gt;"
+send "rm backup/hello.txt\r"
+expect "sftp&gt;"
+send "rmdir backup\r"
+expect "sftp&gt;"
+send "bye\r"
+EOF
+</code></pre> <p>測試得到相同結果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638570351378852399.png"></p> <p>經過這演練，對於如何使用 Bash 操控其他 CLI 做事算是有較清楚的概念，未來在 Linux 上要執行異質系統整合，除了寫 .NET 程式跟用 PowerShell 外，再多一個就地取材的好武器。</p> <p data-slug="sftp-w-bash-script" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/10/30/robot-2791671_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638570351373954685.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638570351373954685.png" medium="image"/>
+    <pubDate>Sat, 20 Jul 2024 00:31:59 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Windows Terminal 隱藏功能 - 複製文字時保留顏色]]></title>
     <link>https://blog.darkthread.net/blog/winterm-copy-colored-text/</link>
     <itunes:title><![CDATA[Windows Terminal 隱藏功能 - 複製文字時保留顏色]]></itunes:title>
@@ -2107,284 +2344,5 @@ netsh advfirewall firewall add rule name="Open SSH Port 22" dir=in action=allow 
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638557873740951071.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638557873740951071.png" medium="image"/>
     <pubDate>Fri, 05 Jul 2024 14:42:02 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[PowerShell 整合 ChatGPT API 執行批次任務]]></title>
-    <link>https://blog.darkthread.net/blog/call-chatgpt-api-in-ps/</link>
-    <itunes:title><![CDATA[PowerShell 整合 ChatGPT API 執行批次任務]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>處理資料時請 ChatGPT 幫忙已成日常，就算是寫 PowerShell 時也不例外。因此，我想要有個函式，希望能做到傳 Prompt 批次呼叫 ChatGPT API 執行翻譯、摘要等的任務，隨時隨地想要 AI 就有 AI。</p> <p>舉個例子，假設我有個 JSON 檔 demo.json：</p> <pre><code>[
-{ "id": 1, "name_en": "Harry Potter and the Philosopher's Stone" },
-{ "id": 2, "name_en": "The Bridges of Madison County"},
-{ "id": 3, "name_en": "The Da Vinci Code"},
-{ "id": 4, "name_en": "Anne of Green Gables"}
-]
-</code></pre> <p>希望能用短短幾行 PowerShell 程式為 JSON 裡的英文書加上台灣翻譯書名：</p> <pre><code>. .\gpt-chat.ps1
-SetSystemPrompt '你是暢銷書專家，請將以下英文書名翻譯成台灣發行書名(只需回答書名即可)：'
-Get-Content .\demo.json | ConvertFrom-Json | ForEach-Object {
-$item = [PSCustomObject]$_
-$name_cht = CallComplete $_.name_en
-# 迴圈呼叫時，實務上可能要加點時間間隔避免超過流量上限
-# 更有效率的做法是改成一次查詢多筆，再從回答解析取出多筆結果
-Start-Sleep -Seconds 1
-$item | Add-Member -MemberType NoteProperty -Name name_cht -Value $name_cht
-return $item
-} | ConvertTo-Json
-</code></pre> <p>期望執行後得到以下內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png"></p> <p>這個 gpt-chat.ps1 要怎麼寫呢？一點也不難。</p> <p>若你有 Azure OpenAI API 服務，開啟 Azure OpenAI Studio 的聊天遊樂場，裡面有個【檢視程式碼】功能：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556973467820183.png"></p> <p>上面有 C#、Python、JavaScript、Java、Go 的程式範例，PowerShell 的話，則可參考 curl 寫法，改寫成 Invoke-WebRequets 或 Invoke-RestMethod 即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638556973469601554.png"></p> <p>實測發現 PowerShell 5 的 Invoke-RestMethod 的 UTF8 支援不佳，索性改用 WebClient 物件較好控制細節；PowerShell 6+ 則可直接用 Invoke-RestMethod。而依照慣例，我不愛 API Key 用碼存，故花了點工夫<a href="/blog/ps-secure-string/">用 SecretString 加密</a>，而首次使用會詢問 URL 跟 API Key (如下圖)，參考上圖 curl 範例中的網址跟 API 金鑰填入存成 .settings JSON 檔，之後就可以愉快使用了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638556982473437812.png"></p> <p>以下是完整程式碼：</p> <pre><code>param ([string]$question)
-$ErrorActionPreference = "Stop"
-$settingsPath = '.\azure-openai.settings'
-function ReadApiSettings() {
-try {
-if (Test-Path $settingsPath) {
-$settings = Get-Content $settingsPath | ConvertFrom-Json
-$apiUrl = $settings.apiUrl
-$apiKey = $settings.apiKey
-}
-}
-catch {  }
-if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
-Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
-if ([string]::IsNullOrEmpty($apiUrl)) {
-Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
-Write-Host "API Url: " -ForegroundColor Cyan
-$apiUrl = Read-Host
-}
-if ([string]::IsNullOrEmpty($apiKey)) {
-Write-Host "API Key: " -ForegroundColor Cyan
-$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
-}
-@{
-apiUrl = $apiUrl
-apiKey = $apiKey
-} | ConvertTo-Json | Set-Content -Path $settingsPath
-}
-$Global:apiUrl = $apiUrl
-$Global:apiKey = $apiKey
-}
-ReadApiSettings
-$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
-function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
-function DecryptApiKey() {
-$secStr = $Global:apiKey | ConvertTo-SecureString
-$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
-return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-}
-function CallComplete($prompt) {
-$fullPrompt = $Global:systemPrompt + ' ' + $prompt
-$payLoad = [PSCustomObject]@{
-messages = @(
-[PSCustomObject]@{
-role = "system"
-content = @(
-[PSCustomObject]@{
-type = "text"
-text = $fullPrompt
-temperature=0.7
-top_p = 0.95
-max_tokens = 2048
-}
-)
-}
-)
-}
-$json = $payLoad | ConvertTo-Json -Depth 5
-# PowerShell 6+，可直接用 Invoke-RestMethod
-# $response = Invoke-RestMethod -Uri $Global:apiUrl -Method POST -Headers $headers -Body $json
-# PowerShell 5.1，需用 WebClient 自行處理編碼問題
-$wc = New-Object System.Net.WebClient
-$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
-$wc.Headers.Add('api-key', (DecryptApiKey))
-$response = $wc.UploadData($Global:apiUrl,  [System.Text.Encoding]::UTF8.GetBytes($json))
-$response = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
-return $response.choices[0].message.content
-}
-if ($question -ne '') {
-CallComplete($question)
-}
-</code></pre> <p>就醬，未來在 PowerShell 要整合 ChatGPT API 就方便多了。</p> <p data-slug="call-chatgpt-api-in-ps" data-title-en="Calling Azure OpenAI Api in PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/11/27/22/51/skate-2982419_960_720.jpg#960#720">Example of how to call Azure OpenAI api in PowerShell to provide chatting or translation function.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>處理資料時請 ChatGPT 幫忙已成日常，就算是寫 PowerShell 時也不例外。因此，我想要有個函式，希望能做到傳 Prompt 批次呼叫 ChatGPT API 執行翻譯、摘要等的任務，隨時隨地想要 AI 就有 AI。</p> <p>舉個例子，假設我有個 JSON 檔 demo.json：</p> <pre><code>[
-{ "id": 1, "name_en": "Harry Potter and the Philosopher's Stone" },
-{ "id": 2, "name_en": "The Bridges of Madison County"},
-{ "id": 3, "name_en": "The Da Vinci Code"},
-{ "id": 4, "name_en": "Anne of Green Gables"}
-]
-</code></pre> <p>希望能用短短幾行 PowerShell 程式為 JSON 裡的英文書加上台灣翻譯書名：</p> <pre><code>. .\gpt-chat.ps1
-SetSystemPrompt '你是暢銷書專家，請將以下英文書名翻譯成台灣發行書名(只需回答書名即可)：'
-Get-Content .\demo.json | ConvertFrom-Json | ForEach-Object {
-$item = [PSCustomObject]$_
-$name_cht = CallComplete $_.name_en
-# 迴圈呼叫時，實務上可能要加點時間間隔避免超過流量上限
-# 更有效率的做法是改成一次查詢多筆，再從回答解析取出多筆結果
-Start-Sleep -Seconds 1
-$item | Add-Member -MemberType NoteProperty -Name name_cht -Value $name_cht
-return $item
-} | ConvertTo-Json
-</code></pre> <p>期望執行後得到以下內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png"></p> <p>這個 gpt-chat.ps1 要怎麼寫呢？一點也不難。</p> <p>若你有 Azure OpenAI API 服務，開啟 Azure OpenAI Studio 的聊天遊樂場，裡面有個【檢視程式碼】功能：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556973467820183.png"></p> <p>上面有 C#、Python、JavaScript、Java、Go 的程式範例，PowerShell 的話，則可參考 curl 寫法，改寫成 Invoke-WebRequets 或 Invoke-RestMethod 即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638556973469601554.png"></p> <p>實測發現 PowerShell 5 的 Invoke-RestMethod 的 UTF8 支援不佳，索性改用 WebClient 物件較好控制細節；PowerShell 6+ 則可直接用 Invoke-RestMethod。而依照慣例，我不愛 API Key 用碼存，故花了點工夫<a href="/blog/ps-secure-string/">用 SecretString 加密</a>，而首次使用會詢問 URL 跟 API Key (如下圖)，參考上圖 curl 範例中的網址跟 API 金鑰填入存成 .settings JSON 檔，之後就可以愉快使用了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638556982473437812.png"></p> <p>以下是完整程式碼：</p> <pre><code>param ([string]$question)
-$ErrorActionPreference = "Stop"
-$settingsPath = '.\azure-openai.settings'
-function ReadApiSettings() {
-try {
-if (Test-Path $settingsPath) {
-$settings = Get-Content $settingsPath | ConvertFrom-Json
-$apiUrl = $settings.apiUrl
-$apiKey = $settings.apiKey
-}
-}
-catch {  }
-if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
-Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
-if ([string]::IsNullOrEmpty($apiUrl)) {
-Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
-Write-Host "API Url: " -ForegroundColor Cyan
-$apiUrl = Read-Host
-}
-if ([string]::IsNullOrEmpty($apiKey)) {
-Write-Host "API Key: " -ForegroundColor Cyan
-$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
-}
-@{
-apiUrl = $apiUrl
-apiKey = $apiKey
-} | ConvertTo-Json | Set-Content -Path $settingsPath
-}
-$Global:apiUrl = $apiUrl
-$Global:apiKey = $apiKey
-}
-ReadApiSettings
-$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
-function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
-function DecryptApiKey() {
-$secStr = $Global:apiKey | ConvertTo-SecureString
-$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
-return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-}
-function CallComplete($prompt) {
-$fullPrompt = $Global:systemPrompt + ' ' + $prompt
-$payLoad = [PSCustomObject]@{
-messages = @(
-[PSCustomObject]@{
-role = "system"
-content = @(
-[PSCustomObject]@{
-type = "text"
-text = $fullPrompt
-temperature=0.7
-top_p = 0.95
-max_tokens = 2048
-}
-)
-}
-)
-}
-$json = $payLoad | ConvertTo-Json -Depth 5
-# PowerShell 6+，可直接用 Invoke-RestMethod
-# $response = Invoke-RestMethod -Uri $Global:apiUrl -Method POST -Headers $headers -Body $json
-# PowerShell 5.1，需用 WebClient 自行處理編碼問題
-$wc = New-Object System.Net.WebClient
-$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
-$wc.Headers.Add('api-key', (DecryptApiKey))
-$response = $wc.UploadData($Global:apiUrl,  [System.Text.Encoding]::UTF8.GetBytes($json))
-$response = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
-return $response.choices[0].message.content
-}
-if ($question -ne '') {
-CallComplete($question)
-}
-</code></pre> <p>就醬，未來在 PowerShell 要整合 ChatGPT API 就方便多了。</p> <p data-slug="call-chatgpt-api-in-ps" data-title-en="Calling Azure OpenAI Api in PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/11/27/22/51/skate-2982419_960_720.jpg#960#720">Example of how to call Azure OpenAI api in PowerShell to provide chatting or translation function.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>處理資料時請 ChatGPT 幫忙已成日常，就算是寫 PowerShell 時也不例外。因此，我想要有個函式，希望能做到傳 Prompt 批次呼叫 ChatGPT API 執行翻譯、摘要等的任務，隨時隨地想要 AI 就有 AI。</p> <p>舉個例子，假設我有個 JSON 檔 demo.json：</p> <pre><code>[
-{ "id": 1, "name_en": "Harry Potter and the Philosopher's Stone" },
-{ "id": 2, "name_en": "The Bridges of Madison County"},
-{ "id": 3, "name_en": "The Da Vinci Code"},
-{ "id": 4, "name_en": "Anne of Green Gables"}
-]
-</code></pre> <p>希望能用短短幾行 PowerShell 程式為 JSON 裡的英文書加上台灣翻譯書名：</p> <pre><code>. .\gpt-chat.ps1
-SetSystemPrompt '你是暢銷書專家，請將以下英文書名翻譯成台灣發行書名(只需回答書名即可)：'
-Get-Content .\demo.json | ConvertFrom-Json | ForEach-Object {
-$item = [PSCustomObject]$_
-$name_cht = CallComplete $_.name_en
-# 迴圈呼叫時，實務上可能要加點時間間隔避免超過流量上限
-# 更有效率的做法是改成一次查詢多筆，再從回答解析取出多筆結果
-Start-Sleep -Seconds 1
-$item | Add-Member -MemberType NoteProperty -Name name_cht -Value $name_cht
-return $item
-} | ConvertTo-Json
-</code></pre> <p>期望執行後得到以下內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png"></p> <p>這個 gpt-chat.ps1 要怎麼寫呢？一點也不難。</p> <p>若你有 Azure OpenAI API 服務，開啟 Azure OpenAI Studio 的聊天遊樂場，裡面有個【檢視程式碼】功能：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638556973467820183.png"></p> <p>上面有 C#、Python、JavaScript、Java、Go 的程式範例，PowerShell 的話，則可參考 curl 寫法，改寫成 Invoke-WebRequets 或 Invoke-RestMethod 即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638556973469601554.png"></p> <p>實測發現 PowerShell 5 的 Invoke-RestMethod 的 UTF8 支援不佳，索性改用 WebClient 物件較好控制細節；PowerShell 6+ 則可直接用 Invoke-RestMethod。而依照慣例，我不愛 API Key 用碼存，故花了點工夫<a href="/blog/ps-secure-string/">用 SecretString 加密</a>，而首次使用會詢問 URL 跟 API Key (如下圖)，參考上圖 curl 範例中的網址跟 API 金鑰填入存成 .settings JSON 檔，之後就可以愉快使用了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638556982473437812.png"></p> <p>以下是完整程式碼：</p> <pre><code>param ([string]$question)
-$ErrorActionPreference = "Stop"
-$settingsPath = '.\azure-openai.settings'
-function ReadApiSettings() {
-try {
-if (Test-Path $settingsPath) {
-$settings = Get-Content $settingsPath | ConvertFrom-Json
-$apiUrl = $settings.apiUrl
-$apiKey = $settings.apiKey
-}
-}
-catch {  }
-if ([string]::IsNullOrEmpty($apiUrl) -or [string]::IsNullOrEmpty($apiKey)) {
-Write-Host "Please set Azure OpenAI url and key" -ForegroundColor Yellow
-if ([string]::IsNullOrEmpty($apiUrl)) {
-Write-Host "  ex: https://&lt;host-name&gt;.openai.azure.com/openai/deployments/&lt;deploy-name&gt;/chat/completions?api-version=2024-02-15-preview"
-Write-Host "API Url: " -ForegroundColor Cyan
-$apiUrl = Read-Host
-}
-if ([string]::IsNullOrEmpty($apiKey)) {
-Write-Host "API Key: " -ForegroundColor Cyan
-$apiKey = Read-Host -AsSecureString | ConvertFrom-SecureString
-}
-@{
-apiUrl = $apiUrl
-apiKey = $apiKey
-} | ConvertTo-Json | Set-Content -Path $settingsPath
-}
-$Global:apiUrl = $apiUrl
-$Global:apiKey = $apiKey
-}
-ReadApiSettings
-$Global:systemPrompt = 'You are an AI assistant that helps people find information.'
-function SetSystemPrompt($prompt) { $Global:systemPrompt = $prompt }
-function DecryptApiKey() {
-$secStr = $Global:apiKey | ConvertTo-SecureString
-$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secStr)
-return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-}
-function CallComplete($prompt) {
-$fullPrompt = $Global:systemPrompt + ' ' + $prompt
-$payLoad = [PSCustomObject]@{
-messages = @(
-[PSCustomObject]@{
-role = "system"
-content = @(
-[PSCustomObject]@{
-type = "text"
-text = $fullPrompt
-temperature=0.7
-top_p = 0.95
-max_tokens = 2048
-}
-)
-}
-)
-}
-$json = $payLoad | ConvertTo-Json -Depth 5
-# PowerShell 6+，可直接用 Invoke-RestMethod
-# $response = Invoke-RestMethod -Uri $Global:apiUrl -Method POST -Headers $headers -Body $json
-# PowerShell 5.1，需用 WebClient 自行處理編碼問題
-$wc = New-Object System.Net.WebClient
-$wc.Headers.Add('Content-Type', 'application/json; charset=utf-8')
-$wc.Headers.Add('api-key', (DecryptApiKey))
-$response = $wc.UploadData($Global:apiUrl,  [System.Text.Encoding]::UTF8.GetBytes($json))
-$response = [System.Text.Encoding]::UTF8.GetString($response) | ConvertFrom-Json
-return $response.choices[0].message.content
-}
-if ($question -ne '') {
-CallComplete($question)
-}
-</code></pre> <p>就醬，未來在 PowerShell 要整合 ChatGPT API 就方便多了。</p> <p data-slug="call-chatgpt-api-in-ps" data-title-en="Calling Azure OpenAI Api in PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/11/27/22/51/skate-2982419_960_720.jpg#960#720">Example of how to call Azure OpenAI api in PowerShell to provide chatting or translation function.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638556973464628444.png" medium="image"/>
-    <pubDate>Thu, 04 Jul 2024 13:41:59 GMT</pubDate>
   </item></channel>
 </rss>
