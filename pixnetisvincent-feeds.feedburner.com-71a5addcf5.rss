@@ -3,7 +3,7 @@
     <title><![CDATA[學不完．教不停．用不盡[RSS+]]]></title>
     <link>undefined</link>
     <image>
-      <url>https://fastly.picsum.photos/id/146/800/800.jpg?hmac=h035BGqQychnn-dxLdDW_jI3I5u02iNASuYTa6LOCXs</url>
+      <url>https://fastly.picsum.photos/id/459/800/800.jpg?hmac=dbAAiEObSi_v__F5uBxs1_P6ymwUFnYIPHO9YyY5BnY</url>
       <title>學不完．教不停．用不盡[RSS+]</title>
       <link>undefined</link>
     </image>
@@ -28,8 +28,68 @@
     <itunes:owner>
       <itunes:name><![CDATA[學不完．教不停．用不盡[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/146/800/800.jpg?hmac=h035BGqQychnn-dxLdDW_jI3I5u02iNASuYTa6LOCXs"/>
+    <itunes:image href="https://fastly.picsum.photos/id/459/800/800.jpg?hmac=dbAAiEObSi_v__F5uBxs1_P6ymwUFnYIPHO9YyY5BnY"/>
 <item>
+    <title><![CDATA[Excel-判斷儲存格中是否為純數字]]></title>
+    <link>https://isvincent.pixnet.net/blog/post/50876392</link>
+    <itunes:title><![CDATA[Excel-判斷儲存格中是否為純數字]]></itunes:title>
+    <itunes:author><![CDATA[學不完．教不停．用不盡[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在 Excel 裡，如果要判斷儲存格內是否為數字，常會使用 ISNUMBER 函數來搞定。但是 ISNUMBER 函數如果遇到是數字被設定成文字格式，則 ISNUMBER 函數仍會判斷為非數字。該如何處理？</p>
+<p><img alt="Excel-判斷儲存格中是否為純數字" src="https://pic.pimg.tw/isvincent/1721658368-147123360-g.jpg" title="Excel-判斷儲存格中是否為純數字"></p>
+<p>例如，儲存格C5，公式：</p>
+<p>=IF(LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,)))),"V","")</p>
+<p>(1) LEN(SUBSTITUTE(A5,ROW($1:$10)-1,))</p>
+<p>ROW($1:$10)表示1,2,...10，ROW($1:$10)-1,) 可以得到 0,1, ..., 9。</p>
+<p>SUBSTITUTE(A5,ROW($1:$10)-1,)表示將儲存格A5內容，將原來內容輪流由0~9置換為空字串。(結果如下)</p>
+<p>(2)&nbsp;SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,)))</p>
+<p>本例有二個數字不是「4」，表示儲存格內容有二個數字。(數字4表示沒有0~9的數字被置換)</p>
+<p>(3) LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,))))</p>
+<p><img alt="Excel-判斷儲存格中是否為純數字" src="https://pic.pimg.tw/isvincent/1721659516-3708756223-g.jpg" title="Excel-判斷儲存格中是否為純數字"></p>
+<p>你也可以使用以下公式，得到相同結果。</p>
+<p>=IF(LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,{0,1,2,3,4,5,6,7,8,9},)))),"V","")</p>
+<p>或</p>
+<p>=IF(AND(ISNUMBER(MID(A5,ROW(INDIRECT("1:"&amp;LEN(A5))),1)+0)),"V","")</p>
+<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在 Excel 裡，如果要判斷儲存格內是否為數字，常會使用 ISNUMBER 函數來搞定。但是 ISNUMBER 函數如果遇到是數字被設定成文字格式，則 ISNUMBER 函數仍會判斷為非數字。該如何處理？</p>
+<p><img alt="Excel-判斷儲存格中是否為純數字" src="https://pic.pimg.tw/isvincent/1721658368-147123360-g.jpg" title="Excel-判斷儲存格中是否為純數字"></p>
+<p>例如，儲存格C5，公式：</p>
+<p>=IF(LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,)))),"V","")</p>
+<p>(1) LEN(SUBSTITUTE(A5,ROW($1:$10)-1,))</p>
+<p>ROW($1:$10)表示1,2,...10，ROW($1:$10)-1,) 可以得到 0,1, ..., 9。</p>
+<p>SUBSTITUTE(A5,ROW($1:$10)-1,)表示將儲存格A5內容，將原來內容輪流由0~9置換為空字串。(結果如下)</p>
+<p>(2)&nbsp;SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,)))</p>
+<p>本例有二個數字不是「4」，表示儲存格內容有二個數字。(數字4表示沒有0~9的數字被置換)</p>
+<p>(3) LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,))))</p>
+<p><img alt="Excel-判斷儲存格中是否為純數字" src="https://pic.pimg.tw/isvincent/1721659516-3708756223-g.jpg" title="Excel-判斷儲存格中是否為純數字"></p>
+<p>你也可以使用以下公式，得到相同結果。</p>
+<p>=IF(LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,{0,1,2,3,4,5,6,7,8,9},)))),"V","")</p>
+<p>或</p>
+<p>=IF(AND(ISNUMBER(MID(A5,ROW(INDIRECT("1:"&amp;LEN(A5))),1)+0)),"V","")</p>
+<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在 Excel 裡，如果要判斷儲存格內是否為數字，常會使用 ISNUMBER 函數來搞定。但是 ISNUMBER 函數如果遇到是數字被設定成文字格式，則 ISNUMBER 函數仍會判斷為非數字。該如何處理？</p>
+<p><img alt="Excel-判斷儲存格中是否為純數字" src="https://pic.pimg.tw/isvincent/1721658368-147123360-g.jpg" title="Excel-判斷儲存格中是否為純數字"></p>
+<p>例如，儲存格C5，公式：</p>
+<p>=IF(LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,)))),"V","")</p>
+<p>(1) LEN(SUBSTITUTE(A5,ROW($1:$10)-1,))</p>
+<p>ROW($1:$10)表示1,2,...10，ROW($1:$10)-1,) 可以得到 0,1, ..., 9。</p>
+<p>SUBSTITUTE(A5,ROW($1:$10)-1,)表示將儲存格A5內容，將原來內容輪流由0~9置換為空字串。(結果如下)</p>
+<p>(2)&nbsp;SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,)))</p>
+<p>本例有二個數字不是「4」，表示儲存格內容有二個數字。(數字4表示沒有0~9的數字被置換)</p>
+<p>(3) LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,ROW($1:$10)-1,))))</p>
+<p><img alt="Excel-判斷儲存格中是否為純數字" src="https://pic.pimg.tw/isvincent/1721659516-3708756223-g.jpg" title="Excel-判斷儲存格中是否為純數字"></p>
+<p>你也可以使用以下公式，得到相同結果。</p>
+<p>=IF(LEN(A5)=(SUM(LEN(A5)-LEN(SUBSTITUTE(A5,{0,1,2,3,4,5,6,7,8,9},)))),"V","")</p>
+<p>或</p>
+<p>=IF(AND(ISNUMBER(MID(A5,ROW(INDIRECT("1:"&amp;LEN(A5))),1)+0)),"V","")</p>
+<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]></content:encoded>
+    <itunes:image href="https://pic.pimg.tw/isvincent/1721658368-147123360-g.jpg"/>
+          <media:content url="https://pic.pimg.tw/isvincent/1721658368-147123360-g.jpg" medium="image"/>
+    <pubDate>Mon, 22 Jul 2024 22:24:59 +0800</pubDate>
+  </item><item>
     <title><![CDATA[PowerPoint-文字在旋轉的過程中顯示一半實心字和一半空心字]]></title>
     <link>https://isvincent.pixnet.net/blog/post/50874432</link>
     <itunes:title><![CDATA[PowerPoint-文字在旋轉的過程中顯示一半實心字和一半空心字]]></itunes:title>
@@ -4946,104 +5006,5 @@ End Sub</p>
     <itunes:image href="https://pic.pimg.tw/isvincent/1712936365-3939031789-g.png"/>
           <media:content url="https://pic.pimg.tw/isvincent/1712936365-3939031789-g.png" medium="image"/>
     <pubDate>Fri, 12 Apr 2024 23:37:55 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[利用Microsoft Clipchamp在影片中插入自動產生的字幕並儲存為MP4]]></title>
-    <link>https://isvincent.pixnet.net/blog/post/50807428</link>
-    <itunes:title><![CDATA[利用Microsoft Clipchamp在影片中插入自動產生的字幕並儲存為MP4]]></itunes:title>
-    <itunes:author><![CDATA[學不完．教不停．用不盡[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>教師要將教材數位化，有時需要簡單的教學現場實況錄下來即可使用。但是，加上字幕有時便是老師們的困擾之一。如果教材的影片要加入字幕，本篇提一個簡單的方式，藉由&nbsp;Microsoft Clipchamp 來處理。 (https://www.microsoft.com/zh-tw/microsoft-365/clipchamp)，除了線上製作（https://clipchamp.com/），也可以下載單機版操作。</p>
-<p>連線：https://apps.microsoft.com/detail/9p1j8s7ccwwt?hl=zh-TW&amp;gl=TW</p>
-<p>下載 Clipchamp App 並安裝，參考以下步驟操作：</p>
-<p>開啟 Clipchamp 並登入帳號(或第三方認證)。</p>
-<p>先在 Clipchamp 中插入影片，再切換至「輔助字幕」標籤下。</p>
-<p>點選：轉錄媒體。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712675629-3562558281-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>選取語言：繁體文(臺灣國語)，再點選：轉錄媒體。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712675641-4280923504-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712652999-3155456027-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>系統會依影片中的語音自動產生字幕，並且標示時間，當你播放影片時，可以看到影片裡已被插入文字。你如果覺得字幕有錯，也可以直接在「文字記錄」窗格中進行修改。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712652978-1202345815-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>如此，你便可以</p>
-<p>1.下載輔助字幕(*.str)</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653205-1182308627-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>2. 匯出成MP4影片檔，可以儲存在本機電腦或上傳至雲端。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653425-947134906-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>播放下載的影片，可以看到影片中已加入字幕了。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653515-2202978734-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>如果你的影片是由瀏覽器中錄製的&nbsp;webm 格式，透過以下二個工具都可以線上錄製影片：</p>
-<p>https://toolbox.googleapps.com/apps/screen_recorder/</p>
-<p>https://gemoo.com/tools/online-screen-recorder/</p>
-<p>也可以自動產生字幕和輸出MP4檔案。所以 Clipchamp 也可以拿來做 webm 轉 MP4。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712678241-2507011783-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>前面下載的字幕檔（*.srt），也可以取用來在 YouTube 上傳影片時使用。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712735230-3500207003-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>這些方式雖然很陽春，但是使用上也非常簡單。能解決你的問題嗎？</p>
-<p>而 Clipchamp 的功能不只這些，有興趣可以繼續研究！</p>
-<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>教師要將教材數位化，有時需要簡單的教學現場實況錄下來即可使用。但是，加上字幕有時便是老師們的困擾之一。如果教材的影片要加入字幕，本篇提一個簡單的方式，藉由&nbsp;Microsoft Clipchamp 來處理。 (https://www.microsoft.com/zh-tw/microsoft-365/clipchamp)，除了線上製作（https://clipchamp.com/），也可以下載單機版操作。</p>
-<p>連線：https://apps.microsoft.com/detail/9p1j8s7ccwwt?hl=zh-TW&amp;gl=TW</p>
-<p>下載 Clipchamp App 並安裝，參考以下步驟操作：</p>
-<p>開啟 Clipchamp 並登入帳號(或第三方認證)。</p>
-<p>先在 Clipchamp 中插入影片，再切換至「輔助字幕」標籤下。</p>
-<p>點選：轉錄媒體。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712675629-3562558281-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>選取語言：繁體文(臺灣國語)，再點選：轉錄媒體。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712675641-4280923504-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712652999-3155456027-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>系統會依影片中的語音自動產生字幕，並且標示時間，當你播放影片時，可以看到影片裡已被插入文字。你如果覺得字幕有錯，也可以直接在「文字記錄」窗格中進行修改。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712652978-1202345815-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>如此，你便可以</p>
-<p>1.下載輔助字幕(*.str)</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653205-1182308627-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>2. 匯出成MP4影片檔，可以儲存在本機電腦或上傳至雲端。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653425-947134906-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>播放下載的影片，可以看到影片中已加入字幕了。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653515-2202978734-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>如果你的影片是由瀏覽器中錄製的&nbsp;webm 格式，透過以下二個工具都可以線上錄製影片：</p>
-<p>https://toolbox.googleapps.com/apps/screen_recorder/</p>
-<p>https://gemoo.com/tools/online-screen-recorder/</p>
-<p>也可以自動產生字幕和輸出MP4檔案。所以 Clipchamp 也可以拿來做 webm 轉 MP4。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712678241-2507011783-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>前面下載的字幕檔（*.srt），也可以取用來在 YouTube 上傳影片時使用。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712735230-3500207003-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>這些方式雖然很陽春，但是使用上也非常簡單。能解決你的問題嗎？</p>
-<p>而 Clipchamp 的功能不只這些，有興趣可以繼續研究！</p>
-<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>教師要將教材數位化，有時需要簡單的教學現場實況錄下來即可使用。但是，加上字幕有時便是老師們的困擾之一。如果教材的影片要加入字幕，本篇提一個簡單的方式，藉由&nbsp;Microsoft Clipchamp 來處理。 (https://www.microsoft.com/zh-tw/microsoft-365/clipchamp)，除了線上製作（https://clipchamp.com/），也可以下載單機版操作。</p>
-<p>連線：https://apps.microsoft.com/detail/9p1j8s7ccwwt?hl=zh-TW&amp;gl=TW</p>
-<p>下載 Clipchamp App 並安裝，參考以下步驟操作：</p>
-<p>開啟 Clipchamp 並登入帳號(或第三方認證)。</p>
-<p>先在 Clipchamp 中插入影片，再切換至「輔助字幕」標籤下。</p>
-<p>點選：轉錄媒體。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712675629-3562558281-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>選取語言：繁體文(臺灣國語)，再點選：轉錄媒體。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712675641-4280923504-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712652999-3155456027-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>系統會依影片中的語音自動產生字幕，並且標示時間，當你播放影片時，可以看到影片裡已被插入文字。你如果覺得字幕有錯，也可以直接在「文字記錄」窗格中進行修改。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712652978-1202345815-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>如此，你便可以</p>
-<p>1.下載輔助字幕(*.str)</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653205-1182308627-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>2. 匯出成MP4影片檔，可以儲存在本機電腦或上傳至雲端。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653425-947134906-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>播放下載的影片，可以看到影片中已加入字幕了。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712653515-2202978734-g.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>如果你的影片是由瀏覽器中錄製的&nbsp;webm 格式，透過以下二個工具都可以線上錄製影片：</p>
-<p>https://toolbox.googleapps.com/apps/screen_recorder/</p>
-<p>https://gemoo.com/tools/online-screen-recorder/</p>
-<p>也可以自動產生字幕和輸出MP4檔案。所以 Clipchamp 也可以拿來做 webm 轉 MP4。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712678241-2507011783-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>前面下載的字幕檔（*.srt），也可以取用來在 YouTube 上傳影片時使用。</p>
-<p><img alt="利用Microsoft Clipchamp在影片中插入自動產" src="https://pic.pimg.tw/isvincent/1712735230-3500207003-g_l.png" title="利用Microsoft Clipchamp在影片中插入自動產"></p>
-<p>這些方式雖然很陽春，但是使用上也非常簡單。能解決你的問題嗎？</p>
-<p>而 Clipchamp 的功能不只這些，有興趣可以繼續研究！</p>
-<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]></content:encoded>
-    <itunes:image href="https://pic.pimg.tw/isvincent/1712675629-3562558281-g.png"/>
-          <media:content url="https://pic.pimg.tw/isvincent/1712675629-3562558281-g.png" medium="image"/>
-    <pubDate>Tue, 9 Apr 2024 16:51:42 +0800</pubDate>
   </item></channel>
 </rss>
