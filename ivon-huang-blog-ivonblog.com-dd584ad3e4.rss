@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/120/800/800.jpg?hmac=9FAGRD-mSRSMpW_gs6ZPCda6HsI_nn5RWnOv9dTYBdM</url>
+      <url>https://fastly.picsum.photos/id/613/800/800.jpg?hmac=6YZtia61m_f9MDd7hsCDRtC_RJK8w4ZrwCmw06XBAjs</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,7 +28,7 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/120/800/800.jpg?hmac=9FAGRD-mSRSMpW_gs6ZPCda6HsI_nn5RWnOv9dTYBdM"/>
+    <itunes:image href="https://fastly.picsum.photos/id/613/800/800.jpg?hmac=6YZtia61m_f9MDd7hsCDRtC_RJK8w4ZrwCmw06XBAjs"/>
 <item>
     <title><![CDATA[自架服務(Self-hosting)需要的硬體與常用工具]]></title>
     <link>https://ivonblog.com/posts/my-self-hosting-setup/</link>
@@ -49,6 +49,408 @@
 自架雲端服務</a>的分類。</p><p>不會讓太多服務同時上線，視乎硬體資源會關掉部份服務。</p><h2>需要的硬體<span><a href="#%E9%9C%80%E8%A6%81%E7%9A%84%E7%A1%AC%E9%AB%94" aria-label="定位點">#</a></span></h2><p>看服務需求，硬體可大可小。</p><p>輕量服務只要一塊Raspberry Pi就行了。需要長期使用的，購買一台NAS吧，現成的對新手來說比較好上手，組RAID會比較方便。</p><p>而我則是選擇較為自由的自組派，把手弄髒(get hands dirty)學得更快。不過老實說，是用舊x86電腦改裝成的Linux伺服器，不計電費消耗，也沒有組RAID。</p><ul><li>主機板：ASUS K31CD-K</li><li>CPU：Intel i5-7400</li><li>RAM：16GB DDR4</li><li>GPU：Nvidia GTX1050Ti。GPU其實不是必備的，但近年來生成式AI讓顯示卡價值大增，所以添購顯示卡不會虧的。</li><li>儲存空間：1TB SSD + 1 TB HDD</li></ul><p>作業系統當然是Linux。選一個比較多人用且穩定發表的發行版吧，個人推薦Ubuntu，或者Debian、Rocky Linux、openSUSE Leap、Proxmox。不要用滾動發行版。</p><p>要不要裝圖形界面看個人選擇，我至少還是有留桌面環境方便除錯。</p><h2>常用系統工具<span><a href="#%E5%B8%B8%E7%94%A8%E7%B3%BB%E7%B5%B1%E5%B7%A5%E5%85%B7" aria-label="定位點">#</a></span></h2><p>為了系統穩定度考量，我很少讓服務直接跑在裸機上，大部份會將其容器化，或者乾脆關在虛擬機裡面跑。</p><ul><li>OpenSSH：遠端登入</li><li>Auditd：檢查系統操作紀錄</li><li>UFW：防火牆，你要用Firewalld也行</li><li>Libvirt + QEMU/KVM：虛擬機，啟用GPU直通。跑較為重型的服務，例如雲端遊戲串流，或是沒辦法容器化，需要動到系統套件部署的服務。</li><li>Docker或Podman：比虛擬機輕量的解決方案，大部份服務都用這個跑。Docker目前還是主流的容器化方案。</li><li>LXC：Docker生態系優勢太大，這東西就沒什麼用了。</li><li>Kubernetes：除非你擁有好幾台電腦組成叢集，否則這東西是牛刀殺雞。</li><li>Portainer：網頁管理Docker容器的界面</li><li>Cockpit：網頁管理QEMU/KVM虛擬機的界面</li></ul><h2>外部連線工具<span><a href="#%E5%A4%96%E9%83%A8%E9%80%A3%E7%B7%9A%E5%B7%A5%E5%85%B7" aria-label="定位點">#</a></span></h2><p>外部連線工具就是讓自架服務能從外部網路隨時存取的工具。下面是一些選項：</p><ul><li>Tailscale：內網穿透</li><li>ZeroTier：內網穿透</li><li>NetBird：內網穿透</li><li>Cloudflare Tunnel：加密隧道</li><li>Port Forwarding + DDNS：通訊埠轉發與動態DNS</li><li>Port Forwarding + Ngnix：通訊埠轉發與反向代理</li></ul><p>其中內網穿透是最簡單的方案，幾乎不用設定，個人使用的話夠用了。</p>]]></content:encoded>
     
     <pubDate>Sun, 28 Jul 2024 21:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[Hyprland設定教學，漂亮又不佔資源的Linux Wayland視窗管理器]]></title>
+    <link>https://ivonblog.com/posts/hyprland-setup/</link>
+    <itunes:title><![CDATA[Hyprland設定教學，漂亮又不佔資源的Linux Wayland視窗管理器]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/hyprland-setup/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c56e1599.webp"></a></p>
+<p>如果你想要一款漂亮的、面向未來的視窗管理器，Ivon推薦你一定要試試Hyprland！</p><p>Hyprland是使用wl-roots函式庫寫成的視窗管理器兼Wayland合成器，由vaxerski開發，2022年5月推出正式版。2024年6月，Hyprland成為獨立的合成器，不再基於wl-roots開發。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6bed7bf34c.webp"><p>它跟Sway一樣，都是為純Wayland的Linux環境準備的，替代過去以X為主的視窗管理器。</p><p>相較於Sway意圖模仿i3wm，Hyprland作者有自己更多的想法。Ivon很滿意的部分是，Hyprland能輕鬆自定義外觀和按鍵設定，且預設的樣子就不錯看了，內建圓角、模糊、透明效果可以調，不用再裝其他程式。</p><p>Hyprland支援觸控板手勢、Nvidia閉源驅動、bspwm或i3的視窗排列方式，功能多樣。</p><p>Hyprland甚至有內建看板娘Hypr-chan呢！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d182c4b76.webp"><p>即使擁有華麗特效，開機RAM佔用才500MB出頭而已，讓你高效率操作電腦的同時，又不佔用太多系統資源。</p><p>雖然如此，Hyprland仍不是開箱即用的「桌面」，你需要花點時間配置。它畢竟是視窗管理器，需要搭配其他程式才會好用。設定時勤讀官方文件、配置設定檔、手動寫啟動服務是免不了的。</p><p>這篇教學文章Ivon盡量把常用的功能都包進去，使讀者可以手動配置出一個大致能用的Hyprland桌面，再融入我的一點個人化配置。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-faf13b1280.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b121c0daa.webp"><h2>環境<span><a href="#%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>裝置：MSI Modern 15 A10RBS</li><li>系統：Arch Linux</li><li>核心版本：6.6.4</li><li>CPU：Intel i5-10210u</li><li>GPU：Intel UHD 620</li><li>GPU2：Nvidia MX350</li></ul><p>Arch Linux系統安裝方法此處不贅述，你可以用<a href="https://ivonblog.com/posts/archinstall-script/" target="_blank">
+archinstall</a>安裝一個純文字最小系統再裝Hyprland；或是從現有桌面環境設定Hyprland，再沿用其顯示管理器（例如GDM、SDDM）來登入Hyprland。</p><p>Ivon的主力GPU用Intel內顯，Nvidia安裝閉源驅動，再透過PRIME存取。</p><h2>1. 安裝Hyprland<span><a href="#1-%E5%AE%89%E8%A3%9Dhyprland" aria-label="定位點">#</a></span></h2><p>現階段作者會一直加新功能，所以Linux最好用滾動發行版，例如Arch Linux、openSUSE Tumbleweed，以方便取得最新版Hyprland套件。</p><p>因為如果發行版收的套件版本太舊，你可能就無法參考官方文件調整設定擋了！</p><p>Arch Linux不用擔心版本問題，直接從官方套件庫裝Hyprland。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S hyprland
+</span></span></code></pre></div><h3>1.1. Hyprland配套程式<span><a href="#11-hyprland%E9%85%8D%E5%A5%97%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h3><p>建議安裝這些程式搭配Hyprland使用，使其成為完整的桌面環境。有些套件是AUR的，嫌麻煩直接用yay指令裝就行了，它會自動辨別。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>yay -S kitty waybar otf-font-awesome network-manager-applet brightnessctl pw-volume hyprshot power-profiles-daemon wofi hyprpaper swayidle swaylock wlogout dunst cliphist pipewire pipewire-pulse wireplumber pavucontrol xorg xorg-xwayland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk polkit-kde-agent qt5-wayland qt6-wayland qt5ct qt6ct nwg-look udiskie greetd greetd-tuigreet chezmoi fcitx5-im fcitx5-chewing fcitx5-qt fcitx5-gtk fcitx5-chinese-addons
+</span></span></code></pre></div><p>這些套件功能如下：</p><ul><li><code>kitty</code> Hyprland預設終端機。我倒覺得終端機簡單夠用就好，個人偏好<code>gnome-console</code></li><li><code>waybar</code>, <code>otf-font-awesome</code> 狀態欄與Emoji字體</li><li><code>network-manager-applet</code> 從狀態欄開關網路</li><li><code>brightnessctl</code> 亮度控制</li><li><code>pw-volume</code> 音量控制</li><li><code>hyprshot</code> 截圖工具</li><li><code>power-profiles-daemon</code> 電源模式控制</li><li><code>wofi</code> 應用程式選單</li><li><code>hyprpaper</code> 桌布程式</li><li><code>swayidle</code> , <code>swaylock</code>, <code>wlogout</code> 暫停模式，螢幕鎖定，登出選單</li><li><code>dunst</code> 桌面通知守護行程</li><li><code>cliphist</code> 剪貼簿</li><li><code>pipewire</code>, <code>pipewire-pulse</code>, <code>wireplumber</code>, <code>pavucontrol</code> 音訊系統</li><li><code>xorg</code>, <code>xorg-xwayland</code> X視窗系統，不是所有程式都支援Wayland。</li><li><code>xdg-desktop-portal-hyprland</code>, <code>xdg-desktop-portal-gtk</code> 負責檔案選擇器、螢幕共享等功能</li><li><code>polkit-kde-agent</code> 密碼驗證對話框</li><li><code>qt5-wayland</code> ,<code>qt6-wayland</code> 讓QT程式支援Wayland</li><li><code>udiskie</code> 自動掛載隨身碟</li><li><code>qt5ct</code>, <code>qt6ct</code> 設定QT程式主題</li><li><code>nwg-look</code>：設定GTK程式主題</li><li><code>greetd</code>, <code>greetd-tuigreet</code> 開機負責登入桌面的顯示管理器</li><li><code>chezmoi</code> 備份設定檔(dotfile)的好工具</li><li><code>fcitx5</code> 中文輸入法</li></ul><h3>1.2. 命令行狂人適用的程式<span><a href="#12-%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%8B%82%E4%BA%BA%E9%81%A9%E7%94%A8%E7%9A%84%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h3><p>這裡是極簡應用程式，命令行狂人適用。我個人不太會用這些，因為我覺得不直觀…看圖的話我習慣用Gwenview，檔案管理器則是Dolphin、錄影用OBS等。</p><ul><li><code>ranger</code> 檔案管理器</li><li><code>mpd</code> 搭配Waybar的音樂播放器</li><li><code>mpv</code> 影片/音樂播放器</li><li><code>ytfzf</code> 純文字YouTube播放器</li><li><code>vim</code> 文字編輯器</li><li><code>feh</code> 圖片檢視器</li><li><code>mupdf</code> 文件閱讀器</li><li><code>wl-recorder</code> 螢幕錄影</li><li><code>qutebrowser</code> 極簡QtWebEngine瀏覽器，用類似vim快捷鍵的方式操作</li></ul><h2>2. 撰寫Hyprland設定檔<span><a href="#2-%E6%92%B0%E5%AF%ABhyprland%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>想知道全部可用選項，請看Hyprland官方的說明文件，詳細明瞭：<a href="https://wiki.hyprland.org/Configuring/Configuring-Hyprland/" target="_blank">
+Configuring Hyprland - Hyprland Wiki</a></p><p>這裡講Ivon個人的設定，盡量保留預設並另外加功能。</p><ol><li>複製Hyprland預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/.config/hypr
+</span></span><span><span>cp /usr/share/hyprland/hyprland.conf ~/.config/hypr/hyprland.conf
+</span></span></code></pre></div><ol start="2"><li>用vim編輯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/hypr/hyprland.conf
+</span></span></code></pre></div><ol start="3"><li>大致上，<code>hyprland.conf</code>檔案的結構可以切成四塊：</li></ol><ul><li>exec區塊的定義啟動Hyprland跟著啟動的程式</li><li>環境變數</li><li>外觀、動畫、手勢、個別程式視窗規則的設定</li><li>bind的區域是快捷鍵綁定。</li></ul><p>雖然Hyprland沒有嚴格規定設定檔的順序，但為了方便討論我沿用此規則。</p><h3>螢幕設定(Monitors)<span><a href="#%E8%9E%A2%E5%B9%95%E8%A8%AD%E5%AE%9Amonitors" aria-label="定位點">#</a></span></h3><ol><li>如果有的話，將<code>auto-generated=1</code>警告註解掉。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># autogenerated = 1</span>
+</span></span></code></pre></div><ol start="2"><li>螢幕規則，設定自動取得螢幕名稱、使用螢幕最高解析度、自動取得座標，再設定全域縮放為1.15倍。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>monitor</span> <span>=</span>,highres,auto,1.15
+</span></span></code></pre></div><ol start="3"><li>此設定會自動套用第二個螢幕，因為我不確定外接的第二個螢幕會是什麼解析度，所以就讓它自動偵測。</li></ol><h3>自動執行的程式(Autostart)<span><a href="#%E8%87%AA%E5%8B%95%E5%9F%B7%E8%A1%8C%E7%9A%84%E7%A8%8B%E5%BC%8Fautostart" aria-label="定位點">#</a></span></h3><ol><li><p>設定要啟動的程式，<code>exec-once</code>跟<code>exec</code>的差別在於，前者要重新登入桌面才會啟動，後者則是每編輯一次設定檔就會自動重啟。</p></li><li><p>先匯入systemd環境變數，瀏覽器類的程式會用到。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>exec-once <span>=</span> dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+</span></span></code></pre></div><ol start="3"><li>再啟動fcitx5、dunct、nm-applet、剪貼簿服務。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>exec-once <span>=</span> hyprpaper
+</span></span><span><span>exec-once <span>=</span> wl-paste --type text --watch cliphist store
+</span></span><span><span>exec-once <span>=</span> wl-paste --type image --watch cliphist store
+</span></span><span><span>exec-once <span>=</span> waybar
+</span></span><span><span>exec-once <span>=</span> nm-applet
+</span></span><span><span>exec-once <span>=</span> fcitx5 -d  --replace
+</span></span><span><span>exec-once <span>=</span> dunst
+</span></span><span><span>exec-once <span>=</span> /usr/lib/polkit-kde-authentication-agent-1
+</span></span><span><span>exec-once <span>=</span> udiskie <span>&amp;</span>
+</span></span></code></pre></div><ol start="4"><li>如果你的程式可以用systemd服務啟動那就不用寫在這邊。</li></ol><h3>環境變數(Environment variables)<span><a href="#%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8environment-variables" aria-label="定位點">#</a></span></h3><p>env環境變數的寫法為<code>env = 名稱, 數值</code></p><ol><li>設定滑鼠大小</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> XCURSOR_SIZE,24
+</span></span></code></pre></div><ol start="2"><li>指定目前的工作階段為Hyprland</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> XDG_CURRENT_DESKTOP, Hyprland
+</span></span><span><span><span>env</span> <span>=</span> XDG_SESSION_TYPE, wayland
+</span></span><span><span><span>env</span> <span>=</span> XDG_SESSION_DESKTOP, Hyprland
+</span></span></code></pre></div><ol start="3"><li>指定所有程式都使用Wayland，QT程式使用kvantum當主題。不過QT程式因為縮放有問題，所以我設定QT優先使用X而非Wayland協定。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 預設文字編輯器</span>
+</span></span><span><span><span>env</span> <span>=</span> EDITOR, vim
+</span></span><span><span><span># 給Firefox啟用Wayland</span>
+</span></span><span><span><span>env</span> <span>=</span> MOZ_ENABLE_WAYLAND, <span>1</span>
+</span></span><span><span><span>env</span> <span>=</span> GDK_BACKEND, <span>"wayland,x11"</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_QPA_PLATFORM, <span>"xcb;wayland"</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_QPA_PLATFORMTHEME, qt5ct
+</span></span></code></pre></div><ol start="4"><li>還有設定全域縮放比例（應該只對XWayland程式有效），依照程式框架個別設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> QT_AUTO_SCREEN_SCALE_FACTOR, <span>1</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_SCALE_FACTOR, 1.15
+</span></span><span><span><span>env</span> <span>=</span> GDK_DPI_SCALE, 1.15
+</span></span></code></pre></div><ol start="5"><li>再設定Fictx5的環境變數</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> GTK_IM_MODULE, fcitx
+</span></span><span><span><span>env</span> <span>=</span> QT_IM_MODULE, fcitx
+</span></span><span><span><span>env</span> <span>=</span> XMODIFIERS, @im<span>=</span>fcitx
+</span></span></code></pre></div><p>Intel、AMD顯示卡不需要特別設定即可獲得GPU硬體加速；如果是用Nvidia專有驅動的話需參考<a href="https://wiki.hyprland.org/Nvidia/" target="_blank">
+Hyprland作者的說明</a>設定一些環境變數。</p><p>注意有時從終端機或Waybar手動啟動程式，程式可能還是吃不到Hyprland環境變數，這時就得將環境變數放到<code>~/.config/environment.d/envvars.conf</code>或<code>/etc/environment</code>解決。</p><h3>動畫視窗裝飾(Look and feel)<span><a href="#%E5%8B%95%E7%95%AB%E8%A6%96%E7%AA%97%E8%A3%9D%E9%A3%BElook-and-feel" aria-label="定位點">#</a></span></h3><p>動畫、視窗裝飾這部份看個人喜好調整，我沒有做太多修改。僅修改<code>rounding</code>讓視窗圓角不要那麼圓。</p><p><strong>視窗排列模式</strong></p><p>視窗排列模式分成dwindle與master</p><p><code>dwindle</code>模式即bspwm，視窗大小是動態變化的。</p><p><code>master</code>模式就是i3wm那樣，一個視窗開在左邊，新視窗會從右邊依序分割開啟。</p><p>我維持<code>dwindle</code>模式，不更動。</p><p><strong>視窗規則</strong></p><p>視窗規則可用<code>class:程式名稱</code>選取要設定規則的視窗，比如我設定pavucontrol面板一律懸浮。如果不知道具體名字請用<code>hyprctl clients</code>指令查詢。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>windowrulev2</span> <span>=</span> size 50% 50%, center, floating:*
+</span></span></code></pre></div><p>我還設定所有懸浮視窗一律置中，並限制最大寬高50%，防止檔案選擇器這類的視窗過於巨大。冒號後面用星號選取所有符合此類型的程式視窗</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>windowrulev2</span> <span>=</span> size 50% 50%, center, floating:*
+</span></span></code></pre></div><p><strong>雜項</strong></p><p>在misc這塊，使用這二個變數，關閉Hyprland的預設桌布及看板娘。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>misc <span>{</span>
+</span></span><span><span>    <span>force_default_wallpaper</span> <span>=</span> -1 <span># Set to 0 to disable the anime mascot wallpapers</span>
+</span></span><span><span>    <span>disable_hyprland_logo</span> <span>=</span> <span>false</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><h2>輸入(Input)<span><a href="#%E8%BC%B8%E5%85%A5input" aria-label="定位點">#</a></span></h2><ol><li>啟用觸控版切換工作區的手勢。設定輕觸等同按下，觸控板等同滑鼠右鍵，雙指點選為左鍵</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>gestures <span>{</span>
+</span></span><span><span>    <span>workspace_swipe</span> <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span>touchpad<span>{</span>
+</span></span><span><span>    tap-to-click <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><ol start="2"><li>加上這條，關閉XWayland的自動縮放，防止程式模糊。縮放部份用環境變數調整就可以了。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xwayland <span>{</span>
+</span></span><span><span>  <span>force_zero_scaling</span> <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><h3>按鍵綁定(Keybindings)<span><a href="#%E6%8C%89%E9%8D%B5%E7%B6%81%E5%AE%9Akeybindings" aria-label="定位點">#</a></span></h3><p>鍵盤綁定部分預設的我沒改，Mod鍵維持Super鍵(Windows鍵)</p><p>我另外綁了鎖定鍵、音量鍵、亮度調節鍵、截圖鍵。想確認具體按鍵代碼可以用<code>wev</code>程式偵測。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># Mod + Shift + 方向鍵調整視窗大小</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, right, resizeactive, <span>10</span> <span>0</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, left, resizeactive, -10 <span>0</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, up, resizeactive, <span>0</span> -10
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, down, resizeactive, <span>0</span> <span>10</span>
+</span></span><span><span>
+</span></span><span><span><span># 音量鍵</span>
+</span></span><span><span><span>binde</span><span>=</span>, XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+
+</span></span><span><span><span>bindl</span><span>=</span>, XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+</span></span><span><span>
+</span></span><span><span><span># 亮度鍵</span>
+</span></span><span><span><span>binde</span><span>=</span>, XF86MonBrightnessDown, exec, brightnessctl <span>set</span> 5%-
+</span></span><span><span><span>bindl</span><span>=</span>, XF86MonBrightnessUp, exec, brightnessctl <span>set</span> +5%
+</span></span><span><span>
+</span></span><span><span><span># 全螢幕擷圖鍵</span>
+</span></span><span><span><span>bind</span> <span>=</span> , PRINT, exec, hyprshot -m output
+</span></span></code></pre></div><hr><p>終於弄好了，但還沒完呢！</p><p>Hyprland支援邊改設定檔邊套用變更。作者說法是一修改設定檔便會自動套用變更，但如果沒反應的話請用指令強制重新載入設定檔，或者重新登入桌面。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>hyprctl reload
+</span></span></code></pre></div><h2>3. 設定Hyprland的配套程式<span><a href="#3--%E8%A8%AD%E5%AE%9Ahyprland%E7%9A%84%E9%85%8D%E5%A5%97%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><h3>狀態欄Waybar的設定<span><a href="#%E7%8B%80%E6%85%8B%E6%AC%84waybar%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><ol><li>將自己加入input群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo usermod -a -G input <span>$USER</span>
+</span></span></code></pre></div><ol start="2"><li>編輯預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/.config/waybar/
+</span></span><span><span>cp /etc/xdg/waybar/* ~/.config/waybar/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/waybar/config/config.jsonc
+</span></span></code></pre></div><ol start="3"><li>將Waybar放在所有視窗最上層</li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>"layer"</span><span>:</span> <span>"top"</span><span>,</span>
+</span></span></code></pre></div><ol start="4"><li>最上面的<code>"modules"</code>是狀態欄要顯示的按鈕，不要的直接從json陣列移除就可以了，例如<code>mpd</code>用不到就刪除。另外加入工作區編號指示器<code>hyprland/workspaces</code>、登出按鈕<code>wlogout</code>。</li></ol><pre tabindex="0"><code data-lang="jsonc">"modules-left": ["hyprland/workspaces", "custom/wofi", "custom/brave", "custom/dolphin"],
+"modules-center": [],
+"modules-right": ["idle_inhibitor", "pulseaudio", "backlight", "keyboard-state", "hyprland/language", "battery", "tray", "clock", "custom/wlogout"],
+</code></pre><ol start="5"><li><p>因為不支援圖片，Waybar使用Emoji當小圖示，如果電腦無法顯示請安裝相應字體，或者將其改為ASCII符號。</p></li><li><p>下滑到<code>"network"</code>這一段，設定隱藏網路SSID名稱還有 IP位址，把這些資訊改放到tooltip欄位。</p></li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>"network"</span><span>:</span> <span>{</span>
+</span></span><span><span>        <span>// "interface": "wlp2*", // (Optional) To force the use of this interface
+</span></span></span><span><span>        <span>"format-wifi"</span><span>:</span> <span>""</span><span>,</span>
+</span></span><span><span>        <span>"format-ethernet"</span><span>:</span> <span>"{ifname} "</span><span>,</span>
+</span></span><span><span>        <span>"tooltip-format"</span><span>:</span> <span>"{essid} {signalStrength}% {ifname} via {gwaddr} "</span><span>,</span>
+</span></span><span><span>        <span>"format-linked"</span><span>:</span> <span>"{ifname} (No IP) "</span><span>,</span>
+</span></span><span><span>        <span>"format-disconnected"</span><span>:</span> <span>"Disconnected ⚠"</span><span>,</span>
+</span></span><span><span>        <span>"format-alt"</span><span>:</span> <span>"{ifname} {gwaddr}"</span><span>,</span>
+</span></span><span><span>        <span>"tooltip"</span><span>:</span> <span>true</span>
+</span></span><span><span>    <span>}</span><span>,</span>
+</span></span></code></pre></div><ol start="7"><li>最下面加入<code>"custom/wlogout"</code>的按鈕，設定點選啟動登出面板</li></ol><div><pre tabindex="0"><code data-lang="json"><span><span>     <span>"custom/wlogout"</span><span>:</span><span>{</span>
+</span></span><span><span>      <span>"format"</span><span>:</span><span>""</span><span>,</span>
+</span></span><span><span>      <span>"on-click"</span><span>:</span><span>"wlogout"</span>
+</span></span><span><span>      <span>}</span>
+</span></span></code></pre></div><p>wlogout面板提供待機、鎖定螢幕、重開機的選單，需要進一步設定的請複製<code>cp /etc/wlogout/* ~/.config/wlogout/</code>後再編輯具體指令。待機因為我電腦的硬體支援度不佳所以沒啟用。</p><ol start="8"><li>Waybar的顏色樣式請編輯<code>~/.config/waybar/style.css</code></li></ol><h3>桌布Hypraper的設定<span><a href="#%E6%A1%8C%E5%B8%83hypraper%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>桌布程式會疊在Hyprland預設的桌布上。</p><ol><li>編輯預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/hypr/hyprpaper.conf
+</span></span></code></pre></div><ol start="2"><li>填入桌布路徑，wallpaper後面留白指定全部螢幕都使用同一張桌布</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>preload</span> <span>=</span> /home/user/.config/wallpapers/wallpaper.jpg
+</span></span><span><span><span>wallpaper</span> <span>=</span> ,/home/user/.config/wallpapers/wallpaper.jpg
+</span></span></code></pre></div><h3>登入畫面greetd設定<span><a href="#%E7%99%BB%E5%85%A5%E7%95%AB%E9%9D%A2greetd%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>tuigreetd是純文字介面不需要設定背景。</p><ol><li>編輯設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/greetd/config.toml
+</span></span></code></pre></div><p>2.設定記住登入用戶，並在登入後執行Hyprland</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>default_session<span>]</span>
+</span></span><span><span><span>command</span> <span>=</span> <span>"tuigreet --time --asterisks --remember --cmd Hyprland"</span>
+</span></span></code></pre></div><ol start="3"><li>如果有裝其他桌面環境，將現有的顯示管理器停用，改啟用greetd</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl disable gdm
+</span></span><span><span>sudo systemctl <span>enable</span> greetd
+</span></span></code></pre></div><h3>系統部分的設定<span><a href="#%E7%B3%BB%E7%B5%B1%E9%83%A8%E5%88%86%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><ol><li>設定自動啟動NetworkManager服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> NetworkManager
+</span></span></code></pre></div><ol start="2"><li>設定自動啟動電源管理模式的設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> power-profiles-daemon
+</span></span></code></pre></div><ol start="3"><li>設定自動啟動PipeWire服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl <span>enable</span> --user pipewire
+</span></span><span><span>systemctl <span>enable</span> --user pipewire-pulse
+</span></span></code></pre></div><ol start="4"><li>xdg-desktop-portal服務應該會自動啟動，但也可以手動設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl <span>enable</span> --user xdg-desktop-portal-hyprland
+</span></span><span><span>systemctl <span>enable</span> --user xdg-desktop-portal-gtk
+</span></span></code></pre></div><ol start="5"><li>複製xdg-portal-desktop設定檔到使用者家目錄</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cp /usr/share/xdg-desktop-portal/hyprland-portals.conf ~/.config/xdg-desktop-portal/portals.conf
+</span></span></code></pre></div><ol start="6"><li>設定Portal偏好為Hyprland優先其次GTK。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>preferred<span>]</span>
+</span></span><span><span><span>default</span><span>=</span>hyprland<span>;</span>gtk
+</span></span></code></pre></div><ol start="7"><li>設定完成後建議重開機。如果沒裝其他桌面環境，初次登入Hyprland要手動產生使用者家目錄：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S xdg-dirs-update
+</span></span><span><span><span>LC_ALL</span><span>=</span>C xdg-user-dirs-update --force
+</span></span></code></pre></div><h2>4. Hyprland操作方式<span><a href="#4-hyprland%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>Hyprland的視窗(window)是平鋪在螢幕上的，開新程式會直接顯示在目前程式的旁邊，不會重疊。</p><p>Hyprland提供多個工作區(workspace)用於擺放多個不同的程式，例如工作區1放瀏覽器，工作區2放文字編輯器。</p><p>dwindle模式下，Hyprland開的新視窗會按照滑鼠所在位置決定。</p><h3>預設按鍵綁定<span><a href="#%E9%A0%90%E8%A8%AD%E6%8C%89%E9%8D%B5%E7%B6%81%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>Hyprland預設綁定的Mod鍵是<code>Windows鍵</code></p><ul><li>Mod + Q 開啟終端機</li><li>Mod + C 關閉目前聚焦的視窗</li><li>Mod + M 終止Hyprland</li><li>Mod + E 開啟檔案管理器</li><li>Mod + V 讓視窗懸浮</li><li>Mod + R 開啟Wofi</li><li>Mod + P 固定目前視窗大小</li><li>Mod + J 切換垂直與水平視窗排列</li><li>Mod + 方向鍵(或l/r/u/d) 切換視窗聚焦</li><li>Mod + 數字鍵 切換工作區</li><li>Mod + Shift + 數字鍵 將視窗移動到該工作區</li><li>Mod + S，開啟scratchpad（將視窗最小化後集中的特殊工作區）</li><li>Mod + Shift + S，將視窗移動到scratchpad</li><li>Mod + 滑鼠滾輪 在工作區間切換（觸控板是三指手勢滑動）</li><li>Mod + 滑鼠左鍵 移動視窗</li><li>Mod + 滑鼠右鍵 調整視窗大小</li></ul><h3>雙螢幕切換<span><a href="#%E9%9B%99%E8%9E%A2%E5%B9%95%E5%88%87%E6%8F%9B" aria-label="定位點">#</a></span></h3><p>Hyprland預設每個螢幕一個工作區(跟window rule一樣，workspace也可以設定自動規則，參照官方文件)，拖動視窗可以把它丟到第二個螢幕。Hyprland預設是讓第二個螢幕顯示在左方。</p><p>如果要設定螢幕相對位置，則使用<code>hyprctl monitor</code>指令取得所有螢幕名稱，再於<code>hyprland.conf</code>個別設定解析度。由於螢幕的座標數值是從左上角開始計算的，指定X軸便可以控制螢幕的相對方位。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 使螢幕DP-1位於DP-2的左邊</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-1, 1920x1080, 0x0, <span>1</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2, 1920x1080, 1920x0, <span>1</span>
+</span></span><span><span>
+</span></span><span><span><span># 使螢幕DP-1位於DP-2的右邊</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-1, 1920x1080, 1920x0, <span>1</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2, 1920x1080, 0x0, <span>1</span>
+</span></span></code></pre></div><p>也可以用<code>mirror</code>設定鏡射模式，讓第二螢幕跟第一螢幕顯示同樣內容</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 使DP-2螢幕鏡射DP-1的內容</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2,highres,auto,1,mirror,DP-1
+</span></span></code></pre></div><p>需要獨顯加速請使用<a href="https://ivonblog.com/posts/linux-nvidia-prime/" target="_blank">
+Nvidia PRIME</a>指令。</p><p>順帶一提Hyprland可以用hyprctl做虛擬輸出，方便在SSH或分享螢幕的時候做個假螢幕出來</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>## 做個Wayland的第二螢幕</span>
+</span></span><span><span>hyprctl output create wayland
+</span></span><span><span>
+</span></span><span><span><span>## SSH遠端啟用</span>
+</span></span><span><span>hyprctl output create headless
+</span></span></code></pre></div><h3>一些應用程式問題<span><a href="#%E4%B8%80%E4%BA%9B%E6%87%89%E7%94%A8%E7%A8%8B%E5%BC%8F%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h3><p>要設定GTK程式主題，執行<code>nwg-look</code>；QT則是<code>qt5ct</code>。</p><p>Firefox的Wayland支援狀況良好。</p><p>Chromium系在純Wayland模式支援不佳，硬體加速有問題，將就用XWayland跑吧。但XWayland字體偶爾會模糊一下。</p><p>GTK的檔案選擇器會莫名變很大，可能要設定window rule。</p><p>終端機啟動X11程式如果吃不到環境變數，請在<code>~/.config/environment.d/envvars.conf</code>加入<code>DISPLAY:0</code></p><h2>5. 用chezmoi備份dotfile<span><a href="#5-%E7%94%A8chezmoi%E5%82%99%E4%BB%BDdotfile" aria-label="定位點">#</a></span></h2><p>將Hyprland及配套程式的設定檔集中管理，備份到私人Git儲存庫。</p><p>參考<a href="/posts/chezmoi-manage-dotfiles">
+Chezmoi使用教學</a></p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/hyprwm/Hyprland" target="_blank">hyprwm/Hyprland - Github</a></li><li><a href="https://www.reddit.com/r/hyprland/" target="_blank">Hyprland Reddit社群</a></li><li><a href="https://github.com/Alexays/Waybar" target="_blank">Alexays/Waybar - Github</a></li><li><a href="https://github.com/twpayne/chezmoi" target="_blank">twpayne/chezmoi - Github</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/hyprland-setup/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c56e1599.webp"></a></p>
+<p>如果你想要一款漂亮的、面向未來的視窗管理器，Ivon推薦你一定要試試Hyprland！</p><p>Hyprland是使用wl-roots函式庫寫成的視窗管理器兼Wayland合成器，由vaxerski開發，2022年5月推出正式版。2024年6月，Hyprland成為獨立的合成器，不再基於wl-roots開發。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6bed7bf34c.webp"><p>它跟Sway一樣，都是為純Wayland的Linux環境準備的，替代過去以X為主的視窗管理器。</p><p>相較於Sway意圖模仿i3wm，Hyprland作者有自己更多的想法。Ivon很滿意的部分是，Hyprland能輕鬆自定義外觀和按鍵設定，且預設的樣子就不錯看了，內建圓角、模糊、透明效果可以調，不用再裝其他程式。</p><p>Hyprland支援觸控板手勢、Nvidia閉源驅動、bspwm或i3的視窗排列方式，功能多樣。</p><p>Hyprland甚至有內建看板娘Hypr-chan呢！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d182c4b76.webp"><p>即使擁有華麗特效，開機RAM佔用才500MB出頭而已，讓你高效率操作電腦的同時，又不佔用太多系統資源。</p><p>雖然如此，Hyprland仍不是開箱即用的「桌面」，你需要花點時間配置。它畢竟是視窗管理器，需要搭配其他程式才會好用。設定時勤讀官方文件、配置設定檔、手動寫啟動服務是免不了的。</p><p>這篇教學文章Ivon盡量把常用的功能都包進去，使讀者可以手動配置出一個大致能用的Hyprland桌面，再融入我的一點個人化配置。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-faf13b1280.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b121c0daa.webp"><h2>環境<span><a href="#%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>裝置：MSI Modern 15 A10RBS</li><li>系統：Arch Linux</li><li>核心版本：6.6.4</li><li>CPU：Intel i5-10210u</li><li>GPU：Intel UHD 620</li><li>GPU2：Nvidia MX350</li></ul><p>Arch Linux系統安裝方法此處不贅述，你可以用<a href="https://ivonblog.com/posts/archinstall-script/" target="_blank">
+archinstall</a>安裝一個純文字最小系統再裝Hyprland；或是從現有桌面環境設定Hyprland，再沿用其顯示管理器（例如GDM、SDDM）來登入Hyprland。</p><p>Ivon的主力GPU用Intel內顯，Nvidia安裝閉源驅動，再透過PRIME存取。</p><h2>1. 安裝Hyprland<span><a href="#1-%E5%AE%89%E8%A3%9Dhyprland" aria-label="定位點">#</a></span></h2><p>現階段作者會一直加新功能，所以Linux最好用滾動發行版，例如Arch Linux、openSUSE Tumbleweed，以方便取得最新版Hyprland套件。</p><p>因為如果發行版收的套件版本太舊，你可能就無法參考官方文件調整設定擋了！</p><p>Arch Linux不用擔心版本問題，直接從官方套件庫裝Hyprland。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S hyprland
+</span></span></code></pre></div><h3>1.1. Hyprland配套程式<span><a href="#11-hyprland%E9%85%8D%E5%A5%97%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h3><p>建議安裝這些程式搭配Hyprland使用，使其成為完整的桌面環境。有些套件是AUR的，嫌麻煩直接用yay指令裝就行了，它會自動辨別。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>yay -S kitty waybar otf-font-awesome network-manager-applet brightnessctl pw-volume hyprshot power-profiles-daemon wofi hyprpaper swayidle swaylock wlogout dunst cliphist pipewire pipewire-pulse wireplumber pavucontrol xorg xorg-xwayland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk polkit-kde-agent qt5-wayland qt6-wayland qt5ct qt6ct nwg-look udiskie greetd greetd-tuigreet chezmoi fcitx5-im fcitx5-chewing fcitx5-qt fcitx5-gtk fcitx5-chinese-addons
+</span></span></code></pre></div><p>這些套件功能如下：</p><ul><li><code>kitty</code> Hyprland預設終端機。我倒覺得終端機簡單夠用就好，個人偏好<code>gnome-console</code></li><li><code>waybar</code>, <code>otf-font-awesome</code> 狀態欄與Emoji字體</li><li><code>network-manager-applet</code> 從狀態欄開關網路</li><li><code>brightnessctl</code> 亮度控制</li><li><code>pw-volume</code> 音量控制</li><li><code>hyprshot</code> 截圖工具</li><li><code>power-profiles-daemon</code> 電源模式控制</li><li><code>wofi</code> 應用程式選單</li><li><code>hyprpaper</code> 桌布程式</li><li><code>swayidle</code> , <code>swaylock</code>, <code>wlogout</code> 暫停模式，螢幕鎖定，登出選單</li><li><code>dunst</code> 桌面通知守護行程</li><li><code>cliphist</code> 剪貼簿</li><li><code>pipewire</code>, <code>pipewire-pulse</code>, <code>wireplumber</code>, <code>pavucontrol</code> 音訊系統</li><li><code>xorg</code>, <code>xorg-xwayland</code> X視窗系統，不是所有程式都支援Wayland。</li><li><code>xdg-desktop-portal-hyprland</code>, <code>xdg-desktop-portal-gtk</code> 負責檔案選擇器、螢幕共享等功能</li><li><code>polkit-kde-agent</code> 密碼驗證對話框</li><li><code>qt5-wayland</code> ,<code>qt6-wayland</code> 讓QT程式支援Wayland</li><li><code>udiskie</code> 自動掛載隨身碟</li><li><code>qt5ct</code>, <code>qt6ct</code> 設定QT程式主題</li><li><code>nwg-look</code>：設定GTK程式主題</li><li><code>greetd</code>, <code>greetd-tuigreet</code> 開機負責登入桌面的顯示管理器</li><li><code>chezmoi</code> 備份設定檔(dotfile)的好工具</li><li><code>fcitx5</code> 中文輸入法</li></ul><h3>1.2. 命令行狂人適用的程式<span><a href="#12-%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%8B%82%E4%BA%BA%E9%81%A9%E7%94%A8%E7%9A%84%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h3><p>這裡是極簡應用程式，命令行狂人適用。我個人不太會用這些，因為我覺得不直觀…看圖的話我習慣用Gwenview，檔案管理器則是Dolphin、錄影用OBS等。</p><ul><li><code>ranger</code> 檔案管理器</li><li><code>mpd</code> 搭配Waybar的音樂播放器</li><li><code>mpv</code> 影片/音樂播放器</li><li><code>ytfzf</code> 純文字YouTube播放器</li><li><code>vim</code> 文字編輯器</li><li><code>feh</code> 圖片檢視器</li><li><code>mupdf</code> 文件閱讀器</li><li><code>wl-recorder</code> 螢幕錄影</li><li><code>qutebrowser</code> 極簡QtWebEngine瀏覽器，用類似vim快捷鍵的方式操作</li></ul><h2>2. 撰寫Hyprland設定檔<span><a href="#2-%E6%92%B0%E5%AF%ABhyprland%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>想知道全部可用選項，請看Hyprland官方的說明文件，詳細明瞭：<a href="https://wiki.hyprland.org/Configuring/Configuring-Hyprland/" target="_blank">
+Configuring Hyprland - Hyprland Wiki</a></p><p>這裡講Ivon個人的設定，盡量保留預設並另外加功能。</p><ol><li>複製Hyprland預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/.config/hypr
+</span></span><span><span>cp /usr/share/hyprland/hyprland.conf ~/.config/hypr/hyprland.conf
+</span></span></code></pre></div><ol start="2"><li>用vim編輯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/hypr/hyprland.conf
+</span></span></code></pre></div><ol start="3"><li>大致上，<code>hyprland.conf</code>檔案的結構可以切成四塊：</li></ol><ul><li>exec區塊的定義啟動Hyprland跟著啟動的程式</li><li>環境變數</li><li>外觀、動畫、手勢、個別程式視窗規則的設定</li><li>bind的區域是快捷鍵綁定。</li></ul><p>雖然Hyprland沒有嚴格規定設定檔的順序，但為了方便討論我沿用此規則。</p><h3>螢幕設定(Monitors)<span><a href="#%E8%9E%A2%E5%B9%95%E8%A8%AD%E5%AE%9Amonitors" aria-label="定位點">#</a></span></h3><ol><li>如果有的話，將<code>auto-generated=1</code>警告註解掉。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># autogenerated = 1</span>
+</span></span></code></pre></div><ol start="2"><li>螢幕規則，設定自動取得螢幕名稱、使用螢幕最高解析度、自動取得座標，再設定全域縮放為1.15倍。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>monitor</span> <span>=</span>,highres,auto,1.15
+</span></span></code></pre></div><ol start="3"><li>此設定會自動套用第二個螢幕，因為我不確定外接的第二個螢幕會是什麼解析度，所以就讓它自動偵測。</li></ol><h3>自動執行的程式(Autostart)<span><a href="#%E8%87%AA%E5%8B%95%E5%9F%B7%E8%A1%8C%E7%9A%84%E7%A8%8B%E5%BC%8Fautostart" aria-label="定位點">#</a></span></h3><ol><li><p>設定要啟動的程式，<code>exec-once</code>跟<code>exec</code>的差別在於，前者要重新登入桌面才會啟動，後者則是每編輯一次設定檔就會自動重啟。</p></li><li><p>先匯入systemd環境變數，瀏覽器類的程式會用到。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>exec-once <span>=</span> dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+</span></span></code></pre></div><ol start="3"><li>再啟動fcitx5、dunct、nm-applet、剪貼簿服務。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>exec-once <span>=</span> hyprpaper
+</span></span><span><span>exec-once <span>=</span> wl-paste --type text --watch cliphist store
+</span></span><span><span>exec-once <span>=</span> wl-paste --type image --watch cliphist store
+</span></span><span><span>exec-once <span>=</span> waybar
+</span></span><span><span>exec-once <span>=</span> nm-applet
+</span></span><span><span>exec-once <span>=</span> fcitx5 -d  --replace
+</span></span><span><span>exec-once <span>=</span> dunst
+</span></span><span><span>exec-once <span>=</span> /usr/lib/polkit-kde-authentication-agent-1
+</span></span><span><span>exec-once <span>=</span> udiskie <span>&amp;</span>
+</span></span></code></pre></div><ol start="4"><li>如果你的程式可以用systemd服務啟動那就不用寫在這邊。</li></ol><h3>環境變數(Environment variables)<span><a href="#%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8environment-variables" aria-label="定位點">#</a></span></h3><p>env環境變數的寫法為<code>env = 名稱, 數值</code></p><ol><li>設定滑鼠大小</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> XCURSOR_SIZE,24
+</span></span></code></pre></div><ol start="2"><li>指定目前的工作階段為Hyprland</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> XDG_CURRENT_DESKTOP, Hyprland
+</span></span><span><span><span>env</span> <span>=</span> XDG_SESSION_TYPE, wayland
+</span></span><span><span><span>env</span> <span>=</span> XDG_SESSION_DESKTOP, Hyprland
+</span></span></code></pre></div><ol start="3"><li>指定所有程式都使用Wayland，QT程式使用kvantum當主題。不過QT程式因為縮放有問題，所以我設定QT優先使用X而非Wayland協定。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 預設文字編輯器</span>
+</span></span><span><span><span>env</span> <span>=</span> EDITOR, vim
+</span></span><span><span><span># 給Firefox啟用Wayland</span>
+</span></span><span><span><span>env</span> <span>=</span> MOZ_ENABLE_WAYLAND, <span>1</span>
+</span></span><span><span><span>env</span> <span>=</span> GDK_BACKEND, <span>"wayland,x11"</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_QPA_PLATFORM, <span>"xcb;wayland"</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_QPA_PLATFORMTHEME, qt5ct
+</span></span></code></pre></div><ol start="4"><li>還有設定全域縮放比例（應該只對XWayland程式有效），依照程式框架個別設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> QT_AUTO_SCREEN_SCALE_FACTOR, <span>1</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_SCALE_FACTOR, 1.15
+</span></span><span><span><span>env</span> <span>=</span> GDK_DPI_SCALE, 1.15
+</span></span></code></pre></div><ol start="5"><li>再設定Fictx5的環境變數</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> GTK_IM_MODULE, fcitx
+</span></span><span><span><span>env</span> <span>=</span> QT_IM_MODULE, fcitx
+</span></span><span><span><span>env</span> <span>=</span> XMODIFIERS, @im<span>=</span>fcitx
+</span></span></code></pre></div><p>Intel、AMD顯示卡不需要特別設定即可獲得GPU硬體加速；如果是用Nvidia專有驅動的話需參考<a href="https://wiki.hyprland.org/Nvidia/" target="_blank">
+Hyprland作者的說明</a>設定一些環境變數。</p><p>注意有時從終端機或Waybar手動啟動程式，程式可能還是吃不到Hyprland環境變數，這時就得將環境變數放到<code>~/.config/environment.d/envvars.conf</code>或<code>/etc/environment</code>解決。</p><h3>動畫視窗裝飾(Look and feel)<span><a href="#%E5%8B%95%E7%95%AB%E8%A6%96%E7%AA%97%E8%A3%9D%E9%A3%BElook-and-feel" aria-label="定位點">#</a></span></h3><p>動畫、視窗裝飾這部份看個人喜好調整，我沒有做太多修改。僅修改<code>rounding</code>讓視窗圓角不要那麼圓。</p><p><strong>視窗排列模式</strong></p><p>視窗排列模式分成dwindle與master</p><p><code>dwindle</code>模式即bspwm，視窗大小是動態變化的。</p><p><code>master</code>模式就是i3wm那樣，一個視窗開在左邊，新視窗會從右邊依序分割開啟。</p><p>我維持<code>dwindle</code>模式，不更動。</p><p><strong>視窗規則</strong></p><p>視窗規則可用<code>class:程式名稱</code>選取要設定規則的視窗，比如我設定pavucontrol面板一律懸浮。如果不知道具體名字請用<code>hyprctl clients</code>指令查詢。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>windowrulev2</span> <span>=</span> size 50% 50%, center, floating:*
+</span></span></code></pre></div><p>我還設定所有懸浮視窗一律置中，並限制最大寬高50%，防止檔案選擇器這類的視窗過於巨大。冒號後面用星號選取所有符合此類型的程式視窗</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>windowrulev2</span> <span>=</span> size 50% 50%, center, floating:*
+</span></span></code></pre></div><p><strong>雜項</strong></p><p>在misc這塊，使用這二個變數，關閉Hyprland的預設桌布及看板娘。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>misc <span>{</span>
+</span></span><span><span>    <span>force_default_wallpaper</span> <span>=</span> -1 <span># Set to 0 to disable the anime mascot wallpapers</span>
+</span></span><span><span>    <span>disable_hyprland_logo</span> <span>=</span> <span>false</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><h2>輸入(Input)<span><a href="#%E8%BC%B8%E5%85%A5input" aria-label="定位點">#</a></span></h2><ol><li>啟用觸控版切換工作區的手勢。設定輕觸等同按下，觸控板等同滑鼠右鍵，雙指點選為左鍵</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>gestures <span>{</span>
+</span></span><span><span>    <span>workspace_swipe</span> <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span>touchpad<span>{</span>
+</span></span><span><span>    tap-to-click <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><ol start="2"><li>加上這條，關閉XWayland的自動縮放，防止程式模糊。縮放部份用環境變數調整就可以了。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xwayland <span>{</span>
+</span></span><span><span>  <span>force_zero_scaling</span> <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><h3>按鍵綁定(Keybindings)<span><a href="#%E6%8C%89%E9%8D%B5%E7%B6%81%E5%AE%9Akeybindings" aria-label="定位點">#</a></span></h3><p>鍵盤綁定部分預設的我沒改，Mod鍵維持Super鍵(Windows鍵)</p><p>我另外綁了鎖定鍵、音量鍵、亮度調節鍵、截圖鍵。想確認具體按鍵代碼可以用<code>wev</code>程式偵測。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># Mod + Shift + 方向鍵調整視窗大小</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, right, resizeactive, <span>10</span> <span>0</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, left, resizeactive, -10 <span>0</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, up, resizeactive, <span>0</span> -10
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, down, resizeactive, <span>0</span> <span>10</span>
+</span></span><span><span>
+</span></span><span><span><span># 音量鍵</span>
+</span></span><span><span><span>binde</span><span>=</span>, XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+
+</span></span><span><span><span>bindl</span><span>=</span>, XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+</span></span><span><span>
+</span></span><span><span><span># 亮度鍵</span>
+</span></span><span><span><span>binde</span><span>=</span>, XF86MonBrightnessDown, exec, brightnessctl <span>set</span> 5%-
+</span></span><span><span><span>bindl</span><span>=</span>, XF86MonBrightnessUp, exec, brightnessctl <span>set</span> +5%
+</span></span><span><span>
+</span></span><span><span><span># 全螢幕擷圖鍵</span>
+</span></span><span><span><span>bind</span> <span>=</span> , PRINT, exec, hyprshot -m output
+</span></span></code></pre></div><hr><p>終於弄好了，但還沒完呢！</p><p>Hyprland支援邊改設定檔邊套用變更。作者說法是一修改設定檔便會自動套用變更，但如果沒反應的話請用指令強制重新載入設定檔，或者重新登入桌面。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>hyprctl reload
+</span></span></code></pre></div><h2>3. 設定Hyprland的配套程式<span><a href="#3--%E8%A8%AD%E5%AE%9Ahyprland%E7%9A%84%E9%85%8D%E5%A5%97%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><h3>狀態欄Waybar的設定<span><a href="#%E7%8B%80%E6%85%8B%E6%AC%84waybar%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><ol><li>將自己加入input群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo usermod -a -G input <span>$USER</span>
+</span></span></code></pre></div><ol start="2"><li>編輯預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/.config/waybar/
+</span></span><span><span>cp /etc/xdg/waybar/* ~/.config/waybar/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/waybar/config/config.jsonc
+</span></span></code></pre></div><ol start="3"><li>將Waybar放在所有視窗最上層</li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>"layer"</span><span>:</span> <span>"top"</span><span>,</span>
+</span></span></code></pre></div><ol start="4"><li>最上面的<code>"modules"</code>是狀態欄要顯示的按鈕，不要的直接從json陣列移除就可以了，例如<code>mpd</code>用不到就刪除。另外加入工作區編號指示器<code>hyprland/workspaces</code>、登出按鈕<code>wlogout</code>。</li></ol><pre tabindex="0"><code data-lang="jsonc">"modules-left": ["hyprland/workspaces", "custom/wofi", "custom/brave", "custom/dolphin"],
+"modules-center": [],
+"modules-right": ["idle_inhibitor", "pulseaudio", "backlight", "keyboard-state", "hyprland/language", "battery", "tray", "clock", "custom/wlogout"],
+</code></pre><ol start="5"><li><p>因為不支援圖片，Waybar使用Emoji當小圖示，如果電腦無法顯示請安裝相應字體，或者將其改為ASCII符號。</p></li><li><p>下滑到<code>"network"</code>這一段，設定隱藏網路SSID名稱還有 IP位址，把這些資訊改放到tooltip欄位。</p></li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>"network"</span><span>:</span> <span>{</span>
+</span></span><span><span>        <span>// "interface": "wlp2*", // (Optional) To force the use of this interface
+</span></span></span><span><span>        <span>"format-wifi"</span><span>:</span> <span>""</span><span>,</span>
+</span></span><span><span>        <span>"format-ethernet"</span><span>:</span> <span>"{ifname} "</span><span>,</span>
+</span></span><span><span>        <span>"tooltip-format"</span><span>:</span> <span>"{essid} {signalStrength}% {ifname} via {gwaddr} "</span><span>,</span>
+</span></span><span><span>        <span>"format-linked"</span><span>:</span> <span>"{ifname} (No IP) "</span><span>,</span>
+</span></span><span><span>        <span>"format-disconnected"</span><span>:</span> <span>"Disconnected ⚠"</span><span>,</span>
+</span></span><span><span>        <span>"format-alt"</span><span>:</span> <span>"{ifname} {gwaddr}"</span><span>,</span>
+</span></span><span><span>        <span>"tooltip"</span><span>:</span> <span>true</span>
+</span></span><span><span>    <span>}</span><span>,</span>
+</span></span></code></pre></div><ol start="7"><li>最下面加入<code>"custom/wlogout"</code>的按鈕，設定點選啟動登出面板</li></ol><div><pre tabindex="0"><code data-lang="json"><span><span>     <span>"custom/wlogout"</span><span>:</span><span>{</span>
+</span></span><span><span>      <span>"format"</span><span>:</span><span>""</span><span>,</span>
+</span></span><span><span>      <span>"on-click"</span><span>:</span><span>"wlogout"</span>
+</span></span><span><span>      <span>}</span>
+</span></span></code></pre></div><p>wlogout面板提供待機、鎖定螢幕、重開機的選單，需要進一步設定的請複製<code>cp /etc/wlogout/* ~/.config/wlogout/</code>後再編輯具體指令。待機因為我電腦的硬體支援度不佳所以沒啟用。</p><ol start="8"><li>Waybar的顏色樣式請編輯<code>~/.config/waybar/style.css</code></li></ol><h3>桌布Hypraper的設定<span><a href="#%E6%A1%8C%E5%B8%83hypraper%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>桌布程式會疊在Hyprland預設的桌布上。</p><ol><li>編輯預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/hypr/hyprpaper.conf
+</span></span></code></pre></div><ol start="2"><li>填入桌布路徑，wallpaper後面留白指定全部螢幕都使用同一張桌布</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>preload</span> <span>=</span> /home/user/.config/wallpapers/wallpaper.jpg
+</span></span><span><span><span>wallpaper</span> <span>=</span> ,/home/user/.config/wallpapers/wallpaper.jpg
+</span></span></code></pre></div><h3>登入畫面greetd設定<span><a href="#%E7%99%BB%E5%85%A5%E7%95%AB%E9%9D%A2greetd%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>tuigreetd是純文字介面不需要設定背景。</p><ol><li>編輯設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/greetd/config.toml
+</span></span></code></pre></div><p>2.設定記住登入用戶，並在登入後執行Hyprland</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>default_session<span>]</span>
+</span></span><span><span><span>command</span> <span>=</span> <span>"tuigreet --time --asterisks --remember --cmd Hyprland"</span>
+</span></span></code></pre></div><ol start="3"><li>如果有裝其他桌面環境，將現有的顯示管理器停用，改啟用greetd</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl disable gdm
+</span></span><span><span>sudo systemctl <span>enable</span> greetd
+</span></span></code></pre></div><h3>系統部分的設定<span><a href="#%E7%B3%BB%E7%B5%B1%E9%83%A8%E5%88%86%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><ol><li>設定自動啟動NetworkManager服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> NetworkManager
+</span></span></code></pre></div><ol start="2"><li>設定自動啟動電源管理模式的設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> power-profiles-daemon
+</span></span></code></pre></div><ol start="3"><li>設定自動啟動PipeWire服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl <span>enable</span> --user pipewire
+</span></span><span><span>systemctl <span>enable</span> --user pipewire-pulse
+</span></span></code></pre></div><ol start="4"><li>xdg-desktop-portal服務應該會自動啟動，但也可以手動設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl <span>enable</span> --user xdg-desktop-portal-hyprland
+</span></span><span><span>systemctl <span>enable</span> --user xdg-desktop-portal-gtk
+</span></span></code></pre></div><ol start="5"><li>複製xdg-portal-desktop設定檔到使用者家目錄</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cp /usr/share/xdg-desktop-portal/hyprland-portals.conf ~/.config/xdg-desktop-portal/portals.conf
+</span></span></code></pre></div><ol start="6"><li>設定Portal偏好為Hyprland優先其次GTK。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>preferred<span>]</span>
+</span></span><span><span><span>default</span><span>=</span>hyprland<span>;</span>gtk
+</span></span></code></pre></div><ol start="7"><li>設定完成後建議重開機。如果沒裝其他桌面環境，初次登入Hyprland要手動產生使用者家目錄：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S xdg-dirs-update
+</span></span><span><span><span>LC_ALL</span><span>=</span>C xdg-user-dirs-update --force
+</span></span></code></pre></div><h2>4. Hyprland操作方式<span><a href="#4-hyprland%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>Hyprland的視窗(window)是平鋪在螢幕上的，開新程式會直接顯示在目前程式的旁邊，不會重疊。</p><p>Hyprland提供多個工作區(workspace)用於擺放多個不同的程式，例如工作區1放瀏覽器，工作區2放文字編輯器。</p><p>dwindle模式下，Hyprland開的新視窗會按照滑鼠所在位置決定。</p><h3>預設按鍵綁定<span><a href="#%E9%A0%90%E8%A8%AD%E6%8C%89%E9%8D%B5%E7%B6%81%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>Hyprland預設綁定的Mod鍵是<code>Windows鍵</code></p><ul><li>Mod + Q 開啟終端機</li><li>Mod + C 關閉目前聚焦的視窗</li><li>Mod + M 終止Hyprland</li><li>Mod + E 開啟檔案管理器</li><li>Mod + V 讓視窗懸浮</li><li>Mod + R 開啟Wofi</li><li>Mod + P 固定目前視窗大小</li><li>Mod + J 切換垂直與水平視窗排列</li><li>Mod + 方向鍵(或l/r/u/d) 切換視窗聚焦</li><li>Mod + 數字鍵 切換工作區</li><li>Mod + Shift + 數字鍵 將視窗移動到該工作區</li><li>Mod + S，開啟scratchpad（將視窗最小化後集中的特殊工作區）</li><li>Mod + Shift + S，將視窗移動到scratchpad</li><li>Mod + 滑鼠滾輪 在工作區間切換（觸控板是三指手勢滑動）</li><li>Mod + 滑鼠左鍵 移動視窗</li><li>Mod + 滑鼠右鍵 調整視窗大小</li></ul><h3>雙螢幕切換<span><a href="#%E9%9B%99%E8%9E%A2%E5%B9%95%E5%88%87%E6%8F%9B" aria-label="定位點">#</a></span></h3><p>Hyprland預設每個螢幕一個工作區(跟window rule一樣，workspace也可以設定自動規則，參照官方文件)，拖動視窗可以把它丟到第二個螢幕。Hyprland預設是讓第二個螢幕顯示在左方。</p><p>如果要設定螢幕相對位置，則使用<code>hyprctl monitor</code>指令取得所有螢幕名稱，再於<code>hyprland.conf</code>個別設定解析度。由於螢幕的座標數值是從左上角開始計算的，指定X軸便可以控制螢幕的相對方位。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 使螢幕DP-1位於DP-2的左邊</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-1, 1920x1080, 0x0, <span>1</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2, 1920x1080, 1920x0, <span>1</span>
+</span></span><span><span>
+</span></span><span><span><span># 使螢幕DP-1位於DP-2的右邊</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-1, 1920x1080, 1920x0, <span>1</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2, 1920x1080, 0x0, <span>1</span>
+</span></span></code></pre></div><p>也可以用<code>mirror</code>設定鏡射模式，讓第二螢幕跟第一螢幕顯示同樣內容</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 使DP-2螢幕鏡射DP-1的內容</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2,highres,auto,1,mirror,DP-1
+</span></span></code></pre></div><p>需要獨顯加速請使用<a href="https://ivonblog.com/posts/linux-nvidia-prime/" target="_blank">
+Nvidia PRIME</a>指令。</p><p>順帶一提Hyprland可以用hyprctl做虛擬輸出，方便在SSH或分享螢幕的時候做個假螢幕出來</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>## 做個Wayland的第二螢幕</span>
+</span></span><span><span>hyprctl output create wayland
+</span></span><span><span>
+</span></span><span><span><span>## SSH遠端啟用</span>
+</span></span><span><span>hyprctl output create headless
+</span></span></code></pre></div><h3>一些應用程式問題<span><a href="#%E4%B8%80%E4%BA%9B%E6%87%89%E7%94%A8%E7%A8%8B%E5%BC%8F%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h3><p>要設定GTK程式主題，執行<code>nwg-look</code>；QT則是<code>qt5ct</code>。</p><p>Firefox的Wayland支援狀況良好。</p><p>Chromium系在純Wayland模式支援不佳，硬體加速有問題，將就用XWayland跑吧。但XWayland字體偶爾會模糊一下。</p><p>GTK的檔案選擇器會莫名變很大，可能要設定window rule。</p><p>終端機啟動X11程式如果吃不到環境變數，請在<code>~/.config/environment.d/envvars.conf</code>加入<code>DISPLAY:0</code></p><h2>5. 用chezmoi備份dotfile<span><a href="#5-%E7%94%A8chezmoi%E5%82%99%E4%BB%BDdotfile" aria-label="定位點">#</a></span></h2><p>將Hyprland及配套程式的設定檔集中管理，備份到私人Git儲存庫。</p><p>參考<a href="/posts/chezmoi-manage-dotfiles">
+Chezmoi使用教學</a></p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/hyprwm/Hyprland" target="_blank">hyprwm/Hyprland - Github</a></li><li><a href="https://www.reddit.com/r/hyprland/" target="_blank">Hyprland Reddit社群</a></li><li><a href="https://github.com/Alexays/Waybar" target="_blank">Alexays/Waybar - Github</a></li><li><a href="https://github.com/twpayne/chezmoi" target="_blank">twpayne/chezmoi - Github</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/hyprland-setup/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c56e1599.webp"></a></p>
+<p>如果你想要一款漂亮的、面向未來的視窗管理器，Ivon推薦你一定要試試Hyprland！</p><p>Hyprland是使用wl-roots函式庫寫成的視窗管理器兼Wayland合成器，由vaxerski開發，2022年5月推出正式版。2024年6月，Hyprland成為獨立的合成器，不再基於wl-roots開發。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6bed7bf34c.webp"><p>它跟Sway一樣，都是為純Wayland的Linux環境準備的，替代過去以X為主的視窗管理器。</p><p>相較於Sway意圖模仿i3wm，Hyprland作者有自己更多的想法。Ivon很滿意的部分是，Hyprland能輕鬆自定義外觀和按鍵設定，且預設的樣子就不錯看了，內建圓角、模糊、透明效果可以調，不用再裝其他程式。</p><p>Hyprland支援觸控板手勢、Nvidia閉源驅動、bspwm或i3的視窗排列方式，功能多樣。</p><p>Hyprland甚至有內建看板娘Hypr-chan呢！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d182c4b76.webp"><p>即使擁有華麗特效，開機RAM佔用才500MB出頭而已，讓你高效率操作電腦的同時，又不佔用太多系統資源。</p><p>雖然如此，Hyprland仍不是開箱即用的「桌面」，你需要花點時間配置。它畢竟是視窗管理器，需要搭配其他程式才會好用。設定時勤讀官方文件、配置設定檔、手動寫啟動服務是免不了的。</p><p>這篇教學文章Ivon盡量把常用的功能都包進去，使讀者可以手動配置出一個大致能用的Hyprland桌面，再融入我的一點個人化配置。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-faf13b1280.webp"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b121c0daa.webp"><h2>環境<span><a href="#%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>裝置：MSI Modern 15 A10RBS</li><li>系統：Arch Linux</li><li>核心版本：6.6.4</li><li>CPU：Intel i5-10210u</li><li>GPU：Intel UHD 620</li><li>GPU2：Nvidia MX350</li></ul><p>Arch Linux系統安裝方法此處不贅述，你可以用<a href="https://ivonblog.com/posts/archinstall-script/" target="_blank">
+archinstall</a>安裝一個純文字最小系統再裝Hyprland；或是從現有桌面環境設定Hyprland，再沿用其顯示管理器（例如GDM、SDDM）來登入Hyprland。</p><p>Ivon的主力GPU用Intel內顯，Nvidia安裝閉源驅動，再透過PRIME存取。</p><h2>1. 安裝Hyprland<span><a href="#1-%E5%AE%89%E8%A3%9Dhyprland" aria-label="定位點">#</a></span></h2><p>現階段作者會一直加新功能，所以Linux最好用滾動發行版，例如Arch Linux、openSUSE Tumbleweed，以方便取得最新版Hyprland套件。</p><p>因為如果發行版收的套件版本太舊，你可能就無法參考官方文件調整設定擋了！</p><p>Arch Linux不用擔心版本問題，直接從官方套件庫裝Hyprland。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S hyprland
+</span></span></code></pre></div><h3>1.1. Hyprland配套程式<span><a href="#11-hyprland%E9%85%8D%E5%A5%97%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h3><p>建議安裝這些程式搭配Hyprland使用，使其成為完整的桌面環境。有些套件是AUR的，嫌麻煩直接用yay指令裝就行了，它會自動辨別。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>yay -S kitty waybar otf-font-awesome network-manager-applet brightnessctl pw-volume hyprshot power-profiles-daemon wofi hyprpaper swayidle swaylock wlogout dunst cliphist pipewire pipewire-pulse wireplumber pavucontrol xorg xorg-xwayland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk polkit-kde-agent qt5-wayland qt6-wayland qt5ct qt6ct nwg-look udiskie greetd greetd-tuigreet chezmoi fcitx5-im fcitx5-chewing fcitx5-qt fcitx5-gtk fcitx5-chinese-addons
+</span></span></code></pre></div><p>這些套件功能如下：</p><ul><li><code>kitty</code> Hyprland預設終端機。我倒覺得終端機簡單夠用就好，個人偏好<code>gnome-console</code></li><li><code>waybar</code>, <code>otf-font-awesome</code> 狀態欄與Emoji字體</li><li><code>network-manager-applet</code> 從狀態欄開關網路</li><li><code>brightnessctl</code> 亮度控制</li><li><code>pw-volume</code> 音量控制</li><li><code>hyprshot</code> 截圖工具</li><li><code>power-profiles-daemon</code> 電源模式控制</li><li><code>wofi</code> 應用程式選單</li><li><code>hyprpaper</code> 桌布程式</li><li><code>swayidle</code> , <code>swaylock</code>, <code>wlogout</code> 暫停模式，螢幕鎖定，登出選單</li><li><code>dunst</code> 桌面通知守護行程</li><li><code>cliphist</code> 剪貼簿</li><li><code>pipewire</code>, <code>pipewire-pulse</code>, <code>wireplumber</code>, <code>pavucontrol</code> 音訊系統</li><li><code>xorg</code>, <code>xorg-xwayland</code> X視窗系統，不是所有程式都支援Wayland。</li><li><code>xdg-desktop-portal-hyprland</code>, <code>xdg-desktop-portal-gtk</code> 負責檔案選擇器、螢幕共享等功能</li><li><code>polkit-kde-agent</code> 密碼驗證對話框</li><li><code>qt5-wayland</code> ,<code>qt6-wayland</code> 讓QT程式支援Wayland</li><li><code>udiskie</code> 自動掛載隨身碟</li><li><code>qt5ct</code>, <code>qt6ct</code> 設定QT程式主題</li><li><code>nwg-look</code>：設定GTK程式主題</li><li><code>greetd</code>, <code>greetd-tuigreet</code> 開機負責登入桌面的顯示管理器</li><li><code>chezmoi</code> 備份設定檔(dotfile)的好工具</li><li><code>fcitx5</code> 中文輸入法</li></ul><h3>1.2. 命令行狂人適用的程式<span><a href="#12-%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%8B%82%E4%BA%BA%E9%81%A9%E7%94%A8%E7%9A%84%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h3><p>這裡是極簡應用程式，命令行狂人適用。我個人不太會用這些，因為我覺得不直觀…看圖的話我習慣用Gwenview，檔案管理器則是Dolphin、錄影用OBS等。</p><ul><li><code>ranger</code> 檔案管理器</li><li><code>mpd</code> 搭配Waybar的音樂播放器</li><li><code>mpv</code> 影片/音樂播放器</li><li><code>ytfzf</code> 純文字YouTube播放器</li><li><code>vim</code> 文字編輯器</li><li><code>feh</code> 圖片檢視器</li><li><code>mupdf</code> 文件閱讀器</li><li><code>wl-recorder</code> 螢幕錄影</li><li><code>qutebrowser</code> 極簡QtWebEngine瀏覽器，用類似vim快捷鍵的方式操作</li></ul><h2>2. 撰寫Hyprland設定檔<span><a href="#2-%E6%92%B0%E5%AF%ABhyprland%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><p>想知道全部可用選項，請看Hyprland官方的說明文件，詳細明瞭：<a href="https://wiki.hyprland.org/Configuring/Configuring-Hyprland/" target="_blank">
+Configuring Hyprland - Hyprland Wiki</a></p><p>這裡講Ivon個人的設定，盡量保留預設並另外加功能。</p><ol><li>複製Hyprland預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/.config/hypr
+</span></span><span><span>cp /usr/share/hyprland/hyprland.conf ~/.config/hypr/hyprland.conf
+</span></span></code></pre></div><ol start="2"><li>用vim編輯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/hypr/hyprland.conf
+</span></span></code></pre></div><ol start="3"><li>大致上，<code>hyprland.conf</code>檔案的結構可以切成四塊：</li></ol><ul><li>exec區塊的定義啟動Hyprland跟著啟動的程式</li><li>環境變數</li><li>外觀、動畫、手勢、個別程式視窗規則的設定</li><li>bind的區域是快捷鍵綁定。</li></ul><p>雖然Hyprland沒有嚴格規定設定檔的順序，但為了方便討論我沿用此規則。</p><h3>螢幕設定(Monitors)<span><a href="#%E8%9E%A2%E5%B9%95%E8%A8%AD%E5%AE%9Amonitors" aria-label="定位點">#</a></span></h3><ol><li>如果有的話，將<code>auto-generated=1</code>警告註解掉。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># autogenerated = 1</span>
+</span></span></code></pre></div><ol start="2"><li>螢幕規則，設定自動取得螢幕名稱、使用螢幕最高解析度、自動取得座標，再設定全域縮放為1.15倍。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>monitor</span> <span>=</span>,highres,auto,1.15
+</span></span></code></pre></div><ol start="3"><li>此設定會自動套用第二個螢幕，因為我不確定外接的第二個螢幕會是什麼解析度，所以就讓它自動偵測。</li></ol><h3>自動執行的程式(Autostart)<span><a href="#%E8%87%AA%E5%8B%95%E5%9F%B7%E8%A1%8C%E7%9A%84%E7%A8%8B%E5%BC%8Fautostart" aria-label="定位點">#</a></span></h3><ol><li><p>設定要啟動的程式，<code>exec-once</code>跟<code>exec</code>的差別在於，前者要重新登入桌面才會啟動，後者則是每編輯一次設定檔就會自動重啟。</p></li><li><p>先匯入systemd環境變數，瀏覽器類的程式會用到。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>exec-once <span>=</span> dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+</span></span></code></pre></div><ol start="3"><li>再啟動fcitx5、dunct、nm-applet、剪貼簿服務。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>exec-once <span>=</span> hyprpaper
+</span></span><span><span>exec-once <span>=</span> wl-paste --type text --watch cliphist store
+</span></span><span><span>exec-once <span>=</span> wl-paste --type image --watch cliphist store
+</span></span><span><span>exec-once <span>=</span> waybar
+</span></span><span><span>exec-once <span>=</span> nm-applet
+</span></span><span><span>exec-once <span>=</span> fcitx5 -d  --replace
+</span></span><span><span>exec-once <span>=</span> dunst
+</span></span><span><span>exec-once <span>=</span> /usr/lib/polkit-kde-authentication-agent-1
+</span></span><span><span>exec-once <span>=</span> udiskie <span>&amp;</span>
+</span></span></code></pre></div><ol start="4"><li>如果你的程式可以用systemd服務啟動那就不用寫在這邊。</li></ol><h3>環境變數(Environment variables)<span><a href="#%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8environment-variables" aria-label="定位點">#</a></span></h3><p>env環境變數的寫法為<code>env = 名稱, 數值</code></p><ol><li>設定滑鼠大小</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> XCURSOR_SIZE,24
+</span></span></code></pre></div><ol start="2"><li>指定目前的工作階段為Hyprland</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> XDG_CURRENT_DESKTOP, Hyprland
+</span></span><span><span><span>env</span> <span>=</span> XDG_SESSION_TYPE, wayland
+</span></span><span><span><span>env</span> <span>=</span> XDG_SESSION_DESKTOP, Hyprland
+</span></span></code></pre></div><ol start="3"><li>指定所有程式都使用Wayland，QT程式使用kvantum當主題。不過QT程式因為縮放有問題，所以我設定QT優先使用X而非Wayland協定。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 預設文字編輯器</span>
+</span></span><span><span><span>env</span> <span>=</span> EDITOR, vim
+</span></span><span><span><span># 給Firefox啟用Wayland</span>
+</span></span><span><span><span>env</span> <span>=</span> MOZ_ENABLE_WAYLAND, <span>1</span>
+</span></span><span><span><span>env</span> <span>=</span> GDK_BACKEND, <span>"wayland,x11"</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_QPA_PLATFORM, <span>"xcb;wayland"</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_QPA_PLATFORMTHEME, qt5ct
+</span></span></code></pre></div><ol start="4"><li>還有設定全域縮放比例（應該只對XWayland程式有效），依照程式框架個別設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> QT_AUTO_SCREEN_SCALE_FACTOR, <span>1</span>
+</span></span><span><span><span>env</span> <span>=</span> QT_SCALE_FACTOR, 1.15
+</span></span><span><span><span>env</span> <span>=</span> GDK_DPI_SCALE, 1.15
+</span></span></code></pre></div><ol start="5"><li>再設定Fictx5的環境變數</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>env</span> <span>=</span> GTK_IM_MODULE, fcitx
+</span></span><span><span><span>env</span> <span>=</span> QT_IM_MODULE, fcitx
+</span></span><span><span><span>env</span> <span>=</span> XMODIFIERS, @im<span>=</span>fcitx
+</span></span></code></pre></div><p>Intel、AMD顯示卡不需要特別設定即可獲得GPU硬體加速；如果是用Nvidia專有驅動的話需參考<a href="https://wiki.hyprland.org/Nvidia/" target="_blank">
+Hyprland作者的說明</a>設定一些環境變數。</p><p>注意有時從終端機或Waybar手動啟動程式，程式可能還是吃不到Hyprland環境變數，這時就得將環境變數放到<code>~/.config/environment.d/envvars.conf</code>或<code>/etc/environment</code>解決。</p><h3>動畫視窗裝飾(Look and feel)<span><a href="#%E5%8B%95%E7%95%AB%E8%A6%96%E7%AA%97%E8%A3%9D%E9%A3%BElook-and-feel" aria-label="定位點">#</a></span></h3><p>動畫、視窗裝飾這部份看個人喜好調整，我沒有做太多修改。僅修改<code>rounding</code>讓視窗圓角不要那麼圓。</p><p><strong>視窗排列模式</strong></p><p>視窗排列模式分成dwindle與master</p><p><code>dwindle</code>模式即bspwm，視窗大小是動態變化的。</p><p><code>master</code>模式就是i3wm那樣，一個視窗開在左邊，新視窗會從右邊依序分割開啟。</p><p>我維持<code>dwindle</code>模式，不更動。</p><p><strong>視窗規則</strong></p><p>視窗規則可用<code>class:程式名稱</code>選取要設定規則的視窗，比如我設定pavucontrol面板一律懸浮。如果不知道具體名字請用<code>hyprctl clients</code>指令查詢。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>windowrulev2</span> <span>=</span> size 50% 50%, center, floating:*
+</span></span></code></pre></div><p>我還設定所有懸浮視窗一律置中，並限制最大寬高50%，防止檔案選擇器這類的視窗過於巨大。冒號後面用星號選取所有符合此類型的程式視窗</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>windowrulev2</span> <span>=</span> size 50% 50%, center, floating:*
+</span></span></code></pre></div><p><strong>雜項</strong></p><p>在misc這塊，使用這二個變數，關閉Hyprland的預設桌布及看板娘。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>misc <span>{</span>
+</span></span><span><span>    <span>force_default_wallpaper</span> <span>=</span> -1 <span># Set to 0 to disable the anime mascot wallpapers</span>
+</span></span><span><span>    <span>disable_hyprland_logo</span> <span>=</span> <span>false</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><h2>輸入(Input)<span><a href="#%E8%BC%B8%E5%85%A5input" aria-label="定位點">#</a></span></h2><ol><li>啟用觸控版切換工作區的手勢。設定輕觸等同按下，觸控板等同滑鼠右鍵，雙指點選為左鍵</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>gestures <span>{</span>
+</span></span><span><span>    <span>workspace_swipe</span> <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span>touchpad<span>{</span>
+</span></span><span><span>    tap-to-click <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><ol start="2"><li>加上這條，關閉XWayland的自動縮放，防止程式模糊。縮放部份用環境變數調整就可以了。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xwayland <span>{</span>
+</span></span><span><span>  <span>force_zero_scaling</span> <span>=</span> <span>true</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><h3>按鍵綁定(Keybindings)<span><a href="#%E6%8C%89%E9%8D%B5%E7%B6%81%E5%AE%9Akeybindings" aria-label="定位點">#</a></span></h3><p>鍵盤綁定部分預設的我沒改，Mod鍵維持Super鍵(Windows鍵)</p><p>我另外綁了鎖定鍵、音量鍵、亮度調節鍵、截圖鍵。想確認具體按鍵代碼可以用<code>wev</code>程式偵測。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># Mod + Shift + 方向鍵調整視窗大小</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, right, resizeactive, <span>10</span> <span>0</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, left, resizeactive, -10 <span>0</span>
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, up, resizeactive, <span>0</span> -10
+</span></span><span><span><span>binde</span> <span>=</span> <span>$mainMod</span> SHIFT, down, resizeactive, <span>0</span> <span>10</span>
+</span></span><span><span>
+</span></span><span><span><span># 音量鍵</span>
+</span></span><span><span><span>binde</span><span>=</span>, XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+
+</span></span><span><span><span>bindl</span><span>=</span>, XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+</span></span><span><span>
+</span></span><span><span><span># 亮度鍵</span>
+</span></span><span><span><span>binde</span><span>=</span>, XF86MonBrightnessDown, exec, brightnessctl <span>set</span> 5%-
+</span></span><span><span><span>bindl</span><span>=</span>, XF86MonBrightnessUp, exec, brightnessctl <span>set</span> +5%
+</span></span><span><span>
+</span></span><span><span><span># 全螢幕擷圖鍵</span>
+</span></span><span><span><span>bind</span> <span>=</span> , PRINT, exec, hyprshot -m output
+</span></span></code></pre></div><hr><p>終於弄好了，但還沒完呢！</p><p>Hyprland支援邊改設定檔邊套用變更。作者說法是一修改設定檔便會自動套用變更，但如果沒反應的話請用指令強制重新載入設定檔，或者重新登入桌面。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>hyprctl reload
+</span></span></code></pre></div><h2>3. 設定Hyprland的配套程式<span><a href="#3--%E8%A8%AD%E5%AE%9Ahyprland%E7%9A%84%E9%85%8D%E5%A5%97%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><h3>狀態欄Waybar的設定<span><a href="#%E7%8B%80%E6%85%8B%E6%AC%84waybar%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><ol><li>將自己加入input群組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo usermod -a -G input <span>$USER</span>
+</span></span></code></pre></div><ol start="2"><li>編輯預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/.config/waybar/
+</span></span><span><span>cp /etc/xdg/waybar/* ~/.config/waybar/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/waybar/config/config.jsonc
+</span></span></code></pre></div><ol start="3"><li>將Waybar放在所有視窗最上層</li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>"layer"</span><span>:</span> <span>"top"</span><span>,</span>
+</span></span></code></pre></div><ol start="4"><li>最上面的<code>"modules"</code>是狀態欄要顯示的按鈕，不要的直接從json陣列移除就可以了，例如<code>mpd</code>用不到就刪除。另外加入工作區編號指示器<code>hyprland/workspaces</code>、登出按鈕<code>wlogout</code>。</li></ol><pre tabindex="0"><code data-lang="jsonc">"modules-left": ["hyprland/workspaces", "custom/wofi", "custom/brave", "custom/dolphin"],
+"modules-center": [],
+"modules-right": ["idle_inhibitor", "pulseaudio", "backlight", "keyboard-state", "hyprland/language", "battery", "tray", "clock", "custom/wlogout"],
+</code></pre><ol start="5"><li><p>因為不支援圖片，Waybar使用Emoji當小圖示，如果電腦無法顯示請安裝相應字體，或者將其改為ASCII符號。</p></li><li><p>下滑到<code>"network"</code>這一段，設定隱藏網路SSID名稱還有 IP位址，把這些資訊改放到tooltip欄位。</p></li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>"network"</span><span>:</span> <span>{</span>
+</span></span><span><span>        <span>// "interface": "wlp2*", // (Optional) To force the use of this interface
+</span></span></span><span><span>        <span>"format-wifi"</span><span>:</span> <span>""</span><span>,</span>
+</span></span><span><span>        <span>"format-ethernet"</span><span>:</span> <span>"{ifname} "</span><span>,</span>
+</span></span><span><span>        <span>"tooltip-format"</span><span>:</span> <span>"{essid} {signalStrength}% {ifname} via {gwaddr} "</span><span>,</span>
+</span></span><span><span>        <span>"format-linked"</span><span>:</span> <span>"{ifname} (No IP) "</span><span>,</span>
+</span></span><span><span>        <span>"format-disconnected"</span><span>:</span> <span>"Disconnected ⚠"</span><span>,</span>
+</span></span><span><span>        <span>"format-alt"</span><span>:</span> <span>"{ifname} {gwaddr}"</span><span>,</span>
+</span></span><span><span>        <span>"tooltip"</span><span>:</span> <span>true</span>
+</span></span><span><span>    <span>}</span><span>,</span>
+</span></span></code></pre></div><ol start="7"><li>最下面加入<code>"custom/wlogout"</code>的按鈕，設定點選啟動登出面板</li></ol><div><pre tabindex="0"><code data-lang="json"><span><span>     <span>"custom/wlogout"</span><span>:</span><span>{</span>
+</span></span><span><span>      <span>"format"</span><span>:</span><span>""</span><span>,</span>
+</span></span><span><span>      <span>"on-click"</span><span>:</span><span>"wlogout"</span>
+</span></span><span><span>      <span>}</span>
+</span></span></code></pre></div><p>wlogout面板提供待機、鎖定螢幕、重開機的選單，需要進一步設定的請複製<code>cp /etc/wlogout/* ~/.config/wlogout/</code>後再編輯具體指令。待機因為我電腦的硬體支援度不佳所以沒啟用。</p><ol start="8"><li>Waybar的顏色樣式請編輯<code>~/.config/waybar/style.css</code></li></ol><h3>桌布Hypraper的設定<span><a href="#%E6%A1%8C%E5%B8%83hypraper%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>桌布程式會疊在Hyprland預設的桌布上。</p><ol><li>編輯預設設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.config/hypr/hyprpaper.conf
+</span></span></code></pre></div><ol start="2"><li>填入桌布路徑，wallpaper後面留白指定全部螢幕都使用同一張桌布</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>preload</span> <span>=</span> /home/user/.config/wallpapers/wallpaper.jpg
+</span></span><span><span><span>wallpaper</span> <span>=</span> ,/home/user/.config/wallpapers/wallpaper.jpg
+</span></span></code></pre></div><h3>登入畫面greetd設定<span><a href="#%E7%99%BB%E5%85%A5%E7%95%AB%E9%9D%A2greetd%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>tuigreetd是純文字介面不需要設定背景。</p><ol><li>編輯設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/greetd/config.toml
+</span></span></code></pre></div><p>2.設定記住登入用戶，並在登入後執行Hyprland</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>default_session<span>]</span>
+</span></span><span><span><span>command</span> <span>=</span> <span>"tuigreet --time --asterisks --remember --cmd Hyprland"</span>
+</span></span></code></pre></div><ol start="3"><li>如果有裝其他桌面環境，將現有的顯示管理器停用，改啟用greetd</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl disable gdm
+</span></span><span><span>sudo systemctl <span>enable</span> greetd
+</span></span></code></pre></div><h3>系統部分的設定<span><a href="#%E7%B3%BB%E7%B5%B1%E9%83%A8%E5%88%86%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h3><ol><li>設定自動啟動NetworkManager服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> NetworkManager
+</span></span></code></pre></div><ol start="2"><li>設定自動啟動電源管理模式的設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> power-profiles-daemon
+</span></span></code></pre></div><ol start="3"><li>設定自動啟動PipeWire服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl <span>enable</span> --user pipewire
+</span></span><span><span>systemctl <span>enable</span> --user pipewire-pulse
+</span></span></code></pre></div><ol start="4"><li>xdg-desktop-portal服務應該會自動啟動，但也可以手動設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>systemctl <span>enable</span> --user xdg-desktop-portal-hyprland
+</span></span><span><span>systemctl <span>enable</span> --user xdg-desktop-portal-gtk
+</span></span></code></pre></div><ol start="5"><li>複製xdg-portal-desktop設定檔到使用者家目錄</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cp /usr/share/xdg-desktop-portal/hyprland-portals.conf ~/.config/xdg-desktop-portal/portals.conf
+</span></span></code></pre></div><ol start="6"><li>設定Portal偏好為Hyprland優先其次GTK。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>preferred<span>]</span>
+</span></span><span><span><span>default</span><span>=</span>hyprland<span>;</span>gtk
+</span></span></code></pre></div><ol start="7"><li>設定完成後建議重開機。如果沒裝其他桌面環境，初次登入Hyprland要手動產生使用者家目錄：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S xdg-dirs-update
+</span></span><span><span><span>LC_ALL</span><span>=</span>C xdg-user-dirs-update --force
+</span></span></code></pre></div><h2>4. Hyprland操作方式<span><a href="#4-hyprland%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>Hyprland的視窗(window)是平鋪在螢幕上的，開新程式會直接顯示在目前程式的旁邊，不會重疊。</p><p>Hyprland提供多個工作區(workspace)用於擺放多個不同的程式，例如工作區1放瀏覽器，工作區2放文字編輯器。</p><p>dwindle模式下，Hyprland開的新視窗會按照滑鼠所在位置決定。</p><h3>預設按鍵綁定<span><a href="#%E9%A0%90%E8%A8%AD%E6%8C%89%E9%8D%B5%E7%B6%81%E5%AE%9A" aria-label="定位點">#</a></span></h3><p>Hyprland預設綁定的Mod鍵是<code>Windows鍵</code></p><ul><li>Mod + Q 開啟終端機</li><li>Mod + C 關閉目前聚焦的視窗</li><li>Mod + M 終止Hyprland</li><li>Mod + E 開啟檔案管理器</li><li>Mod + V 讓視窗懸浮</li><li>Mod + R 開啟Wofi</li><li>Mod + P 固定目前視窗大小</li><li>Mod + J 切換垂直與水平視窗排列</li><li>Mod + 方向鍵(或l/r/u/d) 切換視窗聚焦</li><li>Mod + 數字鍵 切換工作區</li><li>Mod + Shift + 數字鍵 將視窗移動到該工作區</li><li>Mod + S，開啟scratchpad（將視窗最小化後集中的特殊工作區）</li><li>Mod + Shift + S，將視窗移動到scratchpad</li><li>Mod + 滑鼠滾輪 在工作區間切換（觸控板是三指手勢滑動）</li><li>Mod + 滑鼠左鍵 移動視窗</li><li>Mod + 滑鼠右鍵 調整視窗大小</li></ul><h3>雙螢幕切換<span><a href="#%E9%9B%99%E8%9E%A2%E5%B9%95%E5%88%87%E6%8F%9B" aria-label="定位點">#</a></span></h3><p>Hyprland預設每個螢幕一個工作區(跟window rule一樣，workspace也可以設定自動規則，參照官方文件)，拖動視窗可以把它丟到第二個螢幕。Hyprland預設是讓第二個螢幕顯示在左方。</p><p>如果要設定螢幕相對位置，則使用<code>hyprctl monitor</code>指令取得所有螢幕名稱，再於<code>hyprland.conf</code>個別設定解析度。由於螢幕的座標數值是從左上角開始計算的，指定X軸便可以控制螢幕的相對方位。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 使螢幕DP-1位於DP-2的左邊</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-1, 1920x1080, 0x0, <span>1</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2, 1920x1080, 1920x0, <span>1</span>
+</span></span><span><span>
+</span></span><span><span><span># 使螢幕DP-1位於DP-2的右邊</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-1, 1920x1080, 1920x0, <span>1</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2, 1920x1080, 0x0, <span>1</span>
+</span></span></code></pre></div><p>也可以用<code>mirror</code>設定鏡射模式，讓第二螢幕跟第一螢幕顯示同樣內容</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 使DP-2螢幕鏡射DP-1的內容</span>
+</span></span><span><span><span>monitor</span><span>=</span>DP-2,highres,auto,1,mirror,DP-1
+</span></span></code></pre></div><p>需要獨顯加速請使用<a href="https://ivonblog.com/posts/linux-nvidia-prime/" target="_blank">
+Nvidia PRIME</a>指令。</p><p>順帶一提Hyprland可以用hyprctl做虛擬輸出，方便在SSH或分享螢幕的時候做個假螢幕出來</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>## 做個Wayland的第二螢幕</span>
+</span></span><span><span>hyprctl output create wayland
+</span></span><span><span>
+</span></span><span><span><span>## SSH遠端啟用</span>
+</span></span><span><span>hyprctl output create headless
+</span></span></code></pre></div><h3>一些應用程式問題<span><a href="#%E4%B8%80%E4%BA%9B%E6%87%89%E7%94%A8%E7%A8%8B%E5%BC%8F%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h3><p>要設定GTK程式主題，執行<code>nwg-look</code>；QT則是<code>qt5ct</code>。</p><p>Firefox的Wayland支援狀況良好。</p><p>Chromium系在純Wayland模式支援不佳，硬體加速有問題，將就用XWayland跑吧。但XWayland字體偶爾會模糊一下。</p><p>GTK的檔案選擇器會莫名變很大，可能要設定window rule。</p><p>終端機啟動X11程式如果吃不到環境變數，請在<code>~/.config/environment.d/envvars.conf</code>加入<code>DISPLAY:0</code></p><h2>5. 用chezmoi備份dotfile<span><a href="#5-%E7%94%A8chezmoi%E5%82%99%E4%BB%BDdotfile" aria-label="定位點">#</a></span></h2><p>將Hyprland及配套程式的設定檔集中管理，備份到私人Git儲存庫。</p><p>參考<a href="/posts/chezmoi-manage-dotfiles">
+Chezmoi使用教學</a></p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/hyprwm/Hyprland" target="_blank">hyprwm/Hyprland - Github</a></li><li><a href="https://www.reddit.com/r/hyprland/" target="_blank">Hyprland Reddit社群</a></li><li><a href="https://github.com/Alexays/Waybar" target="_blank">Alexays/Waybar - Github</a></li><li><a href="https://github.com/twpayne/chezmoi" target="_blank">twpayne/chezmoi - Github</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c56e1599.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c56e1599.webp" medium="image"/>
+    <pubDate>Sun, 28 Jul 2024 14:00:00 +0800</pubDate>
   </item><item>
     <title><![CDATA[將Tailscale當跨區VPN用：如何設定出口節點(Exit Node)]]></title>
     <link>https://ivonblog.com/posts/tailscale-setup-exit-nodes/</link>
@@ -849,148 +1251,5 @@ Git</a></p></li><li><p>開啟<code>ComfyUI/custom_nodes</code>目錄，開啟終
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a99c35b6d.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a99c35b6d.webp" medium="image"/>
     <pubDate>Fri, 19 Jul 2024 10:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Linux＆樹莓派當作藍芽喇叭接收器，電腦播放手機音樂]]></title>
-    <link>https://ivonblog.com/posts/linux-pc-as-bluetooth-speaker/</link>
-    <itunes:title><![CDATA[Linux＆樹莓派當作藍芽喇叭接收器，電腦播放手機音樂]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-pc-as-bluetooth-speaker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp"></a></p>
-<p>Turn Linux PC into a bluetooth recevier and speaker.</p><p>把Linux電腦變成藍芽喇叭接收器的概念，這樣就能將手機音樂在電腦喇叭上播放了。</p><p>本操作適用於有藍芽晶片的Ubuntu Linux電腦與樹莓派。手機端Android或iPhone都行。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-47ddae28fa.webp"><p>原理是利用PulseAudio或PipeWire內建的藍芽接收功能，用來接收藍芽訊號，這樣Linux裝置就會變成一個藍芽喇叭，從而用Linux的喇叭輸出音樂。</p><p>因為PulseAudio是大部分Linux發行版使用的音訊伺服器，不用另外架設什麼特別服務就能用。</p><p>最高音質…如果使用PulseAudio，最多只有到AAC吧，PipeWire提供更高的LDAC音質，但這也要看你的電腦藍芽晶片是否支援解碼就是了。另外，必要時請準備藍芽天線加強收訊。</p><h2>1. 將喇叭接上Linux裝置<span><a href="#1-%E5%B0%87%E5%96%87%E5%8F%AD%E6%8E%A5%E4%B8%8Alinux%E8%A3%9D%E7%BD%AE" aria-label="定位點">#</a></span></h2><p>一般的Linux電腦只要接上3.5mm的端子，確認可以輸出音效就可以了。</p><p>樹莓派亦同。不過Raspberry Pi 5之後竟然砍掉了3.5mm輸出端子，所以你得買一個USB轉接器才能夠接上喇叭。沒有圖形界面的情況下可用<code>espeaker-ng</code>指令，確認能不能輸出音效。</p><h2>2. 調整PulseAudio設定<span><a href="#2-%E8%AA%BF%E6%95%B4pulseaudio%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><p>PipeWire的藍芽接收功能似乎是預設啟動的，但因為尚未成為主流，所以我用比較常見的PulseAudio。</p><p>以Ubuntu LTS為例</p><ol><li>確認你現在是在使用PulseAudio，或者PipeWire相容模式下的PulseAudio</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactcl info
-</span></span></code></pre></div><ol start="2"><li>安裝PulseAudio的藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio-module-bluetooth
-</span></span></code></pre></div><ol start="3"><li>修改PulseAudio設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/pulse/system.pa
-</span></span></code></pre></div><ol start="4"><li>在檔案底部寫入內容，設定載入藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>load-module module-bluetooth-policy
-</span></span><span><span>load-module module-bluetooth-discover
-</span></span></code></pre></div><ol start="5"><li>重新啟動PulseAudio服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pulseaudio --kill
-</span></span><span><span>pulseaudio --start
-</span></span></code></pre></div><h2>3. 將手機與Linux裝置配對<span><a href="#3-%E5%B0%87%E6%89%8B%E6%A9%9F%E8%88%87linux%E8%A3%9D%E7%BD%AE%E9%85%8D%E5%B0%8D" aria-label="定位點">#</a></span></h2><ol><li><p>開啟Linux的系統設定，應該會有藍芽的頁面可以開關藍芽。 將手機與Linux藍芽配對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bfa7ab761.webp"></li><li><p>如果你的Linux沒有圖形界面，請嘗試用bluetoothctl控制：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>bluetoothctl
-</span></span><span><span>
-</span></span><span><span><span># 列出本機藍芽裝置</span>
-</span></span><span><span>list
-</span></span><span><span>
-</span></span><span><span><span># 選取藍芽裝置</span>
-</span></span><span><span><span>select</span> &lt;MAC位址&gt;
-</span></span><span><span>
-</span></span><span><span><span># 啟動藍芽裝置</span>
-</span></span><span><span>power on
-</span></span><span><span>
-</span></span><span><span><span># 掃描附近裝置</span>
-</span></span><span><span>scan on
-</span></span><span><span>
-</span></span><span><span><span># 配對藍芽裝置</span>
-</span></span><span><span>pair &lt;MAC位址&gt;
-</span></span></code></pre></div><ol start="3"><li><p>播放手機音樂的時候選取Linux裝置，聲音就會從Linux的喇叭出來
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-ed1018ff89.webp"></p></li><li><p>Linux的pavucontrol面板可以觀察到有手機的播放訊號源</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f24b307c81.webp"></li><li><p>音樂音量是由手機和Linux端同時決定的。如果要從手機控制Linux的音量，可以安裝<a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">
-KDE Connect</a>，這樣就能夠從手機控制Linux喇叭的音量。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-472e1f5c19.webp"></p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.cyberciti.biz/mobile-devices/linux-set-up-bluetooth-speaker-to-stream-audio-from-your-android-ios-mobile-phone/" target="_blank">Linux set up bluetooth speaker to stream audio from iOS/Android - nixCraft</a></li><li><a href="https://www.collabora.com/news-and-blog/blog/2022/09/02/using-a-raspberry-pi-as-a-bluetooth-speaker-with-pipewire-wireplumber/" target="_blank">Using a Raspberry Pi as a Bluetooth speaker with PipeWire - Collabora</a></li></ul>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-pc-as-bluetooth-speaker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp"></a></p>
-<p>Turn Linux PC into a bluetooth recevier and speaker.</p><p>把Linux電腦變成藍芽喇叭接收器的概念，這樣就能將手機音樂在電腦喇叭上播放了。</p><p>本操作適用於有藍芽晶片的Ubuntu Linux電腦與樹莓派。手機端Android或iPhone都行。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-47ddae28fa.webp"><p>原理是利用PulseAudio或PipeWire內建的藍芽接收功能，用來接收藍芽訊號，這樣Linux裝置就會變成一個藍芽喇叭，從而用Linux的喇叭輸出音樂。</p><p>因為PulseAudio是大部分Linux發行版使用的音訊伺服器，不用另外架設什麼特別服務就能用。</p><p>最高音質…如果使用PulseAudio，最多只有到AAC吧，PipeWire提供更高的LDAC音質，但這也要看你的電腦藍芽晶片是否支援解碼就是了。另外，必要時請準備藍芽天線加強收訊。</p><h2>1. 將喇叭接上Linux裝置<span><a href="#1-%E5%B0%87%E5%96%87%E5%8F%AD%E6%8E%A5%E4%B8%8Alinux%E8%A3%9D%E7%BD%AE" aria-label="定位點">#</a></span></h2><p>一般的Linux電腦只要接上3.5mm的端子，確認可以輸出音效就可以了。</p><p>樹莓派亦同。不過Raspberry Pi 5之後竟然砍掉了3.5mm輸出端子，所以你得買一個USB轉接器才能夠接上喇叭。沒有圖形界面的情況下可用<code>espeaker-ng</code>指令，確認能不能輸出音效。</p><h2>2. 調整PulseAudio設定<span><a href="#2-%E8%AA%BF%E6%95%B4pulseaudio%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><p>PipeWire的藍芽接收功能似乎是預設啟動的，但因為尚未成為主流，所以我用比較常見的PulseAudio。</p><p>以Ubuntu LTS為例</p><ol><li>確認你現在是在使用PulseAudio，或者PipeWire相容模式下的PulseAudio</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactcl info
-</span></span></code></pre></div><ol start="2"><li>安裝PulseAudio的藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio-module-bluetooth
-</span></span></code></pre></div><ol start="3"><li>修改PulseAudio設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/pulse/system.pa
-</span></span></code></pre></div><ol start="4"><li>在檔案底部寫入內容，設定載入藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>load-module module-bluetooth-policy
-</span></span><span><span>load-module module-bluetooth-discover
-</span></span></code></pre></div><ol start="5"><li>重新啟動PulseAudio服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pulseaudio --kill
-</span></span><span><span>pulseaudio --start
-</span></span></code></pre></div><h2>3. 將手機與Linux裝置配對<span><a href="#3-%E5%B0%87%E6%89%8B%E6%A9%9F%E8%88%87linux%E8%A3%9D%E7%BD%AE%E9%85%8D%E5%B0%8D" aria-label="定位點">#</a></span></h2><ol><li><p>開啟Linux的系統設定，應該會有藍芽的頁面可以開關藍芽。 將手機與Linux藍芽配對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bfa7ab761.webp"></li><li><p>如果你的Linux沒有圖形界面，請嘗試用bluetoothctl控制：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>bluetoothctl
-</span></span><span><span>
-</span></span><span><span><span># 列出本機藍芽裝置</span>
-</span></span><span><span>list
-</span></span><span><span>
-</span></span><span><span><span># 選取藍芽裝置</span>
-</span></span><span><span><span>select</span> &lt;MAC位址&gt;
-</span></span><span><span>
-</span></span><span><span><span># 啟動藍芽裝置</span>
-</span></span><span><span>power on
-</span></span><span><span>
-</span></span><span><span><span># 掃描附近裝置</span>
-</span></span><span><span>scan on
-</span></span><span><span>
-</span></span><span><span><span># 配對藍芽裝置</span>
-</span></span><span><span>pair &lt;MAC位址&gt;
-</span></span></code></pre></div><ol start="3"><li><p>播放手機音樂的時候選取Linux裝置，聲音就會從Linux的喇叭出來
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-ed1018ff89.webp"></p></li><li><p>Linux的pavucontrol面板可以觀察到有手機的播放訊號源</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f24b307c81.webp"></li><li><p>音樂音量是由手機和Linux端同時決定的。如果要從手機控制Linux的音量，可以安裝<a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">
-KDE Connect</a>，這樣就能夠從手機控制Linux喇叭的音量。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-472e1f5c19.webp"></p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.cyberciti.biz/mobile-devices/linux-set-up-bluetooth-speaker-to-stream-audio-from-your-android-ios-mobile-phone/" target="_blank">Linux set up bluetooth speaker to stream audio from iOS/Android - nixCraft</a></li><li><a href="https://www.collabora.com/news-and-blog/blog/2022/09/02/using-a-raspberry-pi-as-a-bluetooth-speaker-with-pipewire-wireplumber/" target="_blank">Using a Raspberry Pi as a Bluetooth speaker with PipeWire - Collabora</a></li></ul>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/linux-pc-as-bluetooth-speaker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp"></a></p>
-<p>Turn Linux PC into a bluetooth recevier and speaker.</p><p>把Linux電腦變成藍芽喇叭接收器的概念，這樣就能將手機音樂在電腦喇叭上播放了。</p><p>本操作適用於有藍芽晶片的Ubuntu Linux電腦與樹莓派。手機端Android或iPhone都行。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-47ddae28fa.webp"><p>原理是利用PulseAudio或PipeWire內建的藍芽接收功能，用來接收藍芽訊號，這樣Linux裝置就會變成一個藍芽喇叭，從而用Linux的喇叭輸出音樂。</p><p>因為PulseAudio是大部分Linux發行版使用的音訊伺服器，不用另外架設什麼特別服務就能用。</p><p>最高音質…如果使用PulseAudio，最多只有到AAC吧，PipeWire提供更高的LDAC音質，但這也要看你的電腦藍芽晶片是否支援解碼就是了。另外，必要時請準備藍芽天線加強收訊。</p><h2>1. 將喇叭接上Linux裝置<span><a href="#1-%E5%B0%87%E5%96%87%E5%8F%AD%E6%8E%A5%E4%B8%8Alinux%E8%A3%9D%E7%BD%AE" aria-label="定位點">#</a></span></h2><p>一般的Linux電腦只要接上3.5mm的端子，確認可以輸出音效就可以了。</p><p>樹莓派亦同。不過Raspberry Pi 5之後竟然砍掉了3.5mm輸出端子，所以你得買一個USB轉接器才能夠接上喇叭。沒有圖形界面的情況下可用<code>espeaker-ng</code>指令，確認能不能輸出音效。</p><h2>2. 調整PulseAudio設定<span><a href="#2-%E8%AA%BF%E6%95%B4pulseaudio%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><p>PipeWire的藍芽接收功能似乎是預設啟動的，但因為尚未成為主流，所以我用比較常見的PulseAudio。</p><p>以Ubuntu LTS為例</p><ol><li>確認你現在是在使用PulseAudio，或者PipeWire相容模式下的PulseAudio</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactcl info
-</span></span></code></pre></div><ol start="2"><li>安裝PulseAudio的藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio-module-bluetooth
-</span></span></code></pre></div><ol start="3"><li>修改PulseAudio設定</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/pulse/system.pa
-</span></span></code></pre></div><ol start="4"><li>在檔案底部寫入內容，設定載入藍芽模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>load-module module-bluetooth-policy
-</span></span><span><span>load-module module-bluetooth-discover
-</span></span></code></pre></div><ol start="5"><li>重新啟動PulseAudio服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pulseaudio --kill
-</span></span><span><span>pulseaudio --start
-</span></span></code></pre></div><h2>3. 將手機與Linux裝置配對<span><a href="#3-%E5%B0%87%E6%89%8B%E6%A9%9F%E8%88%87linux%E8%A3%9D%E7%BD%AE%E9%85%8D%E5%B0%8D" aria-label="定位點">#</a></span></h2><ol><li><p>開啟Linux的系統設定，應該會有藍芽的頁面可以開關藍芽。 將手機與Linux藍芽配對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bfa7ab761.webp"></li><li><p>如果你的Linux沒有圖形界面，請嘗試用bluetoothctl控制：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>bluetoothctl
-</span></span><span><span>
-</span></span><span><span><span># 列出本機藍芽裝置</span>
-</span></span><span><span>list
-</span></span><span><span>
-</span></span><span><span><span># 選取藍芽裝置</span>
-</span></span><span><span><span>select</span> &lt;MAC位址&gt;
-</span></span><span><span>
-</span></span><span><span><span># 啟動藍芽裝置</span>
-</span></span><span><span>power on
-</span></span><span><span>
-</span></span><span><span><span># 掃描附近裝置</span>
-</span></span><span><span>scan on
-</span></span><span><span>
-</span></span><span><span><span># 配對藍芽裝置</span>
-</span></span><span><span>pair &lt;MAC位址&gt;
-</span></span></code></pre></div><ol start="3"><li><p>播放手機音樂的時候選取Linux裝置，聲音就會從Linux的喇叭出來
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-ed1018ff89.webp"></p></li><li><p>Linux的pavucontrol面板可以觀察到有手機的播放訊號源</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f24b307c81.webp"></li><li><p>音樂音量是由手機和Linux端同時決定的。如果要從手機控制Linux的音量，可以安裝<a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">
-KDE Connect</a>，這樣就能夠從手機控制Linux喇叭的音量。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/null-472e1f5c19.webp"></p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.cyberciti.biz/mobile-devices/linux-set-up-bluetooth-speaker-to-stream-audio-from-your-android-ios-mobile-phone/" target="_blank">Linux set up bluetooth speaker to stream audio from iOS/Android - nixCraft</a></li><li><a href="https://www.collabora.com/news-and-blog/blog/2022/09/02/using-a-raspberry-pi-as-a-bluetooth-speaker-with-pipewire-wireplumber/" target="_blank">Using a Raspberry Pi as a Bluetooth speaker with PipeWire - Collabora</a></li></ul>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a788e9d49e.webp" medium="image"/>
-    <pubDate>Fri, 19 Jul 2024 10:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[如何設定ComfyUI命令列引數]]></title>
-    <link>https://ivonblog.com/posts/comfyui-command-line-arguments/</link>
-    <itunes:title><![CDATA[如何設定ComfyUI命令列引數]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>命令列引數(commandline arguments)決定ComfyUI啟動後的行為，可按照您的電腦性能優化效能。</p><p>若無特殊需求不必刻意修改命令列引數，一切使用ComfyUI開發者的預設值就好。</p><p>請先安裝ComfyUI主程式後再來修改。</p><h2>1. 比較常用的命令列引數<span><a href="#1-%E6%AF%94%E8%BC%83%E5%B8%B8%E7%94%A8%E7%9A%84%E5%91%BD%E4%BB%A4%E5%88%97%E5%BC%95%E6%95%B8" aria-label="定位點">#</a></span></h2><ul><li><code>--listen</code>：讓ComfyUI的界面可以從其他區域IP存取，並讓其他程式調用ComfyUI的API來生圖。需開放防火牆8188通訊埠。</li><li><code>--highvram</code>：讓模型在生圖完之後繼續存在VRAM，提昇多次生圖的載入速度。</li><li><code>--medvram</code>：降低VRAM佔用，每次生圖完後便取消載入大模型以節省VRAM。預設已經啟用所以不用特別加。</li><li><code>--lowvram</code>：試圖進一步降低VRAM佔用，此選項會讓生圖變很慢。</li><li><code>--gpu-only</code>：所有東西都用GPU跑，可以加快載入速度，但是VRAM佔用會很高。</li><li><code>--cpu</code>：所有東西都用CPU跑，非常慢。</li><li><code>--windows-standalone-build</code>：專為Windows用戶設計的便捷選項。</li><li><code>--directml</code>：使用DirectML執行，適用AMD與Intel顯示卡用戶。</li></ul><h2>2. 如何編輯命令列引數<span><a href="#2-%E5%A6%82%E4%BD%95%E7%B7%A8%E8%BC%AF%E5%91%BD%E4%BB%A4%E5%88%97%E5%BC%95%E6%95%B8" aria-label="定位點">#</a></span></h2><h3>Linux、macOS<span><a href="#linuxmacos" aria-label="定位點">#</a></span></h3><p>啟動ComfyUI的指令是<code>python main.py</code>，開發者沒有提供指令稿，所以你得自己寫。</p><ol><li>新增一個Bash指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/ComfyUI
-</span></span><span><span>
-</span></span><span><span>vim start.sh
-</span></span></code></pre></div><ol start="2"><li>在後面加上任意命令列引數</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/bash
-</span></span></span><span><span>python main.py --medvram --listen
-</span></span></code></pre></div><ol start="3"><li>之後透過該指令稿來啟動ComfyUI</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x start.sh
-</span></span><span><span>
-</span></span><span><span>./start.sh
-</span></span></code></pre></div><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><ol><li><p>編輯啟動ComfyUI的批次檔。例如開發者提供的ComfyUI_Windows_Nvidia_Portable.7z壓縮檔裡面有一個<code>run_nvidia_gpu.bat</code></p></li><li><p>右鍵「以記事本開啟」</p></li><li><p>在<code>main.py</code>後面加上引數就行</p></li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>.\</span><span>python_embeded</span><span>\</span><span>python</span><span>.</span><span>exe</span> <span>-s</span> <span>ComfyUI</span><span>\</span><span>main</span><span>.</span><span>py</span> <span>-</span><span>-windows-standalone-build</span> <span>-</span><span>-medvram</span> <span>-</span><span>-listen</span>
-</span></span><span><span>
-</span></span><span><span><span>pause</span>
-</span></span></code></pre></div>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>命令列引數(commandline arguments)決定ComfyUI啟動後的行為，可按照您的電腦性能優化效能。</p><p>若無特殊需求不必刻意修改命令列引數，一切使用ComfyUI開發者的預設值就好。</p><p>請先安裝ComfyUI主程式後再來修改。</p><h2>1. 比較常用的命令列引數<span><a href="#1-%E6%AF%94%E8%BC%83%E5%B8%B8%E7%94%A8%E7%9A%84%E5%91%BD%E4%BB%A4%E5%88%97%E5%BC%95%E6%95%B8" aria-label="定位點">#</a></span></h2><ul><li><code>--listen</code>：讓ComfyUI的界面可以從其他區域IP存取，並讓其他程式調用ComfyUI的API來生圖。需開放防火牆8188通訊埠。</li><li><code>--highvram</code>：讓模型在生圖完之後繼續存在VRAM，提昇多次生圖的載入速度。</li><li><code>--medvram</code>：降低VRAM佔用，每次生圖完後便取消載入大模型以節省VRAM。預設已經啟用所以不用特別加。</li><li><code>--lowvram</code>：試圖進一步降低VRAM佔用，此選項會讓生圖變很慢。</li><li><code>--gpu-only</code>：所有東西都用GPU跑，可以加快載入速度，但是VRAM佔用會很高。</li><li><code>--cpu</code>：所有東西都用CPU跑，非常慢。</li><li><code>--windows-standalone-build</code>：專為Windows用戶設計的便捷選項。</li><li><code>--directml</code>：使用DirectML執行，適用AMD與Intel顯示卡用戶。</li></ul><h2>2. 如何編輯命令列引數<span><a href="#2-%E5%A6%82%E4%BD%95%E7%B7%A8%E8%BC%AF%E5%91%BD%E4%BB%A4%E5%88%97%E5%BC%95%E6%95%B8" aria-label="定位點">#</a></span></h2><h3>Linux、macOS<span><a href="#linuxmacos" aria-label="定位點">#</a></span></h3><p>啟動ComfyUI的指令是<code>python main.py</code>，開發者沒有提供指令稿，所以你得自己寫。</p><ol><li>新增一個Bash指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/ComfyUI
-</span></span><span><span>
-</span></span><span><span>vim start.sh
-</span></span></code></pre></div><ol start="2"><li>在後面加上任意命令列引數</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/bash
-</span></span></span><span><span>python main.py --medvram --listen
-</span></span></code></pre></div><ol start="3"><li>之後透過該指令稿來啟動ComfyUI</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x start.sh
-</span></span><span><span>
-</span></span><span><span>./start.sh
-</span></span></code></pre></div><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><ol><li><p>編輯啟動ComfyUI的批次檔。例如開發者提供的ComfyUI_Windows_Nvidia_Portable.7z壓縮檔裡面有一個<code>run_nvidia_gpu.bat</code></p></li><li><p>右鍵「以記事本開啟」</p></li><li><p>在<code>main.py</code>後面加上引數就行</p></li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>.\</span><span>python_embeded</span><span>\</span><span>python</span><span>.</span><span>exe</span> <span>-s</span> <span>ComfyUI</span><span>\</span><span>main</span><span>.</span><span>py</span> <span>-</span><span>-windows-standalone-build</span> <span>-</span><span>-medvram</span> <span>-</span><span>-listen</span>
-</span></span><span><span>
-</span></span><span><span><span>pause</span>
-</span></span></code></pre></div>]]>
-    </description>
-    <content:encoded><![CDATA[<p>命令列引數(commandline arguments)決定ComfyUI啟動後的行為，可按照您的電腦性能優化效能。</p><p>若無特殊需求不必刻意修改命令列引數，一切使用ComfyUI開發者的預設值就好。</p><p>請先安裝ComfyUI主程式後再來修改。</p><h2>1. 比較常用的命令列引數<span><a href="#1-%E6%AF%94%E8%BC%83%E5%B8%B8%E7%94%A8%E7%9A%84%E5%91%BD%E4%BB%A4%E5%88%97%E5%BC%95%E6%95%B8" aria-label="定位點">#</a></span></h2><ul><li><code>--listen</code>：讓ComfyUI的界面可以從其他區域IP存取，並讓其他程式調用ComfyUI的API來生圖。需開放防火牆8188通訊埠。</li><li><code>--highvram</code>：讓模型在生圖完之後繼續存在VRAM，提昇多次生圖的載入速度。</li><li><code>--medvram</code>：降低VRAM佔用，每次生圖完後便取消載入大模型以節省VRAM。預設已經啟用所以不用特別加。</li><li><code>--lowvram</code>：試圖進一步降低VRAM佔用，此選項會讓生圖變很慢。</li><li><code>--gpu-only</code>：所有東西都用GPU跑，可以加快載入速度，但是VRAM佔用會很高。</li><li><code>--cpu</code>：所有東西都用CPU跑，非常慢。</li><li><code>--windows-standalone-build</code>：專為Windows用戶設計的便捷選項。</li><li><code>--directml</code>：使用DirectML執行，適用AMD與Intel顯示卡用戶。</li></ul><h2>2. 如何編輯命令列引數<span><a href="#2-%E5%A6%82%E4%BD%95%E7%B7%A8%E8%BC%AF%E5%91%BD%E4%BB%A4%E5%88%97%E5%BC%95%E6%95%B8" aria-label="定位點">#</a></span></h2><h3>Linux、macOS<span><a href="#linuxmacos" aria-label="定位點">#</a></span></h3><p>啟動ComfyUI的指令是<code>python main.py</code>，開發者沒有提供指令稿，所以你得自己寫。</p><ol><li>新增一個Bash指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~/ComfyUI
-</span></span><span><span>
-</span></span><span><span>vim start.sh
-</span></span></code></pre></div><ol start="2"><li>在後面加上任意命令列引數</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/bash
-</span></span></span><span><span>python main.py --medvram --listen
-</span></span></code></pre></div><ol start="3"><li>之後透過該指令稿來啟動ComfyUI</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x start.sh
-</span></span><span><span>
-</span></span><span><span>./start.sh
-</span></span></code></pre></div><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><ol><li><p>編輯啟動ComfyUI的批次檔。例如開發者提供的ComfyUI_Windows_Nvidia_Portable.7z壓縮檔裡面有一個<code>run_nvidia_gpu.bat</code></p></li><li><p>右鍵「以記事本開啟」</p></li><li><p>在<code>main.py</code>後面加上引數就行</p></li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>.\</span><span>python_embeded</span><span>\</span><span>python</span><span>.</span><span>exe</span> <span>-s</span> <span>ComfyUI</span><span>\</span><span>main</span><span>.</span><span>py</span> <span>-</span><span>-windows-standalone-build</span> <span>-</span><span>-medvram</span> <span>-</span><span>-listen</span>
-</span></span><span><span>
-</span></span><span><span><span>pause</span>
-</span></span></code></pre></div>]]></content:encoded>
-    
-    <pubDate>Fri, 19 Jul 2024 07:00:00 +0800</pubDate>
   </item></channel>
 </rss>
