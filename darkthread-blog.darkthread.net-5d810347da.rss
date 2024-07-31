@@ -30,6 +30,477 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel]]></title>
+    <link>https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/</link>
+    <itunes:title><![CDATA[再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>關於在 PowerShell 使用多執行緒平行執行作業，先前介紹過 <a href="/blog/psfaq-parallel-execution/">Start-Job</a>。</p> <p>Start-Job 會在背後啟動另一個 Process 跑 ScriptBlock，寫法較簡單但有兩個明顯缺點：</p> <ol><li>啟動一整個 Process 的成本不低，因此 Start-Job 明顯較笨重，效能也差，<a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">慘輸給另開 Thread 的 Runspace</a>。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638580354351385436.jpg"><br> <a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">圖表來源</a></li> <li>由於 Start-Job 的程式在另一個 Process 裡執行，參數只能序列化後傳遞，無法共用變數及物件，父程式或平行作業間很難溝通。</li></ol> <p>基於以上理由，Runspace 雖然較複雜，仍有學習的價值，這篇文章就來練習使用 Runspace 執行平行作業。(註：後面會介紹 PowerShell 7+ 新加入的厲害武器，這裡先討論 PowerShell 5.1 相容寫法)</p> <p>開始之前，我們先複習 Start-Job 寫法，以下是個簡單範例，總共要產生 32 個 GUID，分成四組平行產生，每次產生後等待 450 ~ 500ms，預期 3.5s 跑完。</p> <pre><code>$groups = @(
+@(0..7),
+@(8..15),
+@(16..23),
+@(24..31)
+)
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+# 平行執行
+$psJobPool = @()
+$groups | ForEach-Object {
+$psJob = Start-Job -ScriptBlock {
+param ([object[]]$array)
+$array | ForEach-Object {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+return $guid
+}
+} -ArgumentList @(, $_)
+$psJobPool += $psJob
+}
+# Wait-Job 可等待所有 PSJob 結束
+$psJobPool | Wait-Job | Out-Null
+Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
+# Receive-Job 接收 PSJob 傳回結果
+$groupNo = 0
+$psJobPool | ForEach-Object {
+$result = Receive-Job -Job $_
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+Write-Host ($result -join ',')
+}
+</code></pre> <p>實測加上 Start-Job 的 Overhead，耗時約 4.6。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638580354353048697.png"></p> <p>接著，我們嘗試改用 Runspace 來跑。</p> <p>Runspace 的使用方式是先透過 RunspaceFactory 建立 Runspace，再建立 PowerShell 物件使用該 Runspace 物件執行。PowerShell 物件除了 Invoke() 方法外，還提供 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.begininvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580#system-management-automation-powershell-begininvoke">BeginInvoke()</a> 支援非同步呼叫，同時啟動多個 PowerShell.BeginInvoke()，檢查它們傳回的 IAsyncResult.IsCompleted 狀態等待所有 PowerShell 物件執行完畢，透過 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.endinvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580">EndInvoke()</a> 取回結果，便實現了平行作業。<a href="https://learn.microsoft.com/en-us/powershell/scripting/developer/hosting/runspace07-sample?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Runspace 官方範例</a></p> <p>依據以上概念，我們將 Start-Job 版改成 Runspace 版：</p> <pre><code>$groups = @(
+@(0..7),
+@(8..15),
+@(16..23),
+@(24..31)
+)
+$scriptBlock = {
+param ([object[]]$array)
+$array | ForEach-Object {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+return $guid
+}
+}
+$jobs = @()
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$groups | ForEach-Object {
+$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
+$rs.Open()
+$ps = [System.Management.Automation.PowerShell]::Create()
+$ps.Runspace = $rs
+$ps.AddScript($scriptBlock).AddArgument($_) | Out-Null
+$jobs += [PSCustomObject]@{
+Job = $ps.BeginInvoke()
+Runspace = $rs
+PowerShell = $ps
+}
+}
+while ($jobs.Job.IsCompleted -contains $false) {
+Start-Sleep -Milliseconds 100
+}
+Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
+$groupNo = 0
+$jobs | ForEach-Object {
+$res = $_.PowerShell.EndInvoke($_.Job)
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+Write-Host ($res -join ',')
+$_.PowerShell.Dispose()
+$_.Runspace.Close()
+$_.Runspace.Dispose()
+}
+</code></pre> <p>寫法複雜些，但執行速度變快，3.9s 完成。在這個範例中，我們只啟動四線平行作業，平行數量愈多，Start-Job 與 Runspace 的效能差異會更明顯。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638580354354657164.png"></p> <p>然而，Runspace 更可貴之處在於我們可以傳遞物件參數進去，與 Runspace 執行 ScriptBlock 共享物件，如此可做到各 Thread 由共用 Queue 取出待辦工作，實現經典的<a href="https://zh.wikipedia.org/zh-tw/%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98">生產者消費者模式</a>；而原本另起 PowerShell 物件執行無法用 Write-Host 將進度輸出到終端的問題，也能透過新增進度訊息字串 Queue 解決。</p> <p>在 Runspace 間共享物件必須考量 Thread-Safty，放任多執行緒同時更新集合物件，很容易<a href="/blog/dictionary-thread-safe/">遇到各式各類的鬼問題</a>。PowerShell 不像 C# 有 <a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/language-reference/statements/lock?WT.mc_id=DOP-MVP-37580">lock 指令</a>，但用 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.threading.mutex?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">Mutex 互斥鎖</a>便能簡單實現多執行緒安全更新。這裡我選擇更簡便的做法，直接借用 .NET <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580"><code>ConcurrentQueue&lt;object&gt;</code></a>。</p> <p>而在呼叫 Runspace ScriptBlock 時，要以 By Reference 傳入 ConcurrentQueue 物件，做法傳入參數為加上 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/about/about_ref?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#writing-functions-to-accept-reference-parameters">[ref]</a>，而函式內則透過 .Value 屬性存取內容。</p> <p>具備以上知識後來著手改造程式。概念是設一個待辦 Queue，放入 32 個待辦工作，建立四個 Runspace 同步執行，各 Runspace 自己從待辦區撿工作來做，執行結果 Write-Output 傳回或存入結果 Queue。而為了即時觀察進度，我的解法是增設一個 Queue 蒐集進度訊息字串，在等待過程即時顯示。完整程式如下：</p> <pre><code>$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Collections.Concurrent
+[PSCustomObject[]]$items = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
+$todoItems = [System.Collections.Concurrent.ConcurrentQueue[object]]::new($items)
+$progressMsgs = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
+$results = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
+$scriptBlock = {
+param ([ref]$todo, [ref]$results, [ref]$progressMsgs)
+while (-not $todo.Value.IsEmpty) {
+$item = $null
+if (-not $todo.Value.TryDequeue([ref]$item)) {
+continue
+}
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Write-Output "$guid"
+# 除了用 Write-Output 回傳結果以 EndInvoke() 接收，
+# 一併示範用 Queue 蒐集結果
+$item.Result = $guid
+$results.Value.Enqueue($item)
+# 回報進度
+$progressMsgs.Value.Enqueue("Generated: $guid")
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+}
+}
+(Measure-Command {
+$jobs = @()
+(1..4) | ForEach-Object {
+$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
+$rs.Open()
+$ps = [System.Management.Automation.PowerShell]::Create()
+$ps.Runspace = $rs
+$ps.AddScript($scriptBlock).AddArgument([ref]$todoItems).AddArgument([ref]$results).AddArgument([ref]$progressMsgs) | Out-Null
+$jobs += [PSCustomObject]@{
+Job = $ps.BeginInvoke()
+Runspace = $rs
+PowerShell = $ps
+}
+}
+while ($jobs.Job.IsCompleted -contains $false) {
+while (-not $progressMsgs.IsEmpty) {
+$msg = $null
+if ($progressMsgs.TryDequeue([ref]$msg))
+{
+Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) $msg"
+}
+}
+Start-Sleep -Milliseconds 100
+}
+}).TotalMilliseconds
+$groupNo = 0
+$jobs | ForEach-Object {
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+$res = $_.PowerShell.EndInvoke($_.Job)
+Write-Host ($res -join ',')
+$_.PowerShell.Dispose()
+$_.Runspace.Close()
+$_.Runspace.Dispose()
+}
+Write-Host "Results Queue: " -ForegroundColor Yellow
+($results.ToArray() | ForEach-Object {
+$_.Result
+}) -join ','
+</code></pre> <p>如此，我們實現了用四個 Consumer 消化待辦工作的 PowerShell 平行作業：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638580354358274345.png"></p> <p>除了預先指定平行 Runspace 數量，PowerShell 也提供 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/developer/hosting/creating-multiple-runspaces?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#creating-and-using-a-runspace-pool">RunspacePool</a>，可用類似 ThreadPool 的概念輕鬆發揮多執行緒的效益。</p> <p>最後，如果你已升級到 PowerShell 7+，<a href="https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/?WT.mc_id=DOP-MVP-37580">新加入的 ForEach-Object -Parallel 功能</a>讓事情簡單十倍，沿用原本的 ForEach-Object 寫法，加上 -Parallel 開啟平行處理，並加上 -ThrottleLimit 指定最多幾條 Thread，原本的 ForEach-Object 迴圈當場升級成平行作業，而在其中的 Write-Host 可正常顯示，不需花功夫自己串接。夠簡單吧？</p> <pre><code># https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/
+$ErrorActionPreference = 'Stop'
+[PSCustomObject[]]$todoItems = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
+(Measure-Command {
+$results = $todoItems | Foreach-Object -ThrottleLimit 8 -Parallel {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+$_.Result = $guid
+Write-Output $_
+Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) Generated: $guid"
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+}
+}).TotalMilliseconds
+Write-Host "Results Queue: " -ForegroundColor Yellow
+($results | ForEach-Object {
+$_.Result
+}) -join ','
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638580354360511490.png"></p> <p>以上就是在 PowerShell 5.1 及 PowerShell 7+ 實現平行作業的簡單介紹，希望對大家有幫助。</p> <p data-slug="ps-runspace-n-foreach-parallel" data-title-en="PowerShell Runspace and ForEach-Object Parallel" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/02/11/53/weaving-loom-2571179_960_720.jpg#960#720">The blog post compares Start-Job and Runspaces for parallel execution in PowerShell, emphasizing Runspaces’ efficiency and flexibility. It provides detailed examples for both PowerShell 5.1 and 7+, showcasing how to use Runspaces for parallel tasks and introducing ForEach-Object -Parallel for simpler parallel processing in PowerShell 7+.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>關於在 PowerShell 使用多執行緒平行執行作業，先前介紹過 <a href="/blog/psfaq-parallel-execution/">Start-Job</a>。</p> <p>Start-Job 會在背後啟動另一個 Process 跑 ScriptBlock，寫法較簡單但有兩個明顯缺點：</p> <ol><li>啟動一整個 Process 的成本不低，因此 Start-Job 明顯較笨重，效能也差，<a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">慘輸給另開 Thread 的 Runspace</a>。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638580354351385436.jpg"><br> <a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">圖表來源</a></li> <li>由於 Start-Job 的程式在另一個 Process 裡執行，參數只能序列化後傳遞，無法共用變數及物件，父程式或平行作業間很難溝通。</li></ol> <p>基於以上理由，Runspace 雖然較複雜，仍有學習的價值，這篇文章就來練習使用 Runspace 執行平行作業。(註：後面會介紹 PowerShell 7+ 新加入的厲害武器，這裡先討論 PowerShell 5.1 相容寫法)</p> <p>開始之前，我們先複習 Start-Job 寫法，以下是個簡單範例，總共要產生 32 個 GUID，分成四組平行產生，每次產生後等待 450 ~ 500ms，預期 3.5s 跑完。</p> <pre><code>$groups = @(
+@(0..7),
+@(8..15),
+@(16..23),
+@(24..31)
+)
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+# 平行執行
+$psJobPool = @()
+$groups | ForEach-Object {
+$psJob = Start-Job -ScriptBlock {
+param ([object[]]$array)
+$array | ForEach-Object {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+return $guid
+}
+} -ArgumentList @(, $_)
+$psJobPool += $psJob
+}
+# Wait-Job 可等待所有 PSJob 結束
+$psJobPool | Wait-Job | Out-Null
+Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
+# Receive-Job 接收 PSJob 傳回結果
+$groupNo = 0
+$psJobPool | ForEach-Object {
+$result = Receive-Job -Job $_
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+Write-Host ($result -join ',')
+}
+</code></pre> <p>實測加上 Start-Job 的 Overhead，耗時約 4.6。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638580354353048697.png"></p> <p>接著，我們嘗試改用 Runspace 來跑。</p> <p>Runspace 的使用方式是先透過 RunspaceFactory 建立 Runspace，再建立 PowerShell 物件使用該 Runspace 物件執行。PowerShell 物件除了 Invoke() 方法外，還提供 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.begininvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580#system-management-automation-powershell-begininvoke">BeginInvoke()</a> 支援非同步呼叫，同時啟動多個 PowerShell.BeginInvoke()，檢查它們傳回的 IAsyncResult.IsCompleted 狀態等待所有 PowerShell 物件執行完畢，透過 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.endinvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580">EndInvoke()</a> 取回結果，便實現了平行作業。<a href="https://learn.microsoft.com/en-us/powershell/scripting/developer/hosting/runspace07-sample?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Runspace 官方範例</a></p> <p>依據以上概念，我們將 Start-Job 版改成 Runspace 版：</p> <pre><code>$groups = @(
+@(0..7),
+@(8..15),
+@(16..23),
+@(24..31)
+)
+$scriptBlock = {
+param ([object[]]$array)
+$array | ForEach-Object {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+return $guid
+}
+}
+$jobs = @()
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$groups | ForEach-Object {
+$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
+$rs.Open()
+$ps = [System.Management.Automation.PowerShell]::Create()
+$ps.Runspace = $rs
+$ps.AddScript($scriptBlock).AddArgument($_) | Out-Null
+$jobs += [PSCustomObject]@{
+Job = $ps.BeginInvoke()
+Runspace = $rs
+PowerShell = $ps
+}
+}
+while ($jobs.Job.IsCompleted -contains $false) {
+Start-Sleep -Milliseconds 100
+}
+Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
+$groupNo = 0
+$jobs | ForEach-Object {
+$res = $_.PowerShell.EndInvoke($_.Job)
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+Write-Host ($res -join ',')
+$_.PowerShell.Dispose()
+$_.Runspace.Close()
+$_.Runspace.Dispose()
+}
+</code></pre> <p>寫法複雜些，但執行速度變快，3.9s 完成。在這個範例中，我們只啟動四線平行作業，平行數量愈多，Start-Job 與 Runspace 的效能差異會更明顯。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638580354354657164.png"></p> <p>然而，Runspace 更可貴之處在於我們可以傳遞物件參數進去，與 Runspace 執行 ScriptBlock 共享物件，如此可做到各 Thread 由共用 Queue 取出待辦工作，實現經典的<a href="https://zh.wikipedia.org/zh-tw/%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98">生產者消費者模式</a>；而原本另起 PowerShell 物件執行無法用 Write-Host 將進度輸出到終端的問題，也能透過新增進度訊息字串 Queue 解決。</p> <p>在 Runspace 間共享物件必須考量 Thread-Safty，放任多執行緒同時更新集合物件，很容易<a href="/blog/dictionary-thread-safe/">遇到各式各類的鬼問題</a>。PowerShell 不像 C# 有 <a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/language-reference/statements/lock?WT.mc_id=DOP-MVP-37580">lock 指令</a>，但用 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.threading.mutex?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">Mutex 互斥鎖</a>便能簡單實現多執行緒安全更新。這裡我選擇更簡便的做法，直接借用 .NET <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580"><code>ConcurrentQueue&lt;object&gt;</code></a>。</p> <p>而在呼叫 Runspace ScriptBlock 時，要以 By Reference 傳入 ConcurrentQueue 物件，做法傳入參數為加上 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/about/about_ref?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#writing-functions-to-accept-reference-parameters">[ref]</a>，而函式內則透過 .Value 屬性存取內容。</p> <p>具備以上知識後來著手改造程式。概念是設一個待辦 Queue，放入 32 個待辦工作，建立四個 Runspace 同步執行，各 Runspace 自己從待辦區撿工作來做，執行結果 Write-Output 傳回或存入結果 Queue。而為了即時觀察進度，我的解法是增設一個 Queue 蒐集進度訊息字串，在等待過程即時顯示。完整程式如下：</p> <pre><code>$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Collections.Concurrent
+[PSCustomObject[]]$items = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
+$todoItems = [System.Collections.Concurrent.ConcurrentQueue[object]]::new($items)
+$progressMsgs = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
+$results = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
+$scriptBlock = {
+param ([ref]$todo, [ref]$results, [ref]$progressMsgs)
+while (-not $todo.Value.IsEmpty) {
+$item = $null
+if (-not $todo.Value.TryDequeue([ref]$item)) {
+continue
+}
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Write-Output "$guid"
+# 除了用 Write-Output 回傳結果以 EndInvoke() 接收，
+# 一併示範用 Queue 蒐集結果
+$item.Result = $guid
+$results.Value.Enqueue($item)
+# 回報進度
+$progressMsgs.Value.Enqueue("Generated: $guid")
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+}
+}
+(Measure-Command {
+$jobs = @()
+(1..4) | ForEach-Object {
+$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
+$rs.Open()
+$ps = [System.Management.Automation.PowerShell]::Create()
+$ps.Runspace = $rs
+$ps.AddScript($scriptBlock).AddArgument([ref]$todoItems).AddArgument([ref]$results).AddArgument([ref]$progressMsgs) | Out-Null
+$jobs += [PSCustomObject]@{
+Job = $ps.BeginInvoke()
+Runspace = $rs
+PowerShell = $ps
+}
+}
+while ($jobs.Job.IsCompleted -contains $false) {
+while (-not $progressMsgs.IsEmpty) {
+$msg = $null
+if ($progressMsgs.TryDequeue([ref]$msg))
+{
+Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) $msg"
+}
+}
+Start-Sleep -Milliseconds 100
+}
+}).TotalMilliseconds
+$groupNo = 0
+$jobs | ForEach-Object {
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+$res = $_.PowerShell.EndInvoke($_.Job)
+Write-Host ($res -join ',')
+$_.PowerShell.Dispose()
+$_.Runspace.Close()
+$_.Runspace.Dispose()
+}
+Write-Host "Results Queue: " -ForegroundColor Yellow
+($results.ToArray() | ForEach-Object {
+$_.Result
+}) -join ','
+</code></pre> <p>如此，我們實現了用四個 Consumer 消化待辦工作的 PowerShell 平行作業：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638580354358274345.png"></p> <p>除了預先指定平行 Runspace 數量，PowerShell 也提供 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/developer/hosting/creating-multiple-runspaces?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#creating-and-using-a-runspace-pool">RunspacePool</a>，可用類似 ThreadPool 的概念輕鬆發揮多執行緒的效益。</p> <p>最後，如果你已升級到 PowerShell 7+，<a href="https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/?WT.mc_id=DOP-MVP-37580">新加入的 ForEach-Object -Parallel 功能</a>讓事情簡單十倍，沿用原本的 ForEach-Object 寫法，加上 -Parallel 開啟平行處理，並加上 -ThrottleLimit 指定最多幾條 Thread，原本的 ForEach-Object 迴圈當場升級成平行作業，而在其中的 Write-Host 可正常顯示，不需花功夫自己串接。夠簡單吧？</p> <pre><code># https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/
+$ErrorActionPreference = 'Stop'
+[PSCustomObject[]]$todoItems = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
+(Measure-Command {
+$results = $todoItems | Foreach-Object -ThrottleLimit 8 -Parallel {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+$_.Result = $guid
+Write-Output $_
+Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) Generated: $guid"
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+}
+}).TotalMilliseconds
+Write-Host "Results Queue: " -ForegroundColor Yellow
+($results | ForEach-Object {
+$_.Result
+}) -join ','
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638580354360511490.png"></p> <p>以上就是在 PowerShell 5.1 及 PowerShell 7+ 實現平行作業的簡單介紹，希望對大家有幫助。</p> <p data-slug="ps-runspace-n-foreach-parallel" data-title-en="PowerShell Runspace and ForEach-Object Parallel" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/02/11/53/weaving-loom-2571179_960_720.jpg#960#720">The blog post compares Start-Job and Runspaces for parallel execution in PowerShell, emphasizing Runspaces’ efficiency and flexibility. It provides detailed examples for both PowerShell 5.1 and 7+, showcasing how to use Runspaces for parallel tasks and introducing ForEach-Object -Parallel for simpler parallel processing in PowerShell 7+.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>關於在 PowerShell 使用多執行緒平行執行作業，先前介紹過 <a href="/blog/psfaq-parallel-execution/">Start-Job</a>。</p> <p>Start-Job 會在背後啟動另一個 Process 跑 ScriptBlock，寫法較簡單但有兩個明顯缺點：</p> <ol><li>啟動一整個 Process 的成本不低，因此 Start-Job 明顯較笨重，效能也差，<a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">慘輸給另開 Thread 的 Runspace</a>。<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638580354351385436.jpg"><br> <a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">圖表來源</a></li> <li>由於 Start-Job 的程式在另一個 Process 裡執行，參數只能序列化後傳遞，無法共用變數及物件，父程式或平行作業間很難溝通。</li></ol> <p>基於以上理由，Runspace 雖然較複雜，仍有學習的價值，這篇文章就來練習使用 Runspace 執行平行作業。(註：後面會介紹 PowerShell 7+ 新加入的厲害武器，這裡先討論 PowerShell 5.1 相容寫法)</p> <p>開始之前，我們先複習 Start-Job 寫法，以下是個簡單範例，總共要產生 32 個 GUID，分成四組平行產生，每次產生後等待 450 ~ 500ms，預期 3.5s 跑完。</p> <pre><code>$groups = @(
+@(0..7),
+@(8..15),
+@(16..23),
+@(24..31)
+)
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+# 平行執行
+$psJobPool = @()
+$groups | ForEach-Object {
+$psJob = Start-Job -ScriptBlock {
+param ([object[]]$array)
+$array | ForEach-Object {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+return $guid
+}
+} -ArgumentList @(, $_)
+$psJobPool += $psJob
+}
+# Wait-Job 可等待所有 PSJob 結束
+$psJobPool | Wait-Job | Out-Null
+Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
+# Receive-Job 接收 PSJob 傳回結果
+$groupNo = 0
+$psJobPool | ForEach-Object {
+$result = Receive-Job -Job $_
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+Write-Host ($result -join ',')
+}
+</code></pre> <p>實測加上 Start-Job 的 Overhead，耗時約 4.6。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638580354353048697.png"></p> <p>接著，我們嘗試改用 Runspace 來跑。</p> <p>Runspace 的使用方式是先透過 RunspaceFactory 建立 Runspace，再建立 PowerShell 物件使用該 Runspace 物件執行。PowerShell 物件除了 Invoke() 方法外，還提供 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.begininvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580#system-management-automation-powershell-begininvoke">BeginInvoke()</a> 支援非同步呼叫，同時啟動多個 PowerShell.BeginInvoke()，檢查它們傳回的 IAsyncResult.IsCompleted 狀態等待所有 PowerShell 物件執行完畢，透過 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.endinvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580">EndInvoke()</a> 取回結果，便實現了平行作業。<a href="https://learn.microsoft.com/en-us/powershell/scripting/developer/hosting/runspace07-sample?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Runspace 官方範例</a></p> <p>依據以上概念，我們將 Start-Job 版改成 Runspace 版：</p> <pre><code>$groups = @(
+@(0..7),
+@(8..15),
+@(16..23),
+@(24..31)
+)
+$scriptBlock = {
+param ([object[]]$array)
+$array | ForEach-Object {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+return $guid
+}
+}
+$jobs = @()
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+$groups | ForEach-Object {
+$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
+$rs.Open()
+$ps = [System.Management.Automation.PowerShell]::Create()
+$ps.Runspace = $rs
+$ps.AddScript($scriptBlock).AddArgument($_) | Out-Null
+$jobs += [PSCustomObject]@{
+Job = $ps.BeginInvoke()
+Runspace = $rs
+PowerShell = $ps
+}
+}
+while ($jobs.Job.IsCompleted -contains $false) {
+Start-Sleep -Milliseconds 100
+}
+Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
+$groupNo = 0
+$jobs | ForEach-Object {
+$res = $_.PowerShell.EndInvoke($_.Job)
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+Write-Host ($res -join ',')
+$_.PowerShell.Dispose()
+$_.Runspace.Close()
+$_.Runspace.Dispose()
+}
+</code></pre> <p>寫法複雜些，但執行速度變快，3.9s 完成。在這個範例中，我們只啟動四線平行作業，平行數量愈多，Start-Job 與 Runspace 的效能差異會更明顯。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638580354354657164.png"></p> <p>然而，Runspace 更可貴之處在於我們可以傳遞物件參數進去，與 Runspace 執行 ScriptBlock 共享物件，如此可做到各 Thread 由共用 Queue 取出待辦工作，實現經典的<a href="https://zh.wikipedia.org/zh-tw/%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98">生產者消費者模式</a>；而原本另起 PowerShell 物件執行無法用 Write-Host 將進度輸出到終端的問題，也能透過新增進度訊息字串 Queue 解決。</p> <p>在 Runspace 間共享物件必須考量 Thread-Safty，放任多執行緒同時更新集合物件，很容易<a href="/blog/dictionary-thread-safe/">遇到各式各類的鬼問題</a>。PowerShell 不像 C# 有 <a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/language-reference/statements/lock?WT.mc_id=DOP-MVP-37580">lock 指令</a>，但用 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.threading.mutex?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">Mutex 互斥鎖</a>便能簡單實現多執行緒安全更新。這裡我選擇更簡便的做法，直接借用 .NET <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580"><code>ConcurrentQueue&lt;object&gt;</code></a>。</p> <p>而在呼叫 Runspace ScriptBlock 時，要以 By Reference 傳入 ConcurrentQueue 物件，做法傳入參數為加上 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/about/about_ref?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#writing-functions-to-accept-reference-parameters">[ref]</a>，而函式內則透過 .Value 屬性存取內容。</p> <p>具備以上知識後來著手改造程式。概念是設一個待辦 Queue，放入 32 個待辦工作，建立四個 Runspace 同步執行，各 Runspace 自己從待辦區撿工作來做，執行結果 Write-Output 傳回或存入結果 Queue。而為了即時觀察進度，我的解法是增設一個 Queue 蒐集進度訊息字串，在等待過程即時顯示。完整程式如下：</p> <pre><code>$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Collections.Concurrent
+[PSCustomObject[]]$items = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
+$todoItems = [System.Collections.Concurrent.ConcurrentQueue[object]]::new($items)
+$progressMsgs = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
+$results = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
+$scriptBlock = {
+param ([ref]$todo, [ref]$results, [ref]$progressMsgs)
+while (-not $todo.Value.IsEmpty) {
+$item = $null
+if (-not $todo.Value.TryDequeue([ref]$item)) {
+continue
+}
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+Write-Output "$guid"
+# 除了用 Write-Output 回傳結果以 EndInvoke() 接收，
+# 一併示範用 Queue 蒐集結果
+$item.Result = $guid
+$results.Value.Enqueue($item)
+# 回報進度
+$progressMsgs.Value.Enqueue("Generated: $guid")
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+}
+}
+(Measure-Command {
+$jobs = @()
+(1..4) | ForEach-Object {
+$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
+$rs.Open()
+$ps = [System.Management.Automation.PowerShell]::Create()
+$ps.Runspace = $rs
+$ps.AddScript($scriptBlock).AddArgument([ref]$todoItems).AddArgument([ref]$results).AddArgument([ref]$progressMsgs) | Out-Null
+$jobs += [PSCustomObject]@{
+Job = $ps.BeginInvoke()
+Runspace = $rs
+PowerShell = $ps
+}
+}
+while ($jobs.Job.IsCompleted -contains $false) {
+while (-not $progressMsgs.IsEmpty) {
+$msg = $null
+if ($progressMsgs.TryDequeue([ref]$msg))
+{
+Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) $msg"
+}
+}
+Start-Sleep -Milliseconds 100
+}
+}).TotalMilliseconds
+$groupNo = 0
+$jobs | ForEach-Object {
+$groupNo++
+Write-Host "Group $groupNo" -ForegroundColor Yellow
+$res = $_.PowerShell.EndInvoke($_.Job)
+Write-Host ($res -join ',')
+$_.PowerShell.Dispose()
+$_.Runspace.Close()
+$_.Runspace.Dispose()
+}
+Write-Host "Results Queue: " -ForegroundColor Yellow
+($results.ToArray() | ForEach-Object {
+$_.Result
+}) -join ','
+</code></pre> <p>如此，我們實現了用四個 Consumer 消化待辦工作的 PowerShell 平行作業：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638580354358274345.png"></p> <p>除了預先指定平行 Runspace 數量，PowerShell 也提供 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/developer/hosting/creating-multiple-runspaces?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#creating-and-using-a-runspace-pool">RunspacePool</a>，可用類似 ThreadPool 的概念輕鬆發揮多執行緒的效益。</p> <p>最後，如果你已升級到 PowerShell 7+，<a href="https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/?WT.mc_id=DOP-MVP-37580">新加入的 ForEach-Object -Parallel 功能</a>讓事情簡單十倍，沿用原本的 ForEach-Object 寫法，加上 -Parallel 開啟平行處理，並加上 -ThrottleLimit 指定最多幾條 Thread，原本的 ForEach-Object 迴圈當場升級成平行作業，而在其中的 Write-Host 可正常顯示，不需花功夫自己串接。夠簡單吧？</p> <pre><code># https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/
+$ErrorActionPreference = 'Stop'
+[PSCustomObject[]]$todoItems = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
+(Measure-Command {
+$results = $todoItems | Foreach-Object -ThrottleLimit 8 -Parallel {
+$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
+$_.Result = $guid
+Write-Output $_
+Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) Generated: $guid"
+Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
+}
+}).TotalMilliseconds
+Write-Host "Results Queue: " -ForegroundColor Yellow
+($results | ForEach-Object {
+$_.Result
+}) -join ','
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638580354360511490.png"></p> <p>以上就是在 PowerShell 5.1 及 PowerShell 7+ 實現平行作業的簡單介紹，希望對大家有幫助。</p> <p data-slug="ps-runspace-n-foreach-parallel" data-title-en="PowerShell Runspace and ForEach-Object Parallel" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/02/11/53/weaving-loom-2571179_960_720.jpg#960#720">The blog post compares Start-Job and Runspaces for parallel execution in PowerShell, emphasizing Runspaces’ efficiency and flexibility. It provides detailed examples for both PowerShell 5.1 and 7+, showcasing how to use Runspaces for parallel tasks and introducing ForEach-Object -Parallel for simpler parallel processing in PowerShell 7+.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638580354351385436.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638580354351385436.jpg" medium="image"/>
+    <pubDate>Wed, 31 Jul 2024 15:03:55 GMT</pubDate>
+  </item><item>
     <title><![CDATA[生活瑣記 - 202407]]></title>
     <link>https://blog.darkthread.net/blog/scribbles-202407/</link>
     <itunes:title><![CDATA[生活瑣記 - 202407]]></itunes:title>
@@ -1819,299 +2290,5 @@ Console.WriteLine("After ReadLine()");
 </code></pre> <p data-slug="apache-fonts-n-miss-mit-comment" data-fbimg="https://upload.cc/i1/2021/05/22/EqblQ3.png#600#338"> </p>]]></content:encoded>
     
     <pubDate>Fri, 12 Jul 2024 13:20:28 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Git Diff 互動式程式異動對照表改良 - 忽略排版空格差異]]></title>
-    <link>https://blog.darkthread.net/blog/diff2html-ignore-whitespace-changes/</link>
-    <itunes:title><![CDATA[Git Diff 互動式程式異動對照表改良 - 忽略排版空格差異]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>三年多前用 diff2html.js 做了一個<a href="/blog/diff2html-large-file/">Git Diff 互動式程式異動表</a>，在工作上使用至今，最近接到顧客意見反應。</p> <p>使用 Visual Studio / VSCode 維護程式，有時改完程式會順手按一下自動排版、內縮由 Tab 改成空格、或是程式行間增加或刪除換行，這類排版調整原則上不該算是程式異動，但在 diff2html 檢視時都會標示出來。如下圖中身高體重輸入程式段落間的換行、顯示 BMI 時前方移除內縮、SQL 增加內縮空格... 等。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"></p> <p>有程式差異比較工具會忽略這類不可見字元 (Whitespace，包含空格、Tab、換行、\r、\v、\f... 等) 異動，例如：VSCode 便會忽略 SELECT 欄位前的空格變化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638562212041418056.png"></p> <p>我認同排除純 Whitespace 差異有助於降低干擾，聚焦在真正的程式異動上。於是我寫了幾行程式，用 querySelectorAll 篩選出被標示異動的行數，取出異動文字用 Regular Expression 濾掉不可見字元 <code>.replace(/\s/g, '')</code>，剩餘的可見文字若相同，代表新舊版只差在 Whitespace，便可用 CSS opacity: 0.25 將這類純排版差異調淡，方便眼睛忽略這些差異。</p> <p>改良版顯示結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638562212044040054.png"></p> <p>就醬，借用別人分享的成果遇到不同需求，自己改程式再分享，這也是開源的精神之一吧~</p> <p>程式範例如下：<a href="https://output.jsbin.com/rupabec">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;meta http-equiv="X-UA-Compatible" content="IE=Edge" /&gt;
-&lt;link rel="stylesheet" type="text/css" href="diff2html.min.css" /&gt;
-&lt;script src="diff2html.js"&gt;&lt;/script&gt;
-&lt;style&gt;
-html,body { height: 100%; margin: 0; padding: 6px; }
-.d2h-file-name{ font-size: 9pt; cursor: pointer; }
-.d2h-file-list-line { display: block; }
-.d2h-file-list-title button { font-size: 9pt; }
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id=report&gt;
-&lt;div id=list&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;script&gt;
-function fadeWhiteSpaceDiff(diffHtml) {
-diffHtml.querySelectorAll('.d2h-files-diff').forEach(d =&gt; {
-const tables = d.querySelectorAll('table.d2h-diff-table');
-const leftRows = tables[0].querySelectorAll('tr');
-const rightRows = tables[1].querySelectorAll('tr');
-leftRows.forEach((leftRow, i) =&gt; {
-if (!leftRow.querySelector('.d2h-del,.d2h-ins')) return;
-const rightRow = rightRows[i];
-const rightContent = rightRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
-const leftContent = leftRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
-if (rightContent.replace(/\s/g, '') === leftContent.replace(/\s/g, '')) {
-leftRow.style.opacity = '0.25';
-rightRow.style.opacity = '0.25';
-}
-});
-});
-}
-function showLineByLine(a) {
-if (a.showDiff) {
-//IE doesn't support element.remove()
-var div = a.parentNode.nextElementSibling;
-div.parentNode.removeChild(div);
-a.showDiff = false;
-}
-else {
-var div = document.createElement("div");
-div.innerHTML = Diff2Html.getPrettySideBySideHtmlFromJson(a.diffContent);
-a.parentNode.parentNode.appendChild(div);
-fadeWhiteSpaceDiff(div);
-a.showDiff = true;
-}
-}
-function toggleAll(expand) {
-[].forEach.call(document.querySelectorAll('a.d2h-file-name'), function(a) {
-if (expand != a.showDiff) showLineByLine(a);
-});
-}
-function doGET(path, callback) {
-var xhr = new XMLHttpRequest();
-xhr.onreadystatechange = function() {
-if (xhr.readyState == 4) {
-if (xhr.status == 200) {
-callback(xhr.responseText);
-} else {
-callback(null);
-}
-}
-};
-xhr.open("GET", path);
-xhr.send();
-}
-doGET("diff.txt", function (diffText) {
-var diffFiles = Diff2Html.getJsonFromDiff(diffText);
-var diffHtml = Diff2Html.getPrettyHtmlFromJson(diffFiles, {
-showFiles: true,
-matching: 'lines',
-outputFormat: 'side-by-side',
-});
-//get the file list part
-var listHtml = diffHtml.substr(0, diffHtml.indexOf('&lt;div class="d2h-wrapper"'));
-document.getElementById('list').innerHTML = listHtml;
-[].forEach.call(document.querySelectorAll('a[href]'), function(a, i) {
-a.diffContent = [diffFiles[i]];
-a.removeAttribute("href");
-a.onclick = function() { showLineByLine(a); };
-});
-var title = document.querySelector('.d2h-file-list-title');
-title.innerHTML = title.innerText +
-" &lt;button onclick='toggleAll(true)'&gt;Expand All&lt;/button&gt;" +
-" &lt;button onclick='toggleAll(false)'&gt;Collapse All&lt;/button&gt;";
-toggleAll(true);
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="diff2html-ignore-whitespace-changes" data-title-en="Ignoring whitespace difference in diff2html" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/18/18/12/squirrel-4559855_960_720.jpg#960#720">The diff2html will show differences including whitespace changes, this article provide a simple way to fade these layout changes in comparison views.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>三年多前用 diff2html.js 做了一個<a href="/blog/diff2html-large-file/">Git Diff 互動式程式異動表</a>，在工作上使用至今，最近接到顧客意見反應。</p> <p>使用 Visual Studio / VSCode 維護程式，有時改完程式會順手按一下自動排版、內縮由 Tab 改成空格、或是程式行間增加或刪除換行，這類排版調整原則上不該算是程式異動，但在 diff2html 檢視時都會標示出來。如下圖中身高體重輸入程式段落間的換行、顯示 BMI 時前方移除內縮、SQL 增加內縮空格... 等。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"></p> <p>有程式差異比較工具會忽略這類不可見字元 (Whitespace，包含空格、Tab、換行、\r、\v、\f... 等) 異動，例如：VSCode 便會忽略 SELECT 欄位前的空格變化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638562212041418056.png"></p> <p>我認同排除純 Whitespace 差異有助於降低干擾，聚焦在真正的程式異動上。於是我寫了幾行程式，用 querySelectorAll 篩選出被標示異動的行數，取出異動文字用 Regular Expression 濾掉不可見字元 <code>.replace(/\s/g, '')</code>，剩餘的可見文字若相同，代表新舊版只差在 Whitespace，便可用 CSS opacity: 0.25 將這類純排版差異調淡，方便眼睛忽略這些差異。</p> <p>改良版顯示結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638562212044040054.png"></p> <p>就醬，借用別人分享的成果遇到不同需求，自己改程式再分享，這也是開源的精神之一吧~</p> <p>程式範例如下：<a href="https://output.jsbin.com/rupabec">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;meta http-equiv="X-UA-Compatible" content="IE=Edge" /&gt;
-&lt;link rel="stylesheet" type="text/css" href="diff2html.min.css" /&gt;
-&lt;script src="diff2html.js"&gt;&lt;/script&gt;
-&lt;style&gt;
-html,body { height: 100%; margin: 0; padding: 6px; }
-.d2h-file-name{ font-size: 9pt; cursor: pointer; }
-.d2h-file-list-line { display: block; }
-.d2h-file-list-title button { font-size: 9pt; }
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id=report&gt;
-&lt;div id=list&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;script&gt;
-function fadeWhiteSpaceDiff(diffHtml) {
-diffHtml.querySelectorAll('.d2h-files-diff').forEach(d =&gt; {
-const tables = d.querySelectorAll('table.d2h-diff-table');
-const leftRows = tables[0].querySelectorAll('tr');
-const rightRows = tables[1].querySelectorAll('tr');
-leftRows.forEach((leftRow, i) =&gt; {
-if (!leftRow.querySelector('.d2h-del,.d2h-ins')) return;
-const rightRow = rightRows[i];
-const rightContent = rightRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
-const leftContent = leftRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
-if (rightContent.replace(/\s/g, '') === leftContent.replace(/\s/g, '')) {
-leftRow.style.opacity = '0.25';
-rightRow.style.opacity = '0.25';
-}
-});
-});
-}
-function showLineByLine(a) {
-if (a.showDiff) {
-//IE doesn't support element.remove()
-var div = a.parentNode.nextElementSibling;
-div.parentNode.removeChild(div);
-a.showDiff = false;
-}
-else {
-var div = document.createElement("div");
-div.innerHTML = Diff2Html.getPrettySideBySideHtmlFromJson(a.diffContent);
-a.parentNode.parentNode.appendChild(div);
-fadeWhiteSpaceDiff(div);
-a.showDiff = true;
-}
-}
-function toggleAll(expand) {
-[].forEach.call(document.querySelectorAll('a.d2h-file-name'), function(a) {
-if (expand != a.showDiff) showLineByLine(a);
-});
-}
-function doGET(path, callback) {
-var xhr = new XMLHttpRequest();
-xhr.onreadystatechange = function() {
-if (xhr.readyState == 4) {
-if (xhr.status == 200) {
-callback(xhr.responseText);
-} else {
-callback(null);
-}
-}
-};
-xhr.open("GET", path);
-xhr.send();
-}
-doGET("diff.txt", function (diffText) {
-var diffFiles = Diff2Html.getJsonFromDiff(diffText);
-var diffHtml = Diff2Html.getPrettyHtmlFromJson(diffFiles, {
-showFiles: true,
-matching: 'lines',
-outputFormat: 'side-by-side',
-});
-//get the file list part
-var listHtml = diffHtml.substr(0, diffHtml.indexOf('&lt;div class="d2h-wrapper"'));
-document.getElementById('list').innerHTML = listHtml;
-[].forEach.call(document.querySelectorAll('a[href]'), function(a, i) {
-a.diffContent = [diffFiles[i]];
-a.removeAttribute("href");
-a.onclick = function() { showLineByLine(a); };
-});
-var title = document.querySelector('.d2h-file-list-title');
-title.innerHTML = title.innerText +
-" &lt;button onclick='toggleAll(true)'&gt;Expand All&lt;/button&gt;" +
-" &lt;button onclick='toggleAll(false)'&gt;Collapse All&lt;/button&gt;";
-toggleAll(true);
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="diff2html-ignore-whitespace-changes" data-title-en="Ignoring whitespace difference in diff2html" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/18/18/12/squirrel-4559855_960_720.jpg#960#720">The diff2html will show differences including whitespace changes, this article provide a simple way to fade these layout changes in comparison views.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>三年多前用 diff2html.js 做了一個<a href="/blog/diff2html-large-file/">Git Diff 互動式程式異動表</a>，在工作上使用至今，最近接到顧客意見反應。</p> <p>使用 Visual Studio / VSCode 維護程式，有時改完程式會順手按一下自動排版、內縮由 Tab 改成空格、或是程式行間增加或刪除換行，這類排版調整原則上不該算是程式異動，但在 diff2html 檢視時都會標示出來。如下圖中身高體重輸入程式段落間的換行、顯示 BMI 時前方移除內縮、SQL 增加內縮空格... 等。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"></p> <p>有程式差異比較工具會忽略這類不可見字元 (Whitespace，包含空格、Tab、換行、\r、\v、\f... 等) 異動，例如：VSCode 便會忽略 SELECT 欄位前的空格變化：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638562212041418056.png"></p> <p>我認同排除純 Whitespace 差異有助於降低干擾，聚焦在真正的程式異動上。於是我寫了幾行程式，用 querySelectorAll 篩選出被標示異動的行數，取出異動文字用 Regular Expression 濾掉不可見字元 <code>.replace(/\s/g, '')</code>，剩餘的可見文字若相同，代表新舊版只差在 Whitespace，便可用 CSS opacity: 0.25 將這類純排版差異調淡，方便眼睛忽略這些差異。</p> <p>改良版顯示結果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638562212044040054.png"></p> <p>就醬，借用別人分享的成果遇到不同需求，自己改程式再分享，這也是開源的精神之一吧~</p> <p>程式範例如下：<a href="https://output.jsbin.com/rupabec">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;meta http-equiv="X-UA-Compatible" content="IE=Edge" /&gt;
-&lt;link rel="stylesheet" type="text/css" href="diff2html.min.css" /&gt;
-&lt;script src="diff2html.js"&gt;&lt;/script&gt;
-&lt;style&gt;
-html,body { height: 100%; margin: 0; padding: 6px; }
-.d2h-file-name{ font-size: 9pt; cursor: pointer; }
-.d2h-file-list-line { display: block; }
-.d2h-file-list-title button { font-size: 9pt; }
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id=report&gt;
-&lt;div id=list&gt;&lt;/div&gt;
-&lt;/div&gt;
-&lt;script&gt;
-function fadeWhiteSpaceDiff(diffHtml) {
-diffHtml.querySelectorAll('.d2h-files-diff').forEach(d =&gt; {
-const tables = d.querySelectorAll('table.d2h-diff-table');
-const leftRows = tables[0].querySelectorAll('tr');
-const rightRows = tables[1].querySelectorAll('tr');
-leftRows.forEach((leftRow, i) =&gt; {
-if (!leftRow.querySelector('.d2h-del,.d2h-ins')) return;
-const rightRow = rightRows[i];
-const rightContent = rightRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
-const leftContent = leftRow.querySelector('.d2h-code-line-ctn')?.innerText ?? '';
-if (rightContent.replace(/\s/g, '') === leftContent.replace(/\s/g, '')) {
-leftRow.style.opacity = '0.25';
-rightRow.style.opacity = '0.25';
-}
-});
-});
-}
-function showLineByLine(a) {
-if (a.showDiff) {
-//IE doesn't support element.remove()
-var div = a.parentNode.nextElementSibling;
-div.parentNode.removeChild(div);
-a.showDiff = false;
-}
-else {
-var div = document.createElement("div");
-div.innerHTML = Diff2Html.getPrettySideBySideHtmlFromJson(a.diffContent);
-a.parentNode.parentNode.appendChild(div);
-fadeWhiteSpaceDiff(div);
-a.showDiff = true;
-}
-}
-function toggleAll(expand) {
-[].forEach.call(document.querySelectorAll('a.d2h-file-name'), function(a) {
-if (expand != a.showDiff) showLineByLine(a);
-});
-}
-function doGET(path, callback) {
-var xhr = new XMLHttpRequest();
-xhr.onreadystatechange = function() {
-if (xhr.readyState == 4) {
-if (xhr.status == 200) {
-callback(xhr.responseText);
-} else {
-callback(null);
-}
-}
-};
-xhr.open("GET", path);
-xhr.send();
-}
-doGET("diff.txt", function (diffText) {
-var diffFiles = Diff2Html.getJsonFromDiff(diffText);
-var diffHtml = Diff2Html.getPrettyHtmlFromJson(diffFiles, {
-showFiles: true,
-matching: 'lines',
-outputFormat: 'side-by-side',
-});
-//get the file list part
-var listHtml = diffHtml.substr(0, diffHtml.indexOf('&lt;div class="d2h-wrapper"'));
-document.getElementById('list').innerHTML = listHtml;
-[].forEach.call(document.querySelectorAll('a[href]'), function(a, i) {
-a.diffContent = [diffFiles[i]];
-a.removeAttribute("href");
-a.onclick = function() { showLineByLine(a); };
-});
-var title = document.querySelector('.d2h-file-list-title');
-title.innerHTML = title.innerText +
-" &lt;button onclick='toggleAll(true)'&gt;Expand All&lt;/button&gt;" +
-" &lt;button onclick='toggleAll(false)'&gt;Collapse All&lt;/button&gt;";
-toggleAll(true);
-});
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p data-slug="diff2html-ignore-whitespace-changes" data-title-en="Ignoring whitespace difference in diff2html" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/18/18/12/squirrel-4559855_960_720.jpg#960#720">The diff2html will show differences including whitespace changes, this article provide a simple way to fade these layout changes in comparison views.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638562212039741047.png" medium="image"/>
-    <pubDate>Wed, 10 Jul 2024 15:02:01 GMT</pubDate>
   </item></channel>
 </rss>
