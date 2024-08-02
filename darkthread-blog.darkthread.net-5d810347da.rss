@@ -30,6 +30,597 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Named Pipe 跨程序傳輸演練 - PowerShell/.NET、JavaScript、Python、Golang 大亂鬥]]></title>
+    <link>https://blog.darkthread.net/blog/namedpipe-practice/</link>
+    <itunes:title><![CDATA[Named Pipe 跨程序傳輸演練 - PowerShell/.NET、JavaScript、Python、Golang 大亂鬥]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>故事從我想在兩個獨立執行 PowerShell 程序間傳輸資料說起。</p> <p>最開始的想法是寫個迷你 WebAPI，但是寫 WebAPI 不是 PowerShell 的強項，改用 C# 實現有點繞遠路，於是我想起 Named Pipe，一個簡單輕巧的 IPC 選項。過去沒認真研究過，剛好利用機會讓技能樹多長一支新芽。</p> <p>實際動手後發現程式比想像好寫，跨語言應用也很簡單，於是我分別再試寫了 Python、JavaScript 與 Go 版客戶端，完成一場大亂鬥，筆記留念。 先補充背景知識。</p> <p>跨程序溝通有個專門術語 - Interprocess Communictaion（IPC），在 Windows 平台有以下選擇：Clipboard、COM、Data Copy、DDE、File Mapping、Mailslots、Pipes、RPC、Windows Sockets。(延伸閱讀：<a href="/blog/about-shared-memory/">Windows IPC 方式整理</a>) 而 Pipes 分為匿名及具名，匿名僅適用於父子程序溝通，具名管道 Named Pipe 便是本次的主角。</p> <p>我用 PowerShell 實作了一個簡單的 Named Pipe 伺服器，透過 while 無窮迴圈不斷建立新管道等待連線及處理需求。這種寫法使用單一執行緒消化請求，多個請求併發時需排隊，針對高負載情境一般要改成多緒平行處理，但本次的重點在學習原理，就不多花功夫研究。相關說明我寫在註解，直接奉上程式碼：</p> <pre><code>$pipeName = 'PSNamedPipeDemo'
+Write-Host "* Named Pipe Server [$pipeName]"
+$running = $true
+while ($running) {
+# 不斷建立新管道，採讀寫雙向模式
+$pipe = new-object System.IO.Pipes.NamedPipeServerStream($pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+try {
+# 等待連線
+$pipe.WaitForConnection()
+# 建立 StreamReader 和 StreamWriter 以便讀寫資料
+$sr = new-object System.IO.StreamReader($pipe)
+$sw = new-object System.IO.StreamWriter($pipe)
+$sw.AutoFlush = $true # 寫完訊息立即送出緩衝區內容
+$msg = $sr.ReadLine()
+switch ($msg) {
+'/exit' { # 接受 '/exit' 指令，結束 Server
+Write-Host 'Exiting...'
+$sw.WriteLine('Goodbye!')
+$running = $false
+}
+'/guid' { # 接受 '/guid' 指令，回傳 GUID
+$guid = New-Guid
+Write-Host "Generating GUID: " $guid
+$sw.WriteLine($guid)
+}
+Default { # 其他情況，複誦對方傳送內容
+Write-Host $msg
+$sw.WriteLine("echo: $msg")
+}
+}
+}
+finally {
+# 等待管道清空(對方讀取完畢)
+$pipe.WaitForPipeDrain()
+$pipe.Dispose()
+}
+}
+</code></pre> <p>客戶端的做法很類似，差別在改用 NamedPipeClientStream，若伺服器端在本機，伺服器名稱用 "."，讀寫資料一樣用 StreamWriter、StreamReader 即可。</p> <pre><code>param(
+[parameter(Mandatory=$true)]
+[string]$msg
+)
+$pipeName = 'PSNamedPipeDemo'
+$pipe = new-object System.IO.Pipes.NamedPipeClientStream(".", $pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+$pipe.Connect()
+$sw = new-object System.IO.StreamWriter($pipe)
+$sw.AutoFlush = $true
+$sw.WriteLine($msg)
+$pipe.WaitForPipeDrain()
+$sr = new-object System.IO.StreamReader($pipe)
+Write-Host $sr.ReadLine()
+$pipe.WaitForPipeDrain()
+$pipe.Dispose()
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638582042199683781.png"></p> <p>C# 寫法與 PowerShell 大同小異，接著來試試其他語言。</p> <p>JavaScript / Node.js 我選擇用 net.createConnection() 實現 <a href="https://nodejs.org/api/net.html#ipc-support">IPC 通訊</a>：</p> <pre><code>const net = require('net');
+const readline = require('readline');
+const pipePath = '\\\\.\\pipe\\PSNamedPipeDemo';
+if (process.argv.length &gt; 2) {
+message = process.argv[2];
+sendMessage(process.argv[2]).then((response) =&gt; {
+console.log(response);
+});
+}
+else {
+const rl = readline.createInterface({
+input: process.stdin,
+output: process.stdout
+});
+rl.question('Enter message: ', (answer) =&gt; {
+sendMessage(answer).then((response) =&gt; {
+console.log(response);
+});
+rl.close();
+});
+}
+function sendMessage(msg)  {
+return new Promise((resolve, reject) =&gt; {
+const client = net.createConnection(pipePath);
+client.write(msg + '
+');
+client.on('data', (data) =&gt; {
+resolve(data.toString());
+});
+});
+}
+</code></pre> <p>Python 把 <code>\\.\pipe\PSNamedPipeDemo</code> 路徑當成檔案讀寫即可：</p> <pre><code>import os
+import sys
+if len(sys.argv) &gt; 1:
+message = sys.argv[1]
+else:
+message = input("Enter a message: ")
+pipe_path = r'\\.\pipe\PSNamedPipeDemo'
+try:
+with open(pipe_path, 'r+b', buffering=0) as f:
+f.write((message + "
+").encode())
+f.flush()
+data = f.read(100)
+reply = data.decode('utf-8')
+print(reply)
+except Exception as e:
+print(f"Error: {e}")
+</code></pre> <p>Go 也是將 Named Pipe 路徑視為一般檔案，用 <code>os.openFile()</code> 搞定。</p> <pre><code>package main
+import (
+"bufio"
+"fmt"
+"log"
+"os"
+)
+func main() {
+args := os.Args
+var message string
+if len(args) &gt; 1 {
+message = args[1]
+} else {
+fmt.Print("Enter a message: ")
+reader := bufio.NewReader(os.Stdin)
+message, _ = reader.ReadString('
+')
+}
+pipePath := `\\.\pipe\PSNamedPipeDemo`
+f, err := os.OpenFile(pipePath, os.O_RDWR, 0777)
+if err != nil {
+log.Fatalf("error opening file: %v", err)
+}
+defer f.Close()
+f.WriteString(message + "
+")
+err = f.Sync()
+if err != nil {
+log.Fatalf("error syncing file: %v", err)
+}
+data := make([]byte, 100)
+n, err := f.Read(data)
+if err != nil {
+log.Fatalf("error reading file: %v", err)
+}
+reply := string(data[:n])
+fmt.Println(reply)
+}
+</code></pre> <p>啟動 PowerShell Named Pipe 伺服器，分別從 JavaScript、Python、Go 客戶端送出訊息並讀取回應，完成多語言大亂鬥。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638582042201403853.png"></p> <p>最後，我好奇這個 while ($true) 的單執行緒版本伺服器是否能扛住併發請求，便修改了 Go 版客戶端借用前陣子剛學會的 <a href="/blog/whats-golang/">Goroutine 平行運算功能</a>同時發出 100 次請求。其中的眉角是當伺服器唯一的 Instance 忙著處理其他請求時，os.OpenFile() 會得到 <code>All pipe instances are busy</code> 錯誤；若遇到結束上次 NamedPipeServerStream 還來不及新建的空窗期，會得到 <code>The system cannot find the file specified.</code> 錯誤。因此，因應併發情境得自己加上等待重試邏輯或是改用 <a href="https://github.com/Microsoft/go-winio">go-winio</a> 等專用程式庫。</p> <p>我捏了一個大致可跑完 100 次的土砲重試版：(數量再多需處理 NamedPipeServerStream 空窗問題，先跳過)</p> <pre><code>package main
+import (
+"fmt"
+"log"
+"os"
+"strconv"
+"strings"
+"sync"
+"sync/atomic"
+"time"
+)
+func main() {
+pipePath := `\\.\pipe\PSNamedPipeDemo`
+var wg sync.WaitGroup
+var succCount int32
+for i := 0; i &lt; 100; i++ {
+wg.Add(1)
+msg := "Req-" + strconv.Itoa(i) + "
+"
+go func() {
+defer wg.Done()
+var f *os.File
+var err error
+for {
+f, err = os.OpenFile(pipePath, os.O_RDWR, 0777)
+if err != nil {
+if strings.Contains(err.Error(), "All pipe instances are busy") {
+time.Sleep(10 * time.Millisecond) // Wait for 1ms before retrying
+continue
+} else {
+log.Fatalf("error opening file: %v", err)
+}
+}
+break
+}
+defer f.Close()
+f.WriteString(msg)
+err = f.Sync()
+if err != nil {
+log.Fatalf("error syncing file: %v", err)
+}
+data := make([]byte, 100)
+n, err := f.Read(data)
+if err != nil {
+log.Fatalf("error reading file: %v", err)
+}
+reply := string(data[:n])
+fmt.Print(reply)
+atomic.AddInt32(&amp;succCount, 1)
+}()
+}
+wg.Wait()
+fmt.Println("Total Success Count: ", succCount)
+}
+</code></pre> <p>併發 100 次請求測試通過。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638582042203087605.png"></p> <p>演練完畢，收工。</p> <p data-slug="namedpipe-practice" data-title-en="Named Pipe test with PowerShell, JavaScript, Python and Go" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/26/20/59/handy-1224724_1280.jpg#1280#720">The article discusses using Named Pipes for inter-process communication (IPC) in PowerShell, comparing it with other methods like WebAPI. It provides a PowerShell implementation of a Named Pipe server and clients in PowerShell, JavaScript, Python, and Go, testing cross-language communication. It also explores handling high load with parallel requests in Go.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>故事從我想在兩個獨立執行 PowerShell 程序間傳輸資料說起。</p> <p>最開始的想法是寫個迷你 WebAPI，但是寫 WebAPI 不是 PowerShell 的強項，改用 C# 實現有點繞遠路，於是我想起 Named Pipe，一個簡單輕巧的 IPC 選項。過去沒認真研究過，剛好利用機會讓技能樹多長一支新芽。</p> <p>實際動手後發現程式比想像好寫，跨語言應用也很簡單，於是我分別再試寫了 Python、JavaScript 與 Go 版客戶端，完成一場大亂鬥，筆記留念。 先補充背景知識。</p> <p>跨程序溝通有個專門術語 - Interprocess Communictaion（IPC），在 Windows 平台有以下選擇：Clipboard、COM、Data Copy、DDE、File Mapping、Mailslots、Pipes、RPC、Windows Sockets。(延伸閱讀：<a href="/blog/about-shared-memory/">Windows IPC 方式整理</a>) 而 Pipes 分為匿名及具名，匿名僅適用於父子程序溝通，具名管道 Named Pipe 便是本次的主角。</p> <p>我用 PowerShell 實作了一個簡單的 Named Pipe 伺服器，透過 while 無窮迴圈不斷建立新管道等待連線及處理需求。這種寫法使用單一執行緒消化請求，多個請求併發時需排隊，針對高負載情境一般要改成多緒平行處理，但本次的重點在學習原理，就不多花功夫研究。相關說明我寫在註解，直接奉上程式碼：</p> <pre><code>$pipeName = 'PSNamedPipeDemo'
+Write-Host "* Named Pipe Server [$pipeName]"
+$running = $true
+while ($running) {
+# 不斷建立新管道，採讀寫雙向模式
+$pipe = new-object System.IO.Pipes.NamedPipeServerStream($pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+try {
+# 等待連線
+$pipe.WaitForConnection()
+# 建立 StreamReader 和 StreamWriter 以便讀寫資料
+$sr = new-object System.IO.StreamReader($pipe)
+$sw = new-object System.IO.StreamWriter($pipe)
+$sw.AutoFlush = $true # 寫完訊息立即送出緩衝區內容
+$msg = $sr.ReadLine()
+switch ($msg) {
+'/exit' { # 接受 '/exit' 指令，結束 Server
+Write-Host 'Exiting...'
+$sw.WriteLine('Goodbye!')
+$running = $false
+}
+'/guid' { # 接受 '/guid' 指令，回傳 GUID
+$guid = New-Guid
+Write-Host "Generating GUID: " $guid
+$sw.WriteLine($guid)
+}
+Default { # 其他情況，複誦對方傳送內容
+Write-Host $msg
+$sw.WriteLine("echo: $msg")
+}
+}
+}
+finally {
+# 等待管道清空(對方讀取完畢)
+$pipe.WaitForPipeDrain()
+$pipe.Dispose()
+}
+}
+</code></pre> <p>客戶端的做法很類似，差別在改用 NamedPipeClientStream，若伺服器端在本機，伺服器名稱用 "."，讀寫資料一樣用 StreamWriter、StreamReader 即可。</p> <pre><code>param(
+[parameter(Mandatory=$true)]
+[string]$msg
+)
+$pipeName = 'PSNamedPipeDemo'
+$pipe = new-object System.IO.Pipes.NamedPipeClientStream(".", $pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+$pipe.Connect()
+$sw = new-object System.IO.StreamWriter($pipe)
+$sw.AutoFlush = $true
+$sw.WriteLine($msg)
+$pipe.WaitForPipeDrain()
+$sr = new-object System.IO.StreamReader($pipe)
+Write-Host $sr.ReadLine()
+$pipe.WaitForPipeDrain()
+$pipe.Dispose()
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638582042199683781.png"></p> <p>C# 寫法與 PowerShell 大同小異，接著來試試其他語言。</p> <p>JavaScript / Node.js 我選擇用 net.createConnection() 實現 <a href="https://nodejs.org/api/net.html#ipc-support">IPC 通訊</a>：</p> <pre><code>const net = require('net');
+const readline = require('readline');
+const pipePath = '\\\\.\\pipe\\PSNamedPipeDemo';
+if (process.argv.length &gt; 2) {
+message = process.argv[2];
+sendMessage(process.argv[2]).then((response) =&gt; {
+console.log(response);
+});
+}
+else {
+const rl = readline.createInterface({
+input: process.stdin,
+output: process.stdout
+});
+rl.question('Enter message: ', (answer) =&gt; {
+sendMessage(answer).then((response) =&gt; {
+console.log(response);
+});
+rl.close();
+});
+}
+function sendMessage(msg)  {
+return new Promise((resolve, reject) =&gt; {
+const client = net.createConnection(pipePath);
+client.write(msg + '
+');
+client.on('data', (data) =&gt; {
+resolve(data.toString());
+});
+});
+}
+</code></pre> <p>Python 把 <code>\\.\pipe\PSNamedPipeDemo</code> 路徑當成檔案讀寫即可：</p> <pre><code>import os
+import sys
+if len(sys.argv) &gt; 1:
+message = sys.argv[1]
+else:
+message = input("Enter a message: ")
+pipe_path = r'\\.\pipe\PSNamedPipeDemo'
+try:
+with open(pipe_path, 'r+b', buffering=0) as f:
+f.write((message + "
+").encode())
+f.flush()
+data = f.read(100)
+reply = data.decode('utf-8')
+print(reply)
+except Exception as e:
+print(f"Error: {e}")
+</code></pre> <p>Go 也是將 Named Pipe 路徑視為一般檔案，用 <code>os.openFile()</code> 搞定。</p> <pre><code>package main
+import (
+"bufio"
+"fmt"
+"log"
+"os"
+)
+func main() {
+args := os.Args
+var message string
+if len(args) &gt; 1 {
+message = args[1]
+} else {
+fmt.Print("Enter a message: ")
+reader := bufio.NewReader(os.Stdin)
+message, _ = reader.ReadString('
+')
+}
+pipePath := `\\.\pipe\PSNamedPipeDemo`
+f, err := os.OpenFile(pipePath, os.O_RDWR, 0777)
+if err != nil {
+log.Fatalf("error opening file: %v", err)
+}
+defer f.Close()
+f.WriteString(message + "
+")
+err = f.Sync()
+if err != nil {
+log.Fatalf("error syncing file: %v", err)
+}
+data := make([]byte, 100)
+n, err := f.Read(data)
+if err != nil {
+log.Fatalf("error reading file: %v", err)
+}
+reply := string(data[:n])
+fmt.Println(reply)
+}
+</code></pre> <p>啟動 PowerShell Named Pipe 伺服器，分別從 JavaScript、Python、Go 客戶端送出訊息並讀取回應，完成多語言大亂鬥。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638582042201403853.png"></p> <p>最後，我好奇這個 while ($true) 的單執行緒版本伺服器是否能扛住併發請求，便修改了 Go 版客戶端借用前陣子剛學會的 <a href="/blog/whats-golang/">Goroutine 平行運算功能</a>同時發出 100 次請求。其中的眉角是當伺服器唯一的 Instance 忙著處理其他請求時，os.OpenFile() 會得到 <code>All pipe instances are busy</code> 錯誤；若遇到結束上次 NamedPipeServerStream 還來不及新建的空窗期，會得到 <code>The system cannot find the file specified.</code> 錯誤。因此，因應併發情境得自己加上等待重試邏輯或是改用 <a href="https://github.com/Microsoft/go-winio">go-winio</a> 等專用程式庫。</p> <p>我捏了一個大致可跑完 100 次的土砲重試版：(數量再多需處理 NamedPipeServerStream 空窗問題，先跳過)</p> <pre><code>package main
+import (
+"fmt"
+"log"
+"os"
+"strconv"
+"strings"
+"sync"
+"sync/atomic"
+"time"
+)
+func main() {
+pipePath := `\\.\pipe\PSNamedPipeDemo`
+var wg sync.WaitGroup
+var succCount int32
+for i := 0; i &lt; 100; i++ {
+wg.Add(1)
+msg := "Req-" + strconv.Itoa(i) + "
+"
+go func() {
+defer wg.Done()
+var f *os.File
+var err error
+for {
+f, err = os.OpenFile(pipePath, os.O_RDWR, 0777)
+if err != nil {
+if strings.Contains(err.Error(), "All pipe instances are busy") {
+time.Sleep(10 * time.Millisecond) // Wait for 1ms before retrying
+continue
+} else {
+log.Fatalf("error opening file: %v", err)
+}
+}
+break
+}
+defer f.Close()
+f.WriteString(msg)
+err = f.Sync()
+if err != nil {
+log.Fatalf("error syncing file: %v", err)
+}
+data := make([]byte, 100)
+n, err := f.Read(data)
+if err != nil {
+log.Fatalf("error reading file: %v", err)
+}
+reply := string(data[:n])
+fmt.Print(reply)
+atomic.AddInt32(&amp;succCount, 1)
+}()
+}
+wg.Wait()
+fmt.Println("Total Success Count: ", succCount)
+}
+</code></pre> <p>併發 100 次請求測試通過。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638582042203087605.png"></p> <p>演練完畢，收工。</p> <p data-slug="namedpipe-practice" data-title-en="Named Pipe test with PowerShell, JavaScript, Python and Go" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/26/20/59/handy-1224724_1280.jpg#1280#720">The article discusses using Named Pipes for inter-process communication (IPC) in PowerShell, comparing it with other methods like WebAPI. It provides a PowerShell implementation of a Named Pipe server and clients in PowerShell, JavaScript, Python, and Go, testing cross-language communication. It also explores handling high load with parallel requests in Go.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>故事從我想在兩個獨立執行 PowerShell 程序間傳輸資料說起。</p> <p>最開始的想法是寫個迷你 WebAPI，但是寫 WebAPI 不是 PowerShell 的強項，改用 C# 實現有點繞遠路，於是我想起 Named Pipe，一個簡單輕巧的 IPC 選項。過去沒認真研究過，剛好利用機會讓技能樹多長一支新芽。</p> <p>實際動手後發現程式比想像好寫，跨語言應用也很簡單，於是我分別再試寫了 Python、JavaScript 與 Go 版客戶端，完成一場大亂鬥，筆記留念。 先補充背景知識。</p> <p>跨程序溝通有個專門術語 - Interprocess Communictaion（IPC），在 Windows 平台有以下選擇：Clipboard、COM、Data Copy、DDE、File Mapping、Mailslots、Pipes、RPC、Windows Sockets。(延伸閱讀：<a href="/blog/about-shared-memory/">Windows IPC 方式整理</a>) 而 Pipes 分為匿名及具名，匿名僅適用於父子程序溝通，具名管道 Named Pipe 便是本次的主角。</p> <p>我用 PowerShell 實作了一個簡單的 Named Pipe 伺服器，透過 while 無窮迴圈不斷建立新管道等待連線及處理需求。這種寫法使用單一執行緒消化請求，多個請求併發時需排隊，針對高負載情境一般要改成多緒平行處理，但本次的重點在學習原理，就不多花功夫研究。相關說明我寫在註解，直接奉上程式碼：</p> <pre><code>$pipeName = 'PSNamedPipeDemo'
+Write-Host "* Named Pipe Server [$pipeName]"
+$running = $true
+while ($running) {
+# 不斷建立新管道，採讀寫雙向模式
+$pipe = new-object System.IO.Pipes.NamedPipeServerStream($pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+try {
+# 等待連線
+$pipe.WaitForConnection()
+# 建立 StreamReader 和 StreamWriter 以便讀寫資料
+$sr = new-object System.IO.StreamReader($pipe)
+$sw = new-object System.IO.StreamWriter($pipe)
+$sw.AutoFlush = $true # 寫完訊息立即送出緩衝區內容
+$msg = $sr.ReadLine()
+switch ($msg) {
+'/exit' { # 接受 '/exit' 指令，結束 Server
+Write-Host 'Exiting...'
+$sw.WriteLine('Goodbye!')
+$running = $false
+}
+'/guid' { # 接受 '/guid' 指令，回傳 GUID
+$guid = New-Guid
+Write-Host "Generating GUID: " $guid
+$sw.WriteLine($guid)
+}
+Default { # 其他情況，複誦對方傳送內容
+Write-Host $msg
+$sw.WriteLine("echo: $msg")
+}
+}
+}
+finally {
+# 等待管道清空(對方讀取完畢)
+$pipe.WaitForPipeDrain()
+$pipe.Dispose()
+}
+}
+</code></pre> <p>客戶端的做法很類似，差別在改用 NamedPipeClientStream，若伺服器端在本機，伺服器名稱用 "."，讀寫資料一樣用 StreamWriter、StreamReader 即可。</p> <pre><code>param(
+[parameter(Mandatory=$true)]
+[string]$msg
+)
+$pipeName = 'PSNamedPipeDemo'
+$pipe = new-object System.IO.Pipes.NamedPipeClientStream(".", $pipeName, [System.IO.Pipes.PipeDirection]::InOut)
+$pipe.Connect()
+$sw = new-object System.IO.StreamWriter($pipe)
+$sw.AutoFlush = $true
+$sw.WriteLine($msg)
+$pipe.WaitForPipeDrain()
+$sr = new-object System.IO.StreamReader($pipe)
+Write-Host $sr.ReadLine()
+$pipe.WaitForPipeDrain()
+$pipe.Dispose()
+</code></pre> <p>測試成功。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638582042199683781.png"></p> <p>C# 寫法與 PowerShell 大同小異，接著來試試其他語言。</p> <p>JavaScript / Node.js 我選擇用 net.createConnection() 實現 <a href="https://nodejs.org/api/net.html#ipc-support">IPC 通訊</a>：</p> <pre><code>const net = require('net');
+const readline = require('readline');
+const pipePath = '\\\\.\\pipe\\PSNamedPipeDemo';
+if (process.argv.length &gt; 2) {
+message = process.argv[2];
+sendMessage(process.argv[2]).then((response) =&gt; {
+console.log(response);
+});
+}
+else {
+const rl = readline.createInterface({
+input: process.stdin,
+output: process.stdout
+});
+rl.question('Enter message: ', (answer) =&gt; {
+sendMessage(answer).then((response) =&gt; {
+console.log(response);
+});
+rl.close();
+});
+}
+function sendMessage(msg)  {
+return new Promise((resolve, reject) =&gt; {
+const client = net.createConnection(pipePath);
+client.write(msg + '
+');
+client.on('data', (data) =&gt; {
+resolve(data.toString());
+});
+});
+}
+</code></pre> <p>Python 把 <code>\\.\pipe\PSNamedPipeDemo</code> 路徑當成檔案讀寫即可：</p> <pre><code>import os
+import sys
+if len(sys.argv) &gt; 1:
+message = sys.argv[1]
+else:
+message = input("Enter a message: ")
+pipe_path = r'\\.\pipe\PSNamedPipeDemo'
+try:
+with open(pipe_path, 'r+b', buffering=0) as f:
+f.write((message + "
+").encode())
+f.flush()
+data = f.read(100)
+reply = data.decode('utf-8')
+print(reply)
+except Exception as e:
+print(f"Error: {e}")
+</code></pre> <p>Go 也是將 Named Pipe 路徑視為一般檔案，用 <code>os.openFile()</code> 搞定。</p> <pre><code>package main
+import (
+"bufio"
+"fmt"
+"log"
+"os"
+)
+func main() {
+args := os.Args
+var message string
+if len(args) &gt; 1 {
+message = args[1]
+} else {
+fmt.Print("Enter a message: ")
+reader := bufio.NewReader(os.Stdin)
+message, _ = reader.ReadString('
+')
+}
+pipePath := `\\.\pipe\PSNamedPipeDemo`
+f, err := os.OpenFile(pipePath, os.O_RDWR, 0777)
+if err != nil {
+log.Fatalf("error opening file: %v", err)
+}
+defer f.Close()
+f.WriteString(message + "
+")
+err = f.Sync()
+if err != nil {
+log.Fatalf("error syncing file: %v", err)
+}
+data := make([]byte, 100)
+n, err := f.Read(data)
+if err != nil {
+log.Fatalf("error reading file: %v", err)
+}
+reply := string(data[:n])
+fmt.Println(reply)
+}
+</code></pre> <p>啟動 PowerShell Named Pipe 伺服器，分別從 JavaScript、Python、Go 客戶端送出訊息並讀取回應，完成多語言大亂鬥。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638582042201403853.png"></p> <p>最後，我好奇這個 while ($true) 的單執行緒版本伺服器是否能扛住併發請求，便修改了 Go 版客戶端借用前陣子剛學會的 <a href="/blog/whats-golang/">Goroutine 平行運算功能</a>同時發出 100 次請求。其中的眉角是當伺服器唯一的 Instance 忙著處理其他請求時，os.OpenFile() 會得到 <code>All pipe instances are busy</code> 錯誤；若遇到結束上次 NamedPipeServerStream 還來不及新建的空窗期，會得到 <code>The system cannot find the file specified.</code> 錯誤。因此，因應併發情境得自己加上等待重試邏輯或是改用 <a href="https://github.com/Microsoft/go-winio">go-winio</a> 等專用程式庫。</p> <p>我捏了一個大致可跑完 100 次的土砲重試版：(數量再多需處理 NamedPipeServerStream 空窗問題，先跳過)</p> <pre><code>package main
+import (
+"fmt"
+"log"
+"os"
+"strconv"
+"strings"
+"sync"
+"sync/atomic"
+"time"
+)
+func main() {
+pipePath := `\\.\pipe\PSNamedPipeDemo`
+var wg sync.WaitGroup
+var succCount int32
+for i := 0; i &lt; 100; i++ {
+wg.Add(1)
+msg := "Req-" + strconv.Itoa(i) + "
+"
+go func() {
+defer wg.Done()
+var f *os.File
+var err error
+for {
+f, err = os.OpenFile(pipePath, os.O_RDWR, 0777)
+if err != nil {
+if strings.Contains(err.Error(), "All pipe instances are busy") {
+time.Sleep(10 * time.Millisecond) // Wait for 1ms before retrying
+continue
+} else {
+log.Fatalf("error opening file: %v", err)
+}
+}
+break
+}
+defer f.Close()
+f.WriteString(msg)
+err = f.Sync()
+if err != nil {
+log.Fatalf("error syncing file: %v", err)
+}
+data := make([]byte, 100)
+n, err := f.Read(data)
+if err != nil {
+log.Fatalf("error reading file: %v", err)
+}
+reply := string(data[:n])
+fmt.Print(reply)
+atomic.AddInt32(&amp;succCount, 1)
+}()
+}
+wg.Wait()
+fmt.Println("Total Success Count: ", succCount)
+}
+</code></pre> <p>併發 100 次請求測試通過。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638582042203087605.png"></p> <p>演練完畢，收工。</p> <p data-slug="namedpipe-practice" data-title-en="Named Pipe test with PowerShell, JavaScript, Python and Go" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/26/20/59/handy-1224724_1280.jpg#1280#720">The article discusses using Named Pipes for inter-process communication (IPC) in PowerShell, comparing it with other methods like WebAPI. It provides a PowerShell implementation of a Named Pipe server and clients in PowerShell, JavaScript, Python, and Go, testing cross-language communication. It also explores handling high load with parallel requests in Go.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638582042199683781.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638582042199683781.png" medium="image"/>
+    <pubDate>Fri, 02 Aug 2024 14:00:25 GMT</pubDate>
+  </item><item>
     <title><![CDATA[再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel]]></title>
     <link>https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/</link>
     <itunes:title><![CDATA[再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel]]></itunes:title>
@@ -2225,70 +2816,5 @@ Console.WriteLine("After ReadLine()");
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638564808426834074.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638564808426834074.png" medium="image"/>
     <pubDate>Sat, 13 Jul 2024 14:53:59 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[開源授權雜記 - Apache 2.0 授權字型怎麼用？為何 .js 沒 MIT 版權聲明？]]></title>
-    <link>https://blog.darkthread.net/blog/apache-fonts-n-miss-mit-comment/</link>
-    <itunes:title><![CDATA[開源授權雜記 - Apache 2.0 授權字型怎麼用？為何 .js 沒 MIT 版權聲明？]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>前陣子<a href="/blog/opensource-licenses/">開源授權常識補充包</a>提到較寬鬆的 MIT 與 Apache 授權是當今開源專案的主流，允許你自由複製、修改及散佈，衍生作品要不要開源隨喜，不管個人使用或商業營利都行，使用上沒啥壓力，有助於軟體快速傳播發光發熱。MIT 與 Apache 使用上的小小要求是散佈時必須附上版權聲明，在使用上仍需注意，分享最近對兩個相關議題的研究。</p> <h3>Apache 2.0 授權字型怎麼用？</h3> <p>開源字型一般可透過線上服務引用，在網頁只需用 <code>&lt;link href="https://fonts.googleapis.com/css2?family=Roboto" rel="stylesheet"&gt;</code> 引用官方提供的 css，其中會有 @font-face 指向放在官方 CDN 的字型體，開發者毋須操煩授權問題。</p> <p>但如果因特殊需求要將字型檔放在自家網站上，便涉及複製及散佈(由網站傳送到客戶端的瀏覽器)，必須遵守授權條款。</p> <p>開源字型目前的主流是 SIL OpenFont 授權，但仍有一些是採用 Apache 2.0。以 <a href="https://fonts.google.com/attribution">Google 開源字型</a>為例，SIL OpenFont 為大宗，但仍有部分是 Apache 2.0。</p> <p><a href="https://zh.wikipedia.org/zh-tw/SIL%E5%BC%80%E6%BA%90%E5%AD%97%E4%BD%93%E6%8E%88%E6%9D%83">SIL開源字型授權, SIL OpenFont License (OFL)</a>最大的優點是字型檔本身在 Metadata 內含版權聲明，散佈檔案的同時也已附上版權聲明，符合授權要求。如果是 Apache 2.0 就麻煩多了，依據 Apache 2.0 規定，即便散佈的是編譯過的結果，<a href="https://www.apache.org/legal/src-headers.html#faq-binaries">也必須附上 LICENSE 及 NOTICE 檔案</a>。(註：MIT 只需要用註解加幾行聲明文字即達標，比 Apache 必須放完整檔案 簡便多了，這是它廣受歡迎的原因吧)</p> <p>因此，若要將字型檔放在網站供使用者下載，就必須一併提供 LICENSE 及 NOTICE 檔，網頁瀏覽不像軟體有安裝程式可以一併附上檔案，我有查到<a href="https://github.com/googlefonts/roboto/issues/247">相關討論</a>，但沒有找到標準做法，在網頁頁尾 Footer 加上聲明有點太隆重，我個人覺得在 .css 用註解附上 LICENSE.TXT 連結是較可接受做法，但這樣有沒有 100% 滿足授權款條要求就不得而知了。</p> <h3>.js 沒加 MIT 版權聲明？</h3> <p>依據 <a href="https://opensource.org/license/mit">MIT 授權聲明</a>在散佈軟體全部或部分時都必須附上版權聲明：The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p> <p>對於 MIT 授權的 JavaScript 程式庫，加註聲明不是難事。以 jQuery 為例，<a href="https://code.jquery.com/jquery-3.7.1.js">jquery-3.7.1.js</a> 檔案開頭有 MIT 授權資訊：</p> <pre><code>/*!
-* jQuery JavaScript Library v3.7.1
-* https://jquery.com/
-*
-* Copyright OpenJS Foundation and other contributors
-* Released under the MIT license
-* https://jquery.org/license
-*
-* Date: 2023-08-28T13:37Z
-*/
-( function( global, factory ) {
-</code></pre> <p>即便是 <a href="https://code.jquery.com/jquery-3.7.1.min.js">Minify 壓縮版</a>，也有精簡版的版權資訊。</p> <pre><code>/*! jQuery v3.7.1 | (c) OpenJS Foundation and other contributors | jquery.org/license */
-</code></pre> <p>不過，我意外發現<a href="https://unpkg.com/vue@3.3/dist/vue.global.js">Vue 3 有些 vue.global.js 版本</a>就沒附 MIT 版權資訊，我查到有其他網友跟我一樣<a href="https://github.com/vuejs/core/issues/10054">有此疑問</a>，得到 Vue 原作者尤雨溪(Evan You)親自回覆。Evan 覺得 npm 安裝 Vue 程式庫時有包含 LICENSE 檔就夠了，js 註解有可能在 Bundle 打包過程被捨棄，意義不大；但網友提到若網站放了 vue.global.js 讓瀏覽器下載便成立散佈行為，缺少授權資訊可能導致違反授權條款，陷開發者於不義。Evan 從善如流，於 3.4.8 版補上授權註解。</p> <p>至於在 Minify / Bundle 壓縮打包過程，如何防止版權聲明註解被移除，目前有一些約定俗成的規則：<a href="https://stackoverflow.com/q/48408237/288936">參考</a></p> <p>使用 <code>/*! ... */</code> 或在註解加入 @license、@preserve標註版權註解，目前主流壓縮打包工具已能識別及保留這些註解。</p> <pre><code>/*!
-* MIT License
-* ...
-*/
-/* @license MIT License */
-</code></pre> <p data-slug="apache-fonts-n-miss-mit-comment" data-fbimg="https://upload.cc/i1/2021/05/22/EqblQ3.png#600#338"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>前陣子<a href="/blog/opensource-licenses/">開源授權常識補充包</a>提到較寬鬆的 MIT 與 Apache 授權是當今開源專案的主流，允許你自由複製、修改及散佈，衍生作品要不要開源隨喜，不管個人使用或商業營利都行，使用上沒啥壓力，有助於軟體快速傳播發光發熱。MIT 與 Apache 使用上的小小要求是散佈時必須附上版權聲明，在使用上仍需注意，分享最近對兩個相關議題的研究。</p> <h3>Apache 2.0 授權字型怎麼用？</h3> <p>開源字型一般可透過線上服務引用，在網頁只需用 <code>&lt;link href="https://fonts.googleapis.com/css2?family=Roboto" rel="stylesheet"&gt;</code> 引用官方提供的 css，其中會有 @font-face 指向放在官方 CDN 的字型體，開發者毋須操煩授權問題。</p> <p>但如果因特殊需求要將字型檔放在自家網站上，便涉及複製及散佈(由網站傳送到客戶端的瀏覽器)，必須遵守授權條款。</p> <p>開源字型目前的主流是 SIL OpenFont 授權，但仍有一些是採用 Apache 2.0。以 <a href="https://fonts.google.com/attribution">Google 開源字型</a>為例，SIL OpenFont 為大宗，但仍有部分是 Apache 2.0。</p> <p><a href="https://zh.wikipedia.org/zh-tw/SIL%E5%BC%80%E6%BA%90%E5%AD%97%E4%BD%93%E6%8E%88%E6%9D%83">SIL開源字型授權, SIL OpenFont License (OFL)</a>最大的優點是字型檔本身在 Metadata 內含版權聲明，散佈檔案的同時也已附上版權聲明，符合授權要求。如果是 Apache 2.0 就麻煩多了，依據 Apache 2.0 規定，即便散佈的是編譯過的結果，<a href="https://www.apache.org/legal/src-headers.html#faq-binaries">也必須附上 LICENSE 及 NOTICE 檔案</a>。(註：MIT 只需要用註解加幾行聲明文字即達標，比 Apache 必須放完整檔案 簡便多了，這是它廣受歡迎的原因吧)</p> <p>因此，若要將字型檔放在網站供使用者下載，就必須一併提供 LICENSE 及 NOTICE 檔，網頁瀏覽不像軟體有安裝程式可以一併附上檔案，我有查到<a href="https://github.com/googlefonts/roboto/issues/247">相關討論</a>，但沒有找到標準做法，在網頁頁尾 Footer 加上聲明有點太隆重，我個人覺得在 .css 用註解附上 LICENSE.TXT 連結是較可接受做法，但這樣有沒有 100% 滿足授權款條要求就不得而知了。</p> <h3>.js 沒加 MIT 版權聲明？</h3> <p>依據 <a href="https://opensource.org/license/mit">MIT 授權聲明</a>在散佈軟體全部或部分時都必須附上版權聲明：The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p> <p>對於 MIT 授權的 JavaScript 程式庫，加註聲明不是難事。以 jQuery 為例，<a href="https://code.jquery.com/jquery-3.7.1.js">jquery-3.7.1.js</a> 檔案開頭有 MIT 授權資訊：</p> <pre><code>/*!
-* jQuery JavaScript Library v3.7.1
-* https://jquery.com/
-*
-* Copyright OpenJS Foundation and other contributors
-* Released under the MIT license
-* https://jquery.org/license
-*
-* Date: 2023-08-28T13:37Z
-*/
-( function( global, factory ) {
-</code></pre> <p>即便是 <a href="https://code.jquery.com/jquery-3.7.1.min.js">Minify 壓縮版</a>，也有精簡版的版權資訊。</p> <pre><code>/*! jQuery v3.7.1 | (c) OpenJS Foundation and other contributors | jquery.org/license */
-</code></pre> <p>不過，我意外發現<a href="https://unpkg.com/vue@3.3/dist/vue.global.js">Vue 3 有些 vue.global.js 版本</a>就沒附 MIT 版權資訊，我查到有其他網友跟我一樣<a href="https://github.com/vuejs/core/issues/10054">有此疑問</a>，得到 Vue 原作者尤雨溪(Evan You)親自回覆。Evan 覺得 npm 安裝 Vue 程式庫時有包含 LICENSE 檔就夠了，js 註解有可能在 Bundle 打包過程被捨棄，意義不大；但網友提到若網站放了 vue.global.js 讓瀏覽器下載便成立散佈行為，缺少授權資訊可能導致違反授權條款，陷開發者於不義。Evan 從善如流，於 3.4.8 版補上授權註解。</p> <p>至於在 Minify / Bundle 壓縮打包過程，如何防止版權聲明註解被移除，目前有一些約定俗成的規則：<a href="https://stackoverflow.com/q/48408237/288936">參考</a></p> <p>使用 <code>/*! ... */</code> 或在註解加入 @license、@preserve標註版權註解，目前主流壓縮打包工具已能識別及保留這些註解。</p> <pre><code>/*!
-* MIT License
-* ...
-*/
-/* @license MIT License */
-</code></pre> <p data-slug="apache-fonts-n-miss-mit-comment" data-fbimg="https://upload.cc/i1/2021/05/22/EqblQ3.png#600#338"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>前陣子<a href="/blog/opensource-licenses/">開源授權常識補充包</a>提到較寬鬆的 MIT 與 Apache 授權是當今開源專案的主流，允許你自由複製、修改及散佈，衍生作品要不要開源隨喜，不管個人使用或商業營利都行，使用上沒啥壓力，有助於軟體快速傳播發光發熱。MIT 與 Apache 使用上的小小要求是散佈時必須附上版權聲明，在使用上仍需注意，分享最近對兩個相關議題的研究。</p> <h3>Apache 2.0 授權字型怎麼用？</h3> <p>開源字型一般可透過線上服務引用，在網頁只需用 <code>&lt;link href="https://fonts.googleapis.com/css2?family=Roboto" rel="stylesheet"&gt;</code> 引用官方提供的 css，其中會有 @font-face 指向放在官方 CDN 的字型體，開發者毋須操煩授權問題。</p> <p>但如果因特殊需求要將字型檔放在自家網站上，便涉及複製及散佈(由網站傳送到客戶端的瀏覽器)，必須遵守授權條款。</p> <p>開源字型目前的主流是 SIL OpenFont 授權，但仍有一些是採用 Apache 2.0。以 <a href="https://fonts.google.com/attribution">Google 開源字型</a>為例，SIL OpenFont 為大宗，但仍有部分是 Apache 2.0。</p> <p><a href="https://zh.wikipedia.org/zh-tw/SIL%E5%BC%80%E6%BA%90%E5%AD%97%E4%BD%93%E6%8E%88%E6%9D%83">SIL開源字型授權, SIL OpenFont License (OFL)</a>最大的優點是字型檔本身在 Metadata 內含版權聲明，散佈檔案的同時也已附上版權聲明，符合授權要求。如果是 Apache 2.0 就麻煩多了，依據 Apache 2.0 規定，即便散佈的是編譯過的結果，<a href="https://www.apache.org/legal/src-headers.html#faq-binaries">也必須附上 LICENSE 及 NOTICE 檔案</a>。(註：MIT 只需要用註解加幾行聲明文字即達標，比 Apache 必須放完整檔案 簡便多了，這是它廣受歡迎的原因吧)</p> <p>因此，若要將字型檔放在網站供使用者下載，就必須一併提供 LICENSE 及 NOTICE 檔，網頁瀏覽不像軟體有安裝程式可以一併附上檔案，我有查到<a href="https://github.com/googlefonts/roboto/issues/247">相關討論</a>，但沒有找到標準做法，在網頁頁尾 Footer 加上聲明有點太隆重，我個人覺得在 .css 用註解附上 LICENSE.TXT 連結是較可接受做法，但這樣有沒有 100% 滿足授權款條要求就不得而知了。</p> <h3>.js 沒加 MIT 版權聲明？</h3> <p>依據 <a href="https://opensource.org/license/mit">MIT 授權聲明</a>在散佈軟體全部或部分時都必須附上版權聲明：The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p> <p>對於 MIT 授權的 JavaScript 程式庫，加註聲明不是難事。以 jQuery 為例，<a href="https://code.jquery.com/jquery-3.7.1.js">jquery-3.7.1.js</a> 檔案開頭有 MIT 授權資訊：</p> <pre><code>/*!
-* jQuery JavaScript Library v3.7.1
-* https://jquery.com/
-*
-* Copyright OpenJS Foundation and other contributors
-* Released under the MIT license
-* https://jquery.org/license
-*
-* Date: 2023-08-28T13:37Z
-*/
-( function( global, factory ) {
-</code></pre> <p>即便是 <a href="https://code.jquery.com/jquery-3.7.1.min.js">Minify 壓縮版</a>，也有精簡版的版權資訊。</p> <pre><code>/*! jQuery v3.7.1 | (c) OpenJS Foundation and other contributors | jquery.org/license */
-</code></pre> <p>不過，我意外發現<a href="https://unpkg.com/vue@3.3/dist/vue.global.js">Vue 3 有些 vue.global.js 版本</a>就沒附 MIT 版權資訊，我查到有其他網友跟我一樣<a href="https://github.com/vuejs/core/issues/10054">有此疑問</a>，得到 Vue 原作者尤雨溪(Evan You)親自回覆。Evan 覺得 npm 安裝 Vue 程式庫時有包含 LICENSE 檔就夠了，js 註解有可能在 Bundle 打包過程被捨棄，意義不大；但網友提到若網站放了 vue.global.js 讓瀏覽器下載便成立散佈行為，缺少授權資訊可能導致違反授權條款，陷開發者於不義。Evan 從善如流，於 3.4.8 版補上授權註解。</p> <p>至於在 Minify / Bundle 壓縮打包過程，如何防止版權聲明註解被移除，目前有一些約定俗成的規則：<a href="https://stackoverflow.com/q/48408237/288936">參考</a></p> <p>使用 <code>/*! ... */</code> 或在註解加入 @license、@preserve標註版權註解，目前主流壓縮打包工具已能識別及保留這些註解。</p> <pre><code>/*!
-* MIT License
-* ...
-*/
-/* @license MIT License */
-</code></pre> <p data-slug="apache-fonts-n-miss-mit-comment" data-fbimg="https://upload.cc/i1/2021/05/22/EqblQ3.png#600#338"> </p>]]></content:encoded>
-    
-    <pubDate>Fri, 12 Jul 2024 13:20:28 GMT</pubDate>
   </item></channel>
 </rss>
