@@ -30,6 +30,174 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[無獨顯 i5 也能順跑的迷你語言模型 - Gemma 2 2B 體驗]]></title>
+    <link>https://blog.darkthread.net/blog/test-gemma-2-2b/</link>
+    <itunes:title><![CDATA[無獨顯 i5 也能順跑的迷你語言模型 - Gemma 2 2B 體驗]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>之前<a href="/blog/llama-cpp/">試玩過台灣在地版 13B LLaMA 2 地端模型</a>，我這台沒有獨顯立顯卡的<a href="/blog/deskmini-i5/">迷你工作機</a>，12 代 i5 CPU 跑起來大約一秒一個字，效能勉強可接受。</p> <p>Google 在 7 月底釋出了開源模型 Gemma 2 的最迷你版本，參數量只有 2B，號稱在 <a href="https://chat.lmsys.org/">LMSYS 聊天機器人競技場</a>表現亮眼，<a href="https://www.ithome.com.tw/news/164250">打敗 GPT-3.5</a>。</p> <p>2B 參數只佔 2GB 多記憶體，不需刻意量化瘦身就能在顯存有限或純 CPU 環境跑，聽來很有吸引力，我決定試玩一下。</p> <p>我選擇先用 Ollama 跑，看看速度如何，不夠力再試 Ollama.cpp。</p> <p>從 <a href="https://ollama.com/download/windows">Ollama 官網下載</a> OllamaSetup.exe：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638585524356281331.png"></p> <p>下一步下一步無腦裝完：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638585524359429818.png"></p> <p>開 CMD，輸入 <code>ollama run gemma:2b</code> 等 Ollama 下載啟動模型，幾分鐘後便可開始跟 Gemma 2 2B 聊天，而 Gemma 2 2B 耗用記憶體約 2.4G：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638585524361163704.png"></p> <p>隨手胡亂測試，速度讓人驚豔，但正確性不如預期，可能因為 2B 參數有限，知識量不能與 ChatGPT 這類 175B 大模型相提並論，尤其是中文方面差距更大：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638585524364995219.gif"></p> <p>最後，復習如何用 .NET 整合 Gemma 2 2B 做中文翻譯及互動聊天，一樣是用開源套件 OllamSharp，開個 .NET 專案、加入參照：</p> <pre><code>dotnet new console -o gemma-2b-test
+cd gemma-2b-test
+dotnet add package OllamaSharp
+</code></pre> <p>在 Program.cs 寫幾行程式，分別用 StreamCompletion() 依 Prompt 執行翻譯，用 Chat.Send() 做互動交談：</p> <pre><code>// set up the client
+using System.Runtime.InteropServices.Marshalling;
+using OllamaSharp;
+var uri = new Uri("http://localhost:11434");
+var ollama = new OllamaApiClient(uri);
+ollama.SelectedModel = "gemma:2b";
+void Print(string msg, ConsoleColor color = ConsoleColor.White)
+{
+Console.ForegroundColor = color;
+Console.Write(msg);
+Console.ResetColor();
+}
+ConversationContext context = null!;
+Print("翻譯任務測試
+", ConsoleColor.Cyan);
+string prompt = @"將以下內容翻譯成zh-tw並使用台灣用語:
+In processor design, microcode serves as an intermediary layer situated between the central processing unit (CPU) hardware
+and the programmer-visible instruction set architecture of a computer, also known as its machine code.
+It consists of a set of hardware-level instructions that implement the higher-level machine code instructions or
+control internal finite-state machine sequencing in many digital processing components.
+While microcode is utilized in general-purpose CPUs in contemporary desktops, it also functions as a fallback path
+for scenarios that the faster hardwired control unit is unable to manage.
+";
+context = await ollama.StreamCompletion(prompt, context,
+stream =&gt; Print(stream?.Response ?? ""));
+Print("
+互動聊天測試
+", ConsoleColor.Cyan);
+var chat = ollama.Chat(stream =&gt;
+{
+if (stream == null) return;
+Print(stream?.Message?.Content ?? "");
+if (stream!.Done) Console.WriteLine();
+});
+while (true)
+{
+Console.ForegroundColor = ConsoleColor.Yellow;
+var message = Console.ReadLine();
+if (message == "/bye")
+{
+Print("Bye!");
+break;
+}
+else if (!string.IsNullOrEmpty(message))
+{
+await chat.Send(message);
+}
+}
+</code></pre> <p>實測結果如下，速度讓人印象深刻，但準確性差強人意：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638585524736495918.gif"></p> <p>由以上測試，我想 Gemma 2 2B 比較適合不需大量知識也能勝任的應用，或是為特定任務 Fine Tune 再上場，能在沒有像樣顯卡的窮酸電腦或記憶空間有限的行動裝置跑出流暢速度是它最強大的武器，在特定應用情境會是很出色的選擇。</p> <p data-slug="test-gemma-2-2b" data-title-en="Testing Gemma 2 2B with .NET" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/05/09/08/02/model-1380590_960_720.jpg#960#720">The article explores running the lightweight 2B parameter model, Gemma 2, using Ollama on a CPU-only environment. The setup process is detailed, followed by performance testing and integration with .NET for translation and interactive chat tasks. While the speed is impressive, accuracy is limited due to the smaller model size.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>之前<a href="/blog/llama-cpp/">試玩過台灣在地版 13B LLaMA 2 地端模型</a>，我這台沒有獨顯立顯卡的<a href="/blog/deskmini-i5/">迷你工作機</a>，12 代 i5 CPU 跑起來大約一秒一個字，效能勉強可接受。</p> <p>Google 在 7 月底釋出了開源模型 Gemma 2 的最迷你版本，參數量只有 2B，號稱在 <a href="https://chat.lmsys.org/">LMSYS 聊天機器人競技場</a>表現亮眼，<a href="https://www.ithome.com.tw/news/164250">打敗 GPT-3.5</a>。</p> <p>2B 參數只佔 2GB 多記憶體，不需刻意量化瘦身就能在顯存有限或純 CPU 環境跑，聽來很有吸引力，我決定試玩一下。</p> <p>我選擇先用 Ollama 跑，看看速度如何，不夠力再試 Ollama.cpp。</p> <p>從 <a href="https://ollama.com/download/windows">Ollama 官網下載</a> OllamaSetup.exe：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638585524356281331.png"></p> <p>下一步下一步無腦裝完：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638585524359429818.png"></p> <p>開 CMD，輸入 <code>ollama run gemma:2b</code> 等 Ollama 下載啟動模型，幾分鐘後便可開始跟 Gemma 2 2B 聊天，而 Gemma 2 2B 耗用記憶體約 2.4G：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638585524361163704.png"></p> <p>隨手胡亂測試，速度讓人驚豔，但正確性不如預期，可能因為 2B 參數有限，知識量不能與 ChatGPT 這類 175B 大模型相提並論，尤其是中文方面差距更大：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638585524364995219.gif"></p> <p>最後，復習如何用 .NET 整合 Gemma 2 2B 做中文翻譯及互動聊天，一樣是用開源套件 OllamSharp，開個 .NET 專案、加入參照：</p> <pre><code>dotnet new console -o gemma-2b-test
+cd gemma-2b-test
+dotnet add package OllamaSharp
+</code></pre> <p>在 Program.cs 寫幾行程式，分別用 StreamCompletion() 依 Prompt 執行翻譯，用 Chat.Send() 做互動交談：</p> <pre><code>// set up the client
+using System.Runtime.InteropServices.Marshalling;
+using OllamaSharp;
+var uri = new Uri("http://localhost:11434");
+var ollama = new OllamaApiClient(uri);
+ollama.SelectedModel = "gemma:2b";
+void Print(string msg, ConsoleColor color = ConsoleColor.White)
+{
+Console.ForegroundColor = color;
+Console.Write(msg);
+Console.ResetColor();
+}
+ConversationContext context = null!;
+Print("翻譯任務測試
+", ConsoleColor.Cyan);
+string prompt = @"將以下內容翻譯成zh-tw並使用台灣用語:
+In processor design, microcode serves as an intermediary layer situated between the central processing unit (CPU) hardware
+and the programmer-visible instruction set architecture of a computer, also known as its machine code.
+It consists of a set of hardware-level instructions that implement the higher-level machine code instructions or
+control internal finite-state machine sequencing in many digital processing components.
+While microcode is utilized in general-purpose CPUs in contemporary desktops, it also functions as a fallback path
+for scenarios that the faster hardwired control unit is unable to manage.
+";
+context = await ollama.StreamCompletion(prompt, context,
+stream =&gt; Print(stream?.Response ?? ""));
+Print("
+互動聊天測試
+", ConsoleColor.Cyan);
+var chat = ollama.Chat(stream =&gt;
+{
+if (stream == null) return;
+Print(stream?.Message?.Content ?? "");
+if (stream!.Done) Console.WriteLine();
+});
+while (true)
+{
+Console.ForegroundColor = ConsoleColor.Yellow;
+var message = Console.ReadLine();
+if (message == "/bye")
+{
+Print("Bye!");
+break;
+}
+else if (!string.IsNullOrEmpty(message))
+{
+await chat.Send(message);
+}
+}
+</code></pre> <p>實測結果如下，速度讓人印象深刻，但準確性差強人意：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638585524736495918.gif"></p> <p>由以上測試，我想 Gemma 2 2B 比較適合不需大量知識也能勝任的應用，或是為特定任務 Fine Tune 再上場，能在沒有像樣顯卡的窮酸電腦或記憶空間有限的行動裝置跑出流暢速度是它最強大的武器，在特定應用情境會是很出色的選擇。</p> <p data-slug="test-gemma-2-2b" data-title-en="Testing Gemma 2 2B with .NET" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/05/09/08/02/model-1380590_960_720.jpg#960#720">The article explores running the lightweight 2B parameter model, Gemma 2, using Ollama on a CPU-only environment. The setup process is detailed, followed by performance testing and integration with .NET for translation and interactive chat tasks. While the speed is impressive, accuracy is limited due to the smaller model size.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>之前<a href="/blog/llama-cpp/">試玩過台灣在地版 13B LLaMA 2 地端模型</a>，我這台沒有獨顯立顯卡的<a href="/blog/deskmini-i5/">迷你工作機</a>，12 代 i5 CPU 跑起來大約一秒一個字，效能勉強可接受。</p> <p>Google 在 7 月底釋出了開源模型 Gemma 2 的最迷你版本，參數量只有 2B，號稱在 <a href="https://chat.lmsys.org/">LMSYS 聊天機器人競技場</a>表現亮眼，<a href="https://www.ithome.com.tw/news/164250">打敗 GPT-3.5</a>。</p> <p>2B 參數只佔 2GB 多記憶體，不需刻意量化瘦身就能在顯存有限或純 CPU 環境跑，聽來很有吸引力，我決定試玩一下。</p> <p>我選擇先用 Ollama 跑，看看速度如何，不夠力再試 Ollama.cpp。</p> <p>從 <a href="https://ollama.com/download/windows">Ollama 官網下載</a> OllamaSetup.exe：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638585524356281331.png"></p> <p>下一步下一步無腦裝完：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638585524359429818.png"></p> <p>開 CMD，輸入 <code>ollama run gemma:2b</code> 等 Ollama 下載啟動模型，幾分鐘後便可開始跟 Gemma 2 2B 聊天，而 Gemma 2 2B 耗用記憶體約 2.4G：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638585524361163704.png"></p> <p>隨手胡亂測試，速度讓人驚豔，但正確性不如預期，可能因為 2B 參數有限，知識量不能與 ChatGPT 這類 175B 大模型相提並論，尤其是中文方面差距更大：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638585524364995219.gif"></p> <p>最後，復習如何用 .NET 整合 Gemma 2 2B 做中文翻譯及互動聊天，一樣是用開源套件 OllamSharp，開個 .NET 專案、加入參照：</p> <pre><code>dotnet new console -o gemma-2b-test
+cd gemma-2b-test
+dotnet add package OllamaSharp
+</code></pre> <p>在 Program.cs 寫幾行程式，分別用 StreamCompletion() 依 Prompt 執行翻譯，用 Chat.Send() 做互動交談：</p> <pre><code>// set up the client
+using System.Runtime.InteropServices.Marshalling;
+using OllamaSharp;
+var uri = new Uri("http://localhost:11434");
+var ollama = new OllamaApiClient(uri);
+ollama.SelectedModel = "gemma:2b";
+void Print(string msg, ConsoleColor color = ConsoleColor.White)
+{
+Console.ForegroundColor = color;
+Console.Write(msg);
+Console.ResetColor();
+}
+ConversationContext context = null!;
+Print("翻譯任務測試
+", ConsoleColor.Cyan);
+string prompt = @"將以下內容翻譯成zh-tw並使用台灣用語:
+In processor design, microcode serves as an intermediary layer situated between the central processing unit (CPU) hardware
+and the programmer-visible instruction set architecture of a computer, also known as its machine code.
+It consists of a set of hardware-level instructions that implement the higher-level machine code instructions or
+control internal finite-state machine sequencing in many digital processing components.
+While microcode is utilized in general-purpose CPUs in contemporary desktops, it also functions as a fallback path
+for scenarios that the faster hardwired control unit is unable to manage.
+";
+context = await ollama.StreamCompletion(prompt, context,
+stream =&gt; Print(stream?.Response ?? ""));
+Print("
+互動聊天測試
+", ConsoleColor.Cyan);
+var chat = ollama.Chat(stream =&gt;
+{
+if (stream == null) return;
+Print(stream?.Message?.Content ?? "");
+if (stream!.Done) Console.WriteLine();
+});
+while (true)
+{
+Console.ForegroundColor = ConsoleColor.Yellow;
+var message = Console.ReadLine();
+if (message == "/bye")
+{
+Print("Bye!");
+break;
+}
+else if (!string.IsNullOrEmpty(message))
+{
+await chat.Send(message);
+}
+}
+</code></pre> <p>實測結果如下，速度讓人印象深刻，但準確性差強人意：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638585524736495918.gif"></p> <p>由以上測試，我想 Gemma 2 2B 比較適合不需大量知識也能勝任的應用，或是為特定任務 Fine Tune 再上場，能在沒有像樣顯卡的窮酸電腦或記憶空間有限的行動裝置跑出流暢速度是它最強大的武器，在特定應用情境會是很出色的選擇。</p> <p data-slug="test-gemma-2-2b" data-title-en="Testing Gemma 2 2B with .NET" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/05/09/08/02/model-1380590_960_720.jpg#960#720">The article explores running the lightweight 2B parameter model, Gemma 2, using Ollama on a CPU-only environment. The setup process is detailed, followed by performance testing and integration with .NET for translation and interactive chat tasks. While the speed is impressive, accuracy is limited due to the smaller model size.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638585524356281331.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638585524356281331.png" medium="image"/>
+    <pubDate>Tue, 06 Aug 2024 14:44:33 GMT</pubDate>
+  </item><item>
     <title><![CDATA[資訊新聞隨筆 - 看懂 Intel 13/14 代 Core CPU 災情]]></title>
     <link>https://blog.darkthread.net/blog/intel-cpu-microcode-issue/</link>
     <itunes:title><![CDATA[資訊新聞隨筆 - 看懂 Intel 13/14 代 Core CPU 災情]]></itunes:title>
@@ -2072,20 +2240,5 @@ et8.0\win-x64\publish\
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638566453986811955.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638566453986811955.png" medium="image"/>
     <pubDate>Mon, 15 Jul 2024 13:00:00 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[讓廢物再次偉大 - 焊接小幫手 3.0]]></title>
-    <link>https://blog.darkthread.net/blog/soldering-assistant-v3/</link>
-    <itunes:title><![CDATA[讓廢物再次偉大 - 焊接小幫手 3.0]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>整理雜物時發現時代的眼淚 - 類比電視訊號分線器，想當年買一個要花好幾百塊，如今成為 100% 的廢物。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638565251984954390.jpg" alt="thumbnail"></p> <p>準備丟資源回收前，想起前陣子在 <a href="https://www.facebook.com/groups/arduinotaipei/posts/8410570532303657/">Arduino Taipei 社團</a>看到網友分享用電磁閥底座、壓力表轉換接頭自製焊接輔助夾具的好點子。一對三分線器的造型跟電磁閥底座有 87 分像。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638565251988163716.jpg"></p> <p>之前我曾用 USB 金屬蛇管做過<a href="/blog/solering-assistant-2/">焊接小幫手 2.0</a>，但固定的木板基座笨重又佔空間，用起來很不方便。</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig2_637791330628564303.jpg" alt="thumbnail"></p> <p>網右用分線器當底座感覺是個好點子，但要如何把蛇管接到分線器的天線接頭上？過去我應該會 3D 建模外帶列印，花上數小時做轉換環。但現在不同了，不久前我已升級為會用<a href="/blog/uv-resin/">UV 光固化膠</a>的男人!</p> <p>想用光固化膠固定必須要有模具，意外發波霸奶茶的透明粗吸管(必須能透光，UV 才能照進去讓管內的膠硬化)超適合，直徑大小幾乎是量身訂做。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638565251990042291.jpg" alt="thumbnail"></p> <p>套上吸管接入蛇管接頭，灌膠後用 UV LED 照射，大約兩分鐘即可固化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638565251992352033.jpg" alt="thumbnail"></p> <p>多次注膠固化，天線接頭與蛇管頭像是被一根壓克力圓柱包覆，牢固的程度超乎預期，效果讓人十分滿意。</p> <p>但小試一下，馬上發現問題。分線器雖是鋁製金屬，但底面積偏小且重量壓不住蛇管臂長槓桿產生的力矩，超容易翻車。我再找到簡單粗暴的解法，挖出報廢硬碟，發現分線器螺絲孔距居然跟硬碟底部的螺絲孔距幾乎吻合，可以穩穩鎖在硬碟上。3.5 吋硬碟體積不大但份量十足，用來當底座穩如泰山，是個完美解決方案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638565251994079819.jpg" alt="thumbnail"></p> <p>就醬，焊接小幫手 3.0 誕生了!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638565251996112482.jpg" alt="thumbnail"></p> <p>USB 金屬蛇管的穩定性很不錯，不用雙手也能完成兩根電線的搭接，讚!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638565251998351542.jpg" alt="thumbnail"></p> <p>USB 金屬蛇管 25 元，珍奶吸管 0 元，報廢分線器及硬碟，0 元，讓廢物再次偉大，無價!</p> <p data-slug="soldering-assistant-v3" data-fbimg="https://i.imgur.com/v6vh4Xg.png#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>整理雜物時發現時代的眼淚 - 類比電視訊號分線器，想當年買一個要花好幾百塊，如今成為 100% 的廢物。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638565251984954390.jpg" alt="thumbnail"></p> <p>準備丟資源回收前，想起前陣子在 <a href="https://www.facebook.com/groups/arduinotaipei/posts/8410570532303657/">Arduino Taipei 社團</a>看到網友分享用電磁閥底座、壓力表轉換接頭自製焊接輔助夾具的好點子。一對三分線器的造型跟電磁閥底座有 87 分像。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638565251988163716.jpg"></p> <p>之前我曾用 USB 金屬蛇管做過<a href="/blog/solering-assistant-2/">焊接小幫手 2.0</a>，但固定的木板基座笨重又佔空間，用起來很不方便。</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig2_637791330628564303.jpg" alt="thumbnail"></p> <p>網右用分線器當底座感覺是個好點子，但要如何把蛇管接到分線器的天線接頭上？過去我應該會 3D 建模外帶列印，花上數小時做轉換環。但現在不同了，不久前我已升級為會用<a href="/blog/uv-resin/">UV 光固化膠</a>的男人!</p> <p>想用光固化膠固定必須要有模具，意外發波霸奶茶的透明粗吸管(必須能透光，UV 才能照進去讓管內的膠硬化)超適合，直徑大小幾乎是量身訂做。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638565251990042291.jpg" alt="thumbnail"></p> <p>套上吸管接入蛇管接頭，灌膠後用 UV LED 照射，大約兩分鐘即可固化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638565251992352033.jpg" alt="thumbnail"></p> <p>多次注膠固化，天線接頭與蛇管頭像是被一根壓克力圓柱包覆，牢固的程度超乎預期，效果讓人十分滿意。</p> <p>但小試一下，馬上發現問題。分線器雖是鋁製金屬，但底面積偏小且重量壓不住蛇管臂長槓桿產生的力矩，超容易翻車。我再找到簡單粗暴的解法，挖出報廢硬碟，發現分線器螺絲孔距居然跟硬碟底部的螺絲孔距幾乎吻合，可以穩穩鎖在硬碟上。3.5 吋硬碟體積不大但份量十足，用來當底座穩如泰山，是個完美解決方案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638565251994079819.jpg" alt="thumbnail"></p> <p>就醬，焊接小幫手 3.0 誕生了!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638565251996112482.jpg" alt="thumbnail"></p> <p>USB 金屬蛇管的穩定性很不錯，不用雙手也能完成兩根電線的搭接，讚!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638565251998351542.jpg" alt="thumbnail"></p> <p>USB 金屬蛇管 25 元，珍奶吸管 0 元，報廢分線器及硬碟，0 元，讓廢物再次偉大，無價!</p> <p data-slug="soldering-assistant-v3" data-fbimg="https://i.imgur.com/v6vh4Xg.png#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>整理雜物時發現時代的眼淚 - 類比電視訊號分線器，想當年買一個要花好幾百塊，如今成為 100% 的廢物。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638565251984954390.jpg" alt="thumbnail"></p> <p>準備丟資源回收前，想起前陣子在 <a href="https://www.facebook.com/groups/arduinotaipei/posts/8410570532303657/">Arduino Taipei 社團</a>看到網友分享用電磁閥底座、壓力表轉換接頭自製焊接輔助夾具的好點子。一對三分線器的造型跟電磁閥底座有 87 分像。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638565251988163716.jpg"></p> <p>之前我曾用 USB 金屬蛇管做過<a href="/blog/solering-assistant-2/">焊接小幫手 2.0</a>，但固定的木板基座笨重又佔空間，用起來很不方便。</p> <p><img src="https://blog.darkthread.net/Posts/files/Fig2_637791330628564303.jpg" alt="thumbnail"></p> <p>網右用分線器當底座感覺是個好點子，但要如何把蛇管接到分線器的天線接頭上？過去我應該會 3D 建模外帶列印，花上數小時做轉換環。但現在不同了，不久前我已升級為會用<a href="/blog/uv-resin/">UV 光固化膠</a>的男人!</p> <p>想用光固化膠固定必須要有模具，意外發波霸奶茶的透明粗吸管(必須能透光，UV 才能照進去讓管內的膠硬化)超適合，直徑大小幾乎是量身訂做。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638565251990042291.jpg" alt="thumbnail"></p> <p>套上吸管接入蛇管接頭，灌膠後用 UV LED 照射，大約兩分鐘即可固化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638565251992352033.jpg" alt="thumbnail"></p> <p>多次注膠固化，天線接頭與蛇管頭像是被一根壓克力圓柱包覆，牢固的程度超乎預期，效果讓人十分滿意。</p> <p>但小試一下，馬上發現問題。分線器雖是鋁製金屬，但底面積偏小且重量壓不住蛇管臂長槓桿產生的力矩，超容易翻車。我再找到簡單粗暴的解法，挖出報廢硬碟，發現分線器螺絲孔距居然跟硬碟底部的螺絲孔距幾乎吻合，可以穩穩鎖在硬碟上。3.5 吋硬碟體積不大但份量十足，用來當底座穩如泰山，是個完美解決方案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638565251994079819.jpg" alt="thumbnail"></p> <p>就醬，焊接小幫手 3.0 誕生了!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638565251996112482.jpg" alt="thumbnail"></p> <p>USB 金屬蛇管的穩定性很不錯，不用雙手也能完成兩根電線的搭接，讚!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638565251998351542.jpg" alt="thumbnail"></p> <p>USB 金屬蛇管 25 元，珍奶吸管 0 元，報廢分線器及硬碟，0 元，讓廢物再次偉大，無價!</p> <p data-slug="soldering-assistant-v3" data-fbimg="https://i.imgur.com/v6vh4Xg.png#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638565251984954390.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638565251984954390.jpg" medium="image"/>
-    <pubDate>Sun, 14 Jul 2024 03:33:12 GMT</pubDate>
   </item></channel>
 </rss>
