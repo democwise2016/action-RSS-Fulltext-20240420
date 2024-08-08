@@ -30,6 +30,204 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Java -Xms/-Xmx 參數之記憶體用量觀察]]></title>
+    <link>https://blog.darkthread.net/blog/java-xms-xmx-and-memory-usage/</link>
+    <itunes:title><![CDATA[Java -Xms/-Xmx 參數之記憶體用量觀察]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>最近，網站主機常觸發記憶體空間不足告警，調查發現有個 Java 程式默默吃掉 1.2GB 的記憶體，高居工作管理員(Task Manager)記憶體用量榜首。</p> <p>工作管理員只看得出是 java.exe 不知來歷，使用 <code>wmic process where "Name='java.exe'" get CommandLine</code> 由 Java 啟動參數查出是最近安裝的資安監控軟體。比對安裝日期，與記憶體空間不足發生次數開始暴增的時間相近，推測該軟體涉有重嫌。</p> <p>有趣的是該軟體所耗用的記憶體比主機上任一個 ASP.NET 網站都多，頓時有乞丐趕廟公的感覺。前陣子才剛發生<a href="https://www.facebook.com/darkthread.net/posts/pfbid079sE5Nokt61auaBLoWE3v2NwTSeQvyUJbLEgsmaDpuEFVW7DfADFiScYLYxJrw2Wl">防毒軟體 CrowdStrike 更新搞掛 Windows</a>，再碰上此案例，不禁讓人感嘆：這個年，頭都變了，壞人沒來倒是先被保鏢揍了一頓。噗~</p> <p>研究 Java 參數時發現它有設定 "-Xms1024m -Xmx1024m"，指定起始及最大 Heap 記憶體大小都是 1GB，可解釋為什麼會吃到 1GB 的記憶體。但普查幾台機器，發現在部分主機該程式只吃了 880MB，低於 "-Xms1024m" 設定的 1GB。</p> <p>鬼打牆一陣子(鬼月鬼打牆，特別應景)，想起這問題之前我就研究過了(只是沒存在大腦 Cache 區)。一般工作管理員說的記憶體使用量，準確名稱是 Working Set - Private，指的是該程序專用的實體記憶體(扣除與其他程式共用部分) <a href="/blog/get-task-manager-list-with-csharp/">參考</a>。</p> <blockquote> <p>補充 <a href="/blog/committed-vs-working-set/">.NET 記憶體管理探索(3) - 為什麼程式爆記憶體，用工作管理員卻看不出來？</a><br> 一般我們在工作管理員常說的「記憶體用量」，正式術語為「 Memory - Active Private Working Set / 記憶體(使用中的私人工作集)」，嚴謹定義是「程序 Commit 取得且不與其他程序共用的實體記憶體量 (不含 Suspended UWP 程序)」。Working Set 是指 Committed 中已配置實體記憶體的部分(換言之，Committed = Working Set + Pagefile)，Private 是指 Committed 中該程序專用不與其他程序共用的部分，Active 則指不含 Suspended UWP 暫停狀態的部分。</p> </blockquote> <p>意思是，即便 "-Xms1024m -Xmx1024m" 配置了 1GB 的 Heap，它佔用的實體記億體量 (Working Set - Private，工作管理員看到的記憶體數字)需依資料使用狀態而定，若使用到或資料被 GC 回收，數字便會降下來，有可能低於 1GB。而會高於 1GB 則是除了 Heap 記憶體，Java 程式碼本身、靜態資料區、Stack 也要耗用記憶體，故 Heap 1GB 再加上這些空間，大於 1GB 也是合理的。</p> <p>疑惑有了答案，但沒寫到程式心不爽，決定寫個程式實測驗證。</p> <p>這個 Java 小程式先宣告 String[1024]，再用 for 迴圈填入 1024 個 512K byte[] 大小的字串，過程每 128 個顯示一次記憶體現況，包含 JVM 可用記憶體 <code>Runtime.getRuntime().totalMemory()</code>、 已使用記憶體 <code>Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()</code>、Windows 觀點 Java 程序已取用記憶體 <code>PrivateBytes</code> 及 Java 程序耗用實體記憶體 <code>WorkingSetPrivate</code>。PrivateBytes 及 WorkingSetPrivate 靠呼叫 <code>wmic path Win32_PerfFormattedData_PerfProc_Process where "IDProcess=&lt;PID&gt;" get PrivateBytes,WorkingSetPrivate /value</code> 查詢 <a href="https://learn.microsoft.com/en-us/previous-versions//aa394323(v=vs.85)?WT.mc_id=DOP-MVP-37580"><code>Win32_PerfRawData_PerfProc_Process</code></a> 取得，再次證明<a href="/blog/sftp-w-bash-script/">呼叫外部程式永遠是最簡單粗暴的手段</a>，噗。</p> <pre><code>import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+public class Test {
+static String formatMemSize(long size) {
+if (size &lt; 1024) {
+return String.format("%,d B", size);
+} else if (size &lt; 1024 * 1024) {
+return String.format("%,d KB", size / 1024);
+} else {
+return String.format("%,d MB", size / (1024 * 1024));
+}
+}
+static String formatMemSize(String size) {
+return formatMemSize(Long.parseLong(size));
+}
+public static void showMemUsage() {
+showMemUsage("");
+}
+public static void showMemUsage(String title) {
+// https://learn.microsoft.com/en-us/previous-versions//aa394323(v=vs.85)?redirectedfrom=MSDN
+// wmic path Win32_PerfFormattedData_PerfProc_Process where "IDProcess=&lt;PID&gt;" get PrivateBytes,WorkingSetPrivate /value
+String privBytes = "", workSetPriv = "";
+try {
+Process proc = Runtime.getRuntime().exec(
+"wmic path Win32_PerfFormattedData_PerfProc_Process where \"IDProcess=" +
+ProcessHandle.current().pid() +
+"\" get PrivateBytes,WorkingSetPrivate /Value");
+proc.waitFor();
+java.io.InputStream is = proc.getInputStream();
+java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+String val = s.hasNext() ? s.next() : "";
+Pattern p = Pattern.compile("PrivateBytes=(\\d+).*WorkingSetPrivate=(\\d+)", Pattern.DOTALL);
+Matcher m = p.matcher(val);
+if (m.find()) {
+privBytes = formatMemSize(m.group(1));
+workSetPriv = formatMemSize(m.group(2));
+}
+s.close();
+} catch (Exception e) {
+e.printStackTrace();
+}
+String jvmTotal = formatMemSize(Runtime.getRuntime().totalMemory());
+String jvmUsed = formatMemSize(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+System.out.println(String.format("%10s %10s %10s %14s %s", jvmTotal, jvmUsed, privBytes, workSetPriv, title));
+}
+public static void main(String[] args) {
+System.out.println("JVM Total  JVM Used   PrivBytes  WorkingSetPriv");
+System.out.println("========== ========== ========== ==============");
+showMemUsage("Start");
+String[] strings = new String[1024];
+for (int i = 0; i &lt; strings.length; i++) {
+strings[i] = new String(new byte[512 * 1024]);
+if (i % 128 == 0)
+showMemUsage(String.format("String[%d]", i));
+}
+showMemUsage(String.format("String[%d]", strings.length));
+strings = null;
+System.gc();
+showMemUsage("After GC");
+}
+}
+</code></pre> <p>參考<a href="https://cloud.tencent.com/developer/article/1695047">網路文章</a>：</p> <ul><li>-Xms：Heap 記憶體的最小值，預設為實體記憶體的1/64，但小於 1G。預設空閒 Heap 大於指定閾值時，JVM 會減少 Heap 到 -Xms 指定的大小。</li> <li>-Xmx：Heap 記憶體的最大值，預設為實體記憶體的1/4。預設當空閒 Heap 小於指定閾值時，JVM 會增加 Heap 到 -Xmx 指定的大小。<br> (正式環境可考量將 -Xms 與 -Xmx 設定相同值，以減少 GC 發生機率改善效能。<a href="https://docs.oracle.com/cd/E15523_01/web.1111/e13814/jvm_tuning.htm#PERFM150">Oracle 官方文件</a>如是說：<code>Oracle recommends setting the minimum heap size (-Xms) equal to the maximum heap size (-Xmx) to minimize garbage collections.</code>)</li></ul> <p>我的工作機有 64G RAM，故未加參數時，JVM Total 1GB 起跳，而 GC 後，JVM Total 降到 96MB，而 WorkingSetPriv 也降到 106MB：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638587307020910088.png"></p> <p>設定 <code>-Xms4096m -Xmx4096m</code> 後，JVM Total 變成 4GB， 但由於上下限相同。GC 後，JVM Total 維持 4GB，WorkingSetPriv 也停在最高值 810MB 沒有回降：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638587307022627917.png"></p> <p>設定 <code>-Xms128m -Xmx768m</code>，JVM Total 由 128MB 起跳，上升到 657MB 後，下一輪前踩到 <code>OutOfMemoryError: Java heap space</code> 錯誤，無法配置更多記憶體：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638587307024390899.png"></p> <p>結論： -Xms / -Xmx 參數主要影響 Committed Memory (Private Bytes)，而其中只有部分會用到實體記憶體，相當於工作管理員看到的記憶體數字(Wokring Set - Private)。Private Bytes 還包含程式碼、靜態資料、Stack，故可能大於 -Xms / -Xmx 指定值；而資料使用狀況決定耗用的實體記憶體大小，如：建立 String() 物件後增加，GC 後減少。故工作管理員看到的記憶體用量不管大於或小於 -Xms / -Xmx 指定值，都是合理的。</p> <p data-slug="java-xms-xmx-and-memory-usage" data-fbimg="https://cdn.pixabay.com/photo/2014/12/28/02/23/mother-board-581597_960_720.jpg#960#720">The blog post examines a memory issue caused by a Java application on a server, detailing the investigation process, findings, and a practical experiment to understand Java’s memory usage parameters (-Xms and -Xmx). It concludes that memory usage in Task Manager may differ from specified Java heap sizes due to actual memory usage and garbage collection behavior.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>最近，網站主機常觸發記憶體空間不足告警，調查發現有個 Java 程式默默吃掉 1.2GB 的記憶體，高居工作管理員(Task Manager)記憶體用量榜首。</p> <p>工作管理員只看得出是 java.exe 不知來歷，使用 <code>wmic process where "Name='java.exe'" get CommandLine</code> 由 Java 啟動參數查出是最近安裝的資安監控軟體。比對安裝日期，與記憶體空間不足發生次數開始暴增的時間相近，推測該軟體涉有重嫌。</p> <p>有趣的是該軟體所耗用的記憶體比主機上任一個 ASP.NET 網站都多，頓時有乞丐趕廟公的感覺。前陣子才剛發生<a href="https://www.facebook.com/darkthread.net/posts/pfbid079sE5Nokt61auaBLoWE3v2NwTSeQvyUJbLEgsmaDpuEFVW7DfADFiScYLYxJrw2Wl">防毒軟體 CrowdStrike 更新搞掛 Windows</a>，再碰上此案例，不禁讓人感嘆：這個年，頭都變了，壞人沒來倒是先被保鏢揍了一頓。噗~</p> <p>研究 Java 參數時發現它有設定 "-Xms1024m -Xmx1024m"，指定起始及最大 Heap 記憶體大小都是 1GB，可解釋為什麼會吃到 1GB 的記憶體。但普查幾台機器，發現在部分主機該程式只吃了 880MB，低於 "-Xms1024m" 設定的 1GB。</p> <p>鬼打牆一陣子(鬼月鬼打牆，特別應景)，想起這問題之前我就研究過了(只是沒存在大腦 Cache 區)。一般工作管理員說的記憶體使用量，準確名稱是 Working Set - Private，指的是該程序專用的實體記憶體(扣除與其他程式共用部分) <a href="/blog/get-task-manager-list-with-csharp/">參考</a>。</p> <blockquote> <p>補充 <a href="/blog/committed-vs-working-set/">.NET 記憶體管理探索(3) - 為什麼程式爆記憶體，用工作管理員卻看不出來？</a><br> 一般我們在工作管理員常說的「記憶體用量」，正式術語為「 Memory - Active Private Working Set / 記憶體(使用中的私人工作集)」，嚴謹定義是「程序 Commit 取得且不與其他程序共用的實體記憶體量 (不含 Suspended UWP 程序)」。Working Set 是指 Committed 中已配置實體記憶體的部分(換言之，Committed = Working Set + Pagefile)，Private 是指 Committed 中該程序專用不與其他程序共用的部分，Active 則指不含 Suspended UWP 暫停狀態的部分。</p> </blockquote> <p>意思是，即便 "-Xms1024m -Xmx1024m" 配置了 1GB 的 Heap，它佔用的實體記億體量 (Working Set - Private，工作管理員看到的記憶體數字)需依資料使用狀態而定，若使用到或資料被 GC 回收，數字便會降下來，有可能低於 1GB。而會高於 1GB 則是除了 Heap 記憶體，Java 程式碼本身、靜態資料區、Stack 也要耗用記憶體，故 Heap 1GB 再加上這些空間，大於 1GB 也是合理的。</p> <p>疑惑有了答案，但沒寫到程式心不爽，決定寫個程式實測驗證。</p> <p>這個 Java 小程式先宣告 String[1024]，再用 for 迴圈填入 1024 個 512K byte[] 大小的字串，過程每 128 個顯示一次記憶體現況，包含 JVM 可用記憶體 <code>Runtime.getRuntime().totalMemory()</code>、 已使用記憶體 <code>Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()</code>、Windows 觀點 Java 程序已取用記憶體 <code>PrivateBytes</code> 及 Java 程序耗用實體記憶體 <code>WorkingSetPrivate</code>。PrivateBytes 及 WorkingSetPrivate 靠呼叫 <code>wmic path Win32_PerfFormattedData_PerfProc_Process where "IDProcess=&lt;PID&gt;" get PrivateBytes,WorkingSetPrivate /value</code> 查詢 <a href="https://learn.microsoft.com/en-us/previous-versions//aa394323(v=vs.85)?WT.mc_id=DOP-MVP-37580"><code>Win32_PerfRawData_PerfProc_Process</code></a> 取得，再次證明<a href="/blog/sftp-w-bash-script/">呼叫外部程式永遠是最簡單粗暴的手段</a>，噗。</p> <pre><code>import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+public class Test {
+static String formatMemSize(long size) {
+if (size &lt; 1024) {
+return String.format("%,d B", size);
+} else if (size &lt; 1024 * 1024) {
+return String.format("%,d KB", size / 1024);
+} else {
+return String.format("%,d MB", size / (1024 * 1024));
+}
+}
+static String formatMemSize(String size) {
+return formatMemSize(Long.parseLong(size));
+}
+public static void showMemUsage() {
+showMemUsage("");
+}
+public static void showMemUsage(String title) {
+// https://learn.microsoft.com/en-us/previous-versions//aa394323(v=vs.85)?redirectedfrom=MSDN
+// wmic path Win32_PerfFormattedData_PerfProc_Process where "IDProcess=&lt;PID&gt;" get PrivateBytes,WorkingSetPrivate /value
+String privBytes = "", workSetPriv = "";
+try {
+Process proc = Runtime.getRuntime().exec(
+"wmic path Win32_PerfFormattedData_PerfProc_Process where \"IDProcess=" +
+ProcessHandle.current().pid() +
+"\" get PrivateBytes,WorkingSetPrivate /Value");
+proc.waitFor();
+java.io.InputStream is = proc.getInputStream();
+java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+String val = s.hasNext() ? s.next() : "";
+Pattern p = Pattern.compile("PrivateBytes=(\\d+).*WorkingSetPrivate=(\\d+)", Pattern.DOTALL);
+Matcher m = p.matcher(val);
+if (m.find()) {
+privBytes = formatMemSize(m.group(1));
+workSetPriv = formatMemSize(m.group(2));
+}
+s.close();
+} catch (Exception e) {
+e.printStackTrace();
+}
+String jvmTotal = formatMemSize(Runtime.getRuntime().totalMemory());
+String jvmUsed = formatMemSize(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+System.out.println(String.format("%10s %10s %10s %14s %s", jvmTotal, jvmUsed, privBytes, workSetPriv, title));
+}
+public static void main(String[] args) {
+System.out.println("JVM Total  JVM Used   PrivBytes  WorkingSetPriv");
+System.out.println("========== ========== ========== ==============");
+showMemUsage("Start");
+String[] strings = new String[1024];
+for (int i = 0; i &lt; strings.length; i++) {
+strings[i] = new String(new byte[512 * 1024]);
+if (i % 128 == 0)
+showMemUsage(String.format("String[%d]", i));
+}
+showMemUsage(String.format("String[%d]", strings.length));
+strings = null;
+System.gc();
+showMemUsage("After GC");
+}
+}
+</code></pre> <p>參考<a href="https://cloud.tencent.com/developer/article/1695047">網路文章</a>：</p> <ul><li>-Xms：Heap 記憶體的最小值，預設為實體記憶體的1/64，但小於 1G。預設空閒 Heap 大於指定閾值時，JVM 會減少 Heap 到 -Xms 指定的大小。</li> <li>-Xmx：Heap 記憶體的最大值，預設為實體記憶體的1/4。預設當空閒 Heap 小於指定閾值時，JVM 會增加 Heap 到 -Xmx 指定的大小。<br> (正式環境可考量將 -Xms 與 -Xmx 設定相同值，以減少 GC 發生機率改善效能。<a href="https://docs.oracle.com/cd/E15523_01/web.1111/e13814/jvm_tuning.htm#PERFM150">Oracle 官方文件</a>如是說：<code>Oracle recommends setting the minimum heap size (-Xms) equal to the maximum heap size (-Xmx) to minimize garbage collections.</code>)</li></ul> <p>我的工作機有 64G RAM，故未加參數時，JVM Total 1GB 起跳，而 GC 後，JVM Total 降到 96MB，而 WorkingSetPriv 也降到 106MB：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638587307020910088.png"></p> <p>設定 <code>-Xms4096m -Xmx4096m</code> 後，JVM Total 變成 4GB， 但由於上下限相同。GC 後，JVM Total 維持 4GB，WorkingSetPriv 也停在最高值 810MB 沒有回降：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638587307022627917.png"></p> <p>設定 <code>-Xms128m -Xmx768m</code>，JVM Total 由 128MB 起跳，上升到 657MB 後，下一輪前踩到 <code>OutOfMemoryError: Java heap space</code> 錯誤，無法配置更多記憶體：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638587307024390899.png"></p> <p>結論： -Xms / -Xmx 參數主要影響 Committed Memory (Private Bytes)，而其中只有部分會用到實體記憶體，相當於工作管理員看到的記憶體數字(Wokring Set - Private)。Private Bytes 還包含程式碼、靜態資料、Stack，故可能大於 -Xms / -Xmx 指定值；而資料使用狀況決定耗用的實體記憶體大小，如：建立 String() 物件後增加，GC 後減少。故工作管理員看到的記憶體用量不管大於或小於 -Xms / -Xmx 指定值，都是合理的。</p> <p data-slug="java-xms-xmx-and-memory-usage" data-fbimg="https://cdn.pixabay.com/photo/2014/12/28/02/23/mother-board-581597_960_720.jpg#960#720">The blog post examines a memory issue caused by a Java application on a server, detailing the investigation process, findings, and a practical experiment to understand Java’s memory usage parameters (-Xms and -Xmx). It concludes that memory usage in Task Manager may differ from specified Java heap sizes due to actual memory usage and garbage collection behavior.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>最近，網站主機常觸發記憶體空間不足告警，調查發現有個 Java 程式默默吃掉 1.2GB 的記憶體，高居工作管理員(Task Manager)記憶體用量榜首。</p> <p>工作管理員只看得出是 java.exe 不知來歷，使用 <code>wmic process where "Name='java.exe'" get CommandLine</code> 由 Java 啟動參數查出是最近安裝的資安監控軟體。比對安裝日期，與記憶體空間不足發生次數開始暴增的時間相近，推測該軟體涉有重嫌。</p> <p>有趣的是該軟體所耗用的記憶體比主機上任一個 ASP.NET 網站都多，頓時有乞丐趕廟公的感覺。前陣子才剛發生<a href="https://www.facebook.com/darkthread.net/posts/pfbid079sE5Nokt61auaBLoWE3v2NwTSeQvyUJbLEgsmaDpuEFVW7DfADFiScYLYxJrw2Wl">防毒軟體 CrowdStrike 更新搞掛 Windows</a>，再碰上此案例，不禁讓人感嘆：這個年，頭都變了，壞人沒來倒是先被保鏢揍了一頓。噗~</p> <p>研究 Java 參數時發現它有設定 "-Xms1024m -Xmx1024m"，指定起始及最大 Heap 記憶體大小都是 1GB，可解釋為什麼會吃到 1GB 的記憶體。但普查幾台機器，發現在部分主機該程式只吃了 880MB，低於 "-Xms1024m" 設定的 1GB。</p> <p>鬼打牆一陣子(鬼月鬼打牆，特別應景)，想起這問題之前我就研究過了(只是沒存在大腦 Cache 區)。一般工作管理員說的記憶體使用量，準確名稱是 Working Set - Private，指的是該程序專用的實體記憶體(扣除與其他程式共用部分) <a href="/blog/get-task-manager-list-with-csharp/">參考</a>。</p> <blockquote> <p>補充 <a href="/blog/committed-vs-working-set/">.NET 記憶體管理探索(3) - 為什麼程式爆記憶體，用工作管理員卻看不出來？</a><br> 一般我們在工作管理員常說的「記憶體用量」，正式術語為「 Memory - Active Private Working Set / 記憶體(使用中的私人工作集)」，嚴謹定義是「程序 Commit 取得且不與其他程序共用的實體記憶體量 (不含 Suspended UWP 程序)」。Working Set 是指 Committed 中已配置實體記憶體的部分(換言之，Committed = Working Set + Pagefile)，Private 是指 Committed 中該程序專用不與其他程序共用的部分，Active 則指不含 Suspended UWP 暫停狀態的部分。</p> </blockquote> <p>意思是，即便 "-Xms1024m -Xmx1024m" 配置了 1GB 的 Heap，它佔用的實體記億體量 (Working Set - Private，工作管理員看到的記憶體數字)需依資料使用狀態而定，若使用到或資料被 GC 回收，數字便會降下來，有可能低於 1GB。而會高於 1GB 則是除了 Heap 記憶體，Java 程式碼本身、靜態資料區、Stack 也要耗用記憶體，故 Heap 1GB 再加上這些空間，大於 1GB 也是合理的。</p> <p>疑惑有了答案，但沒寫到程式心不爽，決定寫個程式實測驗證。</p> <p>這個 Java 小程式先宣告 String[1024]，再用 for 迴圈填入 1024 個 512K byte[] 大小的字串，過程每 128 個顯示一次記憶體現況，包含 JVM 可用記憶體 <code>Runtime.getRuntime().totalMemory()</code>、 已使用記憶體 <code>Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()</code>、Windows 觀點 Java 程序已取用記憶體 <code>PrivateBytes</code> 及 Java 程序耗用實體記憶體 <code>WorkingSetPrivate</code>。PrivateBytes 及 WorkingSetPrivate 靠呼叫 <code>wmic path Win32_PerfFormattedData_PerfProc_Process where "IDProcess=&lt;PID&gt;" get PrivateBytes,WorkingSetPrivate /value</code> 查詢 <a href="https://learn.microsoft.com/en-us/previous-versions//aa394323(v=vs.85)?WT.mc_id=DOP-MVP-37580"><code>Win32_PerfRawData_PerfProc_Process</code></a> 取得，再次證明<a href="/blog/sftp-w-bash-script/">呼叫外部程式永遠是最簡單粗暴的手段</a>，噗。</p> <pre><code>import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+public class Test {
+static String formatMemSize(long size) {
+if (size &lt; 1024) {
+return String.format("%,d B", size);
+} else if (size &lt; 1024 * 1024) {
+return String.format("%,d KB", size / 1024);
+} else {
+return String.format("%,d MB", size / (1024 * 1024));
+}
+}
+static String formatMemSize(String size) {
+return formatMemSize(Long.parseLong(size));
+}
+public static void showMemUsage() {
+showMemUsage("");
+}
+public static void showMemUsage(String title) {
+// https://learn.microsoft.com/en-us/previous-versions//aa394323(v=vs.85)?redirectedfrom=MSDN
+// wmic path Win32_PerfFormattedData_PerfProc_Process where "IDProcess=&lt;PID&gt;" get PrivateBytes,WorkingSetPrivate /value
+String privBytes = "", workSetPriv = "";
+try {
+Process proc = Runtime.getRuntime().exec(
+"wmic path Win32_PerfFormattedData_PerfProc_Process where \"IDProcess=" +
+ProcessHandle.current().pid() +
+"\" get PrivateBytes,WorkingSetPrivate /Value");
+proc.waitFor();
+java.io.InputStream is = proc.getInputStream();
+java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+String val = s.hasNext() ? s.next() : "";
+Pattern p = Pattern.compile("PrivateBytes=(\\d+).*WorkingSetPrivate=(\\d+)", Pattern.DOTALL);
+Matcher m = p.matcher(val);
+if (m.find()) {
+privBytes = formatMemSize(m.group(1));
+workSetPriv = formatMemSize(m.group(2));
+}
+s.close();
+} catch (Exception e) {
+e.printStackTrace();
+}
+String jvmTotal = formatMemSize(Runtime.getRuntime().totalMemory());
+String jvmUsed = formatMemSize(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+System.out.println(String.format("%10s %10s %10s %14s %s", jvmTotal, jvmUsed, privBytes, workSetPriv, title));
+}
+public static void main(String[] args) {
+System.out.println("JVM Total  JVM Used   PrivBytes  WorkingSetPriv");
+System.out.println("========== ========== ========== ==============");
+showMemUsage("Start");
+String[] strings = new String[1024];
+for (int i = 0; i &lt; strings.length; i++) {
+strings[i] = new String(new byte[512 * 1024]);
+if (i % 128 == 0)
+showMemUsage(String.format("String[%d]", i));
+}
+showMemUsage(String.format("String[%d]", strings.length));
+strings = null;
+System.gc();
+showMemUsage("After GC");
+}
+}
+</code></pre> <p>參考<a href="https://cloud.tencent.com/developer/article/1695047">網路文章</a>：</p> <ul><li>-Xms：Heap 記憶體的最小值，預設為實體記憶體的1/64，但小於 1G。預設空閒 Heap 大於指定閾值時，JVM 會減少 Heap 到 -Xms 指定的大小。</li> <li>-Xmx：Heap 記憶體的最大值，預設為實體記憶體的1/4。預設當空閒 Heap 小於指定閾值時，JVM 會增加 Heap 到 -Xmx 指定的大小。<br> (正式環境可考量將 -Xms 與 -Xmx 設定相同值，以減少 GC 發生機率改善效能。<a href="https://docs.oracle.com/cd/E15523_01/web.1111/e13814/jvm_tuning.htm#PERFM150">Oracle 官方文件</a>如是說：<code>Oracle recommends setting the minimum heap size (-Xms) equal to the maximum heap size (-Xmx) to minimize garbage collections.</code>)</li></ul> <p>我的工作機有 64G RAM，故未加參數時，JVM Total 1GB 起跳，而 GC 後，JVM Total 降到 96MB，而 WorkingSetPriv 也降到 106MB：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638587307020910088.png"></p> <p>設定 <code>-Xms4096m -Xmx4096m</code> 後，JVM Total 變成 4GB， 但由於上下限相同。GC 後，JVM Total 維持 4GB，WorkingSetPriv 也停在最高值 810MB 沒有回降：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638587307022627917.png"></p> <p>設定 <code>-Xms128m -Xmx768m</code>，JVM Total 由 128MB 起跳，上升到 657MB 後，下一輪前踩到 <code>OutOfMemoryError: Java heap space</code> 錯誤，無法配置更多記憶體：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638587307024390899.png"></p> <p>結論： -Xms / -Xmx 參數主要影響 Committed Memory (Private Bytes)，而其中只有部分會用到實體記憶體，相當於工作管理員看到的記憶體數字(Wokring Set - Private)。Private Bytes 還包含程式碼、靜態資料、Stack，故可能大於 -Xms / -Xmx 指定值；而資料使用狀況決定耗用的實體記憶體大小，如：建立 String() 物件後增加，GC 後減少。故工作管理員看到的記憶體用量不管大於或小於 -Xms / -Xmx 指定值，都是合理的。</p> <p data-slug="java-xms-xmx-and-memory-usage" data-fbimg="https://cdn.pixabay.com/photo/2014/12/28/02/23/mother-board-581597_960_720.jpg#960#720">The blog post examines a memory issue caused by a Java application on a server, detailing the investigation process, findings, and a practical experiment to understand Java’s memory usage parameters (-Xms and -Xmx). It concludes that memory usage in Task Manager may differ from specified Java heap sizes due to actual memory usage and garbage collection behavior.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638587307020910088.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638587307020910088.png" medium="image"/>
+    <pubDate>Thu, 08 Aug 2024 15:59:08 GMT</pubDate>
+  </item><item>
     <title><![CDATA[無獨顯 i5 也能順跑的迷你語言模型 - Gemma 2 2B 體驗]]></title>
     <link>https://blog.darkthread.net/blog/test-gemma-2-2b/</link>
     <itunes:title><![CDATA[無獨顯 i5 也能順跑的迷你語言模型 - Gemma 2 2B 體驗]]></itunes:title>
@@ -1961,284 +2159,5 @@ EOF
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638568258260851593.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638568258260851593.png" medium="image"/>
     <pubDate>Wed, 17 Jul 2024 15:02:14 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[自製 PDF 檔案合併小工具]]></title>
-    <link>https://blog.darkthread.net/blog/lite-pdf-merger/</link>
-    <itunes:title><![CDATA[自製 PDF 檔案合併小工具]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>這年頭要合併 PDF，現成軟體或線上服務多如牛毛。考量線上服務必須上傳 PDF 檔到雲端我不愛，免費又順手的軟體得花時間尋找評估，想到就懶。不寫程式碼手會癢的我，決定省下找軟體學軟體的時間，依據使用習慣自己寫工具來用，這才符合程式硬漢作風。(謎之聲：可憐吶，看來病得不輕呀)</p> <p>講到用 .NET 合併 PDF 檔，過去我研究過 <a href="/blog/indented-text-from-pdf/">PdfPig</a>、<a href="/blog/pdfsharp/">PdfSharp / PdfSharpCore</a>、<a href="/blog/telerik-pdf-processing/">Telerik PDF</a>，每一套都能勝任。評估後我選擇只需單一組件檔(dll)的老牌 .NET PDF 元件 - PdfSharp (.NET Framework) / PdfSharpCore (.NET 6+)。</p> <p>這些年下來，隨著愈來愈常開終端機操作 Linux、用 PowerShell 管理及部署 IIS，加上用 git、dotnet 下指令已是家常便飯，我已愛上用 CLI 敲指令，不複雜的操作根本想開 GUI。因此，我理想中的 PDF 合併工具，也應該寫成 CLI，用起來像這樣：</p> <pre><code>LitePdfMerger sample.pdf prince\invoice.pdf prince\textbook.pdf
-LitePdfMerger sample.pdf prince\*.pdf
-LitePdfMerger sample.pdf prince\*.pdf -o:merged.pdf
-</code></pre> <p>專案我選用 .NET 8 Console，並打算啟用 <a href="/blog/publish-native-aot-on-linux/">Native AOT</a> 編譯成輕巧的單一原生 EXE 檔，不需安裝 .NET 8 Runtime 或 SDK，Copy-and-Play。</p> <p>要啟用 Native AOT，.csproj 需加入 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/native-aot/?tabs=net7%2Cwindows&amp;WT.mc_id=DOP-MVP-37580&amp;WT.mc_id=DOP-MVP-37580#publish-native-aot-using-the-cli">PublishAot</a> 及 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/trimming/prepare-libraries-for-trimming?pivots=dotnet-8-0&amp;WT.mc_id=DOP-MVP-37580#enable-project-specific-trimming">IsAotCompatible</a>。</p> <pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
-&lt;PropertyGroup&gt;
-&lt;OutputType&gt;Exe&lt;/OutputType&gt;
-&lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
-&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
-&lt;Nullable&gt;enable&lt;/Nullable&gt;
-&lt;PublishAot&gt;true&lt;/PublishAot&gt;
-&lt;IsAotCompatible&gt;true&lt;/IsAotCompatible&gt;
-&lt;/PropertyGroup&gt;
-&lt;ItemGroup&gt;
-&lt;PackageReference Include="PdfSharpCore" Version="1.3.63" /&gt;
-&lt;/ItemGroup&gt;
-&lt;/Project&gt;
-</code></pre> <p>程式碼不多，不到 70 行搞定。(註：其中有用到 <a href="/blog/ctrl-c-on-readline/">Console.ReadLine() 偵測 Ctrl-C 中斷</a>的技巧)</p> <pre><code>using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.IO;
-Console.WriteLine("PDF Merge Tools v0.9b");
-List&lt;PdfDocument&gt; sources = new List&lt;PdfDocument&gt;();
-var outputPath = string.Empty;
-foreach (string fn in args)
-{
-if (fn.StartsWith("-o:"))
-{
-outputPath = fn.Substring(3);
-continue;
-}
-if (fn.Contains("*"))
-{
-var folder = Path.GetDirectoryName(fn);
-if (string.IsNullOrEmpty(folder)) folder = ".";
-foreach (var found in Directory.GetFiles(folder, Path.GetFileName(fn), SearchOption.AllDirectories))
-{
-Console.WriteLine($" * {found}");
-var srcPdf = PdfReader.Open(found, PdfDocumentOpenMode.Import);
-sources.Add(srcPdf);
-}
-}
-else if (!File.Exists(fn))
-{
-Console.WriteLine("Can't find " + fn);
-return;
-}
-else
-{
-Console.WriteLine(" * " + fn);
-var srcPdf = PdfReader.Open(fn, PdfDocumentOpenMode.Import);
-sources.Add(srcPdf);
-}
-}
-if (sources.Count == 0)
-{
-Console.WriteLine("No pdf to merge");
-return;
-}
-var merged = new PdfDocument();
-foreach (var pdf in sources)
-{
-for (int i = 0; i &lt; pdf.PageCount; i++)
-{
-merged.AddPage(pdf.Pages[i]);
-}
-}
-var mergedFilePath = $"{DateTime.Now:yyyyMMdd-HHmmss}.pdf";
-if (!string.IsNullOrEmpty(outputPath))
-{
-mergedFilePath = outputPath;
-}
-else
-{
-Console.Write($"Output filename [default: {mergedFilePath}]: ");
-var assignFilePath = Console.ReadLine();
-if (assignFilePath == null) return; // user press Ctrl+C or Ctrl-Z
-Console.WriteLine("assignFilePath: " + assignFilePath);
-if (!string.IsNullOrEmpty(assignFilePath))
-{
-if (!assignFilePath.EndsWith(".pdf")) assignFilePath += ".pdf";
-mergedFilePath = assignFilePath;
-}
-}
-Console.WriteLine($"Saving to {mergedFilePath}");
-merged.Save(mergedFilePath);
-</code></pre> <p>編譯出來的 EXE 檔很小，大約 3.3KB，複製到其他電腦可以直接用，不需要先安裝 .NET 8，這是 .NET Native AOT 技術的一大優勢。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638566453986811955.png"></p> <p>我從網路上找了一些 PDF 範例檔來做測試：</p> <ul><li><a href="https://pdfobject.com/pdf/sample.pdf">PDFObject</a></li> <li><a href="https://www.princexml.com/samples/">Sample Documents by Prince</a></li></ul> <p>測試一，輸入要合併的 PDF 路徑合併成單一 PDF，懶得想輸出檔名可按 Enter 接受用日期時間自動命名，或者可輸入合併檔名。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638566453990074959.png"></p> <p>測試二，來源 PDF 路徑還支援 * 萬用字元，並可用 <code>-o:outputPath</code> 事先指定輸出檔名，方便批次作業。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638566453996305681.png"></p> <p>實測成功!</p> <p>範例專案我放上 <a href="https://github.com/darkthread/LitePdfMerger">Github</a> 了，大家若已安裝 Git for Windows 跟 .NET 8 SDK，執行以下指令便能做出這個好用的 PDF 合併小工具。</p> <pre><code>git clone https://github.com/darkthread/LitePdfMerger.git
-cd LitePdfMerger
-dotnet publish -c Release
-dir .\bin\Release
-et8.0\win-x64\publish\
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638566454000980358.gif"></p> <p data-slug="lite-pdf-merger" data-title-en="Write a simple PDF merging tool by C#" data-catg=".NET" data-fbimg="https://ilarge.lisimg.com/image/9037738/1055full.jpg#1055#692">This post is about creating a custom CLI tool in .NET to merge PDF files using PdfSharpCore. I explain the benefits of using a CLI tool over online services and provides a detailed implementation, including project setup and code. The tool leverages .NET 8 and Native AOT for lightweight, standalone execution.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>這年頭要合併 PDF，現成軟體或線上服務多如牛毛。考量線上服務必須上傳 PDF 檔到雲端我不愛，免費又順手的軟體得花時間尋找評估，想到就懶。不寫程式碼手會癢的我，決定省下找軟體學軟體的時間，依據使用習慣自己寫工具來用，這才符合程式硬漢作風。(謎之聲：可憐吶，看來病得不輕呀)</p> <p>講到用 .NET 合併 PDF 檔，過去我研究過 <a href="/blog/indented-text-from-pdf/">PdfPig</a>、<a href="/blog/pdfsharp/">PdfSharp / PdfSharpCore</a>、<a href="/blog/telerik-pdf-processing/">Telerik PDF</a>，每一套都能勝任。評估後我選擇只需單一組件檔(dll)的老牌 .NET PDF 元件 - PdfSharp (.NET Framework) / PdfSharpCore (.NET 6+)。</p> <p>這些年下來，隨著愈來愈常開終端機操作 Linux、用 PowerShell 管理及部署 IIS，加上用 git、dotnet 下指令已是家常便飯，我已愛上用 CLI 敲指令，不複雜的操作根本想開 GUI。因此，我理想中的 PDF 合併工具，也應該寫成 CLI，用起來像這樣：</p> <pre><code>LitePdfMerger sample.pdf prince\invoice.pdf prince\textbook.pdf
-LitePdfMerger sample.pdf prince\*.pdf
-LitePdfMerger sample.pdf prince\*.pdf -o:merged.pdf
-</code></pre> <p>專案我選用 .NET 8 Console，並打算啟用 <a href="/blog/publish-native-aot-on-linux/">Native AOT</a> 編譯成輕巧的單一原生 EXE 檔，不需安裝 .NET 8 Runtime 或 SDK，Copy-and-Play。</p> <p>要啟用 Native AOT，.csproj 需加入 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/native-aot/?tabs=net7%2Cwindows&amp;WT.mc_id=DOP-MVP-37580&amp;WT.mc_id=DOP-MVP-37580#publish-native-aot-using-the-cli">PublishAot</a> 及 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/trimming/prepare-libraries-for-trimming?pivots=dotnet-8-0&amp;WT.mc_id=DOP-MVP-37580#enable-project-specific-trimming">IsAotCompatible</a>。</p> <pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
-&lt;PropertyGroup&gt;
-&lt;OutputType&gt;Exe&lt;/OutputType&gt;
-&lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
-&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
-&lt;Nullable&gt;enable&lt;/Nullable&gt;
-&lt;PublishAot&gt;true&lt;/PublishAot&gt;
-&lt;IsAotCompatible&gt;true&lt;/IsAotCompatible&gt;
-&lt;/PropertyGroup&gt;
-&lt;ItemGroup&gt;
-&lt;PackageReference Include="PdfSharpCore" Version="1.3.63" /&gt;
-&lt;/ItemGroup&gt;
-&lt;/Project&gt;
-</code></pre> <p>程式碼不多，不到 70 行搞定。(註：其中有用到 <a href="/blog/ctrl-c-on-readline/">Console.ReadLine() 偵測 Ctrl-C 中斷</a>的技巧)</p> <pre><code>using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.IO;
-Console.WriteLine("PDF Merge Tools v0.9b");
-List&lt;PdfDocument&gt; sources = new List&lt;PdfDocument&gt;();
-var outputPath = string.Empty;
-foreach (string fn in args)
-{
-if (fn.StartsWith("-o:"))
-{
-outputPath = fn.Substring(3);
-continue;
-}
-if (fn.Contains("*"))
-{
-var folder = Path.GetDirectoryName(fn);
-if (string.IsNullOrEmpty(folder)) folder = ".";
-foreach (var found in Directory.GetFiles(folder, Path.GetFileName(fn), SearchOption.AllDirectories))
-{
-Console.WriteLine($" * {found}");
-var srcPdf = PdfReader.Open(found, PdfDocumentOpenMode.Import);
-sources.Add(srcPdf);
-}
-}
-else if (!File.Exists(fn))
-{
-Console.WriteLine("Can't find " + fn);
-return;
-}
-else
-{
-Console.WriteLine(" * " + fn);
-var srcPdf = PdfReader.Open(fn, PdfDocumentOpenMode.Import);
-sources.Add(srcPdf);
-}
-}
-if (sources.Count == 0)
-{
-Console.WriteLine("No pdf to merge");
-return;
-}
-var merged = new PdfDocument();
-foreach (var pdf in sources)
-{
-for (int i = 0; i &lt; pdf.PageCount; i++)
-{
-merged.AddPage(pdf.Pages[i]);
-}
-}
-var mergedFilePath = $"{DateTime.Now:yyyyMMdd-HHmmss}.pdf";
-if (!string.IsNullOrEmpty(outputPath))
-{
-mergedFilePath = outputPath;
-}
-else
-{
-Console.Write($"Output filename [default: {mergedFilePath}]: ");
-var assignFilePath = Console.ReadLine();
-if (assignFilePath == null) return; // user press Ctrl+C or Ctrl-Z
-Console.WriteLine("assignFilePath: " + assignFilePath);
-if (!string.IsNullOrEmpty(assignFilePath))
-{
-if (!assignFilePath.EndsWith(".pdf")) assignFilePath += ".pdf";
-mergedFilePath = assignFilePath;
-}
-}
-Console.WriteLine($"Saving to {mergedFilePath}");
-merged.Save(mergedFilePath);
-</code></pre> <p>編譯出來的 EXE 檔很小，大約 3.3KB，複製到其他電腦可以直接用，不需要先安裝 .NET 8，這是 .NET Native AOT 技術的一大優勢。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638566453986811955.png"></p> <p>我從網路上找了一些 PDF 範例檔來做測試：</p> <ul><li><a href="https://pdfobject.com/pdf/sample.pdf">PDFObject</a></li> <li><a href="https://www.princexml.com/samples/">Sample Documents by Prince</a></li></ul> <p>測試一，輸入要合併的 PDF 路徑合併成單一 PDF，懶得想輸出檔名可按 Enter 接受用日期時間自動命名，或者可輸入合併檔名。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638566453990074959.png"></p> <p>測試二，來源 PDF 路徑還支援 * 萬用字元，並可用 <code>-o:outputPath</code> 事先指定輸出檔名，方便批次作業。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638566453996305681.png"></p> <p>實測成功!</p> <p>範例專案我放上 <a href="https://github.com/darkthread/LitePdfMerger">Github</a> 了，大家若已安裝 Git for Windows 跟 .NET 8 SDK，執行以下指令便能做出這個好用的 PDF 合併小工具。</p> <pre><code>git clone https://github.com/darkthread/LitePdfMerger.git
-cd LitePdfMerger
-dotnet publish -c Release
-dir .\bin\Release
-et8.0\win-x64\publish\
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638566454000980358.gif"></p> <p data-slug="lite-pdf-merger" data-title-en="Write a simple PDF merging tool by C#" data-catg=".NET" data-fbimg="https://ilarge.lisimg.com/image/9037738/1055full.jpg#1055#692">This post is about creating a custom CLI tool in .NET to merge PDF files using PdfSharpCore. I explain the benefits of using a CLI tool over online services and provides a detailed implementation, including project setup and code. The tool leverages .NET 8 and Native AOT for lightweight, standalone execution.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>這年頭要合併 PDF，現成軟體或線上服務多如牛毛。考量線上服務必須上傳 PDF 檔到雲端我不愛，免費又順手的軟體得花時間尋找評估，想到就懶。不寫程式碼手會癢的我，決定省下找軟體學軟體的時間，依據使用習慣自己寫工具來用，這才符合程式硬漢作風。(謎之聲：可憐吶，看來病得不輕呀)</p> <p>講到用 .NET 合併 PDF 檔，過去我研究過 <a href="/blog/indented-text-from-pdf/">PdfPig</a>、<a href="/blog/pdfsharp/">PdfSharp / PdfSharpCore</a>、<a href="/blog/telerik-pdf-processing/">Telerik PDF</a>，每一套都能勝任。評估後我選擇只需單一組件檔(dll)的老牌 .NET PDF 元件 - PdfSharp (.NET Framework) / PdfSharpCore (.NET 6+)。</p> <p>這些年下來，隨著愈來愈常開終端機操作 Linux、用 PowerShell 管理及部署 IIS，加上用 git、dotnet 下指令已是家常便飯，我已愛上用 CLI 敲指令，不複雜的操作根本想開 GUI。因此，我理想中的 PDF 合併工具，也應該寫成 CLI，用起來像這樣：</p> <pre><code>LitePdfMerger sample.pdf prince\invoice.pdf prince\textbook.pdf
-LitePdfMerger sample.pdf prince\*.pdf
-LitePdfMerger sample.pdf prince\*.pdf -o:merged.pdf
-</code></pre> <p>專案我選用 .NET 8 Console，並打算啟用 <a href="/blog/publish-native-aot-on-linux/">Native AOT</a> 編譯成輕巧的單一原生 EXE 檔，不需安裝 .NET 8 Runtime 或 SDK，Copy-and-Play。</p> <p>要啟用 Native AOT，.csproj 需加入 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/native-aot/?tabs=net7%2Cwindows&amp;WT.mc_id=DOP-MVP-37580&amp;WT.mc_id=DOP-MVP-37580#publish-native-aot-using-the-cli">PublishAot</a> 及 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/trimming/prepare-libraries-for-trimming?pivots=dotnet-8-0&amp;WT.mc_id=DOP-MVP-37580#enable-project-specific-trimming">IsAotCompatible</a>。</p> <pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
-&lt;PropertyGroup&gt;
-&lt;OutputType&gt;Exe&lt;/OutputType&gt;
-&lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
-&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
-&lt;Nullable&gt;enable&lt;/Nullable&gt;
-&lt;PublishAot&gt;true&lt;/PublishAot&gt;
-&lt;IsAotCompatible&gt;true&lt;/IsAotCompatible&gt;
-&lt;/PropertyGroup&gt;
-&lt;ItemGroup&gt;
-&lt;PackageReference Include="PdfSharpCore" Version="1.3.63" /&gt;
-&lt;/ItemGroup&gt;
-&lt;/Project&gt;
-</code></pre> <p>程式碼不多，不到 70 行搞定。(註：其中有用到 <a href="/blog/ctrl-c-on-readline/">Console.ReadLine() 偵測 Ctrl-C 中斷</a>的技巧)</p> <pre><code>using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.IO;
-Console.WriteLine("PDF Merge Tools v0.9b");
-List&lt;PdfDocument&gt; sources = new List&lt;PdfDocument&gt;();
-var outputPath = string.Empty;
-foreach (string fn in args)
-{
-if (fn.StartsWith("-o:"))
-{
-outputPath = fn.Substring(3);
-continue;
-}
-if (fn.Contains("*"))
-{
-var folder = Path.GetDirectoryName(fn);
-if (string.IsNullOrEmpty(folder)) folder = ".";
-foreach (var found in Directory.GetFiles(folder, Path.GetFileName(fn), SearchOption.AllDirectories))
-{
-Console.WriteLine($" * {found}");
-var srcPdf = PdfReader.Open(found, PdfDocumentOpenMode.Import);
-sources.Add(srcPdf);
-}
-}
-else if (!File.Exists(fn))
-{
-Console.WriteLine("Can't find " + fn);
-return;
-}
-else
-{
-Console.WriteLine(" * " + fn);
-var srcPdf = PdfReader.Open(fn, PdfDocumentOpenMode.Import);
-sources.Add(srcPdf);
-}
-}
-if (sources.Count == 0)
-{
-Console.WriteLine("No pdf to merge");
-return;
-}
-var merged = new PdfDocument();
-foreach (var pdf in sources)
-{
-for (int i = 0; i &lt; pdf.PageCount; i++)
-{
-merged.AddPage(pdf.Pages[i]);
-}
-}
-var mergedFilePath = $"{DateTime.Now:yyyyMMdd-HHmmss}.pdf";
-if (!string.IsNullOrEmpty(outputPath))
-{
-mergedFilePath = outputPath;
-}
-else
-{
-Console.Write($"Output filename [default: {mergedFilePath}]: ");
-var assignFilePath = Console.ReadLine();
-if (assignFilePath == null) return; // user press Ctrl+C or Ctrl-Z
-Console.WriteLine("assignFilePath: " + assignFilePath);
-if (!string.IsNullOrEmpty(assignFilePath))
-{
-if (!assignFilePath.EndsWith(".pdf")) assignFilePath += ".pdf";
-mergedFilePath = assignFilePath;
-}
-}
-Console.WriteLine($"Saving to {mergedFilePath}");
-merged.Save(mergedFilePath);
-</code></pre> <p>編譯出來的 EXE 檔很小，大約 3.3KB，複製到其他電腦可以直接用，不需要先安裝 .NET 8，這是 .NET Native AOT 技術的一大優勢。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638566453986811955.png"></p> <p>我從網路上找了一些 PDF 範例檔來做測試：</p> <ul><li><a href="https://pdfobject.com/pdf/sample.pdf">PDFObject</a></li> <li><a href="https://www.princexml.com/samples/">Sample Documents by Prince</a></li></ul> <p>測試一，輸入要合併的 PDF 路徑合併成單一 PDF，懶得想輸出檔名可按 Enter 接受用日期時間自動命名，或者可輸入合併檔名。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638566453990074959.png"></p> <p>測試二，來源 PDF 路徑還支援 * 萬用字元，並可用 <code>-o:outputPath</code> 事先指定輸出檔名，方便批次作業。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638566453996305681.png"></p> <p>實測成功!</p> <p>範例專案我放上 <a href="https://github.com/darkthread/LitePdfMerger">Github</a> 了，大家若已安裝 Git for Windows 跟 .NET 8 SDK，執行以下指令便能做出這個好用的 PDF 合併小工具。</p> <pre><code>git clone https://github.com/darkthread/LitePdfMerger.git
-cd LitePdfMerger
-dotnet publish -c Release
-dir .\bin\Release
-et8.0\win-x64\publish\
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638566454000980358.gif"></p> <p data-slug="lite-pdf-merger" data-title-en="Write a simple PDF merging tool by C#" data-catg=".NET" data-fbimg="https://ilarge.lisimg.com/image/9037738/1055full.jpg#1055#692">This post is about creating a custom CLI tool in .NET to merge PDF files using PdfSharpCore. I explain the benefits of using a CLI tool over online services and provides a detailed implementation, including project setup and code. The tool leverages .NET 8 and Native AOT for lightweight, standalone execution.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638566453986811955.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638566453986811955.png" medium="image"/>
-    <pubDate>Mon, 15 Jul 2024 13:00:00 GMT</pubDate>
   </item></channel>
 </rss>
