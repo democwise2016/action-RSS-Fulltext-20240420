@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/681/800/800.jpg?hmac=16sZuG66oDTwOeNwKHmYrnptguDNAEhHG_nt-fh1pTw</url>
+      <url>https://fastly.picsum.photos/id/229/800/800.jpg?hmac=MaNYvWZ8FIexbiN8IhmqLVH2WcgFeiBKMrb8mYaEzzg</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,359 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/681/800/800.jpg?hmac=16sZuG66oDTwOeNwKHmYrnptguDNAEhHG_nt-fh1pTw"/>
+    <itunes:image href="https://fastly.picsum.photos/id/229/800/800.jpg?hmac=MaNYvWZ8FIexbiN8IhmqLVH2WcgFeiBKMrb8mYaEzzg"/>
 <item>
+    <title><![CDATA[使用FullCalendar給Hugo網站加入活動月曆，紀錄發文歷程]]></title>
+    <link>https://ivonblog.com/posts/hugo-add-events-calendar-view/</link>
+    <itunes:title><![CDATA[使用FullCalendar給Hugo網站加入活動月曆，紀錄發文歷程]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/hugo-add-events-calendar-view/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e4ed566ca1.webp"></a></p>
+<p>Add events calendar view to Hugo website.</p><p>一直以來，要紀錄自己成長的軌跡，我會去翻Github Activty，就是會在首頁顯示開發活動的歷程的圖表。不過老實說這個一點都不準確，這個圖表是以儲存庫更新的次數計算的，這樣頂多知道哪幾天有推送部落格原始碼更新而已，不能準確的查到我在過去哪天寫了什麼文章。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bd030fd450.webp"><p>萬一哪天我認真參與開發專案（是的現在更新Github儲存庫我大多是寫文章而非寫code），這個活動歷程也就不能當我發文歷史的參考了。</p><p>因此想到要給Hugo網站加一個日曆/月曆/年曆功能。它必須要有標準日期檢視功能，並且可以快速跳轉月份、年份的按鈕。最為重要的是，該月曆不是手動排行程的行事曆，而是自動抓取Hugo網站所有發表的文章，並將超連結渲染在日期格子上。</p><p>至於要怎麼做月曆，不必手刻，網路上已經有現成的函式庫FullCalendar能用了，只要將Hugo的文章列表作為JSON資料餵給FullCalendar，它就會自動產生一個互動式的月曆。</p><p>成品如下：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d4a92b1d6.webp"><h2>1. 建立專門的月曆頁面<span><a href="#1-%E5%BB%BA%E7%AB%8B%E5%B0%88%E9%96%80%E7%9A%84%E6%9C%88%E6%9B%86%E9%A0%81%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>採用page layout的作法來做一個專門放月曆的頁面。</p><ol><li>新增放月曆的頁面，放在<code>網站根目錄/content/postscalendar/index.md</code>，程式碼只有以下幾行</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>---
+</span></span><span><span>title: "月曆"
+</span></span><span><span>description: ""
+</span></span><span><span>layout: "postscalendar"
+</span></span><span><span>---
+</span></span></code></pre></div><ol start="2"><li>接著製作真正的layout page，放在<code>網站根目錄/layouts/page/postscalendar.html</code></li></ol><h2>2. 加入FullCalendar元素<span><a href="#2-%E5%8A%A0%E5%85%A5fullcalendar%E5%85%83%E7%B4%A0" aria-label="定位點">#</a></span></h2><ol><li>首先讓<code>網站根目錄/layouts/page/postscalendar.html</code>頁面繼承Blowfish主題的header與footer</li></ol><div><pre tabindex="0"><code data-lang="javascript"><span><span><span>{{</span> <span>define</span> <span>"main"</span> <span>}}</span>
+</span></span><span><span>
+</span></span><span><span><span>//程式碼
+</span></span></span><span><span>
+</span></span><span><span><span>{{</span> <span>end</span> <span>}}</span>
+</span></span></code></pre></div><ol start="2"><li>定義FullCalendar的CSS</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>style</span><span>&gt;</span>
+</span></span><span><span>    <span>#</span><span>calendar</span> <span>{</span>
+</span></span><span><span>        <span>max-width</span><span>:</span> <span>800</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>margin</span><span>:</span> <span>50</span><span>px</span> <span>auto</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>0</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>8</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>box-shadow</span><span>:</span> <span>0</span> <span>2</span><span>px</span> <span>10</span><span>px</span> <span>rgba</span><span>(</span><span>0</span><span>,</span> <span>0</span><span>,</span> <span>0</span><span>,</span> <span>0.1</span><span>);</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-toolbar-title</span> <span>{</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>1.5</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>font-weight</span><span>:</span> <span>bold</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-event</span> <span>{</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.8</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>2</span><span>px</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-header-toolbar</span> <span>{</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>10</span><span>px</span> <span>0</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#007bff</span><span>;</span>
+</span></span><span><span>        <span>border</span><span>:</span> <span>none</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>color</span><span>:</span> <span>white</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>5</span><span>px</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.9</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>cursor</span><span>:</span> <span>pointer</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span><span>:</span><span>hover</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#0056b3</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span><span>:</span><span>disabled</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#e0e0e0</span><span>;</span>
+</span></span><span><span>        <span>color</span><span>:</span> <span>#757575</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>event-tooltip</span> <span>{</span>
+</span></span><span><span>        <span>position</span><span>:</span> <span>absolute</span><span>;</span>
+</span></span><span><span>        <span>z-index</span><span>:</span> <span>10001</span><span>;</span>
+</span></span><span><span>        <span>background</span><span>:</span> <span>#fff</span><span>;</span>
+</span></span><span><span>        <span>border</span><span>:</span> <span>1</span><span>px</span> <span>solid</span> <span>#ccc</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>box-shadow</span><span>:</span> <span>0</span> <span>2</span><span>px</span> <span>10</span><span>px</span> <span>rgba</span><span>(</span><span>0</span><span>,</span> <span>0</span><span>,</span> <span>0</span><span>,</span> <span>0.1</span><span>);</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.9</span><span>em</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span><span>&lt;/</span><span>style</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>加入FullCalendar的程式碼。官方文件有很多細項可以調整，這裡就只製作基本的功能。</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>div</span> <span>id</span><span>=</span><span>'calendar'</span><span>&gt;&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span><span>&lt;</span><span>script</span> <span>src</span><span>=</span><span>'https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'</span><span>&gt;&lt;/</span><span>script</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>script</span><span>&gt;</span>
+</span></span><span><span>    <span>document</span><span>.</span><span>addEventListener</span><span>(</span><span>'DOMContentLoaded'</span><span>,</span> <span>function</span> <span>()</span> <span>{</span>
+</span></span><span><span>        <span>const</span> <span>calendarEl</span> <span>=</span> <span>document</span><span>.</span><span>getElementById</span><span>(</span><span>'calendar'</span><span>);</span>
+</span></span><span><span>        <span>const</span> <span>calendar</span> <span>=</span> <span>new</span> <span>FullCalendar</span><span>.</span><span>Calendar</span><span>(</span><span>calendarEl</span><span>,</span> <span>{</span>
+</span></span><span><span>            <span>initialView</span><span>:</span> <span>'dayGridMonth'</span><span>,</span> <span>// 預設檢視模式
+</span></span></span><span><span>            <span>locale</span><span>:</span> <span>"zh-tw"</span><span>,</span>   <span>// 預設語言
+</span></span></span><span><span>            <span>contentHeight</span><span>:</span> <span>800</span><span>,</span>
+</span></span><span><span>            <span>headerToolbar</span><span>:</span> <span>{</span> <span>// 工具列
+</span></span></span><span><span>                <span>left</span><span>:</span> <span>'prevYear, prev, next, nextYear, today'</span><span>,</span>
+</span></span><span><span>                <span>center</span><span>:</span> <span>'title'</span><span>,</span>
+</span></span><span><span>                <span>right</span><span>:</span> <span>'dayGridMonth,timeGridWeek'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>buttonText</span><span>:</span> <span>{</span>  <span>// 自訂翻譯
+</span></span></span><span><span>                <span>today</span><span>:</span> <span>'今仔日'</span><span>,</span>
+</span></span><span><span>                <span>month</span><span>:</span> <span>'月'</span><span>,</span>
+</span></span><span><span>                <span>week</span><span>:</span> <span>'週'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>events</span><span>:</span> <span>[</span>
+</span></span><span><span>                <span>{{</span> <span>range</span> <span>.</span><span>Site</span><span>.</span><span>RegularPages</span> <span>}}</span> <span>// 讀取所有已發表的文章，變成JSON陣列
+</span></span></span><span><span>            <span>{</span>
+</span></span><span><span>                <span>title</span><span>:</span> <span>'{{ .Title }}'</span><span>,</span>
+</span></span><span><span>                <span>start</span><span>:</span> <span>'{{ .Date.Format "2006-01-02" }}'</span><span>,</span>
+</span></span><span><span>                <span>url</span><span>:</span> <span>'{{ .RelPermalink }}'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>{{</span> <span>end</span> <span>}}</span>
+</span></span><span><span>        <span>],</span>
+</span></span><span><span>        <span>eventMouseEnter</span><span>:</span> <span>function</span> <span>(</span><span>info</span><span>)</span> <span>{</span> <span>// 加入滑鼠懸浮就顯示完整標題的功能
+</span></span></span><span><span>            <span>const</span> <span>tooltip</span> <span>=</span> <span>document</span><span>.</span><span>createElement</span><span>(</span><span>'div'</span><span>);</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>className</span> <span>=</span> <span>'event-tooltip'</span><span>;</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>innerHTML</span> <span>=</span> <span>`&lt;strong&gt;</span><span>${</span><span>info</span><span>.</span><span>event</span><span>.</span><span>title</span><span>}</span><span>&lt;/strong&gt;`</span><span>;</span>
+</span></span><span><span>            <span>document</span><span>.</span><span>body</span><span>.</span><span>appendChild</span><span>(</span><span>tooltip</span><span>);</span>
+</span></span><span><span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>style</span><span>.</span><span>left</span> <span>=</span> <span>info</span><span>.</span><span>jsEvent</span><span>.</span><span>pageX</span> <span>+</span> <span>'px'</span><span>;</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>style</span><span>.</span><span>top</span> <span>=</span> <span>info</span><span>.</span><span>jsEvent</span><span>.</span><span>pageY</span> <span>+</span> <span>'px'</span><span>;</span>
+</span></span><span><span>
+</span></span><span><span>            <span>info</span><span>.</span><span>el</span><span>.</span><span>addEventListener</span><span>(</span><span>'mouseleave'</span><span>,</span> <span>function</span> <span>()</span> <span>{</span>
+</span></span><span><span>                <span>tooltip</span><span>.</span><span>remove</span><span>();</span>
+</span></span><span><span>            <span>});</span>
+</span></span><span><span>        <span>}</span>
+</span></span><span><span>    <span>});</span>
+</span></span><span><span>    <span>calendar</span><span>.</span><span>render</span><span>();</span>
+</span></span><span><span><span>});</span>
+</span></span><span><span><span>&lt;/</span><span>script</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="4"><li>嘗試預覽網站。由於這是個獨立頁面，故需要打<code>http://localhost:1313/postcalendar</code>才能看到月曆。</li></ol><p>FullCalendar的隱憂：</p><ul><li>把所有文章讀取並存成一個超長的陣列很難看，還是嵌在網頁裡的。</li><li>不適合手機閱讀。</li></ul><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://blog.yuanji.dev/posts/adding-calendar-view-for-hugo-blog-posts/" target="_blank">给Hugo 博客添加月历功能 - Yuanji’s Blog</a></li><li><a href="https://discourse.gohugo.io/t/calendar-view/5186" target="_blank">Calendar view? - Hugo support</a></li><li><a href="https://fullcalendar.io/docs" target="_blank">Documentation | FullCalendar</a></li><li>ChatGPT撰寫的雛型</li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/hugo-add-events-calendar-view/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e4ed566ca1.webp"></a></p>
+<p>Add events calendar view to Hugo website.</p><p>一直以來，要紀錄自己成長的軌跡，我會去翻Github Activty，就是會在首頁顯示開發活動的歷程的圖表。不過老實說這個一點都不準確，這個圖表是以儲存庫更新的次數計算的，這樣頂多知道哪幾天有推送部落格原始碼更新而已，不能準確的查到我在過去哪天寫了什麼文章。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bd030fd450.webp"><p>萬一哪天我認真參與開發專案（是的現在更新Github儲存庫我大多是寫文章而非寫code），這個活動歷程也就不能當我發文歷史的參考了。</p><p>因此想到要給Hugo網站加一個日曆/月曆/年曆功能。它必須要有標準日期檢視功能，並且可以快速跳轉月份、年份的按鈕。最為重要的是，該月曆不是手動排行程的行事曆，而是自動抓取Hugo網站所有發表的文章，並將超連結渲染在日期格子上。</p><p>至於要怎麼做月曆，不必手刻，網路上已經有現成的函式庫FullCalendar能用了，只要將Hugo的文章列表作為JSON資料餵給FullCalendar，它就會自動產生一個互動式的月曆。</p><p>成品如下：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d4a92b1d6.webp"><h2>1. 建立專門的月曆頁面<span><a href="#1-%E5%BB%BA%E7%AB%8B%E5%B0%88%E9%96%80%E7%9A%84%E6%9C%88%E6%9B%86%E9%A0%81%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>採用page layout的作法來做一個專門放月曆的頁面。</p><ol><li>新增放月曆的頁面，放在<code>網站根目錄/content/postscalendar/index.md</code>，程式碼只有以下幾行</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>---
+</span></span><span><span>title: "月曆"
+</span></span><span><span>description: ""
+</span></span><span><span>layout: "postscalendar"
+</span></span><span><span>---
+</span></span></code></pre></div><ol start="2"><li>接著製作真正的layout page，放在<code>網站根目錄/layouts/page/postscalendar.html</code></li></ol><h2>2. 加入FullCalendar元素<span><a href="#2-%E5%8A%A0%E5%85%A5fullcalendar%E5%85%83%E7%B4%A0" aria-label="定位點">#</a></span></h2><ol><li>首先讓<code>網站根目錄/layouts/page/postscalendar.html</code>頁面繼承Blowfish主題的header與footer</li></ol><div><pre tabindex="0"><code data-lang="javascript"><span><span><span>{{</span> <span>define</span> <span>"main"</span> <span>}}</span>
+</span></span><span><span>
+</span></span><span><span><span>//程式碼
+</span></span></span><span><span>
+</span></span><span><span><span>{{</span> <span>end</span> <span>}}</span>
+</span></span></code></pre></div><ol start="2"><li>定義FullCalendar的CSS</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>style</span><span>&gt;</span>
+</span></span><span><span>    <span>#</span><span>calendar</span> <span>{</span>
+</span></span><span><span>        <span>max-width</span><span>:</span> <span>800</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>margin</span><span>:</span> <span>50</span><span>px</span> <span>auto</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>0</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>8</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>box-shadow</span><span>:</span> <span>0</span> <span>2</span><span>px</span> <span>10</span><span>px</span> <span>rgba</span><span>(</span><span>0</span><span>,</span> <span>0</span><span>,</span> <span>0</span><span>,</span> <span>0.1</span><span>);</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-toolbar-title</span> <span>{</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>1.5</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>font-weight</span><span>:</span> <span>bold</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-event</span> <span>{</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.8</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>2</span><span>px</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-header-toolbar</span> <span>{</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>10</span><span>px</span> <span>0</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#007bff</span><span>;</span>
+</span></span><span><span>        <span>border</span><span>:</span> <span>none</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>color</span><span>:</span> <span>white</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>5</span><span>px</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.9</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>cursor</span><span>:</span> <span>pointer</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span><span>:</span><span>hover</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#0056b3</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span><span>:</span><span>disabled</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#e0e0e0</span><span>;</span>
+</span></span><span><span>        <span>color</span><span>:</span> <span>#757575</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>event-tooltip</span> <span>{</span>
+</span></span><span><span>        <span>position</span><span>:</span> <span>absolute</span><span>;</span>
+</span></span><span><span>        <span>z-index</span><span>:</span> <span>10001</span><span>;</span>
+</span></span><span><span>        <span>background</span><span>:</span> <span>#fff</span><span>;</span>
+</span></span><span><span>        <span>border</span><span>:</span> <span>1</span><span>px</span> <span>solid</span> <span>#ccc</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>box-shadow</span><span>:</span> <span>0</span> <span>2</span><span>px</span> <span>10</span><span>px</span> <span>rgba</span><span>(</span><span>0</span><span>,</span> <span>0</span><span>,</span> <span>0</span><span>,</span> <span>0.1</span><span>);</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.9</span><span>em</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span><span>&lt;/</span><span>style</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>加入FullCalendar的程式碼。官方文件有很多細項可以調整，這裡就只製作基本的功能。</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>div</span> <span>id</span><span>=</span><span>'calendar'</span><span>&gt;&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span><span>&lt;</span><span>script</span> <span>src</span><span>=</span><span>'https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'</span><span>&gt;&lt;/</span><span>script</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>script</span><span>&gt;</span>
+</span></span><span><span>    <span>document</span><span>.</span><span>addEventListener</span><span>(</span><span>'DOMContentLoaded'</span><span>,</span> <span>function</span> <span>()</span> <span>{</span>
+</span></span><span><span>        <span>const</span> <span>calendarEl</span> <span>=</span> <span>document</span><span>.</span><span>getElementById</span><span>(</span><span>'calendar'</span><span>);</span>
+</span></span><span><span>        <span>const</span> <span>calendar</span> <span>=</span> <span>new</span> <span>FullCalendar</span><span>.</span><span>Calendar</span><span>(</span><span>calendarEl</span><span>,</span> <span>{</span>
+</span></span><span><span>            <span>initialView</span><span>:</span> <span>'dayGridMonth'</span><span>,</span> <span>// 預設檢視模式
+</span></span></span><span><span>            <span>locale</span><span>:</span> <span>"zh-tw"</span><span>,</span>   <span>// 預設語言
+</span></span></span><span><span>            <span>contentHeight</span><span>:</span> <span>800</span><span>,</span>
+</span></span><span><span>            <span>headerToolbar</span><span>:</span> <span>{</span> <span>// 工具列
+</span></span></span><span><span>                <span>left</span><span>:</span> <span>'prevYear, prev, next, nextYear, today'</span><span>,</span>
+</span></span><span><span>                <span>center</span><span>:</span> <span>'title'</span><span>,</span>
+</span></span><span><span>                <span>right</span><span>:</span> <span>'dayGridMonth,timeGridWeek'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>buttonText</span><span>:</span> <span>{</span>  <span>// 自訂翻譯
+</span></span></span><span><span>                <span>today</span><span>:</span> <span>'今仔日'</span><span>,</span>
+</span></span><span><span>                <span>month</span><span>:</span> <span>'月'</span><span>,</span>
+</span></span><span><span>                <span>week</span><span>:</span> <span>'週'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>events</span><span>:</span> <span>[</span>
+</span></span><span><span>                <span>{{</span> <span>range</span> <span>.</span><span>Site</span><span>.</span><span>RegularPages</span> <span>}}</span> <span>// 讀取所有已發表的文章，變成JSON陣列
+</span></span></span><span><span>            <span>{</span>
+</span></span><span><span>                <span>title</span><span>:</span> <span>'{{ .Title }}'</span><span>,</span>
+</span></span><span><span>                <span>start</span><span>:</span> <span>'{{ .Date.Format "2006-01-02" }}'</span><span>,</span>
+</span></span><span><span>                <span>url</span><span>:</span> <span>'{{ .RelPermalink }}'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>{{</span> <span>end</span> <span>}}</span>
+</span></span><span><span>        <span>],</span>
+</span></span><span><span>        <span>eventMouseEnter</span><span>:</span> <span>function</span> <span>(</span><span>info</span><span>)</span> <span>{</span> <span>// 加入滑鼠懸浮就顯示完整標題的功能
+</span></span></span><span><span>            <span>const</span> <span>tooltip</span> <span>=</span> <span>document</span><span>.</span><span>createElement</span><span>(</span><span>'div'</span><span>);</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>className</span> <span>=</span> <span>'event-tooltip'</span><span>;</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>innerHTML</span> <span>=</span> <span>`&lt;strong&gt;</span><span>${</span><span>info</span><span>.</span><span>event</span><span>.</span><span>title</span><span>}</span><span>&lt;/strong&gt;`</span><span>;</span>
+</span></span><span><span>            <span>document</span><span>.</span><span>body</span><span>.</span><span>appendChild</span><span>(</span><span>tooltip</span><span>);</span>
+</span></span><span><span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>style</span><span>.</span><span>left</span> <span>=</span> <span>info</span><span>.</span><span>jsEvent</span><span>.</span><span>pageX</span> <span>+</span> <span>'px'</span><span>;</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>style</span><span>.</span><span>top</span> <span>=</span> <span>info</span><span>.</span><span>jsEvent</span><span>.</span><span>pageY</span> <span>+</span> <span>'px'</span><span>;</span>
+</span></span><span><span>
+</span></span><span><span>            <span>info</span><span>.</span><span>el</span><span>.</span><span>addEventListener</span><span>(</span><span>'mouseleave'</span><span>,</span> <span>function</span> <span>()</span> <span>{</span>
+</span></span><span><span>                <span>tooltip</span><span>.</span><span>remove</span><span>();</span>
+</span></span><span><span>            <span>});</span>
+</span></span><span><span>        <span>}</span>
+</span></span><span><span>    <span>});</span>
+</span></span><span><span>    <span>calendar</span><span>.</span><span>render</span><span>();</span>
+</span></span><span><span><span>});</span>
+</span></span><span><span><span>&lt;/</span><span>script</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="4"><li>嘗試預覽網站。由於這是個獨立頁面，故需要打<code>http://localhost:1313/postcalendar</code>才能看到月曆。</li></ol><p>FullCalendar的隱憂：</p><ul><li>把所有文章讀取並存成一個超長的陣列很難看，還是嵌在網頁裡的。</li><li>不適合手機閱讀。</li></ul><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://blog.yuanji.dev/posts/adding-calendar-view-for-hugo-blog-posts/" target="_blank">给Hugo 博客添加月历功能 - Yuanji’s Blog</a></li><li><a href="https://discourse.gohugo.io/t/calendar-view/5186" target="_blank">Calendar view? - Hugo support</a></li><li><a href="https://fullcalendar.io/docs" target="_blank">Documentation | FullCalendar</a></li><li>ChatGPT撰寫的雛型</li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/hugo-add-events-calendar-view/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e4ed566ca1.webp"></a></p>
+<p>Add events calendar view to Hugo website.</p><p>一直以來，要紀錄自己成長的軌跡，我會去翻Github Activty，就是會在首頁顯示開發活動的歷程的圖表。不過老實說這個一點都不準確，這個圖表是以儲存庫更新的次數計算的，這樣頂多知道哪幾天有推送部落格原始碼更新而已，不能準確的查到我在過去哪天寫了什麼文章。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bd030fd450.webp"><p>萬一哪天我認真參與開發專案（是的現在更新Github儲存庫我大多是寫文章而非寫code），這個活動歷程也就不能當我發文歷史的參考了。</p><p>因此想到要給Hugo網站加一個日曆/月曆/年曆功能。它必須要有標準日期檢視功能，並且可以快速跳轉月份、年份的按鈕。最為重要的是，該月曆不是手動排行程的行事曆，而是自動抓取Hugo網站所有發表的文章，並將超連結渲染在日期格子上。</p><p>至於要怎麼做月曆，不必手刻，網路上已經有現成的函式庫FullCalendar能用了，只要將Hugo的文章列表作為JSON資料餵給FullCalendar，它就會自動產生一個互動式的月曆。</p><p>成品如下：</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d4a92b1d6.webp"><h2>1. 建立專門的月曆頁面<span><a href="#1-%E5%BB%BA%E7%AB%8B%E5%B0%88%E9%96%80%E7%9A%84%E6%9C%88%E6%9B%86%E9%A0%81%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>採用page layout的作法來做一個專門放月曆的頁面。</p><ol><li>新增放月曆的頁面，放在<code>網站根目錄/content/postscalendar/index.md</code>，程式碼只有以下幾行</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>---
+</span></span><span><span>title: "月曆"
+</span></span><span><span>description: ""
+</span></span><span><span>layout: "postscalendar"
+</span></span><span><span>---
+</span></span></code></pre></div><ol start="2"><li>接著製作真正的layout page，放在<code>網站根目錄/layouts/page/postscalendar.html</code></li></ol><h2>2. 加入FullCalendar元素<span><a href="#2-%E5%8A%A0%E5%85%A5fullcalendar%E5%85%83%E7%B4%A0" aria-label="定位點">#</a></span></h2><ol><li>首先讓<code>網站根目錄/layouts/page/postscalendar.html</code>頁面繼承Blowfish主題的header與footer</li></ol><div><pre tabindex="0"><code data-lang="javascript"><span><span><span>{{</span> <span>define</span> <span>"main"</span> <span>}}</span>
+</span></span><span><span>
+</span></span><span><span><span>//程式碼
+</span></span></span><span><span>
+</span></span><span><span><span>{{</span> <span>end</span> <span>}}</span>
+</span></span></code></pre></div><ol start="2"><li>定義FullCalendar的CSS</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>style</span><span>&gt;</span>
+</span></span><span><span>    <span>#</span><span>calendar</span> <span>{</span>
+</span></span><span><span>        <span>max-width</span><span>:</span> <span>800</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>margin</span><span>:</span> <span>50</span><span>px</span> <span>auto</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>0</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>8</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>box-shadow</span><span>:</span> <span>0</span> <span>2</span><span>px</span> <span>10</span><span>px</span> <span>rgba</span><span>(</span><span>0</span><span>,</span> <span>0</span><span>,</span> <span>0</span><span>,</span> <span>0.1</span><span>);</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-toolbar-title</span> <span>{</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>1.5</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>font-weight</span><span>:</span> <span>bold</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-event</span> <span>{</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.8</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>2</span><span>px</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-header-toolbar</span> <span>{</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>10</span><span>px</span> <span>0</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#007bff</span><span>;</span>
+</span></span><span><span>        <span>border</span><span>:</span> <span>none</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>color</span><span>:</span> <span>white</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>5</span><span>px</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.9</span><span>em</span><span>;</span>
+</span></span><span><span>        <span>cursor</span><span>:</span> <span>pointer</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span><span>:</span><span>hover</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#0056b3</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>fc-button</span><span>:</span><span>disabled</span> <span>{</span>
+</span></span><span><span>        <span>background-color</span><span>:</span> <span>#e0e0e0</span><span>;</span>
+</span></span><span><span>        <span>color</span><span>:</span> <span>#757575</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>
+</span></span><span><span>    <span>.</span><span>event-tooltip</span> <span>{</span>
+</span></span><span><span>        <span>position</span><span>:</span> <span>absolute</span><span>;</span>
+</span></span><span><span>        <span>z-index</span><span>:</span> <span>10001</span><span>;</span>
+</span></span><span><span>        <span>background</span><span>:</span> <span>#fff</span><span>;</span>
+</span></span><span><span>        <span>border</span><span>:</span> <span>1</span><span>px</span> <span>solid</span> <span>#ccc</span><span>;</span>
+</span></span><span><span>        <span>padding</span><span>:</span> <span>10</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>border-radius</span><span>:</span> <span>4</span><span>px</span><span>;</span>
+</span></span><span><span>        <span>box-shadow</span><span>:</span> <span>0</span> <span>2</span><span>px</span> <span>10</span><span>px</span> <span>rgba</span><span>(</span><span>0</span><span>,</span> <span>0</span><span>,</span> <span>0</span><span>,</span> <span>0.1</span><span>);</span>
+</span></span><span><span>        <span>font-size</span><span>:</span> <span>0.9</span><span>em</span><span>;</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span>    <span>}</span>
+</span></span><span><span><span>&lt;/</span><span>style</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>加入FullCalendar的程式碼。官方文件有很多細項可以調整，這裡就只製作基本的功能。</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>div</span> <span>id</span><span>=</span><span>'calendar'</span><span>&gt;&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span><span>&lt;</span><span>script</span> <span>src</span><span>=</span><span>'https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'</span><span>&gt;&lt;/</span><span>script</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>script</span><span>&gt;</span>
+</span></span><span><span>    <span>document</span><span>.</span><span>addEventListener</span><span>(</span><span>'DOMContentLoaded'</span><span>,</span> <span>function</span> <span>()</span> <span>{</span>
+</span></span><span><span>        <span>const</span> <span>calendarEl</span> <span>=</span> <span>document</span><span>.</span><span>getElementById</span><span>(</span><span>'calendar'</span><span>);</span>
+</span></span><span><span>        <span>const</span> <span>calendar</span> <span>=</span> <span>new</span> <span>FullCalendar</span><span>.</span><span>Calendar</span><span>(</span><span>calendarEl</span><span>,</span> <span>{</span>
+</span></span><span><span>            <span>initialView</span><span>:</span> <span>'dayGridMonth'</span><span>,</span> <span>// 預設檢視模式
+</span></span></span><span><span>            <span>locale</span><span>:</span> <span>"zh-tw"</span><span>,</span>   <span>// 預設語言
+</span></span></span><span><span>            <span>contentHeight</span><span>:</span> <span>800</span><span>,</span>
+</span></span><span><span>            <span>headerToolbar</span><span>:</span> <span>{</span> <span>// 工具列
+</span></span></span><span><span>                <span>left</span><span>:</span> <span>'prevYear, prev, next, nextYear, today'</span><span>,</span>
+</span></span><span><span>                <span>center</span><span>:</span> <span>'title'</span><span>,</span>
+</span></span><span><span>                <span>right</span><span>:</span> <span>'dayGridMonth,timeGridWeek'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>buttonText</span><span>:</span> <span>{</span>  <span>// 自訂翻譯
+</span></span></span><span><span>                <span>today</span><span>:</span> <span>'今仔日'</span><span>,</span>
+</span></span><span><span>                <span>month</span><span>:</span> <span>'月'</span><span>,</span>
+</span></span><span><span>                <span>week</span><span>:</span> <span>'週'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>events</span><span>:</span> <span>[</span>
+</span></span><span><span>                <span>{{</span> <span>range</span> <span>.</span><span>Site</span><span>.</span><span>RegularPages</span> <span>}}</span> <span>// 讀取所有已發表的文章，變成JSON陣列
+</span></span></span><span><span>            <span>{</span>
+</span></span><span><span>                <span>title</span><span>:</span> <span>'{{ .Title }}'</span><span>,</span>
+</span></span><span><span>                <span>start</span><span>:</span> <span>'{{ .Date.Format "2006-01-02" }}'</span><span>,</span>
+</span></span><span><span>                <span>url</span><span>:</span> <span>'{{ .RelPermalink }}'</span>
+</span></span><span><span>            <span>},</span>
+</span></span><span><span>            <span>{{</span> <span>end</span> <span>}}</span>
+</span></span><span><span>        <span>],</span>
+</span></span><span><span>        <span>eventMouseEnter</span><span>:</span> <span>function</span> <span>(</span><span>info</span><span>)</span> <span>{</span> <span>// 加入滑鼠懸浮就顯示完整標題的功能
+</span></span></span><span><span>            <span>const</span> <span>tooltip</span> <span>=</span> <span>document</span><span>.</span><span>createElement</span><span>(</span><span>'div'</span><span>);</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>className</span> <span>=</span> <span>'event-tooltip'</span><span>;</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>innerHTML</span> <span>=</span> <span>`&lt;strong&gt;</span><span>${</span><span>info</span><span>.</span><span>event</span><span>.</span><span>title</span><span>}</span><span>&lt;/strong&gt;`</span><span>;</span>
+</span></span><span><span>            <span>document</span><span>.</span><span>body</span><span>.</span><span>appendChild</span><span>(</span><span>tooltip</span><span>);</span>
+</span></span><span><span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>style</span><span>.</span><span>left</span> <span>=</span> <span>info</span><span>.</span><span>jsEvent</span><span>.</span><span>pageX</span> <span>+</span> <span>'px'</span><span>;</span>
+</span></span><span><span>            <span>tooltip</span><span>.</span><span>style</span><span>.</span><span>top</span> <span>=</span> <span>info</span><span>.</span><span>jsEvent</span><span>.</span><span>pageY</span> <span>+</span> <span>'px'</span><span>;</span>
+</span></span><span><span>
+</span></span><span><span>            <span>info</span><span>.</span><span>el</span><span>.</span><span>addEventListener</span><span>(</span><span>'mouseleave'</span><span>,</span> <span>function</span> <span>()</span> <span>{</span>
+</span></span><span><span>                <span>tooltip</span><span>.</span><span>remove</span><span>();</span>
+</span></span><span><span>            <span>});</span>
+</span></span><span><span>        <span>}</span>
+</span></span><span><span>    <span>});</span>
+</span></span><span><span>    <span>calendar</span><span>.</span><span>render</span><span>();</span>
+</span></span><span><span><span>});</span>
+</span></span><span><span><span>&lt;/</span><span>script</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="4"><li>嘗試預覽網站。由於這是個獨立頁面，故需要打<code>http://localhost:1313/postcalendar</code>才能看到月曆。</li></ol><p>FullCalendar的隱憂：</p><ul><li>把所有文章讀取並存成一個超長的陣列很難看，還是嵌在網頁裡的。</li><li>不適合手機閱讀。</li></ul><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://blog.yuanji.dev/posts/adding-calendar-view-for-hugo-blog-posts/" target="_blank">给Hugo 博客添加月历功能 - Yuanji’s Blog</a></li><li><a href="https://discourse.gohugo.io/t/calendar-view/5186" target="_blank">Calendar view? - Hugo support</a></li><li><a href="https://fullcalendar.io/docs" target="_blank">Documentation | FullCalendar</a></li><li>ChatGPT撰寫的雛型</li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e4ed566ca1.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e4ed566ca1.webp" medium="image"/>
+    <pubDate>Fri, 09 Aug 2024 14:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[戀活模組「kPlug」安裝方式，解鎖新姿勢、去馬賽克]]></title>
     <link>https://ivonblog.com/posts/koikatsu-kplug-mod/</link>
     <itunes:title><![CDATA[戀活模組「kPlug」安裝方式，解鎖新姿勢、去馬賽克]]></itunes:title>
@@ -1707,32 +2058,5 @@ Prism Launcher官網</a>，安裝<code>Microsoft Visual C++ Redistributable 2022
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-67e74adc0f.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-67e74adc0f.webp" medium="image"/>
     <pubDate>Fri, 26 Jul 2024 12:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Linux系統玩Windows遊戲：Steam Proton V.S. VFIO虛擬機，孰勝孰負？]]></title>
-    <link>https://ivonblog.com/posts/linux-gaming-steam-proton-vs-vfio-gaming-vm/</link>
-    <itunes:title><![CDATA[Linux系統玩Windows遊戲：Steam Proton V.S. VFIO虛擬機，孰勝孰負？]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-gaming-steam-proton-vs-vfio-gaming-vm/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd362e5342.webp"></a></p>
-<p>Gaming on Linux with Steam Proton, or gaming in Windows VM with GPU passthrough on Linux Host?</p><p>最近幾年我一直在研究Linux系統玩Windows遊戲的方法，在嘗試了各種方案後，逐漸有了答案。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4ddaf4051c.webp"><p>這裡有二個前提：</p><ol><li><p>主力用Ubuntu Linux，我拒絕雙系統開機的模式，所以便剩下Steam Proton和VFIO虛擬機的方案。</p></li><li><p>我知道很多遊戲是有跨平台版本的，比如Minecraft，但是大部分開發者依然只在乎Windows，所以只要遊戲玩得多了，遇到Windows限定的遊戲是不可迴避的問題，「拒玩」不是選項。</p></li></ol><h2>1. 名詞定義<span><a href="#1-%E5%90%8D%E8%A9%9E%E5%AE%9A%E7%BE%A9" aria-label="定位點">#</a></span></h2><p>Steam Proton指透過Proton遊玩Steam上架的遊戲。由於近年來Valve大力投資Linux軟體開發，甚至出了Steam Deck，使得玩Steam遊戲基本上是開箱即用。但要注意的是Proton不是Valve獨立開發的，它延伸自開源的Wine專案，所以不需要Steam同樣也能用Wine轉譯玩Windows遊戲，其他遊戲啟動器多得是。不過Steam的界面設計確實是最無腦的，所以我用Steam Proton代稱用Wine轉譯Windows遊戲的玩遊戲方式。</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/install-steam-on-linux/" target="_blank">
-Linux安裝Steam玩Windows遊戲</a></li></ul><hr><p>VFIO虛擬機 (VFIO Gaming)，這個名詞來自於歐美玩家的稱呼，指的是依賴QEMU/KVM技術，建立Windows虛擬機，再透過Linux核心的VFIO技術將GPU直通給虛擬機使用，使其能夠負載3D運算。只要設定Looking Glass或Sunshine服務，就能從Linux桌面低延遲的存取Windows桌面。由於虛擬機是完整的Windows系統環境，所以執行起來跟實機幾乎沒有差別。</p><p>或許你會跟我爭論說，在Windows虛擬機玩遊戲根本就不是在Linux玩遊戲了呀！但這個Windows虛擬機還是跑在Linux上、且依賴Linux的KVM虛擬化技術才有的結果呀！</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/qemu-kvm-vfio-gaming/" target="_blank">
-VFIO虛擬機 ＋ GPU直通 ＋ Looking Glass安裝</a></li></ul><h2>2. 二者的不確定因素<span><a href="#2-%E4%BA%8C%E8%80%85%E7%9A%84%E4%B8%8D%E7%A2%BA%E5%AE%9A%E5%9B%A0%E7%B4%A0" aria-label="定位點">#</a></span></h2><p>Steam Proton的不確定因素：</p><ul><li>遊戲開發者重視Linux的程度</li><li>Proton轉譯的穩定性</li><li>輸入法</li><li>驅動程式問題</li><li>反作弊程式相容性</li><li>安裝第三方模組、外掛、中文化的難易度</li></ul><p>VFIO虛擬機的不確定因素：</p><ul><li>架設虛擬機環境的難易度</li><li>反作弊程式偵測虛擬機</li><li>虛擬化的硬體性能損耗</li><li>存取虛擬機的容易度</li></ul><h2>3. 現在傾向使用VFIO虛擬機方案<span><a href="#3-%E7%8F%BE%E5%9C%A8%E5%82%BE%E5%90%91%E4%BD%BF%E7%94%A8vfio%E8%99%9B%E6%93%AC%E6%A9%9F%E6%96%B9%E6%A1%88" aria-label="定位點">#</a></span></h2><p>以前，我認為VFIO的方案只是對Steam Proton的補充，真有無法執行的程式再使用VFIO。但是，現在卻覺得應當反過來了。</p><p>如果要比較的話，我覺得Steam Proton的問題比較大。因為變數太多了。</p><p>遊戲開發者要怎麼展現對Linux系統用戶的誠意呢？至少推出原生版的程式吧！遊戲可以透過Proton跑不代表就完美無缺的說。而且很多時候是玩家以第三者的角度認為Proton轉譯讓遊戲可以玩，但遊戲開發者根本就不在乎這方面問題，你能玩只是運氣好而已。</p><p>再者，安裝遊戲之後如果不需要特別打模組那倒還好，直接體驗原作內容。但，要使用第三方程式的遊戲就會很痛苦了，需要調整一堆有的沒的WINE環境，還得注意有哪些.Net的依賴套件要裝。</p><p>最糟糕的情況是Proton轉譯後遊戲有莫名的bug，無法在Windows重現，此時就只能依賴玩家社群尋求解方。若是遊戲太小眾根本找不到解答，所以tweak Wine的環境很多時候是在自虐。每當有一款遊戲能在Linux成功執行，就好像發現寶藏一樣的感覺，問題是失敗的例子也很多啊。</p><p>這裡有個想法強化了支持VFIO虛擬機的論點：<strong>「我是來玩遊戲的，點一下按鈕就該開玩，不要跟我說要打指令安裝修補什麼碗糕的！」</strong></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-00573da757.webp"><p>我沒有貶低Linux社群開發者的努力，輔助工具越來越多，Linux玩遊戲越來越方便了，但就2024年的現狀來看，Steam Proton還是很吃腦力的玩遊戲方式。</p><p>Steam Proton安裝起來很容易，但後續的問題還多著呢，屬於是先甘後苦。</p><hr><p>相較之下，VFIO虛擬機環境一旦架設起來了，至少軟體部份不會有太多變數，唯一的問題大概就反作弊程式擋虛擬機的問題，這個有很多解法能繞過。</p><p>至於硬體損耗問題，Linux的虛擬機是跑在KVM上的，遊戲執行效率的確會比實機差一些，但是不會到性能變成一半的誇張情況。假若硬體強度足夠支撐，那麼這點損耗可以忽略不計。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-923aa18488.webp"><figcaption>圖片引用自Mental Outlaw的影片：https://www.youtube.com/watch?v=KVDUs019IB8</figcaption><p>那麼，如何存取虛擬機的問題，我講過了，Looking Glass或者Sunshine都能簡單的解決「從Linux桌存取虛擬機桌面」的問題。</p><p>VFIO初期繁雜的問題搞定了之後，往後的遊戲執行都不會有太大問題。算是先苦後甘。</p><p>所以，我選擇進入虛無。</p><p>補充一點，身為Linux用戶，我依然會關注Steam Proton未來的開發進展，但由於VFIO綁定GPU直通，宿主機無法測試遊戲，使得我不得不將Linux玩遊戲的環境也虛擬化，也就是另外開一個Linux虛擬機，分配GPU給虛擬機，再用Sunshine存取該虛擬機的桌面。參見：<a href="https://ivonblog.com/posts/run-sunshine-in-qemu-kvm/" target="_blank">
-Sunshine裝在QEMU/KVM虛擬機裡，從Linux宿主機串流玩遊戲</a></p><h2>類似討論<span><a href="#%E9%A1%9E%E4%BC%BC%E8%A8%8E%E8%AB%96" aria-label="定位點">#</a></span></h2><ul><li><a href="https://forum.level1techs.com/t/vfio-passthrough-in-2023-call-to-arms/199671/1" target="_blank">VFIO/Passthrough in 2023 - Call to Arms - Level1Techs Forums</a></li><li><a href="https://www.reddit.com/r/VFIO/comments/9aiqc9/performance_gpu_passthrough_vs_steam_playproton/" target="_blank">Performance: GPU Passthrough vs Steam Play/Proton - /r/VFIO Reddit</a></li><li><a href="https://forum.proxmox.com/tags/gaming/" target="_blank">gaming - Proxmox Support Forum</a></li><li><a href="https://regunakyle.github.io/regunakyle/posts/002_windows_to_linux/" target="_blank">從Windows到Linux：VFIO及Looking Glass介紹 · Reguna</a></li></ul>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-gaming-steam-proton-vs-vfio-gaming-vm/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd362e5342.webp"></a></p>
-<p>Gaming on Linux with Steam Proton, or gaming in Windows VM with GPU passthrough on Linux Host?</p><p>最近幾年我一直在研究Linux系統玩Windows遊戲的方法，在嘗試了各種方案後，逐漸有了答案。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4ddaf4051c.webp"><p>這裡有二個前提：</p><ol><li><p>主力用Ubuntu Linux，我拒絕雙系統開機的模式，所以便剩下Steam Proton和VFIO虛擬機的方案。</p></li><li><p>我知道很多遊戲是有跨平台版本的，比如Minecraft，但是大部分開發者依然只在乎Windows，所以只要遊戲玩得多了，遇到Windows限定的遊戲是不可迴避的問題，「拒玩」不是選項。</p></li></ol><h2>1. 名詞定義<span><a href="#1-%E5%90%8D%E8%A9%9E%E5%AE%9A%E7%BE%A9" aria-label="定位點">#</a></span></h2><p>Steam Proton指透過Proton遊玩Steam上架的遊戲。由於近年來Valve大力投資Linux軟體開發，甚至出了Steam Deck，使得玩Steam遊戲基本上是開箱即用。但要注意的是Proton不是Valve獨立開發的，它延伸自開源的Wine專案，所以不需要Steam同樣也能用Wine轉譯玩Windows遊戲，其他遊戲啟動器多得是。不過Steam的界面設計確實是最無腦的，所以我用Steam Proton代稱用Wine轉譯Windows遊戲的玩遊戲方式。</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/install-steam-on-linux/" target="_blank">
-Linux安裝Steam玩Windows遊戲</a></li></ul><hr><p>VFIO虛擬機 (VFIO Gaming)，這個名詞來自於歐美玩家的稱呼，指的是依賴QEMU/KVM技術，建立Windows虛擬機，再透過Linux核心的VFIO技術將GPU直通給虛擬機使用，使其能夠負載3D運算。只要設定Looking Glass或Sunshine服務，就能從Linux桌面低延遲的存取Windows桌面。由於虛擬機是完整的Windows系統環境，所以執行起來跟實機幾乎沒有差別。</p><p>或許你會跟我爭論說，在Windows虛擬機玩遊戲根本就不是在Linux玩遊戲了呀！但這個Windows虛擬機還是跑在Linux上、且依賴Linux的KVM虛擬化技術才有的結果呀！</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/qemu-kvm-vfio-gaming/" target="_blank">
-VFIO虛擬機 ＋ GPU直通 ＋ Looking Glass安裝</a></li></ul><h2>2. 二者的不確定因素<span><a href="#2-%E4%BA%8C%E8%80%85%E7%9A%84%E4%B8%8D%E7%A2%BA%E5%AE%9A%E5%9B%A0%E7%B4%A0" aria-label="定位點">#</a></span></h2><p>Steam Proton的不確定因素：</p><ul><li>遊戲開發者重視Linux的程度</li><li>Proton轉譯的穩定性</li><li>輸入法</li><li>驅動程式問題</li><li>反作弊程式相容性</li><li>安裝第三方模組、外掛、中文化的難易度</li></ul><p>VFIO虛擬機的不確定因素：</p><ul><li>架設虛擬機環境的難易度</li><li>反作弊程式偵測虛擬機</li><li>虛擬化的硬體性能損耗</li><li>存取虛擬機的容易度</li></ul><h2>3. 現在傾向使用VFIO虛擬機方案<span><a href="#3-%E7%8F%BE%E5%9C%A8%E5%82%BE%E5%90%91%E4%BD%BF%E7%94%A8vfio%E8%99%9B%E6%93%AC%E6%A9%9F%E6%96%B9%E6%A1%88" aria-label="定位點">#</a></span></h2><p>以前，我認為VFIO的方案只是對Steam Proton的補充，真有無法執行的程式再使用VFIO。但是，現在卻覺得應當反過來了。</p><p>如果要比較的話，我覺得Steam Proton的問題比較大。因為變數太多了。</p><p>遊戲開發者要怎麼展現對Linux系統用戶的誠意呢？至少推出原生版的程式吧！遊戲可以透過Proton跑不代表就完美無缺的說。而且很多時候是玩家以第三者的角度認為Proton轉譯讓遊戲可以玩，但遊戲開發者根本就不在乎這方面問題，你能玩只是運氣好而已。</p><p>再者，安裝遊戲之後如果不需要特別打模組那倒還好，直接體驗原作內容。但，要使用第三方程式的遊戲就會很痛苦了，需要調整一堆有的沒的WINE環境，還得注意有哪些.Net的依賴套件要裝。</p><p>最糟糕的情況是Proton轉譯後遊戲有莫名的bug，無法在Windows重現，此時就只能依賴玩家社群尋求解方。若是遊戲太小眾根本找不到解答，所以tweak Wine的環境很多時候是在自虐。每當有一款遊戲能在Linux成功執行，就好像發現寶藏一樣的感覺，問題是失敗的例子也很多啊。</p><p>這裡有個想法強化了支持VFIO虛擬機的論點：<strong>「我是來玩遊戲的，點一下按鈕就該開玩，不要跟我說要打指令安裝修補什麼碗糕的！」</strong></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-00573da757.webp"><p>我沒有貶低Linux社群開發者的努力，輔助工具越來越多，Linux玩遊戲越來越方便了，但就2024年的現狀來看，Steam Proton還是很吃腦力的玩遊戲方式。</p><p>Steam Proton安裝起來很容易，但後續的問題還多著呢，屬於是先甘後苦。</p><hr><p>相較之下，VFIO虛擬機環境一旦架設起來了，至少軟體部份不會有太多變數，唯一的問題大概就反作弊程式擋虛擬機的問題，這個有很多解法能繞過。</p><p>至於硬體損耗問題，Linux的虛擬機是跑在KVM上的，遊戲執行效率的確會比實機差一些，但是不會到性能變成一半的誇張情況。假若硬體強度足夠支撐，那麼這點損耗可以忽略不計。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-923aa18488.webp"><figcaption>圖片引用自Mental Outlaw的影片：https://www.youtube.com/watch?v=KVDUs019IB8</figcaption><p>那麼，如何存取虛擬機的問題，我講過了，Looking Glass或者Sunshine都能簡單的解決「從Linux桌存取虛擬機桌面」的問題。</p><p>VFIO初期繁雜的問題搞定了之後，往後的遊戲執行都不會有太大問題。算是先苦後甘。</p><p>所以，我選擇進入虛無。</p><p>補充一點，身為Linux用戶，我依然會關注Steam Proton未來的開發進展，但由於VFIO綁定GPU直通，宿主機無法測試遊戲，使得我不得不將Linux玩遊戲的環境也虛擬化，也就是另外開一個Linux虛擬機，分配GPU給虛擬機，再用Sunshine存取該虛擬機的桌面。參見：<a href="https://ivonblog.com/posts/run-sunshine-in-qemu-kvm/" target="_blank">
-Sunshine裝在QEMU/KVM虛擬機裡，從Linux宿主機串流玩遊戲</a></p><h2>類似討論<span><a href="#%E9%A1%9E%E4%BC%BC%E8%A8%8E%E8%AB%96" aria-label="定位點">#</a></span></h2><ul><li><a href="https://forum.level1techs.com/t/vfio-passthrough-in-2023-call-to-arms/199671/1" target="_blank">VFIO/Passthrough in 2023 - Call to Arms - Level1Techs Forums</a></li><li><a href="https://www.reddit.com/r/VFIO/comments/9aiqc9/performance_gpu_passthrough_vs_steam_playproton/" target="_blank">Performance: GPU Passthrough vs Steam Play/Proton - /r/VFIO Reddit</a></li><li><a href="https://forum.proxmox.com/tags/gaming/" target="_blank">gaming - Proxmox Support Forum</a></li><li><a href="https://regunakyle.github.io/regunakyle/posts/002_windows_to_linux/" target="_blank">從Windows到Linux：VFIO及Looking Glass介紹 · Reguna</a></li></ul>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/linux-gaming-steam-proton-vs-vfio-gaming-vm/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd362e5342.webp"></a></p>
-<p>Gaming on Linux with Steam Proton, or gaming in Windows VM with GPU passthrough on Linux Host?</p><p>最近幾年我一直在研究Linux系統玩Windows遊戲的方法，在嘗試了各種方案後，逐漸有了答案。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4ddaf4051c.webp"><p>這裡有二個前提：</p><ol><li><p>主力用Ubuntu Linux，我拒絕雙系統開機的模式，所以便剩下Steam Proton和VFIO虛擬機的方案。</p></li><li><p>我知道很多遊戲是有跨平台版本的，比如Minecraft，但是大部分開發者依然只在乎Windows，所以只要遊戲玩得多了，遇到Windows限定的遊戲是不可迴避的問題，「拒玩」不是選項。</p></li></ol><h2>1. 名詞定義<span><a href="#1-%E5%90%8D%E8%A9%9E%E5%AE%9A%E7%BE%A9" aria-label="定位點">#</a></span></h2><p>Steam Proton指透過Proton遊玩Steam上架的遊戲。由於近年來Valve大力投資Linux軟體開發，甚至出了Steam Deck，使得玩Steam遊戲基本上是開箱即用。但要注意的是Proton不是Valve獨立開發的，它延伸自開源的Wine專案，所以不需要Steam同樣也能用Wine轉譯玩Windows遊戲，其他遊戲啟動器多得是。不過Steam的界面設計確實是最無腦的，所以我用Steam Proton代稱用Wine轉譯Windows遊戲的玩遊戲方式。</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/install-steam-on-linux/" target="_blank">
-Linux安裝Steam玩Windows遊戲</a></li></ul><hr><p>VFIO虛擬機 (VFIO Gaming)，這個名詞來自於歐美玩家的稱呼，指的是依賴QEMU/KVM技術，建立Windows虛擬機，再透過Linux核心的VFIO技術將GPU直通給虛擬機使用，使其能夠負載3D運算。只要設定Looking Glass或Sunshine服務，就能從Linux桌面低延遲的存取Windows桌面。由於虛擬機是完整的Windows系統環境，所以執行起來跟實機幾乎沒有差別。</p><p>或許你會跟我爭論說，在Windows虛擬機玩遊戲根本就不是在Linux玩遊戲了呀！但這個Windows虛擬機還是跑在Linux上、且依賴Linux的KVM虛擬化技術才有的結果呀！</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/qemu-kvm-vfio-gaming/" target="_blank">
-VFIO虛擬機 ＋ GPU直通 ＋ Looking Glass安裝</a></li></ul><h2>2. 二者的不確定因素<span><a href="#2-%E4%BA%8C%E8%80%85%E7%9A%84%E4%B8%8D%E7%A2%BA%E5%AE%9A%E5%9B%A0%E7%B4%A0" aria-label="定位點">#</a></span></h2><p>Steam Proton的不確定因素：</p><ul><li>遊戲開發者重視Linux的程度</li><li>Proton轉譯的穩定性</li><li>輸入法</li><li>驅動程式問題</li><li>反作弊程式相容性</li><li>安裝第三方模組、外掛、中文化的難易度</li></ul><p>VFIO虛擬機的不確定因素：</p><ul><li>架設虛擬機環境的難易度</li><li>反作弊程式偵測虛擬機</li><li>虛擬化的硬體性能損耗</li><li>存取虛擬機的容易度</li></ul><h2>3. 現在傾向使用VFIO虛擬機方案<span><a href="#3-%E7%8F%BE%E5%9C%A8%E5%82%BE%E5%90%91%E4%BD%BF%E7%94%A8vfio%E8%99%9B%E6%93%AC%E6%A9%9F%E6%96%B9%E6%A1%88" aria-label="定位點">#</a></span></h2><p>以前，我認為VFIO的方案只是對Steam Proton的補充，真有無法執行的程式再使用VFIO。但是，現在卻覺得應當反過來了。</p><p>如果要比較的話，我覺得Steam Proton的問題比較大。因為變數太多了。</p><p>遊戲開發者要怎麼展現對Linux系統用戶的誠意呢？至少推出原生版的程式吧！遊戲可以透過Proton跑不代表就完美無缺的說。而且很多時候是玩家以第三者的角度認為Proton轉譯讓遊戲可以玩，但遊戲開發者根本就不在乎這方面問題，你能玩只是運氣好而已。</p><p>再者，安裝遊戲之後如果不需要特別打模組那倒還好，直接體驗原作內容。但，要使用第三方程式的遊戲就會很痛苦了，需要調整一堆有的沒的WINE環境，還得注意有哪些.Net的依賴套件要裝。</p><p>最糟糕的情況是Proton轉譯後遊戲有莫名的bug，無法在Windows重現，此時就只能依賴玩家社群尋求解方。若是遊戲太小眾根本找不到解答，所以tweak Wine的環境很多時候是在自虐。每當有一款遊戲能在Linux成功執行，就好像發現寶藏一樣的感覺，問題是失敗的例子也很多啊。</p><p>這裡有個想法強化了支持VFIO虛擬機的論點：<strong>「我是來玩遊戲的，點一下按鈕就該開玩，不要跟我說要打指令安裝修補什麼碗糕的！」</strong></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-00573da757.webp"><p>我沒有貶低Linux社群開發者的努力，輔助工具越來越多，Linux玩遊戲越來越方便了，但就2024年的現狀來看，Steam Proton還是很吃腦力的玩遊戲方式。</p><p>Steam Proton安裝起來很容易，但後續的問題還多著呢，屬於是先甘後苦。</p><hr><p>相較之下，VFIO虛擬機環境一旦架設起來了，至少軟體部份不會有太多變數，唯一的問題大概就反作弊程式擋虛擬機的問題，這個有很多解法能繞過。</p><p>至於硬體損耗問題，Linux的虛擬機是跑在KVM上的，遊戲執行效率的確會比實機差一些，但是不會到性能變成一半的誇張情況。假若硬體強度足夠支撐，那麼這點損耗可以忽略不計。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-923aa18488.webp"><figcaption>圖片引用自Mental Outlaw的影片：https://www.youtube.com/watch?v=KVDUs019IB8</figcaption><p>那麼，如何存取虛擬機的問題，我講過了，Looking Glass或者Sunshine都能簡單的解決「從Linux桌存取虛擬機桌面」的問題。</p><p>VFIO初期繁雜的問題搞定了之後，往後的遊戲執行都不會有太大問題。算是先苦後甘。</p><p>所以，我選擇進入虛無。</p><p>補充一點，身為Linux用戶，我依然會關注Steam Proton未來的開發進展，但由於VFIO綁定GPU直通，宿主機無法測試遊戲，使得我不得不將Linux玩遊戲的環境也虛擬化，也就是另外開一個Linux虛擬機，分配GPU給虛擬機，再用Sunshine存取該虛擬機的桌面。參見：<a href="https://ivonblog.com/posts/run-sunshine-in-qemu-kvm/" target="_blank">
-Sunshine裝在QEMU/KVM虛擬機裡，從Linux宿主機串流玩遊戲</a></p><h2>類似討論<span><a href="#%E9%A1%9E%E4%BC%BC%E8%A8%8E%E8%AB%96" aria-label="定位點">#</a></span></h2><ul><li><a href="https://forum.level1techs.com/t/vfio-passthrough-in-2023-call-to-arms/199671/1" target="_blank">VFIO/Passthrough in 2023 - Call to Arms - Level1Techs Forums</a></li><li><a href="https://www.reddit.com/r/VFIO/comments/9aiqc9/performance_gpu_passthrough_vs_steam_playproton/" target="_blank">Performance: GPU Passthrough vs Steam Play/Proton - /r/VFIO Reddit</a></li><li><a href="https://forum.proxmox.com/tags/gaming/" target="_blank">gaming - Proxmox Support Forum</a></li><li><a href="https://regunakyle.github.io/regunakyle/posts/002_windows_to_linux/" target="_blank">從Windows到Linux：VFIO及Looking Glass介紹 · Reguna</a></li></ul>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd362e5342.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd362e5342.webp" medium="image"/>
-    <pubDate>Thu, 25 Jul 2024 23:00:00 +0800</pubDate>
   </item></channel>
 </rss>
