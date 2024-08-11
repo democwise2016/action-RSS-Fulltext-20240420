@@ -308,20 +308,20 @@ let feedList = [
 
 // ----------------------------------------------------------------
 
-feedList = [
-  { // <outline type="rss" text="Linuxeden开源社区++$0413-0909$" title="Linuxeden开源社区++$0413-0909$" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/$0413-0909$,/http%3A%2F%2Fwww.linuxeden.com%2Ffeed" htmlUrl="http://www.linuxeden.com"/>
-    title: 'Chrome Unboxed',
-    feedID: 'chromeunboxed',
-    feedURL: 'https://chromeunboxed.com/feed/',
-    itemFilters: [
-      ItemFilters['sites'].ItemFilterBlog,
-      ItemFilters['common'].ItemFilterImageEmbed,
-      ItemFilters['common'].ItemFilterThumbnailCache,
-    ],
-    options: {
-      selector: 'article > .entry-content'
-    }
-  },
-]
+// feedList = [
+//   { // <outline type="rss" text="Linuxeden开源社区++$0413-0909$" title="Linuxeden开源社区++$0413-0909$" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/$0413-0909$,/http%3A%2F%2Fwww.linuxeden.com%2Ffeed" htmlUrl="http://www.linuxeden.com"/>
+//     title: 'Chrome Unboxed',
+//     feedID: 'chromeunboxed',
+//     feedURL: 'https://chromeunboxed.com/feed/',
+//     itemFilters: [
+//       ItemFilters['sites'].ItemFilterBlog,
+//       ItemFilters['common'].ItemFilterImageEmbed,
+//       ItemFilters['common'].ItemFilterThumbnailCache,
+//     ],
+//     options: {
+//       selector: 'article > .entry-content'
+//     }
+//   },
+// ]
 
 module.exports = feedList
