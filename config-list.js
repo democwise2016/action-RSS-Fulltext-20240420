@@ -308,20 +308,20 @@ let feedList = [
 
 // ----------------------------------------------------------------
 
-feedList = [
-  { // <outline type="rss" text="要改的地方太多了，那就改天吧++" title="要改的地方太多了，那就改天吧++" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/https%3A%2F%2Fblog.user.today%2Ffeed%2F" htmlUrl="https://blog.user.today"/>
-    title: '要改的地方太多了，那就改天吧',
-    feedID: 'user.today',
-    feedURL: 'https://blog.user.today/feed',
-    itemFilters: [
-      ItemFilters['sites'].ItemFilterBlog,
-      // ItemFilters['common'].ItemFilterImageEmbed,
-    ],
-    options: {
-      // selector: 'article[id] > .entry__content'
-      selector: 'article > div.post-inner'
-    }
-  },
-]
+// feedList = [
+//   { // <outline type="rss" text="要改的地方太多了，那就改天吧++" title="要改的地方太多了，那就改天吧++" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/https%3A%2F%2Fblog.user.today%2Ffeed%2F" htmlUrl="https://blog.user.today"/>
+//     title: '要改的地方太多了，那就改天吧',
+//     feedID: 'user.today',
+//     feedURL: 'https://blog.user.today/feed',
+//     itemFilters: [
+//       ItemFilters['sites'].ItemFilterBlog,
+//       // ItemFilters['common'].ItemFilterImageEmbed,
+//     ],
+//     options: {
+//       selector: 'article[id] > .entry__content'
+//       // selector: 'article > div.post-inner'
+//     }
+//   },
+// ]
 
 module.exports = feedList
