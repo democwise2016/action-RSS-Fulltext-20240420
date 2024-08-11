@@ -22,7 +22,7 @@ let feedList = [
       // ItemFilters['common'].ItemFilterImageEmbed,
     ],
     options: {
-      selector: 'article[id] > .entry__content'
+      selector: 'article > div.post-inner'
     }
   },
   { // <outline type="rss" text="3C匠-喜愛玩各種3C產品++$0414-1925$" title="3C匠-喜愛玩各種3C產品++$0414-1925$" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/$0414-1925$/https%3A%2F%2F3cjohnhardware.wordpress.com%2Ffeed%2F" htmlUrl="https://3cjohnhardware.wordpress.com"/>
