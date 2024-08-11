@@ -17,9 +17,10 @@ let CONFIG = {
   newArrialMax: 50,
   maxDownloadItems: 100,
   maxExcutionMinutes: 25,
-  maxWait: 5,
+  maxWait: 2,
 
   maxFileCache: 2000,
+  BATCH_REMOVE: 100,
 
   proxy: 'https://script.google.com/macros/s/AKfycbzvvbn-FepcAJl1Ro3tgo0P4dXotOl81d4hcp4n4fNu_2RASYtO1idg6uxi0m7SXWtOMw/exec?proxy=',
   // feedList
