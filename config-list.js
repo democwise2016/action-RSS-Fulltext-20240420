@@ -47,7 +47,8 @@ let feedList = [
       // ItemFilters['common'].ItemFilterImageEmbed,
     ],
     options: {
-      selector: '#article-content-inner[itemprop="articleBody"]'
+      // selector: '#article-content-inner[itemprop="articleBody"]'
+      selector: '#article-content-inner'
     }
   },
   { // <outline type="rss" text="linux-apps.com - Latest Products++" title="linux-apps.com - Latest Products++" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/https%3A%2F%2Fwww.linux-apps.com%2Fcontent.rdf"/>
@@ -136,6 +137,19 @@ let feedList = [
     ],
     options: {
       selector: 'article > .entry-content'
+    }
+  },
+  { // <outline type="rss" text="Chrome Story" title="Chrome Story" xmlUrl="http://feeds.feedburner.com/ChromeStory" htmlUrl="https://chromestory.com/"/>
+    title: 'Chrome Story',
+    feedID: 'chrome_story',
+    feedURL: 'http://feeds.feedburner.com/ChromeStory',
+    itemFilters: [
+      ItemFilters['sites'].ItemFilterBlog,
+      ItemFilters['common'].ItemFilterImageEmbed,
+      ItemFilters['common'].ItemFilterThumbnailCache,
+    ],
+    options: {
+      selector: 'main > .entry-content'
     }
   },
   { // <outline type="rss" text="FUNTOP資訊網++$0414-1925$" title="FUNTOP資訊網++$0414-1925$" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/$0414-1925$/http%3A%2F%2Ffuntop.tw%2Ffeed%2F" htmlUrl="https://funtop.tw/"/>
@@ -294,16 +308,19 @@ let feedList = [
 // ----------------------------------------------------------------
 
 // feedList = [
-//   {
-//     title: 'Ivon的部落格',
-//     feedID: 'ivon-huang-blog',
-//     feedURL: 'https://ivonblog.com/index.xml',
+  
+//   { // <outline type="rss" text="香腸炒章魚 :: 痞客邦 PIXNET ::++$0414-1925$" title="香腸炒章魚 :: 痞客邦 PIXNET ::++$0414-1925$" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/$0414-1925$/http%3A%2F%2Ffeed.pixnet.net%2Fblog%2Fposts%2Frss%2Fmitblog" htmlUrl="http://mitblog.pixnet.net/blog"/>
+//     title: '香腸炒章魚',
+//     feedID: 'mitblog',
+//     feedURL: 'https://feed.pixnet.net/blog/posts/rss/mitblog',
+//     thumbnail: 'https://i.ibb.co/HNYFwkF/sausage.png',
 //     itemFilters: [
 //       ItemFilters['sites'].ItemFilterBlog,
-//       ItemFilters['common'].ItemFilterImageEmbed,
+//       // ItemFilters['common'].ItemFilterImageEmbed,
 //     ],
 //     options: {
-//       selector: 'body main#main-content article .article-content',
+//       // selector: '#article-content-inner[itemprop="articleBody"]'
+//       selector: '#article-content-inner'
 //     }
 //   },
 // ]
