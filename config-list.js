@@ -318,8 +318,8 @@ feedList = [
       // ItemFilters['common'].ItemFilterImageEmbed,
     ],
     options: {
-      selector: 'article[id] > .entry__content'
-      // selector: 'article > div.post-inner'
+      // selector: 'article[id] > .entry__content'
+      selector: 'article > div.post-inner'
     }
   },
 ]
