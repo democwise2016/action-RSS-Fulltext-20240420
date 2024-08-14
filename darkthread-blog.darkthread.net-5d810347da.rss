@@ -30,6 +30,177 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【笨問題】為什麼盒鬚圖的大小與上下位置相近，最大值卻差那麼多？]]></title>
+    <link>https://blog.darkthread.net/blog/boxplot-whisker-calculation/</link>
+    <itunes:title><![CDATA[【笨問題】為什麼盒鬚圖的大小與上下位置相近，最大值卻差那麼多？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這大概是沒有紮實數學基礎又不熟程式語言，全靠爬文跟 AI 硬寫時會經歷的過程吧。</p> <p>我嘗試用 Python 將數據轉成<a href="https://zh.wikipedia.org/zh-tw/%E7%AE%B1%E5%BD%A2%E5%9C%96">箱形圖</a>(又稱為盒鬚圖、盒式圖、盒狀圖或箱線圖，似乎較常被稱為「盒鬚圖」)，以便觀察效能概況及異顯異常偏慢的頻率。</p> <p>惡補盒鬚圖畫法及解讀方式，其結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638592393203245407.png"><br> 圖片及參考來源：<a href="https://intl.finebi.com/zh-TW/blog/boxplot">掌握盒鬚圖：盒狀圖基本概念、解讀技巧和分析案例 by FineBI</a>、<a href="https://zh.wikipedia.org/zh-tw/%E7%AE%B1%E5%BD%A2%E5%9C%96">中文維基百科</a></p> <p>每個盒鬚圖案可呈現一組數值的最大值、最小值、中位數(Q2)、上四分位數(Q3)、四分位距(IDR = Q3 - Q2)：</p> <ul><li>最大值 Maximum：是用於區分異常值的最大值，不是資料的最大值。最大值 = Q3 + 1.5 * IQR。</li> <li>上四分位數 Q3 Upper Quartile：是樣本中所有數值由小到大排列後的第 75% 的數值。</li> <li>中位數 Q2：是樣本中所有數值由小到大排列後的第50%的數值，即中間的數值。</li> <li>下四分位數 Q1 / Lower Quartile：是樣本中所有數值由小到大排列後的第25%的數值。</li> <li>最小值 Minimum：是用於區分異常值的最小值，不是資料的最小值。最小值 = Q1 - 1.5 * IQR。</li> <li>四分位間距 IQR (InterQuartile Range)：是 Q3 和 Q1 的差值，即 Q3 - Q1，一定程度上反映資料的集中程度，間距越小說明資料越集中。</li> <li>異常值 / 離群值 (Outlier)：是位於最大和最小值之外的資料點。另再區分：1.5 * IQR 到 3 * IQR 範圍為適度離群值(Mild Outlier)、超過 3 * IDR 範圍者為極端離群值(Extreme Outlier)。</li></ul> <p>惡補完基本知識，開啟 <a href="/blog/github-copilot-demo/">Github Copilot 導航</a>，即使還沒出 Python 新手村，一陣亂揮瞎砍，圖照樣畫好。(但心理有些不踏實就是了)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638592393205028108.png"></p> <p>只是看到結果有點迷惑，01 到 05 這五組資料，盒高(IDR)差不多，盒子上緣(Q3)位置也相近，照理上鬚橫線的最大值 Q3 + 1.5 * IDR，應該要等高才對，為什麼 02 跟 04 特別短，而且 02 上方還有離群值，代表存在比最大值還大的異常值，為什麼 02 最大值會比 01 低一大截？</p> <p>花了點時間，重查資料，最後在盒鬚圖的<a href="https://en.wikipedia.org/wiki/Box_plot">英文維基</a>找到比較完整說明：</p> <blockquote> <p>鬚必須落在觀察到的資料點上，但有多種定義方式。最簡單粗暴的做法是取資料集的最大值與最小值做為上下鬚邊界。由於定義有不同變化形，在描述箱形圖時需明確說明所用的鬚和離群值（Outliers）的定義。</p> <p>另一種常見的鬚的邊界選擇方法是基於 1.5 倍的四分位距（IQR = Q3 - Q1）。從第三四分位數（Q3）開始，測量出 1.5 倍的 IQR 距離，並將鬚畫到落在此距離內的最大觀察數據點。同樣地，從第一四分位數（Q1）開始，測量出 1.5 倍 IQR 距離，並將鬚畫到落在此距離內的最小觀察數據點。由於鬚必須終止於觀察數據點，鬚的長度可能看起來不相等，即使 1.5 倍的 IQR 在兩邊都是相同的。所有超過鬚邊界的觀察數據點都被視為離群值，並在箱形圖上以點、小圓圈、星號等形式標示出來。</p> </blockquote> <p>(原文)</p> <blockquote> <p>The whiskers must end at an observed data point, but can be defined in various ways. In the most straightforward method, the boundary of the lower whisker is the minimum value of the data set, and the boundary of the upper whisker is the maximum value of the data set. Because of this variability, it is appropriate to describe the convention that is being used for the whiskers and outliers in the caption of the box-plot.</p> <p>Another popular choice for the boundaries of the whiskers is based on the 1.5 IQR value. From above the upper quartile (Q3), a distance of 1.5 times the IQR is measured out and a whisker is drawn up to the largest observed data point from the dataset that falls within this distance. Similarly, a distance of 1.5 times the IQR is measured out below the lower quartile (Q1) and a whisker is drawn down to the lowest observed data point from the dataset that falls within this distance. Because the whiskers must end at an observed data point, the whisker lengths can look unequal, even though 1.5 IQR is the same for both sides. All other observed data points outside the boundary of the whiskers are plotted as outliers. The outliers can be plotted on the box-plot as a dot, a small circle, a star, etc.</p> </blockquote> <p>先前查到的幾篇文章與中文維基沒強調「鬚必須落在觀察到的資料點」，故實際上下鬚端點將由最接近 1.5 * IDR 範圍的資料點位置決定，這樣就能解釋為什麼 Q3 與 IDR 相近，但上鬚端點位置卻差那麼多，這種情況在資料愈稀疏時愈明顯。</p> <p>寫一小段範例完整實測驗證，順便累積 Python 飛行時數。未來如遇到奇怪案例，也可丟資料進來用它驗證。</p> <pre><code>import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+# 準備兩組對照測試資料
+d1 = [2,2,3,4,5,6,7,8,9] # 第 1 個數字放 2
+d2 = [1,2,3,4,5,6,7,8,14] # 最後數字故意放 14 製造離群值
+# 計算 Q1, Q2, Q3, IDR, 上下界, 上下鬚, 離群值
+def calculate_stats(arr):
+Q1 = np.percentile(arr, 25)
+Q2 = np.percentile(arr, 50)
+Q3 = np.percentile(arr, 75)
+IQR = Q3 - Q1
+upper_bound = Q3 + 1.5 * IQR
+lower_bound = Q1 - 1.5 * IQR
+upper_whisker = max([x for x in arr if x &lt;= upper_bound])
+lower_whisker = min([x for x in arr if x &gt;= lower_bound])
+print(f"Q1: {Q1}, Q2: {Q2}, Q3: {Q3}, IQR: {IQR}")
+print(f"Lower Bound: {lower_bound}, Upper Bound: {upper_bound}")
+print(f"Lower Whisker: {lower_whisker}, Upper Whisker: {upper_whisker}")
+outliers = [x for x in arr if (x &gt; upper_bound) or (x &lt; lower_bound)]
+print(f"Outliers: {outliers}")
+print("資料1", d1)
+calculate_stats(d1)
+print("
+資料2", d2)
+calculate_stats(d2)
+# 組成 Data Frame
+data = pd.DataFrame({'TestA': d1, 'TestB': d2})
+# 繪製盒鬚圖
+plot_dict = plt.boxplot(data.values)
+plt.xticks([1, 2], data.columns)
+plt.xlabel('Tests')
+plt.ylabel('Values')
+plt.title('Boxplot of TestA and TestB')
+plt.show()
+# 查詢盒鬚圖繪製座標點，印證自行運算結果
+for i, b in enumerate(plot_dict['boxes']):
+ys = b.get_ydata()
+xs = b.get_xdata()
+print(f"
+box[{i}] 繪製座標點")
+for x, y in zip(xs, ys):
+print(f"(x:{x:.1f}, y:{y:.1f})", end=" ")
+for i, w in enumerate(plot_dict['caps']):
+ys = w.get_ydata()
+xs = w.get_xdata()
+print(f"
+caps[{i}] 繪製座標點")
+for x, y in zip(xs, ys):
+print(f"(x:{x:.1f}, y:{y:.1f})", end="  ")
+</code></pre> <p>我準備了兩組測試數據：</p> <pre><code>d1 = [2,2,3,4,5,6,7,8,9] # 第 1 個數字放 2
+d2 = [1,2,3,4,5,6,7,8,14] # 最後數字故意放 14 製造離群值
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638592393208256051.png"></p> <p>兩組 Q1、Q2、Q3 相同，IDR 也相同，上界為 13，下界為 -3。<br> d1 最小為 2，d2 為 1，故 d1 下鬚到 2，而 d2 到 1。<br> d1 最大為 9 小於 13，故上鬚到 9；d2 小於 13 的最大值為 8，故上鬚到 8；d2 最大值 14 &gt; 13，成為離群值，即位於 14 的空心點。</p> <p>boxplot() 回傳的 Dictionary 可取得盒子、鬚線、鬚線端橫線等座標值，由這些點的座標值亦可知 d1 上鬚在 9、d2 為 8，得證。</p> <p data-slug="boxplot-whisker-calculation" data-title-en="How box plot decide maximum and minimum values?" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2018/04/17/15/30/box-3327783_960_720.jpg#1280#720">The blog discusses creating and interpreting boxplots using Python to visualize data performance and identify outliers. It explains the components of a boxplot and verifies the calculations with a Python example, demonstrating how whiskers end at observed data points within 1.5 IQR.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這大概是沒有紮實數學基礎又不熟程式語言，全靠爬文跟 AI 硬寫時會經歷的過程吧。</p> <p>我嘗試用 Python 將數據轉成<a href="https://zh.wikipedia.org/zh-tw/%E7%AE%B1%E5%BD%A2%E5%9C%96">箱形圖</a>(又稱為盒鬚圖、盒式圖、盒狀圖或箱線圖，似乎較常被稱為「盒鬚圖」)，以便觀察效能概況及異顯異常偏慢的頻率。</p> <p>惡補盒鬚圖畫法及解讀方式，其結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638592393203245407.png"><br> 圖片及參考來源：<a href="https://intl.finebi.com/zh-TW/blog/boxplot">掌握盒鬚圖：盒狀圖基本概念、解讀技巧和分析案例 by FineBI</a>、<a href="https://zh.wikipedia.org/zh-tw/%E7%AE%B1%E5%BD%A2%E5%9C%96">中文維基百科</a></p> <p>每個盒鬚圖案可呈現一組數值的最大值、最小值、中位數(Q2)、上四分位數(Q3)、四分位距(IDR = Q3 - Q2)：</p> <ul><li>最大值 Maximum：是用於區分異常值的最大值，不是資料的最大值。最大值 = Q3 + 1.5 * IQR。</li> <li>上四分位數 Q3 Upper Quartile：是樣本中所有數值由小到大排列後的第 75% 的數值。</li> <li>中位數 Q2：是樣本中所有數值由小到大排列後的第50%的數值，即中間的數值。</li> <li>下四分位數 Q1 / Lower Quartile：是樣本中所有數值由小到大排列後的第25%的數值。</li> <li>最小值 Minimum：是用於區分異常值的最小值，不是資料的最小值。最小值 = Q1 - 1.5 * IQR。</li> <li>四分位間距 IQR (InterQuartile Range)：是 Q3 和 Q1 的差值，即 Q3 - Q1，一定程度上反映資料的集中程度，間距越小說明資料越集中。</li> <li>異常值 / 離群值 (Outlier)：是位於最大和最小值之外的資料點。另再區分：1.5 * IQR 到 3 * IQR 範圍為適度離群值(Mild Outlier)、超過 3 * IDR 範圍者為極端離群值(Extreme Outlier)。</li></ul> <p>惡補完基本知識，開啟 <a href="/blog/github-copilot-demo/">Github Copilot 導航</a>，即使還沒出 Python 新手村，一陣亂揮瞎砍，圖照樣畫好。(但心理有些不踏實就是了)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638592393205028108.png"></p> <p>只是看到結果有點迷惑，01 到 05 這五組資料，盒高(IDR)差不多，盒子上緣(Q3)位置也相近，照理上鬚橫線的最大值 Q3 + 1.5 * IDR，應該要等高才對，為什麼 02 跟 04 特別短，而且 02 上方還有離群值，代表存在比最大值還大的異常值，為什麼 02 最大值會比 01 低一大截？</p> <p>花了點時間，重查資料，最後在盒鬚圖的<a href="https://en.wikipedia.org/wiki/Box_plot">英文維基</a>找到比較完整說明：</p> <blockquote> <p>鬚必須落在觀察到的資料點上，但有多種定義方式。最簡單粗暴的做法是取資料集的最大值與最小值做為上下鬚邊界。由於定義有不同變化形，在描述箱形圖時需明確說明所用的鬚和離群值（Outliers）的定義。</p> <p>另一種常見的鬚的邊界選擇方法是基於 1.5 倍的四分位距（IQR = Q3 - Q1）。從第三四分位數（Q3）開始，測量出 1.5 倍的 IQR 距離，並將鬚畫到落在此距離內的最大觀察數據點。同樣地，從第一四分位數（Q1）開始，測量出 1.5 倍 IQR 距離，並將鬚畫到落在此距離內的最小觀察數據點。由於鬚必須終止於觀察數據點，鬚的長度可能看起來不相等，即使 1.5 倍的 IQR 在兩邊都是相同的。所有超過鬚邊界的觀察數據點都被視為離群值，並在箱形圖上以點、小圓圈、星號等形式標示出來。</p> </blockquote> <p>(原文)</p> <blockquote> <p>The whiskers must end at an observed data point, but can be defined in various ways. In the most straightforward method, the boundary of the lower whisker is the minimum value of the data set, and the boundary of the upper whisker is the maximum value of the data set. Because of this variability, it is appropriate to describe the convention that is being used for the whiskers and outliers in the caption of the box-plot.</p> <p>Another popular choice for the boundaries of the whiskers is based on the 1.5 IQR value. From above the upper quartile (Q3), a distance of 1.5 times the IQR is measured out and a whisker is drawn up to the largest observed data point from the dataset that falls within this distance. Similarly, a distance of 1.5 times the IQR is measured out below the lower quartile (Q1) and a whisker is drawn down to the lowest observed data point from the dataset that falls within this distance. Because the whiskers must end at an observed data point, the whisker lengths can look unequal, even though 1.5 IQR is the same for both sides. All other observed data points outside the boundary of the whiskers are plotted as outliers. The outliers can be plotted on the box-plot as a dot, a small circle, a star, etc.</p> </blockquote> <p>先前查到的幾篇文章與中文維基沒強調「鬚必須落在觀察到的資料點」，故實際上下鬚端點將由最接近 1.5 * IDR 範圍的資料點位置決定，這樣就能解釋為什麼 Q3 與 IDR 相近，但上鬚端點位置卻差那麼多，這種情況在資料愈稀疏時愈明顯。</p> <p>寫一小段範例完整實測驗證，順便累積 Python 飛行時數。未來如遇到奇怪案例，也可丟資料進來用它驗證。</p> <pre><code>import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+# 準備兩組對照測試資料
+d1 = [2,2,3,4,5,6,7,8,9] # 第 1 個數字放 2
+d2 = [1,2,3,4,5,6,7,8,14] # 最後數字故意放 14 製造離群值
+# 計算 Q1, Q2, Q3, IDR, 上下界, 上下鬚, 離群值
+def calculate_stats(arr):
+Q1 = np.percentile(arr, 25)
+Q2 = np.percentile(arr, 50)
+Q3 = np.percentile(arr, 75)
+IQR = Q3 - Q1
+upper_bound = Q3 + 1.5 * IQR
+lower_bound = Q1 - 1.5 * IQR
+upper_whisker = max([x for x in arr if x &lt;= upper_bound])
+lower_whisker = min([x for x in arr if x &gt;= lower_bound])
+print(f"Q1: {Q1}, Q2: {Q2}, Q3: {Q3}, IQR: {IQR}")
+print(f"Lower Bound: {lower_bound}, Upper Bound: {upper_bound}")
+print(f"Lower Whisker: {lower_whisker}, Upper Whisker: {upper_whisker}")
+outliers = [x for x in arr if (x &gt; upper_bound) or (x &lt; lower_bound)]
+print(f"Outliers: {outliers}")
+print("資料1", d1)
+calculate_stats(d1)
+print("
+資料2", d2)
+calculate_stats(d2)
+# 組成 Data Frame
+data = pd.DataFrame({'TestA': d1, 'TestB': d2})
+# 繪製盒鬚圖
+plot_dict = plt.boxplot(data.values)
+plt.xticks([1, 2], data.columns)
+plt.xlabel('Tests')
+plt.ylabel('Values')
+plt.title('Boxplot of TestA and TestB')
+plt.show()
+# 查詢盒鬚圖繪製座標點，印證自行運算結果
+for i, b in enumerate(plot_dict['boxes']):
+ys = b.get_ydata()
+xs = b.get_xdata()
+print(f"
+box[{i}] 繪製座標點")
+for x, y in zip(xs, ys):
+print(f"(x:{x:.1f}, y:{y:.1f})", end=" ")
+for i, w in enumerate(plot_dict['caps']):
+ys = w.get_ydata()
+xs = w.get_xdata()
+print(f"
+caps[{i}] 繪製座標點")
+for x, y in zip(xs, ys):
+print(f"(x:{x:.1f}, y:{y:.1f})", end="  ")
+</code></pre> <p>我準備了兩組測試數據：</p> <pre><code>d1 = [2,2,3,4,5,6,7,8,9] # 第 1 個數字放 2
+d2 = [1,2,3,4,5,6,7,8,14] # 最後數字故意放 14 製造離群值
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638592393208256051.png"></p> <p>兩組 Q1、Q2、Q3 相同，IDR 也相同，上界為 13，下界為 -3。<br> d1 最小為 2，d2 為 1，故 d1 下鬚到 2，而 d2 到 1。<br> d1 最大為 9 小於 13，故上鬚到 9；d2 小於 13 的最大值為 8，故上鬚到 8；d2 最大值 14 &gt; 13，成為離群值，即位於 14 的空心點。</p> <p>boxplot() 回傳的 Dictionary 可取得盒子、鬚線、鬚線端橫線等座標值，由這些點的座標值亦可知 d1 上鬚在 9、d2 為 8，得證。</p> <p data-slug="boxplot-whisker-calculation" data-title-en="How box plot decide maximum and minimum values?" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2018/04/17/15/30/box-3327783_960_720.jpg#1280#720">The blog discusses creating and interpreting boxplots using Python to visualize data performance and identify outliers. It explains the components of a boxplot and verifies the calculations with a Python example, demonstrating how whiskers end at observed data points within 1.5 IQR.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這大概是沒有紮實數學基礎又不熟程式語言，全靠爬文跟 AI 硬寫時會經歷的過程吧。</p> <p>我嘗試用 Python 將數據轉成<a href="https://zh.wikipedia.org/zh-tw/%E7%AE%B1%E5%BD%A2%E5%9C%96">箱形圖</a>(又稱為盒鬚圖、盒式圖、盒狀圖或箱線圖，似乎較常被稱為「盒鬚圖」)，以便觀察效能概況及異顯異常偏慢的頻率。</p> <p>惡補盒鬚圖畫法及解讀方式，其結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638592393203245407.png"><br> 圖片及參考來源：<a href="https://intl.finebi.com/zh-TW/blog/boxplot">掌握盒鬚圖：盒狀圖基本概念、解讀技巧和分析案例 by FineBI</a>、<a href="https://zh.wikipedia.org/zh-tw/%E7%AE%B1%E5%BD%A2%E5%9C%96">中文維基百科</a></p> <p>每個盒鬚圖案可呈現一組數值的最大值、最小值、中位數(Q2)、上四分位數(Q3)、四分位距(IDR = Q3 - Q2)：</p> <ul><li>最大值 Maximum：是用於區分異常值的最大值，不是資料的最大值。最大值 = Q3 + 1.5 * IQR。</li> <li>上四分位數 Q3 Upper Quartile：是樣本中所有數值由小到大排列後的第 75% 的數值。</li> <li>中位數 Q2：是樣本中所有數值由小到大排列後的第50%的數值，即中間的數值。</li> <li>下四分位數 Q1 / Lower Quartile：是樣本中所有數值由小到大排列後的第25%的數值。</li> <li>最小值 Minimum：是用於區分異常值的最小值，不是資料的最小值。最小值 = Q1 - 1.5 * IQR。</li> <li>四分位間距 IQR (InterQuartile Range)：是 Q3 和 Q1 的差值，即 Q3 - Q1，一定程度上反映資料的集中程度，間距越小說明資料越集中。</li> <li>異常值 / 離群值 (Outlier)：是位於最大和最小值之外的資料點。另再區分：1.5 * IQR 到 3 * IQR 範圍為適度離群值(Mild Outlier)、超過 3 * IDR 範圍者為極端離群值(Extreme Outlier)。</li></ul> <p>惡補完基本知識，開啟 <a href="/blog/github-copilot-demo/">Github Copilot 導航</a>，即使還沒出 Python 新手村，一陣亂揮瞎砍，圖照樣畫好。(但心理有些不踏實就是了)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638592393205028108.png"></p> <p>只是看到結果有點迷惑，01 到 05 這五組資料，盒高(IDR)差不多，盒子上緣(Q3)位置也相近，照理上鬚橫線的最大值 Q3 + 1.5 * IDR，應該要等高才對，為什麼 02 跟 04 特別短，而且 02 上方還有離群值，代表存在比最大值還大的異常值，為什麼 02 最大值會比 01 低一大截？</p> <p>花了點時間，重查資料，最後在盒鬚圖的<a href="https://en.wikipedia.org/wiki/Box_plot">英文維基</a>找到比較完整說明：</p> <blockquote> <p>鬚必須落在觀察到的資料點上，但有多種定義方式。最簡單粗暴的做法是取資料集的最大值與最小值做為上下鬚邊界。由於定義有不同變化形，在描述箱形圖時需明確說明所用的鬚和離群值（Outliers）的定義。</p> <p>另一種常見的鬚的邊界選擇方法是基於 1.5 倍的四分位距（IQR = Q3 - Q1）。從第三四分位數（Q3）開始，測量出 1.5 倍的 IQR 距離，並將鬚畫到落在此距離內的最大觀察數據點。同樣地，從第一四分位數（Q1）開始，測量出 1.5 倍 IQR 距離，並將鬚畫到落在此距離內的最小觀察數據點。由於鬚必須終止於觀察數據點，鬚的長度可能看起來不相等，即使 1.5 倍的 IQR 在兩邊都是相同的。所有超過鬚邊界的觀察數據點都被視為離群值，並在箱形圖上以點、小圓圈、星號等形式標示出來。</p> </blockquote> <p>(原文)</p> <blockquote> <p>The whiskers must end at an observed data point, but can be defined in various ways. In the most straightforward method, the boundary of the lower whisker is the minimum value of the data set, and the boundary of the upper whisker is the maximum value of the data set. Because of this variability, it is appropriate to describe the convention that is being used for the whiskers and outliers in the caption of the box-plot.</p> <p>Another popular choice for the boundaries of the whiskers is based on the 1.5 IQR value. From above the upper quartile (Q3), a distance of 1.5 times the IQR is measured out and a whisker is drawn up to the largest observed data point from the dataset that falls within this distance. Similarly, a distance of 1.5 times the IQR is measured out below the lower quartile (Q1) and a whisker is drawn down to the lowest observed data point from the dataset that falls within this distance. Because the whiskers must end at an observed data point, the whisker lengths can look unequal, even though 1.5 IQR is the same for both sides. All other observed data points outside the boundary of the whiskers are plotted as outliers. The outliers can be plotted on the box-plot as a dot, a small circle, a star, etc.</p> </blockquote> <p>先前查到的幾篇文章與中文維基沒強調「鬚必須落在觀察到的資料點」，故實際上下鬚端點將由最接近 1.5 * IDR 範圍的資料點位置決定，這樣就能解釋為什麼 Q3 與 IDR 相近，但上鬚端點位置卻差那麼多，這種情況在資料愈稀疏時愈明顯。</p> <p>寫一小段範例完整實測驗證，順便累積 Python 飛行時數。未來如遇到奇怪案例，也可丟資料進來用它驗證。</p> <pre><code>import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+# 準備兩組對照測試資料
+d1 = [2,2,3,4,5,6,7,8,9] # 第 1 個數字放 2
+d2 = [1,2,3,4,5,6,7,8,14] # 最後數字故意放 14 製造離群值
+# 計算 Q1, Q2, Q3, IDR, 上下界, 上下鬚, 離群值
+def calculate_stats(arr):
+Q1 = np.percentile(arr, 25)
+Q2 = np.percentile(arr, 50)
+Q3 = np.percentile(arr, 75)
+IQR = Q3 - Q1
+upper_bound = Q3 + 1.5 * IQR
+lower_bound = Q1 - 1.5 * IQR
+upper_whisker = max([x for x in arr if x &lt;= upper_bound])
+lower_whisker = min([x for x in arr if x &gt;= lower_bound])
+print(f"Q1: {Q1}, Q2: {Q2}, Q3: {Q3}, IQR: {IQR}")
+print(f"Lower Bound: {lower_bound}, Upper Bound: {upper_bound}")
+print(f"Lower Whisker: {lower_whisker}, Upper Whisker: {upper_whisker}")
+outliers = [x for x in arr if (x &gt; upper_bound) or (x &lt; lower_bound)]
+print(f"Outliers: {outliers}")
+print("資料1", d1)
+calculate_stats(d1)
+print("
+資料2", d2)
+calculate_stats(d2)
+# 組成 Data Frame
+data = pd.DataFrame({'TestA': d1, 'TestB': d2})
+# 繪製盒鬚圖
+plot_dict = plt.boxplot(data.values)
+plt.xticks([1, 2], data.columns)
+plt.xlabel('Tests')
+plt.ylabel('Values')
+plt.title('Boxplot of TestA and TestB')
+plt.show()
+# 查詢盒鬚圖繪製座標點，印證自行運算結果
+for i, b in enumerate(plot_dict['boxes']):
+ys = b.get_ydata()
+xs = b.get_xdata()
+print(f"
+box[{i}] 繪製座標點")
+for x, y in zip(xs, ys):
+print(f"(x:{x:.1f}, y:{y:.1f})", end=" ")
+for i, w in enumerate(plot_dict['caps']):
+ys = w.get_ydata()
+xs = w.get_xdata()
+print(f"
+caps[{i}] 繪製座標點")
+for x, y in zip(xs, ys):
+print(f"(x:{x:.1f}, y:{y:.1f})", end="  ")
+</code></pre> <p>我準備了兩組測試數據：</p> <pre><code>d1 = [2,2,3,4,5,6,7,8,9] # 第 1 個數字放 2
+d2 = [1,2,3,4,5,6,7,8,14] # 最後數字故意放 14 製造離群值
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638592393208256051.png"></p> <p>兩組 Q1、Q2、Q3 相同，IDR 也相同，上界為 13，下界為 -3。<br> d1 最小為 2，d2 為 1，故 d1 下鬚到 2，而 d2 到 1。<br> d1 最大為 9 小於 13，故上鬚到 9；d2 小於 13 的最大值為 8，故上鬚到 8；d2 最大值 14 &gt; 13，成為離群值，即位於 14 的空心點。</p> <p>boxplot() 回傳的 Dictionary 可取得盒子、鬚線、鬚線端橫線等座標值，由這些點的座標值亦可知 d1 上鬚在 9、d2 為 8，得證。</p> <p data-slug="boxplot-whisker-calculation" data-title-en="How box plot decide maximum and minimum values?" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2018/04/17/15/30/box-3327783_960_720.jpg#1280#720">The blog discusses creating and interpreting boxplots using Python to visualize data performance and identify outliers. It explains the components of a boxplot and verifies the calculations with a Python example, demonstrating how whiskers end at observed data points within 1.5 IQR.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638592393203245407.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638592393203245407.png" medium="image"/>
+    <pubDate>Wed, 14 Aug 2024 13:34:28 GMT</pubDate>
+  </item><item>
     <title><![CDATA[用入門級顯卡 RTX 3050 + Ollama 跑小模型，會比 CPU 快多少倍？]]></title>
     <link>https://blog.darkthread.net/blog/testing-ollama-slm-w-gpu/</link>
     <itunes:title><![CDATA[用入門級顯卡 RTX 3050 + Ollama 跑小模型，會比 CPU 快多少倍？]]></itunes:title>
@@ -2054,242 +2225,5 @@ fmt.Println("Execution time:", elapsed)
     <itunes:image href="/img/calendar.svg"/>
           <media:content url="/img/calendar.svg" medium="image"/>
     <pubDate>Thu, 25 Jul 2024 14:55:42 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[跨系統整合 - 透過 Bash Script 執行 SFTP 傳輸 (初試 SUSE)]]></title>
-    <link>https://blog.darkthread.net/blog/sftp-w-bash-script/</link>
-    <itunes:title><![CDATA[跨系統整合 - 透過 Bash Script 執行 SFTP 傳輸 (初試 SUSE)]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/sftp-w-bash-script/" itemprop="url">跨系統整合 - 透過 Bash Script 執行 SFTP 傳輸 (初試 SUSE)</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-20 08:31 AM"> <time datetime="2024-07-20T00:31:59" itemprop="datePublished"> 2024-07-20 08:31 AM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/sftp-w-bash-script"> </span> </td><td> <a href="/Blog/sftp-w-bash-script/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>異質系統整合，呼叫外部程式永遠是最簡單粗暴的手段，另起 Process 執行第三方工具再透過參數、檔案溝通，這種「外包給第三方執行檔」的做法，不管效能、資源耗用量或回應速度都會打折扣，但重點是 - 至少程式會跑能驗收呀! 這招永遠是沒有其他辦法時的救命稻草。<br> (話說：我出道的第一個網站專案是為 UNIX 工作站寫網站整合 Oracle，當時我還是只會 VB/VBScript/SQL 的菜鳥，被丟包到 UNIX 星球一整個驚慌，最後靠著寫 Perl 呼叫 <code>sqlplus user/pass@db_name @script_file</code> 大絕，竟也混到驗收結案。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)</p> <p>之後的開發生涯，遇到比較複雜的需求，找不到合適程式庫但有現成執行檔，我也常靠這招解決，醜歸醜，但省時又省力。(例子：<a href="/blog/stdout-stderr/">從 Linux 控制掃瞄器</a>、<a href="/blog/show-tls-certs/">呼叫 openssl 分析憑證</a>、<a href="/blog/print-pdf-with-c/">請 Acrobat Reader 幫忙列印</a>...)</p> <p>最近聽到一起案例，某 SUSE 作業系統上的軟體需要整合 SFTP 收發檔案，但該軟體對外溝通只提供「讀寫檔案」及「執行外部程式」兩種管道。嘿，擬好上傳下載指令再外包給 sftp CLI 不就解決了？加上環境 SUSE 是我從沒玩過的 Linux 版本，決定把它當成一道暖身練習題。</p> <p>SUSE 有眾多發行版本，伺服器應用主要會採用 openSUSE Leap 或 SUSE Linux Enterprise Server (SLES)，二者的關係差不多像 Fedora/CentOS Stream 與 RHEL (延伸閱讀：<a href="/blog/linux-server-os-survey/">Linux 作業系統考察</a>)，基於相同原始碼且高度相容，前者由社群開發維護，後者則為商業軟體，有廠商提供支援。因此，要學習及研究 SUSE，裝 openSUSE Leap 就對了，若工作領域遇到 SLE，技能跟經驗值可通用。</p> <p>順道一提：.NET 也<a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-opensuse?WT.mc_id=DOP-MVP-37580">支援 openSUSE 及 SLES</a> 哦! 所以下回再有聽到有人說 .NET 只能在 Windows 上跑，記得衝上去搖晃他肩膀說「快醒醒，時代早就不一樣了」。(謎之聲：其實並不需要這樣)</p> <p>本次測試我打算跑 Docker 當 SFTP Server，於是先試了在 openSUSE 上裝 Docker。<a href="https://en.opensuse.org/Docker">官方文件</a>寫得蠻詳細的，SUSE 的套件管理工具是 Zypper，使用上跟 Ubuntu 的 apt 一樣簡便，使用以下指令安裝 Docker，設成服務，並授與登入的使用者使用權限(未來呼叫 docker 時不需加 sudo)，安裝程序就完成了：</p> <pre><code>sudo zypper install docker docker-compose docker-compose-switch
-sudo usermod -G docker -a $USER
-sudo systemctl enable docker
-sudo systemctl start docker
-newgrp docker #or logout and login
-docker --version
-</code></pre> <p>由於只是實驗性質，我隨便找了一個 <a href="https://hub.docker.com/r/atmoz/sftp/">atmoz SFTP Server Docker Image</a>，透過 Docker 參數指定帳號密碼跟資料夾就能跑，簡單省力。至於 sftp CLI 的身分認證問題，<a href="/blog/github-copilot-demo/">Github Copilot</a> 教會我用 <a href="https://www.redhat.com/sysadmin/ssh-automation-sshpass">sshpass</a> (需用 Zypper 另外安裝)，可用檔案或環境變數(SSHPASS)記憶密碼(也支援明碼參數提供，但不建議)，再用 <code>sshpass -f /path/to/passwordfile ssh user@host</code> 或 <code>sshpass -e sftp user@host</code> 間接啟動 ssh 或 sftp，便能克服密碼輸入問題。當然，改用<a href="/blog/ssh-key-auth/">金鑰登入 SSH/SFTP/SCP</a>會更安全，但需要管理單位配合，密碼還是最通用的做法。</p> <p>啟動 SFTP 伺服器容器(SUSE 本身 22 Port 已用於 ssh，改映對到 2234 Port)，設好 sshpass，用 <code>sshpass -e sftp -P 2234 foo@localhost</code> 即可登入 SFTP：</p> <pre><code>docker run -p 2234:22 -d atmoz/sftp foo:pass:::upload
-sftp -P 2234 foo@localhost
-sudo zypper install sshpass
-export SSHPASS='pass'
-sshpass -e sftp -P 2234 foo@localhost
-</code></pre> <p>接下來，我排了一個段測試：登入 SFTP 後切換到 upload 目錄，建立 test 資料夾，上傳 hello.txt，另建 backup 資料夾，將 hello.txt 由 test 搬到 backup 下，刪除 hello.txt，刪除 test 及 backup 資料夾，測試結束。</p> <p>我對 Bash 腳本不熟，但有 Github Copilot 在不用怕，我學會兩個 Bash 腳本技巧：</p> <ol><li><a href="https://tldp.org/LDP/abs/html/here-docs.html">Here Document</a><br> 概念類似 C# @"..." 或 PowerShell 的 @"、"@，允許在腳本直接指定多行文字內容，保留其中的換行、縮排，而 Bash 的做法是取一個任意識別字串作為起始跟結尾，只要它在內文不會出現造成誤判就好，我覺得<code>EOF</code>是不錯的選擇。 <pre><code>COMMAND &lt;&lt;InputComesFromHERE
-...
-...
-...
-InputComesFromHERE
-</code></pre> 建目錄、上傳、搬檔、刪檔、刪目錄等一長串指令可寫成 Here Document 交給 sftp CLI 執行。</li> <li>用 time 測量程式執行時間<br> 在 Bash 可用 time 指令串接要測量時間的命令，可得到 real、user、sys 三個秒數，分別代表總時間、User Mode 耗用時間、Kernel Mode 耗用時間。在腳本中，則可用 <code>{ ... }</code> 包住一整段程式測量執行時間。<br> <img src="/img/loading.svg"></li></ol> <p>綜合以上概念，寫成 sftp-test.sh，<code>chmod u+x sftp-test.sh</code> 授與執行權限後可 <code>./sftp-test.sh</code> 測試：</p> <pre><code>#!/bin/bash
-echo "Hello World" &gt; hello.txt
-# use here document to pass commands to sftp
-time {
-sshpass -e sftp -P 2234 foo@localhost &lt;&lt;EOF
-cd upload
-mkdir test
-cd test
-put hello.txt
-ls -l
-cd ..
-mkdir backup
-rename test/hello.txt backup/hello.txt
-ls -l backup
-rmdir test
-rm backup/hello.txt
-rmdir backup
-bye
-EOF
-}
-</code></pre> <p>測試成功。</p> <p><img src="/img/loading.svg"></p> <p>若 Linux 環境無 sshpass 可用怎麼辦？Github Copilot 再教會我 UNIX 有個古老自動化控制與測試工具 - <a href="https://zh.wikipedia.org/zh-tw/Expect">Expect</a>，用 spawn 啟動一個新 Process 跑 sftp、ssh，接著用 expect "..." 等待讓程式回應特定內容，用 send "..." 模擬輸入操作。可想成 20 年前的 CLI 版的 RPA (Robotic Process Automation，<a href="/blog/my-opinion-on-rpa/">機器人流程自動化</a>)。</p> <p>不費吹灰之力，Copilot 幫我改好 expect 版：</p> <pre><code>#!/usr/bin/env bash
-echo "Hello World" &gt; hello.txt
-# Use expect to automate SFTP session
-/usr/bin/expect &lt;&lt;EOF
-# Start the expect environment
-spawn sftp -oPort=2234 foo@localhost
-# Wait for the password prompt
-expect "password:"
-# Provide the password
-send "$SSHPASS\r"
-# SFTP commands
-expect "sftp&gt;"
-send "cd upload\r"
-expect "sftp&gt;"
-send "mkdir test\r"
-expect "sftp&gt;"
-send "cd test\r"
-expect "sftp&gt;"
-send "put hello.txt\r"
-expect "sftp&gt;"
-send "ls -l\r"
-expect "sftp&gt;"
-send "cd ..\r"
-expect "sftp&gt;"
-send "mkdir backup\r"
-expect "sftp&gt;"
-send "rename test/hello.txt backup/hello.txt\r"
-expect "sftp&gt;"
-send "ls -l backup\r"
-expect "sftp&gt;"
-send "rmdir test\r"
-expect "sftp&gt;"
-send "rm backup/hello.txt\r"
-expect "sftp&gt;"
-send "rmdir backup\r"
-expect "sftp&gt;"
-send "bye\r"
-EOF
-</code></pre> <p>測試得到相同結果。</p> <p><img src="/img/loading.svg"></p> <p>經過這演練，對於如何使用 Bash 操控其他 CLI 做事算是有較清楚的概念，未來在 Linux 上要執行異質系統整合，除了寫 .NET 程式跟用 PowerShell 外，再多一個就地取材的好武器。</p> <p data-slug="sftp-w-bash-script" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/10/30/robot-2791671_960_720.jpg#960#720"> </p></div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/sftp-w-bash-script/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/bash">Bash</a></li></ul> and has <a href="/blog/sftp-w-bash-script/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-20T01:28:21"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/sftp-w-bash-script/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F&amp;text=%E8%B7%A8%E7%B3%BB%E7%B5%B1%E6%95%B4%E5%90%88+-+%E9%80%8F%E9%81%8E+Bash+Script+%E5%9F%B7%E8%A1%8C+SFTP+%E5%82%B3%E8%BC%B8+(%E5%88%9D%E8%A9%A6+SUSE)" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=跨系統整合%20-%20透過%20Bash%20Script%20執行%20SFTP%20傳輸%20(初試%20SUSE)&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638570351380448366"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/sftp-w-bash-script/" itemprop="url">跨系統整合 - 透過 Bash Script 執行 SFTP 傳輸 (初試 SUSE)</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-20 08:31 AM"> <time datetime="2024-07-20T00:31:59" itemprop="datePublished"> 2024-07-20 08:31 AM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/sftp-w-bash-script"> </span> </td><td> <a href="/Blog/sftp-w-bash-script/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>異質系統整合，呼叫外部程式永遠是最簡單粗暴的手段，另起 Process 執行第三方工具再透過參數、檔案溝通，這種「外包給第三方執行檔」的做法，不管效能、資源耗用量或回應速度都會打折扣，但重點是 - 至少程式會跑能驗收呀! 這招永遠是沒有其他辦法時的救命稻草。<br> (話說：我出道的第一個網站專案是為 UNIX 工作站寫網站整合 Oracle，當時我還是只會 VB/VBScript/SQL 的菜鳥，被丟包到 UNIX 星球一整個驚慌，最後靠著寫 Perl 呼叫 <code>sqlplus user/pass@db_name @script_file</code> 大絕，竟也混到驗收結案。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)</p> <p>之後的開發生涯，遇到比較複雜的需求，找不到合適程式庫但有現成執行檔，我也常靠這招解決，醜歸醜，但省時又省力。(例子：<a href="/blog/stdout-stderr/">從 Linux 控制掃瞄器</a>、<a href="/blog/show-tls-certs/">呼叫 openssl 分析憑證</a>、<a href="/blog/print-pdf-with-c/">請 Acrobat Reader 幫忙列印</a>...)</p> <p>最近聽到一起案例，某 SUSE 作業系統上的軟體需要整合 SFTP 收發檔案，但該軟體對外溝通只提供「讀寫檔案」及「執行外部程式」兩種管道。嘿，擬好上傳下載指令再外包給 sftp CLI 不就解決了？加上環境 SUSE 是我從沒玩過的 Linux 版本，決定把它當成一道暖身練習題。</p> <p>SUSE 有眾多發行版本，伺服器應用主要會採用 openSUSE Leap 或 SUSE Linux Enterprise Server (SLES)，二者的關係差不多像 Fedora/CentOS Stream 與 RHEL (延伸閱讀：<a href="/blog/linux-server-os-survey/">Linux 作業系統考察</a>)，基於相同原始碼且高度相容，前者由社群開發維護，後者則為商業軟體，有廠商提供支援。因此，要學習及研究 SUSE，裝 openSUSE Leap 就對了，若工作領域遇到 SLE，技能跟經驗值可通用。</p> <p>順道一提：.NET 也<a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-opensuse?WT.mc_id=DOP-MVP-37580">支援 openSUSE 及 SLES</a> 哦! 所以下回再有聽到有人說 .NET 只能在 Windows 上跑，記得衝上去搖晃他肩膀說「快醒醒，時代早就不一樣了」。(謎之聲：其實並不需要這樣)</p> <p>本次測試我打算跑 Docker 當 SFTP Server，於是先試了在 openSUSE 上裝 Docker。<a href="https://en.opensuse.org/Docker">官方文件</a>寫得蠻詳細的，SUSE 的套件管理工具是 Zypper，使用上跟 Ubuntu 的 apt 一樣簡便，使用以下指令安裝 Docker，設成服務，並授與登入的使用者使用權限(未來呼叫 docker 時不需加 sudo)，安裝程序就完成了：</p> <pre><code>sudo zypper install docker docker-compose docker-compose-switch
-sudo usermod -G docker -a $USER
-sudo systemctl enable docker
-sudo systemctl start docker
-newgrp docker #or logout and login
-docker --version
-</code></pre> <p>由於只是實驗性質，我隨便找了一個 <a href="https://hub.docker.com/r/atmoz/sftp/">atmoz SFTP Server Docker Image</a>，透過 Docker 參數指定帳號密碼跟資料夾就能跑，簡單省力。至於 sftp CLI 的身分認證問題，<a href="/blog/github-copilot-demo/">Github Copilot</a> 教會我用 <a href="https://www.redhat.com/sysadmin/ssh-automation-sshpass">sshpass</a> (需用 Zypper 另外安裝)，可用檔案或環境變數(SSHPASS)記憶密碼(也支援明碼參數提供，但不建議)，再用 <code>sshpass -f /path/to/passwordfile ssh user@host</code> 或 <code>sshpass -e sftp user@host</code> 間接啟動 ssh 或 sftp，便能克服密碼輸入問題。當然，改用<a href="/blog/ssh-key-auth/">金鑰登入 SSH/SFTP/SCP</a>會更安全，但需要管理單位配合，密碼還是最通用的做法。</p> <p>啟動 SFTP 伺服器容器(SUSE 本身 22 Port 已用於 ssh，改映對到 2234 Port)，設好 sshpass，用 <code>sshpass -e sftp -P 2234 foo@localhost</code> 即可登入 SFTP：</p> <pre><code>docker run -p 2234:22 -d atmoz/sftp foo:pass:::upload
-sftp -P 2234 foo@localhost
-sudo zypper install sshpass
-export SSHPASS='pass'
-sshpass -e sftp -P 2234 foo@localhost
-</code></pre> <p>接下來，我排了一個段測試：登入 SFTP 後切換到 upload 目錄，建立 test 資料夾，上傳 hello.txt，另建 backup 資料夾，將 hello.txt 由 test 搬到 backup 下，刪除 hello.txt，刪除 test 及 backup 資料夾，測試結束。</p> <p>我對 Bash 腳本不熟，但有 Github Copilot 在不用怕，我學會兩個 Bash 腳本技巧：</p> <ol><li><a href="https://tldp.org/LDP/abs/html/here-docs.html">Here Document</a><br> 概念類似 C# @"..." 或 PowerShell 的 @"、"@，允許在腳本直接指定多行文字內容，保留其中的換行、縮排，而 Bash 的做法是取一個任意識別字串作為起始跟結尾，只要它在內文不會出現造成誤判就好，我覺得<code>EOF</code>是不錯的選擇。 <pre><code>COMMAND &lt;&lt;InputComesFromHERE
-...
-...
-...
-InputComesFromHERE
-</code></pre> 建目錄、上傳、搬檔、刪檔、刪目錄等一長串指令可寫成 Here Document 交給 sftp CLI 執行。</li> <li>用 time 測量程式執行時間<br> 在 Bash 可用 time 指令串接要測量時間的命令，可得到 real、user、sys 三個秒數，分別代表總時間、User Mode 耗用時間、Kernel Mode 耗用時間。在腳本中，則可用 <code>{ ... }</code> 包住一整段程式測量執行時間。<br> <img src="/img/loading.svg"></li></ol> <p>綜合以上概念，寫成 sftp-test.sh，<code>chmod u+x sftp-test.sh</code> 授與執行權限後可 <code>./sftp-test.sh</code> 測試：</p> <pre><code>#!/bin/bash
-echo "Hello World" &gt; hello.txt
-# use here document to pass commands to sftp
-time {
-sshpass -e sftp -P 2234 foo@localhost &lt;&lt;EOF
-cd upload
-mkdir test
-cd test
-put hello.txt
-ls -l
-cd ..
-mkdir backup
-rename test/hello.txt backup/hello.txt
-ls -l backup
-rmdir test
-rm backup/hello.txt
-rmdir backup
-bye
-EOF
-}
-</code></pre> <p>測試成功。</p> <p><img src="/img/loading.svg"></p> <p>若 Linux 環境無 sshpass 可用怎麼辦？Github Copilot 再教會我 UNIX 有個古老自動化控制與測試工具 - <a href="https://zh.wikipedia.org/zh-tw/Expect">Expect</a>，用 spawn 啟動一個新 Process 跑 sftp、ssh，接著用 expect "..." 等待讓程式回應特定內容，用 send "..." 模擬輸入操作。可想成 20 年前的 CLI 版的 RPA (Robotic Process Automation，<a href="/blog/my-opinion-on-rpa/">機器人流程自動化</a>)。</p> <p>不費吹灰之力，Copilot 幫我改好 expect 版：</p> <pre><code>#!/usr/bin/env bash
-echo "Hello World" &gt; hello.txt
-# Use expect to automate SFTP session
-/usr/bin/expect &lt;&lt;EOF
-# Start the expect environment
-spawn sftp -oPort=2234 foo@localhost
-# Wait for the password prompt
-expect "password:"
-# Provide the password
-send "$SSHPASS\r"
-# SFTP commands
-expect "sftp&gt;"
-send "cd upload\r"
-expect "sftp&gt;"
-send "mkdir test\r"
-expect "sftp&gt;"
-send "cd test\r"
-expect "sftp&gt;"
-send "put hello.txt\r"
-expect "sftp&gt;"
-send "ls -l\r"
-expect "sftp&gt;"
-send "cd ..\r"
-expect "sftp&gt;"
-send "mkdir backup\r"
-expect "sftp&gt;"
-send "rename test/hello.txt backup/hello.txt\r"
-expect "sftp&gt;"
-send "ls -l backup\r"
-expect "sftp&gt;"
-send "rmdir test\r"
-expect "sftp&gt;"
-send "rm backup/hello.txt\r"
-expect "sftp&gt;"
-send "rmdir backup\r"
-expect "sftp&gt;"
-send "bye\r"
-EOF
-</code></pre> <p>測試得到相同結果。</p> <p><img src="/img/loading.svg"></p> <p>經過這演練，對於如何使用 Bash 操控其他 CLI 做事算是有較清楚的概念，未來在 Linux 上要執行異質系統整合，除了寫 .NET 程式跟用 PowerShell 外，再多一個就地取材的好武器。</p> <p data-slug="sftp-w-bash-script" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/10/30/robot-2791671_960_720.jpg#960#720"> </p></div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/sftp-w-bash-script/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/bash">Bash</a></li></ul> and has <a href="/blog/sftp-w-bash-script/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-20T01:28:21"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/sftp-w-bash-script/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F&amp;text=%E8%B7%A8%E7%B3%BB%E7%B5%B1%E6%95%B4%E5%90%88+-+%E9%80%8F%E9%81%8E+Bash+Script+%E5%9F%B7%E8%A1%8C+SFTP+%E5%82%B3%E8%BC%B8+(%E5%88%9D%E8%A9%A6+SUSE)" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=跨系統整合%20-%20透過%20Bash%20Script%20執行%20SFTP%20傳輸%20(初試%20SUSE)&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638570351380448366"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]>
-    </description>
-    <content:encoded><![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/sftp-w-bash-script/" itemprop="url">跨系統整合 - 透過 Bash Script 執行 SFTP 傳輸 (初試 SUSE)</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-20 08:31 AM"> <time datetime="2024-07-20T00:31:59" itemprop="datePublished"> 2024-07-20 08:31 AM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/sftp-w-bash-script"> </span> </td><td> <a href="/Blog/sftp-w-bash-script/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>異質系統整合，呼叫外部程式永遠是最簡單粗暴的手段，另起 Process 執行第三方工具再透過參數、檔案溝通，這種「外包給第三方執行檔」的做法，不管效能、資源耗用量或回應速度都會打折扣，但重點是 - 至少程式會跑能驗收呀! 這招永遠是沒有其他辦法時的救命稻草。<br> (話說：我出道的第一個網站專案是為 UNIX 工作站寫網站整合 Oracle，當時我還是只會 VB/VBScript/SQL 的菜鳥，被丟包到 UNIX 星球一整個驚慌，最後靠著寫 Perl 呼叫 <code>sqlplus user/pass@db_name @script_file</code> 大絕，竟也混到驗收結案。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)</p> <p>之後的開發生涯，遇到比較複雜的需求，找不到合適程式庫但有現成執行檔，我也常靠這招解決，醜歸醜，但省時又省力。(例子：<a href="/blog/stdout-stderr/">從 Linux 控制掃瞄器</a>、<a href="/blog/show-tls-certs/">呼叫 openssl 分析憑證</a>、<a href="/blog/print-pdf-with-c/">請 Acrobat Reader 幫忙列印</a>...)</p> <p>最近聽到一起案例，某 SUSE 作業系統上的軟體需要整合 SFTP 收發檔案，但該軟體對外溝通只提供「讀寫檔案」及「執行外部程式」兩種管道。嘿，擬好上傳下載指令再外包給 sftp CLI 不就解決了？加上環境 SUSE 是我從沒玩過的 Linux 版本，決定把它當成一道暖身練習題。</p> <p>SUSE 有眾多發行版本，伺服器應用主要會採用 openSUSE Leap 或 SUSE Linux Enterprise Server (SLES)，二者的關係差不多像 Fedora/CentOS Stream 與 RHEL (延伸閱讀：<a href="/blog/linux-server-os-survey/">Linux 作業系統考察</a>)，基於相同原始碼且高度相容，前者由社群開發維護，後者則為商業軟體，有廠商提供支援。因此，要學習及研究 SUSE，裝 openSUSE Leap 就對了，若工作領域遇到 SLE，技能跟經驗值可通用。</p> <p>順道一提：.NET 也<a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-opensuse?WT.mc_id=DOP-MVP-37580">支援 openSUSE 及 SLES</a> 哦! 所以下回再有聽到有人說 .NET 只能在 Windows 上跑，記得衝上去搖晃他肩膀說「快醒醒，時代早就不一樣了」。(謎之聲：其實並不需要這樣)</p> <p>本次測試我打算跑 Docker 當 SFTP Server，於是先試了在 openSUSE 上裝 Docker。<a href="https://en.opensuse.org/Docker">官方文件</a>寫得蠻詳細的，SUSE 的套件管理工具是 Zypper，使用上跟 Ubuntu 的 apt 一樣簡便，使用以下指令安裝 Docker，設成服務，並授與登入的使用者使用權限(未來呼叫 docker 時不需加 sudo)，安裝程序就完成了：</p> <pre><code>sudo zypper install docker docker-compose docker-compose-switch
-sudo usermod -G docker -a $USER
-sudo systemctl enable docker
-sudo systemctl start docker
-newgrp docker #or logout and login
-docker --version
-</code></pre> <p>由於只是實驗性質，我隨便找了一個 <a href="https://hub.docker.com/r/atmoz/sftp/">atmoz SFTP Server Docker Image</a>，透過 Docker 參數指定帳號密碼跟資料夾就能跑，簡單省力。至於 sftp CLI 的身分認證問題，<a href="/blog/github-copilot-demo/">Github Copilot</a> 教會我用 <a href="https://www.redhat.com/sysadmin/ssh-automation-sshpass">sshpass</a> (需用 Zypper 另外安裝)，可用檔案或環境變數(SSHPASS)記憶密碼(也支援明碼參數提供，但不建議)，再用 <code>sshpass -f /path/to/passwordfile ssh user@host</code> 或 <code>sshpass -e sftp user@host</code> 間接啟動 ssh 或 sftp，便能克服密碼輸入問題。當然，改用<a href="/blog/ssh-key-auth/">金鑰登入 SSH/SFTP/SCP</a>會更安全，但需要管理單位配合，密碼還是最通用的做法。</p> <p>啟動 SFTP 伺服器容器(SUSE 本身 22 Port 已用於 ssh，改映對到 2234 Port)，設好 sshpass，用 <code>sshpass -e sftp -P 2234 foo@localhost</code> 即可登入 SFTP：</p> <pre><code>docker run -p 2234:22 -d atmoz/sftp foo:pass:::upload
-sftp -P 2234 foo@localhost
-sudo zypper install sshpass
-export SSHPASS='pass'
-sshpass -e sftp -P 2234 foo@localhost
-</code></pre> <p>接下來，我排了一個段測試：登入 SFTP 後切換到 upload 目錄，建立 test 資料夾，上傳 hello.txt，另建 backup 資料夾，將 hello.txt 由 test 搬到 backup 下，刪除 hello.txt，刪除 test 及 backup 資料夾，測試結束。</p> <p>我對 Bash 腳本不熟，但有 Github Copilot 在不用怕，我學會兩個 Bash 腳本技巧：</p> <ol><li><a href="https://tldp.org/LDP/abs/html/here-docs.html">Here Document</a><br> 概念類似 C# @"..." 或 PowerShell 的 @"、"@，允許在腳本直接指定多行文字內容，保留其中的換行、縮排，而 Bash 的做法是取一個任意識別字串作為起始跟結尾，只要它在內文不會出現造成誤判就好，我覺得<code>EOF</code>是不錯的選擇。 <pre><code>COMMAND &lt;&lt;InputComesFromHERE
-...
-...
-...
-InputComesFromHERE
-</code></pre> 建目錄、上傳、搬檔、刪檔、刪目錄等一長串指令可寫成 Here Document 交給 sftp CLI 執行。</li> <li>用 time 測量程式執行時間<br> 在 Bash 可用 time 指令串接要測量時間的命令，可得到 real、user、sys 三個秒數，分別代表總時間、User Mode 耗用時間、Kernel Mode 耗用時間。在腳本中，則可用 <code>{ ... }</code> 包住一整段程式測量執行時間。<br> <img src="/img/loading.svg"></li></ol> <p>綜合以上概念，寫成 sftp-test.sh，<code>chmod u+x sftp-test.sh</code> 授與執行權限後可 <code>./sftp-test.sh</code> 測試：</p> <pre><code>#!/bin/bash
-echo "Hello World" &gt; hello.txt
-# use here document to pass commands to sftp
-time {
-sshpass -e sftp -P 2234 foo@localhost &lt;&lt;EOF
-cd upload
-mkdir test
-cd test
-put hello.txt
-ls -l
-cd ..
-mkdir backup
-rename test/hello.txt backup/hello.txt
-ls -l backup
-rmdir test
-rm backup/hello.txt
-rmdir backup
-bye
-EOF
-}
-</code></pre> <p>測試成功。</p> <p><img src="/img/loading.svg"></p> <p>若 Linux 環境無 sshpass 可用怎麼辦？Github Copilot 再教會我 UNIX 有個古老自動化控制與測試工具 - <a href="https://zh.wikipedia.org/zh-tw/Expect">Expect</a>，用 spawn 啟動一個新 Process 跑 sftp、ssh，接著用 expect "..." 等待讓程式回應特定內容，用 send "..." 模擬輸入操作。可想成 20 年前的 CLI 版的 RPA (Robotic Process Automation，<a href="/blog/my-opinion-on-rpa/">機器人流程自動化</a>)。</p> <p>不費吹灰之力，Copilot 幫我改好 expect 版：</p> <pre><code>#!/usr/bin/env bash
-echo "Hello World" &gt; hello.txt
-# Use expect to automate SFTP session
-/usr/bin/expect &lt;&lt;EOF
-# Start the expect environment
-spawn sftp -oPort=2234 foo@localhost
-# Wait for the password prompt
-expect "password:"
-# Provide the password
-send "$SSHPASS\r"
-# SFTP commands
-expect "sftp&gt;"
-send "cd upload\r"
-expect "sftp&gt;"
-send "mkdir test\r"
-expect "sftp&gt;"
-send "cd test\r"
-expect "sftp&gt;"
-send "put hello.txt\r"
-expect "sftp&gt;"
-send "ls -l\r"
-expect "sftp&gt;"
-send "cd ..\r"
-expect "sftp&gt;"
-send "mkdir backup\r"
-expect "sftp&gt;"
-send "rename test/hello.txt backup/hello.txt\r"
-expect "sftp&gt;"
-send "ls -l backup\r"
-expect "sftp&gt;"
-send "rmdir test\r"
-expect "sftp&gt;"
-send "rm backup/hello.txt\r"
-expect "sftp&gt;"
-send "rmdir backup\r"
-expect "sftp&gt;"
-send "bye\r"
-EOF
-</code></pre> <p>測試得到相同結果。</p> <p><img src="/img/loading.svg"></p> <p>經過這演練，對於如何使用 Bash 操控其他 CLI 做事算是有較清楚的概念，未來在 Linux 上要執行異質系統整合，除了寫 .NET 程式跟用 PowerShell 外，再多一個就地取材的好武器。</p> <p data-slug="sftp-w-bash-script" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/10/30/robot-2791671_960_720.jpg#960#720"> </p></div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/sftp-w-bash-script/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/bash">Bash</a></li></ul> and has <a href="/blog/sftp-w-bash-script/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-20T01:28:21"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/sftp-w-bash-script/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F&amp;text=%E8%B7%A8%E7%B3%BB%E7%B5%B1%E6%95%B4%E5%90%88+-+%E9%80%8F%E9%81%8E+Bash+Script+%E5%9F%B7%E8%A1%8C+SFTP+%E5%82%B3%E8%BC%B8+(%E5%88%9D%E8%A9%A6+SUSE)" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=跨系統整合%20-%20透過%20Bash%20Script%20執行%20SFTP%20傳輸%20(初試%20SUSE)&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fsftp-w-bash-script%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638570351380448366"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]></content:encoded>
-    <itunes:image href="/img/calendar.svg"/>
-          <media:content url="/img/calendar.svg" medium="image"/>
-    <pubDate>Sat, 20 Jul 2024 00:31:59 GMT</pubDate>
   </item></channel>
 </rss>
