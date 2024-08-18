@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/505/800/800.jpg?hmac=dYxjVH4Ig9AQfTU48M3urG0sQtsskmkhbuQpLyRrfoU</url>
+      <url>https://fastly.picsum.photos/id/1040/800/800.jpg?hmac=F1loJGIYc_9AvPgYczJdF0_q3KwXFp9u4LbAjDHhZ5Q</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,245 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/505/800/800.jpg?hmac=dYxjVH4Ig9AQfTU48M3urG0sQtsskmkhbuQpLyRrfoU"/>
+    <itunes:image href="https://fastly.picsum.photos/id/1040/800/800.jpg?hmac=F1loJGIYc_9AvPgYczJdF0_q3KwXFp9u4LbAjDHhZ5Q"/>
 <item>
+    <title><![CDATA[ReDroid多開雲手機，Scrcpy連線到複數個Docker容器的作法]]></title>
+    <link>https://ivonblog.com/posts/redroid-multiple-instances/</link>
+    <itunes:title><![CDATA[ReDroid多開雲手機，Scrcpy連線到複數個Docker容器的作法]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/redroid-multiple-instances/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6236865e06.webp"></a></p>
+<p>多開即同時執行多個APP，這是許多Android模擬器都會提供的功能，通常是在一個畫面塞滿多視窗，達到玩多個遊戲的效果。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ac93568625.webp"><figcaption><a href="https://www.pixiv.net/artworks/121309634" target="_blank">https://www.pixiv.net/artworks/121309634</a></figcaption><p>啊不對，放錯了…效果圖是這樣才對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0ef32f3670.webp"><h2>1. 方案探討<span><a href="#1-%E6%96%B9%E6%A1%88%E6%8E%A2%E8%A8%8E" aria-label="定位點">#</a></span></h2><p>一個Android系統執行多個APP，再個別擷取視窗的作法，在配合Scrcpy的情況下辦不到，所以只好跑多個Android系統，例如跑兩個Docker容器。</p><p>後台界面，使用Portainer和docker-compose控制，方便定義多個服務。</p><p>至於控制端，<a href="https://github.com/Genymobile/scrcpy" target="_blank">
+Scrcpy</a>支援連接到多個Android機子。</p><p>如果要更無縫的體驗，用<a href="https://ivonblog.com/posts/android-qtscrcpy-usage/" target="_blank">
+QTScrcpy</a>會更好，作者有加入多視窗「群控」功能。這樣就能在一個螢幕開啟多個ReDroid視窗。</p><p>另外，網頁版客戶端<a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">
+ws-scrcpy</a>也有人打包成Docker映像檔（<a href="https://hub.docker.com/r/scavin/ws-scrcpy" target="_blank">
+https://hub.docker.com/r/scavin/ws-scrcpy</a>），所以我們就能在瀏覽器用多個分頁存取Android容器啦，出門在外的時候更方便。</p><h2>2. 新增docker-compose<span><a href="#2-%E6%96%B0%E5%A2%9Edocker-compose" aria-label="定位點">#</a></span></h2><ol><li><p>參見<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">
+ReDroid安裝教學</a>，做好已經安裝GAPPS的映像檔。</p></li><li><p>於<a href="https://ivonblog.com/posts/portainer-installation/" target="_blank">
+Portainer</a>新增一個ReDroid的Stack。我覺得單一docker-compose比較好管理，如果要分兩個寫也是可以啦，這樣二個Android裝置可個別開關機。</p></li><li><p>內容如下，這裡定義了二個ReDroid的容器，他們會一起啟動：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>version: <span>"3"</span>
+</span></span><span><span>services:
+</span></span><span><span>
+</span></span><span><span><span># 第一個ReDroid容器</span>
+</span></span><span><span>  redroid-1:
+</span></span><span><span>    image: redroid/redroid:11.0.0_gapps
+</span></span><span><span>    stdin_open: <span>true</span>
+</span></span><span><span>    tty: <span>true</span>
+</span></span><span><span>    privileged: <span>true</span>
+</span></span><span><span>	<span># 映射通訊埠不能重複</span>
+</span></span><span><span>    ports:
+</span></span><span><span>      - <span>"5555:5555"</span>
+</span></span><span><span>    volumes:
+</span></span><span><span>    <span># 資料目錄，不同裝置目錄不能一樣</span>
+</span></span><span><span>      - ./redroid-11-1-data/:/data
+</span></span><span><span>    command:
+</span></span><span><span>    <span># 節約效能，解析度不要設定太高</span>
+</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>720</span>
+</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>1080</span>
+</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>340</span>
+</span></span><span><span>    <span># 啟用GPU硬體加速</span>
+</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>auto
+</span></span><span><span>    <span># 設定libndk相關</span>
+</span></span><span><span>      - ro.product.cpu.abilist0<span>=</span>x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.product.cpu.abilist64<span>=</span>x86_64,arm64-v8a
+</span></span><span><span>      - ro.product.cpu.abilist32<span>=</span>x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.dalvik.vm.isa.arm<span>=</span>x86
+</span></span><span><span>      - ro.dalvik.vm.isa.arm64<span>=</span>x86_64
+</span></span><span><span>      - ro.enable.native.bridge.exec<span>=</span><span>1</span>
+</span></span><span><span>      - ro.dalvik.vm.native.bridge<span>=</span>libndk_translation.so
+</span></span><span><span>      - ro.ndk_translation.version<span>=</span>0.2.2
+</span></span><span><span>
+</span></span><span><span><span># 第二個ReDroid容器</span>
+</span></span><span><span>  redroid-2:
+</span></span><span><span>    image: redroid/redroid:11.0.0_gapps
+</span></span><span><span>    stdin_open: <span>true</span>
+</span></span><span><span>    tty: <span>true</span>
+</span></span><span><span>    privileged: <span>true</span>
+</span></span><span><span>	<span># 映射通訊埠不能重複</span>
+</span></span><span><span>    ports:
+</span></span><span><span>      - <span>"5556:5555"</span>
+</span></span><span><span>    volumes:
+</span></span><span><span>    <span># 資料目錄，不同裝置目錄不能一樣</span>
+</span></span><span><span>      - ./redroid-11-2-data/:/data
+</span></span><span><span>    command:
+</span></span><span><span>    <span># 節約效能，解析度不要設定太高</span>
+</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>720</span>
+</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>1080</span>
+</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>340</span>
+</span></span><span><span>    <span># 啟用GPU硬體加速</span>
+</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>auto
+</span></span><span><span>    <span># 設定libndk相關</span>
+</span></span><span><span>      - ro.product.cpu.abilist0<span>=</span>x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.product.cpu.abilist64<span>=</span>x86_64,arm64-v8a
+</span></span><span><span>      - ro.product.cpu.abilist32<span>=</span>x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.dalvik.vm.isa.arm<span>=</span>x86
+</span></span><span><span>      - ro.dalvik.vm.isa.arm64<span>=</span>x86_64
+</span></span><span><span>      - ro.enable.native.bridge.exec<span>=</span><span>1</span>
+</span></span><span><span>      - ro.dalvik.vm.native.bridge<span>=</span>libndk_translation.so
+</span></span><span><span>      - ro.ndk_translation.version<span>=</span>0.2.2
+</span></span></code></pre></div><ol start="4"><li>同時啟動二個Android容器，什麼都不做的情況下並不會太吃資源。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-921de67cae.webp"></li></ol><h2>2. Scrcpy連線到多個ReDroid容器<span><a href="#2-scrcpy%E9%80%A3%E7%B7%9A%E5%88%B0%E5%A4%9A%E5%80%8Bredroid%E5%AE%B9%E5%99%A8" aria-label="定位點">#</a></span></h2><ol><li>ADB列出裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
+</span></span></code></pre></div><ol start="2"><li>以通訊埠為依歸，分別連線</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb connect -s localhost:5555
+</span></span><span><span>
+</span></span><span><span>adb connect -s localhost:5556
+</span></span></code></pre></div><ol start="3"><li>之後，個別啟動Scrcpy</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -s localhost:5555
+</span></span><span><span>
+</span></span><span><span>scrcpy -s localhost:5556
+</span></span></code></pre></div><p>唯一一個不便的點在於，每個ReDroid的裝置都是獨立的，所以GAPPS裝置驗證要重跑一次。</p><p>同時執行二個遊戲，一般的電腦CPU應該都還撐得住啦。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a12265d5ca.webp">]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/redroid-multiple-instances/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6236865e06.webp"></a></p>
+<p>多開即同時執行多個APP，這是許多Android模擬器都會提供的功能，通常是在一個畫面塞滿多視窗，達到玩多個遊戲的效果。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ac93568625.webp"><figcaption><a href="https://www.pixiv.net/artworks/121309634" target="_blank">https://www.pixiv.net/artworks/121309634</a></figcaption><p>啊不對，放錯了…效果圖是這樣才對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0ef32f3670.webp"><h2>1. 方案探討<span><a href="#1-%E6%96%B9%E6%A1%88%E6%8E%A2%E8%A8%8E" aria-label="定位點">#</a></span></h2><p>一個Android系統執行多個APP，再個別擷取視窗的作法，在配合Scrcpy的情況下辦不到，所以只好跑多個Android系統，例如跑兩個Docker容器。</p><p>後台界面，使用Portainer和docker-compose控制，方便定義多個服務。</p><p>至於控制端，<a href="https://github.com/Genymobile/scrcpy" target="_blank">
+Scrcpy</a>支援連接到多個Android機子。</p><p>如果要更無縫的體驗，用<a href="https://ivonblog.com/posts/android-qtscrcpy-usage/" target="_blank">
+QTScrcpy</a>會更好，作者有加入多視窗「群控」功能。這樣就能在一個螢幕開啟多個ReDroid視窗。</p><p>另外，網頁版客戶端<a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">
+ws-scrcpy</a>也有人打包成Docker映像檔（<a href="https://hub.docker.com/r/scavin/ws-scrcpy" target="_blank">
+https://hub.docker.com/r/scavin/ws-scrcpy</a>），所以我們就能在瀏覽器用多個分頁存取Android容器啦，出門在外的時候更方便。</p><h2>2. 新增docker-compose<span><a href="#2-%E6%96%B0%E5%A2%9Edocker-compose" aria-label="定位點">#</a></span></h2><ol><li><p>參見<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">
+ReDroid安裝教學</a>，做好已經安裝GAPPS的映像檔。</p></li><li><p>於<a href="https://ivonblog.com/posts/portainer-installation/" target="_blank">
+Portainer</a>新增一個ReDroid的Stack。我覺得單一docker-compose比較好管理，如果要分兩個寫也是可以啦，這樣二個Android裝置可個別開關機。</p></li><li><p>內容如下，這裡定義了二個ReDroid的容器，他們會一起啟動：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>version: <span>"3"</span>
+</span></span><span><span>services:
+</span></span><span><span>
+</span></span><span><span><span># 第一個ReDroid容器</span>
+</span></span><span><span>  redroid-1:
+</span></span><span><span>    image: redroid/redroid:11.0.0_gapps
+</span></span><span><span>    stdin_open: <span>true</span>
+</span></span><span><span>    tty: <span>true</span>
+</span></span><span><span>    privileged: <span>true</span>
+</span></span><span><span>	<span># 映射通訊埠不能重複</span>
+</span></span><span><span>    ports:
+</span></span><span><span>      - <span>"5555:5555"</span>
+</span></span><span><span>    volumes:
+</span></span><span><span>    <span># 資料目錄，不同裝置目錄不能一樣</span>
+</span></span><span><span>      - ./redroid-11-1-data/:/data
+</span></span><span><span>    command:
+</span></span><span><span>    <span># 節約效能，解析度不要設定太高</span>
+</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>720</span>
+</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>1080</span>
+</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>340</span>
+</span></span><span><span>    <span># 啟用GPU硬體加速</span>
+</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>auto
+</span></span><span><span>    <span># 設定libndk相關</span>
+</span></span><span><span>      - ro.product.cpu.abilist0<span>=</span>x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.product.cpu.abilist64<span>=</span>x86_64,arm64-v8a
+</span></span><span><span>      - ro.product.cpu.abilist32<span>=</span>x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.dalvik.vm.isa.arm<span>=</span>x86
+</span></span><span><span>      - ro.dalvik.vm.isa.arm64<span>=</span>x86_64
+</span></span><span><span>      - ro.enable.native.bridge.exec<span>=</span><span>1</span>
+</span></span><span><span>      - ro.dalvik.vm.native.bridge<span>=</span>libndk_translation.so
+</span></span><span><span>      - ro.ndk_translation.version<span>=</span>0.2.2
+</span></span><span><span>
+</span></span><span><span><span># 第二個ReDroid容器</span>
+</span></span><span><span>  redroid-2:
+</span></span><span><span>    image: redroid/redroid:11.0.0_gapps
+</span></span><span><span>    stdin_open: <span>true</span>
+</span></span><span><span>    tty: <span>true</span>
+</span></span><span><span>    privileged: <span>true</span>
+</span></span><span><span>	<span># 映射通訊埠不能重複</span>
+</span></span><span><span>    ports:
+</span></span><span><span>      - <span>"5556:5555"</span>
+</span></span><span><span>    volumes:
+</span></span><span><span>    <span># 資料目錄，不同裝置目錄不能一樣</span>
+</span></span><span><span>      - ./redroid-11-2-data/:/data
+</span></span><span><span>    command:
+</span></span><span><span>    <span># 節約效能，解析度不要設定太高</span>
+</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>720</span>
+</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>1080</span>
+</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>340</span>
+</span></span><span><span>    <span># 啟用GPU硬體加速</span>
+</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>auto
+</span></span><span><span>    <span># 設定libndk相關</span>
+</span></span><span><span>      - ro.product.cpu.abilist0<span>=</span>x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.product.cpu.abilist64<span>=</span>x86_64,arm64-v8a
+</span></span><span><span>      - ro.product.cpu.abilist32<span>=</span>x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.dalvik.vm.isa.arm<span>=</span>x86
+</span></span><span><span>      - ro.dalvik.vm.isa.arm64<span>=</span>x86_64
+</span></span><span><span>      - ro.enable.native.bridge.exec<span>=</span><span>1</span>
+</span></span><span><span>      - ro.dalvik.vm.native.bridge<span>=</span>libndk_translation.so
+</span></span><span><span>      - ro.ndk_translation.version<span>=</span>0.2.2
+</span></span></code></pre></div><ol start="4"><li>同時啟動二個Android容器，什麼都不做的情況下並不會太吃資源。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-921de67cae.webp"></li></ol><h2>2. Scrcpy連線到多個ReDroid容器<span><a href="#2-scrcpy%E9%80%A3%E7%B7%9A%E5%88%B0%E5%A4%9A%E5%80%8Bredroid%E5%AE%B9%E5%99%A8" aria-label="定位點">#</a></span></h2><ol><li>ADB列出裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
+</span></span></code></pre></div><ol start="2"><li>以通訊埠為依歸，分別連線</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb connect -s localhost:5555
+</span></span><span><span>
+</span></span><span><span>adb connect -s localhost:5556
+</span></span></code></pre></div><ol start="3"><li>之後，個別啟動Scrcpy</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -s localhost:5555
+</span></span><span><span>
+</span></span><span><span>scrcpy -s localhost:5556
+</span></span></code></pre></div><p>唯一一個不便的點在於，每個ReDroid的裝置都是獨立的，所以GAPPS裝置驗證要重跑一次。</p><p>同時執行二個遊戲，一般的電腦CPU應該都還撐得住啦。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a12265d5ca.webp">]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/redroid-multiple-instances/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6236865e06.webp"></a></p>
+<p>多開即同時執行多個APP，這是許多Android模擬器都會提供的功能，通常是在一個畫面塞滿多視窗，達到玩多個遊戲的效果。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ac93568625.webp"><figcaption><a href="https://www.pixiv.net/artworks/121309634" target="_blank">https://www.pixiv.net/artworks/121309634</a></figcaption><p>啊不對，放錯了…效果圖是這樣才對。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0ef32f3670.webp"><h2>1. 方案探討<span><a href="#1-%E6%96%B9%E6%A1%88%E6%8E%A2%E8%A8%8E" aria-label="定位點">#</a></span></h2><p>一個Android系統執行多個APP，再個別擷取視窗的作法，在配合Scrcpy的情況下辦不到，所以只好跑多個Android系統，例如跑兩個Docker容器。</p><p>後台界面，使用Portainer和docker-compose控制，方便定義多個服務。</p><p>至於控制端，<a href="https://github.com/Genymobile/scrcpy" target="_blank">
+Scrcpy</a>支援連接到多個Android機子。</p><p>如果要更無縫的體驗，用<a href="https://ivonblog.com/posts/android-qtscrcpy-usage/" target="_blank">
+QTScrcpy</a>會更好，作者有加入多視窗「群控」功能。這樣就能在一個螢幕開啟多個ReDroid視窗。</p><p>另外，網頁版客戶端<a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">
+ws-scrcpy</a>也有人打包成Docker映像檔（<a href="https://hub.docker.com/r/scavin/ws-scrcpy" target="_blank">
+https://hub.docker.com/r/scavin/ws-scrcpy</a>），所以我們就能在瀏覽器用多個分頁存取Android容器啦，出門在外的時候更方便。</p><h2>2. 新增docker-compose<span><a href="#2-%E6%96%B0%E5%A2%9Edocker-compose" aria-label="定位點">#</a></span></h2><ol><li><p>參見<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">
+ReDroid安裝教學</a>，做好已經安裝GAPPS的映像檔。</p></li><li><p>於<a href="https://ivonblog.com/posts/portainer-installation/" target="_blank">
+Portainer</a>新增一個ReDroid的Stack。我覺得單一docker-compose比較好管理，如果要分兩個寫也是可以啦，這樣二個Android裝置可個別開關機。</p></li><li><p>內容如下，這裡定義了二個ReDroid的容器，他們會一起啟動：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>version: <span>"3"</span>
+</span></span><span><span>services:
+</span></span><span><span>
+</span></span><span><span><span># 第一個ReDroid容器</span>
+</span></span><span><span>  redroid-1:
+</span></span><span><span>    image: redroid/redroid:11.0.0_gapps
+</span></span><span><span>    stdin_open: <span>true</span>
+</span></span><span><span>    tty: <span>true</span>
+</span></span><span><span>    privileged: <span>true</span>
+</span></span><span><span>	<span># 映射通訊埠不能重複</span>
+</span></span><span><span>    ports:
+</span></span><span><span>      - <span>"5555:5555"</span>
+</span></span><span><span>    volumes:
+</span></span><span><span>    <span># 資料目錄，不同裝置目錄不能一樣</span>
+</span></span><span><span>      - ./redroid-11-1-data/:/data
+</span></span><span><span>    command:
+</span></span><span><span>    <span># 節約效能，解析度不要設定太高</span>
+</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>720</span>
+</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>1080</span>
+</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>340</span>
+</span></span><span><span>    <span># 啟用GPU硬體加速</span>
+</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>auto
+</span></span><span><span>    <span># 設定libndk相關</span>
+</span></span><span><span>      - ro.product.cpu.abilist0<span>=</span>x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.product.cpu.abilist64<span>=</span>x86_64,arm64-v8a
+</span></span><span><span>      - ro.product.cpu.abilist32<span>=</span>x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.dalvik.vm.isa.arm<span>=</span>x86
+</span></span><span><span>      - ro.dalvik.vm.isa.arm64<span>=</span>x86_64
+</span></span><span><span>      - ro.enable.native.bridge.exec<span>=</span><span>1</span>
+</span></span><span><span>      - ro.dalvik.vm.native.bridge<span>=</span>libndk_translation.so
+</span></span><span><span>      - ro.ndk_translation.version<span>=</span>0.2.2
+</span></span><span><span>
+</span></span><span><span><span># 第二個ReDroid容器</span>
+</span></span><span><span>  redroid-2:
+</span></span><span><span>    image: redroid/redroid:11.0.0_gapps
+</span></span><span><span>    stdin_open: <span>true</span>
+</span></span><span><span>    tty: <span>true</span>
+</span></span><span><span>    privileged: <span>true</span>
+</span></span><span><span>	<span># 映射通訊埠不能重複</span>
+</span></span><span><span>    ports:
+</span></span><span><span>      - <span>"5556:5555"</span>
+</span></span><span><span>    volumes:
+</span></span><span><span>    <span># 資料目錄，不同裝置目錄不能一樣</span>
+</span></span><span><span>      - ./redroid-11-2-data/:/data
+</span></span><span><span>    command:
+</span></span><span><span>    <span># 節約效能，解析度不要設定太高</span>
+</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>720</span>
+</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>1080</span>
+</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>340</span>
+</span></span><span><span>    <span># 啟用GPU硬體加速</span>
+</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>auto
+</span></span><span><span>    <span># 設定libndk相關</span>
+</span></span><span><span>      - ro.product.cpu.abilist0<span>=</span>x86_64,arm64-v8a,x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.product.cpu.abilist64<span>=</span>x86_64,arm64-v8a
+</span></span><span><span>      - ro.product.cpu.abilist32<span>=</span>x86,armeabi-v7a,armeabi
+</span></span><span><span>      - ro.dalvik.vm.isa.arm<span>=</span>x86
+</span></span><span><span>      - ro.dalvik.vm.isa.arm64<span>=</span>x86_64
+</span></span><span><span>      - ro.enable.native.bridge.exec<span>=</span><span>1</span>
+</span></span><span><span>      - ro.dalvik.vm.native.bridge<span>=</span>libndk_translation.so
+</span></span><span><span>      - ro.ndk_translation.version<span>=</span>0.2.2
+</span></span></code></pre></div><ol start="4"><li>同時啟動二個Android容器，什麼都不做的情況下並不會太吃資源。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-921de67cae.webp"></li></ol><h2>2. Scrcpy連線到多個ReDroid容器<span><a href="#2-scrcpy%E9%80%A3%E7%B7%9A%E5%88%B0%E5%A4%9A%E5%80%8Bredroid%E5%AE%B9%E5%99%A8" aria-label="定位點">#</a></span></h2><ol><li>ADB列出裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
+</span></span></code></pre></div><ol start="2"><li>以通訊埠為依歸，分別連線</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb connect -s localhost:5555
+</span></span><span><span>
+</span></span><span><span>adb connect -s localhost:5556
+</span></span></code></pre></div><ol start="3"><li>之後，個別啟動Scrcpy</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -s localhost:5555
+</span></span><span><span>
+</span></span><span><span>scrcpy -s localhost:5556
+</span></span></code></pre></div><p>唯一一個不便的點在於，每個ReDroid的裝置都是獨立的，所以GAPPS裝置驗證要重跑一次。</p><p>同時執行二個遊戲，一般的電腦CPU應該都還撐得住啦。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a12265d5ca.webp">]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6236865e06.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6236865e06.webp" medium="image"/>
+    <pubDate>Mon, 19 Aug 2024 01:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[iOS安裝第三方APP，Linux版AltStore + AltServer使用教學]]></title>
     <link>https://ivonblog.com/posts/linux-altstore/</link>
     <itunes:title><![CDATA[iOS安裝第三方APP，Linux版AltStore + AltServer使用教學]]></itunes:title>
@@ -1986,62 +2223,5 @@ EhPanda</a>，但是他們都得側載IPA，安裝不是很方便。另外有上
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa57b87741.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aa57b87741.webp" medium="image"/>
     <pubDate>Mon, 12 Aug 2024 01:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Linux如何開啟GNOME內建的RDP遠端桌面連線 (GNOME Remote Desktop)]]></title>
-    <link>https://ivonblog.com/posts/enable-gnome-remote-desktop/</link>
-    <itunes:title><![CDATA[Linux如何開啟GNOME內建的RDP遠端桌面連線 (GNOME Remote Desktop)]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/enable-gnome-remote-desktop/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a38ab06b9d.webp"></a></p>
-<p>請參考： <a href="https://ivonblog.com/posts/linux-foss-remote-desktop-solutions/" target="_blank">Linux開源免費的遠端桌面列表</a></p><p>適用版本：GNOME 46以上、Ubuntu 24.04以上、Fedora 40以上</p><p>Linux有許多RDP協定的開源實作，其中較知名的有FreeRDP和xRDP，讓用戶能透過Windows的RDP客戶端連線到Linux電腦。</p><p>過去xRDP比較常見，但是這個比較適合伺服器使用，設定複雜。但是你知道嗎，GNOME 42就有內建「遠端桌面」，讓使用者可以輕鬆從系統選單直接開啟遠端桌面功能，而不用手動打指令！還能播放遠端音訊、共享剪貼簿呢！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a1a4a22485.webp"><figcaption>透過Remmina遠端連線到Linux GNOME桌面</figcaption><p>GNOME遠端桌面功能類似x11VNC，可讓使用者接續使用離開電腦前的工作階段，而非開一個新的桌面工作階段。</p><p>技術細節：GNOME遠端桌面(gnome-remote-desktop)支援VNC與RDP二種遠端桌面協定當作後端。RDP部份使用的是FreeRDP的實作，而非xRDP，因為後者只支援X11。</p><p>此外，GNOME遠端桌面是透過PipeWire傳輸音訊的，舊版則是PulseAudio。</p><p>GNOME遠端桌面可在X11或Wayland環境運作。</p><h2>1. 啟用GNOME遠端桌面<span><a href="#1-%E5%95%9F%E7%94%A8gnome%E9%81%A0%E7%AB%AF%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><ol><li><p>你的Linux電腦必須安裝GNOME桌面才可以使用這個功能。</p></li><li><p>這個選項的位置可能會隨著GNOME版本更新而變更，如果找不到請直接用搜尋的。</p></li><li><p>GNOME 46開啟GNOME設定 → 系統 → 遠端桌面 → 桌面分享，將以下二個選項打勾。不勾第二個的話就是只能檢視。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3e9691b177.webp"></li><li><p>下面就會列出啟用的連接埠，還有連線時的帳號密碼。</p></li><li><p>你可能需要開放對應防火牆通訊埠：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>3390</span>
-</span></span><span><span>sudo ufw reload
-</span></span></code></pre></div><ol start="6"><li>接著用<code>ip addr</code>指令取得Linux的區域IP。</li></ol><h2>2. 安裝RDP連線客戶端<span><a href="#2-%E5%AE%89%E8%A3%9Drdp%E9%80%A3%E7%B7%9A%E5%AE%A2%E6%88%B6%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>讓要連線的電腦處在同一個網域下。</p><p>連線時輸入<code>Linux的IP:通訊埠</code>就可以了。遠端桌面工作階段開始的時候，GNOME右上角會出現畫面分享圖示。</p><p>電腦：<a href="https://remmina.org/" target="_blank">
-Remmina</a>或<a href="https://apps.microsoft.com/detail/9wzdncrfj3ps?hl=zh-TW&amp;gl=TW" target="_blank">
-Microsoft Remote Desktop</a></p><p>手機：<a href="https://www.realvnc.com/en/connect/download/viewer/" target="_blank">
-RealVNC Viewer</a>或<a href="https://play.google.com/store/apps/details?id=com.microsoft.rdc.androidx&amp;hl=en" target="_blank">
-Microsoft Remote Desktop</a></p><p>網頁版：<a href="https://guacamole.apache.org/" target="_blank">
-Apache Guacamole</a></p><h2>3. 讓GNOME鎖定的時候也可以連線<span><a href="#3-%E8%AE%93gnome%E9%8E%96%E5%AE%9A%E7%9A%84%E6%99%82%E5%80%99%E4%B9%9F%E5%8F%AF%E4%BB%A5%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h2><p>GNOME螢幕鎖定的情況下是無法連入遠端桌面的。</p><p>請安裝<a href="https://ivonblog.com/posts/how-to-install-gnome-extensions/" target="_blank">
-Extension Manager</a>，再從裡面安裝<a href="https://extensions.gnome.org/extension/4338/allow-locked-remote-desktop/" target="_blank">
-Allow Locked Remote Desktop</a>擴充功能解決。</p><p>或者你可以在GNOME系統設定關閉自動鎖定螢幕。</p><h2>4. 從外網連接到GNOME桌面<span><a href="#4-%E5%BE%9E%E5%A4%96%E7%B6%B2%E9%80%A3%E6%8E%A5%E5%88%B0gnome%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>如果不方便取得公共IP，不妨使用<a href="https://ivonblog.com/posts/foss-nat-traversal-solutions/" target="_blank">
-內網穿透軟體</a>。</p><p>這樣你的電腦就能從外部網路存取GNOME桌面。</p><h2>5. 透過指令啟動GNOME遠端桌面<span><a href="#5-%E9%80%8F%E9%81%8E%E6%8C%87%E4%BB%A4%E5%95%9F%E5%8B%95gnome%E9%81%A0%E7%AB%AF%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>GNOME遠端桌面可以使用<code>grdctl</code>指令啟用。</p><ol><li>查看狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>grdctl status
-</span></span></code></pre></div><ol start="2"><li>啟用RDP遠端桌面</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>grdctl rdp ennble
-</span></span></code></pre></div><p>除此之外，headless的Linux電腦也可以純靠指令啟用RDP遠端桌面，請見這篇：<a href="https://discourse.gnome.org/t/headless-remote-desktop-setup-process/20411/2?u=vgaetera" target="_blank">
-How to configure + connect to the new headless gnome-remote-desktop service?</a></p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://hhming.moe/post/windows-remote-ubuntu-22-04/" target="_blank">用Windows 遠端Ubuntu 22.04 - HH.Ming</a></li><li><a href="https://gitlab.gnome.org/GNOME/gnome-remote-desktop" target="_blank">gnome-remote-desktop - GitLab</a></li><li><a href="https://gitlab.gnome.org/GNOME/gnome-remote-desktop/-/issues/26" target="_blank">Support RDP (xRDP) backend (#26) · Issues - GitLab - GNOME</a></li></ul>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/enable-gnome-remote-desktop/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a38ab06b9d.webp"></a></p>
-<p>請參考： <a href="https://ivonblog.com/posts/linux-foss-remote-desktop-solutions/" target="_blank">Linux開源免費的遠端桌面列表</a></p><p>適用版本：GNOME 46以上、Ubuntu 24.04以上、Fedora 40以上</p><p>Linux有許多RDP協定的開源實作，其中較知名的有FreeRDP和xRDP，讓用戶能透過Windows的RDP客戶端連線到Linux電腦。</p><p>過去xRDP比較常見，但是這個比較適合伺服器使用，設定複雜。但是你知道嗎，GNOME 42就有內建「遠端桌面」，讓使用者可以輕鬆從系統選單直接開啟遠端桌面功能，而不用手動打指令！還能播放遠端音訊、共享剪貼簿呢！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a1a4a22485.webp"><figcaption>透過Remmina遠端連線到Linux GNOME桌面</figcaption><p>GNOME遠端桌面功能類似x11VNC，可讓使用者接續使用離開電腦前的工作階段，而非開一個新的桌面工作階段。</p><p>技術細節：GNOME遠端桌面(gnome-remote-desktop)支援VNC與RDP二種遠端桌面協定當作後端。RDP部份使用的是FreeRDP的實作，而非xRDP，因為後者只支援X11。</p><p>此外，GNOME遠端桌面是透過PipeWire傳輸音訊的，舊版則是PulseAudio。</p><p>GNOME遠端桌面可在X11或Wayland環境運作。</p><h2>1. 啟用GNOME遠端桌面<span><a href="#1-%E5%95%9F%E7%94%A8gnome%E9%81%A0%E7%AB%AF%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><ol><li><p>你的Linux電腦必須安裝GNOME桌面才可以使用這個功能。</p></li><li><p>這個選項的位置可能會隨著GNOME版本更新而變更，如果找不到請直接用搜尋的。</p></li><li><p>GNOME 46開啟GNOME設定 → 系統 → 遠端桌面 → 桌面分享，將以下二個選項打勾。不勾第二個的話就是只能檢視。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3e9691b177.webp"></li><li><p>下面就會列出啟用的連接埠，還有連線時的帳號密碼。</p></li><li><p>你可能需要開放對應防火牆通訊埠：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>3390</span>
-</span></span><span><span>sudo ufw reload
-</span></span></code></pre></div><ol start="6"><li>接著用<code>ip addr</code>指令取得Linux的區域IP。</li></ol><h2>2. 安裝RDP連線客戶端<span><a href="#2-%E5%AE%89%E8%A3%9Drdp%E9%80%A3%E7%B7%9A%E5%AE%A2%E6%88%B6%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>讓要連線的電腦處在同一個網域下。</p><p>連線時輸入<code>Linux的IP:通訊埠</code>就可以了。遠端桌面工作階段開始的時候，GNOME右上角會出現畫面分享圖示。</p><p>電腦：<a href="https://remmina.org/" target="_blank">
-Remmina</a>或<a href="https://apps.microsoft.com/detail/9wzdncrfj3ps?hl=zh-TW&amp;gl=TW" target="_blank">
-Microsoft Remote Desktop</a></p><p>手機：<a href="https://www.realvnc.com/en/connect/download/viewer/" target="_blank">
-RealVNC Viewer</a>或<a href="https://play.google.com/store/apps/details?id=com.microsoft.rdc.androidx&amp;hl=en" target="_blank">
-Microsoft Remote Desktop</a></p><p>網頁版：<a href="https://guacamole.apache.org/" target="_blank">
-Apache Guacamole</a></p><h2>3. 讓GNOME鎖定的時候也可以連線<span><a href="#3-%E8%AE%93gnome%E9%8E%96%E5%AE%9A%E7%9A%84%E6%99%82%E5%80%99%E4%B9%9F%E5%8F%AF%E4%BB%A5%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h2><p>GNOME螢幕鎖定的情況下是無法連入遠端桌面的。</p><p>請安裝<a href="https://ivonblog.com/posts/how-to-install-gnome-extensions/" target="_blank">
-Extension Manager</a>，再從裡面安裝<a href="https://extensions.gnome.org/extension/4338/allow-locked-remote-desktop/" target="_blank">
-Allow Locked Remote Desktop</a>擴充功能解決。</p><p>或者你可以在GNOME系統設定關閉自動鎖定螢幕。</p><h2>4. 從外網連接到GNOME桌面<span><a href="#4-%E5%BE%9E%E5%A4%96%E7%B6%B2%E9%80%A3%E6%8E%A5%E5%88%B0gnome%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>如果不方便取得公共IP，不妨使用<a href="https://ivonblog.com/posts/foss-nat-traversal-solutions/" target="_blank">
-內網穿透軟體</a>。</p><p>這樣你的電腦就能從外部網路存取GNOME桌面。</p><h2>5. 透過指令啟動GNOME遠端桌面<span><a href="#5-%E9%80%8F%E9%81%8E%E6%8C%87%E4%BB%A4%E5%95%9F%E5%8B%95gnome%E9%81%A0%E7%AB%AF%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>GNOME遠端桌面可以使用<code>grdctl</code>指令啟用。</p><ol><li>查看狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>grdctl status
-</span></span></code></pre></div><ol start="2"><li>啟用RDP遠端桌面</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>grdctl rdp ennble
-</span></span></code></pre></div><p>除此之外，headless的Linux電腦也可以純靠指令啟用RDP遠端桌面，請見這篇：<a href="https://discourse.gnome.org/t/headless-remote-desktop-setup-process/20411/2?u=vgaetera" target="_blank">
-How to configure + connect to the new headless gnome-remote-desktop service?</a></p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://hhming.moe/post/windows-remote-ubuntu-22-04/" target="_blank">用Windows 遠端Ubuntu 22.04 - HH.Ming</a></li><li><a href="https://gitlab.gnome.org/GNOME/gnome-remote-desktop" target="_blank">gnome-remote-desktop - GitLab</a></li><li><a href="https://gitlab.gnome.org/GNOME/gnome-remote-desktop/-/issues/26" target="_blank">Support RDP (xRDP) backend (#26) · Issues - GitLab - GNOME</a></li></ul>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/enable-gnome-remote-desktop/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a38ab06b9d.webp"></a></p>
-<p>請參考： <a href="https://ivonblog.com/posts/linux-foss-remote-desktop-solutions/" target="_blank">Linux開源免費的遠端桌面列表</a></p><p>適用版本：GNOME 46以上、Ubuntu 24.04以上、Fedora 40以上</p><p>Linux有許多RDP協定的開源實作，其中較知名的有FreeRDP和xRDP，讓用戶能透過Windows的RDP客戶端連線到Linux電腦。</p><p>過去xRDP比較常見，但是這個比較適合伺服器使用，設定複雜。但是你知道嗎，GNOME 42就有內建「遠端桌面」，讓使用者可以輕鬆從系統選單直接開啟遠端桌面功能，而不用手動打指令！還能播放遠端音訊、共享剪貼簿呢！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a1a4a22485.webp"><figcaption>透過Remmina遠端連線到Linux GNOME桌面</figcaption><p>GNOME遠端桌面功能類似x11VNC，可讓使用者接續使用離開電腦前的工作階段，而非開一個新的桌面工作階段。</p><p>技術細節：GNOME遠端桌面(gnome-remote-desktop)支援VNC與RDP二種遠端桌面協定當作後端。RDP部份使用的是FreeRDP的實作，而非xRDP，因為後者只支援X11。</p><p>此外，GNOME遠端桌面是透過PipeWire傳輸音訊的，舊版則是PulseAudio。</p><p>GNOME遠端桌面可在X11或Wayland環境運作。</p><h2>1. 啟用GNOME遠端桌面<span><a href="#1-%E5%95%9F%E7%94%A8gnome%E9%81%A0%E7%AB%AF%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><ol><li><p>你的Linux電腦必須安裝GNOME桌面才可以使用這個功能。</p></li><li><p>這個選項的位置可能會隨著GNOME版本更新而變更，如果找不到請直接用搜尋的。</p></li><li><p>GNOME 46開啟GNOME設定 → 系統 → 遠端桌面 → 桌面分享，將以下二個選項打勾。不勾第二個的話就是只能檢視。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3e9691b177.webp"></li><li><p>下面就會列出啟用的連接埠，還有連線時的帳號密碼。</p></li><li><p>你可能需要開放對應防火牆通訊埠：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>3390</span>
-</span></span><span><span>sudo ufw reload
-</span></span></code></pre></div><ol start="6"><li>接著用<code>ip addr</code>指令取得Linux的區域IP。</li></ol><h2>2. 安裝RDP連線客戶端<span><a href="#2-%E5%AE%89%E8%A3%9Drdp%E9%80%A3%E7%B7%9A%E5%AE%A2%E6%88%B6%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>讓要連線的電腦處在同一個網域下。</p><p>連線時輸入<code>Linux的IP:通訊埠</code>就可以了。遠端桌面工作階段開始的時候，GNOME右上角會出現畫面分享圖示。</p><p>電腦：<a href="https://remmina.org/" target="_blank">
-Remmina</a>或<a href="https://apps.microsoft.com/detail/9wzdncrfj3ps?hl=zh-TW&amp;gl=TW" target="_blank">
-Microsoft Remote Desktop</a></p><p>手機：<a href="https://www.realvnc.com/en/connect/download/viewer/" target="_blank">
-RealVNC Viewer</a>或<a href="https://play.google.com/store/apps/details?id=com.microsoft.rdc.androidx&amp;hl=en" target="_blank">
-Microsoft Remote Desktop</a></p><p>網頁版：<a href="https://guacamole.apache.org/" target="_blank">
-Apache Guacamole</a></p><h2>3. 讓GNOME鎖定的時候也可以連線<span><a href="#3-%E8%AE%93gnome%E9%8E%96%E5%AE%9A%E7%9A%84%E6%99%82%E5%80%99%E4%B9%9F%E5%8F%AF%E4%BB%A5%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h2><p>GNOME螢幕鎖定的情況下是無法連入遠端桌面的。</p><p>請安裝<a href="https://ivonblog.com/posts/how-to-install-gnome-extensions/" target="_blank">
-Extension Manager</a>，再從裡面安裝<a href="https://extensions.gnome.org/extension/4338/allow-locked-remote-desktop/" target="_blank">
-Allow Locked Remote Desktop</a>擴充功能解決。</p><p>或者你可以在GNOME系統設定關閉自動鎖定螢幕。</p><h2>4. 從外網連接到GNOME桌面<span><a href="#4-%E5%BE%9E%E5%A4%96%E7%B6%B2%E9%80%A3%E6%8E%A5%E5%88%B0gnome%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>如果不方便取得公共IP，不妨使用<a href="https://ivonblog.com/posts/foss-nat-traversal-solutions/" target="_blank">
-內網穿透軟體</a>。</p><p>這樣你的電腦就能從外部網路存取GNOME桌面。</p><h2>5. 透過指令啟動GNOME遠端桌面<span><a href="#5-%E9%80%8F%E9%81%8E%E6%8C%87%E4%BB%A4%E5%95%9F%E5%8B%95gnome%E9%81%A0%E7%AB%AF%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>GNOME遠端桌面可以使用<code>grdctl</code>指令啟用。</p><ol><li>查看狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>grdctl status
-</span></span></code></pre></div><ol start="2"><li>啟用RDP遠端桌面</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>grdctl rdp ennble
-</span></span></code></pre></div><p>除此之外，headless的Linux電腦也可以純靠指令啟用RDP遠端桌面，請見這篇：<a href="https://discourse.gnome.org/t/headless-remote-desktop-setup-process/20411/2?u=vgaetera" target="_blank">
-How to configure + connect to the new headless gnome-remote-desktop service?</a></p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://hhming.moe/post/windows-remote-ubuntu-22-04/" target="_blank">用Windows 遠端Ubuntu 22.04 - HH.Ming</a></li><li><a href="https://gitlab.gnome.org/GNOME/gnome-remote-desktop" target="_blank">gnome-remote-desktop - GitLab</a></li><li><a href="https://gitlab.gnome.org/GNOME/gnome-remote-desktop/-/issues/26" target="_blank">Support RDP (xRDP) backend (#26) · Issues - GitLab - GNOME</a></li></ul>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a38ab06b9d.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a38ab06b9d.webp" medium="image"/>
-    <pubDate>Sun, 11 Aug 2024 19:00:00 +0800</pubDate>
   </item></channel>
 </rss>
