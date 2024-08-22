@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/106/800/800.jpg?hmac=0iEWyrVNiwHV8TM2D0z3hX54eJKbQCG83CkYtgEIbA0</url>
+      <url>https://fastly.picsum.photos/id/171/800/800.jpg?hmac=Zl2n49NYsDgfn5j7UaFRi3zdHK7trJaW4qnDlJ4BIuo</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,257 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/106/800/800.jpg?hmac=0iEWyrVNiwHV8TM2D0z3hX54eJKbQCG83CkYtgEIbA0"/>
+    <itunes:image href="https://fastly.picsum.photos/id/171/800/800.jpg?hmac=Zl2n49NYsDgfn5j7UaFRi3zdHK7trJaW4qnDlJ4BIuo"/>
 <item>
+    <title><![CDATA[Hugo使用shortcode插入中文直書（CSS text-orientation）]]></title>
+    <link>https://ivonblog.com/posts/hugo-vertical-text/</link>
+    <itunes:title><![CDATA[Hugo使用shortcode插入中文直書（CSS text-orientation）]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/hugo-vertical-text/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-65b79c15a7.webp"></a></p>
+<p>習慣讀台灣出版的中文小說的，看到的排版依然是以直排文字居多吧。</p><p>那麼網頁是否也能這樣做呢？可以，CSS有<code>text-orientation</code>的屬性能把中文字做垂直排列。</p><p>我的想法是在Hugo網頁中插入一個特殊的區塊，專門用來放中文直書的元件，營造直排書閱讀效果。其餘元素依然維持橫排。所以本篇文章我會做一個Hugo shortcode，將要包含的Markdown文字放包在其中。</p><p>Shortcode做出來的效果如下。電腦版檢視使用滑鼠捲動翻頁，手機用手指往左滑動。</p><p>歌曲：amazarashi - 僕が死のうと思ったのは，翻譯取自<a href="https://home.gamer.com.tw/artwork.php?sn=5334049" target="_blank">
+巴哈</a></p><div><div><p><strong>僕が死のうと思ったのは</strong></p><p><em>amazarashi</em></p><p>我曾經想要一了百了</p><p>是因為黑尾鷗在碼頭鳴叫著</p><p>在沒有束縛的波浪中浮動消失</p><p>啄著過去飛遠</p><p>我曾經想要一了百了</p><p>是因為杏花在生日的那天中盛開</p><p>在樹蔭露出陽光的地方午睡之後</p><p>是否就能成為蟲子的屍體和泥土呢</p><p>薄荷糖　漁港的燈塔　生鏽的拱橋　丟掉的腳踏車</p><p>在木造的車站爐子前</p><p>無法在任何地方踏上旅途的心</p><p>今天簡直就像是昨天啊</p><p>如果要改變明天的話得先改變今天</p><p>我心知肚明　我心知肚明　但是</p><p>我曾經想要一了百了</p><p>是因為內心變得空虛</p><p>哭著說出沒有得到滿足一定</p><p>是因為祈願著想要得到滿足啊</p><p>我曾經想要一了百了</p><p>是因為鞋帶解開了</p><p>不擅長重新綁起來啊</p><p>與人們的連繫也是相同</p><p>我曾經想要一了百了</p><p>是因為少年注視著我</p><p>在床上跪坐著</p><p>向那一天的我說聲對不起</p><p>電腦的微光 樓上房間的生活聲</p><p>內線電話的鬧鈴聲　摀住耳朵的鳥籠中的少年</p><p>正在與看不見的敵人戰鬥　六疊一間的唐吉軻德</p><p>反正終點也是十分醜陋的事物啊</p><p>我曾經想要一了百了</p><p>是因為被他人說了我是個冷淡的人</p><p>哭著說出想要被愛</p><p>是因為不小心知道了人的溫度啊</p><p>我曾經想要一了百了</p><p>是因為你漂亮地笑了出來</p><p>會總是思考死亡一定</p><p>是因為對於活著一事太過認真了啊</p><p>我曾經想要一了百了</p><p>是因為還沒有與你相遇啊</p><p>像你一樣的人誕生在這個世上</p><p>稍微變得喜歡起這個世界了啊</p><p>像你一樣的人正在呼吸著</p><p>稍微對世界有了一點期待</p></div></div><h2>1. 製作Shortcode<span><a href="#1-%E8%A3%BD%E4%BD%9Cshortcode" aria-label="定位點">#</a></span></h2><ol><li><p>在Hugo網站根目錄<code>/layouts/shortcode</code>新增<code>verticaltext.html</code></p></li><li><p>輸入以下內容</p></li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>link</span> <span>rel</span><span>=</span><span>"preload"</span> <span>as</span><span>=</span><span>"font"</span> <span>href</span><span>=</span><span>"https://fonts.googleapis.com/css?family=Noto+Serif+TC&amp;display=swap"</span> <span>type</span><span>=</span><span>"font/ttf"</span> <span>crossorigin</span><span>=</span><span>"anonymous"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>style</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>import</span> <span>url</span><span>(</span><span>'https://fonts.googleapis.com/css?family=Noto+Serif+TC&amp;display=swap'</span><span>)</span><span>;</span>
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>mainvlr</span> <span>{</span>
+</span></span><span><span>  <span>font-family</span><span>:</span> <span>'Noto Serif TC'</span><span>,</span> <span>sans-serif</span><span>;</span>
+</span></span><span><span>  <span>margin</span><span>:</span><span>20</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>font-size</span><span>:</span> <span>20</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>letter-spacing</span><span>:</span> <span>2</span><span>px</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>vlr</span><span>{</span>
+</span></span><span><span>  <span>writing-mode</span><span>:</span> <span>vertical</span><span>-</span><span>lr</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>vrl</span><span>{</span>
+</span></span><span><span>  <span>writing-mode</span><span>:</span> <span>vertical</span><span>-</span><span>rl</span><span>;</span>
+</span></span><span><span>  <span>unicode-bidi</span><span>:</span> <span>bidi-override</span><span>;</span>
+</span></span><span><span>  <span>border</span><span>:</span> <span>1</span><span>px</span> <span>solid</span><span>;</span>
+</span></span><span><span>  <span>padding</span><span>:</span> <span>5</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>margin</span><span>:</span> <span>5</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>word-wrap</span><span>:</span> <span>break-word</span><span>;</span>
+</span></span><span><span>  <span>overflow-y</span><span>:</span><span>auto</span><span>;</span>
+</span></span><span><span>  <span>height</span><span>:</span> <span>700</span><span>px</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>media</span> <span>only</span> <span>screen</span> <span>and</span> <span>(</span><span>max-width</span><span>:</span> <span>768px</span><span>)</span> <span>{</span>
+</span></span><span><span>  <span>[</span><span>class</span><span>*=</span><span>"vrl"</span><span>]</span> <span>{</span>
+</span></span><span><span>    <span>width</span><span>:</span> <span>100</span><span>%</span><span>;</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>media</span> <span>only</span> <span>screen</span> <span>and</span> <span>(</span><span>min-width</span><span>:</span> <span>768px</span><span>)</span> <span>{</span>
+</span></span><span><span>  <span>[</span><span>class</span><span>*=</span><span>"vrl"</span><span>]</span> <span>{</span>
+</span></span><span><span>    <span>width</span><span>:</span> <span>1000</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>style</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>div</span> <span>class</span><span>=</span><span>"vrl"</span> <span>id</span><span>=</span><span>"vrlmain"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>div</span> <span>class</span><span>=</span><span>"mainvlr"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span>{{ .Inner | markdownify }}
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>script</span><span>&gt;</span>
+</span></span><span><span><span>window</span><span>.</span><span>scrollTo</span><span>(</span><span>document</span><span>.</span><span>body</span><span>.</span><span>scrollWidth</span> <span>-</span> <span>500</span><span>,</span> <span>0</span><span>);</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>script</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>解釋：</li></ol><p><code>@import url</code>這幾行是從外部引入Google Noto Serif TC字體，這個字體端正又好看，排出來的直書文字特別標緻。</p><p><code>.vrl{}</code>使用由右到左的直書文字，定義文字樣式。</p><p><code>@media only screen and (max-width: 768px)</code>是呼應我Hugo Blowfish主題的寬度限制所作的調整，目的是讓直書文字的區塊能超出原本界定的範圍，並按照螢幕大小自動縮放。</p><p><code>window.scrollTo(document.body.scrollWidth - 500, 0);</code>強制將直書文字區塊的滑桿滾動到最右邊。</p><p><code>{{ .Inner | markdownify }}</code>是包含在直書區塊內的文字，並且要遵守Markdown語法渲染。</p><h2>2. Shortcode使用法<span><a href="#2-shortcode%E4%BD%BF%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>在任意文章插入以下程式碼</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>{{<span>&lt;</span> <span>verticaltext</span> <span>&gt;</span>}}
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span>{{<span>&lt;</span>  <span>verticaltext</span> <span>&gt;</span>}}
+</span></span></code></pre></div><ol start="2"><li>以上二者區塊的中間，就可以插入任意的Markdown文字。如果要讓排版好看一些，請使用全形空格。</li></ol><div><pre tabindex="0"><code data-lang="markdown"><span><span>{{<span>&lt;</span> <span>verticaltext</span> <span>&gt;</span>}}
+</span></span><span><span>
+</span></span><span><span><span>**僕が死のうと思ったのは**</span>
+</span></span><span><span>
+</span></span><span><span><span>*amazarashi*</span>
+</span></span><span><span>
+</span></span><span><span>我曾經想要一了百了
+</span></span><span><span>
+</span></span><span><span>是因為黑尾鷗在碼頭鳴叫著
+</span></span><span><span>
+</span></span><span><span>在沒有束縛的波浪中浮動消失
+</span></span><span><span>
+</span></span><span><span>啄著過去飛遠
+</span></span><span><span>
+</span></span><span><span>{{<span>&lt;</span>  <span>verticaltext</span> <span>&gt;</span>}}
+</span></span></code></pre></div>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/hugo-vertical-text/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-65b79c15a7.webp"></a></p>
+<p>習慣讀台灣出版的中文小說的，看到的排版依然是以直排文字居多吧。</p><p>那麼網頁是否也能這樣做呢？可以，CSS有<code>text-orientation</code>的屬性能把中文字做垂直排列。</p><p>我的想法是在Hugo網頁中插入一個特殊的區塊，專門用來放中文直書的元件，營造直排書閱讀效果。其餘元素依然維持橫排。所以本篇文章我會做一個Hugo shortcode，將要包含的Markdown文字放包在其中。</p><p>Shortcode做出來的效果如下。電腦版檢視使用滑鼠捲動翻頁，手機用手指往左滑動。</p><p>歌曲：amazarashi - 僕が死のうと思ったのは，翻譯取自<a href="https://home.gamer.com.tw/artwork.php?sn=5334049" target="_blank">
+巴哈</a></p><div><div><p><strong>僕が死のうと思ったのは</strong></p><p><em>amazarashi</em></p><p>我曾經想要一了百了</p><p>是因為黑尾鷗在碼頭鳴叫著</p><p>在沒有束縛的波浪中浮動消失</p><p>啄著過去飛遠</p><p>我曾經想要一了百了</p><p>是因為杏花在生日的那天中盛開</p><p>在樹蔭露出陽光的地方午睡之後</p><p>是否就能成為蟲子的屍體和泥土呢</p><p>薄荷糖　漁港的燈塔　生鏽的拱橋　丟掉的腳踏車</p><p>在木造的車站爐子前</p><p>無法在任何地方踏上旅途的心</p><p>今天簡直就像是昨天啊</p><p>如果要改變明天的話得先改變今天</p><p>我心知肚明　我心知肚明　但是</p><p>我曾經想要一了百了</p><p>是因為內心變得空虛</p><p>哭著說出沒有得到滿足一定</p><p>是因為祈願著想要得到滿足啊</p><p>我曾經想要一了百了</p><p>是因為鞋帶解開了</p><p>不擅長重新綁起來啊</p><p>與人們的連繫也是相同</p><p>我曾經想要一了百了</p><p>是因為少年注視著我</p><p>在床上跪坐著</p><p>向那一天的我說聲對不起</p><p>電腦的微光 樓上房間的生活聲</p><p>內線電話的鬧鈴聲　摀住耳朵的鳥籠中的少年</p><p>正在與看不見的敵人戰鬥　六疊一間的唐吉軻德</p><p>反正終點也是十分醜陋的事物啊</p><p>我曾經想要一了百了</p><p>是因為被他人說了我是個冷淡的人</p><p>哭著說出想要被愛</p><p>是因為不小心知道了人的溫度啊</p><p>我曾經想要一了百了</p><p>是因為你漂亮地笑了出來</p><p>會總是思考死亡一定</p><p>是因為對於活著一事太過認真了啊</p><p>我曾經想要一了百了</p><p>是因為還沒有與你相遇啊</p><p>像你一樣的人誕生在這個世上</p><p>稍微變得喜歡起這個世界了啊</p><p>像你一樣的人正在呼吸著</p><p>稍微對世界有了一點期待</p></div></div><h2>1. 製作Shortcode<span><a href="#1-%E8%A3%BD%E4%BD%9Cshortcode" aria-label="定位點">#</a></span></h2><ol><li><p>在Hugo網站根目錄<code>/layouts/shortcode</code>新增<code>verticaltext.html</code></p></li><li><p>輸入以下內容</p></li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>link</span> <span>rel</span><span>=</span><span>"preload"</span> <span>as</span><span>=</span><span>"font"</span> <span>href</span><span>=</span><span>"https://fonts.googleapis.com/css?family=Noto+Serif+TC&amp;display=swap"</span> <span>type</span><span>=</span><span>"font/ttf"</span> <span>crossorigin</span><span>=</span><span>"anonymous"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>style</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>import</span> <span>url</span><span>(</span><span>'https://fonts.googleapis.com/css?family=Noto+Serif+TC&amp;display=swap'</span><span>)</span><span>;</span>
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>mainvlr</span> <span>{</span>
+</span></span><span><span>  <span>font-family</span><span>:</span> <span>'Noto Serif TC'</span><span>,</span> <span>sans-serif</span><span>;</span>
+</span></span><span><span>  <span>margin</span><span>:</span><span>20</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>font-size</span><span>:</span> <span>20</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>letter-spacing</span><span>:</span> <span>2</span><span>px</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>vlr</span><span>{</span>
+</span></span><span><span>  <span>writing-mode</span><span>:</span> <span>vertical</span><span>-</span><span>lr</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>vrl</span><span>{</span>
+</span></span><span><span>  <span>writing-mode</span><span>:</span> <span>vertical</span><span>-</span><span>rl</span><span>;</span>
+</span></span><span><span>  <span>unicode-bidi</span><span>:</span> <span>bidi-override</span><span>;</span>
+</span></span><span><span>  <span>border</span><span>:</span> <span>1</span><span>px</span> <span>solid</span><span>;</span>
+</span></span><span><span>  <span>padding</span><span>:</span> <span>5</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>margin</span><span>:</span> <span>5</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>word-wrap</span><span>:</span> <span>break-word</span><span>;</span>
+</span></span><span><span>  <span>overflow-y</span><span>:</span><span>auto</span><span>;</span>
+</span></span><span><span>  <span>height</span><span>:</span> <span>700</span><span>px</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>media</span> <span>only</span> <span>screen</span> <span>and</span> <span>(</span><span>max-width</span><span>:</span> <span>768px</span><span>)</span> <span>{</span>
+</span></span><span><span>  <span>[</span><span>class</span><span>*=</span><span>"vrl"</span><span>]</span> <span>{</span>
+</span></span><span><span>    <span>width</span><span>:</span> <span>100</span><span>%</span><span>;</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>media</span> <span>only</span> <span>screen</span> <span>and</span> <span>(</span><span>min-width</span><span>:</span> <span>768px</span><span>)</span> <span>{</span>
+</span></span><span><span>  <span>[</span><span>class</span><span>*=</span><span>"vrl"</span><span>]</span> <span>{</span>
+</span></span><span><span>    <span>width</span><span>:</span> <span>1000</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>style</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>div</span> <span>class</span><span>=</span><span>"vrl"</span> <span>id</span><span>=</span><span>"vrlmain"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>div</span> <span>class</span><span>=</span><span>"mainvlr"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span>{{ .Inner | markdownify }}
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>script</span><span>&gt;</span>
+</span></span><span><span><span>window</span><span>.</span><span>scrollTo</span><span>(</span><span>document</span><span>.</span><span>body</span><span>.</span><span>scrollWidth</span> <span>-</span> <span>500</span><span>,</span> <span>0</span><span>);</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>script</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>解釋：</li></ol><p><code>@import url</code>這幾行是從外部引入Google Noto Serif TC字體，這個字體端正又好看，排出來的直書文字特別標緻。</p><p><code>.vrl{}</code>使用由右到左的直書文字，定義文字樣式。</p><p><code>@media only screen and (max-width: 768px)</code>是呼應我Hugo Blowfish主題的寬度限制所作的調整，目的是讓直書文字的區塊能超出原本界定的範圍，並按照螢幕大小自動縮放。</p><p><code>window.scrollTo(document.body.scrollWidth - 500, 0);</code>強制將直書文字區塊的滑桿滾動到最右邊。</p><p><code>{{ .Inner | markdownify }}</code>是包含在直書區塊內的文字，並且要遵守Markdown語法渲染。</p><h2>2. Shortcode使用法<span><a href="#2-shortcode%E4%BD%BF%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>在任意文章插入以下程式碼</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>{{<span>&lt;</span> <span>verticaltext</span> <span>&gt;</span>}}
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span>{{<span>&lt;</span>  <span>verticaltext</span> <span>&gt;</span>}}
+</span></span></code></pre></div><ol start="2"><li>以上二者區塊的中間，就可以插入任意的Markdown文字。如果要讓排版好看一些，請使用全形空格。</li></ol><div><pre tabindex="0"><code data-lang="markdown"><span><span>{{<span>&lt;</span> <span>verticaltext</span> <span>&gt;</span>}}
+</span></span><span><span>
+</span></span><span><span><span>**僕が死のうと思ったのは**</span>
+</span></span><span><span>
+</span></span><span><span><span>*amazarashi*</span>
+</span></span><span><span>
+</span></span><span><span>我曾經想要一了百了
+</span></span><span><span>
+</span></span><span><span>是因為黑尾鷗在碼頭鳴叫著
+</span></span><span><span>
+</span></span><span><span>在沒有束縛的波浪中浮動消失
+</span></span><span><span>
+</span></span><span><span>啄著過去飛遠
+</span></span><span><span>
+</span></span><span><span>{{<span>&lt;</span>  <span>verticaltext</span> <span>&gt;</span>}}
+</span></span></code></pre></div>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/hugo-vertical-text/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-65b79c15a7.webp"></a></p>
+<p>習慣讀台灣出版的中文小說的，看到的排版依然是以直排文字居多吧。</p><p>那麼網頁是否也能這樣做呢？可以，CSS有<code>text-orientation</code>的屬性能把中文字做垂直排列。</p><p>我的想法是在Hugo網頁中插入一個特殊的區塊，專門用來放中文直書的元件，營造直排書閱讀效果。其餘元素依然維持橫排。所以本篇文章我會做一個Hugo shortcode，將要包含的Markdown文字放包在其中。</p><p>Shortcode做出來的效果如下。電腦版檢視使用滑鼠捲動翻頁，手機用手指往左滑動。</p><p>歌曲：amazarashi - 僕が死のうと思ったのは，翻譯取自<a href="https://home.gamer.com.tw/artwork.php?sn=5334049" target="_blank">
+巴哈</a></p><div><div><p><strong>僕が死のうと思ったのは</strong></p><p><em>amazarashi</em></p><p>我曾經想要一了百了</p><p>是因為黑尾鷗在碼頭鳴叫著</p><p>在沒有束縛的波浪中浮動消失</p><p>啄著過去飛遠</p><p>我曾經想要一了百了</p><p>是因為杏花在生日的那天中盛開</p><p>在樹蔭露出陽光的地方午睡之後</p><p>是否就能成為蟲子的屍體和泥土呢</p><p>薄荷糖　漁港的燈塔　生鏽的拱橋　丟掉的腳踏車</p><p>在木造的車站爐子前</p><p>無法在任何地方踏上旅途的心</p><p>今天簡直就像是昨天啊</p><p>如果要改變明天的話得先改變今天</p><p>我心知肚明　我心知肚明　但是</p><p>我曾經想要一了百了</p><p>是因為內心變得空虛</p><p>哭著說出沒有得到滿足一定</p><p>是因為祈願著想要得到滿足啊</p><p>我曾經想要一了百了</p><p>是因為鞋帶解開了</p><p>不擅長重新綁起來啊</p><p>與人們的連繫也是相同</p><p>我曾經想要一了百了</p><p>是因為少年注視著我</p><p>在床上跪坐著</p><p>向那一天的我說聲對不起</p><p>電腦的微光 樓上房間的生活聲</p><p>內線電話的鬧鈴聲　摀住耳朵的鳥籠中的少年</p><p>正在與看不見的敵人戰鬥　六疊一間的唐吉軻德</p><p>反正終點也是十分醜陋的事物啊</p><p>我曾經想要一了百了</p><p>是因為被他人說了我是個冷淡的人</p><p>哭著說出想要被愛</p><p>是因為不小心知道了人的溫度啊</p><p>我曾經想要一了百了</p><p>是因為你漂亮地笑了出來</p><p>會總是思考死亡一定</p><p>是因為對於活著一事太過認真了啊</p><p>我曾經想要一了百了</p><p>是因為還沒有與你相遇啊</p><p>像你一樣的人誕生在這個世上</p><p>稍微變得喜歡起這個世界了啊</p><p>像你一樣的人正在呼吸著</p><p>稍微對世界有了一點期待</p></div></div><h2>1. 製作Shortcode<span><a href="#1-%E8%A3%BD%E4%BD%9Cshortcode" aria-label="定位點">#</a></span></h2><ol><li><p>在Hugo網站根目錄<code>/layouts/shortcode</code>新增<code>verticaltext.html</code></p></li><li><p>輸入以下內容</p></li></ol><div><pre tabindex="0"><code data-lang="html"><span><span><span>&lt;</span><span>link</span> <span>rel</span><span>=</span><span>"preload"</span> <span>as</span><span>=</span><span>"font"</span> <span>href</span><span>=</span><span>"https://fonts.googleapis.com/css?family=Noto+Serif+TC&amp;display=swap"</span> <span>type</span><span>=</span><span>"font/ttf"</span> <span>crossorigin</span><span>=</span><span>"anonymous"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>style</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>import</span> <span>url</span><span>(</span><span>'https://fonts.googleapis.com/css?family=Noto+Serif+TC&amp;display=swap'</span><span>)</span><span>;</span>
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>mainvlr</span> <span>{</span>
+</span></span><span><span>  <span>font-family</span><span>:</span> <span>'Noto Serif TC'</span><span>,</span> <span>sans-serif</span><span>;</span>
+</span></span><span><span>  <span>margin</span><span>:</span><span>20</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>font-size</span><span>:</span> <span>20</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>letter-spacing</span><span>:</span> <span>2</span><span>px</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>vlr</span><span>{</span>
+</span></span><span><span>  <span>writing-mode</span><span>:</span> <span>vertical</span><span>-</span><span>lr</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>.</span><span>vrl</span><span>{</span>
+</span></span><span><span>  <span>writing-mode</span><span>:</span> <span>vertical</span><span>-</span><span>rl</span><span>;</span>
+</span></span><span><span>  <span>unicode-bidi</span><span>:</span> <span>bidi-override</span><span>;</span>
+</span></span><span><span>  <span>border</span><span>:</span> <span>1</span><span>px</span> <span>solid</span><span>;</span>
+</span></span><span><span>  <span>padding</span><span>:</span> <span>5</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>margin</span><span>:</span> <span>5</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>word-wrap</span><span>:</span> <span>break-word</span><span>;</span>
+</span></span><span><span>  <span>overflow-y</span><span>:</span><span>auto</span><span>;</span>
+</span></span><span><span>  <span>height</span><span>:</span> <span>700</span><span>px</span><span>;</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>media</span> <span>only</span> <span>screen</span> <span>and</span> <span>(</span><span>max-width</span><span>:</span> <span>768px</span><span>)</span> <span>{</span>
+</span></span><span><span>  <span>[</span><span>class</span><span>*=</span><span>"vrl"</span><span>]</span> <span>{</span>
+</span></span><span><span>    <span>width</span><span>:</span> <span>100</span><span>%</span><span>;</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>@</span><span>media</span> <span>only</span> <span>screen</span> <span>and</span> <span>(</span><span>min-width</span><span>:</span> <span>768px</span><span>)</span> <span>{</span>
+</span></span><span><span>  <span>[</span><span>class</span><span>*=</span><span>"vrl"</span><span>]</span> <span>{</span>
+</span></span><span><span>    <span>width</span><span>:</span> <span>1000</span><span>px</span><span>;</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>style</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>div</span> <span>class</span><span>=</span><span>"vrl"</span> <span>id</span><span>=</span><span>"vrlmain"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>div</span> <span>class</span><span>=</span><span>"mainvlr"</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span>{{ .Inner | markdownify }}
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>div</span><span>&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;</span><span>script</span><span>&gt;</span>
+</span></span><span><span><span>window</span><span>.</span><span>scrollTo</span><span>(</span><span>document</span><span>.</span><span>body</span><span>.</span><span>scrollWidth</span> <span>-</span> <span>500</span><span>,</span> <span>0</span><span>);</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/</span><span>script</span><span>&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>解釋：</li></ol><p><code>@import url</code>這幾行是從外部引入Google Noto Serif TC字體，這個字體端正又好看，排出來的直書文字特別標緻。</p><p><code>.vrl{}</code>使用由右到左的直書文字，定義文字樣式。</p><p><code>@media only screen and (max-width: 768px)</code>是呼應我Hugo Blowfish主題的寬度限制所作的調整，目的是讓直書文字的區塊能超出原本界定的範圍，並按照螢幕大小自動縮放。</p><p><code>window.scrollTo(document.body.scrollWidth - 500, 0);</code>強制將直書文字區塊的滑桿滾動到最右邊。</p><p><code>{{ .Inner | markdownify }}</code>是包含在直書區塊內的文字，並且要遵守Markdown語法渲染。</p><h2>2. Shortcode使用法<span><a href="#2-shortcode%E4%BD%BF%E7%94%A8%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>在任意文章插入以下程式碼</li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>{{<span>&lt;</span> <span>verticaltext</span> <span>&gt;</span>}}
+</span></span><span><span>
+</span></span><span><span>
+</span></span><span><span>{{<span>&lt;</span>  <span>verticaltext</span> <span>&gt;</span>}}
+</span></span></code></pre></div><ol start="2"><li>以上二者區塊的中間，就可以插入任意的Markdown文字。如果要讓排版好看一些，請使用全形空格。</li></ol><div><pre tabindex="0"><code data-lang="markdown"><span><span>{{<span>&lt;</span> <span>verticaltext</span> <span>&gt;</span>}}
+</span></span><span><span>
+</span></span><span><span><span>**僕が死のうと思ったのは**</span>
+</span></span><span><span>
+</span></span><span><span><span>*amazarashi*</span>
+</span></span><span><span>
+</span></span><span><span>我曾經想要一了百了
+</span></span><span><span>
+</span></span><span><span>是因為黑尾鷗在碼頭鳴叫著
+</span></span><span><span>
+</span></span><span><span>在沒有束縛的波浪中浮動消失
+</span></span><span><span>
+</span></span><span><span>啄著過去飛遠
+</span></span><span><span>
+</span></span><span><span>{{<span>&lt;</span>  <span>verticaltext</span> <span>&gt;</span>}}
+</span></span></code></pre></div>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-65b79c15a7.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-65b79c15a7.webp" medium="image"/>
+    <pubDate>Thu, 22 Aug 2024 21:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Moonlight + Sunshine + 外網連線安裝教學，Windows遠端串流玩遊戲]]></title>
     <link>https://ivonblog.com/posts/windows-sunshine-remote-gaming/</link>
     <itunes:title><![CDATA[Moonlight + Sunshine + 外網連線安裝教學，Windows遠端串流玩遊戲]]></itunes:title>
@@ -2279,29 +2528,5 @@ Ubuntu + QEMU/KVM + Looking Glass</a>的用法，將第二個GPU直通進去。�
 </span></span></code></pre></div><p>然後再額外跑一個Fedora Linux虛擬機，把那個Linux虛擬機當「桌面」用。</p><p>此時，桌機就不會接上任何螢幕。</p><p>上面同時跑了Windows和Linux的虛擬機，啟用GPU直通。因為有CPU內顯和Nvidia獨顯，所以兩個虛擬機各直通一個GPU，這樣他們就有跑Sunshine的資本。</p><p>要操作這些虛擬機，就是從另一臺平板或者筆電，以Sunshine遠端桌面存取（我很重視效能，所以不會用RDP）。如果螢幕太小，就把平板接到原本電腦螢幕放大。</p><p>總之虛擬機都是透過遠端控制的。</p><p>所以桌機就變成一臺伺服器，所有服務都得遠端控制。</p><h2>夢之終結<span><a href="#%E5%A4%A2%E4%B9%8B%E7%B5%82%E7%B5%90" aria-label="定位點">#</a></span></h2><p>同時跑Linux和Windows虛擬機電腦當掉的時候我就知道這傢伙不行了呀。</p><p>4核心的Intel i5-7400根本負荷不了二個虛擬機同時運作，一啟動連SSH連線都會當掉卡死。</p><p>等我以後買更強的電腦再來搞多重虛擬化吧，屆時，我要買8核心以上的處理器，主機板還要雙GPU插槽的豪華配置！</p>]]></content:encoded>
     
     <pubDate>Thu, 15 Aug 2024 14:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[SillyTavern 如何下載與匯入角色卡]]></title>
-    <link>https://ivonblog.com/posts/sillytavern-custom-character-cards/</link>
-    <itunes:title><![CDATA[SillyTavern 如何下載與匯入角色卡]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/sillytavern-custom-character-cards/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d20b55050d.webp"></a></p>
-<p>什麼是角色卡(character card)？這是事先設定好的提示詞所製作的虛擬角色，裡面會寫著角色的個性、背景設定，通常還會附一張立繪。</p><p>比如，SillyTavern內建的唯一一張角色卡叫做Seraphina，設定上她是Eldoria的居民。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-edd84ad48a.webp"><p>有了這些資訊，這樣不管你用什麼語言模型當聊天服務，它都能夠把語言模型變身為某一個角色的樣子。</p><p>如果你不尬意內建角色的設定的話，就下載新的角色卡吧！</p><h2>1. 下載角色卡<span><a href="#1-%E4%B8%8B%E8%BC%89%E8%A7%92%E8%89%B2%E5%8D%A1" aria-label="定位點">#</a></span></h2><p>SillyTavern的角色卡格式為PNG圖檔，該檔案包含立繪和角色個性資訊的設定，有的甚至包含更為詳細的世界書(World info/Lorebooks)檔案。</p><p>只要下載匯入，SillyTavern就會自動讀取背景設定。</p><p>要到哪裡取得角色卡呢？<a href="https://aicharactercards.com/" target="_blank">
-https://aicharactercards.com</a>和<a href="https://character-tavern.com" target="_blank">
-https://character-tavern.com</a>有豐富的角色卡讓你下載。</p><h2>2. 匯入角色卡<span><a href="#2-%E5%8C%AF%E5%85%A5%E8%A7%92%E8%89%B2%E5%8D%A1" aria-label="定位點">#</a></span></h2><p>1.　點選SillyTavern右上角的角色卡，再點選三點的選單，按匯入，選取PNG檔</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa92bfbd51.webp"><ol start="2"><li><p>這樣你的角色就進來了！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baa29ace3f.webp"></li><li><p>角色卡的完整立繪可點選聊天大頭貼，顯示在網頁左側。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b45f4a42fc.webp"></li></ol><p>SillyTavern尚提供自訂角色卡表情的功能。如果你要更豐富的動態表情，建議設定「Talking Head」</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/sillytavern-custom-character-cards/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d20b55050d.webp"></a></p>
-<p>什麼是角色卡(character card)？這是事先設定好的提示詞所製作的虛擬角色，裡面會寫著角色的個性、背景設定，通常還會附一張立繪。</p><p>比如，SillyTavern內建的唯一一張角色卡叫做Seraphina，設定上她是Eldoria的居民。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-edd84ad48a.webp"><p>有了這些資訊，這樣不管你用什麼語言模型當聊天服務，它都能夠把語言模型變身為某一個角色的樣子。</p><p>如果你不尬意內建角色的設定的話，就下載新的角色卡吧！</p><h2>1. 下載角色卡<span><a href="#1-%E4%B8%8B%E8%BC%89%E8%A7%92%E8%89%B2%E5%8D%A1" aria-label="定位點">#</a></span></h2><p>SillyTavern的角色卡格式為PNG圖檔，該檔案包含立繪和角色個性資訊的設定，有的甚至包含更為詳細的世界書(World info/Lorebooks)檔案。</p><p>只要下載匯入，SillyTavern就會自動讀取背景設定。</p><p>要到哪裡取得角色卡呢？<a href="https://aicharactercards.com/" target="_blank">
-https://aicharactercards.com</a>和<a href="https://character-tavern.com" target="_blank">
-https://character-tavern.com</a>有豐富的角色卡讓你下載。</p><h2>2. 匯入角色卡<span><a href="#2-%E5%8C%AF%E5%85%A5%E8%A7%92%E8%89%B2%E5%8D%A1" aria-label="定位點">#</a></span></h2><p>1.　點選SillyTavern右上角的角色卡，再點選三點的選單，按匯入，選取PNG檔</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa92bfbd51.webp"><ol start="2"><li><p>這樣你的角色就進來了！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baa29ace3f.webp"></li><li><p>角色卡的完整立繪可點選聊天大頭貼，顯示在網頁左側。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b45f4a42fc.webp"></li></ol><p>SillyTavern尚提供自訂角色卡表情的功能。如果你要更豐富的動態表情，建議設定「Talking Head」</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/sillytavern-custom-character-cards/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d20b55050d.webp"></a></p>
-<p>什麼是角色卡(character card)？這是事先設定好的提示詞所製作的虛擬角色，裡面會寫著角色的個性、背景設定，通常還會附一張立繪。</p><p>比如，SillyTavern內建的唯一一張角色卡叫做Seraphina，設定上她是Eldoria的居民。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-edd84ad48a.webp"><p>有了這些資訊，這樣不管你用什麼語言模型當聊天服務，它都能夠把語言模型變身為某一個角色的樣子。</p><p>如果你不尬意內建角色的設定的話，就下載新的角色卡吧！</p><h2>1. 下載角色卡<span><a href="#1-%E4%B8%8B%E8%BC%89%E8%A7%92%E8%89%B2%E5%8D%A1" aria-label="定位點">#</a></span></h2><p>SillyTavern的角色卡格式為PNG圖檔，該檔案包含立繪和角色個性資訊的設定，有的甚至包含更為詳細的世界書(World info/Lorebooks)檔案。</p><p>只要下載匯入，SillyTavern就會自動讀取背景設定。</p><p>要到哪裡取得角色卡呢？<a href="https://aicharactercards.com/" target="_blank">
-https://aicharactercards.com</a>和<a href="https://character-tavern.com" target="_blank">
-https://character-tavern.com</a>有豐富的角色卡讓你下載。</p><h2>2. 匯入角色卡<span><a href="#2-%E5%8C%AF%E5%85%A5%E8%A7%92%E8%89%B2%E5%8D%A1" aria-label="定位點">#</a></span></h2><p>1.　點選SillyTavern右上角的角色卡，再點選三點的選單，按匯入，選取PNG檔</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa92bfbd51.webp"><ol start="2"><li><p>這樣你的角色就進來了！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baa29ace3f.webp"></li><li><p>角色卡的完整立繪可點選聊天大頭貼，顯示在網頁左側。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b45f4a42fc.webp"></li></ol><p>SillyTavern尚提供自訂角色卡表情的功能。如果你要更豐富的動態表情，建議設定「Talking Head」</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d20b55050d.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d20b55050d.webp" medium="image"/>
-    <pubDate>Wed, 14 Aug 2024 17:00:00 +0800</pubDate>
   </item></channel>
 </rss>
