@@ -30,6 +30,459 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【新瓶裝老酒】將 Response.Write/Redirect 邏輯移植到 ASP.NET Core MVC Action]]></title>
+    <link>https://blog.darkthread.net/blog/resp-write-in-aspnetcore-mvc/</link>
+    <itunes:title><![CDATA[【新瓶裝老酒】將 Response.Write/Redirect 邏輯移植到 ASP.NET Core MVC Action]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在 ASP.NET WebForm 時代，Reponse.Write()/Response.Redirect() 是從共用元件操縱網頁流程蠻常用的技巧，醜歸醜，在一些場合能用少少程式碼解決問題，亦不失為一個選項。</p> <p>舉個例子，假設有段網頁共用邏輯被寫在 App_Code/LegacyLib.cs - 依 ?fw=blog 參數導向預設網站、缺少 id 參數時顯示提示訊息並中止網頁：</p> <pre><code>using System.Web;
+public class LegacyLib
+{
+public static void Process(HttpRequest request, HttpResponse response)
+{
+if (request["fw"] == "blog")
+{
+response.Redirect("https://blog.darkthread.net");
+response.End();
+}
+else if (string.IsNullOrEmpty(request["id"]))
+{
+response.Write("Missing id parameter");
+response.End();
+}
+}
+}
+</code></pre> <p>要套用這段邏輯的 WebForm 網頁可以這樣寫：</p> <pre><code>&lt;%@Page Language="C#" %&gt;
+&lt;script runat="server"&gt;
+void Page_Load(object sender, EventArgs e)
+{
+LegacyLib.Process(Request, Response);
+Response.ContentType = "text/plain";
+Response.Write("OK");
+}
+&lt;/script&gt;
+</code></pre> <p>如此，未給參數時會顯示 <code>Missing id parameter</code>，加上 <code>?id=XX</code> 參數顯示 OK，改為 <code>?fw=blog</code> 則導向其他網站：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638599318653696597.png"></p> <p>這個邏輯是沒法直接搬進 ASP.NET Core 的。</p> <p>在 ASP.NET Core，Response 的型別是 <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.httprequest?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580">Microsoft.AspNetCore.Http.HttpRequest</a>，與 .NET Framework <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.web.httprequest?WT.mc_id=DOP-MVP-37580">System.Web.HttpRequest</a> 是兩個不同類別，不再提供 Write()/End() 等上古方法。</p> <p>此時的正統開發策略應是用 ASP.NET Core 思維重新設計共用元件，善用 IActionFilter、Middleware 等機制，充分發揮新框架優點。</p> <p>BUT! 你懂的，有時全村的希望是要你小改舊元件，讓它相容新框架儘快上線，沒人叫你砍掉重練~</p> <p>這篇就來探討在 ASP.NET Core MVC 套用 Response.Write()/Redirect() 幾種可行的做法。</p> <p>用一個 ASP.NET Core <a href="/blog/minimal-api/">Minimal API</a> 專案<a href="/blog/enable-mvc-on-minapi/">啟用 MVC</a> 來模擬應用情境：</p> <pre><code>using Microsoft.AspNetCore.Mvc;
+var builder = WebApplication.CreateBuilder(args);
+// 啟用 Controller
+builder.Services.AddControllers();
+var app = builder.Build();
+// 指定 Controller 路由
+app.MapControllers();
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+app.Run();
+public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+// TODO: 在這裡呼叫 LegacyLib.Process(Request, Response));
+return Content("OK");
+}
+}
+</code></pre> <p>來看看元件要怎麼改。Microsoft.AspNetCore.Http.HttpRequest 雖然沒有 Write()/End()，但有 WriteAsync()，而 Redirect() 也還在，至於沒有 End() 的問題，則讓 Process() 回傳 bool 判別是否應終止流程。(註：另個粗暴做法是<a href="/blog/response-end-in-mvc/">自幹 Thread.CurrentThread.Abort()</a>，我不愛)</p> <p>基於以上概念隨意改寫如下：</p> <pre><code>public class LegacyLib {
+public static bool Process(HttpRequest request, HttpResponse response)
+{
+if (request.Query["fw"] == "blog")
+{
+response.Redirect("https://blog.darkthread.net");
+return true;
+}
+else if (string.IsNullOrEmpty(request.Query["id"]))
+{
+response.WriteAsync("Missing id parameter").Wait();
+return true;
+}
+return false;
+}
+}
+</code></pre> <p>呼叫端則可改寫成以下形式：</p> <pre><code>public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return Content(string.Empty);
+}
+return Content("OK");
+}
+}
+</code></pre> <p>經過這番小調整，舊元件「幾乎」就可以在 ASP.NET Core MVC 正常運作了。</p> <p>所謂「幾乎」是這個做法在 IISExpress 或 IIS 可順利運行題，但跑在 Kestrel 則只有 ?fw=blog / Redirect() OK，未給參數時 Response.Write() 的訊息不會顯示，且瀏覽器會出現 <code>net::ERR_INCOMPLETE_CHUNKED_ENCODING</code> 錯誤：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638599318656978456.png"></p> <p>伺服器端則顯示 <code>System.InvalidOperationException: Headers are read-only, response has already started.</code>，判斷是 Kestrel 底層處理不相容 Response.WriteAsync() 預先寫入內容的做法。</p> <p>因此，如果網站要部署在 IIS，也只會在 Visual Studio 用 IISExpress 偵錯，用以上的簡便改法就算過關。</p> <p>若 ASP.NET Core 網站要部署到 Docker，還想在 VSCode 正常執行跟偵測怎麼辦？</p> <p>解法一，MVC 不要回傳 IActionResult，改傳 Task；要回傳內容也改用 Response.WriteAsync() 輸出，但簡單輸出還行，若原本是要顯示 View 就棘手了。</p> <pre><code>public async Task RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return;
+}
+await Response.WriteAsync("OK");
+}
+</code></pre> <p>若做到與 MVC 高度相容，以下是我想到的做法。為 ASP.NET Core HttpResponse 加上擴充方法 .LegacyWrite() 及 .LegacyRedirect() 模擬 .Write()/.Redirect()，其原理是將輸出資料存入 Headers，呼叫端透過 Response.GetLegacyResponseResult() 再轉為 RedirectResult 或 ContentResult 當成 Action 回傳需要的 IActionReult。</p> <pre><code>public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return Response.GetLegacyResponseResult();
+}
+return Content("OK");
+}
+}
+public class LegacyLib
+{
+public static bool Process(HttpRequest request, HttpResponse response)
+{
+if (request.Query["fw"] == "blog")
+{
+response.LegacyRedirect("https://blog.darkthread.net");
+return true;
+}
+else if (string.IsNullOrEmpty(request.Query["id"]))
+{
+response.LegacyWrite("Missing id parameter");
+return true;
+}
+return false;
+}
+}
+public static class RespWriteExtensions
+{
+public static void LegacyWrite(this HttpResponse response, string content)
+=&gt; response.Headers.Append("X-Response-Write", Uri.EscapeDataString(content));
+public static void LegacyRedirect(this HttpResponse response, string url)
+=&gt; response.Headers.Append("X-Response-Redirect", Uri.EscapeDataString(url));
+public static IActionResult GetLegacyResponseResult(this HttpResponse response)
+{
+var data = new Dictionary&lt;string, string&gt;();
+response.Headers.Where(h =&gt; h.Key.StartsWith("X-Response-")).ToList().ForEach(h =&gt;
+{
+if (data.ContainsKey(h.Key))
+data[h.Key] += Uri.UnescapeDataString(h.Value.ToString());
+else
+data[h.Key] = Uri.UnescapeDataString(h.Value.ToString());
+response.Headers.Remove(h.Key);
+});
+if (data.TryGetValue("X-Response-Redirect", out var url))
+return new RedirectResult(url);
+if (data.TryGetValue("X-Response-Write", out var content))
+return new ContentResult
+{
+Content = content,
+ContentType = response.ContentType ?? "text/html"
+};
+throw new InvalidOperationException("No legacy response found");
+}
+}
+</code></pre> <p>如此，共用元件只需將 WriteAsync()、Redirect() 改成 LegacyWrite() 及 LegacyRedirect()，MVC Action 方法 <code>return Response.GetLegacyResponseResult();</code> 就行囉! 打完收工。</p> <p data-slug="resp-write-in-aspnetcore-mvc" data-title-en="Moving Response.Write()/Redirect() to ASP.NET Core MVC action" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/03/02/09/04/winery-2110737_1280.jpg#1280#720">The article explores strategies for adapting legacy ASP.NET WebForm techniques like Response.Write() and Response.Redirect() in ASP.NET Core MVC. It demonstrates a minimal code modification approach and proposes a robust solution using extension methods to maintain compatibility and functionality across different hosting environments.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在 ASP.NET WebForm 時代，Reponse.Write()/Response.Redirect() 是從共用元件操縱網頁流程蠻常用的技巧，醜歸醜，在一些場合能用少少程式碼解決問題，亦不失為一個選項。</p> <p>舉個例子，假設有段網頁共用邏輯被寫在 App_Code/LegacyLib.cs - 依 ?fw=blog 參數導向預設網站、缺少 id 參數時顯示提示訊息並中止網頁：</p> <pre><code>using System.Web;
+public class LegacyLib
+{
+public static void Process(HttpRequest request, HttpResponse response)
+{
+if (request["fw"] == "blog")
+{
+response.Redirect("https://blog.darkthread.net");
+response.End();
+}
+else if (string.IsNullOrEmpty(request["id"]))
+{
+response.Write("Missing id parameter");
+response.End();
+}
+}
+}
+</code></pre> <p>要套用這段邏輯的 WebForm 網頁可以這樣寫：</p> <pre><code>&lt;%@Page Language="C#" %&gt;
+&lt;script runat="server"&gt;
+void Page_Load(object sender, EventArgs e)
+{
+LegacyLib.Process(Request, Response);
+Response.ContentType = "text/plain";
+Response.Write("OK");
+}
+&lt;/script&gt;
+</code></pre> <p>如此，未給參數時會顯示 <code>Missing id parameter</code>，加上 <code>?id=XX</code> 參數顯示 OK，改為 <code>?fw=blog</code> 則導向其他網站：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638599318653696597.png"></p> <p>這個邏輯是沒法直接搬進 ASP.NET Core 的。</p> <p>在 ASP.NET Core，Response 的型別是 <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.httprequest?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580">Microsoft.AspNetCore.Http.HttpRequest</a>，與 .NET Framework <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.web.httprequest?WT.mc_id=DOP-MVP-37580">System.Web.HttpRequest</a> 是兩個不同類別，不再提供 Write()/End() 等上古方法。</p> <p>此時的正統開發策略應是用 ASP.NET Core 思維重新設計共用元件，善用 IActionFilter、Middleware 等機制，充分發揮新框架優點。</p> <p>BUT! 你懂的，有時全村的希望是要你小改舊元件，讓它相容新框架儘快上線，沒人叫你砍掉重練~</p> <p>這篇就來探討在 ASP.NET Core MVC 套用 Response.Write()/Redirect() 幾種可行的做法。</p> <p>用一個 ASP.NET Core <a href="/blog/minimal-api/">Minimal API</a> 專案<a href="/blog/enable-mvc-on-minapi/">啟用 MVC</a> 來模擬應用情境：</p> <pre><code>using Microsoft.AspNetCore.Mvc;
+var builder = WebApplication.CreateBuilder(args);
+// 啟用 Controller
+builder.Services.AddControllers();
+var app = builder.Build();
+// 指定 Controller 路由
+app.MapControllers();
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+app.Run();
+public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+// TODO: 在這裡呼叫 LegacyLib.Process(Request, Response));
+return Content("OK");
+}
+}
+</code></pre> <p>來看看元件要怎麼改。Microsoft.AspNetCore.Http.HttpRequest 雖然沒有 Write()/End()，但有 WriteAsync()，而 Redirect() 也還在，至於沒有 End() 的問題，則讓 Process() 回傳 bool 判別是否應終止流程。(註：另個粗暴做法是<a href="/blog/response-end-in-mvc/">自幹 Thread.CurrentThread.Abort()</a>，我不愛)</p> <p>基於以上概念隨意改寫如下：</p> <pre><code>public class LegacyLib {
+public static bool Process(HttpRequest request, HttpResponse response)
+{
+if (request.Query["fw"] == "blog")
+{
+response.Redirect("https://blog.darkthread.net");
+return true;
+}
+else if (string.IsNullOrEmpty(request.Query["id"]))
+{
+response.WriteAsync("Missing id parameter").Wait();
+return true;
+}
+return false;
+}
+}
+</code></pre> <p>呼叫端則可改寫成以下形式：</p> <pre><code>public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return Content(string.Empty);
+}
+return Content("OK");
+}
+}
+</code></pre> <p>經過這番小調整，舊元件「幾乎」就可以在 ASP.NET Core MVC 正常運作了。</p> <p>所謂「幾乎」是這個做法在 IISExpress 或 IIS 可順利運行題，但跑在 Kestrel 則只有 ?fw=blog / Redirect() OK，未給參數時 Response.Write() 的訊息不會顯示，且瀏覽器會出現 <code>net::ERR_INCOMPLETE_CHUNKED_ENCODING</code> 錯誤：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638599318656978456.png"></p> <p>伺服器端則顯示 <code>System.InvalidOperationException: Headers are read-only, response has already started.</code>，判斷是 Kestrel 底層處理不相容 Response.WriteAsync() 預先寫入內容的做法。</p> <p>因此，如果網站要部署在 IIS，也只會在 Visual Studio 用 IISExpress 偵錯，用以上的簡便改法就算過關。</p> <p>若 ASP.NET Core 網站要部署到 Docker，還想在 VSCode 正常執行跟偵測怎麼辦？</p> <p>解法一，MVC 不要回傳 IActionResult，改傳 Task；要回傳內容也改用 Response.WriteAsync() 輸出，但簡單輸出還行，若原本是要顯示 View 就棘手了。</p> <pre><code>public async Task RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return;
+}
+await Response.WriteAsync("OK");
+}
+</code></pre> <p>若做到與 MVC 高度相容，以下是我想到的做法。為 ASP.NET Core HttpResponse 加上擴充方法 .LegacyWrite() 及 .LegacyRedirect() 模擬 .Write()/.Redirect()，其原理是將輸出資料存入 Headers，呼叫端透過 Response.GetLegacyResponseResult() 再轉為 RedirectResult 或 ContentResult 當成 Action 回傳需要的 IActionReult。</p> <pre><code>public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return Response.GetLegacyResponseResult();
+}
+return Content("OK");
+}
+}
+public class LegacyLib
+{
+public static bool Process(HttpRequest request, HttpResponse response)
+{
+if (request.Query["fw"] == "blog")
+{
+response.LegacyRedirect("https://blog.darkthread.net");
+return true;
+}
+else if (string.IsNullOrEmpty(request.Query["id"]))
+{
+response.LegacyWrite("Missing id parameter");
+return true;
+}
+return false;
+}
+}
+public static class RespWriteExtensions
+{
+public static void LegacyWrite(this HttpResponse response, string content)
+=&gt; response.Headers.Append("X-Response-Write", Uri.EscapeDataString(content));
+public static void LegacyRedirect(this HttpResponse response, string url)
+=&gt; response.Headers.Append("X-Response-Redirect", Uri.EscapeDataString(url));
+public static IActionResult GetLegacyResponseResult(this HttpResponse response)
+{
+var data = new Dictionary&lt;string, string&gt;();
+response.Headers.Where(h =&gt; h.Key.StartsWith("X-Response-")).ToList().ForEach(h =&gt;
+{
+if (data.ContainsKey(h.Key))
+data[h.Key] += Uri.UnescapeDataString(h.Value.ToString());
+else
+data[h.Key] = Uri.UnescapeDataString(h.Value.ToString());
+response.Headers.Remove(h.Key);
+});
+if (data.TryGetValue("X-Response-Redirect", out var url))
+return new RedirectResult(url);
+if (data.TryGetValue("X-Response-Write", out var content))
+return new ContentResult
+{
+Content = content,
+ContentType = response.ContentType ?? "text/html"
+};
+throw new InvalidOperationException("No legacy response found");
+}
+}
+</code></pre> <p>如此，共用元件只需將 WriteAsync()、Redirect() 改成 LegacyWrite() 及 LegacyRedirect()，MVC Action 方法 <code>return Response.GetLegacyResponseResult();</code> 就行囉! 打完收工。</p> <p data-slug="resp-write-in-aspnetcore-mvc" data-title-en="Moving Response.Write()/Redirect() to ASP.NET Core MVC action" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/03/02/09/04/winery-2110737_1280.jpg#1280#720">The article explores strategies for adapting legacy ASP.NET WebForm techniques like Response.Write() and Response.Redirect() in ASP.NET Core MVC. It demonstrates a minimal code modification approach and proposes a robust solution using extension methods to maintain compatibility and functionality across different hosting environments.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在 ASP.NET WebForm 時代，Reponse.Write()/Response.Redirect() 是從共用元件操縱網頁流程蠻常用的技巧，醜歸醜，在一些場合能用少少程式碼解決問題，亦不失為一個選項。</p> <p>舉個例子，假設有段網頁共用邏輯被寫在 App_Code/LegacyLib.cs - 依 ?fw=blog 參數導向預設網站、缺少 id 參數時顯示提示訊息並中止網頁：</p> <pre><code>using System.Web;
+public class LegacyLib
+{
+public static void Process(HttpRequest request, HttpResponse response)
+{
+if (request["fw"] == "blog")
+{
+response.Redirect("https://blog.darkthread.net");
+response.End();
+}
+else if (string.IsNullOrEmpty(request["id"]))
+{
+response.Write("Missing id parameter");
+response.End();
+}
+}
+}
+</code></pre> <p>要套用這段邏輯的 WebForm 網頁可以這樣寫：</p> <pre><code>&lt;%@Page Language="C#" %&gt;
+&lt;script runat="server"&gt;
+void Page_Load(object sender, EventArgs e)
+{
+LegacyLib.Process(Request, Response);
+Response.ContentType = "text/plain";
+Response.Write("OK");
+}
+&lt;/script&gt;
+</code></pre> <p>如此，未給參數時會顯示 <code>Missing id parameter</code>，加上 <code>?id=XX</code> 參數顯示 OK，改為 <code>?fw=blog</code> 則導向其他網站：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638599318653696597.png"></p> <p>這個邏輯是沒法直接搬進 ASP.NET Core 的。</p> <p>在 ASP.NET Core，Response 的型別是 <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.httprequest?view=aspnetcore-8.0&amp;WT.mc_id=DOP-MVP-37580">Microsoft.AspNetCore.Http.HttpRequest</a>，與 .NET Framework <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.web.httprequest?WT.mc_id=DOP-MVP-37580">System.Web.HttpRequest</a> 是兩個不同類別，不再提供 Write()/End() 等上古方法。</p> <p>此時的正統開發策略應是用 ASP.NET Core 思維重新設計共用元件，善用 IActionFilter、Middleware 等機制，充分發揮新框架優點。</p> <p>BUT! 你懂的，有時全村的希望是要你小改舊元件，讓它相容新框架儘快上線，沒人叫你砍掉重練~</p> <p>這篇就來探討在 ASP.NET Core MVC 套用 Response.Write()/Redirect() 幾種可行的做法。</p> <p>用一個 ASP.NET Core <a href="/blog/minimal-api/">Minimal API</a> 專案<a href="/blog/enable-mvc-on-minapi/">啟用 MVC</a> 來模擬應用情境：</p> <pre><code>using Microsoft.AspNetCore.Mvc;
+var builder = WebApplication.CreateBuilder(args);
+// 啟用 Controller
+builder.Services.AddControllers();
+var app = builder.Build();
+// 指定 Controller 路由
+app.MapControllers();
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+app.Run();
+public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+// TODO: 在這裡呼叫 LegacyLib.Process(Request, Response));
+return Content("OK");
+}
+}
+</code></pre> <p>來看看元件要怎麼改。Microsoft.AspNetCore.Http.HttpRequest 雖然沒有 Write()/End()，但有 WriteAsync()，而 Redirect() 也還在，至於沒有 End() 的問題，則讓 Process() 回傳 bool 判別是否應終止流程。(註：另個粗暴做法是<a href="/blog/response-end-in-mvc/">自幹 Thread.CurrentThread.Abort()</a>，我不愛)</p> <p>基於以上概念隨意改寫如下：</p> <pre><code>public class LegacyLib {
+public static bool Process(HttpRequest request, HttpResponse response)
+{
+if (request.Query["fw"] == "blog")
+{
+response.Redirect("https://blog.darkthread.net");
+return true;
+}
+else if (string.IsNullOrEmpty(request.Query["id"]))
+{
+response.WriteAsync("Missing id parameter").Wait();
+return true;
+}
+return false;
+}
+}
+</code></pre> <p>呼叫端則可改寫成以下形式：</p> <pre><code>public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return Content(string.Empty);
+}
+return Content("OK");
+}
+}
+</code></pre> <p>經過這番小調整，舊元件「幾乎」就可以在 ASP.NET Core MVC 正常運作了。</p> <p>所謂「幾乎」是這個做法在 IISExpress 或 IIS 可順利運行題，但跑在 Kestrel 則只有 ?fw=blog / Redirect() OK，未給參數時 Response.Write() 的訊息不會顯示，且瀏覽器會出現 <code>net::ERR_INCOMPLETE_CHUNKED_ENCODING</code> 錯誤：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638599318656978456.png"></p> <p>伺服器端則顯示 <code>System.InvalidOperationException: Headers are read-only, response has already started.</code>，判斷是 Kestrel 底層處理不相容 Response.WriteAsync() 預先寫入內容的做法。</p> <p>因此，如果網站要部署在 IIS，也只會在 Visual Studio 用 IISExpress 偵錯，用以上的簡便改法就算過關。</p> <p>若 ASP.NET Core 網站要部署到 Docker，還想在 VSCode 正常執行跟偵測怎麼辦？</p> <p>解法一，MVC 不要回傳 IActionResult，改傳 Task；要回傳內容也改用 Response.WriteAsync() 輸出，但簡單輸出還行，若原本是要顯示 View 就棘手了。</p> <pre><code>public async Task RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return;
+}
+await Response.WriteAsync("OK");
+}
+</code></pre> <p>若做到與 MVC 高度相容，以下是我想到的做法。為 ASP.NET Core HttpResponse 加上擴充方法 .LegacyWrite() 及 .LegacyRedirect() 模擬 .Write()/.Redirect()，其原理是將輸出資料存入 Headers，呼叫端透過 Response.GetLegacyResponseResult() 再轉為 RedirectResult 或 ContentResult 當成 Action 回傳需要的 IActionReult。</p> <pre><code>public class HomeController : Controller
+{
+public IActionResult Index()
+{
+return Content("Hello, World!");
+}
+public IActionResult RespWrite()
+{
+if (LegacyLib.Process(Request, Response))
+{
+return Response.GetLegacyResponseResult();
+}
+return Content("OK");
+}
+}
+public class LegacyLib
+{
+public static bool Process(HttpRequest request, HttpResponse response)
+{
+if (request.Query["fw"] == "blog")
+{
+response.LegacyRedirect("https://blog.darkthread.net");
+return true;
+}
+else if (string.IsNullOrEmpty(request.Query["id"]))
+{
+response.LegacyWrite("Missing id parameter");
+return true;
+}
+return false;
+}
+}
+public static class RespWriteExtensions
+{
+public static void LegacyWrite(this HttpResponse response, string content)
+=&gt; response.Headers.Append("X-Response-Write", Uri.EscapeDataString(content));
+public static void LegacyRedirect(this HttpResponse response, string url)
+=&gt; response.Headers.Append("X-Response-Redirect", Uri.EscapeDataString(url));
+public static IActionResult GetLegacyResponseResult(this HttpResponse response)
+{
+var data = new Dictionary&lt;string, string&gt;();
+response.Headers.Where(h =&gt; h.Key.StartsWith("X-Response-")).ToList().ForEach(h =&gt;
+{
+if (data.ContainsKey(h.Key))
+data[h.Key] += Uri.UnescapeDataString(h.Value.ToString());
+else
+data[h.Key] = Uri.UnescapeDataString(h.Value.ToString());
+response.Headers.Remove(h.Key);
+});
+if (data.TryGetValue("X-Response-Redirect", out var url))
+return new RedirectResult(url);
+if (data.TryGetValue("X-Response-Write", out var content))
+return new ContentResult
+{
+Content = content,
+ContentType = response.ContentType ?? "text/html"
+};
+throw new InvalidOperationException("No legacy response found");
+}
+}
+</code></pre> <p>如此，共用元件只需將 WriteAsync()、Redirect() 改成 LegacyWrite() 及 LegacyRedirect()，MVC Action 方法 <code>return Response.GetLegacyResponseResult();</code> 就行囉! 打完收工。</p> <p data-slug="resp-write-in-aspnetcore-mvc" data-title-en="Moving Response.Write()/Redirect() to ASP.NET Core MVC action" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/03/02/09/04/winery-2110737_1280.jpg#1280#720">The article explores strategies for adapting legacy ASP.NET WebForm techniques like Response.Write() and Response.Redirect() in ASP.NET Core MVC. It demonstrates a minimal code modification approach and proposes a robust solution using extension methods to maintain compatibility and functionality across different hosting environments.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638599318653696597.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638599318653696597.png" medium="image"/>
+    <pubDate>Thu, 22 Aug 2024 13:13:52 GMT</pubDate>
+  </item><item>
     <title><![CDATA[太陽能計算機應該定期換電池？從遙控器殺手 - 鹼性電池漏液問題聊起]]></title>
     <link>https://blog.darkthread.net/blog/fat-coin-battery/</link>
     <itunes:title><![CDATA[太陽能計算機應該定期換電池？從遙控器殺手 - 鹼性電池漏液問題聊起]]></itunes:title>
@@ -1820,32 +2273,5 @@ $_.Result
     <itunes:image href="/img/calendar.svg"/>
           <media:content url="/img/calendar.svg" medium="image"/>
     <pubDate>Sun, 28 Jul 2024 15:19:10 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[筆記 - 可微調 Personal Access Token 讓 Github 存取更安全]]></title>
-    <link>https://blog.darkthread.net/blog/github-fine-grained-pat/</link>
-    <itunes:title><![CDATA[筆記 - 可微調 Personal Access Token 讓 Github 存取更安全]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/github-fine-grained-pat/" itemprop="url">筆記 - 可微調 Personal Access Token 讓 Github 存取更安全</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-27 09:58 AM"> <time datetime="2024-07-27T01:58:36" itemprop="datePublished"> 2024-07-27 09:58 AM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/github-fine-grained-pat"> </span> </td><td> <a href="/Blog/github-fine-grained-pat/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>每次遇到資安相關議題，我就會曹操上身，進入猜忌多疑模式。(我想起上回在家裡實施無線路由器連線裝置 MAC 位址定期盤點，搞到全家人緊張兮兮的故事) 面對需要提供帳號、密碼、個資的情境，總會猶豫再三。</p> <p>比起輸入帳號密碼驗證身分，API Key / 存取 Token 通常是更安全的選擇，我們可針對不同用途建立專屬 Key，只賦與必要存取範圍的必要作業權限，降低外流風險。同時，由於每支 Key 只應用在少數地方，更新工程較小，故可設定較短效期，時常註銷換新，進一步提高安全性。</p> <p>最近有個需求，我要在 Linux 環境修改及編譯 Github 專案，需登入 Github 帳號 Push 修改結果。Github 在 2021 年已改為 <a href="https://github.blog/security/application-security/token-authentication-requirements-for-git-operations/">Git 操作一律要用 OATH / Personal Access Token (PAT) 等 Token 方式登入</a> (註：<a href="https://github.com/git-ecosystem/git-credential-manager">Git Credential Manager</a> 是以 OAuth 形式進行 2FA 雙因子驗證後儲存身分驗證，不需手動產生 PAT <a href="https://docs.github.com/en/get-started/getting-started-with-git/caching-your-github-credentials-in-git#git-credential-manager">參考</a>)，由於在 Linux 終端機環境沒法像 Windows / macOS 靠 Credential Manager 開啟瀏覽器登入 Github，手動產生 PAT 當成密碼使用感覺單純些，而在查資料過程我發現好東西 - <a href="https://github.blog/security/application-security/introducing-fine-grained-personal-access-tokens-for-github/">Fine-Grained Personal Access Tokens for Github</a>。</p> <p>Github 於 2022 推出可微調 PAT，最大的好處是能限定 PAT 可取存的 Repository 範圍，並可個別指定超過 50 種存取權限，設為 No Access、Read 或 Read and Write，甚至做到只能讀 Issue 不能看 Repository 內容，落實「只開放最小必要權限」的資安原則，我喜歡。</p> <p>可微調 PAT 位於 Github 設定介面的 Settings / Developer settings / Fine-grained tokens 選單，<a href="https://github.com/settings/tokens?type=beta">Fine-grained personal access tokens 設定頁面</a> 如下：</p> <p><img src="/img/loading.svg"></p> <p>按下 Generate new token，可建立新 Token：</p> <p><img src="/img/loading.svg"></p> <p>設定介面選項多到嚇人，但設定其實不複雜。重點是先選取可存取的 Repository [1] 及要授與的權限[2]。權限項目多到眼花撩亂，但如果只是想 pull/commit/push 參與專案維護，勾選 Contents 有 Read and Write 權限即可，另外有個 Metadata Read-Only 權限為必選，只需這兩項 [3] 權限就夠了。</p> <p>按下【Generate token】會得到 <code>github_pat_xxxxx...</code> 格式的編碼字串，它可以在需要輸入 Github 帳號密碼的場合替代密碼使用，對指定 Repository 進行 pull / push。</p> <p><img src="/img/loading.svg"></p> <p>在 Linux 平台可使用以下指令清除登入狀態，再設定帳密快取時間，省下每次 pull/push 都要重新登入的麻煩。</p> <pre><code># 清除登入狀態 (for Linux)
-git config --global --unset credential.helper
-# 設定快取記憶密碼時間(單位是秒)，108000 是 30 天
-git config --global credential.helper 'cache --timeout=108000'
-</code></pre> <p>簡單實測，我先清除登入狀態[1]，一開始 PAT 設定的 Repository 不包含 lyric-crawler，使用上面說的 <code>github_pat_xxxxx...</code> PAT 作為密碼 [2] 登入，會得到 invalid credentials 及 Authentication failed 錯誤 [3]，此時修改 PAT 的可存取 Repository 清單納入 lyric-crawler，重新用同一 PAT 登入 [4]，這次就 pull 成功了。以此驗證可微調 PAT 確實能精準控制 Token 可存取的 Repository 項目。</p> <p><img src="/img/loading.svg"></p> <p>如此，我們便能為特定 Repository 建立專屬 PAT，即便 Token 外流或被盜用，風險也僅止於該 Repository，用起來更安心。</p> <p data-slug="github-fine-grained-pat" data-title-en="Github fine-grained personal access token" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/03/15/20/58/locks-3229455_960_720.jpg#960#720">This blog post explains the benefits of using Fine-Grained Personal Access Tokens (PAT) for GitHub over traditional passwords, emphasizing improved security and granularity. This post provides a detailed guide on generating and using PATs in a Linux environment to manage GitHub repositories securely.</p> </div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/github-fine-grained-pat/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/git">Git</a></li></ul> and has <a href="/blog/github-fine-grained-pat/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-27T05:08:38"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/github-fine-grained-pat/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F&amp;text=%E7%AD%86%E8%A8%98+-+%E5%8F%AF%E5%BE%AE%E8%AA%BF+Personal+Access+Token+%E8%AE%93+Github+%E5%AD%98%E5%8F%96%E6%9B%B4%E5%AE%89%E5%85%A8" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=筆記%20-%20可微調%20Personal%20Access%20Token%20讓%20Github%20存取更安全&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638576423610307191"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/github-fine-grained-pat/" itemprop="url">筆記 - 可微調 Personal Access Token 讓 Github 存取更安全</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-27 09:58 AM"> <time datetime="2024-07-27T01:58:36" itemprop="datePublished"> 2024-07-27 09:58 AM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/github-fine-grained-pat"> </span> </td><td> <a href="/Blog/github-fine-grained-pat/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>每次遇到資安相關議題，我就會曹操上身，進入猜忌多疑模式。(我想起上回在家裡實施無線路由器連線裝置 MAC 位址定期盤點，搞到全家人緊張兮兮的故事) 面對需要提供帳號、密碼、個資的情境，總會猶豫再三。</p> <p>比起輸入帳號密碼驗證身分，API Key / 存取 Token 通常是更安全的選擇，我們可針對不同用途建立專屬 Key，只賦與必要存取範圍的必要作業權限，降低外流風險。同時，由於每支 Key 只應用在少數地方，更新工程較小，故可設定較短效期，時常註銷換新，進一步提高安全性。</p> <p>最近有個需求，我要在 Linux 環境修改及編譯 Github 專案，需登入 Github 帳號 Push 修改結果。Github 在 2021 年已改為 <a href="https://github.blog/security/application-security/token-authentication-requirements-for-git-operations/">Git 操作一律要用 OATH / Personal Access Token (PAT) 等 Token 方式登入</a> (註：<a href="https://github.com/git-ecosystem/git-credential-manager">Git Credential Manager</a> 是以 OAuth 形式進行 2FA 雙因子驗證後儲存身分驗證，不需手動產生 PAT <a href="https://docs.github.com/en/get-started/getting-started-with-git/caching-your-github-credentials-in-git#git-credential-manager">參考</a>)，由於在 Linux 終端機環境沒法像 Windows / macOS 靠 Credential Manager 開啟瀏覽器登入 Github，手動產生 PAT 當成密碼使用感覺單純些，而在查資料過程我發現好東西 - <a href="https://github.blog/security/application-security/introducing-fine-grained-personal-access-tokens-for-github/">Fine-Grained Personal Access Tokens for Github</a>。</p> <p>Github 於 2022 推出可微調 PAT，最大的好處是能限定 PAT 可取存的 Repository 範圍，並可個別指定超過 50 種存取權限，設為 No Access、Read 或 Read and Write，甚至做到只能讀 Issue 不能看 Repository 內容，落實「只開放最小必要權限」的資安原則，我喜歡。</p> <p>可微調 PAT 位於 Github 設定介面的 Settings / Developer settings / Fine-grained tokens 選單，<a href="https://github.com/settings/tokens?type=beta">Fine-grained personal access tokens 設定頁面</a> 如下：</p> <p><img src="/img/loading.svg"></p> <p>按下 Generate new token，可建立新 Token：</p> <p><img src="/img/loading.svg"></p> <p>設定介面選項多到嚇人，但設定其實不複雜。重點是先選取可存取的 Repository [1] 及要授與的權限[2]。權限項目多到眼花撩亂，但如果只是想 pull/commit/push 參與專案維護，勾選 Contents 有 Read and Write 權限即可，另外有個 Metadata Read-Only 權限為必選，只需這兩項 [3] 權限就夠了。</p> <p>按下【Generate token】會得到 <code>github_pat_xxxxx...</code> 格式的編碼字串，它可以在需要輸入 Github 帳號密碼的場合替代密碼使用，對指定 Repository 進行 pull / push。</p> <p><img src="/img/loading.svg"></p> <p>在 Linux 平台可使用以下指令清除登入狀態，再設定帳密快取時間，省下每次 pull/push 都要重新登入的麻煩。</p> <pre><code># 清除登入狀態 (for Linux)
-git config --global --unset credential.helper
-# 設定快取記憶密碼時間(單位是秒)，108000 是 30 天
-git config --global credential.helper 'cache --timeout=108000'
-</code></pre> <p>簡單實測，我先清除登入狀態[1]，一開始 PAT 設定的 Repository 不包含 lyric-crawler，使用上面說的 <code>github_pat_xxxxx...</code> PAT 作為密碼 [2] 登入，會得到 invalid credentials 及 Authentication failed 錯誤 [3]，此時修改 PAT 的可存取 Repository 清單納入 lyric-crawler，重新用同一 PAT 登入 [4]，這次就 pull 成功了。以此驗證可微調 PAT 確實能精準控制 Token 可存取的 Repository 項目。</p> <p><img src="/img/loading.svg"></p> <p>如此，我們便能為特定 Repository 建立專屬 PAT，即便 Token 外流或被盜用，風險也僅止於該 Repository，用起來更安心。</p> <p data-slug="github-fine-grained-pat" data-title-en="Github fine-grained personal access token" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/03/15/20/58/locks-3229455_960_720.jpg#960#720">This blog post explains the benefits of using Fine-Grained Personal Access Tokens (PAT) for GitHub over traditional passwords, emphasizing improved security and granularity. This post provides a detailed guide on generating and using PATs in a Linux environment to manage GitHub repositories securely.</p> </div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/github-fine-grained-pat/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/git">Git</a></li></ul> and has <a href="/blog/github-fine-grained-pat/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-27T05:08:38"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/github-fine-grained-pat/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F&amp;text=%E7%AD%86%E8%A8%98+-+%E5%8F%AF%E5%BE%AE%E8%AA%BF+Personal+Access+Token+%E8%AE%93+Github+%E5%AD%98%E5%8F%96%E6%9B%B4%E5%AE%89%E5%85%A8" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=筆記%20-%20可微調%20Personal%20Access%20Token%20讓%20Github%20存取更安全&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638576423610307191"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]>
-    </description>
-    <content:encoded><![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/github-fine-grained-pat/" itemprop="url">筆記 - 可微調 Personal Access Token 讓 Github 存取更安全</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-27 09:58 AM"> <time datetime="2024-07-27T01:58:36" itemprop="datePublished"> 2024-07-27 09:58 AM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/github-fine-grained-pat"> </span> </td><td> <a href="/Blog/github-fine-grained-pat/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>每次遇到資安相關議題，我就會曹操上身，進入猜忌多疑模式。(我想起上回在家裡實施無線路由器連線裝置 MAC 位址定期盤點，搞到全家人緊張兮兮的故事) 面對需要提供帳號、密碼、個資的情境，總會猶豫再三。</p> <p>比起輸入帳號密碼驗證身分，API Key / 存取 Token 通常是更安全的選擇，我們可針對不同用途建立專屬 Key，只賦與必要存取範圍的必要作業權限，降低外流風險。同時，由於每支 Key 只應用在少數地方，更新工程較小，故可設定較短效期，時常註銷換新，進一步提高安全性。</p> <p>最近有個需求，我要在 Linux 環境修改及編譯 Github 專案，需登入 Github 帳號 Push 修改結果。Github 在 2021 年已改為 <a href="https://github.blog/security/application-security/token-authentication-requirements-for-git-operations/">Git 操作一律要用 OATH / Personal Access Token (PAT) 等 Token 方式登入</a> (註：<a href="https://github.com/git-ecosystem/git-credential-manager">Git Credential Manager</a> 是以 OAuth 形式進行 2FA 雙因子驗證後儲存身分驗證，不需手動產生 PAT <a href="https://docs.github.com/en/get-started/getting-started-with-git/caching-your-github-credentials-in-git#git-credential-manager">參考</a>)，由於在 Linux 終端機環境沒法像 Windows / macOS 靠 Credential Manager 開啟瀏覽器登入 Github，手動產生 PAT 當成密碼使用感覺單純些，而在查資料過程我發現好東西 - <a href="https://github.blog/security/application-security/introducing-fine-grained-personal-access-tokens-for-github/">Fine-Grained Personal Access Tokens for Github</a>。</p> <p>Github 於 2022 推出可微調 PAT，最大的好處是能限定 PAT 可取存的 Repository 範圍，並可個別指定超過 50 種存取權限，設為 No Access、Read 或 Read and Write，甚至做到只能讀 Issue 不能看 Repository 內容，落實「只開放最小必要權限」的資安原則，我喜歡。</p> <p>可微調 PAT 位於 Github 設定介面的 Settings / Developer settings / Fine-grained tokens 選單，<a href="https://github.com/settings/tokens?type=beta">Fine-grained personal access tokens 設定頁面</a> 如下：</p> <p><img src="/img/loading.svg"></p> <p>按下 Generate new token，可建立新 Token：</p> <p><img src="/img/loading.svg"></p> <p>設定介面選項多到嚇人，但設定其實不複雜。重點是先選取可存取的 Repository [1] 及要授與的權限[2]。權限項目多到眼花撩亂，但如果只是想 pull/commit/push 參與專案維護，勾選 Contents 有 Read and Write 權限即可，另外有個 Metadata Read-Only 權限為必選，只需這兩項 [3] 權限就夠了。</p> <p>按下【Generate token】會得到 <code>github_pat_xxxxx...</code> 格式的編碼字串，它可以在需要輸入 Github 帳號密碼的場合替代密碼使用，對指定 Repository 進行 pull / push。</p> <p><img src="/img/loading.svg"></p> <p>在 Linux 平台可使用以下指令清除登入狀態，再設定帳密快取時間，省下每次 pull/push 都要重新登入的麻煩。</p> <pre><code># 清除登入狀態 (for Linux)
-git config --global --unset credential.helper
-# 設定快取記憶密碼時間(單位是秒)，108000 是 30 天
-git config --global credential.helper 'cache --timeout=108000'
-</code></pre> <p>簡單實測，我先清除登入狀態[1]，一開始 PAT 設定的 Repository 不包含 lyric-crawler，使用上面說的 <code>github_pat_xxxxx...</code> PAT 作為密碼 [2] 登入，會得到 invalid credentials 及 Authentication failed 錯誤 [3]，此時修改 PAT 的可存取 Repository 清單納入 lyric-crawler，重新用同一 PAT 登入 [4]，這次就 pull 成功了。以此驗證可微調 PAT 確實能精準控制 Token 可存取的 Repository 項目。</p> <p><img src="/img/loading.svg"></p> <p>如此，我們便能為特定 Repository 建立專屬 PAT，即便 Token 外流或被盜用，風險也僅止於該 Repository，用起來更安心。</p> <p data-slug="github-fine-grained-pat" data-title-en="Github fine-grained personal access token" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/03/15/20/58/locks-3229455_960_720.jpg#960#720">This blog post explains the benefits of using Fine-Grained Personal Access Tokens (PAT) for GitHub over traditional passwords, emphasizing improved security and granularity. This post provides a detailed guide on generating and using PATs in a Linux environment to manage GitHub repositories securely.</p> </div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/github-fine-grained-pat/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/git">Git</a></li></ul> and has <a href="/blog/github-fine-grained-pat/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-27T05:08:38"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/github-fine-grained-pat/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F&amp;text=%E7%AD%86%E8%A8%98+-+%E5%8F%AF%E5%BE%AE%E8%AA%BF+Personal+Access+Token+%E8%AE%93+Github+%E5%AD%98%E5%8F%96%E6%9B%B4%E5%AE%89%E5%85%A8" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=筆記%20-%20可微調%20Personal%20Access%20Token%20讓%20Github%20存取更安全&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fgithub-fine-grained-pat%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638576423610307191"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]></content:encoded>
-    <itunes:image href="/img/calendar.svg"/>
-          <media:content url="/img/calendar.svg" medium="image"/>
-    <pubDate>Sat, 27 Jul 2024 01:58:36 GMT</pubDate>
   </item></channel>
 </rss>
