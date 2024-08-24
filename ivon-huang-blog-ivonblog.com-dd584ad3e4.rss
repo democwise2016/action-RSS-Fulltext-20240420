@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/875/800/800.jpg?hmac=tdyKps7_h-Z2NKDrqNRiavGKQdcHozLESsj9i2eGA_k</url>
+      <url>https://fastly.picsum.photos/id/508/800/800.jpg?hmac=eL5anlPVCrlzwt4LPJhOzBVeL-lFs-gUfNrBGgP5N9I</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,127 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/875/800/800.jpg?hmac=tdyKps7_h-Z2NKDrqNRiavGKQdcHozLESsj9i2eGA_k"/>
+    <itunes:image href="https://fastly.picsum.photos/id/508/800/800.jpg?hmac=eL5anlPVCrlzwt4LPJhOzBVeL-lFs-gUfNrBGgP5N9I"/>
 <item>
+    <title><![CDATA[修改iSH Shell套件庫，更新至最新版Alpine Linux]]></title>
+    <link>https://ivonblog.com/posts/ish-shell-apk-repositories/</link>
+    <itunes:title><![CDATA[修改iSH Shell套件庫，更新至最新版Alpine Linux]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>iSH Shell開發者維護者有自己的一套套件庫，一方面是確保穩定性，一方面是在上架App Store的時候能給Apple審核。</p><p>如何檢查iSH Shell套件庫版本：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>cat /etc/apk/repositories
+</span></span></code></pre></div><p>從裡面的網址可以判斷的出來，例如撰文當下版本是<code>v3.14-2023-08-15</code></p><p>目前，App Store版本的iSH Shell套件庫還停留在2023年的Alpine Linux 3.14，導致很多套件都找不到。</p><p>如果想要新版套件，建議直接到<a href="https://github.com/ish-app/ish/releases" target="_blank">
+GitHub下載測試版IPA</a>，並用<a href="https://ivonblog.com/posts/ios-altstore/" target="_blank">
+AltStore側載</a>的，就能取得最新版3.19的套件庫。</p><p>或者，你可以修改套件庫網址，指向新版iSH套件庫，然後再更新即可。</p><h2>1. 更新到最新版iSH Shell套件庫<span><a href="#1-%E6%9B%B4%E6%96%B0%E5%88%B0%E6%9C%80%E6%96%B0%E7%89%88ish-shell%E5%A5%97%E4%BB%B6%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>套件並非越新越好。新版套件庫未經過全面測試，可能不穩定。</p><ol><li>移除iSh Shell的自動套件庫更新機制</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rm /ish -rf
+</span></span></code></pre></div><ol start="2"><li>編輯iSH Shell套件庫：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/apk/repositories
+</span></span></code></pre></div><ol start="3"><li>替換掉套件庫網址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>https://apk.ish.app/v3.19-2024-08-20/main/
+</span></span><span><span>https://apk.ish.app/v3.19-2024-08-20/community/
+</span></span></code></pre></div><ol start="4"><li>更新套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk upgrade <span>&amp;&amp;</span> apk fix
+</span></span></code></pre></div><h2>2. 可否使用Alpine Linux套件庫？<span><a href="#2-%E5%8F%AF%E5%90%A6%E4%BD%BF%E7%94%A8alpine-linux%E5%A5%97%E4%BB%B6%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>不建議，雖然iSH Shell是基於Alpine Linux開發。理論上可以沿用Alpine Linux套件庫，但是因為iSH Shell實作功能不完全，不是所有system call都有支援。若貿然升級到非iSH Shell的套件庫（尤其是版本比iSH Shell還新的，例如iSH Shell還在3.19但你升級到Alpine Linux 3.20）可能導致系統毀損，即使是簡單的vim指令也可能會出現各種<code>Bad system call</code>錯誤。建議停留在iSH Shell開發者維護的套件庫。</p><p>如果硬要的話：</p><ol><li>移除iSh Shell的自動套件庫更新機制</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rm /ish -rf
+</span></span></code></pre></div><ol start="2"><li>編輯iSH Shell套件庫：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/apk/repositories
+</span></span></code></pre></div><ol start="3"><li>替換掉套件庫網址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>https://dl-cdn.alpinelinux.org/alpine/v3.19/main
+</span></span><span><span>https://dl-cdn.alpinelinux.org/alpine/v3.19/community
+</span></span></code></pre></div><ol start="4"><li>更新套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk upgrade <span>&amp;&amp;</span> apk fix
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ish-app/ish/wiki/Using-Alpine-Linux-repositories" target="_blank">Using Alpine Linux repositories - ish-app/ish GitHub Wiki</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>iSH Shell開發者維護者有自己的一套套件庫，一方面是確保穩定性，一方面是在上架App Store的時候能給Apple審核。</p><p>如何檢查iSH Shell套件庫版本：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>cat /etc/apk/repositories
+</span></span></code></pre></div><p>從裡面的網址可以判斷的出來，例如撰文當下版本是<code>v3.14-2023-08-15</code></p><p>目前，App Store版本的iSH Shell套件庫還停留在2023年的Alpine Linux 3.14，導致很多套件都找不到。</p><p>如果想要新版套件，建議直接到<a href="https://github.com/ish-app/ish/releases" target="_blank">
+GitHub下載測試版IPA</a>，並用<a href="https://ivonblog.com/posts/ios-altstore/" target="_blank">
+AltStore側載</a>的，就能取得最新版3.19的套件庫。</p><p>或者，你可以修改套件庫網址，指向新版iSH套件庫，然後再更新即可。</p><h2>1. 更新到最新版iSH Shell套件庫<span><a href="#1-%E6%9B%B4%E6%96%B0%E5%88%B0%E6%9C%80%E6%96%B0%E7%89%88ish-shell%E5%A5%97%E4%BB%B6%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>套件並非越新越好。新版套件庫未經過全面測試，可能不穩定。</p><ol><li>移除iSh Shell的自動套件庫更新機制</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rm /ish -rf
+</span></span></code></pre></div><ol start="2"><li>編輯iSH Shell套件庫：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/apk/repositories
+</span></span></code></pre></div><ol start="3"><li>替換掉套件庫網址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>https://apk.ish.app/v3.19-2024-08-20/main/
+</span></span><span><span>https://apk.ish.app/v3.19-2024-08-20/community/
+</span></span></code></pre></div><ol start="4"><li>更新套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk upgrade <span>&amp;&amp;</span> apk fix
+</span></span></code></pre></div><h2>2. 可否使用Alpine Linux套件庫？<span><a href="#2-%E5%8F%AF%E5%90%A6%E4%BD%BF%E7%94%A8alpine-linux%E5%A5%97%E4%BB%B6%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>不建議，雖然iSH Shell是基於Alpine Linux開發。理論上可以沿用Alpine Linux套件庫，但是因為iSH Shell實作功能不完全，不是所有system call都有支援。若貿然升級到非iSH Shell的套件庫（尤其是版本比iSH Shell還新的，例如iSH Shell還在3.19但你升級到Alpine Linux 3.20）可能導致系統毀損，即使是簡單的vim指令也可能會出現各種<code>Bad system call</code>錯誤。建議停留在iSH Shell開發者維護的套件庫。</p><p>如果硬要的話：</p><ol><li>移除iSh Shell的自動套件庫更新機制</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rm /ish -rf
+</span></span></code></pre></div><ol start="2"><li>編輯iSH Shell套件庫：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/apk/repositories
+</span></span></code></pre></div><ol start="3"><li>替換掉套件庫網址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>https://dl-cdn.alpinelinux.org/alpine/v3.19/main
+</span></span><span><span>https://dl-cdn.alpinelinux.org/alpine/v3.19/community
+</span></span></code></pre></div><ol start="4"><li>更新套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk upgrade <span>&amp;&amp;</span> apk fix
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ish-app/ish/wiki/Using-Alpine-Linux-repositories" target="_blank">Using Alpine Linux repositories - ish-app/ish GitHub Wiki</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p>iSH Shell開發者維護者有自己的一套套件庫，一方面是確保穩定性，一方面是在上架App Store的時候能給Apple審核。</p><p>如何檢查iSH Shell套件庫版本：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>cat /etc/apk/repositories
+</span></span></code></pre></div><p>從裡面的網址可以判斷的出來，例如撰文當下版本是<code>v3.14-2023-08-15</code></p><p>目前，App Store版本的iSH Shell套件庫還停留在2023年的Alpine Linux 3.14，導致很多套件都找不到。</p><p>如果想要新版套件，建議直接到<a href="https://github.com/ish-app/ish/releases" target="_blank">
+GitHub下載測試版IPA</a>，並用<a href="https://ivonblog.com/posts/ios-altstore/" target="_blank">
+AltStore側載</a>的，就能取得最新版3.19的套件庫。</p><p>或者，你可以修改套件庫網址，指向新版iSH套件庫，然後再更新即可。</p><h2>1. 更新到最新版iSH Shell套件庫<span><a href="#1-%E6%9B%B4%E6%96%B0%E5%88%B0%E6%9C%80%E6%96%B0%E7%89%88ish-shell%E5%A5%97%E4%BB%B6%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>套件並非越新越好。新版套件庫未經過全面測試，可能不穩定。</p><ol><li>移除iSh Shell的自動套件庫更新機制</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rm /ish -rf
+</span></span></code></pre></div><ol start="2"><li>編輯iSH Shell套件庫：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/apk/repositories
+</span></span></code></pre></div><ol start="3"><li>替換掉套件庫網址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>https://apk.ish.app/v3.19-2024-08-20/main/
+</span></span><span><span>https://apk.ish.app/v3.19-2024-08-20/community/
+</span></span></code></pre></div><ol start="4"><li>更新套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk upgrade <span>&amp;&amp;</span> apk fix
+</span></span></code></pre></div><h2>2. 可否使用Alpine Linux套件庫？<span><a href="#2-%E5%8F%AF%E5%90%A6%E4%BD%BF%E7%94%A8alpine-linux%E5%A5%97%E4%BB%B6%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>不建議，雖然iSH Shell是基於Alpine Linux開發。理論上可以沿用Alpine Linux套件庫，但是因為iSH Shell實作功能不完全，不是所有system call都有支援。若貿然升級到非iSH Shell的套件庫（尤其是版本比iSH Shell還新的，例如iSH Shell還在3.19但你升級到Alpine Linux 3.20）可能導致系統毀損，即使是簡單的vim指令也可能會出現各種<code>Bad system call</code>錯誤。建議停留在iSH Shell開發者維護的套件庫。</p><p>如果硬要的話：</p><ol><li>移除iSh Shell的自動套件庫更新機制</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>rm /ish -rf
+</span></span></code></pre></div><ol start="2"><li>編輯iSH Shell套件庫：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/apk/repositories
+</span></span></code></pre></div><ol start="3"><li>替換掉套件庫網址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>https://dl-cdn.alpinelinux.org/alpine/v3.19/main
+</span></span><span><span>https://dl-cdn.alpinelinux.org/alpine/v3.19/community
+</span></span></code></pre></div><ol start="4"><li>更新套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk upgrade <span>&amp;&amp;</span> apk fix
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/ish-app/ish/wiki/Using-Alpine-Linux-repositories" target="_blank">Using Alpine Linux repositories - ish-app/ish GitHub Wiki</a></li></ul>]]></content:encoded>
+    
+    <pubDate>Sat, 24 Aug 2024 20:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[使用鏡像網路模式(Mirrored Mode)，讓WSL的服務能從外網連線]]></title>
+    <link>https://ivonblog.com/posts/wsl-network-mirrored-mode/</link>
+    <itunes:title><![CDATA[使用鏡像網路模式(Mirrored Mode)，讓WSL的服務能從外網連線]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>WSL預設的網路模式是NAT，會讓Ubuntu跑在內網，並自動取得一個IP。</p><p>此時你會發現，在WSL內跑一個伺服器服務，只有本機能連線，無法從Windows以外的網路存取WSL服務。</p><p>例如跑Apache伺服器，僅能在Windows電腦的瀏覽器打<code>http://localhost:80</code>連線，無法從外部網路存取，一律是<code>Connection refused</code>！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4716a0773a.webp"><p>這時候該怎麼辦呢？</p><p>以前的作法是調整WSL的網路卡，變成橋接模式(Bridged Network)，不過這得手動調整Hyper-V網路卡，設定很不方便。</p><p>最新版本的WSL提供了一種鏡像網路模式(Mirrored Mode)，可以替代橋接網路部份功能。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>Windows 11 23H2</li><li>WSL 2.2.4</li><li>Ubuntu 22.04，未啟用UFW防火牆</li></ul><h2>2. 調整WSL2網路為鏡像模式<span><a href="#2-%E8%AA%BF%E6%95%B4wsl2%E7%B6%B2%E8%B7%AF%E7%82%BA%E9%8F%A1%E5%83%8F%E6%A8%A1%E5%BC%8F" aria-label="定位點">#</a></span></h2><ol><li><p><a href="https://ivonblog.com/posts/setup-wsl2-on-windows11" target="_blank">安裝WSL</a></p></li><li><p>在<code>C:\Users\使用者名稱\</code>資料夾，新增設定檔<code>.wslconfig</code></p></li><li><p>填入以下內容，啟用鏡像網路模式</p></li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>[</span><span>wsl2</span><span>]</span>
+</span></span><span><span><span>networkingMode</span><span>=</span><span>mirrored</span>
+</span></span></code></pre></div><ol start="4"><li>以系統管理員開啟Windows終端機，執行以下指令，允許Windows本機用WSL的IP連線到WSL服務：</li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>[</span><span>experimental</span><span>]</span>
+</span></span><span><span><span>hostAddressLoopback</span><span>=</span><span>true</span>
+</span></span></code></pre></div><ol start="5"><li>WSL會吃到Windows Hyper-V防火牆的規則。以系統管理員執行以下指令，開放Hyper-V防火牆，允許所有連入連線</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>Set-NetFirewallHyperVVMSetting -Name <span>'{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'</span> -DefaultInboundAction Allow
+</span></span></code></pre></div><p>或者，新增Hyper-V防火牆規則，只開放特定通訊埠，這邊是Apache預設的80/tcp</p><div><pre tabindex="0"><code data-lang="bash"><span><span>New-NetFirewallHyperVRule -Name <span>"MyWebServer"</span> -DisplayName <span>"My Web Server"</span> -Direction Inbound -VMCreatorId <span>'{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'</span> -Protocol TCP -LocalPorts 80.
+</span></span></code></pre></div><ol start="6"><li>重啟WSL</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wsl --shutdown
+</span></span><span><span>
+</span></span><span><span>wsl
+</span></span></code></pre></div><ol start="7"><li>WSL就會得到一個可從外部存取的區域IP。目前僅支援IPV4，不支援IPV6。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
+</span></span><span><span><span># 請查看eth0網卡的IP，應該是192.168開頭的</span>
+</span></span></code></pre></div><ol start="8"><li>執行Apache伺服器服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install apache2
+</span></span><span><span>
+</span></span><span><span>sudo systemctl start apache2
+</span></span></code></pre></div><ol start="9"><li>如此一來就能用上面得到的IP存取Apache伺服器了。這裡的例子是使用同一網段下的另一台電腦存取Apache伺服器。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-554a9c0190.webp"></li></ol><h2>3. 修正Docker網路問題<span><a href="#3-%E4%BF%AE%E6%AD%A3docker%E7%B6%B2%E8%B7%AF%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>使用網路鏡像模式下，Docker可能會出現<code>read: connection reset by peer.</code>無法連線的錯誤。</p><p>必須停用Docker調整iptables的功能：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'{ "iptables": false }'</span> <span>|</span> sudo tee -a /etc/docker/daemon.json
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart docker
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://learn.microsoft.com/en-us/windows/wsl/networking#default-networking-mode-nat" target="_blank">Accessing network applications with WSL - Windows Subsystem for Linux Documentation - Learn Microsoft</a></li><li><a href="https://github.com/microsoft/WSL/issues/10494#issuecomment-1741605674" target="_blank">WSL 2.0: networkingMode=mirrored makes Docker unable to forward ports #10494</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>WSL預設的網路模式是NAT，會讓Ubuntu跑在內網，並自動取得一個IP。</p><p>此時你會發現，在WSL內跑一個伺服器服務，只有本機能連線，無法從Windows以外的網路存取WSL服務。</p><p>例如跑Apache伺服器，僅能在Windows電腦的瀏覽器打<code>http://localhost:80</code>連線，無法從外部網路存取，一律是<code>Connection refused</code>！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4716a0773a.webp"><p>這時候該怎麼辦呢？</p><p>以前的作法是調整WSL的網路卡，變成橋接模式(Bridged Network)，不過這得手動調整Hyper-V網路卡，設定很不方便。</p><p>最新版本的WSL提供了一種鏡像網路模式(Mirrored Mode)，可以替代橋接網路部份功能。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>Windows 11 23H2</li><li>WSL 2.2.4</li><li>Ubuntu 22.04，未啟用UFW防火牆</li></ul><h2>2. 調整WSL2網路為鏡像模式<span><a href="#2-%E8%AA%BF%E6%95%B4wsl2%E7%B6%B2%E8%B7%AF%E7%82%BA%E9%8F%A1%E5%83%8F%E6%A8%A1%E5%BC%8F" aria-label="定位點">#</a></span></h2><ol><li><p><a href="https://ivonblog.com/posts/setup-wsl2-on-windows11" target="_blank">安裝WSL</a></p></li><li><p>在<code>C:\Users\使用者名稱\</code>資料夾，新增設定檔<code>.wslconfig</code></p></li><li><p>填入以下內容，啟用鏡像網路模式</p></li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>[</span><span>wsl2</span><span>]</span>
+</span></span><span><span><span>networkingMode</span><span>=</span><span>mirrored</span>
+</span></span></code></pre></div><ol start="4"><li>以系統管理員開啟Windows終端機，執行以下指令，允許Windows本機用WSL的IP連線到WSL服務：</li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>[</span><span>experimental</span><span>]</span>
+</span></span><span><span><span>hostAddressLoopback</span><span>=</span><span>true</span>
+</span></span></code></pre></div><ol start="5"><li>WSL會吃到Windows Hyper-V防火牆的規則。以系統管理員執行以下指令，開放Hyper-V防火牆，允許所有連入連線</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>Set-NetFirewallHyperVVMSetting -Name <span>'{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'</span> -DefaultInboundAction Allow
+</span></span></code></pre></div><p>或者，新增Hyper-V防火牆規則，只開放特定通訊埠，這邊是Apache預設的80/tcp</p><div><pre tabindex="0"><code data-lang="bash"><span><span>New-NetFirewallHyperVRule -Name <span>"MyWebServer"</span> -DisplayName <span>"My Web Server"</span> -Direction Inbound -VMCreatorId <span>'{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'</span> -Protocol TCP -LocalPorts 80.
+</span></span></code></pre></div><ol start="6"><li>重啟WSL</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wsl --shutdown
+</span></span><span><span>
+</span></span><span><span>wsl
+</span></span></code></pre></div><ol start="7"><li>WSL就會得到一個可從外部存取的區域IP。目前僅支援IPV4，不支援IPV6。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
+</span></span><span><span><span># 請查看eth0網卡的IP，應該是192.168開頭的</span>
+</span></span></code></pre></div><ol start="8"><li>執行Apache伺服器服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install apache2
+</span></span><span><span>
+</span></span><span><span>sudo systemctl start apache2
+</span></span></code></pre></div><ol start="9"><li>如此一來就能用上面得到的IP存取Apache伺服器了。這裡的例子是使用同一網段下的另一台電腦存取Apache伺服器。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-554a9c0190.webp"></li></ol><h2>3. 修正Docker網路問題<span><a href="#3-%E4%BF%AE%E6%AD%A3docker%E7%B6%B2%E8%B7%AF%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>使用網路鏡像模式下，Docker可能會出現<code>read: connection reset by peer.</code>無法連線的錯誤。</p><p>必須停用Docker調整iptables的功能：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'{ "iptables": false }'</span> <span>|</span> sudo tee -a /etc/docker/daemon.json
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart docker
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://learn.microsoft.com/en-us/windows/wsl/networking#default-networking-mode-nat" target="_blank">Accessing network applications with WSL - Windows Subsystem for Linux Documentation - Learn Microsoft</a></li><li><a href="https://github.com/microsoft/WSL/issues/10494#issuecomment-1741605674" target="_blank">WSL 2.0: networkingMode=mirrored makes Docker unable to forward ports #10494</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p>WSL預設的網路模式是NAT，會讓Ubuntu跑在內網，並自動取得一個IP。</p><p>此時你會發現，在WSL內跑一個伺服器服務，只有本機能連線，無法從Windows以外的網路存取WSL服務。</p><p>例如跑Apache伺服器，僅能在Windows電腦的瀏覽器打<code>http://localhost:80</code>連線，無法從外部網路存取，一律是<code>Connection refused</code>！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4716a0773a.webp"><p>這時候該怎麼辦呢？</p><p>以前的作法是調整WSL的網路卡，變成橋接模式(Bridged Network)，不過這得手動調整Hyper-V網路卡，設定很不方便。</p><p>最新版本的WSL提供了一種鏡像網路模式(Mirrored Mode)，可以替代橋接網路部份功能。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>Windows 11 23H2</li><li>WSL 2.2.4</li><li>Ubuntu 22.04，未啟用UFW防火牆</li></ul><h2>2. 調整WSL2網路為鏡像模式<span><a href="#2-%E8%AA%BF%E6%95%B4wsl2%E7%B6%B2%E8%B7%AF%E7%82%BA%E9%8F%A1%E5%83%8F%E6%A8%A1%E5%BC%8F" aria-label="定位點">#</a></span></h2><ol><li><p><a href="https://ivonblog.com/posts/setup-wsl2-on-windows11" target="_blank">安裝WSL</a></p></li><li><p>在<code>C:\Users\使用者名稱\</code>資料夾，新增設定檔<code>.wslconfig</code></p></li><li><p>填入以下內容，啟用鏡像網路模式</p></li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>[</span><span>wsl2</span><span>]</span>
+</span></span><span><span><span>networkingMode</span><span>=</span><span>mirrored</span>
+</span></span></code></pre></div><ol start="4"><li>以系統管理員開啟Windows終端機，執行以下指令，允許Windows本機用WSL的IP連線到WSL服務：</li></ol><div><pre tabindex="0"><code data-lang="powershell"><span><span><span>[</span><span>experimental</span><span>]</span>
+</span></span><span><span><span>hostAddressLoopback</span><span>=</span><span>true</span>
+</span></span></code></pre></div><ol start="5"><li>WSL會吃到Windows Hyper-V防火牆的規則。以系統管理員執行以下指令，開放Hyper-V防火牆，允許所有連入連線</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>Set-NetFirewallHyperVVMSetting -Name <span>'{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'</span> -DefaultInboundAction Allow
+</span></span></code></pre></div><p>或者，新增Hyper-V防火牆規則，只開放特定通訊埠，這邊是Apache預設的80/tcp</p><div><pre tabindex="0"><code data-lang="bash"><span><span>New-NetFirewallHyperVRule -Name <span>"MyWebServer"</span> -DisplayName <span>"My Web Server"</span> -Direction Inbound -VMCreatorId <span>'{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}'</span> -Protocol TCP -LocalPorts 80.
+</span></span></code></pre></div><ol start="6"><li>重啟WSL</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>wsl --shutdown
+</span></span><span><span>
+</span></span><span><span>wsl
+</span></span></code></pre></div><ol start="7"><li>WSL就會得到一個可從外部存取的區域IP。目前僅支援IPV4，不支援IPV6。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
+</span></span><span><span><span># 請查看eth0網卡的IP，應該是192.168開頭的</span>
+</span></span></code></pre></div><ol start="8"><li>執行Apache伺服器服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install apache2
+</span></span><span><span>
+</span></span><span><span>sudo systemctl start apache2
+</span></span></code></pre></div><ol start="9"><li>如此一來就能用上面得到的IP存取Apache伺服器了。這裡的例子是使用同一網段下的另一台電腦存取Apache伺服器。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-554a9c0190.webp"></li></ol><h2>3. 修正Docker網路問題<span><a href="#3-%E4%BF%AE%E6%AD%A3docker%E7%B6%B2%E8%B7%AF%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>使用網路鏡像模式下，Docker可能會出現<code>read: connection reset by peer.</code>無法連線的錯誤。</p><p>必須停用Docker調整iptables的功能：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'{ "iptables": false }'</span> <span>|</span> sudo tee -a /etc/docker/daemon.json
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart docker
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://learn.microsoft.com/en-us/windows/wsl/networking#default-networking-mode-nat" target="_blank">Accessing network applications with WSL - Windows Subsystem for Linux Documentation - Learn Microsoft</a></li><li><a href="https://github.com/microsoft/WSL/issues/10494#issuecomment-1741605674" target="_blank">WSL 2.0: networkingMode=mirrored makes Docker unable to forward ports #10494</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4716a0773a.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4716a0773a.webp" medium="image"/>
+    <pubDate>Sat, 24 Aug 2024 19:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[XRandR搭配EVDI製作Linux虛擬顯示器，設定虛擬雙顯示器輸出]]></title>
     <link>https://ivonblog.com/posts/xrandr-create-a-virtual-monitor/</link>
     <itunes:title><![CDATA[XRandR搭配EVDI製作Linux虛擬顯示器，設定虛擬雙顯示器輸出]]></itunes:title>
@@ -2419,178 +2538,5 @@ ReDroid作者指示</a>，我們可以手動從新版Android模擬器抽取libnd
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b8f0dbad92.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b8f0dbad92.webp" medium="image"/>
     <pubDate>Thu, 15 Aug 2024 21:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[透過libinput指令稿暫時停用Linux鍵盤、觸控板、滑鼠的輸入]]></title>
-    <link>https://ivonblog.com/posts/disable-devices-with-libinput-scripts/</link>
-    <itunes:title><![CDATA[透過libinput指令稿暫時停用Linux鍵盤、觸控板、滑鼠的輸入]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>Temporarily disable Linux keyboard, touchpad, mouses input with libinput scripts.</p><p>暫時停用/禁用Linux的輸入裝置。</p><p>考慮以下二種情況：</p><p>你將筆電接到外接顯示器，又外接了鍵盤，如何將內部鍵盤停用呢？能不能讓Linux不要收到特定裝置的輸出訊號。</p><p>你拿的是兼具觸控螢幕的Linux平板，如何在使用觸控螢幕的時候停用鍵盤輸入防止誤觸？</p><p>過去常聽人說用<code>xinput</code>指令攔截，但是那僅限X11環境使用，現在是Wayland的時代了，需要用新的方法做事，那就是「libinput」</p><p>現在許多Linux系統都依賴這個玩意來控制輸入裝置，舉凡鍵盤，滑鼠，觸控板，觸控螢幕都是由它負責。</p><p>根據<a href="https://wayland.freedesktop.org/libinput/doc/latest/device-configuration-via-udev.html" target="_blank">
-libinput官方文件</a>，只要設定udev規則，傳入<code>LIBINPUT_IGNORE_DEVICE</code>的數值，我們就能達成停用裝置的目的。</p><p>不過，手動設定規則停用很麻煩呢，所以我使用Gitlab開發者林博仁製作的指令稿<a href="https://gitlab.com/brlin/linux-input-utils" target="_blank">
-Linux input device management utilites</a>來開關輸入裝置。</p><ol><li>將指令稿安裝到<code>/usr/local/bin</code></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://gitlab.com/brlin/linux-input-utils.git
-</span></span><span><span>sudo mv linux-input-utils/bin/* /usr/local/bin
-</span></span></code></pre></div><ol start="2"><li>然後我們就可以用這個指令稿列舉Linux上的所有libinput裝置：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo enumerate-input-devices
-</span></span></code></pre></div><ol start="3"><li>所有的裝置都以一個數字顯示，像我的平板就顯示了觸控螢幕、觸控板、鍵盤裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>/sys/class/input/input1:
-</span></span><span><span>Goodix Capacitive TouchScreen
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input5:
-</span></span><span><span>HID 1018:1006
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input10:
-</span></span><span><span>HID 1018:1006 Mouse
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input11:
-</span></span><span><span>HID 1018:1006 Touchpad
-</span></span></code></pre></div><ol start="4"><li>要停用鍵盤，就是將數字傳過去：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo disable-input-devices <span>5</span>
-</span></span></code></pre></div><ol start="5"><li>這樣鍵盤就無法打字輸入了！啊…那我要怎麼還原…？幸好我還有觸控螢幕可以輸入！再不濟還有SSH。只要輸入以下指令就可以解除停用：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo enable-input-devices <span>5</span>
-</span></span></code></pre></div>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>Temporarily disable Linux keyboard, touchpad, mouses input with libinput scripts.</p><p>暫時停用/禁用Linux的輸入裝置。</p><p>考慮以下二種情況：</p><p>你將筆電接到外接顯示器，又外接了鍵盤，如何將內部鍵盤停用呢？能不能讓Linux不要收到特定裝置的輸出訊號。</p><p>你拿的是兼具觸控螢幕的Linux平板，如何在使用觸控螢幕的時候停用鍵盤輸入防止誤觸？</p><p>過去常聽人說用<code>xinput</code>指令攔截，但是那僅限X11環境使用，現在是Wayland的時代了，需要用新的方法做事，那就是「libinput」</p><p>現在許多Linux系統都依賴這個玩意來控制輸入裝置，舉凡鍵盤，滑鼠，觸控板，觸控螢幕都是由它負責。</p><p>根據<a href="https://wayland.freedesktop.org/libinput/doc/latest/device-configuration-via-udev.html" target="_blank">
-libinput官方文件</a>，只要設定udev規則，傳入<code>LIBINPUT_IGNORE_DEVICE</code>的數值，我們就能達成停用裝置的目的。</p><p>不過，手動設定規則停用很麻煩呢，所以我使用Gitlab開發者林博仁製作的指令稿<a href="https://gitlab.com/brlin/linux-input-utils" target="_blank">
-Linux input device management utilites</a>來開關輸入裝置。</p><ol><li>將指令稿安裝到<code>/usr/local/bin</code></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://gitlab.com/brlin/linux-input-utils.git
-</span></span><span><span>sudo mv linux-input-utils/bin/* /usr/local/bin
-</span></span></code></pre></div><ol start="2"><li>然後我們就可以用這個指令稿列舉Linux上的所有libinput裝置：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo enumerate-input-devices
-</span></span></code></pre></div><ol start="3"><li>所有的裝置都以一個數字顯示，像我的平板就顯示了觸控螢幕、觸控板、鍵盤裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>/sys/class/input/input1:
-</span></span><span><span>Goodix Capacitive TouchScreen
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input5:
-</span></span><span><span>HID 1018:1006
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input10:
-</span></span><span><span>HID 1018:1006 Mouse
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input11:
-</span></span><span><span>HID 1018:1006 Touchpad
-</span></span></code></pre></div><ol start="4"><li>要停用鍵盤，就是將數字傳過去：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo disable-input-devices <span>5</span>
-</span></span></code></pre></div><ol start="5"><li>這樣鍵盤就無法打字輸入了！啊…那我要怎麼還原…？幸好我還有觸控螢幕可以輸入！再不濟還有SSH。只要輸入以下指令就可以解除停用：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo enable-input-devices <span>5</span>
-</span></span></code></pre></div>]]>
-    </description>
-    <content:encoded><![CDATA[<p>Temporarily disable Linux keyboard, touchpad, mouses input with libinput scripts.</p><p>暫時停用/禁用Linux的輸入裝置。</p><p>考慮以下二種情況：</p><p>你將筆電接到外接顯示器，又外接了鍵盤，如何將內部鍵盤停用呢？能不能讓Linux不要收到特定裝置的輸出訊號。</p><p>你拿的是兼具觸控螢幕的Linux平板，如何在使用觸控螢幕的時候停用鍵盤輸入防止誤觸？</p><p>過去常聽人說用<code>xinput</code>指令攔截，但是那僅限X11環境使用，現在是Wayland的時代了，需要用新的方法做事，那就是「libinput」</p><p>現在許多Linux系統都依賴這個玩意來控制輸入裝置，舉凡鍵盤，滑鼠，觸控板，觸控螢幕都是由它負責。</p><p>根據<a href="https://wayland.freedesktop.org/libinput/doc/latest/device-configuration-via-udev.html" target="_blank">
-libinput官方文件</a>，只要設定udev規則，傳入<code>LIBINPUT_IGNORE_DEVICE</code>的數值，我們就能達成停用裝置的目的。</p><p>不過，手動設定規則停用很麻煩呢，所以我使用Gitlab開發者林博仁製作的指令稿<a href="https://gitlab.com/brlin/linux-input-utils" target="_blank">
-Linux input device management utilites</a>來開關輸入裝置。</p><ol><li>將指令稿安裝到<code>/usr/local/bin</code></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://gitlab.com/brlin/linux-input-utils.git
-</span></span><span><span>sudo mv linux-input-utils/bin/* /usr/local/bin
-</span></span></code></pre></div><ol start="2"><li>然後我們就可以用這個指令稿列舉Linux上的所有libinput裝置：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo enumerate-input-devices
-</span></span></code></pre></div><ol start="3"><li>所有的裝置都以一個數字顯示，像我的平板就顯示了觸控螢幕、觸控板、鍵盤裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>/sys/class/input/input1:
-</span></span><span><span>Goodix Capacitive TouchScreen
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input5:
-</span></span><span><span>HID 1018:1006
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input10:
-</span></span><span><span>HID 1018:1006 Mouse
-</span></span><span><span>
-</span></span><span><span>/sys/class/input/input11:
-</span></span><span><span>HID 1018:1006 Touchpad
-</span></span></code></pre></div><ol start="4"><li>要停用鍵盤，就是將數字傳過去：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo disable-input-devices <span>5</span>
-</span></span></code></pre></div><ol start="5"><li>這樣鍵盤就無法打字輸入了！啊…那我要怎麼還原…？幸好我還有觸控螢幕可以輸入！再不濟還有SSH。只要輸入以下指令就可以解除停用：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo enable-input-devices <span>5</span>
-</span></span></code></pre></div>]]></content:encoded>
-    
-    <pubDate>Thu, 15 Aug 2024 17:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Linux平板筆電「PineTab 2」使用技巧 + 常用軟體]]></title>
-    <link>https://ivonblog.com/posts/my-pinetab-2-setup/</link>
-    <itunes:title><![CDATA[Linux平板筆電「PineTab 2」使用技巧 + 常用軟體]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/my-pinetab-2-setup/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c33d9fe8.webp"></a></p>
-<p><a href="/en-us/posts/my-pinetab-2-setup">Read this post in English</a></p><p>PineTab 2是2023年4月由Pine64推出的開源Linux平板，兼具筆電功能，能夠同時在一個裝置執行Linux系統與Android系統容器。</p><p>此處是我針對Pine64 PineTab 2 (ARM版，8G/128G) 所做的一些調校設定，希望這些經驗可以給想使用Linux平板裝置的用戶作為參考。</p><ul><li>系統：Arch Linux ARM by danctnix</li><li>桌面環境: GNOME (Wayland) 和 Phosh (Wayland)</li></ul><p>為什麼我要寫這篇呢？自上市以來我已經寫過一篇<a href="/posts/pine64-pinetab2-review">
-開箱</a>，還有<a href="/posts/after-3-months-of-daily-driving-pinetab-2">
-三個月的使用心得</a>。但是這款平板的系統會一直更新，我得追蹤最新開發進度（即使短時間內系統軟體很難完善）。再來，雖然RK3566效能很爛，我還是有在研究所使用這款平板。所以這篇文章的目的就是即時追蹤PineTab 2的開發進度，並把我的調校過程集中放在這裡。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa2260b35c.webp"><h2>作業系統選擇<span><a href="#%E4%BD%9C%E6%A5%AD%E7%B3%BB%E7%B5%B1%E9%81%B8%E6%93%87" aria-label="定位點">#</a></span></h2><p>使用Arch Linux ARM。<a href="https://ivonblog.com/posts/pinetab2-os-installation/" target="_blank">
-使用Github原廠映像檔重灌</a>了一次，擺脫KDE臃腫套件，轉而使用GNOME。</p><p>選Arch主要還是因為AUR的豐富資源，以及能更快收到更新。想要穩定發表的Linux發行版的，可以試試Mobian、postmarketOS、Ubuntu touch等系統。此外，你可以把系統dd到SD卡，在真正安裝系統前先從SD開機試試新系統。</p><h2>桌面環境選擇<span><a href="#%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83%E9%81%B8%E6%93%87" aria-label="定位點">#</a></span></h2><p>個人認為沒有一個桌面環境能同時處理好「筆電模式」與「平板模式」。如果要在同一個畫面兩個模式切換來切換去，那肯定不明智的了。</p><p>應當以工作階段劃分，所以我裝了二個桌面環境。</p><p>從Arch Linux官方套件庫安裝GNOME與Phosh：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S gnome phosh
-</span></span></code></pre></div><p>使用GDM當顯示管理器，方便切換桌面環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl enabl gdm
-</span></span></code></pre></div><p>GNOME負責電腦桌面模式，也就是平板接上鍵盤的時候。Phosh一個APP一個畫面不符合傳統電腦多工模式，況且Phosh不相容GNOME的擴充套件，此時便是GNOME上場的時候。此模式下用於寫筆記、上網、遠端開發。內建的螢幕小鍵盤可在GNOME系統設定啟用。</p><p>感謝踏可司企鵝 (Github@proton-penguin) 推薦，安裝<a href="https://extensions.gnome.org/extension/5949/gjs-osk/" target="_blank">
-GJS ＯSK</a>懸浮鍵盤，即可配合Fcitx5輸入中文。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2cc3ab1597.webp"><p>Phosh負責純觸控模式下的操作，也就是把平板拿在手上看電子書或paper的時候。Phosh動畫明顯比較順暢，且手勢針對觸控裝置優化過，秉持一個APP一個視窗的理念，全域鍵盤。從PinePhone、Juno Tablet、Librem 11等裝置採用Phosh當桌面已證明了這點。</p><p>小提示：Phosh 0.35.0以後的版本，要長按畫面底部的藥丸條才能喚醒鍵盤。鍵盤的Terminal配置可以喚醒Fcitx5拼音輸入法。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-269a8bc5d6.webp"></p><p>在連接鍵盤的時候，Phosh會自動進入Docked Mode，這個時候允許視窗重疊，視窗位置和大小可以拖動調整。</p><p>Phosh會把GNOME的程式視窗放大縮小鍵弄不見，這個可以用gsettings調整回來。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>gsettings <span>set</span> <span>"org.gnome.desktop.wm.preferences"</span> button-layout <span>"appmenu:minimize,maximize,close"</span>
-</span></span></code></pre></div><h2>內部Wifi驅動<span><a href="#%E5%85%A7%E9%83%A8wifi%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>在bes2600驅動發表之前，我都是外接MT7601網路卡上網的。</p><p>目前bes2600的Wifi驅動在Arch Linux ARM運作狀況良好，網路可以跑滿速。在2024年5月的核心更新後，Wifi驅動應該就不會讓PineTab死機了，可以正常進入suspend模式。</p><p>這個模組可以設定開機自動載入：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> bes2600 <span>|</span> sudo tee /etc/modules-load.d/bes2600.conf
-</span></span></code></pre></div><h2>旋轉螢幕的問題<span><a href="#%E6%97%8B%E8%BD%89%E8%9E%A2%E5%B9%95%E7%9A%84%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>安裝iio-sensor-proxy套件，螢幕就會自動旋轉</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S iio-sensor-proxy
-</span></span><span><span>sudo systemctl <span>enable</span> --now iio-sensor-proxy
-</span></span></code></pre></div><p>另外裝<a href="https://extensions.gnome.org/extension/5389/screen-rotate/" target="_blank">
-Screen Rotate</a>擴充功能，手動控制GNOME shell的螢幕旋轉。</p><p>iio-sensor-proxy亦能讓電源鍵正常運作，按一下便會進入暫停模式(suspend)。</p><h2>常用APP<span><a href="#%E5%B8%B8%E7%94%A8app" aria-label="定位點">#</a></span></h2><ul><li>Firefox：ARM版莫名得很卡，我不常用。</li><li>Brave或Chromium。我需要Chromium系的瀏覽器，Google Chrome並未提供ARM64版。</li><li>Flatpak。方便安裝軟體。Flatpak還有一個優勢：有時候Arch原生套件的Chromium瀏覽器會因為圖形驅動崩掉，而Flatpak版仍能運作，因為應用程式把驅動跟自己包在一起，所以不會因為系統更新而受到影響。</li><li>Fcitx5，使用中文拼音輸入。</li><li>Okular，閱讀PDF之用。速度很快，功能也很多。</li><li>KOReader：輕量PDF閱讀器。</li><li>Joplin Desktop，寫筆記。純文字版joplin-cli也不錯用。</li><li>xournal++，手寫筆記，記得在軟體設定開啟觸控輸入。PineTab 2不支援筆壓的觸控筆，所以只能用傳統電容式觸控筆，別忘了帶手套防誤觸。</li><li>EasyEffects + Auto Gain Presets，讓平板喇叭好聽一點。</li><li>GSConnect，相容KDE Connect的傳檔軟體。</li><li>LocalSend，比較穩定的檔案傳輸方案。</li><li>Moonlight Game Streaming，遠端桌面與遊戲。</li><li>Visual Studio Code</li><li>VIM</li><li>Distrobox，使用Docker做後端。</li><li>ytfzf：終端機看Youtube影片。</li></ul><h2>Waydroid執行Android APP<span><a href="#waydroid%E5%9F%B7%E8%A1%8Candroid-app" aria-label="定位點">#</a></span></h2><p>Arch Linux ARM請使用以下指令安裝Waydroid：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -Syu
-</span></span><span><span>sudo pacman -S python-pyclip xclip wl-clipboard mailcap
-</span></span><span><span>yay -S waydroid-image-gapps
-</span></span><span><span>sudo waydroid init -f
-</span></span><span><span>sudo systemctl <span>enable</span> --now waydroid-container
-</span></span><span><span>
-</span></span><span><span>sudo ufw allow <span>53</span>
-</span></span><span><span>sudo ufw allow <span>67</span>
-</span></span><span><span>sudo ufw default allow FORWARD
-</span></span><span><span>sudo ufw reload
-</span></span><span><span>
-</span></span><span><span>sudo systemctl restart waydroid-container
-</span></span></code></pre></div><p>Waydroid詳細用法參照：<a href="https://ivonblog.com/posts/archlinux-waydroid/" target="_blank">
-Waydroid教學：在Arch Linux電腦跑Android APP</a></p><p>安裝<a href="https://github.com/ohmae/orientation-faker" target="_blank">
-Orientation Faker</a>手動控制Android的螢幕方向。因為如果你旋轉GNOME的螢幕，Waydroid視窗就會被切半。所以最好的操作方法是關閉GNOME的自動旋轉，再手動於Waydroid的軟體旋轉螢幕方向。</p><p>如果想在GNOME全螢幕跑Android APP，請安裝<a href="https://extensions.gnome.org/extension/545/hide-top-bar/" target="_blank">
-Auto hide top bar</a>擴充套件。</p><h2>Box64 + Wine執行Windows exe<span><a href="#box64--wine%E5%9F%B7%E8%A1%8Cwindows-exe" aria-label="定位點">#</a></span></h2><p>Wine大部分支援的Windows程式還是x86架構的，ARM架構的Linux系統必須借助Box64翻譯指令才能執行x86架構的程式。</p><p>我尚未理出Arch Linux ARM跑Wine需要哪些依賴套件，所以我採取在Debian chroot容器內跑Box86的作法。詳細操作見<a href="/posts/linux-phone-box86-steam">
-用Box86在ARM Linux裝置玩x86架構的Linux遊戲</a></p><h2>還有未完成的部分<span><a href="#%E9%82%84%E6%9C%89%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E9%83%A8%E5%88%86" aria-label="定位點">#</a></span></h2><ul><li>藍芽驅動</li><li>相機驅動</li></ul><p>更多資訊可以在<a href="https://wiki.pine64.org/wiki/PineTab2" target="_blank">
-PineTab2 wiki</a>查看。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/my-pinetab-2-setup/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c33d9fe8.webp"></a></p>
-<p><a href="/en-us/posts/my-pinetab-2-setup">Read this post in English</a></p><p>PineTab 2是2023年4月由Pine64推出的開源Linux平板，兼具筆電功能，能夠同時在一個裝置執行Linux系統與Android系統容器。</p><p>此處是我針對Pine64 PineTab 2 (ARM版，8G/128G) 所做的一些調校設定，希望這些經驗可以給想使用Linux平板裝置的用戶作為參考。</p><ul><li>系統：Arch Linux ARM by danctnix</li><li>桌面環境: GNOME (Wayland) 和 Phosh (Wayland)</li></ul><p>為什麼我要寫這篇呢？自上市以來我已經寫過一篇<a href="/posts/pine64-pinetab2-review">
-開箱</a>，還有<a href="/posts/after-3-months-of-daily-driving-pinetab-2">
-三個月的使用心得</a>。但是這款平板的系統會一直更新，我得追蹤最新開發進度（即使短時間內系統軟體很難完善）。再來，雖然RK3566效能很爛，我還是有在研究所使用這款平板。所以這篇文章的目的就是即時追蹤PineTab 2的開發進度，並把我的調校過程集中放在這裡。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa2260b35c.webp"><h2>作業系統選擇<span><a href="#%E4%BD%9C%E6%A5%AD%E7%B3%BB%E7%B5%B1%E9%81%B8%E6%93%87" aria-label="定位點">#</a></span></h2><p>使用Arch Linux ARM。<a href="https://ivonblog.com/posts/pinetab2-os-installation/" target="_blank">
-使用Github原廠映像檔重灌</a>了一次，擺脫KDE臃腫套件，轉而使用GNOME。</p><p>選Arch主要還是因為AUR的豐富資源，以及能更快收到更新。想要穩定發表的Linux發行版的，可以試試Mobian、postmarketOS、Ubuntu touch等系統。此外，你可以把系統dd到SD卡，在真正安裝系統前先從SD開機試試新系統。</p><h2>桌面環境選擇<span><a href="#%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83%E9%81%B8%E6%93%87" aria-label="定位點">#</a></span></h2><p>個人認為沒有一個桌面環境能同時處理好「筆電模式」與「平板模式」。如果要在同一個畫面兩個模式切換來切換去，那肯定不明智的了。</p><p>應當以工作階段劃分，所以我裝了二個桌面環境。</p><p>從Arch Linux官方套件庫安裝GNOME與Phosh：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S gnome phosh
-</span></span></code></pre></div><p>使用GDM當顯示管理器，方便切換桌面環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl enabl gdm
-</span></span></code></pre></div><p>GNOME負責電腦桌面模式，也就是平板接上鍵盤的時候。Phosh一個APP一個畫面不符合傳統電腦多工模式，況且Phosh不相容GNOME的擴充套件，此時便是GNOME上場的時候。此模式下用於寫筆記、上網、遠端開發。內建的螢幕小鍵盤可在GNOME系統設定啟用。</p><p>感謝踏可司企鵝 (Github@proton-penguin) 推薦，安裝<a href="https://extensions.gnome.org/extension/5949/gjs-osk/" target="_blank">
-GJS ＯSK</a>懸浮鍵盤，即可配合Fcitx5輸入中文。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2cc3ab1597.webp"><p>Phosh負責純觸控模式下的操作，也就是把平板拿在手上看電子書或paper的時候。Phosh動畫明顯比較順暢，且手勢針對觸控裝置優化過，秉持一個APP一個視窗的理念，全域鍵盤。從PinePhone、Juno Tablet、Librem 11等裝置採用Phosh當桌面已證明了這點。</p><p>小提示：Phosh 0.35.0以後的版本，要長按畫面底部的藥丸條才能喚醒鍵盤。鍵盤的Terminal配置可以喚醒Fcitx5拼音輸入法。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-269a8bc5d6.webp"></p><p>在連接鍵盤的時候，Phosh會自動進入Docked Mode，這個時候允許視窗重疊，視窗位置和大小可以拖動調整。</p><p>Phosh會把GNOME的程式視窗放大縮小鍵弄不見，這個可以用gsettings調整回來。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>gsettings <span>set</span> <span>"org.gnome.desktop.wm.preferences"</span> button-layout <span>"appmenu:minimize,maximize,close"</span>
-</span></span></code></pre></div><h2>內部Wifi驅動<span><a href="#%E5%85%A7%E9%83%A8wifi%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>在bes2600驅動發表之前，我都是外接MT7601網路卡上網的。</p><p>目前bes2600的Wifi驅動在Arch Linux ARM運作狀況良好，網路可以跑滿速。在2024年5月的核心更新後，Wifi驅動應該就不會讓PineTab死機了，可以正常進入suspend模式。</p><p>這個模組可以設定開機自動載入：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> bes2600 <span>|</span> sudo tee /etc/modules-load.d/bes2600.conf
-</span></span></code></pre></div><h2>旋轉螢幕的問題<span><a href="#%E6%97%8B%E8%BD%89%E8%9E%A2%E5%B9%95%E7%9A%84%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>安裝iio-sensor-proxy套件，螢幕就會自動旋轉</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S iio-sensor-proxy
-</span></span><span><span>sudo systemctl <span>enable</span> --now iio-sensor-proxy
-</span></span></code></pre></div><p>另外裝<a href="https://extensions.gnome.org/extension/5389/screen-rotate/" target="_blank">
-Screen Rotate</a>擴充功能，手動控制GNOME shell的螢幕旋轉。</p><p>iio-sensor-proxy亦能讓電源鍵正常運作，按一下便會進入暫停模式(suspend)。</p><h2>常用APP<span><a href="#%E5%B8%B8%E7%94%A8app" aria-label="定位點">#</a></span></h2><ul><li>Firefox：ARM版莫名得很卡，我不常用。</li><li>Brave或Chromium。我需要Chromium系的瀏覽器，Google Chrome並未提供ARM64版。</li><li>Flatpak。方便安裝軟體。Flatpak還有一個優勢：有時候Arch原生套件的Chromium瀏覽器會因為圖形驅動崩掉，而Flatpak版仍能運作，因為應用程式把驅動跟自己包在一起，所以不會因為系統更新而受到影響。</li><li>Fcitx5，使用中文拼音輸入。</li><li>Okular，閱讀PDF之用。速度很快，功能也很多。</li><li>KOReader：輕量PDF閱讀器。</li><li>Joplin Desktop，寫筆記。純文字版joplin-cli也不錯用。</li><li>xournal++，手寫筆記，記得在軟體設定開啟觸控輸入。PineTab 2不支援筆壓的觸控筆，所以只能用傳統電容式觸控筆，別忘了帶手套防誤觸。</li><li>EasyEffects + Auto Gain Presets，讓平板喇叭好聽一點。</li><li>GSConnect，相容KDE Connect的傳檔軟體。</li><li>LocalSend，比較穩定的檔案傳輸方案。</li><li>Moonlight Game Streaming，遠端桌面與遊戲。</li><li>Visual Studio Code</li><li>VIM</li><li>Distrobox，使用Docker做後端。</li><li>ytfzf：終端機看Youtube影片。</li></ul><h2>Waydroid執行Android APP<span><a href="#waydroid%E5%9F%B7%E8%A1%8Candroid-app" aria-label="定位點">#</a></span></h2><p>Arch Linux ARM請使用以下指令安裝Waydroid：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -Syu
-</span></span><span><span>sudo pacman -S python-pyclip xclip wl-clipboard mailcap
-</span></span><span><span>yay -S waydroid-image-gapps
-</span></span><span><span>sudo waydroid init -f
-</span></span><span><span>sudo systemctl <span>enable</span> --now waydroid-container
-</span></span><span><span>
-</span></span><span><span>sudo ufw allow <span>53</span>
-</span></span><span><span>sudo ufw allow <span>67</span>
-</span></span><span><span>sudo ufw default allow FORWARD
-</span></span><span><span>sudo ufw reload
-</span></span><span><span>
-</span></span><span><span>sudo systemctl restart waydroid-container
-</span></span></code></pre></div><p>Waydroid詳細用法參照：<a href="https://ivonblog.com/posts/archlinux-waydroid/" target="_blank">
-Waydroid教學：在Arch Linux電腦跑Android APP</a></p><p>安裝<a href="https://github.com/ohmae/orientation-faker" target="_blank">
-Orientation Faker</a>手動控制Android的螢幕方向。因為如果你旋轉GNOME的螢幕，Waydroid視窗就會被切半。所以最好的操作方法是關閉GNOME的自動旋轉，再手動於Waydroid的軟體旋轉螢幕方向。</p><p>如果想在GNOME全螢幕跑Android APP，請安裝<a href="https://extensions.gnome.org/extension/545/hide-top-bar/" target="_blank">
-Auto hide top bar</a>擴充套件。</p><h2>Box64 + Wine執行Windows exe<span><a href="#box64--wine%E5%9F%B7%E8%A1%8Cwindows-exe" aria-label="定位點">#</a></span></h2><p>Wine大部分支援的Windows程式還是x86架構的，ARM架構的Linux系統必須借助Box64翻譯指令才能執行x86架構的程式。</p><p>我尚未理出Arch Linux ARM跑Wine需要哪些依賴套件，所以我採取在Debian chroot容器內跑Box86的作法。詳細操作見<a href="/posts/linux-phone-box86-steam">
-用Box86在ARM Linux裝置玩x86架構的Linux遊戲</a></p><h2>還有未完成的部分<span><a href="#%E9%82%84%E6%9C%89%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E9%83%A8%E5%88%86" aria-label="定位點">#</a></span></h2><ul><li>藍芽驅動</li><li>相機驅動</li></ul><p>更多資訊可以在<a href="https://wiki.pine64.org/wiki/PineTab2" target="_blank">
-PineTab2 wiki</a>查看。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/my-pinetab-2-setup/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c33d9fe8.webp"></a></p>
-<p><a href="/en-us/posts/my-pinetab-2-setup">Read this post in English</a></p><p>PineTab 2是2023年4月由Pine64推出的開源Linux平板，兼具筆電功能，能夠同時在一個裝置執行Linux系統與Android系統容器。</p><p>此處是我針對Pine64 PineTab 2 (ARM版，8G/128G) 所做的一些調校設定，希望這些經驗可以給想使用Linux平板裝置的用戶作為參考。</p><ul><li>系統：Arch Linux ARM by danctnix</li><li>桌面環境: GNOME (Wayland) 和 Phosh (Wayland)</li></ul><p>為什麼我要寫這篇呢？自上市以來我已經寫過一篇<a href="/posts/pine64-pinetab2-review">
-開箱</a>，還有<a href="/posts/after-3-months-of-daily-driving-pinetab-2">
-三個月的使用心得</a>。但是這款平板的系統會一直更新，我得追蹤最新開發進度（即使短時間內系統軟體很難完善）。再來，雖然RK3566效能很爛，我還是有在研究所使用這款平板。所以這篇文章的目的就是即時追蹤PineTab 2的開發進度，並把我的調校過程集中放在這裡。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa2260b35c.webp"><h2>作業系統選擇<span><a href="#%E4%BD%9C%E6%A5%AD%E7%B3%BB%E7%B5%B1%E9%81%B8%E6%93%87" aria-label="定位點">#</a></span></h2><p>使用Arch Linux ARM。<a href="https://ivonblog.com/posts/pinetab2-os-installation/" target="_blank">
-使用Github原廠映像檔重灌</a>了一次，擺脫KDE臃腫套件，轉而使用GNOME。</p><p>選Arch主要還是因為AUR的豐富資源，以及能更快收到更新。想要穩定發表的Linux發行版的，可以試試Mobian、postmarketOS、Ubuntu touch等系統。此外，你可以把系統dd到SD卡，在真正安裝系統前先從SD開機試試新系統。</p><h2>桌面環境選擇<span><a href="#%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83%E9%81%B8%E6%93%87" aria-label="定位點">#</a></span></h2><p>個人認為沒有一個桌面環境能同時處理好「筆電模式」與「平板模式」。如果要在同一個畫面兩個模式切換來切換去，那肯定不明智的了。</p><p>應當以工作階段劃分，所以我裝了二個桌面環境。</p><p>從Arch Linux官方套件庫安裝GNOME與Phosh：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S gnome phosh
-</span></span></code></pre></div><p>使用GDM當顯示管理器，方便切換桌面環境：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl enabl gdm
-</span></span></code></pre></div><p>GNOME負責電腦桌面模式，也就是平板接上鍵盤的時候。Phosh一個APP一個畫面不符合傳統電腦多工模式，況且Phosh不相容GNOME的擴充套件，此時便是GNOME上場的時候。此模式下用於寫筆記、上網、遠端開發。內建的螢幕小鍵盤可在GNOME系統設定啟用。</p><p>感謝踏可司企鵝 (Github@proton-penguin) 推薦，安裝<a href="https://extensions.gnome.org/extension/5949/gjs-osk/" target="_blank">
-GJS ＯSK</a>懸浮鍵盤，即可配合Fcitx5輸入中文。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2cc3ab1597.webp"><p>Phosh負責純觸控模式下的操作，也就是把平板拿在手上看電子書或paper的時候。Phosh動畫明顯比較順暢，且手勢針對觸控裝置優化過，秉持一個APP一個視窗的理念，全域鍵盤。從PinePhone、Juno Tablet、Librem 11等裝置採用Phosh當桌面已證明了這點。</p><p>小提示：Phosh 0.35.0以後的版本，要長按畫面底部的藥丸條才能喚醒鍵盤。鍵盤的Terminal配置可以喚醒Fcitx5拼音輸入法。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-269a8bc5d6.webp"></p><p>在連接鍵盤的時候，Phosh會自動進入Docked Mode，這個時候允許視窗重疊，視窗位置和大小可以拖動調整。</p><p>Phosh會把GNOME的程式視窗放大縮小鍵弄不見，這個可以用gsettings調整回來。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>gsettings <span>set</span> <span>"org.gnome.desktop.wm.preferences"</span> button-layout <span>"appmenu:minimize,maximize,close"</span>
-</span></span></code></pre></div><h2>內部Wifi驅動<span><a href="#%E5%85%A7%E9%83%A8wifi%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>在bes2600驅動發表之前，我都是外接MT7601網路卡上網的。</p><p>目前bes2600的Wifi驅動在Arch Linux ARM運作狀況良好，網路可以跑滿速。在2024年5月的核心更新後，Wifi驅動應該就不會讓PineTab死機了，可以正常進入suspend模式。</p><p>這個模組可以設定開機自動載入：</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> bes2600 <span>|</span> sudo tee /etc/modules-load.d/bes2600.conf
-</span></span></code></pre></div><h2>旋轉螢幕的問題<span><a href="#%E6%97%8B%E8%BD%89%E8%9E%A2%E5%B9%95%E7%9A%84%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>安裝iio-sensor-proxy套件，螢幕就會自動旋轉</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -S iio-sensor-proxy
-</span></span><span><span>sudo systemctl <span>enable</span> --now iio-sensor-proxy
-</span></span></code></pre></div><p>另外裝<a href="https://extensions.gnome.org/extension/5389/screen-rotate/" target="_blank">
-Screen Rotate</a>擴充功能，手動控制GNOME shell的螢幕旋轉。</p><p>iio-sensor-proxy亦能讓電源鍵正常運作，按一下便會進入暫停模式(suspend)。</p><h2>常用APP<span><a href="#%E5%B8%B8%E7%94%A8app" aria-label="定位點">#</a></span></h2><ul><li>Firefox：ARM版莫名得很卡，我不常用。</li><li>Brave或Chromium。我需要Chromium系的瀏覽器，Google Chrome並未提供ARM64版。</li><li>Flatpak。方便安裝軟體。Flatpak還有一個優勢：有時候Arch原生套件的Chromium瀏覽器會因為圖形驅動崩掉，而Flatpak版仍能運作，因為應用程式把驅動跟自己包在一起，所以不會因為系統更新而受到影響。</li><li>Fcitx5，使用中文拼音輸入。</li><li>Okular，閱讀PDF之用。速度很快，功能也很多。</li><li>KOReader：輕量PDF閱讀器。</li><li>Joplin Desktop，寫筆記。純文字版joplin-cli也不錯用。</li><li>xournal++，手寫筆記，記得在軟體設定開啟觸控輸入。PineTab 2不支援筆壓的觸控筆，所以只能用傳統電容式觸控筆，別忘了帶手套防誤觸。</li><li>EasyEffects + Auto Gain Presets，讓平板喇叭好聽一點。</li><li>GSConnect，相容KDE Connect的傳檔軟體。</li><li>LocalSend，比較穩定的檔案傳輸方案。</li><li>Moonlight Game Streaming，遠端桌面與遊戲。</li><li>Visual Studio Code</li><li>VIM</li><li>Distrobox，使用Docker做後端。</li><li>ytfzf：終端機看Youtube影片。</li></ul><h2>Waydroid執行Android APP<span><a href="#waydroid%E5%9F%B7%E8%A1%8Candroid-app" aria-label="定位點">#</a></span></h2><p>Arch Linux ARM請使用以下指令安裝Waydroid：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo pacman -Syu
-</span></span><span><span>sudo pacman -S python-pyclip xclip wl-clipboard mailcap
-</span></span><span><span>yay -S waydroid-image-gapps
-</span></span><span><span>sudo waydroid init -f
-</span></span><span><span>sudo systemctl <span>enable</span> --now waydroid-container
-</span></span><span><span>
-</span></span><span><span>sudo ufw allow <span>53</span>
-</span></span><span><span>sudo ufw allow <span>67</span>
-</span></span><span><span>sudo ufw default allow FORWARD
-</span></span><span><span>sudo ufw reload
-</span></span><span><span>
-</span></span><span><span>sudo systemctl restart waydroid-container
-</span></span></code></pre></div><p>Waydroid詳細用法參照：<a href="https://ivonblog.com/posts/archlinux-waydroid/" target="_blank">
-Waydroid教學：在Arch Linux電腦跑Android APP</a></p><p>安裝<a href="https://github.com/ohmae/orientation-faker" target="_blank">
-Orientation Faker</a>手動控制Android的螢幕方向。因為如果你旋轉GNOME的螢幕，Waydroid視窗就會被切半。所以最好的操作方法是關閉GNOME的自動旋轉，再手動於Waydroid的軟體旋轉螢幕方向。</p><p>如果想在GNOME全螢幕跑Android APP，請安裝<a href="https://extensions.gnome.org/extension/545/hide-top-bar/" target="_blank">
-Auto hide top bar</a>擴充套件。</p><h2>Box64 + Wine執行Windows exe<span><a href="#box64--wine%E5%9F%B7%E8%A1%8Cwindows-exe" aria-label="定位點">#</a></span></h2><p>Wine大部分支援的Windows程式還是x86架構的，ARM架構的Linux系統必須借助Box64翻譯指令才能執行x86架構的程式。</p><p>我尚未理出Arch Linux ARM跑Wine需要哪些依賴套件，所以我採取在Debian chroot容器內跑Box86的作法。詳細操作見<a href="/posts/linux-phone-box86-steam">
-用Box86在ARM Linux裝置玩x86架構的Linux遊戲</a></p><h2>還有未完成的部分<span><a href="#%E9%82%84%E6%9C%89%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E9%83%A8%E5%88%86" aria-label="定位點">#</a></span></h2><ul><li>藍芽驅動</li><li>相機驅動</li></ul><p>更多資訊可以在<a href="https://wiki.pine64.org/wiki/PineTab2" target="_blank">
-PineTab2 wiki</a>查看。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c33d9fe8.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83c33d9fe8.webp" medium="image"/>
-    <pubDate>Thu, 15 Aug 2024 15:00:00 +0800</pubDate>
   </item></channel>
 </rss>
