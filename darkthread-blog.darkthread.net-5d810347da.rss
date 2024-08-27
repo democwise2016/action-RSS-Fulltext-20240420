@@ -30,6 +30,54 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[在離線環境安裝 Python 套件]]></title>
+    <link>https://blog.darkthread.net/blog/pip-install-offline/</link>
+    <itunes:title><![CDATA[在離線環境安裝 Python 套件]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>五花八門應有盡有的套件是 Python 好用的關鍵之一，在 Python 要安裝套件很簡單，只需 <code>pip install &lt;package-name&gt;</code> 一行指令，pip 工具會查詢 <a href="https://pypi.org/">Python Package Index (PyPI)</a> 依據當前 Python 版本、作業系統、CPU 架構找出適用的套件檔，連同本機還沒安裝的相依套件一起下載安裝，連小學生都會。</p> <p>但 <code>pip install &lt;package-name&gt;</code> 無腦安裝的前題是必須連上網際網路，要無法上網的封閉環境要安裝套件，便需要學會離線安裝 Python 套件的技能。</p> <p>做法不難，先在可連網環境執行 <code>pip download &lt;package-name&gt;</code> (或加 <code>--dest &lt;save-path&gt;</code> 指定下載儲存路徑)，pip 會下載該套件所需的相關檔案(例如：.whl，平台專屬的二進位 Wheel 文件) ，將檔案複製到與世隔絕的主機上，再用指令 <code>pip install &lt;package-name&gt; --no-index --find-links &lt;path-to-package-files&gt;</code>(no-index 表不查詢 PyPI，find-links 指定套件檔來源)，即可在離線環境安裝 Python 套件。</p> <p>補充幾個延伸議題。</p> <h3>平台架構與Python 版本</h3> <p>最常見的套件檔格式是 .whl，它是針對特定平台編譯好的二進位程式庫，可直接執行。但不同 Python 版本、作業系統、CPU 架構有不同的 .whl 檔，通常可由檔名識別。以 Numpy 為例，針對不同 OS 及 Python 版本便有<a href="https://pypi.org/project/numpy/#files">不同的下載檔</a>：</p> <ul><li><code>numpy-2.1.0-pp310-pypy310_pp73-win_amd64.whl</code> - Python 3.10, Windows x86/64</li> <li><code>numpy-2.1.0-cp312-cp312-macosx_14_0_x86_64.whl</code> - Python 3.12, macOS 14+ x86/64</li> <li><code>numpy-2.1.0-cp312-cp312-macosx_14_0_arm64.whl</code> - Python 3.12, macOS 14+, ARM</li> <li><code>numpy-2.1.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl</code> - Python 3.11, Linux glibc 2.17+ x86/64</li></ul> <p>最簡單的做法是準備一台跟部署對象 CPU 架構、作業系統與 Python 版本都相同的電腦或 Docker 容器，在上面用 <code>pip download &lt;package-name&gt;</code> 無腦下載就好了。</p> <h3>從不同平台下載</h3> <p>若沒有相同的環境，下載時也可透過 <code>--platform</code>、<code>--python-version</code> 指定特定平台或版本，但狀況會複雜些。</p> <p>若不確定目標主機的 platform 參數，在目錄平台執行 <code>pip debug --verbose</code> 可找到線索：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638603648219622813.png"></p> <p>pip debug 資料最後有一長串 Comptable tags 清單，項目最後一截是可相容的平台識別字串，細到每個 OS 版本一筆 [1]。而以 numpy 為例，若用相容標籤比對，吻合的會是 <code>cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64</code>，因此，隨便輸入 <code>--platform manylinux_2_35_x86_64</code> 不行 [2]，必須要輸入 <code>--platform manylinux_2_17_x86_64</code> 才能找到 [3]。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638603648222948439.png"></p> <p><code>--platform</code> 參數不支援 * 萬用字元，但支援輸入多筆。由於不確版套件提供的版本會與相容清單的哪一項吻合，一個解法是把所有相容選項都列上去讓 pip 去比對，用一段 PowerShell 來實現：</p> <pre><code>$pipDebug = (&amp; pip debug --verbose) -join "`n"
+$pipDebug -match "(?ims)Compatible tags:(.*)"
+([Text.RegularExpressions.Regex]::Matches($matches[1], '(\S+)\-(\S+)\-(?&lt;p&gt;\S+)') | ForEach-Object {
+'--platform ' + $_.Groups['p'].Value
+} | Select-Object -Unique) -join ' '
+</code></pre> <p>以上 PowerShell 程式在 Ubuntu 22.04 執行 (對，PowerShell、.NET 都可在 Linux/macOS 跑，下回聽到有人 .NET 只能用在 Windows，記得衝上去大力搖醒他 😛) 可得到 <code>--platform manylinux_2_35_x86_64 --platform manylinux_2_34_x86_64 --platform manylinux_2_33_x86_64 --platform manylinux_2_32_x86_64 --platform manylinux_2_31_x86_64 --platform manylinux_2_30_x86_64 --platform manylinux_2_29_x86_64 ... --platform manylinux_2_5_x86_64 --platform manylinux1_x86_64 --platform linux_x86_64 --platform any</code> 這樣的長串文字。</p> <p>將它接在 <code>pip download</code> 後當參數，便能在 Windows 11 為 Ubuntu 22.04 Python 3.10 成功下載 Linux 用的 numpy 套件檔囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638603648224936775.png"></p> <p>同場加映，bash 版 --platform 清單產生器：</p> <pre><code>pipDebug=$(pip debug --verbose)
+if [[ $pipDebug =~ Compatible\ tags:\ (.*) ]]; then
+platforms=$(echo "${BASH_REMATCH[1]}" | grep -oP '\S+-\S+-(\K\S+)' | sort -u | sed 's/^/--platform /' | tr '
+' ' ')
+echo "$platforms"
+fi
+</code></pre> <h3>編譯問題</h3> <p>除了 .whl/.egg 這類編譯好的套件，有些套件提供的是原始碼，pip 下載後會嘗試編譯出二進位檔(前題是已安裝所需的編譯工具)，此時手續會複雜很多。直接說結論：準備一台跟目標主機相同的環境比較快，別浪費生命。但如果你有興趣了解更多，可參考這篇<a href="https://imshuai.com/python-pip-install-package-offline-tensorflow">離線安裝 TensorFlow 套件心得</a>。</p> <p data-slug="pip-install-offline" data-title-en="Tips to install Python package in offline environment" data-catg="Python" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">The blog explains how to install Python packages offline using pip download to fetch necessary files in a connected environment and then pip install --no-index --find-links to install them in an offline environment. It also covers challenges with platform-specific packages and provides scripts to handle platform compatibility.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>五花八門應有盡有的套件是 Python 好用的關鍵之一，在 Python 要安裝套件很簡單，只需 <code>pip install &lt;package-name&gt;</code> 一行指令，pip 工具會查詢 <a href="https://pypi.org/">Python Package Index (PyPI)</a> 依據當前 Python 版本、作業系統、CPU 架構找出適用的套件檔，連同本機還沒安裝的相依套件一起下載安裝，連小學生都會。</p> <p>但 <code>pip install &lt;package-name&gt;</code> 無腦安裝的前題是必須連上網際網路，要無法上網的封閉環境要安裝套件，便需要學會離線安裝 Python 套件的技能。</p> <p>做法不難，先在可連網環境執行 <code>pip download &lt;package-name&gt;</code> (或加 <code>--dest &lt;save-path&gt;</code> 指定下載儲存路徑)，pip 會下載該套件所需的相關檔案(例如：.whl，平台專屬的二進位 Wheel 文件) ，將檔案複製到與世隔絕的主機上，再用指令 <code>pip install &lt;package-name&gt; --no-index --find-links &lt;path-to-package-files&gt;</code>(no-index 表不查詢 PyPI，find-links 指定套件檔來源)，即可在離線環境安裝 Python 套件。</p> <p>補充幾個延伸議題。</p> <h3>平台架構與Python 版本</h3> <p>最常見的套件檔格式是 .whl，它是針對特定平台編譯好的二進位程式庫，可直接執行。但不同 Python 版本、作業系統、CPU 架構有不同的 .whl 檔，通常可由檔名識別。以 Numpy 為例，針對不同 OS 及 Python 版本便有<a href="https://pypi.org/project/numpy/#files">不同的下載檔</a>：</p> <ul><li><code>numpy-2.1.0-pp310-pypy310_pp73-win_amd64.whl</code> - Python 3.10, Windows x86/64</li> <li><code>numpy-2.1.0-cp312-cp312-macosx_14_0_x86_64.whl</code> - Python 3.12, macOS 14+ x86/64</li> <li><code>numpy-2.1.0-cp312-cp312-macosx_14_0_arm64.whl</code> - Python 3.12, macOS 14+, ARM</li> <li><code>numpy-2.1.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl</code> - Python 3.11, Linux glibc 2.17+ x86/64</li></ul> <p>最簡單的做法是準備一台跟部署對象 CPU 架構、作業系統與 Python 版本都相同的電腦或 Docker 容器，在上面用 <code>pip download &lt;package-name&gt;</code> 無腦下載就好了。</p> <h3>從不同平台下載</h3> <p>若沒有相同的環境，下載時也可透過 <code>--platform</code>、<code>--python-version</code> 指定特定平台或版本，但狀況會複雜些。</p> <p>若不確定目標主機的 platform 參數，在目錄平台執行 <code>pip debug --verbose</code> 可找到線索：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638603648219622813.png"></p> <p>pip debug 資料最後有一長串 Comptable tags 清單，項目最後一截是可相容的平台識別字串，細到每個 OS 版本一筆 [1]。而以 numpy 為例，若用相容標籤比對，吻合的會是 <code>cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64</code>，因此，隨便輸入 <code>--platform manylinux_2_35_x86_64</code> 不行 [2]，必須要輸入 <code>--platform manylinux_2_17_x86_64</code> 才能找到 [3]。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638603648222948439.png"></p> <p><code>--platform</code> 參數不支援 * 萬用字元，但支援輸入多筆。由於不確版套件提供的版本會與相容清單的哪一項吻合，一個解法是把所有相容選項都列上去讓 pip 去比對，用一段 PowerShell 來實現：</p> <pre><code>$pipDebug = (&amp; pip debug --verbose) -join "`n"
+$pipDebug -match "(?ims)Compatible tags:(.*)"
+([Text.RegularExpressions.Regex]::Matches($matches[1], '(\S+)\-(\S+)\-(?&lt;p&gt;\S+)') | ForEach-Object {
+'--platform ' + $_.Groups['p'].Value
+} | Select-Object -Unique) -join ' '
+</code></pre> <p>以上 PowerShell 程式在 Ubuntu 22.04 執行 (對，PowerShell、.NET 都可在 Linux/macOS 跑，下回聽到有人 .NET 只能用在 Windows，記得衝上去大力搖醒他 😛) 可得到 <code>--platform manylinux_2_35_x86_64 --platform manylinux_2_34_x86_64 --platform manylinux_2_33_x86_64 --platform manylinux_2_32_x86_64 --platform manylinux_2_31_x86_64 --platform manylinux_2_30_x86_64 --platform manylinux_2_29_x86_64 ... --platform manylinux_2_5_x86_64 --platform manylinux1_x86_64 --platform linux_x86_64 --platform any</code> 這樣的長串文字。</p> <p>將它接在 <code>pip download</code> 後當參數，便能在 Windows 11 為 Ubuntu 22.04 Python 3.10 成功下載 Linux 用的 numpy 套件檔囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638603648224936775.png"></p> <p>同場加映，bash 版 --platform 清單產生器：</p> <pre><code>pipDebug=$(pip debug --verbose)
+if [[ $pipDebug =~ Compatible\ tags:\ (.*) ]]; then
+platforms=$(echo "${BASH_REMATCH[1]}" | grep -oP '\S+-\S+-(\K\S+)' | sort -u | sed 's/^/--platform /' | tr '
+' ' ')
+echo "$platforms"
+fi
+</code></pre> <h3>編譯問題</h3> <p>除了 .whl/.egg 這類編譯好的套件，有些套件提供的是原始碼，pip 下載後會嘗試編譯出二進位檔(前題是已安裝所需的編譯工具)，此時手續會複雜很多。直接說結論：準備一台跟目標主機相同的環境比較快，別浪費生命。但如果你有興趣了解更多，可參考這篇<a href="https://imshuai.com/python-pip-install-package-offline-tensorflow">離線安裝 TensorFlow 套件心得</a>。</p> <p data-slug="pip-install-offline" data-title-en="Tips to install Python package in offline environment" data-catg="Python" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">The blog explains how to install Python packages offline using pip download to fetch necessary files in a connected environment and then pip install --no-index --find-links to install them in an offline environment. It also covers challenges with platform-specific packages and provides scripts to handle platform compatibility.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>五花八門應有盡有的套件是 Python 好用的關鍵之一，在 Python 要安裝套件很簡單，只需 <code>pip install &lt;package-name&gt;</code> 一行指令，pip 工具會查詢 <a href="https://pypi.org/">Python Package Index (PyPI)</a> 依據當前 Python 版本、作業系統、CPU 架構找出適用的套件檔，連同本機還沒安裝的相依套件一起下載安裝，連小學生都會。</p> <p>但 <code>pip install &lt;package-name&gt;</code> 無腦安裝的前題是必須連上網際網路，要無法上網的封閉環境要安裝套件，便需要學會離線安裝 Python 套件的技能。</p> <p>做法不難，先在可連網環境執行 <code>pip download &lt;package-name&gt;</code> (或加 <code>--dest &lt;save-path&gt;</code> 指定下載儲存路徑)，pip 會下載該套件所需的相關檔案(例如：.whl，平台專屬的二進位 Wheel 文件) ，將檔案複製到與世隔絕的主機上，再用指令 <code>pip install &lt;package-name&gt; --no-index --find-links &lt;path-to-package-files&gt;</code>(no-index 表不查詢 PyPI，find-links 指定套件檔來源)，即可在離線環境安裝 Python 套件。</p> <p>補充幾個延伸議題。</p> <h3>平台架構與Python 版本</h3> <p>最常見的套件檔格式是 .whl，它是針對特定平台編譯好的二進位程式庫，可直接執行。但不同 Python 版本、作業系統、CPU 架構有不同的 .whl 檔，通常可由檔名識別。以 Numpy 為例，針對不同 OS 及 Python 版本便有<a href="https://pypi.org/project/numpy/#files">不同的下載檔</a>：</p> <ul><li><code>numpy-2.1.0-pp310-pypy310_pp73-win_amd64.whl</code> - Python 3.10, Windows x86/64</li> <li><code>numpy-2.1.0-cp312-cp312-macosx_14_0_x86_64.whl</code> - Python 3.12, macOS 14+ x86/64</li> <li><code>numpy-2.1.0-cp312-cp312-macosx_14_0_arm64.whl</code> - Python 3.12, macOS 14+, ARM</li> <li><code>numpy-2.1.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl</code> - Python 3.11, Linux glibc 2.17+ x86/64</li></ul> <p>最簡單的做法是準備一台跟部署對象 CPU 架構、作業系統與 Python 版本都相同的電腦或 Docker 容器，在上面用 <code>pip download &lt;package-name&gt;</code> 無腦下載就好了。</p> <h3>從不同平台下載</h3> <p>若沒有相同的環境，下載時也可透過 <code>--platform</code>、<code>--python-version</code> 指定特定平台或版本，但狀況會複雜些。</p> <p>若不確定目標主機的 platform 參數，在目錄平台執行 <code>pip debug --verbose</code> 可找到線索：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638603648219622813.png"></p> <p>pip debug 資料最後有一長串 Comptable tags 清單，項目最後一截是可相容的平台識別字串，細到每個 OS 版本一筆 [1]。而以 numpy 為例，若用相容標籤比對，吻合的會是 <code>cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64</code>，因此，隨便輸入 <code>--platform manylinux_2_35_x86_64</code> 不行 [2]，必須要輸入 <code>--platform manylinux_2_17_x86_64</code> 才能找到 [3]。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638603648222948439.png"></p> <p><code>--platform</code> 參數不支援 * 萬用字元，但支援輸入多筆。由於不確版套件提供的版本會與相容清單的哪一項吻合，一個解法是把所有相容選項都列上去讓 pip 去比對，用一段 PowerShell 來實現：</p> <pre><code>$pipDebug = (&amp; pip debug --verbose) -join "`n"
+$pipDebug -match "(?ims)Compatible tags:(.*)"
+([Text.RegularExpressions.Regex]::Matches($matches[1], '(\S+)\-(\S+)\-(?&lt;p&gt;\S+)') | ForEach-Object {
+'--platform ' + $_.Groups['p'].Value
+} | Select-Object -Unique) -join ' '
+</code></pre> <p>以上 PowerShell 程式在 Ubuntu 22.04 執行 (對，PowerShell、.NET 都可在 Linux/macOS 跑，下回聽到有人 .NET 只能用在 Windows，記得衝上去大力搖醒他 😛) 可得到 <code>--platform manylinux_2_35_x86_64 --platform manylinux_2_34_x86_64 --platform manylinux_2_33_x86_64 --platform manylinux_2_32_x86_64 --platform manylinux_2_31_x86_64 --platform manylinux_2_30_x86_64 --platform manylinux_2_29_x86_64 ... --platform manylinux_2_5_x86_64 --platform manylinux1_x86_64 --platform linux_x86_64 --platform any</code> 這樣的長串文字。</p> <p>將它接在 <code>pip download</code> 後當參數，便能在 Windows 11 為 Ubuntu 22.04 Python 3.10 成功下載 Linux 用的 numpy 套件檔囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638603648224936775.png"></p> <p>同場加映，bash 版 --platform 清單產生器：</p> <pre><code>pipDebug=$(pip debug --verbose)
+if [[ $pipDebug =~ Compatible\ tags:\ (.*) ]]; then
+platforms=$(echo "${BASH_REMATCH[1]}" | grep -oP '\S+-\S+-(\K\S+)' | sort -u | sed 's/^/--platform /' | tr '
+' ' ')
+echo "$platforms"
+fi
+</code></pre> <h3>編譯問題</h3> <p>除了 .whl/.egg 這類編譯好的套件，有些套件提供的是原始碼，pip 下載後會嘗試編譯出二進位檔(前題是已安裝所需的編譯工具)，此時手續會複雜很多。直接說結論：準備一台跟目標主機相同的環境比較快，別浪費生命。但如果你有興趣了解更多，可參考這篇<a href="https://imshuai.com/python-pip-install-package-offline-tensorflow">離線安裝 TensorFlow 套件心得</a>。</p> <p data-slug="pip-install-offline" data-title-en="Tips to install Python package in offline environment" data-catg="Python" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">The blog explains how to install Python packages offline using pip download to fetch necessary files in a connected environment and then pip install --no-index --find-links to install them in an offline environment. It also covers challenges with platform-specific packages and provides scripts to handle platform compatibility.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638603648219622813.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638603648219622813.png" medium="image"/>
+    <pubDate>Tue, 27 Aug 2024 14:11:03 GMT</pubDate>
+  </item><item>
     <title><![CDATA[System.Data.SqlClient 停止支援 (EOS) 時程表]]></title>
     <link>https://blog.darkthread.net/blog/system-data-sqlclient-eos/</link>
     <itunes:title><![CDATA[System.Data.SqlClient 停止支援 (EOS) 時程表]]></itunes:title>
@@ -1802,476 +1850,5 @@ fmt.Println("Total Success Count: ", succCount)
     <itunes:image href="/img/calendar.svg"/>
           <media:content url="/img/calendar.svg" medium="image"/>
     <pubDate>Fri, 02 Aug 2024 14:00:25 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel]]></title>
-    <link>https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/</link>
-    <itunes:title><![CDATA[再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/ps-runspace-n-foreach-parallel/" itemprop="url">再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-31 11:03 PM"> <time datetime="2024-07-31T15:03:55" itemprop="datePublished"> 2024-07-31 11:03 PM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/ps-runspace-n-foreach-parallel"> </span> </td><td> <a href="/Blog/ps-runspace-n-foreach-parallel/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>關於在 PowerShell 使用多執行緒平行執行作業，先前介紹過 <a href="/blog/psfaq-parallel-execution/">Start-Job</a>。</p> <p>Start-Job 會在背後啟動另一個 Process 跑 ScriptBlock，寫法較簡單但有兩個明顯缺點：</p> <ol><li>啟動一整個 Process 的成本不低，因此 Start-Job 明顯較笨重，效能也差，<a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">慘輸給另開 Thread 的 Runspace</a>。<br> <img src="/img/loading.svg"><br> <a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">圖表來源</a></li> <li>由於 Start-Job 的程式在另一個 Process 裡執行，參數只能序列化後傳遞，無法共用變數及物件，父程式或平行作業間很難溝通。</li></ol> <p>基於以上理由，Runspace 雖然較複雜，仍有學習的價值，這篇文章就來練習使用 Runspace 執行平行作業。(註：後面會介紹 PowerShell 7+ 新加入的厲害武器，這裡先討論 PowerShell 5.1 相容寫法)</p> <p>開始之前，我們先複習 Start-Job 寫法，以下是個簡單範例，總共要產生 32 個 GUID，分成四組平行產生，每次產生後等待 450 ~ 500ms，預期 3.5s 跑完。</p> <pre><code>$groups = @(
-@(0..7),
-@(8..15),
-@(16..23),
-@(24..31)
-)
-$sw = [System.Diagnostics.Stopwatch]::StartNew()
-# 平行執行
-$psJobPool = @()
-$groups | ForEach-Object {
-$psJob = Start-Job -ScriptBlock {
-param ([object[]]$array)
-$array | ForEach-Object {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-return $guid
-}
-} -ArgumentList @(, $_)
-$psJobPool += $psJob
-}
-# Wait-Job 可等待所有 PSJob 結束
-$psJobPool | Wait-Job | Out-Null
-Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
-# Receive-Job 接收 PSJob 傳回結果
-$groupNo = 0
-$psJobPool | ForEach-Object {
-$result = Receive-Job -Job $_
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-Write-Host ($result -join ',')
-}
-</code></pre> <p>實測加上 Start-Job 的 Overhead，耗時約 4.6。</p> <p><img src="/img/loading.svg"></p> <p>接著，我們嘗試改用 Runspace 來跑。</p> <p>Runspace 的使用方式是先透過 RunspaceFactory 建立 Runspace，再建立 PowerShell 物件使用該 Runspace 物件執行。PowerShell 物件除了 Invoke() 方法外，還提供 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.begininvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580#system-management-automation-powershell-begininvoke">BeginInvoke()</a> 支援非同步呼叫，同時啟動多個 PowerShell.BeginInvoke()，檢查它們傳回的 IAsyncResult.IsCompleted 狀態等待所有 PowerShell 物件執行完畢，透過 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.endinvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580">EndInvoke()</a> 取回結果，便實現了平行作業。<a href="https://learn.microsoft.com/en-us/powershell/scripting/developer/hosting/runspace07-sample?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Runspace 官方範例</a></p> <p>依據以上概念，我們將 Start-Job 版改成 Runspace 版：</p> <pre><code>$groups = @(
-@(0..7),
-@(8..15),
-@(16..23),
-@(24..31)
-)
-$scriptBlock = {
-param ([object[]]$array)
-$array | ForEach-Object {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-return $guid
-}
-}
-$jobs = @()
-$sw = [System.Diagnostics.Stopwatch]::StartNew()
-$groups | ForEach-Object {
-$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
-$rs.Open()
-$ps = [System.Management.Automation.PowerShell]::Create()
-$ps.Runspace = $rs
-$ps.AddScript($scriptBlock).AddArgument($_) | Out-Null
-$jobs += [PSCustomObject]@{
-Job = $ps.BeginInvoke()
-Runspace = $rs
-PowerShell = $ps
-}
-}
-while ($jobs.Job.IsCompleted -contains $false) {
-Start-Sleep -Milliseconds 100
-}
-Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
-$groupNo = 0
-$jobs | ForEach-Object {
-$res = $_.PowerShell.EndInvoke($_.Job)
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-Write-Host ($res -join ',')
-$_.PowerShell.Dispose()
-$_.Runspace.Close()
-$_.Runspace.Dispose()
-}
-</code></pre> <p>寫法複雜些，但執行速度變快，3.9s 完成。在這個範例中，我們只啟動四線平行作業，平行數量愈多，Start-Job 與 Runspace 的效能差異會更明顯。</p> <p><img src="/img/loading.svg"></p> <p>然而，Runspace 更可貴之處在於我們可以傳遞物件參數進去，與 Runspace 執行 ScriptBlock 共享物件，如此可做到各 Thread 由共用 Queue 取出待辦工作，實現經典的<a href="https://zh.wikipedia.org/zh-tw/%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98">生產者消費者模式</a>；而原本另起 PowerShell 物件執行無法用 Write-Host 將進度輸出到終端的問題，也能透過新增進度訊息字串 Queue 解決。</p> <p>在 Runspace 間共享物件必須考量 Thread-Safty，放任多執行緒同時更新集合物件，很容易<a href="/blog/dictionary-thread-safe/">遇到各式各類的鬼問題</a>。PowerShell 不像 C# 有 <a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/language-reference/statements/lock?WT.mc_id=DOP-MVP-37580">lock 指令</a>，但用 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.threading.mutex?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">Mutex 互斥鎖</a>便能簡單實現多執行緒安全更新。這裡我選擇更簡便的做法，直接借用 .NET <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580"><code>ConcurrentQueue&lt;object&gt;</code></a>。</p> <p>而在呼叫 Runspace ScriptBlock 時，要以 By Reference 傳入 ConcurrentQueue 物件，做法傳入參數為加上 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/about/about_ref?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#writing-functions-to-accept-reference-parameters">[ref]</a>，而函式內則透過 .Value 屬性存取內容。</p> <p>具備以上知識後來著手改造程式。概念是設一個待辦 Queue，放入 32 個待辦工作，建立四個 Runspace 同步執行，各 Runspace 自己從待辦區撿工作來做，執行結果 Write-Output 傳回或存入結果 Queue。而為了即時觀察進度，我的解法是增設一個 Queue 蒐集進度訊息字串，在等待過程即時顯示。完整程式如下：</p> <pre><code>$ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Collections.Concurrent
-[PSCustomObject[]]$items = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
-$todoItems = [System.Collections.Concurrent.ConcurrentQueue[object]]::new($items)
-$progressMsgs = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
-$results = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
-$scriptBlock = {
-param ([ref]$todo, [ref]$results, [ref]$progressMsgs)
-while (-not $todo.Value.IsEmpty) {
-$item = $null
-if (-not $todo.Value.TryDequeue([ref]$item)) {
-continue
-}
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Write-Output "$guid"
-# 除了用 Write-Output 回傳結果以 EndInvoke() 接收，
-# 一併示範用 Queue 蒐集結果
-$item.Result = $guid
-$results.Value.Enqueue($item)
-# 回報進度
-$progressMsgs.Value.Enqueue("Generated: $guid")
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-}
-}
-(Measure-Command {
-$jobs = @()
-(1..4) | ForEach-Object {
-$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
-$rs.Open()
-$ps = [System.Management.Automation.PowerShell]::Create()
-$ps.Runspace = $rs
-$ps.AddScript($scriptBlock).AddArgument([ref]$todoItems).AddArgument([ref]$results).AddArgument([ref]$progressMsgs) | Out-Null
-$jobs += [PSCustomObject]@{
-Job = $ps.BeginInvoke()
-Runspace = $rs
-PowerShell = $ps
-}
-}
-while ($jobs.Job.IsCompleted -contains $false) {
-while (-not $progressMsgs.IsEmpty) {
-$msg = $null
-if ($progressMsgs.TryDequeue([ref]$msg))
-{
-Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) $msg"
-}
-}
-Start-Sleep -Milliseconds 100
-}
-}).TotalMilliseconds
-$groupNo = 0
-$jobs | ForEach-Object {
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-$res = $_.PowerShell.EndInvoke($_.Job)
-Write-Host ($res -join ',')
-$_.PowerShell.Dispose()
-$_.Runspace.Close()
-$_.Runspace.Dispose()
-}
-Write-Host "Results Queue: " -ForegroundColor Yellow
-($results.ToArray() | ForEach-Object {
-$_.Result
-}) -join ','
-</code></pre> <p>如此，我們實現了用四個 Consumer 消化待辦工作的 PowerShell 平行作業：</p> <p><img src="/img/loading.svg"></p> <p>除了預先指定平行 Runspace 數量，PowerShell 也提供 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/developer/hosting/creating-multiple-runspaces?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#creating-and-using-a-runspace-pool">RunspacePool</a>，可用類似 ThreadPool 的概念輕鬆發揮多執行緒的效益。</p> <p>最後，如果你已升級到 PowerShell 7+，<a href="https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/?WT.mc_id=DOP-MVP-37580">新加入的 ForEach-Object -Parallel 功能</a>讓事情簡單十倍，沿用原本的 ForEach-Object 寫法，加上 -Parallel 開啟平行處理，並加上 -ThrottleLimit 指定最多幾條 Thread，原本的 ForEach-Object 迴圈當場升級成平行作業，而在其中的 Write-Host 可正常顯示，不需花功夫自己串接。夠簡單吧？</p> <pre><code># https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/
-$ErrorActionPreference = 'Stop'
-[PSCustomObject[]]$todoItems = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
-(Measure-Command {
-$results = $todoItems | Foreach-Object -ThrottleLimit 8 -Parallel {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-$_.Result = $guid
-Write-Output $_
-Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) Generated: $guid"
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-}
-}).TotalMilliseconds
-Write-Host "Results Queue: " -ForegroundColor Yellow
-($results | ForEach-Object {
-$_.Result
-}) -join ','
-</code></pre> <p><img src="/img/loading.svg"></p> <p>以上就是在 PowerShell 5.1 及 PowerShell 7+ 實現平行作業的簡單介紹，希望對大家有幫助。</p> <p data-slug="ps-runspace-n-foreach-parallel" data-title-en="PowerShell Runspace and ForEach-Object Parallel" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/02/11/53/weaving-loom-2571179_960_720.jpg#960#720">The blog post compares Start-Job and Runspaces for parallel execution in PowerShell, emphasizing Runspaces’ efficiency and flexibility. It provides detailed examples for both PowerShell 5.1 and 7+, showcasing how to use Runspaces for parallel tasks and introducing ForEach-Object -Parallel for simpler parallel processing in PowerShell 7+.</p> </div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/powershell">PowerShell</a></li></ul> and has <a href="/blog/ps-runspace-n-foreach-parallel/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-31T15:19:01"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F&amp;text=%E5%86%8D%E8%AB%87+PowerShell+%E5%B9%B3%E8%A1%8C%E4%BD%9C%E6%A5%AD+-+%E5%BE%9E+Runspace+%E5%88%B0+ForEach-Object+-Parallel" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=再談%20PowerShell%20平行作業%20-%20從%20Runspace%20到%20ForEach-Object%20-Parallel&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638580354362131743"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/ps-runspace-n-foreach-parallel/" itemprop="url">再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-31 11:03 PM"> <time datetime="2024-07-31T15:03:55" itemprop="datePublished"> 2024-07-31 11:03 PM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/ps-runspace-n-foreach-parallel"> </span> </td><td> <a href="/Blog/ps-runspace-n-foreach-parallel/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>關於在 PowerShell 使用多執行緒平行執行作業，先前介紹過 <a href="/blog/psfaq-parallel-execution/">Start-Job</a>。</p> <p>Start-Job 會在背後啟動另一個 Process 跑 ScriptBlock，寫法較簡單但有兩個明顯缺點：</p> <ol><li>啟動一整個 Process 的成本不低，因此 Start-Job 明顯較笨重，效能也差，<a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">慘輸給另開 Thread 的 Runspace</a>。<br> <img src="/img/loading.svg"><br> <a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">圖表來源</a></li> <li>由於 Start-Job 的程式在另一個 Process 裡執行，參數只能序列化後傳遞，無法共用變數及物件，父程式或平行作業間很難溝通。</li></ol> <p>基於以上理由，Runspace 雖然較複雜，仍有學習的價值，這篇文章就來練習使用 Runspace 執行平行作業。(註：後面會介紹 PowerShell 7+ 新加入的厲害武器，這裡先討論 PowerShell 5.1 相容寫法)</p> <p>開始之前，我們先複習 Start-Job 寫法，以下是個簡單範例，總共要產生 32 個 GUID，分成四組平行產生，每次產生後等待 450 ~ 500ms，預期 3.5s 跑完。</p> <pre><code>$groups = @(
-@(0..7),
-@(8..15),
-@(16..23),
-@(24..31)
-)
-$sw = [System.Diagnostics.Stopwatch]::StartNew()
-# 平行執行
-$psJobPool = @()
-$groups | ForEach-Object {
-$psJob = Start-Job -ScriptBlock {
-param ([object[]]$array)
-$array | ForEach-Object {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-return $guid
-}
-} -ArgumentList @(, $_)
-$psJobPool += $psJob
-}
-# Wait-Job 可等待所有 PSJob 結束
-$psJobPool | Wait-Job | Out-Null
-Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
-# Receive-Job 接收 PSJob 傳回結果
-$groupNo = 0
-$psJobPool | ForEach-Object {
-$result = Receive-Job -Job $_
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-Write-Host ($result -join ',')
-}
-</code></pre> <p>實測加上 Start-Job 的 Overhead，耗時約 4.6。</p> <p><img src="/img/loading.svg"></p> <p>接著，我們嘗試改用 Runspace 來跑。</p> <p>Runspace 的使用方式是先透過 RunspaceFactory 建立 Runspace，再建立 PowerShell 物件使用該 Runspace 物件執行。PowerShell 物件除了 Invoke() 方法外，還提供 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.begininvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580#system-management-automation-powershell-begininvoke">BeginInvoke()</a> 支援非同步呼叫，同時啟動多個 PowerShell.BeginInvoke()，檢查它們傳回的 IAsyncResult.IsCompleted 狀態等待所有 PowerShell 物件執行完畢，透過 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.endinvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580">EndInvoke()</a> 取回結果，便實現了平行作業。<a href="https://learn.microsoft.com/en-us/powershell/scripting/developer/hosting/runspace07-sample?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Runspace 官方範例</a></p> <p>依據以上概念，我們將 Start-Job 版改成 Runspace 版：</p> <pre><code>$groups = @(
-@(0..7),
-@(8..15),
-@(16..23),
-@(24..31)
-)
-$scriptBlock = {
-param ([object[]]$array)
-$array | ForEach-Object {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-return $guid
-}
-}
-$jobs = @()
-$sw = [System.Diagnostics.Stopwatch]::StartNew()
-$groups | ForEach-Object {
-$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
-$rs.Open()
-$ps = [System.Management.Automation.PowerShell]::Create()
-$ps.Runspace = $rs
-$ps.AddScript($scriptBlock).AddArgument($_) | Out-Null
-$jobs += [PSCustomObject]@{
-Job = $ps.BeginInvoke()
-Runspace = $rs
-PowerShell = $ps
-}
-}
-while ($jobs.Job.IsCompleted -contains $false) {
-Start-Sleep -Milliseconds 100
-}
-Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
-$groupNo = 0
-$jobs | ForEach-Object {
-$res = $_.PowerShell.EndInvoke($_.Job)
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-Write-Host ($res -join ',')
-$_.PowerShell.Dispose()
-$_.Runspace.Close()
-$_.Runspace.Dispose()
-}
-</code></pre> <p>寫法複雜些，但執行速度變快，3.9s 完成。在這個範例中，我們只啟動四線平行作業，平行數量愈多，Start-Job 與 Runspace 的效能差異會更明顯。</p> <p><img src="/img/loading.svg"></p> <p>然而，Runspace 更可貴之處在於我們可以傳遞物件參數進去，與 Runspace 執行 ScriptBlock 共享物件，如此可做到各 Thread 由共用 Queue 取出待辦工作，實現經典的<a href="https://zh.wikipedia.org/zh-tw/%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98">生產者消費者模式</a>；而原本另起 PowerShell 物件執行無法用 Write-Host 將進度輸出到終端的問題，也能透過新增進度訊息字串 Queue 解決。</p> <p>在 Runspace 間共享物件必須考量 Thread-Safty，放任多執行緒同時更新集合物件，很容易<a href="/blog/dictionary-thread-safe/">遇到各式各類的鬼問題</a>。PowerShell 不像 C# 有 <a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/language-reference/statements/lock?WT.mc_id=DOP-MVP-37580">lock 指令</a>，但用 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.threading.mutex?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">Mutex 互斥鎖</a>便能簡單實現多執行緒安全更新。這裡我選擇更簡便的做法，直接借用 .NET <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580"><code>ConcurrentQueue&lt;object&gt;</code></a>。</p> <p>而在呼叫 Runspace ScriptBlock 時，要以 By Reference 傳入 ConcurrentQueue 物件，做法傳入參數為加上 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/about/about_ref?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#writing-functions-to-accept-reference-parameters">[ref]</a>，而函式內則透過 .Value 屬性存取內容。</p> <p>具備以上知識後來著手改造程式。概念是設一個待辦 Queue，放入 32 個待辦工作，建立四個 Runspace 同步執行，各 Runspace 自己從待辦區撿工作來做，執行結果 Write-Output 傳回或存入結果 Queue。而為了即時觀察進度，我的解法是增設一個 Queue 蒐集進度訊息字串，在等待過程即時顯示。完整程式如下：</p> <pre><code>$ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Collections.Concurrent
-[PSCustomObject[]]$items = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
-$todoItems = [System.Collections.Concurrent.ConcurrentQueue[object]]::new($items)
-$progressMsgs = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
-$results = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
-$scriptBlock = {
-param ([ref]$todo, [ref]$results, [ref]$progressMsgs)
-while (-not $todo.Value.IsEmpty) {
-$item = $null
-if (-not $todo.Value.TryDequeue([ref]$item)) {
-continue
-}
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Write-Output "$guid"
-# 除了用 Write-Output 回傳結果以 EndInvoke() 接收，
-# 一併示範用 Queue 蒐集結果
-$item.Result = $guid
-$results.Value.Enqueue($item)
-# 回報進度
-$progressMsgs.Value.Enqueue("Generated: $guid")
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-}
-}
-(Measure-Command {
-$jobs = @()
-(1..4) | ForEach-Object {
-$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
-$rs.Open()
-$ps = [System.Management.Automation.PowerShell]::Create()
-$ps.Runspace = $rs
-$ps.AddScript($scriptBlock).AddArgument([ref]$todoItems).AddArgument([ref]$results).AddArgument([ref]$progressMsgs) | Out-Null
-$jobs += [PSCustomObject]@{
-Job = $ps.BeginInvoke()
-Runspace = $rs
-PowerShell = $ps
-}
-}
-while ($jobs.Job.IsCompleted -contains $false) {
-while (-not $progressMsgs.IsEmpty) {
-$msg = $null
-if ($progressMsgs.TryDequeue([ref]$msg))
-{
-Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) $msg"
-}
-}
-Start-Sleep -Milliseconds 100
-}
-}).TotalMilliseconds
-$groupNo = 0
-$jobs | ForEach-Object {
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-$res = $_.PowerShell.EndInvoke($_.Job)
-Write-Host ($res -join ',')
-$_.PowerShell.Dispose()
-$_.Runspace.Close()
-$_.Runspace.Dispose()
-}
-Write-Host "Results Queue: " -ForegroundColor Yellow
-($results.ToArray() | ForEach-Object {
-$_.Result
-}) -join ','
-</code></pre> <p>如此，我們實現了用四個 Consumer 消化待辦工作的 PowerShell 平行作業：</p> <p><img src="/img/loading.svg"></p> <p>除了預先指定平行 Runspace 數量，PowerShell 也提供 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/developer/hosting/creating-multiple-runspaces?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#creating-and-using-a-runspace-pool">RunspacePool</a>，可用類似 ThreadPool 的概念輕鬆發揮多執行緒的效益。</p> <p>最後，如果你已升級到 PowerShell 7+，<a href="https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/?WT.mc_id=DOP-MVP-37580">新加入的 ForEach-Object -Parallel 功能</a>讓事情簡單十倍，沿用原本的 ForEach-Object 寫法，加上 -Parallel 開啟平行處理，並加上 -ThrottleLimit 指定最多幾條 Thread，原本的 ForEach-Object 迴圈當場升級成平行作業，而在其中的 Write-Host 可正常顯示，不需花功夫自己串接。夠簡單吧？</p> <pre><code># https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/
-$ErrorActionPreference = 'Stop'
-[PSCustomObject[]]$todoItems = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
-(Measure-Command {
-$results = $todoItems | Foreach-Object -ThrottleLimit 8 -Parallel {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-$_.Result = $guid
-Write-Output $_
-Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) Generated: $guid"
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-}
-}).TotalMilliseconds
-Write-Host "Results Queue: " -ForegroundColor Yellow
-($results | ForEach-Object {
-$_.Result
-}) -join ','
-</code></pre> <p><img src="/img/loading.svg"></p> <p>以上就是在 PowerShell 5.1 及 PowerShell 7+ 實現平行作業的簡單介紹，希望對大家有幫助。</p> <p data-slug="ps-runspace-n-foreach-parallel" data-title-en="PowerShell Runspace and ForEach-Object Parallel" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/02/11/53/weaving-loom-2571179_960_720.jpg#960#720">The blog post compares Start-Job and Runspaces for parallel execution in PowerShell, emphasizing Runspaces’ efficiency and flexibility. It provides detailed examples for both PowerShell 5.1 and 7+, showcasing how to use Runspaces for parallel tasks and introducing ForEach-Object -Parallel for simpler parallel processing in PowerShell 7+.</p> </div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/powershell">PowerShell</a></li></ul> and has <a href="/blog/ps-runspace-n-foreach-parallel/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-31T15:19:01"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F&amp;text=%E5%86%8D%E8%AB%87+PowerShell+%E5%B9%B3%E8%A1%8C%E4%BD%9C%E6%A5%AD+-+%E5%BE%9E+Runspace+%E5%88%B0+ForEach-Object+-Parallel" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=再談%20PowerShell%20平行作業%20-%20從%20Runspace%20到%20ForEach-Object%20-Parallel&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638580354362131743"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]>
-    </description>
-    <content:encoded><![CDATA[<header> <a href="/"> <div> </div> </a> </header> <main itemprop="mainEntity" itemscope="" itemtype="http://schema.org/Blog">   <article itemscope="" itemtype="http://schema.org/BlogPosting" itemprop="blogPost"> <header> <h1 itemprop="name headline"> <a href="/blog/ps-runspace-n-foreach-parallel/" itemprop="url">再談 PowerShell 平行作業 - 從 Runspace 到 ForEach-Object -Parallel</a> </h1> <table><tbody><tr><td> <img src="/img/calendar.svg"> </td><td> <span title="Published at 2024-07-31 11:03 PM"> <time datetime="2024-07-31T15:03:55" itemprop="datePublished"> 2024-07-31 11:03 PM </time> </span> </td><td> <img src="/img/comment.svg"> </td><td> <span title="0 comments"> 0 </span> </td><td> <img src="/img/eye.svg"> </td><td> <span data-ajax-url="/blog/pageviewcount/ps-runspace-n-foreach-parallel"> </span> </td><td> <a href="/Blog/ps-runspace-n-foreach-parallel/"> <img src="/img/FixImgLoading.gif"> </a></td></tr></tbody></table> </header> <div itemprop="articleBody mainEntityOfPage"> <p>關於在 PowerShell 使用多執行緒平行執行作業，先前介紹過 <a href="/blog/psfaq-parallel-execution/">Start-Job</a>。</p> <p>Start-Job 會在背後啟動另一個 Process 跑 ScriptBlock，寫法較簡單但有兩個明顯缺點：</p> <ol><li>啟動一整個 Process 的成本不低，因此 Start-Job 明顯較笨重，效能也差，<a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">慘輸給另開 Thread 的 Runspace</a>。<br> <img src="/img/loading.svg"><br> <a href="https://learn-powershell.net/2012/05/13/using-background-runspaces-instead-of-psjobs-for-better-performance/">圖表來源</a></li> <li>由於 Start-Job 的程式在另一個 Process 裡執行，參數只能序列化後傳遞，無法共用變數及物件，父程式或平行作業間很難溝通。</li></ol> <p>基於以上理由，Runspace 雖然較複雜，仍有學習的價值，這篇文章就來練習使用 Runspace 執行平行作業。(註：後面會介紹 PowerShell 7+ 新加入的厲害武器，這裡先討論 PowerShell 5.1 相容寫法)</p> <p>開始之前，我們先複習 Start-Job 寫法，以下是個簡單範例，總共要產生 32 個 GUID，分成四組平行產生，每次產生後等待 450 ~ 500ms，預期 3.5s 跑完。</p> <pre><code>$groups = @(
-@(0..7),
-@(8..15),
-@(16..23),
-@(24..31)
-)
-$sw = [System.Diagnostics.Stopwatch]::StartNew()
-# 平行執行
-$psJobPool = @()
-$groups | ForEach-Object {
-$psJob = Start-Job -ScriptBlock {
-param ([object[]]$array)
-$array | ForEach-Object {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-return $guid
-}
-} -ArgumentList @(, $_)
-$psJobPool += $psJob
-}
-# Wait-Job 可等待所有 PSJob 結束
-$psJobPool | Wait-Job | Out-Null
-Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
-# Receive-Job 接收 PSJob 傳回結果
-$groupNo = 0
-$psJobPool | ForEach-Object {
-$result = Receive-Job -Job $_
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-Write-Host ($result -join ',')
-}
-</code></pre> <p>實測加上 Start-Job 的 Overhead，耗時約 4.6。</p> <p><img src="/img/loading.svg"></p> <p>接著，我們嘗試改用 Runspace 來跑。</p> <p>Runspace 的使用方式是先透過 RunspaceFactory 建立 Runspace，再建立 PowerShell 物件使用該 Runspace 物件執行。PowerShell 物件除了 Invoke() 方法外，還提供 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.begininvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580#system-management-automation-powershell-begininvoke">BeginInvoke()</a> 支援非同步呼叫，同時啟動多個 PowerShell.BeginInvoke()，檢查它們傳回的 IAsyncResult.IsCompleted 狀態等待所有 PowerShell 物件執行完畢，透過 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.powershell.endinvoke?view=powershellsdk-1.1.0&amp;WT.mc_id=DOP-MVP-37580">EndInvoke()</a> 取回結果，便實現了平行作業。<a href="https://learn.microsoft.com/en-us/powershell/scripting/developer/hosting/runspace07-sample?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Runspace 官方範例</a></p> <p>依據以上概念，我們將 Start-Job 版改成 Runspace 版：</p> <pre><code>$groups = @(
-@(0..7),
-@(8..15),
-@(16..23),
-@(24..31)
-)
-$scriptBlock = {
-param ([object[]]$array)
-$array | ForEach-Object {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-return $guid
-}
-}
-$jobs = @()
-$sw = [System.Diagnostics.Stopwatch]::StartNew()
-$groups | ForEach-Object {
-$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
-$rs.Open()
-$ps = [System.Management.Automation.PowerShell]::Create()
-$ps.Runspace = $rs
-$ps.AddScript($scriptBlock).AddArgument($_) | Out-Null
-$jobs += [PSCustomObject]@{
-Job = $ps.BeginInvoke()
-Runspace = $rs
-PowerShell = $ps
-}
-}
-while ($jobs.Job.IsCompleted -contains $false) {
-Start-Sleep -Milliseconds 100
-}
-Write-Host "Duration: $($sw.ElapsedMilliseconds.ToString('n0'))ms"
-$groupNo = 0
-$jobs | ForEach-Object {
-$res = $_.PowerShell.EndInvoke($_.Job)
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-Write-Host ($res -join ',')
-$_.PowerShell.Dispose()
-$_.Runspace.Close()
-$_.Runspace.Dispose()
-}
-</code></pre> <p>寫法複雜些，但執行速度變快，3.9s 完成。在這個範例中，我們只啟動四線平行作業，平行數量愈多，Start-Job 與 Runspace 的效能差異會更明顯。</p> <p><img src="/img/loading.svg"></p> <p>然而，Runspace 更可貴之處在於我們可以傳遞物件參數進去，與 Runspace 執行 ScriptBlock 共享物件，如此可做到各 Thread 由共用 Queue 取出待辦工作，實現經典的<a href="https://zh.wikipedia.org/zh-tw/%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98">生產者消費者模式</a>；而原本另起 PowerShell 物件執行無法用 Write-Host 將進度輸出到終端的問題，也能透過新增進度訊息字串 Queue 解決。</p> <p>在 Runspace 間共享物件必須考量 Thread-Safty，放任多執行緒同時更新集合物件，很容易<a href="/blog/dictionary-thread-safe/">遇到各式各類的鬼問題</a>。PowerShell 不像 C# 有 <a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/language-reference/statements/lock?WT.mc_id=DOP-MVP-37580">lock 指令</a>，但用 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.threading.mutex?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">Mutex 互斥鎖</a>便能簡單實現多執行緒安全更新。這裡我選擇更簡便的做法，直接借用 .NET <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.collections.concurrent.concurrentqueue-1?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580"><code>ConcurrentQueue&lt;object&gt;</code></a>。</p> <p>而在呼叫 Runspace ScriptBlock 時，要以 By Reference 傳入 ConcurrentQueue 物件，做法傳入參數為加上 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/about/about_ref?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#writing-functions-to-accept-reference-parameters">[ref]</a>，而函式內則透過 .Value 屬性存取內容。</p> <p>具備以上知識後來著手改造程式。概念是設一個待辦 Queue，放入 32 個待辦工作，建立四個 Runspace 同步執行，各 Runspace 自己從待辦區撿工作來做，執行結果 Write-Output 傳回或存入結果 Queue。而為了即時觀察進度，我的解法是增設一個 Queue 蒐集進度訊息字串，在等待過程即時顯示。完整程式如下：</p> <pre><code>$ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Collections.Concurrent
-[PSCustomObject[]]$items = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
-$todoItems = [System.Collections.Concurrent.ConcurrentQueue[object]]::new($items)
-$progressMsgs = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
-$results = [System.Collections.Concurrent.ConcurrentQueue[object]]::new()
-$scriptBlock = {
-param ([ref]$todo, [ref]$results, [ref]$progressMsgs)
-while (-not $todo.Value.IsEmpty) {
-$item = $null
-if (-not $todo.Value.TryDequeue([ref]$item)) {
-continue
-}
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-Write-Output "$guid"
-# 除了用 Write-Output 回傳結果以 EndInvoke() 接收，
-# 一併示範用 Queue 蒐集結果
-$item.Result = $guid
-$results.Value.Enqueue($item)
-# 回報進度
-$progressMsgs.Value.Enqueue("Generated: $guid")
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-}
-}
-(Measure-Command {
-$jobs = @()
-(1..4) | ForEach-Object {
-$rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
-$rs.Open()
-$ps = [System.Management.Automation.PowerShell]::Create()
-$ps.Runspace = $rs
-$ps.AddScript($scriptBlock).AddArgument([ref]$todoItems).AddArgument([ref]$results).AddArgument([ref]$progressMsgs) | Out-Null
-$jobs += [PSCustomObject]@{
-Job = $ps.BeginInvoke()
-Runspace = $rs
-PowerShell = $ps
-}
-}
-while ($jobs.Job.IsCompleted -contains $false) {
-while (-not $progressMsgs.IsEmpty) {
-$msg = $null
-if ($progressMsgs.TryDequeue([ref]$msg))
-{
-Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) $msg"
-}
-}
-Start-Sleep -Milliseconds 100
-}
-}).TotalMilliseconds
-$groupNo = 0
-$jobs | ForEach-Object {
-$groupNo++
-Write-Host "Group $groupNo" -ForegroundColor Yellow
-$res = $_.PowerShell.EndInvoke($_.Job)
-Write-Host ($res -join ',')
-$_.PowerShell.Dispose()
-$_.Runspace.Close()
-$_.Runspace.Dispose()
-}
-Write-Host "Results Queue: " -ForegroundColor Yellow
-($results.ToArray() | ForEach-Object {
-$_.Result
-}) -join ','
-</code></pre> <p>如此，我們實現了用四個 Consumer 消化待辦工作的 PowerShell 平行作業：</p> <p><img src="/img/loading.svg"></p> <p>除了預先指定平行 Runspace 數量，PowerShell 也提供 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/developer/hosting/creating-multiple-runspaces?view=powershell-5.1&amp;WT.mc_id=DOP-MVP-37580#creating-and-using-a-runspace-pool">RunspacePool</a>，可用類似 ThreadPool 的概念輕鬆發揮多執行緒的效益。</p> <p>最後，如果你已升級到 PowerShell 7+，<a href="https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/?WT.mc_id=DOP-MVP-37580">新加入的 ForEach-Object -Parallel 功能</a>讓事情簡單十倍，沿用原本的 ForEach-Object 寫法，加上 -Parallel 開啟平行處理，並加上 -ThrottleLimit 指定最多幾條 Thread，原本的 ForEach-Object 迴圈當場升級成平行作業，而在其中的 Write-Host 可正常顯示，不需花功夫自己串接。夠簡單吧？</p> <pre><code># https://devblogs.microsoft.com/powershell/powershell-foreach-object-parallel-feature/
-$ErrorActionPreference = 'Stop'
-[PSCustomObject[]]$todoItems = @(0..31) | ForEach-Object { [PSCustomObject]@{ Id = $_; Result = $null } }
-(Measure-Command {
-$results = $todoItems | Foreach-Object -ThrottleLimit 8 -Parallel {
-$guid = (New-Guid).ToString().Substring(0, 4).ToUpper()
-$_.Result = $guid
-Write-Output $_
-Write-Host "$([DateTime]::Now.ToString('HH:mm:ss.fff')) Generated: $guid"
-Start-Sleep -Milliseconds (450 + (Get-Random -Minimum 1 -Maximum 50))
-}
-}).TotalMilliseconds
-Write-Host "Results Queue: " -ForegroundColor Yellow
-($results | ForEach-Object {
-$_.Result
-}) -join ','
-</code></pre> <p><img src="/img/loading.svg"></p> <p>以上就是在 PowerShell 5.1 及 PowerShell 7+ 實現平行作業的簡單介紹，希望對大家有幫助。</p> <p data-slug="ps-runspace-n-foreach-parallel" data-title-en="PowerShell Runspace and ForEach-Object Parallel" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/02/11/53/weaving-loom-2571179_960_720.jpg#960#720">The blog post compares Start-Job and Runspaces for parallel execution in PowerShell, emphasizing Runspaces’ efficiency and flexibility. It provides detailed examples for both PowerShell 5.1 and 7+, showcasing how to use Runspaces for parallel tasks and introducing ForEach-Object -Parallel for simpler parallel processing in PowerShell 7+.</p> </div>  <div><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins><br><ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8639927851"></ins></div>   <div> <div data-href="https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"> </div> </div>  <footer> <ul><li> Posted in </li> <li itemprop="articleSection"><a href="/blog/category/powershell">PowerShell</a></li></ul> and has <a href="/blog/ps-runspace-n-foreach-parallel/#comments" itemprop="discussionUrl" title="Go to the comments section"> <span itemprop="commentCount">0</span> comments </a><meta itemprop="author" content="Jeffrey Lee"><meta itemprop="dateModified" content="2024-07-31T15:19:01"><meta itemprop="mainEntityOfPage" content="https://blog.darkthread.net/blog/ps-runspace-n-foreach-parallel/"></footer> </article> <aside> <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_fb"><title>Share on Facebook</title><path d="M22.676 0H1.324C.593 0 0 .593 0 1.324v21.352C0 23.408.593 24 1.324 24h11.494v-9.294H9.689v-3.621h3.129V8.41c0-3.099 1.894-4.785 4.659-4.785 1.325 0 2.464.097 2.796.141v3.24h-1.921c-1.5 0-1.792.721-1.792 1.771v2.311h3.584l-.465 3.63H16.56V24h6.115c.733 0 1.325-.592 1.325-1.324V1.324C24 .593 23.408 0 22.676 0"></path></svg> </a> <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F&amp;text=%E5%86%8D%E8%AB%87+PowerShell+%E5%B9%B3%E8%A1%8C%E4%BD%9C%E6%A5%AD+-+%E5%BE%9E+Runspace+%E5%88%B0+ForEach-Object+-Parallel" target="_blank"> <svg role="img" aria-labelledby="_tw"><title>Share on Twitter</title><path d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z"></path></svg> </a> <a href="https://plus.google.com/share?url=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_gp"><title>Share on Google+</title><path d="M7.635 10.909v2.619h4.335c-.173 1.125-1.31 3.295-4.331 3.295-2.604 0-4.731-2.16-4.731-4.823 0-2.662 2.122-4.822 4.728-4.822 1.485 0 2.479.633 3.045 1.178l2.073-1.994c-1.33-1.245-3.056-1.995-5.115-1.995C3.412 4.365 0 7.785 0 12s3.414 7.635 7.635 7.635c4.41 0 7.332-3.098 7.332-7.461 0-.501-.054-.885-.12-1.265H7.635zm16.365 0h-2.183V8.726h-2.183v2.183h-2.182v2.181h2.184v2.184h2.189V13.09H24"></path></svg> </a> <a href="mailto:?subject=再談%20PowerShell%20平行作業%20-%20從%20Runspace%20到%20ForEach-Object%20-Parallel&amp;body=https%3A%2F%2Fblog.darkthread.net%2Fblog%2Fps-runspace-n-foreach-parallel%2F" target="_blank"> <svg role="img" aria-labelledby="_em"><title>Email</title><path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.085.229.126.379.126.148 0 .277-.041.389-.127L24 7.387zm-9.365-2.021h8.547c.211 0 .393.063.543.192.15.128.234.3.248.51l-7.369 5.876-1.969-1.549V5.366zM13.404.864v22.271L0 20.819V3.244L13.406.864h-.002zm-4.049 11.18c-.02-1.133-.313-2.072-.879-2.814-.555-.74-1.275-1.131-2.131-1.164-.824.033-1.529.423-2.1 1.164-.57.742-.855 1.682-.87 2.814.015 1.117.315 2.047.885 2.791.571.74 1.274 1.133 2.101 1.176.855-.035 1.574-.424 2.145-1.17.57-.748.87-1.68.885-2.797h-.036zm-3.12-2.482c.431.02.794.256 1.083.717.285.461.435 1.045.435 1.752 0 .721-.149 1.307-.435 1.771-.301.464-.66.704-1.096.704s-.795-.226-1.095-.69-.435-1.05-.435-1.754c0-.705.135-1.291.435-1.74.284-.45.646-.69 1.081-.721l.027-.039z"></path></svg> </a> </aside> <section> <div> <h2>Comments</h2> <p>Be the first to post a comment</p><iframe name="postResult"></iframe> <form method="post" target="postResult" action="/blog/comment/638580354362131743"> <h3>Post a comment</h3> <br> <label for="content">Comment</label> <textarea name="content" rows="5" cols="100" required="" placeholder="Enter your comment here..."></textarea> <div> <label for="author">Name</label> <input name="author" placeholder="Your name" required=""> <label for="catpcha">Captcha</label> <div data-sitekey="8b01e084-9b59-4150-955f-c3f486e75317"></div><input type="submit" value="Post comment">  <input type="hidden" name="website"> </div> </form>  </div> </section> </div> </div> <aside> <div><div> 搜尋與導覽 </div> <gcse:searchbox-only></gcse:searchbox-only> </div> <div> <blog-calendar></blog-calendar> </div> <div> <table><tbody><tr><td> <img src="/img/MVPLogo.png" alt="MVP Logo"> </td><td> <div> <a title="free web stats" href="https://statcounter.com/" target="_blank"> <img src="https://c.statcounter.com/1475611/0/1d9b7e36/0/" alt="free web stats"> </a> </div>  <a href="https://feeds.feedburner.com/Darkthread" css="rss-link"> <img src="/img/rss.gif" alt="RSS"> </a>  <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank"> <img alt="創用 CC 授權條款" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"> </a>  </td></tr></tbody></table> </div> </div> </div>  <div>  <div>Facebook 總館 (技術乾貨類)</div> <div> <div data-href="https://www.facebook.com/darkthread.net" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.net"><a href="https://www.facebook.com/darkthread.net">黑暗執行緒</a></blockquote></div> </div> </div> Facebook 生活館 (風花雪月區)</div> <div> <div data-href="https://www.facebook.com/darkthread.lds" data-tabs="" data-width="" data-height="" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false"><blockquote cite="https://www.facebook.com/darkthread.lds"><a href="https://www.facebook.com/darkthread.lds">黑暗後花園</a></blockquote></div> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="8335023050"></ins></div> <div> <a href="https://www.orcsweb.com/hosting/dedicated/">OrcsWeb: Windows Server Hosting</a> </div> <div> <a href="https://mvc.tw" target="_blank"> <img src="https://mvc.tw/images/logo.png" alt="twMVC"> </a> </div> </div> </div>   最新回應 <a href="/feedComments/rss"><img src="/img/rss.gif"></a></div> <div> <ul> </ul> </div> </div>文章分類</div> <div> <tag-cloud></tag-cloud> </div> </div>   工商服務</div> <ins data-ad-client="ca-pub-7636668978048669" data-ad-slot="4178109055"></ins></div> </div> </div>  </aside> </main>  <footer> <div> <nav> <ul> </ul> </nav> <p> Powered by Darkblog.Core </p> </div> </footer>]]></content:encoded>
-    <itunes:image href="/img/calendar.svg"/>
-          <media:content url="/img/calendar.svg" medium="image"/>
-    <pubDate>Wed, 31 Jul 2024 15:03:55 GMT</pubDate>
   </item></channel>
 </rss>
