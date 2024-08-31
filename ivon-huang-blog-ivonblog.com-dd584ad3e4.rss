@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/851/800/800.jpg?hmac=rYzVNPxR80i7toVgi0WjqG_Tscu678G2jATUElKQUr8</url>
+      <url>https://fastly.picsum.photos/id/872/800/800.jpg?hmac=O06y5t2D8wKzFH27WcMB_gBjkpCNa6OG_T7TQBnRx4o</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,67 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/851/800/800.jpg?hmac=rYzVNPxR80i7toVgi0WjqG_Tscu678G2jATUElKQUr8"/>
+    <itunes:image href="https://fastly.picsum.photos/id/872/800/800.jpg?hmac=O06y5t2D8wKzFH27WcMB_gBjkpCNa6OG_T7TQBnRx4o"/>
 <item>
+    <title><![CDATA[Termux proot無法使用systemctl指令的解決方案]]></title>
+    <link>https://ivonblog.com/posts/termux-systemd-issues/</link>
+    <itunes:title><![CDATA[Termux proot無法使用systemctl指令的解決方案]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>Systemd為一款init程式，幾乎所有的Linux發行版都使用Systemd來管理系統服務，常用的指令為<code>systemctl</code>、<code>journalctl</code>等等。</p><p>不過Termux無法使用Systemd。若在Termux的proot-distro或chroot容器環境執行<code>systemctl start</code>相關指令，會出現錯誤：<code>System has not been booted with systemd as init system (PID 1). Can't operate. Failed to connect to bus: Host is down</code></p><p>這是因為容器環境不支援Systemd所致。</p><p>這個其實沒有解法，除非Termux開發組學Microsoft WSL讓Systemd跑起來。不過，我們有一些替代方案可以解決這個問題。</p><h2>方法1：直接從執行檔路徑啟動程式<span><a href="#%E6%96%B9%E6%B3%951%E7%9B%B4%E6%8E%A5%E5%BE%9E%E5%9F%B7%E8%A1%8C%E6%AA%94%E8%B7%AF%E5%BE%91%E5%95%9F%E5%8B%95%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>首先要知道Systemd是一個管理系統服務的init程式而已，負責在Linux開機後啟動程式，並讓使用者可以開關程式。不過單純啟動某個程式其實不必依賴systemctl。</p><ol><li>比如，要在proot Debian啟動SSH服務，用Systemd的方式就是執行以下指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl start sshd
+</span></span></code></pre></div><ol start="2"><li>如果我們找到Systemd的服務檔<code>/etc/systemd/system/sshd.service</code>（大部分Systemd服務檔都在這裡），會發現<code>ExecStart=</code>後面執行的東西就是它真正執行的指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Service<span>]</span>
+</span></span><span><span><span>EnvironmentFile</span><span>=</span>-/etc/default/ssh
+</span></span><span><span><span>ExecStartPre</span><span>=</span>/usr/sbin/sshd -t
+</span></span><span><span><span>ExecStart</span><span>=</span>/usr/sbin/sshd -D
+</span></span></code></pre></div><ol start="3"><li>故SSH服務可以用這個指令直接啟動，並於背景執行：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p /run/sshd
+</span></span><span><span>
+</span></span><span><span>/usr/sbin/sshd -D
+</span></span></code></pre></div><p>註解：Termux proot-distro內的程式無法使用1000以下的通訊埠，請在登入proot-distro的時候加入<code>--fix-low-ports</code>參數將SSH的22通訊埠重新導向到2022。</p><p>如果要設定登入proot-distro後自動啟動特定程式，最簡單的方式就是將要執行的指令加入到使用者家目錄的<code>~/.bashrc</code>。</p><h2>方法2：改用OpenRC的發行版<span><a href="#%E6%96%B9%E6%B3%952%E6%94%B9%E7%94%A8openrc%E7%9A%84%E7%99%BC%E8%A1%8C%E7%89%88" aria-label="定位點">#</a></span></h2><p>OpenRC是較為傳統的init程式，沒有Systemd那麼複雜，它可以在proot執行並管理服務。不熟OpenRC指令的用戶可以參考下面Systemd與OpenRC指令的對照表。</p><p>目前proot-distro使用OpenRC的發行版為Alpine Linux。</p><ol><li>安裝Alpine Linux</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro install Alpine
+</span></span><span><span>proot-distro login alpine
+</span></span></code></pre></div><ol start="2"><li>安裝OpenRC套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk add openrc
+</span></span></code></pre></div><ol start="3"><li>之後登入proot的時候串這個指令，OpenRC程式便會啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro login alpine --fix-low-ports -- /bin/ash -c <span>"/sbin/openrc default; /bin/ash -l"</span>
+</span></span></code></pre></div><ol start="4"><li>之後就可以用OpenRC來管理服務了，例如SSH可以用rc-service指令管理，不用打執行檔路徑</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo rc-service sshd start
+</span></span></code></pre></div><ol start="5"><li>還可以設定SSH服務在登入proot-distro後自動啟動。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo rc-update add sshd
+</span></span></code></pre></div><h2>方法3：跑完整Linux系統虛擬機<span><a href="#%E6%96%B9%E6%B3%953%E8%B7%91%E5%AE%8C%E6%95%B4linux%E7%B3%BB%E7%B5%B1%E8%99%9B%E6%93%AC%E6%A9%9F" aria-label="定位點">#</a></span></h2><p>最終極的解決方案就是模擬完整Linux系統，讓Systemd得以執行。</p><p>參見<a href="https://ivonblog.com/posts/termux-qemu-system-linux/" target="_blank">
+Termux安裝QEMU跑Ubuntu虛擬機</a></p><p>不過這方法的缺點就是太慢了，QEMU沒有KVM加速的情況下執行效率極差。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.reddit.com/r/termux/comments/15voay6/comment/jwwfy8j/?utm_source=share&amp;utm_medium=web3x&amp;utm_name=web3xcss&amp;utm_term=1&amp;utm_content=share_button" target="_blank">It is possible to use OpenRC init system under PRoot. - r/termux Reddit</a></li><li><a href="https://wiki.gentoo.org/wiki/OpenRC_to_systemd_Cheatsheet" target="_blank">OpenRC to systemd Cheatsheet - Gentoo Wiki</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>Systemd為一款init程式，幾乎所有的Linux發行版都使用Systemd來管理系統服務，常用的指令為<code>systemctl</code>、<code>journalctl</code>等等。</p><p>不過Termux無法使用Systemd。若在Termux的proot-distro或chroot容器環境執行<code>systemctl start</code>相關指令，會出現錯誤：<code>System has not been booted with systemd as init system (PID 1). Can't operate. Failed to connect to bus: Host is down</code></p><p>這是因為容器環境不支援Systemd所致。</p><p>這個其實沒有解法，除非Termux開發組學Microsoft WSL讓Systemd跑起來。不過，我們有一些替代方案可以解決這個問題。</p><h2>方法1：直接從執行檔路徑啟動程式<span><a href="#%E6%96%B9%E6%B3%951%E7%9B%B4%E6%8E%A5%E5%BE%9E%E5%9F%B7%E8%A1%8C%E6%AA%94%E8%B7%AF%E5%BE%91%E5%95%9F%E5%8B%95%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>首先要知道Systemd是一個管理系統服務的init程式而已，負責在Linux開機後啟動程式，並讓使用者可以開關程式。不過單純啟動某個程式其實不必依賴systemctl。</p><ol><li>比如，要在proot Debian啟動SSH服務，用Systemd的方式就是執行以下指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl start sshd
+</span></span></code></pre></div><ol start="2"><li>如果我們找到Systemd的服務檔<code>/etc/systemd/system/sshd.service</code>（大部分Systemd服務檔都在這裡），會發現<code>ExecStart=</code>後面執行的東西就是它真正執行的指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Service<span>]</span>
+</span></span><span><span><span>EnvironmentFile</span><span>=</span>-/etc/default/ssh
+</span></span><span><span><span>ExecStartPre</span><span>=</span>/usr/sbin/sshd -t
+</span></span><span><span><span>ExecStart</span><span>=</span>/usr/sbin/sshd -D
+</span></span></code></pre></div><ol start="3"><li>故SSH服務可以用這個指令直接啟動，並於背景執行：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p /run/sshd
+</span></span><span><span>
+</span></span><span><span>/usr/sbin/sshd -D
+</span></span></code></pre></div><p>註解：Termux proot-distro內的程式無法使用1000以下的通訊埠，請在登入proot-distro的時候加入<code>--fix-low-ports</code>參數將SSH的22通訊埠重新導向到2022。</p><p>如果要設定登入proot-distro後自動啟動特定程式，最簡單的方式就是將要執行的指令加入到使用者家目錄的<code>~/.bashrc</code>。</p><h2>方法2：改用OpenRC的發行版<span><a href="#%E6%96%B9%E6%B3%952%E6%94%B9%E7%94%A8openrc%E7%9A%84%E7%99%BC%E8%A1%8C%E7%89%88" aria-label="定位點">#</a></span></h2><p>OpenRC是較為傳統的init程式，沒有Systemd那麼複雜，它可以在proot執行並管理服務。不熟OpenRC指令的用戶可以參考下面Systemd與OpenRC指令的對照表。</p><p>目前proot-distro使用OpenRC的發行版為Alpine Linux。</p><ol><li>安裝Alpine Linux</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro install Alpine
+</span></span><span><span>proot-distro login alpine
+</span></span></code></pre></div><ol start="2"><li>安裝OpenRC套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk add openrc
+</span></span></code></pre></div><ol start="3"><li>之後登入proot的時候串這個指令，OpenRC程式便會啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro login alpine --fix-low-ports -- /bin/ash -c <span>"/sbin/openrc default; /bin/ash -l"</span>
+</span></span></code></pre></div><ol start="4"><li>之後就可以用OpenRC來管理服務了，例如SSH可以用rc-service指令管理，不用打執行檔路徑</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo rc-service sshd start
+</span></span></code></pre></div><ol start="5"><li>還可以設定SSH服務在登入proot-distro後自動啟動。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo rc-update add sshd
+</span></span></code></pre></div><h2>方法3：跑完整Linux系統虛擬機<span><a href="#%E6%96%B9%E6%B3%953%E8%B7%91%E5%AE%8C%E6%95%B4linux%E7%B3%BB%E7%B5%B1%E8%99%9B%E6%93%AC%E6%A9%9F" aria-label="定位點">#</a></span></h2><p>最終極的解決方案就是模擬完整Linux系統，讓Systemd得以執行。</p><p>參見<a href="https://ivonblog.com/posts/termux-qemu-system-linux/" target="_blank">
+Termux安裝QEMU跑Ubuntu虛擬機</a></p><p>不過這方法的缺點就是太慢了，QEMU沒有KVM加速的情況下執行效率極差。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.reddit.com/r/termux/comments/15voay6/comment/jwwfy8j/?utm_source=share&amp;utm_medium=web3x&amp;utm_name=web3xcss&amp;utm_term=1&amp;utm_content=share_button" target="_blank">It is possible to use OpenRC init system under PRoot. - r/termux Reddit</a></li><li><a href="https://wiki.gentoo.org/wiki/OpenRC_to_systemd_Cheatsheet" target="_blank">OpenRC to systemd Cheatsheet - Gentoo Wiki</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p>Systemd為一款init程式，幾乎所有的Linux發行版都使用Systemd來管理系統服務，常用的指令為<code>systemctl</code>、<code>journalctl</code>等等。</p><p>不過Termux無法使用Systemd。若在Termux的proot-distro或chroot容器環境執行<code>systemctl start</code>相關指令，會出現錯誤：<code>System has not been booted with systemd as init system (PID 1). Can't operate. Failed to connect to bus: Host is down</code></p><p>這是因為容器環境不支援Systemd所致。</p><p>這個其實沒有解法，除非Termux開發組學Microsoft WSL讓Systemd跑起來。不過，我們有一些替代方案可以解決這個問題。</p><h2>方法1：直接從執行檔路徑啟動程式<span><a href="#%E6%96%B9%E6%B3%951%E7%9B%B4%E6%8E%A5%E5%BE%9E%E5%9F%B7%E8%A1%8C%E6%AA%94%E8%B7%AF%E5%BE%91%E5%95%9F%E5%8B%95%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>首先要知道Systemd是一個管理系統服務的init程式而已，負責在Linux開機後啟動程式，並讓使用者可以開關程式。不過單純啟動某個程式其實不必依賴systemctl。</p><ol><li>比如，要在proot Debian啟動SSH服務，用Systemd的方式就是執行以下指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl start sshd
+</span></span></code></pre></div><ol start="2"><li>如果我們找到Systemd的服務檔<code>/etc/systemd/system/sshd.service</code>（大部分Systemd服務檔都在這裡），會發現<code>ExecStart=</code>後面執行的東西就是它真正執行的指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Service<span>]</span>
+</span></span><span><span><span>EnvironmentFile</span><span>=</span>-/etc/default/ssh
+</span></span><span><span><span>ExecStartPre</span><span>=</span>/usr/sbin/sshd -t
+</span></span><span><span><span>ExecStart</span><span>=</span>/usr/sbin/sshd -D
+</span></span></code></pre></div><ol start="3"><li>故SSH服務可以用這個指令直接啟動，並於背景執行：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p /run/sshd
+</span></span><span><span>
+</span></span><span><span>/usr/sbin/sshd -D
+</span></span></code></pre></div><p>註解：Termux proot-distro內的程式無法使用1000以下的通訊埠，請在登入proot-distro的時候加入<code>--fix-low-ports</code>參數將SSH的22通訊埠重新導向到2022。</p><p>如果要設定登入proot-distro後自動啟動特定程式，最簡單的方式就是將要執行的指令加入到使用者家目錄的<code>~/.bashrc</code>。</p><h2>方法2：改用OpenRC的發行版<span><a href="#%E6%96%B9%E6%B3%952%E6%94%B9%E7%94%A8openrc%E7%9A%84%E7%99%BC%E8%A1%8C%E7%89%88" aria-label="定位點">#</a></span></h2><p>OpenRC是較為傳統的init程式，沒有Systemd那麼複雜，它可以在proot執行並管理服務。不熟OpenRC指令的用戶可以參考下面Systemd與OpenRC指令的對照表。</p><p>目前proot-distro使用OpenRC的發行版為Alpine Linux。</p><ol><li>安裝Alpine Linux</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro install Alpine
+</span></span><span><span>proot-distro login alpine
+</span></span></code></pre></div><ol start="2"><li>安裝OpenRC套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>apk add openrc
+</span></span></code></pre></div><ol start="3"><li>之後登入proot的時候串這個指令，OpenRC程式便會啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>proot-distro login alpine --fix-low-ports -- /bin/ash -c <span>"/sbin/openrc default; /bin/ash -l"</span>
+</span></span></code></pre></div><ol start="4"><li>之後就可以用OpenRC來管理服務了，例如SSH可以用rc-service指令管理，不用打執行檔路徑</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo rc-service sshd start
+</span></span></code></pre></div><ol start="5"><li>還可以設定SSH服務在登入proot-distro後自動啟動。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo rc-update add sshd
+</span></span></code></pre></div><h2>方法3：跑完整Linux系統虛擬機<span><a href="#%E6%96%B9%E6%B3%953%E8%B7%91%E5%AE%8C%E6%95%B4linux%E7%B3%BB%E7%B5%B1%E8%99%9B%E6%93%AC%E6%A9%9F" aria-label="定位點">#</a></span></h2><p>最終極的解決方案就是模擬完整Linux系統，讓Systemd得以執行。</p><p>參見<a href="https://ivonblog.com/posts/termux-qemu-system-linux/" target="_blank">
+Termux安裝QEMU跑Ubuntu虛擬機</a></p><p>不過這方法的缺點就是太慢了，QEMU沒有KVM加速的情況下執行效率極差。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://www.reddit.com/r/termux/comments/15voay6/comment/jwwfy8j/?utm_source=share&amp;utm_medium=web3x&amp;utm_name=web3xcss&amp;utm_term=1&amp;utm_content=share_button" target="_blank">It is possible to use OpenRC init system under PRoot. - r/termux Reddit</a></li><li><a href="https://wiki.gentoo.org/wiki/OpenRC_to_systemd_Cheatsheet" target="_blank">OpenRC to systemd Cheatsheet - Gentoo Wiki</a></li></ul>]]></content:encoded>
+    
+    <pubDate>Sat, 31 Aug 2024 23:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[如何用Krfb開啟KDE Plasma遠端桌面＆新增虛擬顯示器]]></title>
     <link>https://ivonblog.com/posts/krfb-remote-desktop/</link>
     <itunes:title><![CDATA[如何用Krfb開啟KDE Plasma遠端桌面＆新增虛擬顯示器]]></itunes:title>
@@ -1698,179 +1757,5 @@ Sildeload Reddit討論板</a></li><li><a href="https://github.com/NyaMisty/AltSe
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fe64e07a5c.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fe64e07a5c.webp" medium="image"/>
     <pubDate>Sun, 18 Aug 2024 14:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[UxPlay用法 ~ 投影iPhone螢幕到Linux電腦，跨平台免費的AirPlay解決方案]]></title>
-    <link>https://ivonblog.com/posts/ios-airplay-uxplay/</link>
-    <itunes:title><![CDATA[UxPlay用法 ~ 投影iPhone螢幕到Linux電腦，跨平台免費的AirPlay解決方案]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-airplay-uxplay/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c22e3f93a1.webp"></a></p>
-<p>若要將iPhone/iPad的螢幕無線投影（鏡像）到其他螢幕，很多人會使用內建的「AirPlay」功能來投放吧。AirPlay是Apple公司研發的專有無線協定，Apple自家裝置都有內建，讓你可以把iPhone影片投放到Apple TV觀看。</p><p>不過這樣要依賴特定程式才能看呢，於是有開發者將AirPlay的協定重新實作，製作出了跨平台的「UxPlay」軟體！完全開源免費，UxPlay支援Linux、Windows、macOS、FreeBSD、Raspberry Pi系統，可以將任意電腦變成AirPlay接收端(receiver)。</p><p>跟類似軟體<a href="https://github.com/mikebrady/shairport-sync?tab=readme-ov-file" target="_blank">
-Shairport Sync</a>比起來，UxPlay多了投影螢幕的功能。</p><p>開啟Wifi，您就能將iPhone的畫面透過UxPlay投影到電腦上了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4da6ae21b9.webp"><p>UxPlay也可以用來播放純音訊串流，用電腦無線播放手機的音樂，例如Apple Music。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bee79d0848.webp" loadind="lazy"></p><p>另外，搭配OBS Studio的畫面擷取功能，即可像Scrcpy擷取Android螢幕那樣，在Linux電腦實現iOS螢幕錄影。</p><h2>1. 安裝UxPlay<span><a href="#1-%E5%AE%89%E8%A3%9Duxplay" aria-label="定位點">#</a></span></h2><p>詳細文件參考<a href="https://github.com/FDH2/UxPlay" target="_blank">
-Github說明</a></p><p>許多Linux發行版已提供UxPlay套件，連樹莓派也有。但是macOS和Windows版需要自行編譯。</p><h3>Linux<span><a href="#linux" aria-label="定位點">#</a></span></h3><ol><li>Ubuntu 24.04從官方套件庫安裝：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install uxplay
-</span></span></code></pre></div><p>Arch Linux可以從AUR安裝UxPlay：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>yay -S uxplay
-</span></span></code></pre></div><ol start="2"><li>UxPlay安裝後，需要開放以下防火牆通訊埠。用UFW指令的話就是：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>7100</span>
-</span></span><span><span>sudo ufw allow <span>7000</span>
-</span></span><span><span>sudo ufw allow <span>7001</span>
-</span></span><span><span>sudo ufw allow <span>6000</span>
-</span></span><span><span>sudo ufw allow <span>6001</span>
-</span></span><span><span>sudo ufw allow <span>7011</span>
-</span></span><span><span>sudo ufw reload
-</span></span></code></pre></div><ol start="3"><li>Linux還需要啟用Avahi服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> --now avahi-daemon.service
-</span></span></code></pre></div><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>此處以Windows 11為例。嫌編譯麻煩的，你可以考慮裝<a href="https://ivonblog.com/posts/setup-wsl2-on-windows11/" target="_blank">
-WSL</a>並啟用橋接網路，再沿用Ubuntu的UxPlay套件。</p><ol><li><p>至<a href="https://developer.apple.com/download/all/?q=Bonjour%20SDK%20for%20Windows" target="_blank">
-Apple Developers官網</a>，登入Apple ID，下載並安裝<code>Bonjour SDK for Windows v3.0</code></p></li><li><p>下載<a href="https://www.msys2.org/" target="_blank">
-MSYS2</a></p></li><li><p>開啟MSYS2 MINGW64終端機，安裝以下依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pacman -Syu
-</span></span><span><span>pacman -S git man mingw-w64-x86_64-libplist mingw-w64-x86_64-gstreamer mingw-w64-x86_64-gst-plugins-base mingw-w64-x86_64-gst-libav mingw-w64-x86_64-gst-plugins-good mingw-w64-x86_64-gst-plugins-bad
-</span></span></code></pre></div><ol start="4"><li>複製Git儲存庫，編譯安裝。<code>uxplay.exe</code>應會安裝到Windows的<code>C:\msys64\mingw64\bin\uxplay</code>資料夾，之後可以用<code>uxplay</code>指令啟動。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/FDH2/UxPlay
-</span></span><span><span><span>cd</span> UxPlay
-</span></span><span><span>mkdir build
-</span></span><span><span><span>cd</span> build
-</span></span><span><span>cmake ..
-</span></span><span><span>ninja
-</span></span><span><span>cmake --install . --prefix /mingw64
-</span></span></code></pre></div><ol start="5"><li><p>允許UxPlay通過防火牆：在搜尋欄鍵入「Windows防火牆設定」，勾選<code>uxplay.exe</code></p></li><li><p>日後要啟動uxplay，請用MSYS2的終端機啟動。</p></li></ol><h3>macOS<span><a href="#macos" aria-label="定位點">#</a></span></h3><p>雖然macOS Monterey以後已經有類似AirPlay伺服器的功能，但是UxPlay的優勢在於讓舊版本macOS也能享有此功能。</p><p>此處以macOS Ventura為例。</p><ol><li>開啟終端機，安裝Xcode command-line tools</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo xcode-select --install
-</span></span></code></pre></div><ol start="2"><li><p>安裝<a href="https://brew.sh/" target="_blank">
-Homebrew</a></p></li><li><p>安裝以下依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>brew install cmake git libplist openssl@3
-</span></span></code></pre></div><ol start="4"><li><p>UxPlay作者建議手動安裝GStreamer發表的套件，不要用Homebrew的。至<a href="https://gstreamer.freedesktop.org/download/" target="_blank">
-官網</a>下載<code>1.22.10 runtime installer</code>和<code>1.22.10 development installer</code>二個pkg檔。接著在Finder按Shift安裝套件。</p></li><li><p>複製UxPlay儲存庫，編譯安裝</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/FDH2/UxPlay
-</span></span><span><span><span>cd</span> UxPlay
-</span></span><span><span>cmake .
-</span></span><span><span>make
-</span></span><span><span>sudo make install
-</span></span></code></pre></div><p>值得一提的是Mac電腦可以充當AirPlay的伺服端與客戶端，使用伺服端的模式下，Mac等同多出第二個螢幕。</p><h2>2. 投放螢幕到UxPlay<span><a href="#2-%E6%8A%95%E6%94%BE%E8%9E%A2%E5%B9%95%E5%88%B0uxplay" aria-label="定位點">#</a></span></h2><ol><li><p>確保iPhone和電腦位於同一個Wifi網路下，並且訊號要好。如果你需要低延遲，那就將iPhone插上電腦，用USB分享給電腦上網。</p></li><li><p>於電腦執行以下指令，指定通訊埠，FPS上限60，螢幕解析度1920x1080，重新整理率60</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>uxplay -p -fps <span>60</span> -s 1920x1080@60
-</span></span></code></pre></div><ol start="3"><li><p>開啟iPhone的控制中心，點選投放，會在列表看到uxplay＋電腦名稱的裝置
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a346c79e2.webp" loadind="lazy"></p></li><li><p>這樣電腦就會跳出iPhone畫面的視窗了，iPhone螢幕旋轉畫面會跟著轉，按F11進入全螢幕模式。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-09dee4be7d.webp"></li></ol><p>只要網路穩定，大螢幕觀看影片、玩遊戲都不是問題，音訊會一併傳過來。</p><p>不過含有DRM內容的影片（如Netflix）可能就無法透過AirPlay播放。</p><h2>3. AirPlay串流音樂<span><a href="#3-airplay%E4%B8%B2%E6%B5%81%E9%9F%B3%E6%A8%82" aria-label="定位點">#</a></span></h2><p>上面提到Uxplay可以不播放畫面，只串流純音樂。</p><ol><li>啟動UxPlay：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>uxplay -p
-</span></span></code></pre></div><ol start="2"><li><p>在iPhone播放音樂，再選取AirPlay的播放對象。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f63bd34341.webp" loadind="lazy"></p></li><li><p>這裡的AirPlay協定最高支援到ALAC 44Hz/16bit，無法串流真正的無損音質。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d52c929b96.webp"></li></ol><h2>4. 將UxPlay設定為常駐系統服務<span><a href="#4-%E5%B0%87uxplay%E8%A8%AD%E5%AE%9A%E7%82%BA%E5%B8%B8%E9%A7%90%E7%B3%BB%E7%B5%B1%E6%9C%8D%E5%8B%99" aria-label="定位點">#</a></span></h2><ol><li>Linux可透過Systemd Unit新增</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/systemd/system/uxplay.service
-</span></span></code></pre></div><ol start="2"><li>填入以下內容</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
-</span></span><span><span><span>Description</span><span>=</span>UxPlay service
-</span></span><span><span><span>After</span><span>=</span>syslog.target network.target
-</span></span><span><span>
-</span></span><span><span><span>[</span>Service<span>]</span>
-</span></span><span><span><span>ExecStart</span><span>=</span>/usr/bin/uxplay -p -fps <span>60</span> -s 1920x1080@60
-</span></span><span><span>
-</span></span><span><span><span>[</span>Install<span>]</span>
-</span></span><span><span><span>WantedBy</span><span>=</span>default.target
-</span></span></code></pre></div><ol start="3"><li>設定開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl daemon-reload
-</span></span><span><span>
-</span></span><span><span>sudo systemctl <span>enable</span> --now uxplay
-</span></span></code></pre></div><h2>5. 使用OBS Studio錄製iPhone畫面<span><a href="#5-%E4%BD%BF%E7%94%A8obs-studio%E9%8C%84%E8%A3%BDiphone%E7%95%AB%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>有時候跑一些大型遊戲，又在iPhone上進行錄影的話會給手機帶來很大負擔，這個時候可以透過OBS Studio擷取UxPlay的視窗，降低手機負擔。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/setup-obs-studio-on-linux/" target="_blank">
-OBS Studio</a></p></li><li><p>開啟OBS Studio，點選「新增畫面擷取」，選取UxPlay的視窗即可。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2443cc8b48.webp"></li></ol>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-airplay-uxplay/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c22e3f93a1.webp"></a></p>
-<p>若要將iPhone/iPad的螢幕無線投影（鏡像）到其他螢幕，很多人會使用內建的「AirPlay」功能來投放吧。AirPlay是Apple公司研發的專有無線協定，Apple自家裝置都有內建，讓你可以把iPhone影片投放到Apple TV觀看。</p><p>不過這樣要依賴特定程式才能看呢，於是有開發者將AirPlay的協定重新實作，製作出了跨平台的「UxPlay」軟體！完全開源免費，UxPlay支援Linux、Windows、macOS、FreeBSD、Raspberry Pi系統，可以將任意電腦變成AirPlay接收端(receiver)。</p><p>跟類似軟體<a href="https://github.com/mikebrady/shairport-sync?tab=readme-ov-file" target="_blank">
-Shairport Sync</a>比起來，UxPlay多了投影螢幕的功能。</p><p>開啟Wifi，您就能將iPhone的畫面透過UxPlay投影到電腦上了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4da6ae21b9.webp"><p>UxPlay也可以用來播放純音訊串流，用電腦無線播放手機的音樂，例如Apple Music。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bee79d0848.webp" loadind="lazy"></p><p>另外，搭配OBS Studio的畫面擷取功能，即可像Scrcpy擷取Android螢幕那樣，在Linux電腦實現iOS螢幕錄影。</p><h2>1. 安裝UxPlay<span><a href="#1-%E5%AE%89%E8%A3%9Duxplay" aria-label="定位點">#</a></span></h2><p>詳細文件參考<a href="https://github.com/FDH2/UxPlay" target="_blank">
-Github說明</a></p><p>許多Linux發行版已提供UxPlay套件，連樹莓派也有。但是macOS和Windows版需要自行編譯。</p><h3>Linux<span><a href="#linux" aria-label="定位點">#</a></span></h3><ol><li>Ubuntu 24.04從官方套件庫安裝：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install uxplay
-</span></span></code></pre></div><p>Arch Linux可以從AUR安裝UxPlay：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>yay -S uxplay
-</span></span></code></pre></div><ol start="2"><li>UxPlay安裝後，需要開放以下防火牆通訊埠。用UFW指令的話就是：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>7100</span>
-</span></span><span><span>sudo ufw allow <span>7000</span>
-</span></span><span><span>sudo ufw allow <span>7001</span>
-</span></span><span><span>sudo ufw allow <span>6000</span>
-</span></span><span><span>sudo ufw allow <span>6001</span>
-</span></span><span><span>sudo ufw allow <span>7011</span>
-</span></span><span><span>sudo ufw reload
-</span></span></code></pre></div><ol start="3"><li>Linux還需要啟用Avahi服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> --now avahi-daemon.service
-</span></span></code></pre></div><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>此處以Windows 11為例。嫌編譯麻煩的，你可以考慮裝<a href="https://ivonblog.com/posts/setup-wsl2-on-windows11/" target="_blank">
-WSL</a>並啟用橋接網路，再沿用Ubuntu的UxPlay套件。</p><ol><li><p>至<a href="https://developer.apple.com/download/all/?q=Bonjour%20SDK%20for%20Windows" target="_blank">
-Apple Developers官網</a>，登入Apple ID，下載並安裝<code>Bonjour SDK for Windows v3.0</code></p></li><li><p>下載<a href="https://www.msys2.org/" target="_blank">
-MSYS2</a></p></li><li><p>開啟MSYS2 MINGW64終端機，安裝以下依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pacman -Syu
-</span></span><span><span>pacman -S git man mingw-w64-x86_64-libplist mingw-w64-x86_64-gstreamer mingw-w64-x86_64-gst-plugins-base mingw-w64-x86_64-gst-libav mingw-w64-x86_64-gst-plugins-good mingw-w64-x86_64-gst-plugins-bad
-</span></span></code></pre></div><ol start="4"><li>複製Git儲存庫，編譯安裝。<code>uxplay.exe</code>應會安裝到Windows的<code>C:\msys64\mingw64\bin\uxplay</code>資料夾，之後可以用<code>uxplay</code>指令啟動。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/FDH2/UxPlay
-</span></span><span><span><span>cd</span> UxPlay
-</span></span><span><span>mkdir build
-</span></span><span><span><span>cd</span> build
-</span></span><span><span>cmake ..
-</span></span><span><span>ninja
-</span></span><span><span>cmake --install . --prefix /mingw64
-</span></span></code></pre></div><ol start="5"><li><p>允許UxPlay通過防火牆：在搜尋欄鍵入「Windows防火牆設定」，勾選<code>uxplay.exe</code></p></li><li><p>日後要啟動uxplay，請用MSYS2的終端機啟動。</p></li></ol><h3>macOS<span><a href="#macos" aria-label="定位點">#</a></span></h3><p>雖然macOS Monterey以後已經有類似AirPlay伺服器的功能，但是UxPlay的優勢在於讓舊版本macOS也能享有此功能。</p><p>此處以macOS Ventura為例。</p><ol><li>開啟終端機，安裝Xcode command-line tools</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo xcode-select --install
-</span></span></code></pre></div><ol start="2"><li><p>安裝<a href="https://brew.sh/" target="_blank">
-Homebrew</a></p></li><li><p>安裝以下依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>brew install cmake git libplist openssl@3
-</span></span></code></pre></div><ol start="4"><li><p>UxPlay作者建議手動安裝GStreamer發表的套件，不要用Homebrew的。至<a href="https://gstreamer.freedesktop.org/download/" target="_blank">
-官網</a>下載<code>1.22.10 runtime installer</code>和<code>1.22.10 development installer</code>二個pkg檔。接著在Finder按Shift安裝套件。</p></li><li><p>複製UxPlay儲存庫，編譯安裝</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/FDH2/UxPlay
-</span></span><span><span><span>cd</span> UxPlay
-</span></span><span><span>cmake .
-</span></span><span><span>make
-</span></span><span><span>sudo make install
-</span></span></code></pre></div><p>值得一提的是Mac電腦可以充當AirPlay的伺服端與客戶端，使用伺服端的模式下，Mac等同多出第二個螢幕。</p><h2>2. 投放螢幕到UxPlay<span><a href="#2-%E6%8A%95%E6%94%BE%E8%9E%A2%E5%B9%95%E5%88%B0uxplay" aria-label="定位點">#</a></span></h2><ol><li><p>確保iPhone和電腦位於同一個Wifi網路下，並且訊號要好。如果你需要低延遲，那就將iPhone插上電腦，用USB分享給電腦上網。</p></li><li><p>於電腦執行以下指令，指定通訊埠，FPS上限60，螢幕解析度1920x1080，重新整理率60</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>uxplay -p -fps <span>60</span> -s 1920x1080@60
-</span></span></code></pre></div><ol start="3"><li><p>開啟iPhone的控制中心，點選投放，會在列表看到uxplay＋電腦名稱的裝置
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a346c79e2.webp" loadind="lazy"></p></li><li><p>這樣電腦就會跳出iPhone畫面的視窗了，iPhone螢幕旋轉畫面會跟著轉，按F11進入全螢幕模式。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-09dee4be7d.webp"></li></ol><p>只要網路穩定，大螢幕觀看影片、玩遊戲都不是問題，音訊會一併傳過來。</p><p>不過含有DRM內容的影片（如Netflix）可能就無法透過AirPlay播放。</p><h2>3. AirPlay串流音樂<span><a href="#3-airplay%E4%B8%B2%E6%B5%81%E9%9F%B3%E6%A8%82" aria-label="定位點">#</a></span></h2><p>上面提到Uxplay可以不播放畫面，只串流純音樂。</p><ol><li>啟動UxPlay：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>uxplay -p
-</span></span></code></pre></div><ol start="2"><li><p>在iPhone播放音樂，再選取AirPlay的播放對象。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f63bd34341.webp" loadind="lazy"></p></li><li><p>這裡的AirPlay協定最高支援到ALAC 44Hz/16bit，無法串流真正的無損音質。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d52c929b96.webp"></li></ol><h2>4. 將UxPlay設定為常駐系統服務<span><a href="#4-%E5%B0%87uxplay%E8%A8%AD%E5%AE%9A%E7%82%BA%E5%B8%B8%E9%A7%90%E7%B3%BB%E7%B5%B1%E6%9C%8D%E5%8B%99" aria-label="定位點">#</a></span></h2><ol><li>Linux可透過Systemd Unit新增</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/systemd/system/uxplay.service
-</span></span></code></pre></div><ol start="2"><li>填入以下內容</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
-</span></span><span><span><span>Description</span><span>=</span>UxPlay service
-</span></span><span><span><span>After</span><span>=</span>syslog.target network.target
-</span></span><span><span>
-</span></span><span><span><span>[</span>Service<span>]</span>
-</span></span><span><span><span>ExecStart</span><span>=</span>/usr/bin/uxplay -p -fps <span>60</span> -s 1920x1080@60
-</span></span><span><span>
-</span></span><span><span><span>[</span>Install<span>]</span>
-</span></span><span><span><span>WantedBy</span><span>=</span>default.target
-</span></span></code></pre></div><ol start="3"><li>設定開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl daemon-reload
-</span></span><span><span>
-</span></span><span><span>sudo systemctl <span>enable</span> --now uxplay
-</span></span></code></pre></div><h2>5. 使用OBS Studio錄製iPhone畫面<span><a href="#5-%E4%BD%BF%E7%94%A8obs-studio%E9%8C%84%E8%A3%BDiphone%E7%95%AB%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>有時候跑一些大型遊戲，又在iPhone上進行錄影的話會給手機帶來很大負擔，這個時候可以透過OBS Studio擷取UxPlay的視窗，降低手機負擔。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/setup-obs-studio-on-linux/" target="_blank">
-OBS Studio</a></p></li><li><p>開啟OBS Studio，點選「新增畫面擷取」，選取UxPlay的視窗即可。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2443cc8b48.webp"></li></ol>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ios-airplay-uxplay/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c22e3f93a1.webp"></a></p>
-<p>若要將iPhone/iPad的螢幕無線投影（鏡像）到其他螢幕，很多人會使用內建的「AirPlay」功能來投放吧。AirPlay是Apple公司研發的專有無線協定，Apple自家裝置都有內建，讓你可以把iPhone影片投放到Apple TV觀看。</p><p>不過這樣要依賴特定程式才能看呢，於是有開發者將AirPlay的協定重新實作，製作出了跨平台的「UxPlay」軟體！完全開源免費，UxPlay支援Linux、Windows、macOS、FreeBSD、Raspberry Pi系統，可以將任意電腦變成AirPlay接收端(receiver)。</p><p>跟類似軟體<a href="https://github.com/mikebrady/shairport-sync?tab=readme-ov-file" target="_blank">
-Shairport Sync</a>比起來，UxPlay多了投影螢幕的功能。</p><p>開啟Wifi，您就能將iPhone的畫面透過UxPlay投影到電腦上了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4da6ae21b9.webp"><p>UxPlay也可以用來播放純音訊串流，用電腦無線播放手機的音樂，例如Apple Music。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bee79d0848.webp" loadind="lazy"></p><p>另外，搭配OBS Studio的畫面擷取功能，即可像Scrcpy擷取Android螢幕那樣，在Linux電腦實現iOS螢幕錄影。</p><h2>1. 安裝UxPlay<span><a href="#1-%E5%AE%89%E8%A3%9Duxplay" aria-label="定位點">#</a></span></h2><p>詳細文件參考<a href="https://github.com/FDH2/UxPlay" target="_blank">
-Github說明</a></p><p>許多Linux發行版已提供UxPlay套件，連樹莓派也有。但是macOS和Windows版需要自行編譯。</p><h3>Linux<span><a href="#linux" aria-label="定位點">#</a></span></h3><ol><li>Ubuntu 24.04從官方套件庫安裝：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install uxplay
-</span></span></code></pre></div><p>Arch Linux可以從AUR安裝UxPlay：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>yay -S uxplay
-</span></span></code></pre></div><ol start="2"><li>UxPlay安裝後，需要開放以下防火牆通訊埠。用UFW指令的話就是：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>7100</span>
-</span></span><span><span>sudo ufw allow <span>7000</span>
-</span></span><span><span>sudo ufw allow <span>7001</span>
-</span></span><span><span>sudo ufw allow <span>6000</span>
-</span></span><span><span>sudo ufw allow <span>6001</span>
-</span></span><span><span>sudo ufw allow <span>7011</span>
-</span></span><span><span>sudo ufw reload
-</span></span></code></pre></div><ol start="3"><li>Linux還需要啟用Avahi服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl <span>enable</span> --now avahi-daemon.service
-</span></span></code></pre></div><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>此處以Windows 11為例。嫌編譯麻煩的，你可以考慮裝<a href="https://ivonblog.com/posts/setup-wsl2-on-windows11/" target="_blank">
-WSL</a>並啟用橋接網路，再沿用Ubuntu的UxPlay套件。</p><ol><li><p>至<a href="https://developer.apple.com/download/all/?q=Bonjour%20SDK%20for%20Windows" target="_blank">
-Apple Developers官網</a>，登入Apple ID，下載並安裝<code>Bonjour SDK for Windows v3.0</code></p></li><li><p>下載<a href="https://www.msys2.org/" target="_blank">
-MSYS2</a></p></li><li><p>開啟MSYS2 MINGW64終端機，安裝以下依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pacman -Syu
-</span></span><span><span>pacman -S git man mingw-w64-x86_64-libplist mingw-w64-x86_64-gstreamer mingw-w64-x86_64-gst-plugins-base mingw-w64-x86_64-gst-libav mingw-w64-x86_64-gst-plugins-good mingw-w64-x86_64-gst-plugins-bad
-</span></span></code></pre></div><ol start="4"><li>複製Git儲存庫，編譯安裝。<code>uxplay.exe</code>應會安裝到Windows的<code>C:\msys64\mingw64\bin\uxplay</code>資料夾，之後可以用<code>uxplay</code>指令啟動。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/FDH2/UxPlay
-</span></span><span><span><span>cd</span> UxPlay
-</span></span><span><span>mkdir build
-</span></span><span><span><span>cd</span> build
-</span></span><span><span>cmake ..
-</span></span><span><span>ninja
-</span></span><span><span>cmake --install . --prefix /mingw64
-</span></span></code></pre></div><ol start="5"><li><p>允許UxPlay通過防火牆：在搜尋欄鍵入「Windows防火牆設定」，勾選<code>uxplay.exe</code></p></li><li><p>日後要啟動uxplay，請用MSYS2的終端機啟動。</p></li></ol><h3>macOS<span><a href="#macos" aria-label="定位點">#</a></span></h3><p>雖然macOS Monterey以後已經有類似AirPlay伺服器的功能，但是UxPlay的優勢在於讓舊版本macOS也能享有此功能。</p><p>此處以macOS Ventura為例。</p><ol><li>開啟終端機，安裝Xcode command-line tools</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo xcode-select --install
-</span></span></code></pre></div><ol start="2"><li><p>安裝<a href="https://brew.sh/" target="_blank">
-Homebrew</a></p></li><li><p>安裝以下依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>brew install cmake git libplist openssl@3
-</span></span></code></pre></div><ol start="4"><li><p>UxPlay作者建議手動安裝GStreamer發表的套件，不要用Homebrew的。至<a href="https://gstreamer.freedesktop.org/download/" target="_blank">
-官網</a>下載<code>1.22.10 runtime installer</code>和<code>1.22.10 development installer</code>二個pkg檔。接著在Finder按Shift安裝套件。</p></li><li><p>複製UxPlay儲存庫，編譯安裝</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/FDH2/UxPlay
-</span></span><span><span><span>cd</span> UxPlay
-</span></span><span><span>cmake .
-</span></span><span><span>make
-</span></span><span><span>sudo make install
-</span></span></code></pre></div><p>值得一提的是Mac電腦可以充當AirPlay的伺服端與客戶端，使用伺服端的模式下，Mac等同多出第二個螢幕。</p><h2>2. 投放螢幕到UxPlay<span><a href="#2-%E6%8A%95%E6%94%BE%E8%9E%A2%E5%B9%95%E5%88%B0uxplay" aria-label="定位點">#</a></span></h2><ol><li><p>確保iPhone和電腦位於同一個Wifi網路下，並且訊號要好。如果你需要低延遲，那就將iPhone插上電腦，用USB分享給電腦上網。</p></li><li><p>於電腦執行以下指令，指定通訊埠，FPS上限60，螢幕解析度1920x1080，重新整理率60</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>uxplay -p -fps <span>60</span> -s 1920x1080@60
-</span></span></code></pre></div><ol start="3"><li><p>開啟iPhone的控制中心，點選投放，會在列表看到uxplay＋電腦名稱的裝置
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a346c79e2.webp" loadind="lazy"></p></li><li><p>這樣電腦就會跳出iPhone畫面的視窗了，iPhone螢幕旋轉畫面會跟著轉，按F11進入全螢幕模式。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-09dee4be7d.webp"></li></ol><p>只要網路穩定，大螢幕觀看影片、玩遊戲都不是問題，音訊會一併傳過來。</p><p>不過含有DRM內容的影片（如Netflix）可能就無法透過AirPlay播放。</p><h2>3. AirPlay串流音樂<span><a href="#3-airplay%E4%B8%B2%E6%B5%81%E9%9F%B3%E6%A8%82" aria-label="定位點">#</a></span></h2><p>上面提到Uxplay可以不播放畫面，只串流純音樂。</p><ol><li>啟動UxPlay：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>uxplay -p
-</span></span></code></pre></div><ol start="2"><li><p>在iPhone播放音樂，再選取AirPlay的播放對象。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f63bd34341.webp" loadind="lazy"></p></li><li><p>這裡的AirPlay協定最高支援到ALAC 44Hz/16bit，無法串流真正的無損音質。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d52c929b96.webp"></li></ol><h2>4. 將UxPlay設定為常駐系統服務<span><a href="#4-%E5%B0%87uxplay%E8%A8%AD%E5%AE%9A%E7%82%BA%E5%B8%B8%E9%A7%90%E7%B3%BB%E7%B5%B1%E6%9C%8D%E5%8B%99" aria-label="定位點">#</a></span></h2><ol><li>Linux可透過Systemd Unit新增</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/systemd/system/uxplay.service
-</span></span></code></pre></div><ol start="2"><li>填入以下內容</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>Unit<span>]</span>
-</span></span><span><span><span>Description</span><span>=</span>UxPlay service
-</span></span><span><span><span>After</span><span>=</span>syslog.target network.target
-</span></span><span><span>
-</span></span><span><span><span>[</span>Service<span>]</span>
-</span></span><span><span><span>ExecStart</span><span>=</span>/usr/bin/uxplay -p -fps <span>60</span> -s 1920x1080@60
-</span></span><span><span>
-</span></span><span><span><span>[</span>Install<span>]</span>
-</span></span><span><span><span>WantedBy</span><span>=</span>default.target
-</span></span></code></pre></div><ol start="3"><li>設定開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl daemon-reload
-</span></span><span><span>
-</span></span><span><span>sudo systemctl <span>enable</span> --now uxplay
-</span></span></code></pre></div><h2>5. 使用OBS Studio錄製iPhone畫面<span><a href="#5-%E4%BD%BF%E7%94%A8obs-studio%E9%8C%84%E8%A3%BDiphone%E7%95%AB%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>有時候跑一些大型遊戲，又在iPhone上進行錄影的話會給手機帶來很大負擔，這個時候可以透過OBS Studio擷取UxPlay的視窗，降低手機負擔。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/setup-obs-studio-on-linux/" target="_blank">
-OBS Studio</a></p></li><li><p>開啟OBS Studio，點選「新增畫面擷取」，選取UxPlay的視窗即可。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2443cc8b48.webp"></li></ol>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c22e3f93a1.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c22e3f93a1.webp" medium="image"/>
-    <pubDate>Sat, 17 Aug 2024 21:00:00 +0800</pubDate>
   </item></channel>
 </rss>
