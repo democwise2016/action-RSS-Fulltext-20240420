@@ -30,6 +30,297 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手日記】Outlook 內嵌圖片在回信或轉信後失效]]></title>
+    <link>https://blog.darkthread.net/blog/fix-outlook-picture-disappear-issue/</link>
+    <itunes:title><![CDATA[【茶包射手日記】Outlook 內嵌圖片在回信或轉信後失效]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>我有個困擾，Outlook 收到幾位特定同事寄來內嵌圖片的信，圖片會在回信或轉信後消失，出現叉燒包圖示及<code>無法顯示連結的影像。檔案可能已移動、重新命名或刪除。請檢查連結是否指向正確的檔案及位置。/ The linked image cannot be displayed. The file may have been moved, renamed, or deleted. Verify that the link points to the correct file and location.</code> 訊息。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"><br> (示意圖)</p> <p>爬文發現我不孤獨，用「回信或轉信後圖片消失」可查到不少類似問題回報：</p> <ul><li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/pictures-disappear-when-i-forward-or-reply-to-an/d232f82d-6ea4-412f-baac-f9e49783d286?page=1&amp;WT.mc_id=DOP-MVP-37580">Pictures disappear when I forward or reply to an email.</a>，</li> <li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/photo-disappears-from-email-when-replying-or/1f635422-b5ca-4c58-936f-064d1cb1d77a?WT.mc_id=DOP-MVP-37580">photo disappears from email when replying or forwarding</a></li></ul> <p>可惜這些案例是發生在雲端網頁版，而我是在本機 Office 2019 遇到，不同情境原因未必相同，解法也不適用。</p> <p>摸摸鼻子，自己查看看好了。將信件另存成 .msg 檔進行解剖。</p> <p>.msg 本質是個壓縮檔，解開裡面有資料夾及檔案，可用來儲存 Exchange 郵件、約會、連絡人等物件內容，用 7-Zip 檢視可以看到資料是以一個屬性一個檔案方式保存。(註：想深入細節的同學可以去啃 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxmsg/b046868c-9fbf-41ae-9ffb-8de2bd4eec82?WT.mc_id=DOP-MVP-37580">官方規格</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638611406512241695.png"></p> <p>分析圖片消失的信件，找出問題所在。信件內嵌圖檔是以附件方式儲存，每個附檔會對映一個名為 <code>__attach_version1.0_#0000000n</code> 的資料夾，圖片消失的信件，其實圖檔都還在，只是這些圖片是以 <code>&lt;img width=217 height=222 style='width:2.2604in;height:2.3125in' id="圖片_x0020_2" src="cid:image001.png@01DAFF72.94F352E0"&gt;</code> HTML 標籤嵌入信件內文，而其中 <code>image001.png@01DAFF72.94F352E0</code> 是系統自動產生的 ContentId：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638611406515503814.png"></p> <p>圖片附檔都在，但檢視時說連結未指向正確的檔案及位置，最容易的解釋是附檔的 <code>cid:image001.png@...</code> 跟 HTML 中的 <code>src="cid:image001.png@..."</code> 因不明原因對不上。</p> <p>研究了一下，PowerShell 建立 Outlook.Application 後，可以用 CreateItemFromTemplate() 讀取 .msg，由 HtmlBody 取得 HTML 內容找出 <code>src="cid:image001.png@..."</code>，列舉 Attachments 並用 <code>Attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")</code> (<a href="https://learn.microsoft.com/en-us/office/client-developer/outlook/mapi/pidtagattachcontentid-canonical-property?WT.mc_id=DOP-MVP-37580">PidTagAttachContentId</a> 取得附件的 ContentId，比對二者是否有出入。</p> <p>我寫了一支小程式檢查內文與附檔 CID 的一致性。</p> <pre><code>[CmdletBinding()]
+param (
+[Parameter(Mandatory = $true)]
+[string]
+$msgPath
+)
+$ErrorActionPreference = 'STOP'
+function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+$outlookApp = New-Object -ComObject Outlook.Application
+if (!$outlookApp) {
+throw "無法開啟 Outlook 程式"
+}
+$fullPath = Resolve-Path $msgPath
+Write-Host "開啟 $fullPath"
+$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
+$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
+Write-Host "共有 $($res.Count) 個內嵌圖片"
+foreach ($match in $res) {
+$cid = $match.Groups[1].Value
+Write-Host "  $cid"
+}
+$attachments = $mailItem.Attachments
+Write-Host "共有 $($attachments.Count) 個附件"
+try {
+$attachments | ForEach-Object {
+$attachment = $_
+$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
+Write-Host "  [$cid]"
+}
+}
+finally {
+$mailItem.Delete()
+}
+</code></pre> <p>分別檢查正常郵件 good.msg 及問題郵件 broken.msg，證實了問題出在 CID 對映：正常郵件 HTML 中的 CID 與附件的 CID 一致，而問題郵件兩邊的數量相符，但 CID 對不起來。證實「CID 錯亂導致圖片無法顯示」是問題根源，但原因不明，也有可能是 Outlook 的 Bug，恐會查到心累。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638611406517187571.png"></p> <p>最後，我寫了一支 Workaround 小工具，將圖片附檔另存，至少能取回消失的圖片，並嘗試將 HTML 中的 CID 依序換成附檔目前的 CID 以修正問題。</p> <pre><code>[CmdletBinding()]
+param (
+[Parameter(Mandatory = $true)]
+[string]
+$msgPath,
+[string]
+$attachmentFolder = '.'
+)
+$ErrorActionPreference = 'STOP'
+function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+$outlookApp = New-Object -ComObject Outlook.Application
+if (!$outlookApp) {
+throw "無法開啟 Outlook 程式"
+}
+$fullPath = Resolve-Path $msgPath
+Write-Host "開啟 $fullPath"
+$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
+$mailItem.HtmlBody = $mailItem.HtmlBody.Replace('image001.png', 'image002.png')
+$mailItem.SaveAs((Resolve-AbsPath 'fixed.msg'))
+$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
+Write-Host "共有 $($res.Count) 個內嵌圖片"
+$htmlCids = @()
+foreach ($match in $res) {
+$cid = $match.Groups[1].Value
+$htmlCids += $cid
+Write-Host "  $cid"
+}
+$attachments = $mailItem.Attachments
+Write-Host "共有 $($attachments.Count) 個附件"
+$attCids = @()
+try {
+$saveFolderPath = Resolve-AbsPath $attachmentFolder
+$attachments | ForEach-Object {
+$attachment = $_
+$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
+$savePath = Join-Path $saveFolderPath $attachment.FileName
+Write-Host "  儲存[$cid] $savePath..."
+$attachment.SaveAsFile($savePath)
+if ($cid -match '^image\d+\.(png|jpg)@[0-9A-F]{8}\.[0-9A-F]{8}$') {
+$attCids += $cid
+}
+}
+$index = 0
+Write-Host "嘗試修正 CID"
+$htmlCids | ForEach-Object {
+$newCid = $attCids[$index]
+$index++
+Write-Host "  置換：$_ -&gt; $newCid"
+$mailItem.HtmlBody = $mailItem.HtmlBody.Replace("cid:$_", "cid:$newCid")
+}
+$mailItem.SaveAs((Resolve-AbsPath 'try-fix.msg'))
+}
+finally {
+$mailItem.Delete()
+}
+</code></pre> <p>實測成功，不但拿回消失的圖片，開啟郵件消失的圖片也重現了。讚~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638611406518934009.png"></p> <p data-slug="fix-outlook-picture-disappear-issue" data-title-en="Fix picture disappering after Outlook mail replied or forwarded issue" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/03/25/18/24/nutcracker-2174124_960_720.jpg#960#720">This blog post addresses the issue of embedded images disappearing in Outlook emails when replying or forwarding. It explains the problem’s root cause related to ContentId mismatches and offers PowerShell scripts to diagnose and fix the issue by extracting and reassigning ContentIds for embedded images.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>我有個困擾，Outlook 收到幾位特定同事寄來內嵌圖片的信，圖片會在回信或轉信後消失，出現叉燒包圖示及<code>無法顯示連結的影像。檔案可能已移動、重新命名或刪除。請檢查連結是否指向正確的檔案及位置。/ The linked image cannot be displayed. The file may have been moved, renamed, or deleted. Verify that the link points to the correct file and location.</code> 訊息。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"><br> (示意圖)</p> <p>爬文發現我不孤獨，用「回信或轉信後圖片消失」可查到不少類似問題回報：</p> <ul><li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/pictures-disappear-when-i-forward-or-reply-to-an/d232f82d-6ea4-412f-baac-f9e49783d286?page=1&amp;WT.mc_id=DOP-MVP-37580">Pictures disappear when I forward or reply to an email.</a>，</li> <li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/photo-disappears-from-email-when-replying-or/1f635422-b5ca-4c58-936f-064d1cb1d77a?WT.mc_id=DOP-MVP-37580">photo disappears from email when replying or forwarding</a></li></ul> <p>可惜這些案例是發生在雲端網頁版，而我是在本機 Office 2019 遇到，不同情境原因未必相同，解法也不適用。</p> <p>摸摸鼻子，自己查看看好了。將信件另存成 .msg 檔進行解剖。</p> <p>.msg 本質是個壓縮檔，解開裡面有資料夾及檔案，可用來儲存 Exchange 郵件、約會、連絡人等物件內容，用 7-Zip 檢視可以看到資料是以一個屬性一個檔案方式保存。(註：想深入細節的同學可以去啃 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxmsg/b046868c-9fbf-41ae-9ffb-8de2bd4eec82?WT.mc_id=DOP-MVP-37580">官方規格</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638611406512241695.png"></p> <p>分析圖片消失的信件，找出問題所在。信件內嵌圖檔是以附件方式儲存，每個附檔會對映一個名為 <code>__attach_version1.0_#0000000n</code> 的資料夾，圖片消失的信件，其實圖檔都還在，只是這些圖片是以 <code>&lt;img width=217 height=222 style='width:2.2604in;height:2.3125in' id="圖片_x0020_2" src="cid:image001.png@01DAFF72.94F352E0"&gt;</code> HTML 標籤嵌入信件內文，而其中 <code>image001.png@01DAFF72.94F352E0</code> 是系統自動產生的 ContentId：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638611406515503814.png"></p> <p>圖片附檔都在，但檢視時說連結未指向正確的檔案及位置，最容易的解釋是附檔的 <code>cid:image001.png@...</code> 跟 HTML 中的 <code>src="cid:image001.png@..."</code> 因不明原因對不上。</p> <p>研究了一下，PowerShell 建立 Outlook.Application 後，可以用 CreateItemFromTemplate() 讀取 .msg，由 HtmlBody 取得 HTML 內容找出 <code>src="cid:image001.png@..."</code>，列舉 Attachments 並用 <code>Attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")</code> (<a href="https://learn.microsoft.com/en-us/office/client-developer/outlook/mapi/pidtagattachcontentid-canonical-property?WT.mc_id=DOP-MVP-37580">PidTagAttachContentId</a> 取得附件的 ContentId，比對二者是否有出入。</p> <p>我寫了一支小程式檢查內文與附檔 CID 的一致性。</p> <pre><code>[CmdletBinding()]
+param (
+[Parameter(Mandatory = $true)]
+[string]
+$msgPath
+)
+$ErrorActionPreference = 'STOP'
+function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+$outlookApp = New-Object -ComObject Outlook.Application
+if (!$outlookApp) {
+throw "無法開啟 Outlook 程式"
+}
+$fullPath = Resolve-Path $msgPath
+Write-Host "開啟 $fullPath"
+$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
+$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
+Write-Host "共有 $($res.Count) 個內嵌圖片"
+foreach ($match in $res) {
+$cid = $match.Groups[1].Value
+Write-Host "  $cid"
+}
+$attachments = $mailItem.Attachments
+Write-Host "共有 $($attachments.Count) 個附件"
+try {
+$attachments | ForEach-Object {
+$attachment = $_
+$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
+Write-Host "  [$cid]"
+}
+}
+finally {
+$mailItem.Delete()
+}
+</code></pre> <p>分別檢查正常郵件 good.msg 及問題郵件 broken.msg，證實了問題出在 CID 對映：正常郵件 HTML 中的 CID 與附件的 CID 一致，而問題郵件兩邊的數量相符，但 CID 對不起來。證實「CID 錯亂導致圖片無法顯示」是問題根源，但原因不明，也有可能是 Outlook 的 Bug，恐會查到心累。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638611406517187571.png"></p> <p>最後，我寫了一支 Workaround 小工具，將圖片附檔另存，至少能取回消失的圖片，並嘗試將 HTML 中的 CID 依序換成附檔目前的 CID 以修正問題。</p> <pre><code>[CmdletBinding()]
+param (
+[Parameter(Mandatory = $true)]
+[string]
+$msgPath,
+[string]
+$attachmentFolder = '.'
+)
+$ErrorActionPreference = 'STOP'
+function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+$outlookApp = New-Object -ComObject Outlook.Application
+if (!$outlookApp) {
+throw "無法開啟 Outlook 程式"
+}
+$fullPath = Resolve-Path $msgPath
+Write-Host "開啟 $fullPath"
+$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
+$mailItem.HtmlBody = $mailItem.HtmlBody.Replace('image001.png', 'image002.png')
+$mailItem.SaveAs((Resolve-AbsPath 'fixed.msg'))
+$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
+Write-Host "共有 $($res.Count) 個內嵌圖片"
+$htmlCids = @()
+foreach ($match in $res) {
+$cid = $match.Groups[1].Value
+$htmlCids += $cid
+Write-Host "  $cid"
+}
+$attachments = $mailItem.Attachments
+Write-Host "共有 $($attachments.Count) 個附件"
+$attCids = @()
+try {
+$saveFolderPath = Resolve-AbsPath $attachmentFolder
+$attachments | ForEach-Object {
+$attachment = $_
+$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
+$savePath = Join-Path $saveFolderPath $attachment.FileName
+Write-Host "  儲存[$cid] $savePath..."
+$attachment.SaveAsFile($savePath)
+if ($cid -match '^image\d+\.(png|jpg)@[0-9A-F]{8}\.[0-9A-F]{8}$') {
+$attCids += $cid
+}
+}
+$index = 0
+Write-Host "嘗試修正 CID"
+$htmlCids | ForEach-Object {
+$newCid = $attCids[$index]
+$index++
+Write-Host "  置換：$_ -&gt; $newCid"
+$mailItem.HtmlBody = $mailItem.HtmlBody.Replace("cid:$_", "cid:$newCid")
+}
+$mailItem.SaveAs((Resolve-AbsPath 'try-fix.msg'))
+}
+finally {
+$mailItem.Delete()
+}
+</code></pre> <p>實測成功，不但拿回消失的圖片，開啟郵件消失的圖片也重現了。讚~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638611406518934009.png"></p> <p data-slug="fix-outlook-picture-disappear-issue" data-title-en="Fix picture disappering after Outlook mail replied or forwarded issue" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/03/25/18/24/nutcracker-2174124_960_720.jpg#960#720">This blog post addresses the issue of embedded images disappearing in Outlook emails when replying or forwarding. It explains the problem’s root cause related to ContentId mismatches and offers PowerShell scripts to diagnose and fix the issue by extracting and reassigning ContentIds for embedded images.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>我有個困擾，Outlook 收到幾位特定同事寄來內嵌圖片的信，圖片會在回信或轉信後消失，出現叉燒包圖示及<code>無法顯示連結的影像。檔案可能已移動、重新命名或刪除。請檢查連結是否指向正確的檔案及位置。/ The linked image cannot be displayed. The file may have been moved, renamed, or deleted. Verify that the link points to the correct file and location.</code> 訊息。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"><br> (示意圖)</p> <p>爬文發現我不孤獨，用「回信或轉信後圖片消失」可查到不少類似問題回報：</p> <ul><li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/pictures-disappear-when-i-forward-or-reply-to-an/d232f82d-6ea4-412f-baac-f9e49783d286?page=1&amp;WT.mc_id=DOP-MVP-37580">Pictures disappear when I forward or reply to an email.</a>，</li> <li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/photo-disappears-from-email-when-replying-or/1f635422-b5ca-4c58-936f-064d1cb1d77a?WT.mc_id=DOP-MVP-37580">photo disappears from email when replying or forwarding</a></li></ul> <p>可惜這些案例是發生在雲端網頁版，而我是在本機 Office 2019 遇到，不同情境原因未必相同，解法也不適用。</p> <p>摸摸鼻子，自己查看看好了。將信件另存成 .msg 檔進行解剖。</p> <p>.msg 本質是個壓縮檔，解開裡面有資料夾及檔案，可用來儲存 Exchange 郵件、約會、連絡人等物件內容，用 7-Zip 檢視可以看到資料是以一個屬性一個檔案方式保存。(註：想深入細節的同學可以去啃 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxmsg/b046868c-9fbf-41ae-9ffb-8de2bd4eec82?WT.mc_id=DOP-MVP-37580">官方規格</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638611406512241695.png"></p> <p>分析圖片消失的信件，找出問題所在。信件內嵌圖檔是以附件方式儲存，每個附檔會對映一個名為 <code>__attach_version1.0_#0000000n</code> 的資料夾，圖片消失的信件，其實圖檔都還在，只是這些圖片是以 <code>&lt;img width=217 height=222 style='width:2.2604in;height:2.3125in' id="圖片_x0020_2" src="cid:image001.png@01DAFF72.94F352E0"&gt;</code> HTML 標籤嵌入信件內文，而其中 <code>image001.png@01DAFF72.94F352E0</code> 是系統自動產生的 ContentId：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638611406515503814.png"></p> <p>圖片附檔都在，但檢視時說連結未指向正確的檔案及位置，最容易的解釋是附檔的 <code>cid:image001.png@...</code> 跟 HTML 中的 <code>src="cid:image001.png@..."</code> 因不明原因對不上。</p> <p>研究了一下，PowerShell 建立 Outlook.Application 後，可以用 CreateItemFromTemplate() 讀取 .msg，由 HtmlBody 取得 HTML 內容找出 <code>src="cid:image001.png@..."</code>，列舉 Attachments 並用 <code>Attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")</code> (<a href="https://learn.microsoft.com/en-us/office/client-developer/outlook/mapi/pidtagattachcontentid-canonical-property?WT.mc_id=DOP-MVP-37580">PidTagAttachContentId</a> 取得附件的 ContentId，比對二者是否有出入。</p> <p>我寫了一支小程式檢查內文與附檔 CID 的一致性。</p> <pre><code>[CmdletBinding()]
+param (
+[Parameter(Mandatory = $true)]
+[string]
+$msgPath
+)
+$ErrorActionPreference = 'STOP'
+function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+$outlookApp = New-Object -ComObject Outlook.Application
+if (!$outlookApp) {
+throw "無法開啟 Outlook 程式"
+}
+$fullPath = Resolve-Path $msgPath
+Write-Host "開啟 $fullPath"
+$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
+$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
+Write-Host "共有 $($res.Count) 個內嵌圖片"
+foreach ($match in $res) {
+$cid = $match.Groups[1].Value
+Write-Host "  $cid"
+}
+$attachments = $mailItem.Attachments
+Write-Host "共有 $($attachments.Count) 個附件"
+try {
+$attachments | ForEach-Object {
+$attachment = $_
+$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
+Write-Host "  [$cid]"
+}
+}
+finally {
+$mailItem.Delete()
+}
+</code></pre> <p>分別檢查正常郵件 good.msg 及問題郵件 broken.msg，證實了問題出在 CID 對映：正常郵件 HTML 中的 CID 與附件的 CID 一致，而問題郵件兩邊的數量相符，但 CID 對不起來。證實「CID 錯亂導致圖片無法顯示」是問題根源，但原因不明，也有可能是 Outlook 的 Bug，恐會查到心累。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638611406517187571.png"></p> <p>最後，我寫了一支 Workaround 小工具，將圖片附檔另存，至少能取回消失的圖片，並嘗試將 HTML 中的 CID 依序換成附檔目前的 CID 以修正問題。</p> <pre><code>[CmdletBinding()]
+param (
+[Parameter(Mandatory = $true)]
+[string]
+$msgPath,
+[string]
+$attachmentFolder = '.'
+)
+$ErrorActionPreference = 'STOP'
+function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+$outlookApp = New-Object -ComObject Outlook.Application
+if (!$outlookApp) {
+throw "無法開啟 Outlook 程式"
+}
+$fullPath = Resolve-Path $msgPath
+Write-Host "開啟 $fullPath"
+$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
+$mailItem.HtmlBody = $mailItem.HtmlBody.Replace('image001.png', 'image002.png')
+$mailItem.SaveAs((Resolve-AbsPath 'fixed.msg'))
+$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
+Write-Host "共有 $($res.Count) 個內嵌圖片"
+$htmlCids = @()
+foreach ($match in $res) {
+$cid = $match.Groups[1].Value
+$htmlCids += $cid
+Write-Host "  $cid"
+}
+$attachments = $mailItem.Attachments
+Write-Host "共有 $($attachments.Count) 個附件"
+$attCids = @()
+try {
+$saveFolderPath = Resolve-AbsPath $attachmentFolder
+$attachments | ForEach-Object {
+$attachment = $_
+$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
+$savePath = Join-Path $saveFolderPath $attachment.FileName
+Write-Host "  儲存[$cid] $savePath..."
+$attachment.SaveAsFile($savePath)
+if ($cid -match '^image\d+\.(png|jpg)@[0-9A-F]{8}\.[0-9A-F]{8}$') {
+$attCids += $cid
+}
+}
+$index = 0
+Write-Host "嘗試修正 CID"
+$htmlCids | ForEach-Object {
+$newCid = $attCids[$index]
+$index++
+Write-Host "  置換：$_ -&gt; $newCid"
+$mailItem.HtmlBody = $mailItem.HtmlBody.Replace("cid:$_", "cid:$newCid")
+}
+$mailItem.SaveAs((Resolve-AbsPath 'try-fix.msg'))
+}
+finally {
+$mailItem.Delete()
+}
+</code></pre> <p>實測成功，不但拿回消失的圖片，開啟郵件消失的圖片也重現了。讚~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638611406518934009.png"></p> <p data-slug="fix-outlook-picture-disappear-issue" data-title-en="Fix picture disappering after Outlook mail replied or forwarded issue" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/03/25/18/24/nutcracker-2174124_960_720.jpg#960#720">This blog post addresses the issue of embedded images disappearing in Outlook emails when replying or forwarding. It explains the problem’s root cause related to ContentId mismatches and offers PowerShell scripts to diagnose and fix the issue by extracting and reassigning ContentIds for embedded images.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png" medium="image"/>
+    <pubDate>Thu, 05 Sep 2024 13:41:26 GMT</pubDate>
+  </item><item>
     <title><![CDATA[PowerShell Resolve-Path 解析不存在路徑]]></title>
     <link>https://blog.darkthread.net/blog/ps-resolve-non-existing-path/</link>
     <itunes:title><![CDATA[PowerShell Resolve-Path 解析不存在路徑]]></itunes:title>
@@ -872,146 +1163,5 @@ d2 = [1,2,3,4,5,6,7,8,14] # 最後數字故意放 14 製造離群值
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638592393203245407.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638592393203245407.png" medium="image"/>
     <pubDate>Wed, 14 Aug 2024 13:34:28 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[用入門級顯卡 RTX 3050 + Ollama 跑小模型，會比 CPU 快多少倍？]]></title>
-    <link>https://blog.darkthread.net/blog/testing-ollama-slm-w-gpu/</link>
-    <itunes:title><![CDATA[用入門級顯卡 RTX 3050 + Ollama 跑小模型，會比 CPU 快多少倍？]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>學會用 <a href="/blog/ollam-open-webui/">Ollama</a> 有一陣子了，受限於<a href="/blog/deskmini-i5/">迷你工作機只有內顯</a>，至今都是用 CPU 跑模型，據說只要有 GPU，即便是人門款顯卡都能把 CPU 壓在地上摩擦，了解 GPU 並行運算架構就知道這是想當然爾的結果，但沒親手體驗過，總覺得少了點什麼。</p> <p>趁著週末向小木頭借了他的 RTX 3050 獨顯 11 代 i7 筆電試跑 Ollama。(順便向他展示用 CLI 帥氣下指令跟用 VSCode 跑程式，加減推坑 Coding 的美麗世界 XD)</p> <p>3050 屬入門級只有 4GB VRAM，但用來跑前幾天玩過的 Google Gemma 2 跟微軟的 Phi-3，模型參數量分別是 2B 及 3.8B，有機會塞進 VRAM 用 GPU 跑，夠讓我這個從沒用 GPU 跑過模型的土包子開眼界了。</p> <p>Ollama 很聰明，跑模型時若有 GPU 可用會用 GPU，若沒有則會用 CPU，你都會得到結果，要怎麼確認 Ollama 是用 GPU 跑模型？一個簡便做法是載入模型後使用指令 <code>ollama ps</code> 查詢，Ollama 會顯示該模型大小，有多少比例使用 CPU、多少是用 GPU：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638589838720355079.png"></p> <p>以微軟的 <a href="https://www.ithome.com.tw/news/162479">Phi-3 3.8B 小模型</a>為例，phi3:mini 大小為 3.6 GB，5% 用 CPU 跑，95% 用 GPU。由工作管理員的 Nvidia GPU 資訊頁可查到類似結果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638589838723635734.png"></p> <p>要看懂以上資訊，有個基本知識：工作管理員顯示的 GPU 資訊時有分「專屬 GPU 記憶體」跟「共用 GPU 記憶體」，前者指給 GPU 專用的記憶體，通常指焊在 GPU 晶片周圍一圈的 <a href="https://zh.wikipedia.org/zh-tw/GDDR">GDDR 高速記憶體</a>(就在 GPU 晶片旁，距離愈近愈好)，下圖為香噴噴貴森森的消費顯卡至尊 RTX 4090，GPU 晶片被 12 顆 GDDR6X (傳輸頻寬是 DDR4 的 10 倍) 記憶體眾星拱月，專屬 GPU 記憶體來到 24 GB。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638589838725401708.jpg" alt="thumbnail"><br> 照片來源：<a href="https://unikoshardware.com/2022/10/msi-rtx-4090-suprim-x-review.html">UNIKO'S HARDWARE</a></p> <p>而「共用 GPU 記憶體」來自主機板上的實體記憶體，其中一半容量開放 GPU 跟 CPU 共用。但這不是說主機如果有 32 GB RAM，會撥 16 GB 給 GPU，其他程式只能用剩下的 16GB；而是若 GPU 需要，最多可動用 50% (16GB) 的記憶體，但這 16GB 使用上仍需與一般應用程式協調，GPU 只具有稍高優先權。</p> <p>我測試的這台筆電插了 16 + 8 共 24GB RAM，GPU 為筆電版 RTX 3050 有 4GB VRAM 即專用 GPU 記憶體大小，目前用掉 3.1GB；共用記憶體 24 * 50% = 12G，用掉 0.3G。而運算分配為 GPU 95%、CPU 5%。</p> <p>phi3:mini 大小為 3.6GB，照理可全部塞進 4GB VRAM，不確定為何沒法全部放進 VRAM 100% 用 GPU，我猜有可能 VRAM 不能 100% 用完，需留下一定比例的保留空間，或是 Ollama 判斷將部分 Layer 移到 CPU 運算會更有效率。</p> <p>再來看 Gemma 7B 版，模型大小 7.8G (下圖[1])，其中 VRAM 用掉 2.9GB、共用 GPU RAM 用 4.8G，二者相加約 7.8G，而其運算比例 CPU 57%、GPU 43%。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638589838726974837.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638589838728600817.png"></p> <p>最後是 Gemma 2B 版，模型大小 2.9GB，VRAM 佔 2.6GB、共用 GPU RAM 0.5GB，終於實現 100% 都用 GPU! (上圖[2])，至於 Gemma2 2B，大小亦為 2.9GB，也是 100% 使用 GPU。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638589838730162236.png"></p> <p>Gemma 2 2B 的生成速度讓人驚豔，但沒有明確數據不夠科學，所以我改寫<a href="/blog/test-gemma-2-2b/">上回的 C# 範例</a>，要求模型以 AI 為主題寫一小篇英文作文，測量每秒可以吐幾個字元。為求簡便，測速我是直接算字元數量，沒換成 Token 數，反正字元數接近肉眼感受，且用於對照不同模型、GPU 與 CPU 的差異，用 Token 或字元數都有足夠代表性。</p> <p>程式碼如下：</p> <pre><code>// set up the client
-using System.Runtime.InteropServices.Marshalling;
-using OllamaSharp;
-Action&lt;string&gt; printHeader = (header) =&gt;
-{
-Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(header);
-Console.ResetColor();
-};
-var charCount = 0;
-DateTime? startTime = null;
-const string EOF = "\x04";
-void print(string msg = "")
-{
-if (msg == EOF)
-{
-var elapsed = (DateTime.Now - startTime!.Value).TotalSeconds;
-Console.ForegroundColor = ConsoleColor.White;
-Console.WriteLine("
-Rate: {0:n1} chars/sec", charCount / elapsed);
-Console.ResetColor();
-}
-else
-{
-charCount += msg.Length;
-Console.Write(msg);
-}
-}
-void start() {
-startTime = DateTime.Now;
-charCount = 0;
-Console.ForegroundColor = ConsoleColor.Cyan;
-}
-var uri = new Uri("http://localhost:11434");
-var ollama = new OllamaApiClient(uri);
-ollama.SelectedModel = "gemma2:2b"; // "phi3:mini"
-ConversationContext context = null!;
-printHeader("Article Generation Test");
-string prompt = @"Write a 256-word article on artificial intelligence";
-start();
-context = await ollama.StreamCompletion(prompt, context, stream =&gt; print(stream?.Response ?? ""));
-print(EOF);
-</code></pre> <p>我測試了 Phi-3 及 Gemma 2 兩個小模型：</p> <ul><li><a href="https://ollama.com/library/phi3:mini">phi-3:mini</a> 3.8B 參數</li> <li><a href="https://ollama.com/library/phi2:2b">gemma 2:2b</a> 2B 參數</li></ul> <p>實測各跑五次，得到 chars/sec 數據及 GPU 使用狀況擷圖如下：</p> <ul><li>phi3:mini - 160.1 142.9 155.2 152.3 154.1 每秒 150 個字元左右<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638589838731987012.png"><br> Phi-3 3.8B，5% 使用 CPU，95% 用 GPU，擷圖前做了兩次測試，可觀察到 GPU 有兩個小小的尖峰(紅框)，對應當時 CPU 有兩段小高原(雙箭頭所指處)，感覺 CPU 處理這 5% 還挺吃力的。</li> <li>gemma2:2b - 229.9 229.8 229.3 215.3 212.3，每秒可輸出兩百多個字元<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638589838733656991.png"><br> Gemma2 2B 100% 用 GPU，擷圖前測了五次，GPU 3D 使用率可觀察到 5 個尖峰，CPU 使用率則看不出明顯對應。</li></ul> <p>看完奢華版 GPU 跑分，來看看平價版 i5 12500 的純 CPU 表現。</p> <p>Gemma2 2B，每秒約 75 個字元，RTX 3050 的 1/3。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638589838735356070.png"></p> <p>Phi3 3.8B，每秒約 53 個字元，差不多也是 RTX 3050 的 1/3。　</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638589838737071476.png"></p> <p>在這個 Ollama 跑 Phi3、Gemma 2 小模型的測試中，RTX 3050 4GB VRAM 輕鬆以三部速輾壓 12 代 i5。各位同學如有更高級的 4050/4060/4070/4080/4090 也歡迎分享實測數字。</p> <p data-slug="testing-ollama-slm-w-gpu" data-title-en="Testing Ollama + Gemma 2 and Phi-3 with entry level GPU" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">The blog explores testing AI models on a GPU (RTX 3050) vs. CPU, using Ollama to run models like Google Gemma 2 and Microsoft Phi-3. It demonstrates significant speed improvements with GPU usage and provides detailed performance metrics and observations.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>學會用 <a href="/blog/ollam-open-webui/">Ollama</a> 有一陣子了，受限於<a href="/blog/deskmini-i5/">迷你工作機只有內顯</a>，至今都是用 CPU 跑模型，據說只要有 GPU，即便是人門款顯卡都能把 CPU 壓在地上摩擦，了解 GPU 並行運算架構就知道這是想當然爾的結果，但沒親手體驗過，總覺得少了點什麼。</p> <p>趁著週末向小木頭借了他的 RTX 3050 獨顯 11 代 i7 筆電試跑 Ollama。(順便向他展示用 CLI 帥氣下指令跟用 VSCode 跑程式，加減推坑 Coding 的美麗世界 XD)</p> <p>3050 屬入門級只有 4GB VRAM，但用來跑前幾天玩過的 Google Gemma 2 跟微軟的 Phi-3，模型參數量分別是 2B 及 3.8B，有機會塞進 VRAM 用 GPU 跑，夠讓我這個從沒用 GPU 跑過模型的土包子開眼界了。</p> <p>Ollama 很聰明，跑模型時若有 GPU 可用會用 GPU，若沒有則會用 CPU，你都會得到結果，要怎麼確認 Ollama 是用 GPU 跑模型？一個簡便做法是載入模型後使用指令 <code>ollama ps</code> 查詢，Ollama 會顯示該模型大小，有多少比例使用 CPU、多少是用 GPU：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638589838720355079.png"></p> <p>以微軟的 <a href="https://www.ithome.com.tw/news/162479">Phi-3 3.8B 小模型</a>為例，phi3:mini 大小為 3.6 GB，5% 用 CPU 跑，95% 用 GPU。由工作管理員的 Nvidia GPU 資訊頁可查到類似結果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638589838723635734.png"></p> <p>要看懂以上資訊，有個基本知識：工作管理員顯示的 GPU 資訊時有分「專屬 GPU 記憶體」跟「共用 GPU 記憶體」，前者指給 GPU 專用的記憶體，通常指焊在 GPU 晶片周圍一圈的 <a href="https://zh.wikipedia.org/zh-tw/GDDR">GDDR 高速記憶體</a>(就在 GPU 晶片旁，距離愈近愈好)，下圖為香噴噴貴森森的消費顯卡至尊 RTX 4090，GPU 晶片被 12 顆 GDDR6X (傳輸頻寬是 DDR4 的 10 倍) 記憶體眾星拱月，專屬 GPU 記憶體來到 24 GB。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638589838725401708.jpg" alt="thumbnail"><br> 照片來源：<a href="https://unikoshardware.com/2022/10/msi-rtx-4090-suprim-x-review.html">UNIKO'S HARDWARE</a></p> <p>而「共用 GPU 記憶體」來自主機板上的實體記憶體，其中一半容量開放 GPU 跟 CPU 共用。但這不是說主機如果有 32 GB RAM，會撥 16 GB 給 GPU，其他程式只能用剩下的 16GB；而是若 GPU 需要，最多可動用 50% (16GB) 的記憶體，但這 16GB 使用上仍需與一般應用程式協調，GPU 只具有稍高優先權。</p> <p>我測試的這台筆電插了 16 + 8 共 24GB RAM，GPU 為筆電版 RTX 3050 有 4GB VRAM 即專用 GPU 記憶體大小，目前用掉 3.1GB；共用記憶體 24 * 50% = 12G，用掉 0.3G。而運算分配為 GPU 95%、CPU 5%。</p> <p>phi3:mini 大小為 3.6GB，照理可全部塞進 4GB VRAM，不確定為何沒法全部放進 VRAM 100% 用 GPU，我猜有可能 VRAM 不能 100% 用完，需留下一定比例的保留空間，或是 Ollama 判斷將部分 Layer 移到 CPU 運算會更有效率。</p> <p>再來看 Gemma 7B 版，模型大小 7.8G (下圖[1])，其中 VRAM 用掉 2.9GB、共用 GPU RAM 用 4.8G，二者相加約 7.8G，而其運算比例 CPU 57%、GPU 43%。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638589838726974837.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638589838728600817.png"></p> <p>最後是 Gemma 2B 版，模型大小 2.9GB，VRAM 佔 2.6GB、共用 GPU RAM 0.5GB，終於實現 100% 都用 GPU! (上圖[2])，至於 Gemma2 2B，大小亦為 2.9GB，也是 100% 使用 GPU。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638589838730162236.png"></p> <p>Gemma 2 2B 的生成速度讓人驚豔，但沒有明確數據不夠科學，所以我改寫<a href="/blog/test-gemma-2-2b/">上回的 C# 範例</a>，要求模型以 AI 為主題寫一小篇英文作文，測量每秒可以吐幾個字元。為求簡便，測速我是直接算字元數量，沒換成 Token 數，反正字元數接近肉眼感受，且用於對照不同模型、GPU 與 CPU 的差異，用 Token 或字元數都有足夠代表性。</p> <p>程式碼如下：</p> <pre><code>// set up the client
-using System.Runtime.InteropServices.Marshalling;
-using OllamaSharp;
-Action&lt;string&gt; printHeader = (header) =&gt;
-{
-Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(header);
-Console.ResetColor();
-};
-var charCount = 0;
-DateTime? startTime = null;
-const string EOF = "\x04";
-void print(string msg = "")
-{
-if (msg == EOF)
-{
-var elapsed = (DateTime.Now - startTime!.Value).TotalSeconds;
-Console.ForegroundColor = ConsoleColor.White;
-Console.WriteLine("
-Rate: {0:n1} chars/sec", charCount / elapsed);
-Console.ResetColor();
-}
-else
-{
-charCount += msg.Length;
-Console.Write(msg);
-}
-}
-void start() {
-startTime = DateTime.Now;
-charCount = 0;
-Console.ForegroundColor = ConsoleColor.Cyan;
-}
-var uri = new Uri("http://localhost:11434");
-var ollama = new OllamaApiClient(uri);
-ollama.SelectedModel = "gemma2:2b"; // "phi3:mini"
-ConversationContext context = null!;
-printHeader("Article Generation Test");
-string prompt = @"Write a 256-word article on artificial intelligence";
-start();
-context = await ollama.StreamCompletion(prompt, context, stream =&gt; print(stream?.Response ?? ""));
-print(EOF);
-</code></pre> <p>我測試了 Phi-3 及 Gemma 2 兩個小模型：</p> <ul><li><a href="https://ollama.com/library/phi3:mini">phi-3:mini</a> 3.8B 參數</li> <li><a href="https://ollama.com/library/phi2:2b">gemma 2:2b</a> 2B 參數</li></ul> <p>實測各跑五次，得到 chars/sec 數據及 GPU 使用狀況擷圖如下：</p> <ul><li>phi3:mini - 160.1 142.9 155.2 152.3 154.1 每秒 150 個字元左右<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638589838731987012.png"><br> Phi-3 3.8B，5% 使用 CPU，95% 用 GPU，擷圖前做了兩次測試，可觀察到 GPU 有兩個小小的尖峰(紅框)，對應當時 CPU 有兩段小高原(雙箭頭所指處)，感覺 CPU 處理這 5% 還挺吃力的。</li> <li>gemma2:2b - 229.9 229.8 229.3 215.3 212.3，每秒可輸出兩百多個字元<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638589838733656991.png"><br> Gemma2 2B 100% 用 GPU，擷圖前測了五次，GPU 3D 使用率可觀察到 5 個尖峰，CPU 使用率則看不出明顯對應。</li></ul> <p>看完奢華版 GPU 跑分，來看看平價版 i5 12500 的純 CPU 表現。</p> <p>Gemma2 2B，每秒約 75 個字元，RTX 3050 的 1/3。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638589838735356070.png"></p> <p>Phi3 3.8B，每秒約 53 個字元，差不多也是 RTX 3050 的 1/3。　</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638589838737071476.png"></p> <p>在這個 Ollama 跑 Phi3、Gemma 2 小模型的測試中，RTX 3050 4GB VRAM 輕鬆以三部速輾壓 12 代 i5。各位同學如有更高級的 4050/4060/4070/4080/4090 也歡迎分享實測數字。</p> <p data-slug="testing-ollama-slm-w-gpu" data-title-en="Testing Ollama + Gemma 2 and Phi-3 with entry level GPU" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">The blog explores testing AI models on a GPU (RTX 3050) vs. CPU, using Ollama to run models like Google Gemma 2 and Microsoft Phi-3. It demonstrates significant speed improvements with GPU usage and provides detailed performance metrics and observations.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>學會用 <a href="/blog/ollam-open-webui/">Ollama</a> 有一陣子了，受限於<a href="/blog/deskmini-i5/">迷你工作機只有內顯</a>，至今都是用 CPU 跑模型，據說只要有 GPU，即便是人門款顯卡都能把 CPU 壓在地上摩擦，了解 GPU 並行運算架構就知道這是想當然爾的結果，但沒親手體驗過，總覺得少了點什麼。</p> <p>趁著週末向小木頭借了他的 RTX 3050 獨顯 11 代 i7 筆電試跑 Ollama。(順便向他展示用 CLI 帥氣下指令跟用 VSCode 跑程式，加減推坑 Coding 的美麗世界 XD)</p> <p>3050 屬入門級只有 4GB VRAM，但用來跑前幾天玩過的 Google Gemma 2 跟微軟的 Phi-3，模型參數量分別是 2B 及 3.8B，有機會塞進 VRAM 用 GPU 跑，夠讓我這個從沒用 GPU 跑過模型的土包子開眼界了。</p> <p>Ollama 很聰明，跑模型時若有 GPU 可用會用 GPU，若沒有則會用 CPU，你都會得到結果，要怎麼確認 Ollama 是用 GPU 跑模型？一個簡便做法是載入模型後使用指令 <code>ollama ps</code> 查詢，Ollama 會顯示該模型大小，有多少比例使用 CPU、多少是用 GPU：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638589838720355079.png"></p> <p>以微軟的 <a href="https://www.ithome.com.tw/news/162479">Phi-3 3.8B 小模型</a>為例，phi3:mini 大小為 3.6 GB，5% 用 CPU 跑，95% 用 GPU。由工作管理員的 Nvidia GPU 資訊頁可查到類似結果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638589838723635734.png"></p> <p>要看懂以上資訊，有個基本知識：工作管理員顯示的 GPU 資訊時有分「專屬 GPU 記憶體」跟「共用 GPU 記憶體」，前者指給 GPU 專用的記憶體，通常指焊在 GPU 晶片周圍一圈的 <a href="https://zh.wikipedia.org/zh-tw/GDDR">GDDR 高速記憶體</a>(就在 GPU 晶片旁，距離愈近愈好)，下圖為香噴噴貴森森的消費顯卡至尊 RTX 4090，GPU 晶片被 12 顆 GDDR6X (傳輸頻寬是 DDR4 的 10 倍) 記憶體眾星拱月，專屬 GPU 記憶體來到 24 GB。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638589838725401708.jpg" alt="thumbnail"><br> 照片來源：<a href="https://unikoshardware.com/2022/10/msi-rtx-4090-suprim-x-review.html">UNIKO'S HARDWARE</a></p> <p>而「共用 GPU 記憶體」來自主機板上的實體記憶體，其中一半容量開放 GPU 跟 CPU 共用。但這不是說主機如果有 32 GB RAM，會撥 16 GB 給 GPU，其他程式只能用剩下的 16GB；而是若 GPU 需要，最多可動用 50% (16GB) 的記憶體，但這 16GB 使用上仍需與一般應用程式協調，GPU 只具有稍高優先權。</p> <p>我測試的這台筆電插了 16 + 8 共 24GB RAM，GPU 為筆電版 RTX 3050 有 4GB VRAM 即專用 GPU 記憶體大小，目前用掉 3.1GB；共用記憶體 24 * 50% = 12G，用掉 0.3G。而運算分配為 GPU 95%、CPU 5%。</p> <p>phi3:mini 大小為 3.6GB，照理可全部塞進 4GB VRAM，不確定為何沒法全部放進 VRAM 100% 用 GPU，我猜有可能 VRAM 不能 100% 用完，需留下一定比例的保留空間，或是 Ollama 判斷將部分 Layer 移到 CPU 運算會更有效率。</p> <p>再來看 Gemma 7B 版，模型大小 7.8G (下圖[1])，其中 VRAM 用掉 2.9GB、共用 GPU RAM 用 4.8G，二者相加約 7.8G，而其運算比例 CPU 57%、GPU 43%。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638589838726974837.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638589838728600817.png"></p> <p>最後是 Gemma 2B 版，模型大小 2.9GB，VRAM 佔 2.6GB、共用 GPU RAM 0.5GB，終於實現 100% 都用 GPU! (上圖[2])，至於 Gemma2 2B，大小亦為 2.9GB，也是 100% 使用 GPU。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638589838730162236.png"></p> <p>Gemma 2 2B 的生成速度讓人驚豔，但沒有明確數據不夠科學，所以我改寫<a href="/blog/test-gemma-2-2b/">上回的 C# 範例</a>，要求模型以 AI 為主題寫一小篇英文作文，測量每秒可以吐幾個字元。為求簡便，測速我是直接算字元數量，沒換成 Token 數，反正字元數接近肉眼感受，且用於對照不同模型、GPU 與 CPU 的差異，用 Token 或字元數都有足夠代表性。</p> <p>程式碼如下：</p> <pre><code>// set up the client
-using System.Runtime.InteropServices.Marshalling;
-using OllamaSharp;
-Action&lt;string&gt; printHeader = (header) =&gt;
-{
-Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(header);
-Console.ResetColor();
-};
-var charCount = 0;
-DateTime? startTime = null;
-const string EOF = "\x04";
-void print(string msg = "")
-{
-if (msg == EOF)
-{
-var elapsed = (DateTime.Now - startTime!.Value).TotalSeconds;
-Console.ForegroundColor = ConsoleColor.White;
-Console.WriteLine("
-Rate: {0:n1} chars/sec", charCount / elapsed);
-Console.ResetColor();
-}
-else
-{
-charCount += msg.Length;
-Console.Write(msg);
-}
-}
-void start() {
-startTime = DateTime.Now;
-charCount = 0;
-Console.ForegroundColor = ConsoleColor.Cyan;
-}
-var uri = new Uri("http://localhost:11434");
-var ollama = new OllamaApiClient(uri);
-ollama.SelectedModel = "gemma2:2b"; // "phi3:mini"
-ConversationContext context = null!;
-printHeader("Article Generation Test");
-string prompt = @"Write a 256-word article on artificial intelligence";
-start();
-context = await ollama.StreamCompletion(prompt, context, stream =&gt; print(stream?.Response ?? ""));
-print(EOF);
-</code></pre> <p>我測試了 Phi-3 及 Gemma 2 兩個小模型：</p> <ul><li><a href="https://ollama.com/library/phi3:mini">phi-3:mini</a> 3.8B 參數</li> <li><a href="https://ollama.com/library/phi2:2b">gemma 2:2b</a> 2B 參數</li></ul> <p>實測各跑五次，得到 chars/sec 數據及 GPU 使用狀況擷圖如下：</p> <ul><li>phi3:mini - 160.1 142.9 155.2 152.3 154.1 每秒 150 個字元左右<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638589838731987012.png"><br> Phi-3 3.8B，5% 使用 CPU，95% 用 GPU，擷圖前做了兩次測試，可觀察到 GPU 有兩個小小的尖峰(紅框)，對應當時 CPU 有兩段小高原(雙箭頭所指處)，感覺 CPU 處理這 5% 還挺吃力的。</li> <li>gemma2:2b - 229.9 229.8 229.3 215.3 212.3，每秒可輸出兩百多個字元<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638589838733656991.png"><br> Gemma2 2B 100% 用 GPU，擷圖前測了五次，GPU 3D 使用率可觀察到 5 個尖峰，CPU 使用率則看不出明顯對應。</li></ul> <p>看完奢華版 GPU 跑分，來看看平價版 i5 12500 的純 CPU 表現。</p> <p>Gemma2 2B，每秒約 75 個字元，RTX 3050 的 1/3。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638589838735356070.png"></p> <p>Phi3 3.8B，每秒約 53 個字元，差不多也是 RTX 3050 的 1/3。　</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638589838737071476.png"></p> <p>在這個 Ollama 跑 Phi3、Gemma 2 小模型的測試中，RTX 3050 4GB VRAM 輕鬆以三部速輾壓 12 代 i5。各位同學如有更高級的 4050/4060/4070/4080/4090 也歡迎分享實測數字。</p> <p data-slug="testing-ollama-slm-w-gpu" data-title-en="Testing Ollama + Gemma 2 and Phi-3 with entry level GPU" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">The blog explores testing AI models on a GPU (RTX 3050) vs. CPU, using Ollama to run models like Google Gemma 2 and Microsoft Phi-3. It demonstrates significant speed improvements with GPU usage and provides detailed performance metrics and observations.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638589838720355079.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638589838720355079.png" medium="image"/>
-    <pubDate>Sun, 11 Aug 2024 14:34:01 GMT</pubDate>
   </item></channel>
 </rss>

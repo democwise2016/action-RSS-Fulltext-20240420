@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/811/800/800.jpg?hmac=2djLdGsPBKGvBWoRmlkIx7wlBh9wFrBVG9OQbti7OQA</url>
+      <url>https://fastly.picsum.photos/id/767/800/800.jpg?hmac=Ky4hk6bPPlcjVb0ZzOhIuO4kRJlOIjwtH06KNnWzXss</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,170 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/811/800/800.jpg?hmac=2djLdGsPBKGvBWoRmlkIx7wlBh9wFrBVG9OQbti7OQA"/>
+    <itunes:image href="https://fastly.picsum.photos/id/767/800/800.jpg?hmac=Ky4hk6bPPlcjVb0ZzOhIuO4kRJlOIjwtH06KNnWzXss"/>
 <item>
+    <title><![CDATA[VNC + PulseAudio，串流播放Linux遠端桌面的音訊]]></title>
+    <link>https://ivonblog.com/posts/vnc-pulseaudio/</link>
+    <itunes:title><![CDATA[VNC + PulseAudio，串流播放Linux遠端桌面的音訊]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>Streaming audio output from Linux to Windows using PulseAudio.</p><p>VNC RFB本身只是遠端桌面協定，不像RDP支援音訊傳輸。</p><p>有些VNC伺服器自行實作了解決方案，例如RealVNC和KasmVNC都有自家的音訊串流方案，他們的客戶端也支援播放聲音。至於使用開源TightVNC、TigerVNC、x11VNC的我等，就得自行想辦法解決音訊問題。</p><p>目前大多數Linux發行版音訊伺服器是PulseAudio，它能夠用「Simple TCP Protocol」模組，經由網路播放音效。利用這個原理，我們只要跑個PulseAudio接收端，就能夠播放遠端Linux桌面的音效了。</p><p>這代表你得一邊開著VNC客戶端，一邊開著其他程式來接收遠端Linux桌面的音訊。</p><p>如果你的Linux發行版使用PipeWire，無妨！PulseAudio的串流功能PipeWire也能用。</p><h2>1. 遠端Linux伺服端的設定<span><a href="#1-%E9%81%A0%E7%AB%AFlinux%E4%BC%BA%E6%9C%8D%E7%AB%AF%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><ol><li>Ubuntu/Debian安裝PulseAudio套件，並設定自動啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio pavucontrol
+</span></span><span><span>
+</span></span><span><span>systemctl --user <span>enable</span> --now pulseaudio
+</span></span></code></pre></div><ol start="2"><li>安裝VNC伺服器服務，例如<a href="https://ivonblog.com/posts/linux-tigervnc-server/" target="_blank">
+TigerVNC</a></li></ol><h2>2. 設定Simple TCP Protocol模組<span><a href="#2-%E8%A8%AD%E5%AE%9Asimple-tcp-protocol%E6%A8%A1%E7%B5%84" aria-label="定位點">#</a></span></h2><ol><li>取得Linux的IP</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
+</span></span></code></pre></div><ol start="2"><li>列出Linux桌面音訊裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl list sources short
+</span></span></code></pre></div><ol start="3"><li>載入Simple TCP Protocol模組，<code>source=</code>後面填寫音訊裝置，IP使用Linux的IP，通訊埠使用8000</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl load-module module-simple-protocol-tcp <span>rate</span><span>=</span><span>48000</span> <span>channels</span><span>=</span><span>2</span> <span>source</span><span>=</span><span>"auto_null.monitor"</span> <span>record</span><span>=</span><span>true</span> <span>listen</span><span>=</span><span>"Linux的IP"</span> <span>port</span><span>=</span><span>8000</span>
+</span></span></code></pre></div><ol start="4"><li><p>若要讓Simple TCP Protocol模組跟著VNC一起啟動，在<code>~/.vnc/xstartup</code>加入以上指令。</p></li><li><p>然後開放Linux防火牆</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>8000</span>
+</span></span><span><span>sudo ufw reload
+</span></span></code></pre></div><ol start="6"><li>在Linux開啟pavuconttrol程式，觀察音訊輸出。有PulseAudio客戶端連線的時候就會跳出capture。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0972f93ed8.webp"></li></ol><h2>3. 播放PulseAudio音訊的客戶端<span><a href="#3-%E6%92%AD%E6%94%BEpulseaudio%E9%9F%B3%E8%A8%8A%E7%9A%84%E5%AE%A2%E6%88%B6%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>請先開啟VNC客戶端，連線到Linux遠端桌面。接著再開啟要接收PulseAudio音訊的客戶端。</p><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>下載<a href="https://github.com/kaytat/SimpleProtocolServer" target="_blank">
+SimpleProtocolServer</a>。</p><h3>Android<span><a href="#android" aria-label="定位點">#</a></span></h3><p>下載<a href="https://play.google.com/store/apps/details?id=com.kaytat.simpleprotocolplayer&amp;hl=en" target="_blank">
+Simple Protocol Player</a>，填入Linux IP和通訊埠即可。</p><h2>4. 另類解法：ffmpeg RTP串流PulseAudio音效<span><a href="#4-%E5%8F%A6%E9%A1%9E%E8%A7%A3%E6%B3%95ffmpeg-rtp%E4%B8%B2%E6%B5%81pulseaudio%E9%9F%B3%E6%95%88" aria-label="定位點">#</a></span></h2><p>這可以讓PulseAudio播放的音效透過rtp串流，再用ffmpeg播放。</p><ol><li>在要接收PulseAudio音訊的電腦，執行ffplay</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ffplay -nodisp -ac <span>2</span> -acodec pcm_s16le -ar <span>48000</span> -analyzeduration <span>0</span> -probesize <span>32</span> -f s16le -i udp://0.0.0.0:18181?listen<span>=</span><span>1</span>
+</span></span></code></pre></div><ol start="2"><li><p>開放防火牆18181通訊埠</p></li><li><p>（請在VNC視窗執行指令，不可以用SSH）在遠端Linux載入<code>module-null-sink</code>模組，再執行ffmpeg串流到接收端電腦</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl load-module module-null-sink <span>sink_name</span><span>=</span>remote
+</span></span><span><span>
+</span></span><span><span>ffmpeg -f pulse -i <span>"remote.monitor"</span> -ac <span>2</span> -acodec libmp3lame -ar <span>44100</span> -ab <span>128000</span> -f rtp rtp://接收端電腦的IP:18181
+</span></span></code></pre></div><ol start="4"><li>在Linux開啟pavucontrol，設定音訊輸出為remote即可。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1b027ae481.webp"></li></ol><p>或許我們可以把PulseAudio的音訊變成RTP串流，然後再用VLC播放？我沒試成功就是了。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.pipewire.org/page_module_protocol_simple.html" target="_blank">Protocol Simple - PipeWire</a></li><li><a href="https://kaytat.com/blog/?page_id=301" target="_blank">Simple Protocol Player - kaytat’s blog</a></li><li><a href="https://brandonrozek.com/blog/pulseaudiortp/" target="_blank">Streaming PulseAudio over RTP - Brandon Rozek</a></li><li><a href="https://gist.github.com/Fusl/3a708b8c32c9d5264fa0" target="_blank">Streaming audio output from Linux (Pulseaudio) to Windows - Fust gist</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>Streaming audio output from Linux to Windows using PulseAudio.</p><p>VNC RFB本身只是遠端桌面協定，不像RDP支援音訊傳輸。</p><p>有些VNC伺服器自行實作了解決方案，例如RealVNC和KasmVNC都有自家的音訊串流方案，他們的客戶端也支援播放聲音。至於使用開源TightVNC、TigerVNC、x11VNC的我等，就得自行想辦法解決音訊問題。</p><p>目前大多數Linux發行版音訊伺服器是PulseAudio，它能夠用「Simple TCP Protocol」模組，經由網路播放音效。利用這個原理，我們只要跑個PulseAudio接收端，就能夠播放遠端Linux桌面的音效了。</p><p>這代表你得一邊開著VNC客戶端，一邊開著其他程式來接收遠端Linux桌面的音訊。</p><p>如果你的Linux發行版使用PipeWire，無妨！PulseAudio的串流功能PipeWire也能用。</p><h2>1. 遠端Linux伺服端的設定<span><a href="#1-%E9%81%A0%E7%AB%AFlinux%E4%BC%BA%E6%9C%8D%E7%AB%AF%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><ol><li>Ubuntu/Debian安裝PulseAudio套件，並設定自動啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio pavucontrol
+</span></span><span><span>
+</span></span><span><span>systemctl --user <span>enable</span> --now pulseaudio
+</span></span></code></pre></div><ol start="2"><li>安裝VNC伺服器服務，例如<a href="https://ivonblog.com/posts/linux-tigervnc-server/" target="_blank">
+TigerVNC</a></li></ol><h2>2. 設定Simple TCP Protocol模組<span><a href="#2-%E8%A8%AD%E5%AE%9Asimple-tcp-protocol%E6%A8%A1%E7%B5%84" aria-label="定位點">#</a></span></h2><ol><li>取得Linux的IP</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
+</span></span></code></pre></div><ol start="2"><li>列出Linux桌面音訊裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl list sources short
+</span></span></code></pre></div><ol start="3"><li>載入Simple TCP Protocol模組，<code>source=</code>後面填寫音訊裝置，IP使用Linux的IP，通訊埠使用8000</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl load-module module-simple-protocol-tcp <span>rate</span><span>=</span><span>48000</span> <span>channels</span><span>=</span><span>2</span> <span>source</span><span>=</span><span>"auto_null.monitor"</span> <span>record</span><span>=</span><span>true</span> <span>listen</span><span>=</span><span>"Linux的IP"</span> <span>port</span><span>=</span><span>8000</span>
+</span></span></code></pre></div><ol start="4"><li><p>若要讓Simple TCP Protocol模組跟著VNC一起啟動，在<code>~/.vnc/xstartup</code>加入以上指令。</p></li><li><p>然後開放Linux防火牆</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>8000</span>
+</span></span><span><span>sudo ufw reload
+</span></span></code></pre></div><ol start="6"><li>在Linux開啟pavuconttrol程式，觀察音訊輸出。有PulseAudio客戶端連線的時候就會跳出capture。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0972f93ed8.webp"></li></ol><h2>3. 播放PulseAudio音訊的客戶端<span><a href="#3-%E6%92%AD%E6%94%BEpulseaudio%E9%9F%B3%E8%A8%8A%E7%9A%84%E5%AE%A2%E6%88%B6%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>請先開啟VNC客戶端，連線到Linux遠端桌面。接著再開啟要接收PulseAudio音訊的客戶端。</p><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>下載<a href="https://github.com/kaytat/SimpleProtocolServer" target="_blank">
+SimpleProtocolServer</a>。</p><h3>Android<span><a href="#android" aria-label="定位點">#</a></span></h3><p>下載<a href="https://play.google.com/store/apps/details?id=com.kaytat.simpleprotocolplayer&amp;hl=en" target="_blank">
+Simple Protocol Player</a>，填入Linux IP和通訊埠即可。</p><h2>4. 另類解法：ffmpeg RTP串流PulseAudio音效<span><a href="#4-%E5%8F%A6%E9%A1%9E%E8%A7%A3%E6%B3%95ffmpeg-rtp%E4%B8%B2%E6%B5%81pulseaudio%E9%9F%B3%E6%95%88" aria-label="定位點">#</a></span></h2><p>這可以讓PulseAudio播放的音效透過rtp串流，再用ffmpeg播放。</p><ol><li>在要接收PulseAudio音訊的電腦，執行ffplay</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ffplay -nodisp -ac <span>2</span> -acodec pcm_s16le -ar <span>48000</span> -analyzeduration <span>0</span> -probesize <span>32</span> -f s16le -i udp://0.0.0.0:18181?listen<span>=</span><span>1</span>
+</span></span></code></pre></div><ol start="2"><li><p>開放防火牆18181通訊埠</p></li><li><p>（請在VNC視窗執行指令，不可以用SSH）在遠端Linux載入<code>module-null-sink</code>模組，再執行ffmpeg串流到接收端電腦</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl load-module module-null-sink <span>sink_name</span><span>=</span>remote
+</span></span><span><span>
+</span></span><span><span>ffmpeg -f pulse -i <span>"remote.monitor"</span> -ac <span>2</span> -acodec libmp3lame -ar <span>44100</span> -ab <span>128000</span> -f rtp rtp://接收端電腦的IP:18181
+</span></span></code></pre></div><ol start="4"><li>在Linux開啟pavucontrol，設定音訊輸出為remote即可。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1b027ae481.webp"></li></ol><p>或許我們可以把PulseAudio的音訊變成RTP串流，然後再用VLC播放？我沒試成功就是了。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.pipewire.org/page_module_protocol_simple.html" target="_blank">Protocol Simple - PipeWire</a></li><li><a href="https://kaytat.com/blog/?page_id=301" target="_blank">Simple Protocol Player - kaytat’s blog</a></li><li><a href="https://brandonrozek.com/blog/pulseaudiortp/" target="_blank">Streaming PulseAudio over RTP - Brandon Rozek</a></li><li><a href="https://gist.github.com/Fusl/3a708b8c32c9d5264fa0" target="_blank">Streaming audio output from Linux (Pulseaudio) to Windows - Fust gist</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p>Streaming audio output from Linux to Windows using PulseAudio.</p><p>VNC RFB本身只是遠端桌面協定，不像RDP支援音訊傳輸。</p><p>有些VNC伺服器自行實作了解決方案，例如RealVNC和KasmVNC都有自家的音訊串流方案，他們的客戶端也支援播放聲音。至於使用開源TightVNC、TigerVNC、x11VNC的我等，就得自行想辦法解決音訊問題。</p><p>目前大多數Linux發行版音訊伺服器是PulseAudio，它能夠用「Simple TCP Protocol」模組，經由網路播放音效。利用這個原理，我們只要跑個PulseAudio接收端，就能夠播放遠端Linux桌面的音效了。</p><p>這代表你得一邊開著VNC客戶端，一邊開著其他程式來接收遠端Linux桌面的音訊。</p><p>如果你的Linux發行版使用PipeWire，無妨！PulseAudio的串流功能PipeWire也能用。</p><h2>1. 遠端Linux伺服端的設定<span><a href="#1-%E9%81%A0%E7%AB%AFlinux%E4%BC%BA%E6%9C%8D%E7%AB%AF%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><ol><li>Ubuntu/Debian安裝PulseAudio套件，並設定自動啟動服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install pulseaudio pavucontrol
+</span></span><span><span>
+</span></span><span><span>systemctl --user <span>enable</span> --now pulseaudio
+</span></span></code></pre></div><ol start="2"><li>安裝VNC伺服器服務，例如<a href="https://ivonblog.com/posts/linux-tigervnc-server/" target="_blank">
+TigerVNC</a></li></ol><h2>2. 設定Simple TCP Protocol模組<span><a href="#2-%E8%A8%AD%E5%AE%9Asimple-tcp-protocol%E6%A8%A1%E7%B5%84" aria-label="定位點">#</a></span></h2><ol><li>取得Linux的IP</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
+</span></span></code></pre></div><ol start="2"><li>列出Linux桌面音訊裝置</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl list sources short
+</span></span></code></pre></div><ol start="3"><li>載入Simple TCP Protocol模組，<code>source=</code>後面填寫音訊裝置，IP使用Linux的IP，通訊埠使用8000</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl load-module module-simple-protocol-tcp <span>rate</span><span>=</span><span>48000</span> <span>channels</span><span>=</span><span>2</span> <span>source</span><span>=</span><span>"auto_null.monitor"</span> <span>record</span><span>=</span><span>true</span> <span>listen</span><span>=</span><span>"Linux的IP"</span> <span>port</span><span>=</span><span>8000</span>
+</span></span></code></pre></div><ol start="4"><li><p>若要讓Simple TCP Protocol模組跟著VNC一起啟動，在<code>~/.vnc/xstartup</code>加入以上指令。</p></li><li><p>然後開放Linux防火牆</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>8000</span>
+</span></span><span><span>sudo ufw reload
+</span></span></code></pre></div><ol start="6"><li>在Linux開啟pavuconttrol程式，觀察音訊輸出。有PulseAudio客戶端連線的時候就會跳出capture。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0972f93ed8.webp"></li></ol><h2>3. 播放PulseAudio音訊的客戶端<span><a href="#3-%E6%92%AD%E6%94%BEpulseaudio%E9%9F%B3%E8%A8%8A%E7%9A%84%E5%AE%A2%E6%88%B6%E7%AB%AF" aria-label="定位點">#</a></span></h2><p>請先開啟VNC客戶端，連線到Linux遠端桌面。接著再開啟要接收PulseAudio音訊的客戶端。</p><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>下載<a href="https://github.com/kaytat/SimpleProtocolServer" target="_blank">
+SimpleProtocolServer</a>。</p><h3>Android<span><a href="#android" aria-label="定位點">#</a></span></h3><p>下載<a href="https://play.google.com/store/apps/details?id=com.kaytat.simpleprotocolplayer&amp;hl=en" target="_blank">
+Simple Protocol Player</a>，填入Linux IP和通訊埠即可。</p><h2>4. 另類解法：ffmpeg RTP串流PulseAudio音效<span><a href="#4-%E5%8F%A6%E9%A1%9E%E8%A7%A3%E6%B3%95ffmpeg-rtp%E4%B8%B2%E6%B5%81pulseaudio%E9%9F%B3%E6%95%88" aria-label="定位點">#</a></span></h2><p>這可以讓PulseAudio播放的音效透過rtp串流，再用ffmpeg播放。</p><ol><li>在要接收PulseAudio音訊的電腦，執行ffplay</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ffplay -nodisp -ac <span>2</span> -acodec pcm_s16le -ar <span>48000</span> -analyzeduration <span>0</span> -probesize <span>32</span> -f s16le -i udp://0.0.0.0:18181?listen<span>=</span><span>1</span>
+</span></span></code></pre></div><ol start="2"><li><p>開放防火牆18181通訊埠</p></li><li><p>（請在VNC視窗執行指令，不可以用SSH）在遠端Linux載入<code>module-null-sink</code>模組，再執行ffmpeg串流到接收端電腦</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl load-module module-null-sink <span>sink_name</span><span>=</span>remote
+</span></span><span><span>
+</span></span><span><span>ffmpeg -f pulse -i <span>"remote.monitor"</span> -ac <span>2</span> -acodec libmp3lame -ar <span>44100</span> -ab <span>128000</span> -f rtp rtp://接收端電腦的IP:18181
+</span></span></code></pre></div><ol start="4"><li>在Linux開啟pavucontrol，設定音訊輸出為remote即可。<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1b027ae481.webp"></li></ol><p>或許我們可以把PulseAudio的音訊變成RTP串流，然後再用VLC播放？我沒試成功就是了。</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.pipewire.org/page_module_protocol_simple.html" target="_blank">Protocol Simple - PipeWire</a></li><li><a href="https://kaytat.com/blog/?page_id=301" target="_blank">Simple Protocol Player - kaytat’s blog</a></li><li><a href="https://brandonrozek.com/blog/pulseaudiortp/" target="_blank">Streaming PulseAudio over RTP - Brandon Rozek</a></li><li><a href="https://gist.github.com/Fusl/3a708b8c32c9d5264fa0" target="_blank">Streaming audio output from Linux (Pulseaudio) to Windows - Fust gist</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0972f93ed8.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0972f93ed8.webp" medium="image"/>
+    <pubDate>Thu, 05 Sep 2024 14:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[用Android手機播放Linux電腦音樂 ~ PulseAudio Wifi串流設定]]></title>
+    <link>https://ivonblog.com/posts/pulseaudio-streaming-audio-to-phones/</link>
+    <itunes:title><![CDATA[用Android手機播放Linux電腦音樂 ~ PulseAudio Wifi串流設定]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/pulseaudio-streaming-audio-to-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-332ae14a18.webp"></a></p>
+<p>Stream GNU/Linux audio output to Android devices over WI-FI with PipeWire.</p><p>有時候，手機平板的喇叭音質比電腦螢幕內建的揚聲器要好的多，所以就想要用手機當電腦喇叭來播放電腦的音樂。那有沒有可能透過區域網路(例如Wifi)來播放音效呢？在電腦是Linux的情況下，我們可以利用PulseAudio的「Simple TCP Protocol」模組達成此目的。此模組可在PipeWire下運作。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-ea92307596.jpg"><p>本篇文章主要是給Linux系統搭配Android手機使用的。</p><p>PulseAudio不適合需要極低延遲的音樂播放。</p><h2>1. 設定PulseAudio<span><a href="#1-%E8%A8%AD%E5%AE%9Apulseaudio" aria-label="定位點">#</a></span></h2><p>現在大多數Linux發行版應該都是採用PulseAudio當音訊伺服器。PipeWire向下相容PulseAudio的模組設定。</p><ol><li>安裝後可透過此指令確認安裝情況，應該會跑出一堆音訊裝置：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl list
+</span></span></code></pre></div><ol start="2"><li>接著確定要使用的音訊裝置。目前我的電腦有HDMI音訊和主機板音效卡這2個音效輸出：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ivon@Lk31 ~ $ pactl list sources short
+</span></span><span><span><span>0</span>       alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1.monitor module-alsa-card.c      s16le 2ch 44100Hz       SUSPENDED
+</span></span><span><span><span>1</span>       alsa_output.pci-0000_00_1f.3.iec958-stereo.monitor      module-alsa-card.c      s16le 2ch 44100Hz       RUNNING
+</span></span></code></pre></div><ol start="3"><li><p>我的想法是手機播放時電腦就得靜音，也就是說一開始是用HDMI的音訊輸出，手機開始播放後，就透過音效面板將電腦切換到沒有插喇叭的主機板音效卡。</p></li><li><p>接著要設定串流用的指令稿。新增一個<code>pashare.sh</code>的檔案。<code>source</code>後面填寫的是音效卡ID，讓PulseAudio錄製這個音效卡並輸出。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/sh
+</span></span></span><span><span><span>case</span> <span>"</span><span>$1</span><span>"</span> in
+</span></span><span><span>  start<span>)</span>
+</span></span><span><span>    <span>$0</span> stop
+</span></span><span><span>    pactl load-module module-simple-protocol-tcp <span>rate</span><span>=</span><span>48000</span> <span>format</span><span>=</span>s16le <span>channels</span><span>=</span><span>2</span> <span>source</span><span>=</span><span>"alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1.monitor"</span> <span>record</span><span>=</span><span>true</span> <span>port</span><span>=</span><span>8000</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span>  stop<span>)</span>
+</span></span><span><span>    pactl unload-module <span>`</span>pactl list <span>|</span> grep tcp -B1 <span>|</span> grep M <span>|</span> sed <span>'s/[^0-9]//g'</span><span>`</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span>  *<span>)</span>
+</span></span><span><span>    <span>echo</span> <span>"Usage: </span><span>$0</span><span> start|stop"</span> &gt;<span>&amp;</span><span>2</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span><span>esac</span>
+</span></span></code></pre></div><ol start="5"><li>賦予指令稿執行權限：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod <span>755</span> pashare.sh
+</span></span></code></pre></div><ol start="6"><li>上面pashare.sh指令稿使用的通訊埠是8000，因此防火牆要開啟8000的通訊埠。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>8000</span>
+</span></span><span><span>sudo ufw reload
+</span></span></code></pre></div><ol start="7"><li>執行指令稿：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./pashare.sh start
+</span></span></code></pre></div><h2>2. 安裝用於串流的手機APP<span><a href="#2-%E5%AE%89%E8%A3%9D%E7%94%A8%E6%96%BC%E4%B8%B2%E6%B5%81%E7%9A%84%E6%89%8B%E6%A9%9Fapp" aria-label="定位點">#</a></span></h2><p>Android下載<a href="https://play.google.com/store/apps/details?id=com.kaytat.simpleprotocolplayer&amp;hl=en" target="_blank">
+Simple Protocol Player</a>，iOS似乎沒有這方面的APP。</p><ol><li>讓電腦和手機連線到同一個網路。電腦輸入<code>ifocnfig</code>查看區網IP：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ivon@Lk31 ~ $ ifconfig
+</span></span><span><span>enp2s0: <span>flags</span><span>=</span>4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu <span>1500</span>
+</span></span><span><span>        inet 192.168.1.102  netmask 255.255.255.0  broadcast 192.168.1.255
+</span></span></code></pre></div><ol start="2"><li><p>手機開啟Simple Protocol Player，填入電腦的IP和通訊埠，Sample Rate選48000，點選播放鍵。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-c3bb8a9a41.png"></p></li><li><p>在電腦上播放音樂，手機應該就會有聲音了。若要避免兩邊一起播放，透過pavucontrol音效面板將電腦的音訊輸出切換成主機板音效卡(沒有接喇叭)，這樣就只有手機有聲音。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-9dffa3f634.png"></li><li><p>如果要停止串流音訊，在電腦上執行剛剛寫的指令稿：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./pashare.sh stop
+</span></span></code></pre></div><h2>3. 總結<span><a href="#3-%E7%B8%BD%E7%B5%90" aria-label="定位點">#</a></span></h2><p>實測偶爾會卡卡的，要看Wifi穩定度。</p><p>如果要把手機音訊用電腦播放呢？只要手機裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
+Termux</a>再反向操作就可以啦～</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://superuser.com/questions/605445/how-to-stream-my-gnu-linux-audio-output-to-android-devices-over-wi-fi" target="_blank">How to stream my GNU/Linux audio output to Android devices over WI-FI? - superuser</a></li><li><a href="https://kaytat.com/blog/?page_id=301" target="_blank">Simple Protocol Player - kaytat’s blog</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/pulseaudio-streaming-audio-to-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-332ae14a18.webp"></a></p>
+<p>Stream GNU/Linux audio output to Android devices over WI-FI with PipeWire.</p><p>有時候，手機平板的喇叭音質比電腦螢幕內建的揚聲器要好的多，所以就想要用手機當電腦喇叭來播放電腦的音樂。那有沒有可能透過區域網路(例如Wifi)來播放音效呢？在電腦是Linux的情況下，我們可以利用PulseAudio的「Simple TCP Protocol」模組達成此目的。此模組可在PipeWire下運作。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-ea92307596.jpg"><p>本篇文章主要是給Linux系統搭配Android手機使用的。</p><p>PulseAudio不適合需要極低延遲的音樂播放。</p><h2>1. 設定PulseAudio<span><a href="#1-%E8%A8%AD%E5%AE%9Apulseaudio" aria-label="定位點">#</a></span></h2><p>現在大多數Linux發行版應該都是採用PulseAudio當音訊伺服器。PipeWire向下相容PulseAudio的模組設定。</p><ol><li>安裝後可透過此指令確認安裝情況，應該會跑出一堆音訊裝置：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl list
+</span></span></code></pre></div><ol start="2"><li>接著確定要使用的音訊裝置。目前我的電腦有HDMI音訊和主機板音效卡這2個音效輸出：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ivon@Lk31 ~ $ pactl list sources short
+</span></span><span><span><span>0</span>       alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1.monitor module-alsa-card.c      s16le 2ch 44100Hz       SUSPENDED
+</span></span><span><span><span>1</span>       alsa_output.pci-0000_00_1f.3.iec958-stereo.monitor      module-alsa-card.c      s16le 2ch 44100Hz       RUNNING
+</span></span></code></pre></div><ol start="3"><li><p>我的想法是手機播放時電腦就得靜音，也就是說一開始是用HDMI的音訊輸出，手機開始播放後，就透過音效面板將電腦切換到沒有插喇叭的主機板音效卡。</p></li><li><p>接著要設定串流用的指令稿。新增一個<code>pashare.sh</code>的檔案。<code>source</code>後面填寫的是音效卡ID，讓PulseAudio錄製這個音效卡並輸出。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/sh
+</span></span></span><span><span><span>case</span> <span>"</span><span>$1</span><span>"</span> in
+</span></span><span><span>  start<span>)</span>
+</span></span><span><span>    <span>$0</span> stop
+</span></span><span><span>    pactl load-module module-simple-protocol-tcp <span>rate</span><span>=</span><span>48000</span> <span>format</span><span>=</span>s16le <span>channels</span><span>=</span><span>2</span> <span>source</span><span>=</span><span>"alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1.monitor"</span> <span>record</span><span>=</span><span>true</span> <span>port</span><span>=</span><span>8000</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span>  stop<span>)</span>
+</span></span><span><span>    pactl unload-module <span>`</span>pactl list <span>|</span> grep tcp -B1 <span>|</span> grep M <span>|</span> sed <span>'s/[^0-9]//g'</span><span>`</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span>  *<span>)</span>
+</span></span><span><span>    <span>echo</span> <span>"Usage: </span><span>$0</span><span> start|stop"</span> &gt;<span>&amp;</span><span>2</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span><span>esac</span>
+</span></span></code></pre></div><ol start="5"><li>賦予指令稿執行權限：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod <span>755</span> pashare.sh
+</span></span></code></pre></div><ol start="6"><li>上面pashare.sh指令稿使用的通訊埠是8000，因此防火牆要開啟8000的通訊埠。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>8000</span>
+</span></span><span><span>sudo ufw reload
+</span></span></code></pre></div><ol start="7"><li>執行指令稿：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./pashare.sh start
+</span></span></code></pre></div><h2>2. 安裝用於串流的手機APP<span><a href="#2-%E5%AE%89%E8%A3%9D%E7%94%A8%E6%96%BC%E4%B8%B2%E6%B5%81%E7%9A%84%E6%89%8B%E6%A9%9Fapp" aria-label="定位點">#</a></span></h2><p>Android下載<a href="https://play.google.com/store/apps/details?id=com.kaytat.simpleprotocolplayer&amp;hl=en" target="_blank">
+Simple Protocol Player</a>，iOS似乎沒有這方面的APP。</p><ol><li>讓電腦和手機連線到同一個網路。電腦輸入<code>ifocnfig</code>查看區網IP：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ivon@Lk31 ~ $ ifconfig
+</span></span><span><span>enp2s0: <span>flags</span><span>=</span>4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu <span>1500</span>
+</span></span><span><span>        inet 192.168.1.102  netmask 255.255.255.0  broadcast 192.168.1.255
+</span></span></code></pre></div><ol start="2"><li><p>手機開啟Simple Protocol Player，填入電腦的IP和通訊埠，Sample Rate選48000，點選播放鍵。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-c3bb8a9a41.png"></p></li><li><p>在電腦上播放音樂，手機應該就會有聲音了。若要避免兩邊一起播放，透過pavucontrol音效面板將電腦的音訊輸出切換成主機板音效卡(沒有接喇叭)，這樣就只有手機有聲音。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-9dffa3f634.png"></li><li><p>如果要停止串流音訊，在電腦上執行剛剛寫的指令稿：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./pashare.sh stop
+</span></span></code></pre></div><h2>3. 總結<span><a href="#3-%E7%B8%BD%E7%B5%90" aria-label="定位點">#</a></span></h2><p>實測偶爾會卡卡的，要看Wifi穩定度。</p><p>如果要把手機音訊用電腦播放呢？只要手機裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
+Termux</a>再反向操作就可以啦～</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://superuser.com/questions/605445/how-to-stream-my-gnu-linux-audio-output-to-android-devices-over-wi-fi" target="_blank">How to stream my GNU/Linux audio output to Android devices over WI-FI? - superuser</a></li><li><a href="https://kaytat.com/blog/?page_id=301" target="_blank">Simple Protocol Player - kaytat’s blog</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/pulseaudio-streaming-audio-to-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-332ae14a18.webp"></a></p>
+<p>Stream GNU/Linux audio output to Android devices over WI-FI with PipeWire.</p><p>有時候，手機平板的喇叭音質比電腦螢幕內建的揚聲器要好的多，所以就想要用手機當電腦喇叭來播放電腦的音樂。那有沒有可能透過區域網路(例如Wifi)來播放音效呢？在電腦是Linux的情況下，我們可以利用PulseAudio的「Simple TCP Protocol」模組達成此目的。此模組可在PipeWire下運作。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-ea92307596.jpg"><p>本篇文章主要是給Linux系統搭配Android手機使用的。</p><p>PulseAudio不適合需要極低延遲的音樂播放。</p><h2>1. 設定PulseAudio<span><a href="#1-%E8%A8%AD%E5%AE%9Apulseaudio" aria-label="定位點">#</a></span></h2><p>現在大多數Linux發行版應該都是採用PulseAudio當音訊伺服器。PipeWire向下相容PulseAudio的模組設定。</p><ol><li>安裝後可透過此指令確認安裝情況，應該會跑出一堆音訊裝置：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pactl list
+</span></span></code></pre></div><ol start="2"><li>接著確定要使用的音訊裝置。目前我的電腦有HDMI音訊和主機板音效卡這2個音效輸出：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ivon@Lk31 ~ $ pactl list sources short
+</span></span><span><span><span>0</span>       alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1.monitor module-alsa-card.c      s16le 2ch 44100Hz       SUSPENDED
+</span></span><span><span><span>1</span>       alsa_output.pci-0000_00_1f.3.iec958-stereo.monitor      module-alsa-card.c      s16le 2ch 44100Hz       RUNNING
+</span></span></code></pre></div><ol start="3"><li><p>我的想法是手機播放時電腦就得靜音，也就是說一開始是用HDMI的音訊輸出，手機開始播放後，就透過音效面板將電腦切換到沒有插喇叭的主機板音效卡。</p></li><li><p>接著要設定串流用的指令稿。新增一個<code>pashare.sh</code>的檔案。<code>source</code>後面填寫的是音效卡ID，讓PulseAudio錄製這個音效卡並輸出。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/sh
+</span></span></span><span><span><span>case</span> <span>"</span><span>$1</span><span>"</span> in
+</span></span><span><span>  start<span>)</span>
+</span></span><span><span>    <span>$0</span> stop
+</span></span><span><span>    pactl load-module module-simple-protocol-tcp <span>rate</span><span>=</span><span>48000</span> <span>format</span><span>=</span>s16le <span>channels</span><span>=</span><span>2</span> <span>source</span><span>=</span><span>"alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1.monitor"</span> <span>record</span><span>=</span><span>true</span> <span>port</span><span>=</span><span>8000</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span>  stop<span>)</span>
+</span></span><span><span>    pactl unload-module <span>`</span>pactl list <span>|</span> grep tcp -B1 <span>|</span> grep M <span>|</span> sed <span>'s/[^0-9]//g'</span><span>`</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span>  *<span>)</span>
+</span></span><span><span>    <span>echo</span> <span>"Usage: </span><span>$0</span><span> start|stop"</span> &gt;<span>&amp;</span><span>2</span>
+</span></span><span><span>    <span>;;</span>
+</span></span><span><span><span>esac</span>
+</span></span></code></pre></div><ol start="5"><li>賦予指令稿執行權限：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod <span>755</span> pashare.sh
+</span></span></code></pre></div><ol start="6"><li>上面pashare.sh指令稿使用的通訊埠是8000，因此防火牆要開啟8000的通訊埠。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>8000</span>
+</span></span><span><span>sudo ufw reload
+</span></span></code></pre></div><ol start="7"><li>執行指令稿：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./pashare.sh start
+</span></span></code></pre></div><h2>2. 安裝用於串流的手機APP<span><a href="#2-%E5%AE%89%E8%A3%9D%E7%94%A8%E6%96%BC%E4%B8%B2%E6%B5%81%E7%9A%84%E6%89%8B%E6%A9%9Fapp" aria-label="定位點">#</a></span></h2><p>Android下載<a href="https://play.google.com/store/apps/details?id=com.kaytat.simpleprotocolplayer&amp;hl=en" target="_blank">
+Simple Protocol Player</a>，iOS似乎沒有這方面的APP。</p><ol><li>讓電腦和手機連線到同一個網路。電腦輸入<code>ifocnfig</code>查看區網IP：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ivon@Lk31 ~ $ ifconfig
+</span></span><span><span>enp2s0: <span>flags</span><span>=</span>4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu <span>1500</span>
+</span></span><span><span>        inet 192.168.1.102  netmask 255.255.255.0  broadcast 192.168.1.255
+</span></span></code></pre></div><ol start="2"><li><p>手機開啟Simple Protocol Player，填入電腦的IP和通訊埠，Sample Rate選48000，點選播放鍵。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-c3bb8a9a41.png"></p></li><li><p>在電腦上播放音樂，手機應該就會有聲音了。若要避免兩邊一起播放，透過pavucontrol音效面板將電腦的音訊輸出切換成主機板音效卡(沒有接喇叭)，這樣就只有手機有聲音。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-9dffa3f634.png"></li><li><p>如果要停止串流音訊，在電腦上執行剛剛寫的指令稿：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./pashare.sh stop
+</span></span></code></pre></div><h2>3. 總結<span><a href="#3-%E7%B8%BD%E7%B5%90" aria-label="定位點">#</a></span></h2><p>實測偶爾會卡卡的，要看Wifi穩定度。</p><p>如果要把手機音訊用電腦播放呢？只要手機裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
+Termux</a>再反向操作就可以啦～</p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://superuser.com/questions/605445/how-to-stream-my-gnu-linux-audio-output-to-android-devices-over-wi-fi" target="_blank">How to stream my GNU/Linux audio output to Android devices over WI-FI? - superuser</a></li><li><a href="https://kaytat.com/blog/?page_id=301" target="_blank">Simple Protocol Player - kaytat’s blog</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-332ae14a18.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-332ae14a18.webp" medium="image"/>
+    <pubDate>Thu, 05 Sep 2024 13:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[給VNC遠端桌面啟用GPU加速，Linux VirtualGL設定方式]]></title>
     <link>https://ivonblog.com/posts/virtualgl-vnc/</link>
     <itunes:title><![CDATA[給VNC遠端桌面啟用GPU加速，Linux VirtualGL設定方式]]></itunes:title>
@@ -1984,167 +2146,5 @@ proot-distro</a>指令進入Linux容器的時候，Termux預設會把<code>~/sto
 Termux備份還原檔案</a></p><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://github.com/termux/termux-packages/wiki/Termux-file-system-layout" target="_blank">Termux file system layout - GitHub</a></li><li><a href="https://wiki.termux.com/wiki/Differences_from_Linux" target="_blank">Differences from Linux - Termux Wiki</a></li></ul>]]></content:encoded>
     
     <pubDate>Wed, 21 Aug 2024 11:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Scrcpy ＋ V4L2，用Android手機鏡頭當作電腦鏡頭]]></title>
-    <link>https://ivonblog.com/posts/scrcpy-v4l2/</link>
-    <itunes:title><![CDATA[Scrcpy ＋ V4L2，用Android手機鏡頭當作電腦鏡頭]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-v4l2/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-acb960931e.webp"></a></p>
-<p>Scrcpy能夠存取Android手機的相機，將其畫面輸出到v4l2裝置，在電腦上建立一個虛擬的WebCam，從而達成類似專有軟體<a href="https://ivonblog.com/posts/droidcam-linux/" target="_blank">
-DroidCam</a>的效果。</p><p>這個WebCam可在會議軟體或直播軟體中使用，彷彿接上一個真的鏡頭一般。並且v4l2裝置可以有很多個，所以理論上能夠建立多個虛擬WebCam裝置，存取不同手機的鏡頭。</p><p>但，本功能僅限Linux電腦使用，因為v4l2是Linux才有的loopback裝置。</p><p>其實用Scrcpy直接擷取手機螢幕的相機APP畫面＋OBS的虛擬相機也是可以達到類似效果，但v4l2的好處在於他是直接存取相機鏡頭，不需要在手機開相機APP。</p><p>此外，v4l2無法錄音。若要用Android手機當作Linux的麥克風，可考慮用<a href="https://github.com/pzmarzly/mic_over_mumble/" target="_blank">
-PipeWire + Mumble</a>達成目的。</p><p>我還想到一種比較詭異的衍生用法：在樹莓派跑Scrcpy，將Android手機相機當作樹莓派相機裝置，跑圖像辨識？？</p><h2>1. 前置依賴<span><a href="#1-%E5%89%8D%E7%BD%AE%E4%BE%9D%E8%B3%B4" aria-label="定位點">#</a></span></h2><ol><li><p>安裝<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-Scrcpy</a></p></li><li><p>安裝v4l2核心模組</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install v4l2loopback-dkms v4l-utils
-</span></span></code></pre></div><h2>2. 操作方法<span><a href="#2-%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>設定開機自動載入v4l2模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'options v4l2loopback devices=3 video_nr=10,11,12 card_label="Loopback_1","Loopback_2","Virtual_cam" exclusive_caps=1,1,0'</span> <span>|</span> sudo tee -a /etc/modprobe.d/v4l2loopback.conf
-</span></span><span><span>
-</span></span><span><span>sudo modprobe v4l2loopback
-</span></span></code></pre></div><ol start="2"><li>這樣就會生出一個<code>/dev/video0</code>裝置，確認v4l2裝置狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>v4l2-ctl --list-devices
-</span></span></code></pre></div><ol start="3"><li>將手機插到電腦，用Scrcpy列出手機的全部鏡頭</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --list-cameras
-</span></span></code></pre></div><ol start="4"><li>這裡Scrcpy有抓到手機的前鏡頭和後鏡頭，如果手機有超廣角應該也會一併顯示</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy 2.6.1 &lt;https://github.com/Genymobile/scrcpy&gt;
-</span></span><span><span>INFO: ADB device found:
-</span></span><span><span>INFO:     --&gt;   <span>(</span>usb<span>)</span>  HQ635R36F7                      device  XQ_DC72
-</span></span><span><span>/usr/local/share/scrcpy/scrcpy-server: <span>1</span> file pushed, <span>0</span> skipped. 118.5 MB/s <span>(</span><span>71112</span> bytes in 0.001s<span>)</span>
-</span></span><span><span><span>[</span>server<span>]</span> INFO: Device: <span>[</span>Sony<span>]</span> Sony XQ-DC72 <span>(</span>Android 14<span>)</span>
-</span></span><span><span><span>[</span>server<span>]</span> INFO: List of cameras:
-</span></span><span><span>    --camera-id<span>=</span><span>0</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>1</span>    <span>(</span>front, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>2</span>    <span>(</span>back, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>3</span>    <span>(</span>back, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>4</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>5</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span></code></pre></div><ol start="5"><li>確認手機沒有開啟任何相機APP。執行以下指令，指定使用後鏡頭。（<code>-m 1080</code>參數或許可以移除。不要手機鏡頭視窗的話加上參數<code>--no-video-playback</code>）</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --video-source<span>=</span>camera --camera-id<span>=</span><span>0</span> --v4l2-sink<span>=</span>/dev/video0 --no-audio -m <span>1080</span>
-</span></span></code></pre></div><ol start="6"><li><p>Scrcpy隨後跳出手機鏡頭的視窗，並且會將鏡頭的訊號輸出到<code>/dev/video0</code></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-88359d59fe.webp"></li><li><p>在會議軟體裡面確認鏡頭是否可以選取</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4a5406b840.webp"></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://adityatelange.in/blog/android-phone-webcam-linux/" target="_blank">Android phone as a Webcam on Linux - @adityatelange.in</a></li><li><a href="https://github.com/Genymobile/scrcpy/blob/master/doc/v4l2.md" target="_blank">Video4Linux - Scrcpy</a></li></ul>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-v4l2/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-acb960931e.webp"></a></p>
-<p>Scrcpy能夠存取Android手機的相機，將其畫面輸出到v4l2裝置，在電腦上建立一個虛擬的WebCam，從而達成類似專有軟體<a href="https://ivonblog.com/posts/droidcam-linux/" target="_blank">
-DroidCam</a>的效果。</p><p>這個WebCam可在會議軟體或直播軟體中使用，彷彿接上一個真的鏡頭一般。並且v4l2裝置可以有很多個，所以理論上能夠建立多個虛擬WebCam裝置，存取不同手機的鏡頭。</p><p>但，本功能僅限Linux電腦使用，因為v4l2是Linux才有的loopback裝置。</p><p>其實用Scrcpy直接擷取手機螢幕的相機APP畫面＋OBS的虛擬相機也是可以達到類似效果，但v4l2的好處在於他是直接存取相機鏡頭，不需要在手機開相機APP。</p><p>此外，v4l2無法錄音。若要用Android手機當作Linux的麥克風，可考慮用<a href="https://github.com/pzmarzly/mic_over_mumble/" target="_blank">
-PipeWire + Mumble</a>達成目的。</p><p>我還想到一種比較詭異的衍生用法：在樹莓派跑Scrcpy，將Android手機相機當作樹莓派相機裝置，跑圖像辨識？？</p><h2>1. 前置依賴<span><a href="#1-%E5%89%8D%E7%BD%AE%E4%BE%9D%E8%B3%B4" aria-label="定位點">#</a></span></h2><ol><li><p>安裝<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-Scrcpy</a></p></li><li><p>安裝v4l2核心模組</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install v4l2loopback-dkms v4l-utils
-</span></span></code></pre></div><h2>2. 操作方法<span><a href="#2-%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>設定開機自動載入v4l2模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'options v4l2loopback devices=3 video_nr=10,11,12 card_label="Loopback_1","Loopback_2","Virtual_cam" exclusive_caps=1,1,0'</span> <span>|</span> sudo tee -a /etc/modprobe.d/v4l2loopback.conf
-</span></span><span><span>
-</span></span><span><span>sudo modprobe v4l2loopback
-</span></span></code></pre></div><ol start="2"><li>這樣就會生出一個<code>/dev/video0</code>裝置，確認v4l2裝置狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>v4l2-ctl --list-devices
-</span></span></code></pre></div><ol start="3"><li>將手機插到電腦，用Scrcpy列出手機的全部鏡頭</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --list-cameras
-</span></span></code></pre></div><ol start="4"><li>這裡Scrcpy有抓到手機的前鏡頭和後鏡頭，如果手機有超廣角應該也會一併顯示</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy 2.6.1 &lt;https://github.com/Genymobile/scrcpy&gt;
-</span></span><span><span>INFO: ADB device found:
-</span></span><span><span>INFO:     --&gt;   <span>(</span>usb<span>)</span>  HQ635R36F7                      device  XQ_DC72
-</span></span><span><span>/usr/local/share/scrcpy/scrcpy-server: <span>1</span> file pushed, <span>0</span> skipped. 118.5 MB/s <span>(</span><span>71112</span> bytes in 0.001s<span>)</span>
-</span></span><span><span><span>[</span>server<span>]</span> INFO: Device: <span>[</span>Sony<span>]</span> Sony XQ-DC72 <span>(</span>Android 14<span>)</span>
-</span></span><span><span><span>[</span>server<span>]</span> INFO: List of cameras:
-</span></span><span><span>    --camera-id<span>=</span><span>0</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>1</span>    <span>(</span>front, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>2</span>    <span>(</span>back, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>3</span>    <span>(</span>back, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>4</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>5</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span></code></pre></div><ol start="5"><li>確認手機沒有開啟任何相機APP。執行以下指令，指定使用後鏡頭。（<code>-m 1080</code>參數或許可以移除。不要手機鏡頭視窗的話加上參數<code>--no-video-playback</code>）</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --video-source<span>=</span>camera --camera-id<span>=</span><span>0</span> --v4l2-sink<span>=</span>/dev/video0 --no-audio -m <span>1080</span>
-</span></span></code></pre></div><ol start="6"><li><p>Scrcpy隨後跳出手機鏡頭的視窗，並且會將鏡頭的訊號輸出到<code>/dev/video0</code></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-88359d59fe.webp"></li><li><p>在會議軟體裡面確認鏡頭是否可以選取</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4a5406b840.webp"></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://adityatelange.in/blog/android-phone-webcam-linux/" target="_blank">Android phone as a Webcam on Linux - @adityatelange.in</a></li><li><a href="https://github.com/Genymobile/scrcpy/blob/master/doc/v4l2.md" target="_blank">Video4Linux - Scrcpy</a></li></ul>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-v4l2/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-acb960931e.webp"></a></p>
-<p>Scrcpy能夠存取Android手機的相機，將其畫面輸出到v4l2裝置，在電腦上建立一個虛擬的WebCam，從而達成類似專有軟體<a href="https://ivonblog.com/posts/droidcam-linux/" target="_blank">
-DroidCam</a>的效果。</p><p>這個WebCam可在會議軟體或直播軟體中使用，彷彿接上一個真的鏡頭一般。並且v4l2裝置可以有很多個，所以理論上能夠建立多個虛擬WebCam裝置，存取不同手機的鏡頭。</p><p>但，本功能僅限Linux電腦使用，因為v4l2是Linux才有的loopback裝置。</p><p>其實用Scrcpy直接擷取手機螢幕的相機APP畫面＋OBS的虛擬相機也是可以達到類似效果，但v4l2的好處在於他是直接存取相機鏡頭，不需要在手機開相機APP。</p><p>此外，v4l2無法錄音。若要用Android手機當作Linux的麥克風，可考慮用<a href="https://github.com/pzmarzly/mic_over_mumble/" target="_blank">
-PipeWire + Mumble</a>達成目的。</p><p>我還想到一種比較詭異的衍生用法：在樹莓派跑Scrcpy，將Android手機相機當作樹莓派相機裝置，跑圖像辨識？？</p><h2>1. 前置依賴<span><a href="#1-%E5%89%8D%E7%BD%AE%E4%BE%9D%E8%B3%B4" aria-label="定位點">#</a></span></h2><ol><li><p>安裝<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-Scrcpy</a></p></li><li><p>安裝v4l2核心模組</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install v4l2loopback-dkms v4l-utils
-</span></span></code></pre></div><h2>2. 操作方法<span><a href="#2-%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95" aria-label="定位點">#</a></span></h2><ol><li>設定開機自動載入v4l2模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'options v4l2loopback devices=3 video_nr=10,11,12 card_label="Loopback_1","Loopback_2","Virtual_cam" exclusive_caps=1,1,0'</span> <span>|</span> sudo tee -a /etc/modprobe.d/v4l2loopback.conf
-</span></span><span><span>
-</span></span><span><span>sudo modprobe v4l2loopback
-</span></span></code></pre></div><ol start="2"><li>這樣就會生出一個<code>/dev/video0</code>裝置，確認v4l2裝置狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>v4l2-ctl --list-devices
-</span></span></code></pre></div><ol start="3"><li>將手機插到電腦，用Scrcpy列出手機的全部鏡頭</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --list-cameras
-</span></span></code></pre></div><ol start="4"><li>這裡Scrcpy有抓到手機的前鏡頭和後鏡頭，如果手機有超廣角應該也會一併顯示</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy 2.6.1 &lt;https://github.com/Genymobile/scrcpy&gt;
-</span></span><span><span>INFO: ADB device found:
-</span></span><span><span>INFO:     --&gt;   <span>(</span>usb<span>)</span>  HQ635R36F7                      device  XQ_DC72
-</span></span><span><span>/usr/local/share/scrcpy/scrcpy-server: <span>1</span> file pushed, <span>0</span> skipped. 118.5 MB/s <span>(</span><span>71112</span> bytes in 0.001s<span>)</span>
-</span></span><span><span><span>[</span>server<span>]</span> INFO: Device: <span>[</span>Sony<span>]</span> Sony XQ-DC72 <span>(</span>Android 14<span>)</span>
-</span></span><span><span><span>[</span>server<span>]</span> INFO: List of cameras:
-</span></span><span><span>    --camera-id<span>=</span><span>0</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>1</span>    <span>(</span>front, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>2</span>    <span>(</span>back, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>3</span>    <span>(</span>back, 3264x2448, <span>fps</span><span>=[</span>15, 24, 30<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>4</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span><span><span>    --camera-id<span>=</span><span>5</span>    <span>(</span>back, 4000x3000, <span>fps</span><span>=[</span>15, 24, 30, 60<span>])</span>
-</span></span></code></pre></div><ol start="5"><li>確認手機沒有開啟任何相機APP。執行以下指令，指定使用後鏡頭。（<code>-m 1080</code>參數或許可以移除。不要手機鏡頭視窗的話加上參數<code>--no-video-playback</code>）</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --video-source<span>=</span>camera --camera-id<span>=</span><span>0</span> --v4l2-sink<span>=</span>/dev/video0 --no-audio -m <span>1080</span>
-</span></span></code></pre></div><ol start="6"><li><p>Scrcpy隨後跳出手機鏡頭的視窗，並且會將鏡頭的訊號輸出到<code>/dev/video0</code></p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-88359d59fe.webp"></li><li><p>在會議軟體裡面確認鏡頭是否可以選取</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4a5406b840.webp"></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://adityatelange.in/blog/android-phone-webcam-linux/" target="_blank">Android phone as a Webcam on Linux - @adityatelange.in</a></li><li><a href="https://github.com/Genymobile/scrcpy/blob/master/doc/v4l2.md" target="_blank">Video4Linux - Scrcpy</a></li></ul>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-acb960931e.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-acb960931e.webp" medium="image"/>
-    <pubDate>Tue, 20 Aug 2024 20:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Scrcpy安裝教學 & 指令用法，電腦遠端控制Android手機的開源軟體]]></title>
-    <link>https://ivonblog.com/posts/scrcpy-usage/</link>
-    <itunes:title><![CDATA[Scrcpy安裝教學 & 指令用法，電腦遠端控制Android手機的開源軟體]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-usage/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b1094e4db6.webp"></a></p>
-<p>如何將Android手機畫面投影到電腦？如何透過電腦遠端操控Android手機？如何用電腦播放手機音樂？</p><p>以上想法都可以用「Scrcpy」完成！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-89d3e6d2fd.webp"><p>Scrcpy為GenyMobile釋出的開源免費軟體，讓你能夠將Android手機螢幕鏡射到電腦，並用滑鼠鍵盤控制不論有線無線皆可使用。</p><p>關於資安問題，Scrcpy是完全開源的自由軟體，原始碼位於<a href="https://github.com/Genymobile/scrcpy" target="_blank">
-Github</a>受大眾檢驗，所有資料都在本機傳輸，不會洩漏給第三方。</p><p>Ivon認為Scrcpy算是很不錯的工具呢，除了更新很勤勞外，開發者Romain Vimont在Github上都會熱心回覆使用者的問題。</p><p>本文Ivon將介紹如何安裝Scrcpy，以及Scrcpy的操作方式。</p><h2>1. Scrcpy系統需求<span><a href="#1-scrcpy%E7%B3%BB%E7%B5%B1%E9%9C%80%E6%B1%82" aria-label="定位點">#</a></span></h2><p>Scrcpy支援Linux、Windows、macOS系統。</p><p>Scrcpy最低支援的系統版本為Android 5，如果要播放手機音效需要Android 11以上版本。</p><p>原版Scrcpy是需要打指令啟動的程式，如果你想要圖形界面，請改用文末提及的「圖形化界面Scrcpy」。</p><h2>2. 安裝Scrcpy程式<span><a href="#2-%E5%AE%89%E8%A3%9Dscrcpy%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><h3>Linux<span><a href="#linux" aria-label="定位點">#</a></span></h3><p>Ubuntu需要安裝ADB工具，再安裝Scrcpy</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install adb
-</span></span><span><span>sudo apt install scrcpy
-</span></span></code></pre></div><p>注意：Scrcpy常常在更新，建議滾動發行版的用戶才用套件管理員安裝Scrcpy，Ubuntu套件庫收的Scrcpy可能是舊版，如果缺少你要的功能，請到<a href="https://github.com/Genymobile/scrcpy/blob/master/doc/linux.md" target="_blank">
-Github</a>了解如何手動編譯最新版本。</p><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>到<a href="https://github.com/Genymobile/scrcpy/releases" target="_blank">
-Github Release</a>下載最新版<code>scrcpy-win64.zip</code></p><p>解壓縮，在解壓縮的資料夾按右鍵，開啟終端機。</p><h3>macOS<span><a href="#macos" aria-label="定位點">#</a></span></h3><p>開啟終端機，透過Homebrew安裝</p><div><pre tabindex="0"><code data-lang="bash"><span><span>brew install android-platform-tools
-</span></span><span><span>brew install scrcpy
-</span></span></code></pre></div><h2>3. 用ADB與手機連線<span><a href="#3-%E7%94%A8adb%E8%88%87%E6%89%8B%E6%A9%9F%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h2><p>Scrcpy可以有線與無線使用，建議使用USB連線，比較穩定。</p><h3>USB連線<span><a href="#usb%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h3><ol><li><p>開啟Android手機系統設定，找到關於手機，在版本號碼點五下，啟用開發人員選項。</p></li><li><p>進入開發人員選項，開啟「ADB偵錯」
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aba895369f.webp"></p></li><li><p>把手機插到電腦</p></li><li><p>執行ADB指令，在手機螢幕允許偵錯</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
-</span></span></code></pre></div><h3>Wifi連線<span><a href="#wifi%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h3><p>此功能適用Android 11以上手機。</p><ol><li><p>開啟Android手機系統設定，找到關於手機，在版本號碼點五下，啟用開發人員選項。</p></li><li><p>進入開發人員選項，開啟「ADB偵錯」和「無線偵錯」
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-91d8b03bd1.webp"></p></li><li><p>點選「使用配對碼配對裝置」，上面會顯示一組IP和配對碼
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f25fe3c4bd.webp"></p></li><li><p>執行ADB指令，與手機配對</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb pair 192.68.1.102:40985
-</span></span></code></pre></div><ol start="5"><li>接著按照「無線偵錯」頁面顯示的IP，連線到手機，允許偵錯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb connect 192.168.1.102:40389
-</span></span></code></pre></div><h2>4. Scrcpy基本操作方法<span><a href="#4-scrcpy%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95" aria-label="定位點">#</a></span></h2><p>最簡單的用法是輸入指令，不加參數，Scrcpy會自動嘗試ADB連線</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy
-</span></span></code></pre></div><p>之後視窗會自動開啟</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3650a79d73.webp"><p>你可以用鍵盤滑鼠直接控制手機。</p><p>按CTRL＋C和CTRL＋V共享剪貼簿。</p><p>手機螢幕轉動的話Scrcpy會跟著轉。按ALT＋方向鍵強制旋轉手機螢幕</p><p>按ALT＋F進入全螢幕。</p><p>按ALT＋上下鍵調整手機音量。</p><p>按CTRL＋按著滑鼠左鍵拖曳，模擬放大畫面的手勢。</p><p>從電腦把APK檔案拖曳到Scrcpy視窗，即會自動安裝到手機上。</p><p>從電腦傳檔案到手機：把APK以外的檔案拖曳到Scrcpy視窗，該檔案會自動下載到手機的<code>Downloads</code>資料夾。</p><h2>5. Scrcpy實用指令<span><a href="#5-scrcpy%E5%AF%A6%E7%94%A8%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>Scrcpy有很多參數可以調整，請到<a href="https://github.com/Genymobile/scrcpy?tab=readme-ov-file#user-documentation" target="_blank">
-官方文件</a>看詳細說明。</p><p>比如，若Scrcpy走Wifi連線，可能會遇到手機畫面延遲問題，此時請嘗試降低解析度。這裡設定位元率5MBps、限制最大解析度為720、限制FPS為30</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -b 5M -m <span>720</span> --max-fps<span>=</span><span>30</span>
-</span></span></code></pre></div><p>假如手機的音效沒有傳過來的話，試試修改編碼器為AAC</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --audio-codec<span>=</span>aac
-</span></span></code></pre></div><p>只傳輸手機音效，不傳輸畫面，設定音訊位元率AAC 256K：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --no-video --no-control --audio-codec<span>=</span>aac --audio-bit-rate<span>=</span>256K
-</span></span></code></pre></div><p>讓手機在使用的時候不要自動關閉螢幕（僅USB連線有效）</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -w
-</span></span></code></pre></div><p>讓手機在使用時顯示觸控視覺效果：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -t
-</span></span></code></pre></div><h2>6. 圖形界面版的Scrcpy<span><a href="#6-%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2%E7%89%88%E7%9A%84scrcpy" aria-label="定位點">#</a></span></h2><p>此處的版本為第三方打包的圖形化前端，讓Scrcpy的操作變得簡單一些。</p><ul><li><a href="https://ivonblog.com/posts/android-qtscrcpy-usage/" target="_blank">QTScrcpy</a>：可自訂按鍵映射，支援控制多部手機。</li><li><a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">ws scrcpy</a>：網頁版的Scrcpy，適合部署到伺服器用來控制雲手機。</li></ul>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-usage/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b1094e4db6.webp"></a></p>
-<p>如何將Android手機畫面投影到電腦？如何透過電腦遠端操控Android手機？如何用電腦播放手機音樂？</p><p>以上想法都可以用「Scrcpy」完成！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-89d3e6d2fd.webp"><p>Scrcpy為GenyMobile釋出的開源免費軟體，讓你能夠將Android手機螢幕鏡射到電腦，並用滑鼠鍵盤控制不論有線無線皆可使用。</p><p>關於資安問題，Scrcpy是完全開源的自由軟體，原始碼位於<a href="https://github.com/Genymobile/scrcpy" target="_blank">
-Github</a>受大眾檢驗，所有資料都在本機傳輸，不會洩漏給第三方。</p><p>Ivon認為Scrcpy算是很不錯的工具呢，除了更新很勤勞外，開發者Romain Vimont在Github上都會熱心回覆使用者的問題。</p><p>本文Ivon將介紹如何安裝Scrcpy，以及Scrcpy的操作方式。</p><h2>1. Scrcpy系統需求<span><a href="#1-scrcpy%E7%B3%BB%E7%B5%B1%E9%9C%80%E6%B1%82" aria-label="定位點">#</a></span></h2><p>Scrcpy支援Linux、Windows、macOS系統。</p><p>Scrcpy最低支援的系統版本為Android 5，如果要播放手機音效需要Android 11以上版本。</p><p>原版Scrcpy是需要打指令啟動的程式，如果你想要圖形界面，請改用文末提及的「圖形化界面Scrcpy」。</p><h2>2. 安裝Scrcpy程式<span><a href="#2-%E5%AE%89%E8%A3%9Dscrcpy%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><h3>Linux<span><a href="#linux" aria-label="定位點">#</a></span></h3><p>Ubuntu需要安裝ADB工具，再安裝Scrcpy</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install adb
-</span></span><span><span>sudo apt install scrcpy
-</span></span></code></pre></div><p>注意：Scrcpy常常在更新，建議滾動發行版的用戶才用套件管理員安裝Scrcpy，Ubuntu套件庫收的Scrcpy可能是舊版，如果缺少你要的功能，請到<a href="https://github.com/Genymobile/scrcpy/blob/master/doc/linux.md" target="_blank">
-Github</a>了解如何手動編譯最新版本。</p><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>到<a href="https://github.com/Genymobile/scrcpy/releases" target="_blank">
-Github Release</a>下載最新版<code>scrcpy-win64.zip</code></p><p>解壓縮，在解壓縮的資料夾按右鍵，開啟終端機。</p><h3>macOS<span><a href="#macos" aria-label="定位點">#</a></span></h3><p>開啟終端機，透過Homebrew安裝</p><div><pre tabindex="0"><code data-lang="bash"><span><span>brew install android-platform-tools
-</span></span><span><span>brew install scrcpy
-</span></span></code></pre></div><h2>3. 用ADB與手機連線<span><a href="#3-%E7%94%A8adb%E8%88%87%E6%89%8B%E6%A9%9F%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h2><p>Scrcpy可以有線與無線使用，建議使用USB連線，比較穩定。</p><h3>USB連線<span><a href="#usb%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h3><ol><li><p>開啟Android手機系統設定，找到關於手機，在版本號碼點五下，啟用開發人員選項。</p></li><li><p>進入開發人員選項，開啟「ADB偵錯」
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aba895369f.webp"></p></li><li><p>把手機插到電腦</p></li><li><p>執行ADB指令，在手機螢幕允許偵錯</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
-</span></span></code></pre></div><h3>Wifi連線<span><a href="#wifi%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h3><p>此功能適用Android 11以上手機。</p><ol><li><p>開啟Android手機系統設定，找到關於手機，在版本號碼點五下，啟用開發人員選項。</p></li><li><p>進入開發人員選項，開啟「ADB偵錯」和「無線偵錯」
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-91d8b03bd1.webp"></p></li><li><p>點選「使用配對碼配對裝置」，上面會顯示一組IP和配對碼
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f25fe3c4bd.webp"></p></li><li><p>執行ADB指令，與手機配對</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb pair 192.68.1.102:40985
-</span></span></code></pre></div><ol start="5"><li>接著按照「無線偵錯」頁面顯示的IP，連線到手機，允許偵錯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb connect 192.168.1.102:40389
-</span></span></code></pre></div><h2>4. Scrcpy基本操作方法<span><a href="#4-scrcpy%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95" aria-label="定位點">#</a></span></h2><p>最簡單的用法是輸入指令，不加參數，Scrcpy會自動嘗試ADB連線</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy
-</span></span></code></pre></div><p>之後視窗會自動開啟</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3650a79d73.webp"><p>你可以用鍵盤滑鼠直接控制手機。</p><p>按CTRL＋C和CTRL＋V共享剪貼簿。</p><p>手機螢幕轉動的話Scrcpy會跟著轉。按ALT＋方向鍵強制旋轉手機螢幕</p><p>按ALT＋F進入全螢幕。</p><p>按ALT＋上下鍵調整手機音量。</p><p>按CTRL＋按著滑鼠左鍵拖曳，模擬放大畫面的手勢。</p><p>從電腦把APK檔案拖曳到Scrcpy視窗，即會自動安裝到手機上。</p><p>從電腦傳檔案到手機：把APK以外的檔案拖曳到Scrcpy視窗，該檔案會自動下載到手機的<code>Downloads</code>資料夾。</p><h2>5. Scrcpy實用指令<span><a href="#5-scrcpy%E5%AF%A6%E7%94%A8%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>Scrcpy有很多參數可以調整，請到<a href="https://github.com/Genymobile/scrcpy?tab=readme-ov-file#user-documentation" target="_blank">
-官方文件</a>看詳細說明。</p><p>比如，若Scrcpy走Wifi連線，可能會遇到手機畫面延遲問題，此時請嘗試降低解析度。這裡設定位元率5MBps、限制最大解析度為720、限制FPS為30</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -b 5M -m <span>720</span> --max-fps<span>=</span><span>30</span>
-</span></span></code></pre></div><p>假如手機的音效沒有傳過來的話，試試修改編碼器為AAC</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --audio-codec<span>=</span>aac
-</span></span></code></pre></div><p>只傳輸手機音效，不傳輸畫面，設定音訊位元率AAC 256K：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --no-video --no-control --audio-codec<span>=</span>aac --audio-bit-rate<span>=</span>256K
-</span></span></code></pre></div><p>讓手機在使用的時候不要自動關閉螢幕（僅USB連線有效）</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -w
-</span></span></code></pre></div><p>讓手機在使用時顯示觸控視覺效果：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -t
-</span></span></code></pre></div><h2>6. 圖形界面版的Scrcpy<span><a href="#6-%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2%E7%89%88%E7%9A%84scrcpy" aria-label="定位點">#</a></span></h2><p>此處的版本為第三方打包的圖形化前端，讓Scrcpy的操作變得簡單一些。</p><ul><li><a href="https://ivonblog.com/posts/android-qtscrcpy-usage/" target="_blank">QTScrcpy</a>：可自訂按鍵映射，支援控制多部手機。</li><li><a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">ws scrcpy</a>：網頁版的Scrcpy，適合部署到伺服器用來控制雲手機。</li></ul>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-usage/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b1094e4db6.webp"></a></p>
-<p>如何將Android手機畫面投影到電腦？如何透過電腦遠端操控Android手機？如何用電腦播放手機音樂？</p><p>以上想法都可以用「Scrcpy」完成！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-89d3e6d2fd.webp"><p>Scrcpy為GenyMobile釋出的開源免費軟體，讓你能夠將Android手機螢幕鏡射到電腦，並用滑鼠鍵盤控制不論有線無線皆可使用。</p><p>關於資安問題，Scrcpy是完全開源的自由軟體，原始碼位於<a href="https://github.com/Genymobile/scrcpy" target="_blank">
-Github</a>受大眾檢驗，所有資料都在本機傳輸，不會洩漏給第三方。</p><p>Ivon認為Scrcpy算是很不錯的工具呢，除了更新很勤勞外，開發者Romain Vimont在Github上都會熱心回覆使用者的問題。</p><p>本文Ivon將介紹如何安裝Scrcpy，以及Scrcpy的操作方式。</p><h2>1. Scrcpy系統需求<span><a href="#1-scrcpy%E7%B3%BB%E7%B5%B1%E9%9C%80%E6%B1%82" aria-label="定位點">#</a></span></h2><p>Scrcpy支援Linux、Windows、macOS系統。</p><p>Scrcpy最低支援的系統版本為Android 5，如果要播放手機音效需要Android 11以上版本。</p><p>原版Scrcpy是需要打指令啟動的程式，如果你想要圖形界面，請改用文末提及的「圖形化界面Scrcpy」。</p><h2>2. 安裝Scrcpy程式<span><a href="#2-%E5%AE%89%E8%A3%9Dscrcpy%E7%A8%8B%E5%BC%8F" aria-label="定位點">#</a></span></h2><h3>Linux<span><a href="#linux" aria-label="定位點">#</a></span></h3><p>Ubuntu需要安裝ADB工具，再安裝Scrcpy</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install adb
-</span></span><span><span>sudo apt install scrcpy
-</span></span></code></pre></div><p>注意：Scrcpy常常在更新，建議滾動發行版的用戶才用套件管理員安裝Scrcpy，Ubuntu套件庫收的Scrcpy可能是舊版，如果缺少你要的功能，請到<a href="https://github.com/Genymobile/scrcpy/blob/master/doc/linux.md" target="_blank">
-Github</a>了解如何手動編譯最新版本。</p><h3>Windows<span><a href="#windows" aria-label="定位點">#</a></span></h3><p>到<a href="https://github.com/Genymobile/scrcpy/releases" target="_blank">
-Github Release</a>下載最新版<code>scrcpy-win64.zip</code></p><p>解壓縮，在解壓縮的資料夾按右鍵，開啟終端機。</p><h3>macOS<span><a href="#macos" aria-label="定位點">#</a></span></h3><p>開啟終端機，透過Homebrew安裝</p><div><pre tabindex="0"><code data-lang="bash"><span><span>brew install android-platform-tools
-</span></span><span><span>brew install scrcpy
-</span></span></code></pre></div><h2>3. 用ADB與手機連線<span><a href="#3-%E7%94%A8adb%E8%88%87%E6%89%8B%E6%A9%9F%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h2><p>Scrcpy可以有線與無線使用，建議使用USB連線，比較穩定。</p><h3>USB連線<span><a href="#usb%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h3><ol><li><p>開啟Android手機系統設定，找到關於手機，在版本號碼點五下，啟用開發人員選項。</p></li><li><p>進入開發人員選項，開啟「ADB偵錯」
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-aba895369f.webp"></p></li><li><p>把手機插到電腦</p></li><li><p>執行ADB指令，在手機螢幕允許偵錯</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
-</span></span></code></pre></div><h3>Wifi連線<span><a href="#wifi%E9%80%A3%E7%B7%9A" aria-label="定位點">#</a></span></h3><p>此功能適用Android 11以上手機。</p><ol><li><p>開啟Android手機系統設定，找到關於手機，在版本號碼點五下，啟用開發人員選項。</p></li><li><p>進入開發人員選項，開啟「ADB偵錯」和「無線偵錯」
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-91d8b03bd1.webp"></p></li><li><p>點選「使用配對碼配對裝置」，上面會顯示一組IP和配對碼
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f25fe3c4bd.webp"></p></li><li><p>執行ADB指令，與手機配對</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb pair 192.68.1.102:40985
-</span></span></code></pre></div><ol start="5"><li>接著按照「無線偵錯」頁面顯示的IP，連線到手機，允許偵錯</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>adb connect 192.168.1.102:40389
-</span></span></code></pre></div><h2>4. Scrcpy基本操作方法<span><a href="#4-scrcpy%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95" aria-label="定位點">#</a></span></h2><p>最簡單的用法是輸入指令，不加參數，Scrcpy會自動嘗試ADB連線</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy
-</span></span></code></pre></div><p>之後視窗會自動開啟</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3650a79d73.webp"><p>你可以用鍵盤滑鼠直接控制手機。</p><p>按CTRL＋C和CTRL＋V共享剪貼簿。</p><p>手機螢幕轉動的話Scrcpy會跟著轉。按ALT＋方向鍵強制旋轉手機螢幕</p><p>按ALT＋F進入全螢幕。</p><p>按ALT＋上下鍵調整手機音量。</p><p>按CTRL＋按著滑鼠左鍵拖曳，模擬放大畫面的手勢。</p><p>從電腦把APK檔案拖曳到Scrcpy視窗，即會自動安裝到手機上。</p><p>從電腦傳檔案到手機：把APK以外的檔案拖曳到Scrcpy視窗，該檔案會自動下載到手機的<code>Downloads</code>資料夾。</p><h2>5. Scrcpy實用指令<span><a href="#5-scrcpy%E5%AF%A6%E7%94%A8%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>Scrcpy有很多參數可以調整，請到<a href="https://github.com/Genymobile/scrcpy?tab=readme-ov-file#user-documentation" target="_blank">
-官方文件</a>看詳細說明。</p><p>比如，若Scrcpy走Wifi連線，可能會遇到手機畫面延遲問題，此時請嘗試降低解析度。這裡設定位元率5MBps、限制最大解析度為720、限制FPS為30</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -b 5M -m <span>720</span> --max-fps<span>=</span><span>30</span>
-</span></span></code></pre></div><p>假如手機的音效沒有傳過來的話，試試修改編碼器為AAC</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --audio-codec<span>=</span>aac
-</span></span></code></pre></div><p>只傳輸手機音效，不傳輸畫面，設定音訊位元率AAC 256K：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy --no-video --no-control --audio-codec<span>=</span>aac --audio-bit-rate<span>=</span>256K
-</span></span></code></pre></div><p>讓手機在使用的時候不要自動關閉螢幕（僅USB連線有效）</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -w
-</span></span></code></pre></div><p>讓手機在使用時顯示觸控視覺效果：</p><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -t
-</span></span></code></pre></div><h2>6. 圖形界面版的Scrcpy<span><a href="#6-%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2%E7%89%88%E7%9A%84scrcpy" aria-label="定位點">#</a></span></h2><p>此處的版本為第三方打包的圖形化前端，讓Scrcpy的操作變得簡單一些。</p><ul><li><a href="https://ivonblog.com/posts/android-qtscrcpy-usage/" target="_blank">QTScrcpy</a>：可自訂按鍵映射，支援控制多部手機。</li><li><a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">ws scrcpy</a>：網頁版的Scrcpy，適合部署到伺服器用來控制雲手機。</li></ul>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b1094e4db6.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b1094e4db6.webp" medium="image"/>
-    <pubDate>Mon, 19 Aug 2024 22:00:00 +0800</pubDate>
   </item></channel>
 </rss>
