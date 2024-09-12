@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/517/800/800.jpg?hmac=xItRNviyqpISlDo2YJu5Xzh3O71xdCNVlZIss68D-sA</url>
+      <url>https://fastly.picsum.photos/id/767/800/800.jpg?hmac=Ky4hk6bPPlcjVb0ZzOhIuO4kRJlOIjwtH06KNnWzXss</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,107 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/517/800/800.jpg?hmac=xItRNviyqpISlDo2YJu5Xzh3O71xdCNVlZIss68D-sA"/>
+    <itunes:image href="https://fastly.picsum.photos/id/767/800/800.jpg?hmac=Ky4hk6bPPlcjVb0ZzOhIuO4kRJlOIjwtH06KNnWzXss"/>
 <item>
+    <title><![CDATA[Moonlight自動調整Linux遠端桌面解析度，解決黑邊問題]]></title>
+    <link>https://ivonblog.com/posts/linux-moonlight-resolution-automation/</link>
+    <itunes:title><![CDATA[Moonlight自動調整Linux遠端桌面解析度，解決黑邊問題]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-moonlight-resolution-automation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp"></a></p>
+<p>問題點：Moonlight遠端Linux桌面解析度與客戶端不符，導致文字看起來太小或者出現黑邊。我希望可以像TeamViewer那樣自動縮放，將遠端Linux桌面的解析度調整為客戶端解析度。</p><p>從這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c5da325ef9.webp"><p>變成這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd26640eda.webp"><p>Moonlight客戶端雖然可以指定解析度，但是電腦端的Sunshine並不會跟著變化。所以我們得設定hook，利用Sunshine的「Custom Application」功能，自訂啟動桌面後執行指令，自動執行xrandr調整解析度與縮放，關閉遠端桌面之後再自動切回去。</p><p>本文討論的內容僅適用X11，因為Wayland沒有統一調整桌面解析度的指令。</p><h2>1. 測試xrandr指令<span><a href="#1-%E6%B8%AC%E8%A9%A6xrandr%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>以我的情況來說，客戶端iPad Air 6的解析度是2360x1640，比例大約是3:2。如果不追求這麼高畫質，那麼用同為3:2比例的1475x1025就夠了（iPad解析度除以1.6）。</p><p>因為如果直接設定為2360x1640的話，電腦顯示器必須支援2K以上解析度否則會「超出範圍」，還有高解析度得設定全域螢幕縮放，字在iPad才不會看起來太小。直接用低解析度就不用再設定全域螢幕縮放了。</p><p>於Sunshine後台設定前，先手動執行一次xrandr指令，確認真的能修改解析度再繼續。</p><ol><li>Ubuntu安裝以下套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install x11-xserver-utils
+</span></span></code></pre></div><ol start="2"><li>一般16:9的螢幕不會支援3:2這種比例，所以得強制新增Modeline。使用cvt指令計算1475x1025的Modeline所需參數，取整後解析度會略有變化，變成1480x1025</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cvt -r <span>1475</span> <span>1025</span> <span>60</span>
+</span></span></code></pre></div><ol start="3"><li>新增Modeline</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
+</span></span></code></pre></div><ol start="4"><li>查看目前使用的螢幕為何</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr -q
+</span></span></code></pre></div><ol start="5"><li>將Modeline新增到HDMI-1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="6"><li>指定解析度。螢幕應該會閃一下之後螢幕被拉伸。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="7"><li>如果要設定全域縮放1.5倍的話：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span> --scale 1.5x1.5
+</span></span></code></pre></div><ol start="8"><li>重設螢幕解析度為1920x1080：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
+</span></span></code></pre></div><h2>2. 調整Sunshine後台的指令<span><a href="#2-%E8%AA%BF%E6%95%B4sunshine%E5%BE%8C%E5%8F%B0%E7%9A%84%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><ol><li>我們新增指令稿，第一個是變更解析度</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/changeresolution.sh
+</span></span></code></pre></div><ol start="2"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
+</span></span><span><span>
+</span></span><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
+</span></span><span><span>
+</span></span><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="3"><li>再來是重置解析度的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/resetresolution.sh
+</span></span></code></pre></div><ol start="4"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
+</span></span></code></pre></div><ol start="5"><li>賦予執行權限</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x ~/.local/bin/changeresolution.sh
+</span></span><span><span>chmod +x ~/.local/bin/resetresolution.sh
+</span></span></code></pre></div><ol start="6"><li><p><a href="https://ivonblog.com/posts/linux-sunshine-remote-gaming/" target="_blank">安裝Sunshine</a>伺服器。</p></li><li><p>開啟後台的Applications頁面，點選Desktop（你也可以另外新增其他程式）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e3da2f6ad2.webp"></li><li><p>找到Do Command和Undo Command欄位</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2f26e2d80a.webp"></li><li><p>填入指令稿的絕對路徑：<code>bash /home/user/.local/bin/changeresolution.sh</code>和<code>bash /home/user/.local/bin/resetesolution.sh</code></p></li><li><p>點選下方Save</p></li><li><p>用Moonlight連線前需要把解析度設定為<code>Full</code>以符合iPad解析度。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ccba47c7c.webp"></li><li><p>點選Desktop，電腦解析度應該就會自動變化了。</p></li><li><p>要觸發解析度重置，必須點Quit APP中止桌面工作階段。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7a530c1203.webp"></li></ol>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-moonlight-resolution-automation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp"></a></p>
+<p>問題點：Moonlight遠端Linux桌面解析度與客戶端不符，導致文字看起來太小或者出現黑邊。我希望可以像TeamViewer那樣自動縮放，將遠端Linux桌面的解析度調整為客戶端解析度。</p><p>從這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c5da325ef9.webp"><p>變成這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd26640eda.webp"><p>Moonlight客戶端雖然可以指定解析度，但是電腦端的Sunshine並不會跟著變化。所以我們得設定hook，利用Sunshine的「Custom Application」功能，自訂啟動桌面後執行指令，自動執行xrandr調整解析度與縮放，關閉遠端桌面之後再自動切回去。</p><p>本文討論的內容僅適用X11，因為Wayland沒有統一調整桌面解析度的指令。</p><h2>1. 測試xrandr指令<span><a href="#1-%E6%B8%AC%E8%A9%A6xrandr%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>以我的情況來說，客戶端iPad Air 6的解析度是2360x1640，比例大約是3:2。如果不追求這麼高畫質，那麼用同為3:2比例的1475x1025就夠了（iPad解析度除以1.6）。</p><p>因為如果直接設定為2360x1640的話，電腦顯示器必須支援2K以上解析度否則會「超出範圍」，還有高解析度得設定全域螢幕縮放，字在iPad才不會看起來太小。直接用低解析度就不用再設定全域螢幕縮放了。</p><p>於Sunshine後台設定前，先手動執行一次xrandr指令，確認真的能修改解析度再繼續。</p><ol><li>Ubuntu安裝以下套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install x11-xserver-utils
+</span></span></code></pre></div><ol start="2"><li>一般16:9的螢幕不會支援3:2這種比例，所以得強制新增Modeline。使用cvt指令計算1475x1025的Modeline所需參數，取整後解析度會略有變化，變成1480x1025</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cvt -r <span>1475</span> <span>1025</span> <span>60</span>
+</span></span></code></pre></div><ol start="3"><li>新增Modeline</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
+</span></span></code></pre></div><ol start="4"><li>查看目前使用的螢幕為何</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr -q
+</span></span></code></pre></div><ol start="5"><li>將Modeline新增到HDMI-1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="6"><li>指定解析度。螢幕應該會閃一下之後螢幕被拉伸。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="7"><li>如果要設定全域縮放1.5倍的話：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span> --scale 1.5x1.5
+</span></span></code></pre></div><ol start="8"><li>重設螢幕解析度為1920x1080：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
+</span></span></code></pre></div><h2>2. 調整Sunshine後台的指令<span><a href="#2-%E8%AA%BF%E6%95%B4sunshine%E5%BE%8C%E5%8F%B0%E7%9A%84%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><ol><li>我們新增指令稿，第一個是變更解析度</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/changeresolution.sh
+</span></span></code></pre></div><ol start="2"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
+</span></span><span><span>
+</span></span><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
+</span></span><span><span>
+</span></span><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="3"><li>再來是重置解析度的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/resetresolution.sh
+</span></span></code></pre></div><ol start="4"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
+</span></span></code></pre></div><ol start="5"><li>賦予執行權限</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x ~/.local/bin/changeresolution.sh
+</span></span><span><span>chmod +x ~/.local/bin/resetresolution.sh
+</span></span></code></pre></div><ol start="6"><li><p><a href="https://ivonblog.com/posts/linux-sunshine-remote-gaming/" target="_blank">安裝Sunshine</a>伺服器。</p></li><li><p>開啟後台的Applications頁面，點選Desktop（你也可以另外新增其他程式）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e3da2f6ad2.webp"></li><li><p>找到Do Command和Undo Command欄位</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2f26e2d80a.webp"></li><li><p>填入指令稿的絕對路徑：<code>bash /home/user/.local/bin/changeresolution.sh</code>和<code>bash /home/user/.local/bin/resetesolution.sh</code></p></li><li><p>點選下方Save</p></li><li><p>用Moonlight連線前需要把解析度設定為<code>Full</code>以符合iPad解析度。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ccba47c7c.webp"></li><li><p>點選Desktop，電腦解析度應該就會自動變化了。</p></li><li><p>要觸發解析度重置，必須點Quit APP中止桌面工作階段。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7a530c1203.webp"></li></ol>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/linux-moonlight-resolution-automation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp"></a></p>
+<p>問題點：Moonlight遠端Linux桌面解析度與客戶端不符，導致文字看起來太小或者出現黑邊。我希望可以像TeamViewer那樣自動縮放，將遠端Linux桌面的解析度調整為客戶端解析度。</p><p>從這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c5da325ef9.webp"><p>變成這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd26640eda.webp"><p>Moonlight客戶端雖然可以指定解析度，但是電腦端的Sunshine並不會跟著變化。所以我們得設定hook，利用Sunshine的「Custom Application」功能，自訂啟動桌面後執行指令，自動執行xrandr調整解析度與縮放，關閉遠端桌面之後再自動切回去。</p><p>本文討論的內容僅適用X11，因為Wayland沒有統一調整桌面解析度的指令。</p><h2>1. 測試xrandr指令<span><a href="#1-%E6%B8%AC%E8%A9%A6xrandr%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>以我的情況來說，客戶端iPad Air 6的解析度是2360x1640，比例大約是3:2。如果不追求這麼高畫質，那麼用同為3:2比例的1475x1025就夠了（iPad解析度除以1.6）。</p><p>因為如果直接設定為2360x1640的話，電腦顯示器必須支援2K以上解析度否則會「超出範圍」，還有高解析度得設定全域螢幕縮放，字在iPad才不會看起來太小。直接用低解析度就不用再設定全域螢幕縮放了。</p><p>於Sunshine後台設定前，先手動執行一次xrandr指令，確認真的能修改解析度再繼續。</p><ol><li>Ubuntu安裝以下套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install x11-xserver-utils
+</span></span></code></pre></div><ol start="2"><li>一般16:9的螢幕不會支援3:2這種比例，所以得強制新增Modeline。使用cvt指令計算1475x1025的Modeline所需參數，取整後解析度會略有變化，變成1480x1025</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cvt -r <span>1475</span> <span>1025</span> <span>60</span>
+</span></span></code></pre></div><ol start="3"><li>新增Modeline</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
+</span></span></code></pre></div><ol start="4"><li>查看目前使用的螢幕為何</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr -q
+</span></span></code></pre></div><ol start="5"><li>將Modeline新增到HDMI-1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="6"><li>指定解析度。螢幕應該會閃一下之後螢幕被拉伸。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="7"><li>如果要設定全域縮放1.5倍的話：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span> --scale 1.5x1.5
+</span></span></code></pre></div><ol start="8"><li>重設螢幕解析度為1920x1080：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
+</span></span></code></pre></div><h2>2. 調整Sunshine後台的指令<span><a href="#2-%E8%AA%BF%E6%95%B4sunshine%E5%BE%8C%E5%8F%B0%E7%9A%84%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><ol><li>我們新增指令稿，第一個是變更解析度</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/changeresolution.sh
+</span></span></code></pre></div><ol start="2"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
+</span></span><span><span>
+</span></span><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
+</span></span><span><span>
+</span></span><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
+</span></span></code></pre></div><ol start="3"><li>再來是重置解析度的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/resetresolution.sh
+</span></span></code></pre></div><ol start="4"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
+</span></span></code></pre></div><ol start="5"><li>賦予執行權限</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x ~/.local/bin/changeresolution.sh
+</span></span><span><span>chmod +x ~/.local/bin/resetresolution.sh
+</span></span></code></pre></div><ol start="6"><li><p><a href="https://ivonblog.com/posts/linux-sunshine-remote-gaming/" target="_blank">安裝Sunshine</a>伺服器。</p></li><li><p>開啟後台的Applications頁面，點選Desktop（你也可以另外新增其他程式）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e3da2f6ad2.webp"></li><li><p>找到Do Command和Undo Command欄位</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2f26e2d80a.webp"></li><li><p>填入指令稿的絕對路徑：<code>bash /home/user/.local/bin/changeresolution.sh</code>和<code>bash /home/user/.local/bin/resetesolution.sh</code></p></li><li><p>點選下方Save</p></li><li><p>用Moonlight連線前需要把解析度設定為<code>Full</code>以符合iPad解析度。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ccba47c7c.webp"></li><li><p>點選Desktop，電腦解析度應該就會自動變化了。</p></li><li><p>要觸發解析度重置，必須點Quit APP中止桌面工作階段。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7a530c1203.webp"></li></ol>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp" medium="image"/>
+    <pubDate>Thu, 12 Sep 2024 11:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[電腦與iPad平板自動同步剪貼簿，KDE Connect與幕前調度的妙用]]></title>
+    <link>https://ivonblog.com/posts/kde-connect-sharing-clipboard/</link>
+    <itunes:title><![CDATA[電腦與iPad平板自動同步剪貼簿，KDE Connect與幕前調度的妙用]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/kde-connect-sharing-clipboard/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-06b18286d3.webp"></a></p>
+<p>同時使用電腦和iPad平板作業，想要在另一個裝置接續執行工作，卻苦於沒有Mac嗎？</p><p>KDE Connect幫助你！</p><p>KDE Connect為Linux KDE自由軟體社群所開發的APP，支援跨平台傳檔、手機控制電腦滑鼠、簡報筆、共享剪貼簿、查看手機通知等操作。</p><p>iPad的幕前調度能同時執行多個APP，利用多視窗原理，我們就能用KDE Connect實現電腦與iPad同步剪貼簿的操作，就像macOS的通用剪貼板(Universal Clipboard)一樣。只要把KDE Connect掛在旁邊，兩邊的剪貼簿就會互相同步。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8e9aa7b374.webp"><p>其實這個KDE Connec的方案比較適合Android Galaxy Tab或Windows Surface平板使用，因為KDE Connect可以掛在背景自動雙向同步剪貼簿，而iPadOS禁止背景APP執行，要多個APP同時執行又不佔用螢幕空間的話就只能靠幕前調度了。</p><p>另請參閱：<a href="https://ivonblog.com/posts/moonlight-use-a-tablet-as-a-second-monitor/" target="_blank">
+iPad當電腦延伸螢幕，Moonlight + Sunshine</a></p><h2>1. 優缺點<span><a href="#1-%E5%84%AA%E7%BC%BA%E9%BB%9E" aria-label="定位點">#</a></span></h2><p>優點：</p><p>電腦一按下複製，剪貼簿就會自動傳送到iPad，不用手動確認</p><p>跨平台，KDE Connect支援Linux、Windows、macOS、Android、iOS</p><p>傳輸經過加密，資料不經過第三方伺服器傳送</p><p>缺點：</p><p>需要Wifi，不過可以<a href="https://ivonblog.com/posts/use-kde-connect-without-wifi/" target="_blank">
+架TailScale虛擬區網</a>直接用IP配對，或者嘗試用不穩定的藍芽配對。</p><p>需要開啟幕前調度，所以iPhone不能用。</p><p>剪貼簿只能單向自動傳輸到iPad，iPad傳到電腦需要手動按發送。</p><p>目前KDE Connect只能傳送剪貼簿文字，無法傳送rich text，更別說照片了。但別忘了，KDE Coonect本身就有傳檔案功能！</p><h2>2. 實際操作方式<span><a href="#2-%E5%AF%A6%E9%9A%9B%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>下面我用Kubuntu電腦 + iPad示範，其他系統操作大同小異。</p><ol><li><p><a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">下載KDE Connect</a></p></li><li><p>讓二部裝置連在同一個Wifi</p></li><li><p>開啟KDE Connect APP，點選配對裝置（如果找不到裝置請調整電腦防火牆設定）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bdf55cfdab.webp"></li><li><p>開啟iPad的幕前調度</p></li><li><p>開啟要打字的APP，例如這裡是筆記軟體Joplin</p></li><li><p>再點選頂部的「加入其他視窗」按鈕，開啟KDE Connect，把視窗重疊在主視窗後方</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-79f465300b.webp"></li><li><p>嘗試在電腦按下複製，iPad的剪貼簿應該就會自動同步。</p></li><li><p>此外，電腦對檔案點一下右鍵，即可以KDE Connect傳送到iPad</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3eaaa523ab.webp"></li><li><p>嫌KDE Connect傳檔不穩定的，你還可以裝<a href="https://ivonblog.com/posts/localsend-usage/" target="_blank">
+LocalSend</a>。</p></li></ol>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/kde-connect-sharing-clipboard/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-06b18286d3.webp"></a></p>
+<p>同時使用電腦和iPad平板作業，想要在另一個裝置接續執行工作，卻苦於沒有Mac嗎？</p><p>KDE Connect幫助你！</p><p>KDE Connect為Linux KDE自由軟體社群所開發的APP，支援跨平台傳檔、手機控制電腦滑鼠、簡報筆、共享剪貼簿、查看手機通知等操作。</p><p>iPad的幕前調度能同時執行多個APP，利用多視窗原理，我們就能用KDE Connect實現電腦與iPad同步剪貼簿的操作，就像macOS的通用剪貼板(Universal Clipboard)一樣。只要把KDE Connect掛在旁邊，兩邊的剪貼簿就會互相同步。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8e9aa7b374.webp"><p>其實這個KDE Connec的方案比較適合Android Galaxy Tab或Windows Surface平板使用，因為KDE Connect可以掛在背景自動雙向同步剪貼簿，而iPadOS禁止背景APP執行，要多個APP同時執行又不佔用螢幕空間的話就只能靠幕前調度了。</p><p>另請參閱：<a href="https://ivonblog.com/posts/moonlight-use-a-tablet-as-a-second-monitor/" target="_blank">
+iPad當電腦延伸螢幕，Moonlight + Sunshine</a></p><h2>1. 優缺點<span><a href="#1-%E5%84%AA%E7%BC%BA%E9%BB%9E" aria-label="定位點">#</a></span></h2><p>優點：</p><p>電腦一按下複製，剪貼簿就會自動傳送到iPad，不用手動確認</p><p>跨平台，KDE Connect支援Linux、Windows、macOS、Android、iOS</p><p>傳輸經過加密，資料不經過第三方伺服器傳送</p><p>缺點：</p><p>需要Wifi，不過可以<a href="https://ivonblog.com/posts/use-kde-connect-without-wifi/" target="_blank">
+架TailScale虛擬區網</a>直接用IP配對，或者嘗試用不穩定的藍芽配對。</p><p>需要開啟幕前調度，所以iPhone不能用。</p><p>剪貼簿只能單向自動傳輸到iPad，iPad傳到電腦需要手動按發送。</p><p>目前KDE Connect只能傳送剪貼簿文字，無法傳送rich text，更別說照片了。但別忘了，KDE Coonect本身就有傳檔案功能！</p><h2>2. 實際操作方式<span><a href="#2-%E5%AF%A6%E9%9A%9B%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>下面我用Kubuntu電腦 + iPad示範，其他系統操作大同小異。</p><ol><li><p><a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">下載KDE Connect</a></p></li><li><p>讓二部裝置連在同一個Wifi</p></li><li><p>開啟KDE Connect APP，點選配對裝置（如果找不到裝置請調整電腦防火牆設定）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bdf55cfdab.webp"></li><li><p>開啟iPad的幕前調度</p></li><li><p>開啟要打字的APP，例如這裡是筆記軟體Joplin</p></li><li><p>再點選頂部的「加入其他視窗」按鈕，開啟KDE Connect，把視窗重疊在主視窗後方</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-79f465300b.webp"></li><li><p>嘗試在電腦按下複製，iPad的剪貼簿應該就會自動同步。</p></li><li><p>此外，電腦對檔案點一下右鍵，即可以KDE Connect傳送到iPad</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3eaaa523ab.webp"></li><li><p>嫌KDE Connect傳檔不穩定的，你還可以裝<a href="https://ivonblog.com/posts/localsend-usage/" target="_blank">
+LocalSend</a>。</p></li></ol>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/kde-connect-sharing-clipboard/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-06b18286d3.webp"></a></p>
+<p>同時使用電腦和iPad平板作業，想要在另一個裝置接續執行工作，卻苦於沒有Mac嗎？</p><p>KDE Connect幫助你！</p><p>KDE Connect為Linux KDE自由軟體社群所開發的APP，支援跨平台傳檔、手機控制電腦滑鼠、簡報筆、共享剪貼簿、查看手機通知等操作。</p><p>iPad的幕前調度能同時執行多個APP，利用多視窗原理，我們就能用KDE Connect實現電腦與iPad同步剪貼簿的操作，就像macOS的通用剪貼板(Universal Clipboard)一樣。只要把KDE Connect掛在旁邊，兩邊的剪貼簿就會互相同步。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8e9aa7b374.webp"><p>其實這個KDE Connec的方案比較適合Android Galaxy Tab或Windows Surface平板使用，因為KDE Connect可以掛在背景自動雙向同步剪貼簿，而iPadOS禁止背景APP執行，要多個APP同時執行又不佔用螢幕空間的話就只能靠幕前調度了。</p><p>另請參閱：<a href="https://ivonblog.com/posts/moonlight-use-a-tablet-as-a-second-monitor/" target="_blank">
+iPad當電腦延伸螢幕，Moonlight + Sunshine</a></p><h2>1. 優缺點<span><a href="#1-%E5%84%AA%E7%BC%BA%E9%BB%9E" aria-label="定位點">#</a></span></h2><p>優點：</p><p>電腦一按下複製，剪貼簿就會自動傳送到iPad，不用手動確認</p><p>跨平台，KDE Connect支援Linux、Windows、macOS、Android、iOS</p><p>傳輸經過加密，資料不經過第三方伺服器傳送</p><p>缺點：</p><p>需要Wifi，不過可以<a href="https://ivonblog.com/posts/use-kde-connect-without-wifi/" target="_blank">
+架TailScale虛擬區網</a>直接用IP配對，或者嘗試用不穩定的藍芽配對。</p><p>需要開啟幕前調度，所以iPhone不能用。</p><p>剪貼簿只能單向自動傳輸到iPad，iPad傳到電腦需要手動按發送。</p><p>目前KDE Connect只能傳送剪貼簿文字，無法傳送rich text，更別說照片了。但別忘了，KDE Coonect本身就有傳檔案功能！</p><h2>2. 實際操作方式<span><a href="#2-%E5%AF%A6%E9%9A%9B%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>下面我用Kubuntu電腦 + iPad示範，其他系統操作大同小異。</p><ol><li><p><a href="https://ivonblog.com/posts/how-to-use-kde-connect/" target="_blank">下載KDE Connect</a></p></li><li><p>讓二部裝置連在同一個Wifi</p></li><li><p>開啟KDE Connect APP，點選配對裝置（如果找不到裝置請調整電腦防火牆設定）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bdf55cfdab.webp"></li><li><p>開啟iPad的幕前調度</p></li><li><p>開啟要打字的APP，例如這裡是筆記軟體Joplin</p></li><li><p>再點選頂部的「加入其他視窗」按鈕，開啟KDE Connect，把視窗重疊在主視窗後方</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-79f465300b.webp"></li><li><p>嘗試在電腦按下複製，iPad的剪貼簿應該就會自動同步。</p></li><li><p>此外，電腦對檔案點一下右鍵，即可以KDE Connect傳送到iPad</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3eaaa523ab.webp"></li><li><p>嫌KDE Connect傳檔不穩定的，你還可以裝<a href="https://ivonblog.com/posts/localsend-usage/" target="_blank">
+LocalSend</a>。</p></li></ol>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-06b18286d3.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-06b18286d3.webp" medium="image"/>
+    <pubDate>Thu, 12 Sep 2024 08:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[架設Cloudflare R2免費圖床，給Hugo靜態網站託管圖片]]></title>
     <link>https://ivonblog.com/posts/cloudflare-r2-image-hosting/</link>
     <itunes:title><![CDATA[架設Cloudflare R2免費圖床，給Hugo靜態網站託管圖片]]></itunes:title>
@@ -1785,332 +1884,5 @@ Termux設定一個桌面環境</a></p></li><li><p>安裝Scrcpy套件</p></li></o
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cae760b3e4.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cae760b3e4.webp" medium="image"/>
     <pubDate>Sun, 25 Aug 2024 20:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[於樹莓派5部署Android雲手機「ReDroid」，透過Scrcpy遠端控制]]></title>
-    <link>https://ivonblog.com/posts/redroid-on-raspberry-pi/</link>
-    <itunes:title><![CDATA[於樹莓派5部署Android雲手機「ReDroid」，透過Scrcpy遠端控制]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/redroid-on-raspberry-pi/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b07a7ea719.webp"></a></p>
-<p>ReDroid為一款開源雲手機解決方案，讓你將Android系統部署在x86與ARM架構的Linux電腦，遠端控制Android玩遊戲。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c005f48f69.webp"><figcaption>使用Scrcpy遠端連線到ReDroid容器畫面，執行遊戲</figcaption><p>ReDroid得透過Docker部署，啟動速度十分之快，待機狀態下不太吃資源，效能可跟基於LXC的Waydroid相比，還支援多開。</p><p>為何要用ReDroid呢？因為它本來就是設計給遠端存取用的，較適合headless伺服器環境，不像<a href="https://ivonblog.com/posts/raspberry-pi-waydroid/" target="_blank">
-樹莓派跑Waydroid</a>需要顯示器才能輸出。</p><p>之前寫過<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">
-x86電腦部署ReDroid的教學</a>，這裡要用ARM架構的樹莓派。相較於x86架構電腦，ARM架構的優勢是不需要libhoudini轉譯器就能執行大多數手機的APP。並且從<a href="https://ivonblog.com/posts/raspberry-pi-lineageos/" target="_blank">
-樹莓派5跑LineageOS系統</a>的跑分來看，樹莓派5的處理器效能已接近一台中低階Android手機，玩一些不吃效能的手遊完全是夠的。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>Raspberry Pi 5 8GB</li><li>Raspberry Pi OS (Debian 12 Bookworm)</li><li>核心版本：Linux raspberrypi5 6.6.42-v8+</li><li>無接上顯示器</li></ul><p>考慮到Raspberry Pi常常是headless運作的，所以得準備另一台電腦或手機，利用Scrcpy無線控制的方式遠端存取Android桌面。</p><p>不過在開始下一步之前，建議執行以下指令確認GPU加速是否正常，驅動應會顯示<code>V3DV Mesa</code>。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>vulkaninfo --summary
-</span></span></code></pre></div><h2>2. 前置作業<span><a href="#2-%E5%89%8D%E7%BD%AE%E4%BD%9C%E6%A5%AD" aria-label="定位點">#</a></span></h2><p>根據<a href="https://github.com/remote-android/redroid-doc/blob/master/deploy" target="_blank">
-ReDroid文件的部署需求</a>，Linux必須啟用binder核心模組，並且要啟用4K Pages、PSI。</p><ol><li>從<code>zcat /proc/config.gz</code>指令的輸出來看，Raspberry Pi 5的核心已經啟用BINDER設定了，所以不用安裝binder核心模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo modprobe configs
-</span></span><span><span>
-</span></span><span><span>zcat /proc/config.gz <span>|</span> grep BINDER
-</span></span><span><span>
-</span></span><span><span><span># 輸出</span>
-</span></span><span><span><span>CONFIG_ANDROID_BINDER_IPC</span><span>=</span>y
-</span></span><span><span><span>CONFIG_ANDROID_BINDERFS</span><span>=</span>y
-</span></span><span><span><span>CONFIG_ANDROID_BINDER_DEVICES</span><span>=</span><span>"binder,hwbinder,vndbinder"</span>
-</span></span></code></pre></div><ol start="2"><li>Raspberry Pi 5預設是使用16K Pages，透過調整開機設定檔啟用4K Pages</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
-</span></span></span><span><span><span>kernel=kernel8.img
-</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
-</span></span></code></pre></div><ol start="3"><li>啟用PSI</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sed --follow-symlinks -i <span>'s/quiet/psi=1 quiet/g'</span> /boot/firmware/cmdline.txt
-</span></span></code></pre></div><ol start="4"><li>重開機，確認4K Pages與PSI狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>getconf PAGESIZE
-</span></span><span><span>
-</span></span><span><span>ls /proc/pressure
-</span></span></code></pre></div><ol start="5"><li>如果有裝Waydroid，不要讓它開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl stop waydroid-container
-</span></span><span><span>
-</span></span><span><span>sudo systemctl disable waydroid-container
-</span></span></code></pre></div><h2>3. 給ReDroid映像檔安裝GAPPS<span><a href="#3-%E7%B5%A6redroid%E6%98%A0%E5%83%8F%E6%AA%94%E5%AE%89%E8%A3%9Dgapps" aria-label="定位點">#</a></span></h2><p>ReDroid作者上傳的映像檔全部都是原生系統。</p><p>關於安裝GAPP的指令稿，我用這個安裝<a href="https://github.com/ayasa520/redroid-script" target="_blank">
-ayasa520/redroid-script</a>，但作者似乎只有考慮到x86_64的狀況，所以稍做修改，改成下載arm64的版本。</p><p>參考：<a href="https://github.com/abing7k/redroid-script/blob/master/stuffs/gapps.py" target="_blank">
-abing7k/redroid-scrip</a>與<a href="https://github.com/casualsnek/waydroid_script/issues/30#issuecomment-1099397952" target="_blank">
-casualsnek/waydroid_script</a>的版本</p><p>修改後的版本：</p><div><pre tabindex="0"><code data-lang="diff"><span><span><span>--- gapps.py    2024-08-24 23:46:52.856680374 +0800
-</span></span></span><span><span><span>+++ gapps.py  2024-08-24 23:48:19.294579951 +0800
-</span></span></span><span><span><span>@@ -7,7 +7,7 @@
-</span></span></span><span><span>     dl_links = {
-</span></span><span><span>             "x86_64": ["https://cfhcable.dl.sourceforge.net/project/opengapps/x86_64/20220503/open_gapps-x86_64-10.0-pico-20220503.zip", "5fb186bfb7bed8925290f79247bec4cf"],
-</span></span><span><span>             "x86": ["https://udomain.dl.sourceforge.net/project/opengapps/x86/20220122/open_gapps-x86-10.0-pico-20220122.zip", "9e39e45584b7ade4529e6be654af7b81"],
-</span></span><span><span><span>-           "arm64-v8a": ["https://liquidtelecom.dl.sourceforge.net/project/opengapps/arm64/20220122/open_gapps-arm64-10.0-pico-20220122.zip", "8dfa6e76aeb2d1d5aed40b058e8a852c"],
-</span></span></span><span><span><span>+           "arm64-v8a": ["https://sourceforge.net/projects/opengapps/files/arm64/20220503/open_gapps-arm64-11.0-pico-20220503.zip", "67e927e4943757f418e4f934825cf987"],
-</span></span></span><span><span>             "armeabi-v7a": ["https://nav.dl.sourceforge.net/project/opengapps/arm/20220122/open_gapps-arm-10.0-pico-20220122.zip", "a48ccbd25eb0a3c5e30f5db5435f5536"]
-</span></span><span><span>         }
-</span></span><span><span>     arch = host()
-</span></span><span><span><span>@@ -20,7 +20,8 @@
-</span></span></span><span><span>     non_apks = [
-</span></span><span><span>         "defaultetc-common.tar.lz",
-</span></span><span><span>         "defaultframework-common.tar.lz",
-</span></span><span><span><span>-        "googlepixelconfig-common.tar.lz"
-</span></span></span><span><span><span>+       "googlepixelconfig-common.tar.lz",
-</span></span></span><span><span><span>+       "vending-common.tar.lz"
-</span></span></span><span><span>         ]
-</span></span></code></pre></div><p>但是不知道為何ReDroid裝GAPPS啟動後桌面會黑螢幕，加上三明治鍵失效，只能透過ADB強制更換桌面啟動器解決。並將三明治鍵換成滑動手勢。雖然這樣做了，但是系統UI還是怪怪的…無法收到通知。</p><p>放棄，改用<a href="https://github.com/abing7k/redroid-script" target="_blank">
-abing7k/redroid:a11_gapps_arm</a>打包好的映像檔看看能不能用…結果這個Scrcpy連線圖形有問題。</p><p>暫時放棄GAPPS，改用ReDroid原生Android映像檔。</p><h2>4. 部署ReDroid容器<span><a href="#4-%E9%83%A8%E7%BD%B2redroid%E5%AE%B9%E5%99%A8" aria-label="定位點">#</a></span></h2><ol><li><p><a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">安裝Docker</a></p></li><li><p>新增存放資料的目錄</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/redroid
-</span></span><span><span><span>cd</span> redroid
-</span></span></code></pre></div><ol start="3"><li>新增docker-compose.yml</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim docker-compose.yml
-</span></span></code></pre></div><ol start="4"><li>內容如下：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>version: <span>"3"</span>
-</span></span><span><span>services:
-</span></span><span><span>  redroid:
-</span></span><span><span>    <span># 使用Android 11映像檔</span>
-</span></span><span><span>    image: redroid/redroid:11.0.0-latest
-</span></span><span><span>    stdin_open: <span>true</span>
-</span></span><span><span>    tty: <span>true</span>
-</span></span><span><span>    privileged: <span>true</span>
-</span></span><span><span>    <span># ADB通訊埠</span>
-</span></span><span><span>    ports:
-</span></span><span><span>      - <span>"5555:5555"</span>
-</span></span><span><span>    volumes:
-</span></span><span><span>    <span># 資料目錄</span>
-</span></span><span><span>      - ./redroid-11-data:/data
-</span></span><span><span>    command:
-</span></span><span><span>    <span># 解析度</span>
-</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>1080</span>
-</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>2160</span>
-</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>439</span>
-</span></span><span><span>      - androidboot.redroid_fps<span>=</span><span>60</span>
-</span></span><span><span>    <span># 啟用GPU硬體加速</span>
-</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>host
-</span></span></code></pre></div><ol start="3"><li>啟動容器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo docker compose up -d
-</span></span></code></pre></div><ol start="4"><li>取得樹莓派的區域IP</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
-</span></span></code></pre></div><h2>5. 使用Scrcpy存取ReDroid桌面<span><a href="#5-%E4%BD%BF%E7%94%A8scrcpy%E5%AD%98%E5%8F%96redroid%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>這裡我使用電腦版的Scrcpy，若要方便其他裝置存取，可於樹莓派部署網頁版的<a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">
-ws scrcpy</a>，透過瀏覽器連線。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-Scrcpy與ADB工具</a></p></li><li><p>讓電腦與樹莓派位於同一個區網，將ADB與樹莓派連線</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>abd connect 樹莓派IP:5555
-</span></span></code></pre></div><ol start="3"><li>啟動Scrcpy，遠端連線可能會lag，所以限制畫質</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -m <span>1080</span> -b 5M --audio-codec<span>=</span>aac
-</span></span></code></pre></div><ol start="4"><li><p>這樣就能看到Android桌面了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f78678c46c.webp"></li><li><p>如果GPU加速有正常運作，那麼「AIDA64」APP應當能抓到樹莓派的GPU型號。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b461c4a1d4.webp"></li><li><p>現在Scrcpy只能透過區網連線，接下來只要再於樹莓派<a href="https://ivonblog.com/posts/foss-nat-traversal-solutions/" target="_blank">
-部署內網穿透服務</a>，就能從外面的網路隨時連線到樹莓派上的雲手機了！</p></li></ol>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/redroid-on-raspberry-pi/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b07a7ea719.webp"></a></p>
-<p>ReDroid為一款開源雲手機解決方案，讓你將Android系統部署在x86與ARM架構的Linux電腦，遠端控制Android玩遊戲。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c005f48f69.webp"><figcaption>使用Scrcpy遠端連線到ReDroid容器畫面，執行遊戲</figcaption><p>ReDroid得透過Docker部署，啟動速度十分之快，待機狀態下不太吃資源，效能可跟基於LXC的Waydroid相比，還支援多開。</p><p>為何要用ReDroid呢？因為它本來就是設計給遠端存取用的，較適合headless伺服器環境，不像<a href="https://ivonblog.com/posts/raspberry-pi-waydroid/" target="_blank">
-樹莓派跑Waydroid</a>需要顯示器才能輸出。</p><p>之前寫過<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">
-x86電腦部署ReDroid的教學</a>，這裡要用ARM架構的樹莓派。相較於x86架構電腦，ARM架構的優勢是不需要libhoudini轉譯器就能執行大多數手機的APP。並且從<a href="https://ivonblog.com/posts/raspberry-pi-lineageos/" target="_blank">
-樹莓派5跑LineageOS系統</a>的跑分來看，樹莓派5的處理器效能已接近一台中低階Android手機，玩一些不吃效能的手遊完全是夠的。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>Raspberry Pi 5 8GB</li><li>Raspberry Pi OS (Debian 12 Bookworm)</li><li>核心版本：Linux raspberrypi5 6.6.42-v8+</li><li>無接上顯示器</li></ul><p>考慮到Raspberry Pi常常是headless運作的，所以得準備另一台電腦或手機，利用Scrcpy無線控制的方式遠端存取Android桌面。</p><p>不過在開始下一步之前，建議執行以下指令確認GPU加速是否正常，驅動應會顯示<code>V3DV Mesa</code>。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>vulkaninfo --summary
-</span></span></code></pre></div><h2>2. 前置作業<span><a href="#2-%E5%89%8D%E7%BD%AE%E4%BD%9C%E6%A5%AD" aria-label="定位點">#</a></span></h2><p>根據<a href="https://github.com/remote-android/redroid-doc/blob/master/deploy" target="_blank">
-ReDroid文件的部署需求</a>，Linux必須啟用binder核心模組，並且要啟用4K Pages、PSI。</p><ol><li>從<code>zcat /proc/config.gz</code>指令的輸出來看，Raspberry Pi 5的核心已經啟用BINDER設定了，所以不用安裝binder核心模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo modprobe configs
-</span></span><span><span>
-</span></span><span><span>zcat /proc/config.gz <span>|</span> grep BINDER
-</span></span><span><span>
-</span></span><span><span><span># 輸出</span>
-</span></span><span><span><span>CONFIG_ANDROID_BINDER_IPC</span><span>=</span>y
-</span></span><span><span><span>CONFIG_ANDROID_BINDERFS</span><span>=</span>y
-</span></span><span><span><span>CONFIG_ANDROID_BINDER_DEVICES</span><span>=</span><span>"binder,hwbinder,vndbinder"</span>
-</span></span></code></pre></div><ol start="2"><li>Raspberry Pi 5預設是使用16K Pages，透過調整開機設定檔啟用4K Pages</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
-</span></span></span><span><span><span>kernel=kernel8.img
-</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
-</span></span></code></pre></div><ol start="3"><li>啟用PSI</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sed --follow-symlinks -i <span>'s/quiet/psi=1 quiet/g'</span> /boot/firmware/cmdline.txt
-</span></span></code></pre></div><ol start="4"><li>重開機，確認4K Pages與PSI狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>getconf PAGESIZE
-</span></span><span><span>
-</span></span><span><span>ls /proc/pressure
-</span></span></code></pre></div><ol start="5"><li>如果有裝Waydroid，不要讓它開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl stop waydroid-container
-</span></span><span><span>
-</span></span><span><span>sudo systemctl disable waydroid-container
-</span></span></code></pre></div><h2>3. 給ReDroid映像檔安裝GAPPS<span><a href="#3-%E7%B5%A6redroid%E6%98%A0%E5%83%8F%E6%AA%94%E5%AE%89%E8%A3%9Dgapps" aria-label="定位點">#</a></span></h2><p>ReDroid作者上傳的映像檔全部都是原生系統。</p><p>關於安裝GAPP的指令稿，我用這個安裝<a href="https://github.com/ayasa520/redroid-script" target="_blank">
-ayasa520/redroid-script</a>，但作者似乎只有考慮到x86_64的狀況，所以稍做修改，改成下載arm64的版本。</p><p>參考：<a href="https://github.com/abing7k/redroid-script/blob/master/stuffs/gapps.py" target="_blank">
-abing7k/redroid-scrip</a>與<a href="https://github.com/casualsnek/waydroid_script/issues/30#issuecomment-1099397952" target="_blank">
-casualsnek/waydroid_script</a>的版本</p><p>修改後的版本：</p><div><pre tabindex="0"><code data-lang="diff"><span><span><span>--- gapps.py    2024-08-24 23:46:52.856680374 +0800
-</span></span></span><span><span><span>+++ gapps.py  2024-08-24 23:48:19.294579951 +0800
-</span></span></span><span><span><span>@@ -7,7 +7,7 @@
-</span></span></span><span><span>     dl_links = {
-</span></span><span><span>             "x86_64": ["https://cfhcable.dl.sourceforge.net/project/opengapps/x86_64/20220503/open_gapps-x86_64-10.0-pico-20220503.zip", "5fb186bfb7bed8925290f79247bec4cf"],
-</span></span><span><span>             "x86": ["https://udomain.dl.sourceforge.net/project/opengapps/x86/20220122/open_gapps-x86-10.0-pico-20220122.zip", "9e39e45584b7ade4529e6be654af7b81"],
-</span></span><span><span><span>-           "arm64-v8a": ["https://liquidtelecom.dl.sourceforge.net/project/opengapps/arm64/20220122/open_gapps-arm64-10.0-pico-20220122.zip", "8dfa6e76aeb2d1d5aed40b058e8a852c"],
-</span></span></span><span><span><span>+           "arm64-v8a": ["https://sourceforge.net/projects/opengapps/files/arm64/20220503/open_gapps-arm64-11.0-pico-20220503.zip", "67e927e4943757f418e4f934825cf987"],
-</span></span></span><span><span>             "armeabi-v7a": ["https://nav.dl.sourceforge.net/project/opengapps/arm/20220122/open_gapps-arm-10.0-pico-20220122.zip", "a48ccbd25eb0a3c5e30f5db5435f5536"]
-</span></span><span><span>         }
-</span></span><span><span>     arch = host()
-</span></span><span><span><span>@@ -20,7 +20,8 @@
-</span></span></span><span><span>     non_apks = [
-</span></span><span><span>         "defaultetc-common.tar.lz",
-</span></span><span><span>         "defaultframework-common.tar.lz",
-</span></span><span><span><span>-        "googlepixelconfig-common.tar.lz"
-</span></span></span><span><span><span>+       "googlepixelconfig-common.tar.lz",
-</span></span></span><span><span><span>+       "vending-common.tar.lz"
-</span></span></span><span><span>         ]
-</span></span></code></pre></div><p>但是不知道為何ReDroid裝GAPPS啟動後桌面會黑螢幕，加上三明治鍵失效，只能透過ADB強制更換桌面啟動器解決。並將三明治鍵換成滑動手勢。雖然這樣做了，但是系統UI還是怪怪的…無法收到通知。</p><p>放棄，改用<a href="https://github.com/abing7k/redroid-script" target="_blank">
-abing7k/redroid:a11_gapps_arm</a>打包好的映像檔看看能不能用…結果這個Scrcpy連線圖形有問題。</p><p>暫時放棄GAPPS，改用ReDroid原生Android映像檔。</p><h2>4. 部署ReDroid容器<span><a href="#4-%E9%83%A8%E7%BD%B2redroid%E5%AE%B9%E5%99%A8" aria-label="定位點">#</a></span></h2><ol><li><p><a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">安裝Docker</a></p></li><li><p>新增存放資料的目錄</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/redroid
-</span></span><span><span><span>cd</span> redroid
-</span></span></code></pre></div><ol start="3"><li>新增docker-compose.yml</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim docker-compose.yml
-</span></span></code></pre></div><ol start="4"><li>內容如下：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>version: <span>"3"</span>
-</span></span><span><span>services:
-</span></span><span><span>  redroid:
-</span></span><span><span>    <span># 使用Android 11映像檔</span>
-</span></span><span><span>    image: redroid/redroid:11.0.0-latest
-</span></span><span><span>    stdin_open: <span>true</span>
-</span></span><span><span>    tty: <span>true</span>
-</span></span><span><span>    privileged: <span>true</span>
-</span></span><span><span>    <span># ADB通訊埠</span>
-</span></span><span><span>    ports:
-</span></span><span><span>      - <span>"5555:5555"</span>
-</span></span><span><span>    volumes:
-</span></span><span><span>    <span># 資料目錄</span>
-</span></span><span><span>      - ./redroid-11-data:/data
-</span></span><span><span>    command:
-</span></span><span><span>    <span># 解析度</span>
-</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>1080</span>
-</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>2160</span>
-</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>439</span>
-</span></span><span><span>      - androidboot.redroid_fps<span>=</span><span>60</span>
-</span></span><span><span>    <span># 啟用GPU硬體加速</span>
-</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>host
-</span></span></code></pre></div><ol start="3"><li>啟動容器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo docker compose up -d
-</span></span></code></pre></div><ol start="4"><li>取得樹莓派的區域IP</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
-</span></span></code></pre></div><h2>5. 使用Scrcpy存取ReDroid桌面<span><a href="#5-%E4%BD%BF%E7%94%A8scrcpy%E5%AD%98%E5%8F%96redroid%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>這裡我使用電腦版的Scrcpy，若要方便其他裝置存取，可於樹莓派部署網頁版的<a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">
-ws scrcpy</a>，透過瀏覽器連線。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-Scrcpy與ADB工具</a></p></li><li><p>讓電腦與樹莓派位於同一個區網，將ADB與樹莓派連線</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>abd connect 樹莓派IP:5555
-</span></span></code></pre></div><ol start="3"><li>啟動Scrcpy，遠端連線可能會lag，所以限制畫質</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -m <span>1080</span> -b 5M --audio-codec<span>=</span>aac
-</span></span></code></pre></div><ol start="4"><li><p>這樣就能看到Android桌面了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f78678c46c.webp"></li><li><p>如果GPU加速有正常運作，那麼「AIDA64」APP應當能抓到樹莓派的GPU型號。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b461c4a1d4.webp"></li><li><p>現在Scrcpy只能透過區網連線，接下來只要再於樹莓派<a href="https://ivonblog.com/posts/foss-nat-traversal-solutions/" target="_blank">
-部署內網穿透服務</a>，就能從外面的網路隨時連線到樹莓派上的雲手機了！</p></li></ol>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/redroid-on-raspberry-pi/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b07a7ea719.webp"></a></p>
-<p>ReDroid為一款開源雲手機解決方案，讓你將Android系統部署在x86與ARM架構的Linux電腦，遠端控制Android玩遊戲。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c005f48f69.webp"><figcaption>使用Scrcpy遠端連線到ReDroid容器畫面，執行遊戲</figcaption><p>ReDroid得透過Docker部署，啟動速度十分之快，待機狀態下不太吃資源，效能可跟基於LXC的Waydroid相比，還支援多開。</p><p>為何要用ReDroid呢？因為它本來就是設計給遠端存取用的，較適合headless伺服器環境，不像<a href="https://ivonblog.com/posts/raspberry-pi-waydroid/" target="_blank">
-樹莓派跑Waydroid</a>需要顯示器才能輸出。</p><p>之前寫過<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">
-x86電腦部署ReDroid的教學</a>，這裡要用ARM架構的樹莓派。相較於x86架構電腦，ARM架構的優勢是不需要libhoudini轉譯器就能執行大多數手機的APP。並且從<a href="https://ivonblog.com/posts/raspberry-pi-lineageos/" target="_blank">
-樹莓派5跑LineageOS系統</a>的跑分來看，樹莓派5的處理器效能已接近一台中低階Android手機，玩一些不吃效能的手遊完全是夠的。</p><h2>1. 環境<span><a href="#1-%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>Raspberry Pi 5 8GB</li><li>Raspberry Pi OS (Debian 12 Bookworm)</li><li>核心版本：Linux raspberrypi5 6.6.42-v8+</li><li>無接上顯示器</li></ul><p>考慮到Raspberry Pi常常是headless運作的，所以得準備另一台電腦或手機，利用Scrcpy無線控制的方式遠端存取Android桌面。</p><p>不過在開始下一步之前，建議執行以下指令確認GPU加速是否正常，驅動應會顯示<code>V3DV Mesa</code>。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>vulkaninfo --summary
-</span></span></code></pre></div><h2>2. 前置作業<span><a href="#2-%E5%89%8D%E7%BD%AE%E4%BD%9C%E6%A5%AD" aria-label="定位點">#</a></span></h2><p>根據<a href="https://github.com/remote-android/redroid-doc/blob/master/deploy" target="_blank">
-ReDroid文件的部署需求</a>，Linux必須啟用binder核心模組，並且要啟用4K Pages、PSI。</p><ol><li>從<code>zcat /proc/config.gz</code>指令的輸出來看，Raspberry Pi 5的核心已經啟用BINDER設定了，所以不用安裝binder核心模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo modprobe configs
-</span></span><span><span>
-</span></span><span><span>zcat /proc/config.gz <span>|</span> grep BINDER
-</span></span><span><span>
-</span></span><span><span><span># 輸出</span>
-</span></span><span><span><span>CONFIG_ANDROID_BINDER_IPC</span><span>=</span>y
-</span></span><span><span><span>CONFIG_ANDROID_BINDERFS</span><span>=</span>y
-</span></span><span><span><span>CONFIG_ANDROID_BINDER_DEVICES</span><span>=</span><span>"binder,hwbinder,vndbinder"</span>
-</span></span></code></pre></div><ol start="2"><li>Raspberry Pi 5預設是使用16K Pages，透過調整開機設定檔啟用4K Pages</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>'# 4k pages
-</span></span></span><span><span><span>kernel=kernel8.img
-</span></span></span><span><span><span>'</span><span>|</span> sudo tee -a /boot/firmware/config.txt
-</span></span></code></pre></div><ol start="3"><li>啟用PSI</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo sed --follow-symlinks -i <span>'s/quiet/psi=1 quiet/g'</span> /boot/firmware/cmdline.txt
-</span></span></code></pre></div><ol start="4"><li>重開機，確認4K Pages與PSI狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>getconf PAGESIZE
-</span></span><span><span>
-</span></span><span><span>ls /proc/pressure
-</span></span></code></pre></div><ol start="5"><li>如果有裝Waydroid，不要讓它開機自動啟動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl stop waydroid-container
-</span></span><span><span>
-</span></span><span><span>sudo systemctl disable waydroid-container
-</span></span></code></pre></div><h2>3. 給ReDroid映像檔安裝GAPPS<span><a href="#3-%E7%B5%A6redroid%E6%98%A0%E5%83%8F%E6%AA%94%E5%AE%89%E8%A3%9Dgapps" aria-label="定位點">#</a></span></h2><p>ReDroid作者上傳的映像檔全部都是原生系統。</p><p>關於安裝GAPP的指令稿，我用這個安裝<a href="https://github.com/ayasa520/redroid-script" target="_blank">
-ayasa520/redroid-script</a>，但作者似乎只有考慮到x86_64的狀況，所以稍做修改，改成下載arm64的版本。</p><p>參考：<a href="https://github.com/abing7k/redroid-script/blob/master/stuffs/gapps.py" target="_blank">
-abing7k/redroid-scrip</a>與<a href="https://github.com/casualsnek/waydroid_script/issues/30#issuecomment-1099397952" target="_blank">
-casualsnek/waydroid_script</a>的版本</p><p>修改後的版本：</p><div><pre tabindex="0"><code data-lang="diff"><span><span><span>--- gapps.py    2024-08-24 23:46:52.856680374 +0800
-</span></span></span><span><span><span>+++ gapps.py  2024-08-24 23:48:19.294579951 +0800
-</span></span></span><span><span><span>@@ -7,7 +7,7 @@
-</span></span></span><span><span>     dl_links = {
-</span></span><span><span>             "x86_64": ["https://cfhcable.dl.sourceforge.net/project/opengapps/x86_64/20220503/open_gapps-x86_64-10.0-pico-20220503.zip", "5fb186bfb7bed8925290f79247bec4cf"],
-</span></span><span><span>             "x86": ["https://udomain.dl.sourceforge.net/project/opengapps/x86/20220122/open_gapps-x86-10.0-pico-20220122.zip", "9e39e45584b7ade4529e6be654af7b81"],
-</span></span><span><span><span>-           "arm64-v8a": ["https://liquidtelecom.dl.sourceforge.net/project/opengapps/arm64/20220122/open_gapps-arm64-10.0-pico-20220122.zip", "8dfa6e76aeb2d1d5aed40b058e8a852c"],
-</span></span></span><span><span><span>+           "arm64-v8a": ["https://sourceforge.net/projects/opengapps/files/arm64/20220503/open_gapps-arm64-11.0-pico-20220503.zip", "67e927e4943757f418e4f934825cf987"],
-</span></span></span><span><span>             "armeabi-v7a": ["https://nav.dl.sourceforge.net/project/opengapps/arm/20220122/open_gapps-arm-10.0-pico-20220122.zip", "a48ccbd25eb0a3c5e30f5db5435f5536"]
-</span></span><span><span>         }
-</span></span><span><span>     arch = host()
-</span></span><span><span><span>@@ -20,7 +20,8 @@
-</span></span></span><span><span>     non_apks = [
-</span></span><span><span>         "defaultetc-common.tar.lz",
-</span></span><span><span>         "defaultframework-common.tar.lz",
-</span></span><span><span><span>-        "googlepixelconfig-common.tar.lz"
-</span></span></span><span><span><span>+       "googlepixelconfig-common.tar.lz",
-</span></span></span><span><span><span>+       "vending-common.tar.lz"
-</span></span></span><span><span>         ]
-</span></span></code></pre></div><p>但是不知道為何ReDroid裝GAPPS啟動後桌面會黑螢幕，加上三明治鍵失效，只能透過ADB強制更換桌面啟動器解決。並將三明治鍵換成滑動手勢。雖然這樣做了，但是系統UI還是怪怪的…無法收到通知。</p><p>放棄，改用<a href="https://github.com/abing7k/redroid-script" target="_blank">
-abing7k/redroid:a11_gapps_arm</a>打包好的映像檔看看能不能用…結果這個Scrcpy連線圖形有問題。</p><p>暫時放棄GAPPS，改用ReDroid原生Android映像檔。</p><h2>4. 部署ReDroid容器<span><a href="#4-%E9%83%A8%E7%BD%B2redroid%E5%AE%B9%E5%99%A8" aria-label="定位點">#</a></span></h2><ol><li><p><a href="https://ivonblog.com/posts/install-docker-engine-on-linux/" target="_blank">安裝Docker</a></p></li><li><p>新增存放資料的目錄</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir ~/redroid
-</span></span><span><span><span>cd</span> redroid
-</span></span></code></pre></div><ol start="3"><li>新增docker-compose.yml</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim docker-compose.yml
-</span></span></code></pre></div><ol start="4"><li>內容如下：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>version: <span>"3"</span>
-</span></span><span><span>services:
-</span></span><span><span>  redroid:
-</span></span><span><span>    <span># 使用Android 11映像檔</span>
-</span></span><span><span>    image: redroid/redroid:11.0.0-latest
-</span></span><span><span>    stdin_open: <span>true</span>
-</span></span><span><span>    tty: <span>true</span>
-</span></span><span><span>    privileged: <span>true</span>
-</span></span><span><span>    <span># ADB通訊埠</span>
-</span></span><span><span>    ports:
-</span></span><span><span>      - <span>"5555:5555"</span>
-</span></span><span><span>    volumes:
-</span></span><span><span>    <span># 資料目錄</span>
-</span></span><span><span>      - ./redroid-11-data:/data
-</span></span><span><span>    command:
-</span></span><span><span>    <span># 解析度</span>
-</span></span><span><span>      - androidboot.redroid_width<span>=</span><span>1080</span>
-</span></span><span><span>      - androidboot.redroid_height<span>=</span><span>2160</span>
-</span></span><span><span>      - androidboot.redroid_dpi<span>=</span><span>439</span>
-</span></span><span><span>      - androidboot.redroid_fps<span>=</span><span>60</span>
-</span></span><span><span>    <span># 啟用GPU硬體加速</span>
-</span></span><span><span>      - androidboot.redroid_gpu_mode<span>=</span>host
-</span></span></code></pre></div><ol start="3"><li>啟動容器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo docker compose up -d
-</span></span></code></pre></div><ol start="4"><li>取得樹莓派的區域IP</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>ip addr
-</span></span></code></pre></div><h2>5. 使用Scrcpy存取ReDroid桌面<span><a href="#5-%E4%BD%BF%E7%94%A8scrcpy%E5%AD%98%E5%8F%96redroid%E6%A1%8C%E9%9D%A2" aria-label="定位點">#</a></span></h2><p>這裡我使用電腦版的Scrcpy，若要方便其他裝置存取，可於樹莓派部署網頁版的<a href="https://ivonblog.com/posts/ws-scrcpy/" target="_blank">
-ws scrcpy</a>，透過瀏覽器連線。</p><ol><li><p>安裝<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-Scrcpy與ADB工具</a></p></li><li><p>讓電腦與樹莓派位於同一個區網，將ADB與樹莓派連線</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>abd connect 樹莓派IP:5555
-</span></span></code></pre></div><ol start="3"><li>啟動Scrcpy，遠端連線可能會lag，所以限制畫質</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>scrcpy -m <span>1080</span> -b 5M --audio-codec<span>=</span>aac
-</span></span></code></pre></div><ol start="4"><li><p>這樣就能看到Android桌面了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f78678c46c.webp"></li><li><p>如果GPU加速有正常運作，那麼「AIDA64」APP應當能抓到樹莓派的GPU型號。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b461c4a1d4.webp"></li><li><p>現在Scrcpy只能透過區網連線，接下來只要再於樹莓派<a href="https://ivonblog.com/posts/foss-nat-traversal-solutions/" target="_blank">
-部署內網穿透服務</a>，就能從外面的網路隨時連線到樹莓派上的雲手機了！</p></li></ol>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b07a7ea719.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b07a7ea719.webp" medium="image"/>
-    <pubDate>Sun, 25 Aug 2024 14:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Termux安裝圖形桌面環境＋音訊輸出教學]]></title>
-    <link>https://ivonblog.com/posts/termux-desktop-environment/</link>
-    <itunes:title><![CDATA[Termux安裝圖形桌面環境＋音訊輸出教學]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/termux-desktop-environment/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8fa565958a.webp"></a></p>
-<p>注意：由於Termux檔案系統跟一般Linux有差距，且套件數量較少，我傾向裝個<a href="https://ivonblog.com/posts/termux-proot-distro/" target="_blank">
-Linux proot容器</a>再跑桌面環境，雖然速度較慢但體驗較好。</p><p>Termux預設只有純文字界面，使用者可自行安裝桌面環境(desktop environment)，再透過VNC或Termux X11連線，擁有桌面電腦一樣的使用體驗。</p><p>目前，Termux套件庫有收的桌面環境為：XFCE、LXQT、MATE、OpenBox、i3wm、Weston等等。</p><p>並且Termux可以使用Android GELS輸出音效，所以我們可以跑個PulseAudio伺服器，用於在桌面環境輸出音訊。</p><p>本文介紹如何安裝XFCE桌面與設定PulseAudio伺服器。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-74da3eb9a8.webp"><figcaption>Termux執行XFCE4桌面環境與電腦版Firefox瀏覽器</figcaption><h2>1. 前置作業<span><a href="#1-%E5%89%8D%E7%BD%AE%E4%BD%9C%E6%A5%AD" aria-label="定位點">#</a></span></h2><p>跑桌面環境推薦手機RAM至少6GB以上。</p><p>請先安裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
-Termux</a>，並記得關閉Phantom Process Killing防止在背景被系統中止。</p><p>然後設定<a href="https://ivonblog.com/posts/termux-x11/" target="_blank">
-Termux X11</a>以及<a href="https://ivonblog.com/posts/termux-virglrenderer/" target="_blank">
-virglrenderer</a>。</p><h2>2. 安裝XFCE4桌面環境<span><a href="#2-%E5%AE%89%E8%A3%9Dxfce4%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ol><li>安裝XFCE4套件與瀏覽器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install xfce xfce4-goodies pulseaudio pavucontrol vim firefox
-</span></span></code></pre></div><ol start="2"><li>新增啟動桌面環境的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/startxfce4.sh
-</span></span></code></pre></div><ol start="3"><li>填入以下內容：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/bash
-</span></span></span><span><span>
-</span></span><span><span><span># 啟動GPU加速</span>
-</span></span><span><span>virgl_test_server_android <span>&amp;</span>
-</span></span><span><span>
-</span></span><span><span><span># 啟動音訊伺服器</span>
-</span></span><span><span>pulseaudio --start --exit-idle-time<span>=</span>-1
-</span></span><span><span>pacmd load-module module-native-protocol-tcp auth-ip-acl<span>=</span>127.0.0.1 auth-anonymous<span>=</span><span>1</span>
-</span></span><span><span>
-</span></span><span><span><span># 啟動桌面環境</span>
-</span></span><span><span>termux-x11 :0 -xstartup <span>"dbus-launch --exit-with-session xfce4-session"</span> <span>&amp;</span>
-</span></span></code></pre></div><ol start="4"><li>退出Termux。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>exit</span>
-</span></span></code></pre></div><ol start="5"><li><p>啟動Termux X11 APP</p></li><li><p>回到Termux，啟動桌面環境，Termux X11的畫面便會出現XFCE4桌面了。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./startxfce4.sh
-</span></span></code></pre></div>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/termux-desktop-environment/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8fa565958a.webp"></a></p>
-<p>注意：由於Termux檔案系統跟一般Linux有差距，且套件數量較少，我傾向裝個<a href="https://ivonblog.com/posts/termux-proot-distro/" target="_blank">
-Linux proot容器</a>再跑桌面環境，雖然速度較慢但體驗較好。</p><p>Termux預設只有純文字界面，使用者可自行安裝桌面環境(desktop environment)，再透過VNC或Termux X11連線，擁有桌面電腦一樣的使用體驗。</p><p>目前，Termux套件庫有收的桌面環境為：XFCE、LXQT、MATE、OpenBox、i3wm、Weston等等。</p><p>並且Termux可以使用Android GELS輸出音效，所以我們可以跑個PulseAudio伺服器，用於在桌面環境輸出音訊。</p><p>本文介紹如何安裝XFCE桌面與設定PulseAudio伺服器。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-74da3eb9a8.webp"><figcaption>Termux執行XFCE4桌面環境與電腦版Firefox瀏覽器</figcaption><h2>1. 前置作業<span><a href="#1-%E5%89%8D%E7%BD%AE%E4%BD%9C%E6%A5%AD" aria-label="定位點">#</a></span></h2><p>跑桌面環境推薦手機RAM至少6GB以上。</p><p>請先安裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
-Termux</a>，並記得關閉Phantom Process Killing防止在背景被系統中止。</p><p>然後設定<a href="https://ivonblog.com/posts/termux-x11/" target="_blank">
-Termux X11</a>以及<a href="https://ivonblog.com/posts/termux-virglrenderer/" target="_blank">
-virglrenderer</a>。</p><h2>2. 安裝XFCE4桌面環境<span><a href="#2-%E5%AE%89%E8%A3%9Dxfce4%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ol><li>安裝XFCE4套件與瀏覽器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install xfce xfce4-goodies pulseaudio pavucontrol vim firefox
-</span></span></code></pre></div><ol start="2"><li>新增啟動桌面環境的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/startxfce4.sh
-</span></span></code></pre></div><ol start="3"><li>填入以下內容：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/bash
-</span></span></span><span><span>
-</span></span><span><span><span># 啟動GPU加速</span>
-</span></span><span><span>virgl_test_server_android <span>&amp;</span>
-</span></span><span><span>
-</span></span><span><span><span># 啟動音訊伺服器</span>
-</span></span><span><span>pulseaudio --start --exit-idle-time<span>=</span>-1
-</span></span><span><span>pacmd load-module module-native-protocol-tcp auth-ip-acl<span>=</span>127.0.0.1 auth-anonymous<span>=</span><span>1</span>
-</span></span><span><span>
-</span></span><span><span><span># 啟動桌面環境</span>
-</span></span><span><span>termux-x11 :0 -xstartup <span>"dbus-launch --exit-with-session xfce4-session"</span> <span>&amp;</span>
-</span></span></code></pre></div><ol start="4"><li>退出Termux。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>exit</span>
-</span></span></code></pre></div><ol start="5"><li><p>啟動Termux X11 APP</p></li><li><p>回到Termux，啟動桌面環境，Termux X11的畫面便會出現XFCE4桌面了。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./startxfce4.sh
-</span></span></code></pre></div>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/termux-desktop-environment/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8fa565958a.webp"></a></p>
-<p>注意：由於Termux檔案系統跟一般Linux有差距，且套件數量較少，我傾向裝個<a href="https://ivonblog.com/posts/termux-proot-distro/" target="_blank">
-Linux proot容器</a>再跑桌面環境，雖然速度較慢但體驗較好。</p><p>Termux預設只有純文字界面，使用者可自行安裝桌面環境(desktop environment)，再透過VNC或Termux X11連線，擁有桌面電腦一樣的使用體驗。</p><p>目前，Termux套件庫有收的桌面環境為：XFCE、LXQT、MATE、OpenBox、i3wm、Weston等等。</p><p>並且Termux可以使用Android GELS輸出音效，所以我們可以跑個PulseAudio伺服器，用於在桌面環境輸出音訊。</p><p>本文介紹如何安裝XFCE桌面與設定PulseAudio伺服器。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-74da3eb9a8.webp"><figcaption>Termux執行XFCE4桌面環境與電腦版Firefox瀏覽器</figcaption><h2>1. 前置作業<span><a href="#1-%E5%89%8D%E7%BD%AE%E4%BD%9C%E6%A5%AD" aria-label="定位點">#</a></span></h2><p>跑桌面環境推薦手機RAM至少6GB以上。</p><p>請先安裝<a href="https://ivonblog.com/posts/how-to-use-termux/" target="_blank">
-Termux</a>，並記得關閉Phantom Process Killing防止在背景被系統中止。</p><p>然後設定<a href="https://ivonblog.com/posts/termux-x11/" target="_blank">
-Termux X11</a>以及<a href="https://ivonblog.com/posts/termux-virglrenderer/" target="_blank">
-virglrenderer</a>。</p><h2>2. 安裝XFCE4桌面環境<span><a href="#2-%E5%AE%89%E8%A3%9Dxfce4%E6%A1%8C%E9%9D%A2%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ol><li>安裝XFCE4套件與瀏覽器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>pkg install xfce xfce4-goodies pulseaudio pavucontrol vim firefox
-</span></span></code></pre></div><ol start="2"><li>新增啟動桌面環境的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/startxfce4.sh
-</span></span></code></pre></div><ol start="3"><li>填入以下內容：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>#!/bin/bash
-</span></span></span><span><span>
-</span></span><span><span><span># 啟動GPU加速</span>
-</span></span><span><span>virgl_test_server_android <span>&amp;</span>
-</span></span><span><span>
-</span></span><span><span><span># 啟動音訊伺服器</span>
-</span></span><span><span>pulseaudio --start --exit-idle-time<span>=</span>-1
-</span></span><span><span>pacmd load-module module-native-protocol-tcp auth-ip-acl<span>=</span>127.0.0.1 auth-anonymous<span>=</span><span>1</span>
-</span></span><span><span>
-</span></span><span><span><span># 啟動桌面環境</span>
-</span></span><span><span>termux-x11 :0 -xstartup <span>"dbus-launch --exit-with-session xfce4-session"</span> <span>&amp;</span>
-</span></span></code></pre></div><ol start="4"><li>退出Termux。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>exit</span>
-</span></span></code></pre></div><ol start="5"><li><p>啟動Termux X11 APP</p></li><li><p>回到Termux，啟動桌面環境，Termux X11的畫面便會出現XFCE4桌面了。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>./startxfce4.sh
-</span></span></code></pre></div>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8fa565958a.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8fa565958a.webp" medium="image"/>
-    <pubDate>Sun, 25 Aug 2024 13:00:00 +0800</pubDate>
   </item></channel>
 </rss>
