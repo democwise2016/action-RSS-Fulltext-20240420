@@ -30,6 +30,158 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Python 新手筆記 2 - List 與 For Comprehension]]></title>
+    <link>https://blog.darkthread.net/blog/python-beginner-notes-2/</link>
+    <itunes:title><![CDATA[Python 新手筆記 2 - List 與 For Comprehension]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>List (清單/串列)、Array (陣列)、Tuple (元組)、Dictionary (字典) 在 C# 都有，接觸 Python 之初，它們卻常讓我迷惑，尤其結合 For Comprehension (推導式) 後，對我成了一團能約略猜出用意但無法徒手寫出來的半模糊語法。</p> <p>後來想想，關鍵應出在 Python 追求簡潔，常以符號、保留字(關鍵字)取代函式，有時符號還可以省略。而同樣動作，C# 多半是靠函式、屬性或建構式完成，容易望文生意(但後來語法糖也愈來愈多)。理解 Python 程式時，靠字面記憶及猜意思的慣性反成阻礙。加上同一結構有好幾種等效寫法，前幾次遇到以為是新玩意兒，多看幾次才意識「啊，原來這就等於 XXX」。</p> <p>舉幾個例子：</p> <ul><li>在 Python 你可以用 <code>y, x = x, y</code> 交換變數，乍看很謎，但理解成「Tuple <code>(x, y)</code> 解構(Destructuring) 存回原變數，再省略 Tuple 括號」便會豁然開朗。</li> <li>要怎麼比對 Dictionary 是否存在某 Key 值，我起初想試著找 ContainsKey()、Has() 之類的 API，後來學到 Python 風格會用 <code>"some-key" in dict</code>。</li> <li>要取出字串第 3 到第 5 個字元，應該是靠 Substring() 或 Mid() 之類的函式吧？不，寫 <code>mystr[3:6]</code> 就成了。</li> <li>Python 物件導向思維不如 C#、JavaScript 強烈。舉個例子：想取得字串長度，我直覺會猜字串物件有個 Length 之類的屬性，但 Python 是用 <code>len(str_var)</code>。</li></ul> <p>有時覺得，若我沒寫過 C#、JavaScript，或許初學 Python 還會更順利些。(反過來想，若寫慣 Python 的人要跨足其他語言，也會被慣性所絆吧)<br> 但後期學到較複雜觀念，想成「這相當於 C#/JavaScript 的 OOO 」便能快理解，這時有 C#/JavaScript 經驗再變成加分條件。</p> <p>走過這段，改變心態接受用符號、關鍵字、語法取代建構物件、呼叫方法的慣性思維，C# 老人學 Python 倒也能漸入佳境。</p> <p>這篇筆記先整理 List 與 For Comprehension。</p> <h3>List 清單/串列</h3> <p>Python 的 List 可想像成 C# 的 <code>List&lt;object&gt;</code>，用來儲放任意型別，但多了一些方便簡潔的用法。常用操作如下：</p> <ul><li>算長度用 <code>len(list_var)</code></li> <li>負數索引可從後方取元素 <code>list_var[-2]</code> (倒數第 2 個)</li> <li>檢查元素是否存在用 <code>'find' in [1, 2, 3]</code>；另一種做法是 <code>list_var.index('find')</code>，但要注意，找不到時會拋 ValueError</li> <li>計算出現次數 <code>list_var.count('target')</code></li> <li>新增一個 <code>list_var.append('new')</code>、新增多個 <code>list_var.extend([4,5])</code></li> <li>在特定位置插入新元素 <code>list_var.insert(1, 'elem-at-2nd-pos')</code></li> <li>移除元素 <code>list_var.pop()</code>(最後一個)、<code>list_var.pop(2)</code>(第三個)、<code>list_var.remove('target')</code>(移除比對相符的第一筆)</li> <li>清除 <code>list_var.clear()</code></li> <li>排序 <code>list_var.sort()</code>(本身順序會被改變)、<code>list_var.sort(reverse = True)</code> 或 <code>list_var.reverse()</code>(反向排序)、<code>sorted(list_var)</code>(傳回排序過的新串列)<br> 自訂比較邏輯 <code>sorted(list_var, key = len)</code> 用 len() 比較</li> <li>串接字串 <code>', '.join(list_var)</code></li> <li>有些函式凡是實作 Iterable 特性的都可以用，例如：<code>sorted('hello')</code> 會得到 <code>['e', 'h', 'l', 'l', 'o']</code><br> 參考：sorted()、sum()、any() (任一為 True)、all() (需全部為 True)</li> <li>複製 <pre><code>a = [1,2,3]
+b = a
+a is b       # 指向同物件，得到 True
+id(a), id(b) # 得到 (2480536168704, 2480536168704) 相同位址
+b[-1] = 0    # 會改變 a 的內容
+b = a.copy() # 淺複製，深複製可用 .deepcopy()
+a == b       # 內容相同，True
+a is b       # 不同物件，False
+</code></pre> </li> <li>List 加法可串接，乘法會重複元素 <pre><code>a = [1, 2]
+b = [3, 4]
+print(a + b) # [1, 2, 3, 4]
+print(a * 2) # [1, 2, 1, 2]
+</code></pre> </li> <li>切片(Slice)：適用所有可迭代(Iterable)物件，如字串、List、Tuple、Dictionary、Set...。切片可選取指定範圍元素，進行讀取、置換，非常簡潔好用。 <pre><code>a = [1, 2, 3, 4]
+print(a[1:3]) # [2, 3]
+a[-1] = 'END' # [1, 2, 3, 'END']
+a[1:3] = ['a', 'b', 'c'] # [1, 'a', 'b', 'c', 'END']
+print(a)
+</code></pre> </li> <li>開箱(Unpacking)：將 List、Tuple 中的特定元素轉成變數，類似 JavaScript 的解構(Destructuring) <pre><code># 基本用法(變數個數必須與元素數量一致)
+x, y = [1, 2] # List 開箱，x=1, y=2
+a, b = (3, 4) # Tuple 開箱，a=3, b=4
+# 用星號通吃剩餘元素
+x, y, *others = [1, 2, 3, 4, 5] # x=1, y=2, others=[3, 4, 5]
+x, y, *_ = [1, 2, 3, 4, 5] # 不需要的部分用底線
+# 取頭尾
+head, *_, tail = [1, 2, 3, 4] # head=1, tail=4
+first, second, *rest, last = [1, 2, 3, 4, 5] # first=1, second=2, rest=[3, 4], last=5
+# 套用 List, Tuple
+_, [_, a], (_, b) = [1, [2, 3], (4, 5)] # a=3, b=5
+</code></pre> </li> <li>開箱運算子(Unpacking Operator)：展開 Iterable 物件，相當於 JavaScript 的 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">... 語法</a>。 <pre><code>a = [1, 2]
+b = [3, 4]
+n = [*a, ' ', *b] # [1, 2, ' ', 3, 4]
+</code></pre> </li></ul> <h3>For Comprehension 串列推導式</h3> <p>這是我心中最具 Python 風格的快捷語法，與 C# LINQ 語法異曲同工，但簡潔度更勝一籌。</p> <p>一開始看 Github Copilot 示範用 <code>.. for ... in .. if ..</code> 處理各種資料篩選組裝有些摸不著頭緒，熟悉後我很快就愛上它惹。</p> <p>直接看幾則應用，應該能很快上手。</p> <ul><li>加工轉換產生新清單 <pre><code>a = [1, 2, 3]
+n = [f'No.{n}' for n in a] # ['No.1', 'No.2', 'No.3']
+# C# a.Select(o =&gt; $"No.{o}").ToList();
+</code></pre> </li> <li>加上篩選條件 <pre><code>a = [1, 2, 3, 4, 5]
+n = [f'No.{n}' for n in a if n % 2 == 1] # ['No.1', 'No.3', 'No.5']
+# C# a.Where(o =&gt; o % 2 == 1).Select(o =&gt; $"No.{o}").ToList();
+</code></pre> </li> <li>也可以用來產生 Dictionary，語法為 for 搭配 key: value 產生鍵值資料對： <pre><code>d = { n: f"item{n}" for n in range(10) }
+# {0: 'item0', 1: 'item1', 2: 'item2', 3: 'item3', ... }
+</code></pre> </li> <li>For Comprehension 本質是一個產生器(Generator)物件，具有惰性求值(Lazy Evaluation)的特性，當寫成 <code>[n for n in range(10000)]</code> 會展開生成 List，若寫成 <code>(n for n in range(10000))</code> 是一個產生器，在某些應用情境可一次只吐一個數字，不用一次產生 10000 個元素，減少記憶體耗用增進效能。 <pre><code>from sys import getsizeof
+list = [n for n in range(10000)]
+print(getsizeof(list)) # 耗用 85176 bytes
+print(sum(list)) # 49995000
+gen = (n for n in range(10000))
+print(getsizeof(gen)) # 耗用 112 bytes
+print(sum(gen)) # 49995000
+</code></pre> 以上想成 C# <code>IEnumerable&lt;T&gt;</code> <a href="/blog/yield-return/">靠 yield return 省時省 CPU 省 RAM</a>，應該能馬上理解。</li></ul> <p data-slug="python-beginner-notes-2" data-title-en="Python notes 2 - list and for comprehension" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">This blog post explores the initial confusion and eventual clarity experienced when transitioning from C# to Python, especially regarding data structures and list comprehensions. Key takeaways include understanding Python’s use of symbols and keywords over functions, and how Python’s syntax can simplify operations like swapping variables, checking for dictionary keys, slicing strings, and more. The post also covers Python’s list operations and comprehensions, highlighting their similarities to C# LINQ but with more concise syntax.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>List (清單/串列)、Array (陣列)、Tuple (元組)、Dictionary (字典) 在 C# 都有，接觸 Python 之初，它們卻常讓我迷惑，尤其結合 For Comprehension (推導式) 後，對我成了一團能約略猜出用意但無法徒手寫出來的半模糊語法。</p> <p>後來想想，關鍵應出在 Python 追求簡潔，常以符號、保留字(關鍵字)取代函式，有時符號還可以省略。而同樣動作，C# 多半是靠函式、屬性或建構式完成，容易望文生意(但後來語法糖也愈來愈多)。理解 Python 程式時，靠字面記憶及猜意思的慣性反成阻礙。加上同一結構有好幾種等效寫法，前幾次遇到以為是新玩意兒，多看幾次才意識「啊，原來這就等於 XXX」。</p> <p>舉幾個例子：</p> <ul><li>在 Python 你可以用 <code>y, x = x, y</code> 交換變數，乍看很謎，但理解成「Tuple <code>(x, y)</code> 解構(Destructuring) 存回原變數，再省略 Tuple 括號」便會豁然開朗。</li> <li>要怎麼比對 Dictionary 是否存在某 Key 值，我起初想試著找 ContainsKey()、Has() 之類的 API，後來學到 Python 風格會用 <code>"some-key" in dict</code>。</li> <li>要取出字串第 3 到第 5 個字元，應該是靠 Substring() 或 Mid() 之類的函式吧？不，寫 <code>mystr[3:6]</code> 就成了。</li> <li>Python 物件導向思維不如 C#、JavaScript 強烈。舉個例子：想取得字串長度，我直覺會猜字串物件有個 Length 之類的屬性，但 Python 是用 <code>len(str_var)</code>。</li></ul> <p>有時覺得，若我沒寫過 C#、JavaScript，或許初學 Python 還會更順利些。(反過來想，若寫慣 Python 的人要跨足其他語言，也會被慣性所絆吧)<br> 但後期學到較複雜觀念，想成「這相當於 C#/JavaScript 的 OOO 」便能快理解，這時有 C#/JavaScript 經驗再變成加分條件。</p> <p>走過這段，改變心態接受用符號、關鍵字、語法取代建構物件、呼叫方法的慣性思維，C# 老人學 Python 倒也能漸入佳境。</p> <p>這篇筆記先整理 List 與 For Comprehension。</p> <h3>List 清單/串列</h3> <p>Python 的 List 可想像成 C# 的 <code>List&lt;object&gt;</code>，用來儲放任意型別，但多了一些方便簡潔的用法。常用操作如下：</p> <ul><li>算長度用 <code>len(list_var)</code></li> <li>負數索引可從後方取元素 <code>list_var[-2]</code> (倒數第 2 個)</li> <li>檢查元素是否存在用 <code>'find' in [1, 2, 3]</code>；另一種做法是 <code>list_var.index('find')</code>，但要注意，找不到時會拋 ValueError</li> <li>計算出現次數 <code>list_var.count('target')</code></li> <li>新增一個 <code>list_var.append('new')</code>、新增多個 <code>list_var.extend([4,5])</code></li> <li>在特定位置插入新元素 <code>list_var.insert(1, 'elem-at-2nd-pos')</code></li> <li>移除元素 <code>list_var.pop()</code>(最後一個)、<code>list_var.pop(2)</code>(第三個)、<code>list_var.remove('target')</code>(移除比對相符的第一筆)</li> <li>清除 <code>list_var.clear()</code></li> <li>排序 <code>list_var.sort()</code>(本身順序會被改變)、<code>list_var.sort(reverse = True)</code> 或 <code>list_var.reverse()</code>(反向排序)、<code>sorted(list_var)</code>(傳回排序過的新串列)<br> 自訂比較邏輯 <code>sorted(list_var, key = len)</code> 用 len() 比較</li> <li>串接字串 <code>', '.join(list_var)</code></li> <li>有些函式凡是實作 Iterable 特性的都可以用，例如：<code>sorted('hello')</code> 會得到 <code>['e', 'h', 'l', 'l', 'o']</code><br> 參考：sorted()、sum()、any() (任一為 True)、all() (需全部為 True)</li> <li>複製 <pre><code>a = [1,2,3]
+b = a
+a is b       # 指向同物件，得到 True
+id(a), id(b) # 得到 (2480536168704, 2480536168704) 相同位址
+b[-1] = 0    # 會改變 a 的內容
+b = a.copy() # 淺複製，深複製可用 .deepcopy()
+a == b       # 內容相同，True
+a is b       # 不同物件，False
+</code></pre> </li> <li>List 加法可串接，乘法會重複元素 <pre><code>a = [1, 2]
+b = [3, 4]
+print(a + b) # [1, 2, 3, 4]
+print(a * 2) # [1, 2, 1, 2]
+</code></pre> </li> <li>切片(Slice)：適用所有可迭代(Iterable)物件，如字串、List、Tuple、Dictionary、Set...。切片可選取指定範圍元素，進行讀取、置換，非常簡潔好用。 <pre><code>a = [1, 2, 3, 4]
+print(a[1:3]) # [2, 3]
+a[-1] = 'END' # [1, 2, 3, 'END']
+a[1:3] = ['a', 'b', 'c'] # [1, 'a', 'b', 'c', 'END']
+print(a)
+</code></pre> </li> <li>開箱(Unpacking)：將 List、Tuple 中的特定元素轉成變數，類似 JavaScript 的解構(Destructuring) <pre><code># 基本用法(變數個數必須與元素數量一致)
+x, y = [1, 2] # List 開箱，x=1, y=2
+a, b = (3, 4) # Tuple 開箱，a=3, b=4
+# 用星號通吃剩餘元素
+x, y, *others = [1, 2, 3, 4, 5] # x=1, y=2, others=[3, 4, 5]
+x, y, *_ = [1, 2, 3, 4, 5] # 不需要的部分用底線
+# 取頭尾
+head, *_, tail = [1, 2, 3, 4] # head=1, tail=4
+first, second, *rest, last = [1, 2, 3, 4, 5] # first=1, second=2, rest=[3, 4], last=5
+# 套用 List, Tuple
+_, [_, a], (_, b) = [1, [2, 3], (4, 5)] # a=3, b=5
+</code></pre> </li> <li>開箱運算子(Unpacking Operator)：展開 Iterable 物件，相當於 JavaScript 的 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">... 語法</a>。 <pre><code>a = [1, 2]
+b = [3, 4]
+n = [*a, ' ', *b] # [1, 2, ' ', 3, 4]
+</code></pre> </li></ul> <h3>For Comprehension 串列推導式</h3> <p>這是我心中最具 Python 風格的快捷語法，與 C# LINQ 語法異曲同工，但簡潔度更勝一籌。</p> <p>一開始看 Github Copilot 示範用 <code>.. for ... in .. if ..</code> 處理各種資料篩選組裝有些摸不著頭緒，熟悉後我很快就愛上它惹。</p> <p>直接看幾則應用，應該能很快上手。</p> <ul><li>加工轉換產生新清單 <pre><code>a = [1, 2, 3]
+n = [f'No.{n}' for n in a] # ['No.1', 'No.2', 'No.3']
+# C# a.Select(o =&gt; $"No.{o}").ToList();
+</code></pre> </li> <li>加上篩選條件 <pre><code>a = [1, 2, 3, 4, 5]
+n = [f'No.{n}' for n in a if n % 2 == 1] # ['No.1', 'No.3', 'No.5']
+# C# a.Where(o =&gt; o % 2 == 1).Select(o =&gt; $"No.{o}").ToList();
+</code></pre> </li> <li>也可以用來產生 Dictionary，語法為 for 搭配 key: value 產生鍵值資料對： <pre><code>d = { n: f"item{n}" for n in range(10) }
+# {0: 'item0', 1: 'item1', 2: 'item2', 3: 'item3', ... }
+</code></pre> </li> <li>For Comprehension 本質是一個產生器(Generator)物件，具有惰性求值(Lazy Evaluation)的特性，當寫成 <code>[n for n in range(10000)]</code> 會展開生成 List，若寫成 <code>(n for n in range(10000))</code> 是一個產生器，在某些應用情境可一次只吐一個數字，不用一次產生 10000 個元素，減少記憶體耗用增進效能。 <pre><code>from sys import getsizeof
+list = [n for n in range(10000)]
+print(getsizeof(list)) # 耗用 85176 bytes
+print(sum(list)) # 49995000
+gen = (n for n in range(10000))
+print(getsizeof(gen)) # 耗用 112 bytes
+print(sum(gen)) # 49995000
+</code></pre> 以上想成 C# <code>IEnumerable&lt;T&gt;</code> <a href="/blog/yield-return/">靠 yield return 省時省 CPU 省 RAM</a>，應該能馬上理解。</li></ul> <p data-slug="python-beginner-notes-2" data-title-en="Python notes 2 - list and for comprehension" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">This blog post explores the initial confusion and eventual clarity experienced when transitioning from C# to Python, especially regarding data structures and list comprehensions. Key takeaways include understanding Python’s use of symbols and keywords over functions, and how Python’s syntax can simplify operations like swapping variables, checking for dictionary keys, slicing strings, and more. The post also covers Python’s list operations and comprehensions, highlighting their similarities to C# LINQ but with more concise syntax.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>List (清單/串列)、Array (陣列)、Tuple (元組)、Dictionary (字典) 在 C# 都有，接觸 Python 之初，它們卻常讓我迷惑，尤其結合 For Comprehension (推導式) 後，對我成了一團能約略猜出用意但無法徒手寫出來的半模糊語法。</p> <p>後來想想，關鍵應出在 Python 追求簡潔，常以符號、保留字(關鍵字)取代函式，有時符號還可以省略。而同樣動作，C# 多半是靠函式、屬性或建構式完成，容易望文生意(但後來語法糖也愈來愈多)。理解 Python 程式時，靠字面記憶及猜意思的慣性反成阻礙。加上同一結構有好幾種等效寫法，前幾次遇到以為是新玩意兒，多看幾次才意識「啊，原來這就等於 XXX」。</p> <p>舉幾個例子：</p> <ul><li>在 Python 你可以用 <code>y, x = x, y</code> 交換變數，乍看很謎，但理解成「Tuple <code>(x, y)</code> 解構(Destructuring) 存回原變數，再省略 Tuple 括號」便會豁然開朗。</li> <li>要怎麼比對 Dictionary 是否存在某 Key 值，我起初想試著找 ContainsKey()、Has() 之類的 API，後來學到 Python 風格會用 <code>"some-key" in dict</code>。</li> <li>要取出字串第 3 到第 5 個字元，應該是靠 Substring() 或 Mid() 之類的函式吧？不，寫 <code>mystr[3:6]</code> 就成了。</li> <li>Python 物件導向思維不如 C#、JavaScript 強烈。舉個例子：想取得字串長度，我直覺會猜字串物件有個 Length 之類的屬性，但 Python 是用 <code>len(str_var)</code>。</li></ul> <p>有時覺得，若我沒寫過 C#、JavaScript，或許初學 Python 還會更順利些。(反過來想，若寫慣 Python 的人要跨足其他語言，也會被慣性所絆吧)<br> 但後期學到較複雜觀念，想成「這相當於 C#/JavaScript 的 OOO 」便能快理解，這時有 C#/JavaScript 經驗再變成加分條件。</p> <p>走過這段，改變心態接受用符號、關鍵字、語法取代建構物件、呼叫方法的慣性思維，C# 老人學 Python 倒也能漸入佳境。</p> <p>這篇筆記先整理 List 與 For Comprehension。</p> <h3>List 清單/串列</h3> <p>Python 的 List 可想像成 C# 的 <code>List&lt;object&gt;</code>，用來儲放任意型別，但多了一些方便簡潔的用法。常用操作如下：</p> <ul><li>算長度用 <code>len(list_var)</code></li> <li>負數索引可從後方取元素 <code>list_var[-2]</code> (倒數第 2 個)</li> <li>檢查元素是否存在用 <code>'find' in [1, 2, 3]</code>；另一種做法是 <code>list_var.index('find')</code>，但要注意，找不到時會拋 ValueError</li> <li>計算出現次數 <code>list_var.count('target')</code></li> <li>新增一個 <code>list_var.append('new')</code>、新增多個 <code>list_var.extend([4,5])</code></li> <li>在特定位置插入新元素 <code>list_var.insert(1, 'elem-at-2nd-pos')</code></li> <li>移除元素 <code>list_var.pop()</code>(最後一個)、<code>list_var.pop(2)</code>(第三個)、<code>list_var.remove('target')</code>(移除比對相符的第一筆)</li> <li>清除 <code>list_var.clear()</code></li> <li>排序 <code>list_var.sort()</code>(本身順序會被改變)、<code>list_var.sort(reverse = True)</code> 或 <code>list_var.reverse()</code>(反向排序)、<code>sorted(list_var)</code>(傳回排序過的新串列)<br> 自訂比較邏輯 <code>sorted(list_var, key = len)</code> 用 len() 比較</li> <li>串接字串 <code>', '.join(list_var)</code></li> <li>有些函式凡是實作 Iterable 特性的都可以用，例如：<code>sorted('hello')</code> 會得到 <code>['e', 'h', 'l', 'l', 'o']</code><br> 參考：sorted()、sum()、any() (任一為 True)、all() (需全部為 True)</li> <li>複製 <pre><code>a = [1,2,3]
+b = a
+a is b       # 指向同物件，得到 True
+id(a), id(b) # 得到 (2480536168704, 2480536168704) 相同位址
+b[-1] = 0    # 會改變 a 的內容
+b = a.copy() # 淺複製，深複製可用 .deepcopy()
+a == b       # 內容相同，True
+a is b       # 不同物件，False
+</code></pre> </li> <li>List 加法可串接，乘法會重複元素 <pre><code>a = [1, 2]
+b = [3, 4]
+print(a + b) # [1, 2, 3, 4]
+print(a * 2) # [1, 2, 1, 2]
+</code></pre> </li> <li>切片(Slice)：適用所有可迭代(Iterable)物件，如字串、List、Tuple、Dictionary、Set...。切片可選取指定範圍元素，進行讀取、置換，非常簡潔好用。 <pre><code>a = [1, 2, 3, 4]
+print(a[1:3]) # [2, 3]
+a[-1] = 'END' # [1, 2, 3, 'END']
+a[1:3] = ['a', 'b', 'c'] # [1, 'a', 'b', 'c', 'END']
+print(a)
+</code></pre> </li> <li>開箱(Unpacking)：將 List、Tuple 中的特定元素轉成變數，類似 JavaScript 的解構(Destructuring) <pre><code># 基本用法(變數個數必須與元素數量一致)
+x, y = [1, 2] # List 開箱，x=1, y=2
+a, b = (3, 4) # Tuple 開箱，a=3, b=4
+# 用星號通吃剩餘元素
+x, y, *others = [1, 2, 3, 4, 5] # x=1, y=2, others=[3, 4, 5]
+x, y, *_ = [1, 2, 3, 4, 5] # 不需要的部分用底線
+# 取頭尾
+head, *_, tail = [1, 2, 3, 4] # head=1, tail=4
+first, second, *rest, last = [1, 2, 3, 4, 5] # first=1, second=2, rest=[3, 4], last=5
+# 套用 List, Tuple
+_, [_, a], (_, b) = [1, [2, 3], (4, 5)] # a=3, b=5
+</code></pre> </li> <li>開箱運算子(Unpacking Operator)：展開 Iterable 物件，相當於 JavaScript 的 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">... 語法</a>。 <pre><code>a = [1, 2]
+b = [3, 4]
+n = [*a, ' ', *b] # [1, 2, ' ', 3, 4]
+</code></pre> </li></ul> <h3>For Comprehension 串列推導式</h3> <p>這是我心中最具 Python 風格的快捷語法，與 C# LINQ 語法異曲同工，但簡潔度更勝一籌。</p> <p>一開始看 Github Copilot 示範用 <code>.. for ... in .. if ..</code> 處理各種資料篩選組裝有些摸不著頭緒，熟悉後我很快就愛上它惹。</p> <p>直接看幾則應用，應該能很快上手。</p> <ul><li>加工轉換產生新清單 <pre><code>a = [1, 2, 3]
+n = [f'No.{n}' for n in a] # ['No.1', 'No.2', 'No.3']
+# C# a.Select(o =&gt; $"No.{o}").ToList();
+</code></pre> </li> <li>加上篩選條件 <pre><code>a = [1, 2, 3, 4, 5]
+n = [f'No.{n}' for n in a if n % 2 == 1] # ['No.1', 'No.3', 'No.5']
+# C# a.Where(o =&gt; o % 2 == 1).Select(o =&gt; $"No.{o}").ToList();
+</code></pre> </li> <li>也可以用來產生 Dictionary，語法為 for 搭配 key: value 產生鍵值資料對： <pre><code>d = { n: f"item{n}" for n in range(10) }
+# {0: 'item0', 1: 'item1', 2: 'item2', 3: 'item3', ... }
+</code></pre> </li> <li>For Comprehension 本質是一個產生器(Generator)物件，具有惰性求值(Lazy Evaluation)的特性，當寫成 <code>[n for n in range(10000)]</code> 會展開生成 List，若寫成 <code>(n for n in range(10000))</code> 是一個產生器，在某些應用情境可一次只吐一個數字，不用一次產生 10000 個元素，減少記憶體耗用增進效能。 <pre><code>from sys import getsizeof
+list = [n for n in range(10000)]
+print(getsizeof(list)) # 耗用 85176 bytes
+print(sum(list)) # 49995000
+gen = (n for n in range(10000))
+print(getsizeof(gen)) # 耗用 112 bytes
+print(sum(gen)) # 49995000
+</code></pre> 以上想成 C# <code>IEnumerable&lt;T&gt;</code> <a href="/blog/yield-return/">靠 yield return 省時省 CPU 省 RAM</a>，應該能馬上理解。</li></ul> <p data-slug="python-beginner-notes-2" data-title-en="Python notes 2 - list and for comprehension" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">This blog post explores the initial confusion and eventual clarity experienced when transitioning from C# to Python, especially regarding data structures and list comprehensions. Key takeaways include understanding Python’s use of symbols and keywords over functions, and how Python’s syntax can simplify operations like swapping variables, checking for dictionary keys, slicing strings, and more. The post also covers Python’s list operations and comprehensions, highlighting their similarities to C# LINQ but with more concise syntax.</p>]]></content:encoded>
+    
+    <pubDate>Wed, 18 Sep 2024 15:29:41 GMT</pubDate>
+  </item><item>
     <title><![CDATA[PowerShell 踩雷記 - [0] 索引器容錯行為]]></title>
     <link>https://blog.darkthread.net/blog/ps-member-access-enum/</link>
     <itunes:title><![CDATA[PowerShell 踩雷記 - [0] 索引器容錯行為]]></itunes:title>
@@ -791,20 +943,5 @@ smtp.Send(message);
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638606616918530124.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638606616918530124.jpg" medium="image"/>
     <pubDate>Sat, 31 Aug 2024 00:32:43 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Python 可執行但 VSCode 警示找不到套件]]></title>
-    <link>https://blog.darkthread.net/blog/package-not-resolved-warning-in-vscode/</link>
-    <itunes:title><![CDATA[Python 可執行但 VSCode 警示找不到套件]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>Python 新手笨問題一枚。</p> <p>pip install 安裝套件後，Python 程式在終端機介面可正確執行，但 VSCode 編輯器卻抱怨找不到套件 <code>Import 'xxx' could not resolved</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638604521151287624.png"></p> <p>原因很簡單，終端機用的 Python 版本 (3.12.5) 跟 VSCode 的 Python 版本 (3.11.3) 不同，pip install 是在 3.12 執行，3.11 未安裝套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638604521153161288.png"></p> <p>解決方法是按 Ctrl-Shift-P 找到 Python: Select Interpreter，改選 3.12.5：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638604521154863224.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638604521156741067.png"></p> <p>2024-08-28 補充：感謝讀者張椪椪分享小技巧，要快速切換版本點右下的版號就可以了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638604542187955182.png"></p> <p>調到版本一致，問題消失。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638604521158481917.png"></p> <p>題外話：最近下了決心要認真學會 Python (老讓 Github Copilot 幫我吐一堆看不懂但可以跑的程式碼不是辦法呀)，所以部落格會開始分享一些 Python 幼幼班心得。高手們請自行跳過，歡迎也在學習的同學參考切磋。</p> <p data-slug="package-not-resolved-warning-in-vscode" data-title-en="Installed Python package not resolved in VSCode" data-catg="Python" data-fbimg="https://i.imgur.com/6sf18gC.jpg#1280#720">The blog addresses an issue where Python packages installed via terminal are not recognized in VSCode due to different Python versions. Solution: align VSCode’s Python interpreter version with the terminal’s.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>Python 新手笨問題一枚。</p> <p>pip install 安裝套件後，Python 程式在終端機介面可正確執行，但 VSCode 編輯器卻抱怨找不到套件 <code>Import 'xxx' could not resolved</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638604521151287624.png"></p> <p>原因很簡單，終端機用的 Python 版本 (3.12.5) 跟 VSCode 的 Python 版本 (3.11.3) 不同，pip install 是在 3.12 執行，3.11 未安裝套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638604521153161288.png"></p> <p>解決方法是按 Ctrl-Shift-P 找到 Python: Select Interpreter，改選 3.12.5：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638604521154863224.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638604521156741067.png"></p> <p>2024-08-28 補充：感謝讀者張椪椪分享小技巧，要快速切換版本點右下的版號就可以了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638604542187955182.png"></p> <p>調到版本一致，問題消失。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638604521158481917.png"></p> <p>題外話：最近下了決心要認真學會 Python (老讓 Github Copilot 幫我吐一堆看不懂但可以跑的程式碼不是辦法呀)，所以部落格會開始分享一些 Python 幼幼班心得。高手們請自行跳過，歡迎也在學習的同學參考切磋。</p> <p data-slug="package-not-resolved-warning-in-vscode" data-title-en="Installed Python package not resolved in VSCode" data-catg="Python" data-fbimg="https://i.imgur.com/6sf18gC.jpg#1280#720">The blog addresses an issue where Python packages installed via terminal are not recognized in VSCode due to different Python versions. Solution: align VSCode’s Python interpreter version with the terminal’s.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>Python 新手笨問題一枚。</p> <p>pip install 安裝套件後，Python 程式在終端機介面可正確執行，但 VSCode 編輯器卻抱怨找不到套件 <code>Import 'xxx' could not resolved</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638604521151287624.png"></p> <p>原因很簡單，終端機用的 Python 版本 (3.12.5) 跟 VSCode 的 Python 版本 (3.11.3) 不同，pip install 是在 3.12 執行，3.11 未安裝套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638604521153161288.png"></p> <p>解決方法是按 Ctrl-Shift-P 找到 Python: Select Interpreter，改選 3.12.5：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638604521154863224.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638604521156741067.png"></p> <p>2024-08-28 補充：感謝讀者張椪椪分享小技巧，要快速切換版本點右下的版號就可以了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638604542187955182.png"></p> <p>調到版本一致，問題消失。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638604521158481917.png"></p> <p>題外話：最近下了決心要認真學會 Python (老讓 Github Copilot 幫我吐一堆看不懂但可以跑的程式碼不是辦法呀)，所以部落格會開始分享一些 Python 幼幼班心得。高手們請自行跳過，歡迎也在學習的同學參考切磋。</p> <p data-slug="package-not-resolved-warning-in-vscode" data-title-en="Installed Python package not resolved in VSCode" data-catg="Python" data-fbimg="https://i.imgur.com/6sf18gC.jpg#1280#720">The blog addresses an issue where Python packages installed via terminal are not recognized in VSCode due to different Python versions. Solution: align VSCode’s Python interpreter version with the terminal’s.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638604521151287624.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638604521151287624.png" medium="image"/>
-    <pubDate>Wed, 28 Aug 2024 14:07:19 GMT</pubDate>
   </item></channel>
 </rss>
