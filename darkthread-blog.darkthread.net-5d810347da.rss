@@ -30,6 +30,105 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[PowerShell 小品 - 查誰在半夜偷用 CPU？]]></title>
+    <link>https://blog.darkthread.net/blog/ps-proc-snapshot/</link>
+    <itunes:title><![CDATA[PowerShell 小品 - 查誰在半夜偷用 CPU？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對發生時點並無已知的應用系統排程，想抓出是當時是什麼程式在跑？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，就算忘了停掉排程也不致吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').log"
+New-Item -ItemType File -Force -Path $logPath | Out-Null # 借用 New-Item 自動建資料夾
+Get-Process -IncludeUserName | Select-Object Id, Name, CPU, WorkingSet, UserName, Path | ConvertTo-Csv -NoTypeInformation | Out-File $logPath -Encoding UTF8
+# 每天早上七點，自動刪除超過一個月前的資料夾
+if ([System.DateTime]::Now.ToString("HH:mm") -eq "07:00") {
+$expireDate = [System.DateTime]::Today.AddMonths(-1).ToString("yyMMdd")
+Get-ChildItem -Path $PSScriptRoot -Directory |
+Where-Object { $_.Name -match "\d{6}" -and $_.Name -lt $expireDate } |
+Remove-Item -Recurse -Force
+}
+</code></pre> <p>設定排程這事兒我也想自動化，於是寫了這個設定腳本，自動設定從 00:00 開始到 23:59，每分鐘一次以 Local System 身分執行 ProcStats.ps1：</p> <p>【延伸閱讀】</p> <ul><li><a href="/blog/local-system-local-service-network-service/">豆知識：Local System、Local Service與Network Service</a></li> <li><a href="/blog/psfaq-setup-schtask/">用 PowerShell 設定 Windows 排程跑 PowerShell</a>)</li></ul> <pre><code>Param ([string]$ForceOverwrite = 'N')
+$taskName = "程序行車記錄器"
+$ErrorActionPreference = "STOP"
+$chkExist = Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName }
+if ($chkExist) {
+if ($ForceOverwrite -eq 'Y' -or $(Read-Host "[$taskName] 已存在，是否刪除? (Y/N)").ToUpper() -eq 'Y') {
+Unregister-ScheduledTask $taskName -Confirm:$false
+}
+else {
+Write-Host "放棄新增作業" -ForegroundColor Red
+Exit
+}
+}
+$action = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "-NoProfile -ExecutionPolicy ByPass -NonInteractive -WindowStyle Hidden -Command `"$PSScriptRoot\ProcStats.ps1`" "
+$trigger = New-ScheduledTaskTrigger -Daily -At 00:00
+$trigger.Repetition = (New-ScheduledTaskTrigger -Once -At 00:00 -RepetitionDuration "23:59:30" -RepetitionInterval "00:01:00").Repetition
+$principle = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName $taskName -Principal $principle -Action $action -Trigger $trigger
+</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對發生時點並無已知的應用系統排程，想抓出是當時是什麼程式在跑？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，就算忘了停掉排程也不致吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').log"
+New-Item -ItemType File -Force -Path $logPath | Out-Null # 借用 New-Item 自動建資料夾
+Get-Process -IncludeUserName | Select-Object Id, Name, CPU, WorkingSet, UserName, Path | ConvertTo-Csv -NoTypeInformation | Out-File $logPath -Encoding UTF8
+# 每天早上七點，自動刪除超過一個月前的資料夾
+if ([System.DateTime]::Now.ToString("HH:mm") -eq "07:00") {
+$expireDate = [System.DateTime]::Today.AddMonths(-1).ToString("yyMMdd")
+Get-ChildItem -Path $PSScriptRoot -Directory |
+Where-Object { $_.Name -match "\d{6}" -and $_.Name -lt $expireDate } |
+Remove-Item -Recurse -Force
+}
+</code></pre> <p>設定排程這事兒我也想自動化，於是寫了這個設定腳本，自動設定從 00:00 開始到 23:59，每分鐘一次以 Local System 身分執行 ProcStats.ps1：</p> <p>【延伸閱讀】</p> <ul><li><a href="/blog/local-system-local-service-network-service/">豆知識：Local System、Local Service與Network Service</a></li> <li><a href="/blog/psfaq-setup-schtask/">用 PowerShell 設定 Windows 排程跑 PowerShell</a>)</li></ul> <pre><code>Param ([string]$ForceOverwrite = 'N')
+$taskName = "程序行車記錄器"
+$ErrorActionPreference = "STOP"
+$chkExist = Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName }
+if ($chkExist) {
+if ($ForceOverwrite -eq 'Y' -or $(Read-Host "[$taskName] 已存在，是否刪除? (Y/N)").ToUpper() -eq 'Y') {
+Unregister-ScheduledTask $taskName -Confirm:$false
+}
+else {
+Write-Host "放棄新增作業" -ForegroundColor Red
+Exit
+}
+}
+$action = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "-NoProfile -ExecutionPolicy ByPass -NonInteractive -WindowStyle Hidden -Command `"$PSScriptRoot\ProcStats.ps1`" "
+$trigger = New-ScheduledTaskTrigger -Daily -At 00:00
+$trigger.Repetition = (New-ScheduledTaskTrigger -Once -At 00:00 -RepetitionDuration "23:59:30" -RepetitionInterval "00:01:00").Repetition
+$principle = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName $taskName -Principal $principle -Action $action -Trigger $trigger
+</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對發生時點並無已知的應用系統排程，想抓出是當時是什麼程式在跑？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，就算忘了停掉排程也不致吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').log"
+New-Item -ItemType File -Force -Path $logPath | Out-Null # 借用 New-Item 自動建資料夾
+Get-Process -IncludeUserName | Select-Object Id, Name, CPU, WorkingSet, UserName, Path | ConvertTo-Csv -NoTypeInformation | Out-File $logPath -Encoding UTF8
+# 每天早上七點，自動刪除超過一個月前的資料夾
+if ([System.DateTime]::Now.ToString("HH:mm") -eq "07:00") {
+$expireDate = [System.DateTime]::Today.AddMonths(-1).ToString("yyMMdd")
+Get-ChildItem -Path $PSScriptRoot -Directory |
+Where-Object { $_.Name -match "\d{6}" -and $_.Name -lt $expireDate } |
+Remove-Item -Recurse -Force
+}
+</code></pre> <p>設定排程這事兒我也想自動化，於是寫了這個設定腳本，自動設定從 00:00 開始到 23:59，每分鐘一次以 Local System 身分執行 ProcStats.ps1：</p> <p>【延伸閱讀】</p> <ul><li><a href="/blog/local-system-local-service-network-service/">豆知識：Local System、Local Service與Network Service</a></li> <li><a href="/blog/psfaq-setup-schtask/">用 PowerShell 設定 Windows 排程跑 PowerShell</a>)</li></ul> <pre><code>Param ([string]$ForceOverwrite = 'N')
+$taskName = "程序行車記錄器"
+$ErrorActionPreference = "STOP"
+$chkExist = Get-ScheduledTask | Where-Object { $_.TaskName -eq $taskName }
+if ($chkExist) {
+if ($ForceOverwrite -eq 'Y' -or $(Read-Host "[$taskName] 已存在，是否刪除? (Y/N)").ToUpper() -eq 'Y') {
+Unregister-ScheduledTask $taskName -Confirm:$false
+}
+else {
+Write-Host "放棄新增作業" -ForegroundColor Red
+Exit
+}
+}
+$action = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "-NoProfile -ExecutionPolicy ByPass -NonInteractive -WindowStyle Hidden -Command `"$PSScriptRoot\ProcStats.ps1`" "
+$trigger = New-ScheduledTaskTrigger -Daily -At 00:00
+$trigger.Repetition = (New-ScheduledTaskTrigger -Once -At 00:00 -RepetitionDuration "23:59:30" -RepetitionInterval "00:01:00").Repetition
+$principle = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName $taskName -Principal $principle -Action $action -Trigger $trigger
+</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png" medium="image"/>
+    <pubDate>Thu, 19 Sep 2024 13:54:21 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Python 新手筆記 2 - List 與 For Comprehension]]></title>
     <link>https://blog.darkthread.net/blog/python-beginner-notes-2/</link>
     <itunes:title><![CDATA[Python 新手筆記 2 - List 與 For Comprehension]]></itunes:title>
@@ -904,44 +1003,5 @@ smtp.Send(message);
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638607548298356512.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638607548298356512.jpg" medium="image"/>
     <pubDate>Sun, 01 Sep 2024 02:30:56 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【黑暗維基百科】「茶包射手」的由來]]></title>
-    <link>https://blog.darkthread.net/blog/wiki-trouble-shooter/</link>
-    <itunes:title><![CDATA[【黑暗維基百科】「茶包射手」的由來]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>有人問到 「茶包射手 / Trouble-Shooter」的由來？</p>
-<p>嚴格來說，茶包一詞源自 37 年前的香港電影「秋天的童話」(台灣片名：流氓大亨)中發哥的台詞：「女生真是茶包」(港版為茶煲) (剛好有找到<a href="https://youtu.be/npv6WV6SaIM?t=130">電影片段</a>)，意指 Trouble。</p>
-<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638606616918530124.jpg" alt="thumbnail"><br>
-<a href="https://youtu.be/eJJHnq67eDE?t=60s">照片來源</a></p>
-<p>Troubleshooting 一詞則常見於電腦軟硬體故障排除，強調有系統地識別、診斷和解決問題的過程。至於排除問題的人，照理就叫 Trouble-Shooter 囉~ Trouble 用音譯、Shooter 按字義翻，便成了「茶包射手」。</p>
-<p>「茶包射手」一詞最早出現在 2006/11/14 的這篇文章：<a href="/blog/windows-sysinternals-process-monitor-1-0/">Windows Sysinternals!! Process Monitor 1.0!!!</a>，第一篇專欄文則始於 2007/04-19 <a href="/blog/719/">【茶包射手專欄】怪異的網路問題</a>。</p>
-<p>截至目前為止，黑暗執行緒部落格裡已有超過 450 篇「茶包射手」相關文章，而「茶包」一詞也被黑大用來泛指錯誤、故障、問題、困擾... 等所有需要花時間想辦法處理的對象。</p>
-<p data-slug="wiki-trouble-shooter" data-fbimg="https://i.imgur.com/3NR8lp2.png#971#534" "="">
-</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>有人問到 「茶包射手 / Trouble-Shooter」的由來？</p>
-<p>嚴格來說，茶包一詞源自 37 年前的香港電影「秋天的童話」(台灣片名：流氓大亨)中發哥的台詞：「女生真是茶包」(港版為茶煲) (剛好有找到<a href="https://youtu.be/npv6WV6SaIM?t=130">電影片段</a>)，意指 Trouble。</p>
-<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638606616918530124.jpg" alt="thumbnail"><br>
-<a href="https://youtu.be/eJJHnq67eDE?t=60s">照片來源</a></p>
-<p>Troubleshooting 一詞則常見於電腦軟硬體故障排除，強調有系統地識別、診斷和解決問題的過程。至於排除問題的人，照理就叫 Trouble-Shooter 囉~ Trouble 用音譯、Shooter 按字義翻，便成了「茶包射手」。</p>
-<p>「茶包射手」一詞最早出現在 2006/11/14 的這篇文章：<a href="/blog/windows-sysinternals-process-monitor-1-0/">Windows Sysinternals!! Process Monitor 1.0!!!</a>，第一篇專欄文則始於 2007/04-19 <a href="/blog/719/">【茶包射手專欄】怪異的網路問題</a>。</p>
-<p>截至目前為止，黑暗執行緒部落格裡已有超過 450 篇「茶包射手」相關文章，而「茶包」一詞也被黑大用來泛指錯誤、故障、問題、困擾... 等所有需要花時間想辦法處理的對象。</p>
-<p data-slug="wiki-trouble-shooter" data-fbimg="https://i.imgur.com/3NR8lp2.png#971#534" "="">
-</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>有人問到 「茶包射手 / Trouble-Shooter」的由來？</p>
-<p>嚴格來說，茶包一詞源自 37 年前的香港電影「秋天的童話」(台灣片名：流氓大亨)中發哥的台詞：「女生真是茶包」(港版為茶煲) (剛好有找到<a href="https://youtu.be/npv6WV6SaIM?t=130">電影片段</a>)，意指 Trouble。</p>
-<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638606616918530124.jpg" alt="thumbnail"><br>
-<a href="https://youtu.be/eJJHnq67eDE?t=60s">照片來源</a></p>
-<p>Troubleshooting 一詞則常見於電腦軟硬體故障排除，強調有系統地識別、診斷和解決問題的過程。至於排除問題的人，照理就叫 Trouble-Shooter 囉~ Trouble 用音譯、Shooter 按字義翻，便成了「茶包射手」。</p>
-<p>「茶包射手」一詞最早出現在 2006/11/14 的這篇文章：<a href="/blog/windows-sysinternals-process-monitor-1-0/">Windows Sysinternals!! Process Monitor 1.0!!!</a>，第一篇專欄文則始於 2007/04-19 <a href="/blog/719/">【茶包射手專欄】怪異的網路問題</a>。</p>
-<p>截至目前為止，黑暗執行緒部落格裡已有超過 450 篇「茶包射手」相關文章，而「茶包」一詞也被黑大用來泛指錯誤、故障、問題、困擾... 等所有需要花時間想辦法處理的對象。</p>
-<p data-slug="wiki-trouble-shooter" data-fbimg="https://i.imgur.com/3NR8lp2.png#971#534" "="">
-</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638606616918530124.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638606616918530124.jpg" medium="image"/>
-    <pubDate>Sat, 31 Aug 2024 00:32:43 GMT</pubDate>
   </item></channel>
 </rss>
