@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/163/800/800.jpg?hmac=RNd5JQ_Of34e8WXKjhtteqbxmFQCJw-zzFZD8-2crhw</url>
+      <url>https://fastly.picsum.photos/id/239/800/800.jpg?hmac=vsmoS5YeGSeh-FDyFsX1oQaDs2vTmYByDK9S8cmFM8c</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,104 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/163/800/800.jpg?hmac=RNd5JQ_Of34e8WXKjhtteqbxmFQCJw-zzFZD8-2crhw"/>
+    <itunes:image href="https://fastly.picsum.photos/id/239/800/800.jpg?hmac=vsmoS5YeGSeh-FDyFsX1oQaDs2vTmYByDK9S8cmFM8c"/>
 <item>
+    <title><![CDATA[Android版FGO強制開啟60FPS，UnityFPSUnlocker使用方式]]></title>
+    <link>https://ivonblog.com/posts/android-fgo-enable-60-fps-root/</link>
+    <itunes:title><![CDATA[Android版FGO強制開啟60FPS，UnityFPSUnlocker使用方式]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/android-fgo-enable-60-fps-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48c0f2bd08.webp"></a></p>
+<p><strong>本文討論的不是戰鬥加速器的外掛，僅是提昇遊戲畫面流暢度而已。</strong></p><p>目前最新版的FGO（日版/台版）僅在戰鬥的時候會開啟60FPS，回到管制室的過場動畫依然在30FPS，總給人卡頓的感覺。</p><p>這個問題可以Root後靠Magisk模組解決。</p><p>因為FGO是用Unity(il2cpp)寫的，只需要透過「UnityFPSUnlocker」模組，就能解鎖FGO的60FPS（60幀）刷新率，盡享流暢畫質，還有更高品質的乳搖。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b385176891.webp"><p>（迷之音：要看乳搖用<a href="https://ivonblog.com/posts/fate-animation-viewer-upscale/" target="_blank">
+Fate Animation Viewer</a>就行了，這麼搞剛幹嘛）</p><p>這個模組不只能在戰鬥場景啟用60FPS，而是整個遊戲都會變成60FPS，包含管制室的切換動畫等等。甚至如果你的手機支援120Hz的高刷新率，你還可以將遊戲調成120FPS。</p><p>那麼使用這個模組會不會被運營封帳號呢？已知FGO日版是禁止Root裝置遊玩的，儘管Magisk有模組能躲避APP的Root偵測，但還是有可能被抓到，屆時風險自負。</p><h2>1. 測試環境<span><a href="#1-%E6%B8%AC%E8%A9%A6%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>系統版本：Android 11</li><li>Root權限，請安裝Magisk或KernelSU或APatch。</li><li>FGO日版版本：2.99.1</li><li>FGO台版版本：2.67.0</li></ul><p>給模擬器用戶：UnityFPSUnlocker似乎無法在libndk環境（ARM64轉譯x86_64）使用，必須搭配libhoudini。</p><h2>2. 隱藏Root狀態<span><a href="#2-%E9%9A%B1%E8%97%8Froot%E7%8B%80%E6%85%8B" aria-label="定位點">#</a></span></h2><p>日版FGO會偵測Root，台版未知。</p><p>Magisk參照<a href="https://ivonblog.com/posts/magisk-hide-root/" target="_blank">
+隱藏Root方式</a>，啟用Zygisk，並安裝Shamiko隱藏root。</p><p>KernelSU搭配<a href="https://github.com/Dr-TSNG/ZygiskNext" target="_blank">
+ZygiskNext</a>就夠了。</p><h2>3. 安裝UnityFPSUnlocker<span><a href="#3-%E5%AE%89%E8%A3%9Dunityfpsunlocker" aria-label="定位點">#</a></span></h2><p>UnityFPSUnlocker模組以前叫做FGOFPSUnlocker，最初是修改遊戲的.so檔來指定FPS，後來調整成了現在這樣。</p><ol><li><p>至<a href="https://github.com/hexstr/UnityFPSUnlocker" target="_blank">
+Github</a>下載zip檔，刷入模組</p></li><li><p>開啟檔案管理器或Termux，在<code>/data/local/tmp/</code>目錄新增<code>TargetList.json</code>，填入要修改的遊戲參數。</p></li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>{</span>
+</span></span><span><span>  <span>"global"</span><span>:</span> <span>{</span>
+</span></span><span><span>    <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>    <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>    <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>    <span>"scale"</span><span>:</span> <span>"default"</span>
+</span></span><span><span>  <span>},</span>
+</span></span><span><span>  <span>"custom"</span><span>:</span> <span>{</span>
+</span></span><span><span>    <span>"com.xiaomeng.fategrandorder"</span><span>:</span> <span>{</span>
+</span></span><span><span>      <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>      <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>      <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>      <span>"scale"</span><span>:</span> <span>1.0</span>
+</span></span><span><span>      <span>},</span>
+</span></span><span><span>    <span>"com.aniplex.fategrandorder"</span><span>:</span> <span>{</span>
+</span></span><span><span>      <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>      <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>      <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>      <span>"scale"</span><span>:</span> <span>1.0</span>
+</span></span><span><span>      <span>}</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><ol start="3"><li>參數解釋：<code>global</code>為全域設定；<code>custom</code>為個別APP設定。<code>delay</code>設定進入遊戲後延遲10秒生效，<code>mod_opcode</code>不修改opcode，<code>fps</code>指定要修改的FPS。</li></ol><p><code>custom</code>的APK套件名稱可在Android系統的APP設定查看。</p><p>對了，UnityFPSUnlocker兼具放大Unity解析度的功能，<code>scale</code>是畫面放大倍率，可能要在開發人員選項開啟反鋸齒。</p><h2>3. 如何知道是否真的有60FPS<span><a href="#3-%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93%E6%98%AF%E5%90%A6%E7%9C%9F%E7%9A%84%E6%9C%8960fps" aria-label="定位點">#</a></span></h2><p>用眼睛看（X）除非你的裝置連FGO都跑不動，不然FPS提昇應該是肉眼可見的。</p><p>在ADB Shell執行指令<code>logcat -s UnityFPSUnlocker</code>，有印出<code>UnityFPSUnlocker: [LoadConfig]</code>訊息就代表模組套用成功了。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/android-fgo-enable-60-fps-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48c0f2bd08.webp"></a></p>
+<p><strong>本文討論的不是戰鬥加速器的外掛，僅是提昇遊戲畫面流暢度而已。</strong></p><p>目前最新版的FGO（日版/台版）僅在戰鬥的時候會開啟60FPS，回到管制室的過場動畫依然在30FPS，總給人卡頓的感覺。</p><p>這個問題可以Root後靠Magisk模組解決。</p><p>因為FGO是用Unity(il2cpp)寫的，只需要透過「UnityFPSUnlocker」模組，就能解鎖FGO的60FPS（60幀）刷新率，盡享流暢畫質，還有更高品質的乳搖。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b385176891.webp"><p>（迷之音：要看乳搖用<a href="https://ivonblog.com/posts/fate-animation-viewer-upscale/" target="_blank">
+Fate Animation Viewer</a>就行了，這麼搞剛幹嘛）</p><p>這個模組不只能在戰鬥場景啟用60FPS，而是整個遊戲都會變成60FPS，包含管制室的切換動畫等等。甚至如果你的手機支援120Hz的高刷新率，你還可以將遊戲調成120FPS。</p><p>那麼使用這個模組會不會被運營封帳號呢？已知FGO日版是禁止Root裝置遊玩的，儘管Magisk有模組能躲避APP的Root偵測，但還是有可能被抓到，屆時風險自負。</p><h2>1. 測試環境<span><a href="#1-%E6%B8%AC%E8%A9%A6%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>系統版本：Android 11</li><li>Root權限，請安裝Magisk或KernelSU或APatch。</li><li>FGO日版版本：2.99.1</li><li>FGO台版版本：2.67.0</li></ul><p>給模擬器用戶：UnityFPSUnlocker似乎無法在libndk環境（ARM64轉譯x86_64）使用，必須搭配libhoudini。</p><h2>2. 隱藏Root狀態<span><a href="#2-%E9%9A%B1%E8%97%8Froot%E7%8B%80%E6%85%8B" aria-label="定位點">#</a></span></h2><p>日版FGO會偵測Root，台版未知。</p><p>Magisk參照<a href="https://ivonblog.com/posts/magisk-hide-root/" target="_blank">
+隱藏Root方式</a>，啟用Zygisk，並安裝Shamiko隱藏root。</p><p>KernelSU搭配<a href="https://github.com/Dr-TSNG/ZygiskNext" target="_blank">
+ZygiskNext</a>就夠了。</p><h2>3. 安裝UnityFPSUnlocker<span><a href="#3-%E5%AE%89%E8%A3%9Dunityfpsunlocker" aria-label="定位點">#</a></span></h2><p>UnityFPSUnlocker模組以前叫做FGOFPSUnlocker，最初是修改遊戲的.so檔來指定FPS，後來調整成了現在這樣。</p><ol><li><p>至<a href="https://github.com/hexstr/UnityFPSUnlocker" target="_blank">
+Github</a>下載zip檔，刷入模組</p></li><li><p>開啟檔案管理器或Termux，在<code>/data/local/tmp/</code>目錄新增<code>TargetList.json</code>，填入要修改的遊戲參數。</p></li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>{</span>
+</span></span><span><span>  <span>"global"</span><span>:</span> <span>{</span>
+</span></span><span><span>    <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>    <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>    <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>    <span>"scale"</span><span>:</span> <span>"default"</span>
+</span></span><span><span>  <span>},</span>
+</span></span><span><span>  <span>"custom"</span><span>:</span> <span>{</span>
+</span></span><span><span>    <span>"com.xiaomeng.fategrandorder"</span><span>:</span> <span>{</span>
+</span></span><span><span>      <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>      <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>      <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>      <span>"scale"</span><span>:</span> <span>1.0</span>
+</span></span><span><span>      <span>},</span>
+</span></span><span><span>    <span>"com.aniplex.fategrandorder"</span><span>:</span> <span>{</span>
+</span></span><span><span>      <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>      <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>      <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>      <span>"scale"</span><span>:</span> <span>1.0</span>
+</span></span><span><span>      <span>}</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><ol start="3"><li>參數解釋：<code>global</code>為全域設定；<code>custom</code>為個別APP設定。<code>delay</code>設定進入遊戲後延遲10秒生效，<code>mod_opcode</code>不修改opcode，<code>fps</code>指定要修改的FPS。</li></ol><p><code>custom</code>的APK套件名稱可在Android系統的APP設定查看。</p><p>對了，UnityFPSUnlocker兼具放大Unity解析度的功能，<code>scale</code>是畫面放大倍率，可能要在開發人員選項開啟反鋸齒。</p><h2>3. 如何知道是否真的有60FPS<span><a href="#3-%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93%E6%98%AF%E5%90%A6%E7%9C%9F%E7%9A%84%E6%9C%8960fps" aria-label="定位點">#</a></span></h2><p>用眼睛看（X）除非你的裝置連FGO都跑不動，不然FPS提昇應該是肉眼可見的。</p><p>在ADB Shell執行指令<code>logcat -s UnityFPSUnlocker</code>，有印出<code>UnityFPSUnlocker: [LoadConfig]</code>訊息就代表模組套用成功了。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/android-fgo-enable-60-fps-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48c0f2bd08.webp"></a></p>
+<p><strong>本文討論的不是戰鬥加速器的外掛，僅是提昇遊戲畫面流暢度而已。</strong></p><p>目前最新版的FGO（日版/台版）僅在戰鬥的時候會開啟60FPS，回到管制室的過場動畫依然在30FPS，總給人卡頓的感覺。</p><p>這個問題可以Root後靠Magisk模組解決。</p><p>因為FGO是用Unity(il2cpp)寫的，只需要透過「UnityFPSUnlocker」模組，就能解鎖FGO的60FPS（60幀）刷新率，盡享流暢畫質，還有更高品質的乳搖。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b385176891.webp"><p>（迷之音：要看乳搖用<a href="https://ivonblog.com/posts/fate-animation-viewer-upscale/" target="_blank">
+Fate Animation Viewer</a>就行了，這麼搞剛幹嘛）</p><p>這個模組不只能在戰鬥場景啟用60FPS，而是整個遊戲都會變成60FPS，包含管制室的切換動畫等等。甚至如果你的手機支援120Hz的高刷新率，你還可以將遊戲調成120FPS。</p><p>那麼使用這個模組會不會被運營封帳號呢？已知FGO日版是禁止Root裝置遊玩的，儘管Magisk有模組能躲避APP的Root偵測，但還是有可能被抓到，屆時風險自負。</p><h2>1. 測試環境<span><a href="#1-%E6%B8%AC%E8%A9%A6%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>系統版本：Android 11</li><li>Root權限，請安裝Magisk或KernelSU或APatch。</li><li>FGO日版版本：2.99.1</li><li>FGO台版版本：2.67.0</li></ul><p>給模擬器用戶：UnityFPSUnlocker似乎無法在libndk環境（ARM64轉譯x86_64）使用，必須搭配libhoudini。</p><h2>2. 隱藏Root狀態<span><a href="#2-%E9%9A%B1%E8%97%8Froot%E7%8B%80%E6%85%8B" aria-label="定位點">#</a></span></h2><p>日版FGO會偵測Root，台版未知。</p><p>Magisk參照<a href="https://ivonblog.com/posts/magisk-hide-root/" target="_blank">
+隱藏Root方式</a>，啟用Zygisk，並安裝Shamiko隱藏root。</p><p>KernelSU搭配<a href="https://github.com/Dr-TSNG/ZygiskNext" target="_blank">
+ZygiskNext</a>就夠了。</p><h2>3. 安裝UnityFPSUnlocker<span><a href="#3-%E5%AE%89%E8%A3%9Dunityfpsunlocker" aria-label="定位點">#</a></span></h2><p>UnityFPSUnlocker模組以前叫做FGOFPSUnlocker，最初是修改遊戲的.so檔來指定FPS，後來調整成了現在這樣。</p><ol><li><p>至<a href="https://github.com/hexstr/UnityFPSUnlocker" target="_blank">
+Github</a>下載zip檔，刷入模組</p></li><li><p>開啟檔案管理器或Termux，在<code>/data/local/tmp/</code>目錄新增<code>TargetList.json</code>，填入要修改的遊戲參數。</p></li></ol><div><pre tabindex="0"><code data-lang="json"><span><span><span>{</span>
+</span></span><span><span>  <span>"global"</span><span>:</span> <span>{</span>
+</span></span><span><span>    <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>    <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>    <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>    <span>"scale"</span><span>:</span> <span>"default"</span>
+</span></span><span><span>  <span>},</span>
+</span></span><span><span>  <span>"custom"</span><span>:</span> <span>{</span>
+</span></span><span><span>    <span>"com.xiaomeng.fategrandorder"</span><span>:</span> <span>{</span>
+</span></span><span><span>      <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>      <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>      <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>      <span>"scale"</span><span>:</span> <span>1.0</span>
+</span></span><span><span>      <span>},</span>
+</span></span><span><span>    <span>"com.aniplex.fategrandorder"</span><span>:</span> <span>{</span>
+</span></span><span><span>      <span>"delay"</span><span>:</span> <span>10</span><span>,</span>
+</span></span><span><span>      <span>"mod_opcode"</span><span>:</span> <span>false</span><span>,</span>
+</span></span><span><span>      <span>"fps"</span><span>:</span> <span>60</span><span>,</span>
+</span></span><span><span>      <span>"scale"</span><span>:</span> <span>1.0</span>
+</span></span><span><span>      <span>}</span>
+</span></span><span><span>  <span>}</span>
+</span></span><span><span><span>}</span>
+</span></span></code></pre></div><ol start="3"><li>參數解釋：<code>global</code>為全域設定；<code>custom</code>為個別APP設定。<code>delay</code>設定進入遊戲後延遲10秒生效，<code>mod_opcode</code>不修改opcode，<code>fps</code>指定要修改的FPS。</li></ol><p><code>custom</code>的APK套件名稱可在Android系統的APP設定查看。</p><p>對了，UnityFPSUnlocker兼具放大Unity解析度的功能，<code>scale</code>是畫面放大倍率，可能要在開發人員選項開啟反鋸齒。</p><h2>3. 如何知道是否真的有60FPS<span><a href="#3-%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93%E6%98%AF%E5%90%A6%E7%9C%9F%E7%9A%84%E6%9C%8960fps" aria-label="定位點">#</a></span></h2><p>用眼睛看（X）除非你的裝置連FGO都跑不動，不然FPS提昇應該是肉眼可見的。</p><p>在ADB Shell執行指令<code>logcat -s UnityFPSUnlocker</code>，有印出<code>UnityFPSUnlocker: [LoadConfig]</code>訊息就代表模組套用成功了。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48c0f2bd08.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48c0f2bd08.webp" medium="image"/>
+    <pubDate>Wed, 25 Sep 2024 14:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Revisit iPad！iPad Air 6 M2開箱＆使用心得]]></title>
     <link>https://ivonblog.com/posts/apple-ipad-air-6-review/</link>
     <itunes:title><![CDATA[Revisit iPad！iPad Air 6 M2開箱＆使用心得]]></itunes:title>
@@ -929,77 +1025,5 @@ Anisette server v3</a></p><ol><li>例如，在Linux用Docker部署：</li></ol><
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9741044153.jpeg"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9741044153.jpeg" medium="image"/>
     <pubDate>Thu, 12 Sep 2024 20:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Moonlight自動調整Linux遠端桌面解析度，解決黑邊問題]]></title>
-    <link>https://ivonblog.com/posts/linux-moonlight-resolution-automation/</link>
-    <itunes:title><![CDATA[Moonlight自動調整Linux遠端桌面解析度，解決黑邊問題]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-moonlight-resolution-automation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp"></a></p>
-<p>問題點：Moonlight遠端Linux桌面解析度與客戶端不符，導致文字看起來太小或者出現黑邊。我希望可以像TeamViewer那樣自動縮放，將遠端Linux桌面的解析度調整為客戶端解析度。</p><p>從這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c5da325ef9.webp"><p>變成這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd26640eda.webp"><p>Moonlight客戶端雖然可以指定解析度，但是電腦端的Sunshine並不會跟著變化。所以我們得設定hook，利用Sunshine的「Custom Application」功能，自訂啟動桌面後執行指令，自動執行xrandr調整解析度與縮放，關閉遠端桌面之後再自動切回去。</p><p>本文討論的內容僅適用X11，因為Wayland沒有統一調整桌面解析度的指令。</p><h2>1. 測試xrandr指令<span><a href="#1-%E6%B8%AC%E8%A9%A6xrandr%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>以我的情況來說，客戶端iPad Air 6的解析度是2360x1640，比例大約是3:2。如果不追求這麼高畫質，那麼用同為3:2比例的1475x1025就夠了（iPad解析度除以1.6）。</p><p>因為如果直接設定為2360x1640的話，電腦顯示器必須支援2K以上解析度否則會「超出範圍」，還有高解析度得設定全域螢幕縮放，字在iPad才不會看起來太小。直接用低解析度就不用再設定全域螢幕縮放了。</p><p>於Sunshine後台設定前，先手動執行一次xrandr指令，確認真的能修改解析度再繼續。</p><ol><li>Ubuntu安裝以下套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install x11-xserver-utils
-</span></span></code></pre></div><ol start="2"><li>一般16:9的螢幕不會支援3:2這種比例，所以得強制新增Modeline。使用cvt指令計算1475x1025的Modeline所需參數，取整後解析度會略有變化，變成1480x1025</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cvt -r <span>1475</span> <span>1025</span> <span>60</span>
-</span></span></code></pre></div><ol start="3"><li>新增Modeline</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
-</span></span></code></pre></div><ol start="4"><li>查看目前使用的螢幕為何</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr -q
-</span></span></code></pre></div><ol start="5"><li>將Modeline新增到HDMI-1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="6"><li>指定解析度。螢幕應該會閃一下之後螢幕被拉伸。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="7"><li>如果要設定全域縮放1.5倍的話：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span> --scale 1.5x1.5
-</span></span></code></pre></div><ol start="8"><li>重設螢幕解析度為1920x1080：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
-</span></span></code></pre></div><h2>2. 調整Sunshine後台的指令<span><a href="#2-%E8%AA%BF%E6%95%B4sunshine%E5%BE%8C%E5%8F%B0%E7%9A%84%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><ol><li>我們新增指令稿，第一個是變更解析度</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/changeresolution.sh
-</span></span></code></pre></div><ol start="2"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
-</span></span><span><span>
-</span></span><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
-</span></span><span><span>
-</span></span><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="3"><li>再來是重置解析度的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/resetresolution.sh
-</span></span></code></pre></div><ol start="4"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
-</span></span></code></pre></div><ol start="5"><li>賦予執行權限</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x ~/.local/bin/changeresolution.sh
-</span></span><span><span>chmod +x ~/.local/bin/resetresolution.sh
-</span></span></code></pre></div><ol start="6"><li><p><a href="https://ivonblog.com/posts/linux-sunshine-remote-gaming/" target="_blank">安裝Sunshine</a>伺服器。</p></li><li><p>開啟後台的Applications頁面，點選Desktop（你也可以另外新增其他程式）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e3da2f6ad2.webp"></li><li><p>找到Do Command和Undo Command欄位</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2f26e2d80a.webp"></li><li><p>填入指令稿的絕對路徑：<code>bash /home/user/.local/bin/changeresolution.sh</code>和<code>bash /home/user/.local/bin/resetesolution.sh</code></p></li><li><p>點選下方Save</p></li><li><p>用Moonlight連線前需要把解析度設定為<code>Full</code>以符合iPad解析度。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ccba47c7c.webp"></li><li><p>點選Desktop，電腦解析度應該就會自動變化了。</p></li><li><p>要觸發解析度重置，必須點Quit APP中止桌面工作階段。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7a530c1203.webp"></li></ol>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-moonlight-resolution-automation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp"></a></p>
-<p>問題點：Moonlight遠端Linux桌面解析度與客戶端不符，導致文字看起來太小或者出現黑邊。我希望可以像TeamViewer那樣自動縮放，將遠端Linux桌面的解析度調整為客戶端解析度。</p><p>從這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c5da325ef9.webp"><p>變成這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd26640eda.webp"><p>Moonlight客戶端雖然可以指定解析度，但是電腦端的Sunshine並不會跟著變化。所以我們得設定hook，利用Sunshine的「Custom Application」功能，自訂啟動桌面後執行指令，自動執行xrandr調整解析度與縮放，關閉遠端桌面之後再自動切回去。</p><p>本文討論的內容僅適用X11，因為Wayland沒有統一調整桌面解析度的指令。</p><h2>1. 測試xrandr指令<span><a href="#1-%E6%B8%AC%E8%A9%A6xrandr%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>以我的情況來說，客戶端iPad Air 6的解析度是2360x1640，比例大約是3:2。如果不追求這麼高畫質，那麼用同為3:2比例的1475x1025就夠了（iPad解析度除以1.6）。</p><p>因為如果直接設定為2360x1640的話，電腦顯示器必須支援2K以上解析度否則會「超出範圍」，還有高解析度得設定全域螢幕縮放，字在iPad才不會看起來太小。直接用低解析度就不用再設定全域螢幕縮放了。</p><p>於Sunshine後台設定前，先手動執行一次xrandr指令，確認真的能修改解析度再繼續。</p><ol><li>Ubuntu安裝以下套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install x11-xserver-utils
-</span></span></code></pre></div><ol start="2"><li>一般16:9的螢幕不會支援3:2這種比例，所以得強制新增Modeline。使用cvt指令計算1475x1025的Modeline所需參數，取整後解析度會略有變化，變成1480x1025</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cvt -r <span>1475</span> <span>1025</span> <span>60</span>
-</span></span></code></pre></div><ol start="3"><li>新增Modeline</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
-</span></span></code></pre></div><ol start="4"><li>查看目前使用的螢幕為何</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr -q
-</span></span></code></pre></div><ol start="5"><li>將Modeline新增到HDMI-1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="6"><li>指定解析度。螢幕應該會閃一下之後螢幕被拉伸。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="7"><li>如果要設定全域縮放1.5倍的話：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span> --scale 1.5x1.5
-</span></span></code></pre></div><ol start="8"><li>重設螢幕解析度為1920x1080：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
-</span></span></code></pre></div><h2>2. 調整Sunshine後台的指令<span><a href="#2-%E8%AA%BF%E6%95%B4sunshine%E5%BE%8C%E5%8F%B0%E7%9A%84%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><ol><li>我們新增指令稿，第一個是變更解析度</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/changeresolution.sh
-</span></span></code></pre></div><ol start="2"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
-</span></span><span><span>
-</span></span><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
-</span></span><span><span>
-</span></span><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="3"><li>再來是重置解析度的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/resetresolution.sh
-</span></span></code></pre></div><ol start="4"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
-</span></span></code></pre></div><ol start="5"><li>賦予執行權限</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x ~/.local/bin/changeresolution.sh
-</span></span><span><span>chmod +x ~/.local/bin/resetresolution.sh
-</span></span></code></pre></div><ol start="6"><li><p><a href="https://ivonblog.com/posts/linux-sunshine-remote-gaming/" target="_blank">安裝Sunshine</a>伺服器。</p></li><li><p>開啟後台的Applications頁面，點選Desktop（你也可以另外新增其他程式）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e3da2f6ad2.webp"></li><li><p>找到Do Command和Undo Command欄位</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2f26e2d80a.webp"></li><li><p>填入指令稿的絕對路徑：<code>bash /home/user/.local/bin/changeresolution.sh</code>和<code>bash /home/user/.local/bin/resetesolution.sh</code></p></li><li><p>點選下方Save</p></li><li><p>用Moonlight連線前需要把解析度設定為<code>Full</code>以符合iPad解析度。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ccba47c7c.webp"></li><li><p>點選Desktop，電腦解析度應該就會自動變化了。</p></li><li><p>要觸發解析度重置，必須點Quit APP中止桌面工作階段。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7a530c1203.webp"></li></ol>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/linux-moonlight-resolution-automation/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp"></a></p>
-<p>問題點：Moonlight遠端Linux桌面解析度與客戶端不符，導致文字看起來太小或者出現黑邊。我希望可以像TeamViewer那樣自動縮放，將遠端Linux桌面的解析度調整為客戶端解析度。</p><p>從這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c5da325ef9.webp"><p>變成這樣</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd26640eda.webp"><p>Moonlight客戶端雖然可以指定解析度，但是電腦端的Sunshine並不會跟著變化。所以我們得設定hook，利用Sunshine的「Custom Application」功能，自訂啟動桌面後執行指令，自動執行xrandr調整解析度與縮放，關閉遠端桌面之後再自動切回去。</p><p>本文討論的內容僅適用X11，因為Wayland沒有統一調整桌面解析度的指令。</p><h2>1. 測試xrandr指令<span><a href="#1-%E6%B8%AC%E8%A9%A6xrandr%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><p>以我的情況來說，客戶端iPad Air 6的解析度是2360x1640，比例大約是3:2。如果不追求這麼高畫質，那麼用同為3:2比例的1475x1025就夠了（iPad解析度除以1.6）。</p><p>因為如果直接設定為2360x1640的話，電腦顯示器必須支援2K以上解析度否則會「超出範圍」，還有高解析度得設定全域螢幕縮放，字在iPad才不會看起來太小。直接用低解析度就不用再設定全域螢幕縮放了。</p><p>於Sunshine後台設定前，先手動執行一次xrandr指令，確認真的能修改解析度再繼續。</p><ol><li>Ubuntu安裝以下套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install x11-xserver-utils
-</span></span></code></pre></div><ol start="2"><li>一般16:9的螢幕不會支援3:2這種比例，所以得強制新增Modeline。使用cvt指令計算1475x1025的Modeline所需參數，取整後解析度會略有變化，變成1480x1025</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>cvt -r <span>1475</span> <span>1025</span> <span>60</span>
-</span></span></code></pre></div><ol start="3"><li>新增Modeline</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
-</span></span></code></pre></div><ol start="4"><li>查看目前使用的螢幕為何</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr -q
-</span></span></code></pre></div><ol start="5"><li>將Modeline新增到HDMI-1</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="6"><li>指定解析度。螢幕應該會閃一下之後螢幕被拉伸。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="7"><li>如果要設定全域縮放1.5倍的話：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span> --scale 1.5x1.5
-</span></span></code></pre></div><ol start="8"><li>重設螢幕解析度為1920x1080：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
-</span></span></code></pre></div><h2>2. 調整Sunshine後台的指令<span><a href="#2-%E8%AA%BF%E6%95%B4sunshine%E5%BE%8C%E5%8F%B0%E7%9A%84%E6%8C%87%E4%BB%A4" aria-label="定位點">#</a></span></h2><ol><li>我們新增指令稿，第一個是變更解析度</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/changeresolution.sh
-</span></span></code></pre></div><ol start="2"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --newmode <span>"1480x1025R"</span>  103.50  <span>1480</span> <span>1528</span> <span>1560</span> <span>1640</span>  <span>1025</span> <span>1028</span> <span>1038</span> <span>1055</span> +hsync -vsync
-</span></span><span><span>
-</span></span><span><span>xrandr --addmode HDMI-1 <span>"1480x1025R"</span>
-</span></span><span><span>
-</span></span><span><span>xrandr --output HDMI-1 --mode <span>"1480x1025R"</span>
-</span></span></code></pre></div><ol start="3"><li>再來是重置解析度的指令稿</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>vim ~/.local/bin/resetresolution.sh
-</span></span></code></pre></div><ol start="4"><li>填入指令：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>xrandr --output HDMI-1 --mode <span>"1920x1080"</span>
-</span></span></code></pre></div><ol start="5"><li>賦予執行權限</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x ~/.local/bin/changeresolution.sh
-</span></span><span><span>chmod +x ~/.local/bin/resetresolution.sh
-</span></span></code></pre></div><ol start="6"><li><p><a href="https://ivonblog.com/posts/linux-sunshine-remote-gaming/" target="_blank">安裝Sunshine</a>伺服器。</p></li><li><p>開啟後台的Applications頁面，點選Desktop（你也可以另外新增其他程式）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e3da2f6ad2.webp"></li><li><p>找到Do Command和Undo Command欄位</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2f26e2d80a.webp"></li><li><p>填入指令稿的絕對路徑：<code>bash /home/user/.local/bin/changeresolution.sh</code>和<code>bash /home/user/.local/bin/resetesolution.sh</code></p></li><li><p>點選下方Save</p></li><li><p>用Moonlight連線前需要把解析度設定為<code>Full</code>以符合iPad解析度。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ccba47c7c.webp"></li><li><p>點選Desktop，電腦解析度應該就會自動變化了。</p></li><li><p>要觸發解析度重置，必須點Quit APP中止桌面工作階段。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7a530c1203.webp"></li></ol>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eac8bd2d79.webp" medium="image"/>
-    <pubDate>Thu, 12 Sep 2024 11:00:00 +0800</pubDate>
   </item></channel>
 </rss>
