@@ -30,6 +30,129 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Coding4Fun - 磨課師 Python 線上課程轉 YouTube 播放清單]]></title>
+    <link>https://blog.darkthread.net/blog/create-youtube-playlist/</link>
+    <itunes:title><![CDATA[Coding4Fun - 磨課師 Python 線上課程轉 YouTube 播放清單]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>上回介紹 <a href="/blog/python-beginner-notes-1/">Python 新手線上教學資源</a>提到我有在看政大磨課師課程的線上開放課程 - <a href="https://sites.google.com/g.nccu.edu.tw/moocs/2024%E7%A7%8B%E5%AD%A3%E7%8F%AD%E7%A3%A8%E8%AA%B2%E5%B8%AB%E8%AA%B2%E7%A8%8B/%E6%88%90%E7%82%BApython%E6%95%B8%E6%93%9A%E5%88%86%E6%9E%90%E9%81%94%E4%BA%BA-%E7%9A%84%E7%AC%AC%E4%B8%80%E9%96%80%E8%AA%B2-113-1">成為python數據分析達人-的第一門課</a>，課程偏重數據分析演練，挺實用的。</p> <p>課程是開放的，只要申請個新帳號任何人都可以看課程影片。</p> <p>實際看了幾篇，發現上操作有點不便。以這堂 Python 課程為例，每一章有多個小節：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638631064210937196.png"></p> <p>每小節標題點進去的頁面如下圖，基本上就是一個內嵌 YouTube 影片播放器，下方則有按鈕可以跳上一節下一節：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638631064215968459.png"></p> <p>正常狀況用網頁看，點放到全螢幕，看完一節縮小再按下一節，倒也還行。但我習慣調快播放速度，每次切到下節會恢復正常速度，需要重新調快；所以我在想，若能做成 YouTube 播放清單，直接在 YouTube App 看，一來不用每次點一下放大能會自動播放下一節，二則播放速度不用每次重調，豈不美哉。</p> <p>YouTube 可以自訂播放清單，一般人應該就是一節一節點進去開影片加入播放清單就完了；但我可不行，手工操作重複到第三遍，通常就會喚醒我靈魂深處的王藍田，把滑鼠丟到地上用木屐踩，再放到嘴裡咬破吐掉... (謎之聲：這是什麼毛病)。因此，我寧可多花一倍時間寫程式完成它~</p> <p>我寫了一小段 jQuery + JavaScript 用 F12 跑，先掃出所有 n-n 小節標題對映的 URL，呼叫 fetch 取回該頁 HTML，從中取出 YouTube 內嵌播放器 URL 中的影片代碼，最後產生一個 CSV 自動下載。(嘿，幾十年的全端工程師沒有白幹啊~)</p> <pre><code>list = jQuery(".aalink[href*='view.php?id=']")
+.filter((i, e) =&gt; $(e).text().match(/^[0-9]*-[0-9]*/))
+.map((i, e) =&gt; {
+const o = $(e);
+return {
+text: o.text(),
+link: o.attr('href')
+}
+}).get();
+//list = list.slice(0, 10);
+const promises = list.map(item =&gt; {
+console.log(item.text, item.link);
+return fetch(item.link)
+.then(response =&gt; response.text())
+.then(html =&gt; new Promise((resolve, reject) =&gt; {
+const m = html.match(/https:\/\/www.youtube.com\/embed\/([^?]+)/);
+if (m) item.youtube = "https://www.youtube.com/watch?v=" + m[1];
+resolve(item);
+}));
+});
+Promise.all(promises)
+.then(items =&gt; {
+const playlist = [];
+list.filter(item =&gt; item.youtube).forEach(item =&gt; {
+playlist.push(item.youtube);
+});
+const csvUrl = URL.createObjectURL(new Blob([playlist.join('
+')], { type: 'text/csv' }));
+const downloadLink = document.createElement('a');
+downloadLink.href = csvUrl;
+downloadLink.download = 'playlist.csv';
+downloadLink.click();
+})
+.catch(error =&gt; {
+console.error(error);
+});
+</code></pre> <p>在課程章節清單網按 F12 跑程式，它會掃瞄出所有小節網頁 URL 再逐一從中抓出 YouTube 影片編號：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638631064217920754.png"></p> <p>醬子，就拿到全部影片的 YouTube 連結了，共 70 筆，估計能省下幾百次點擊操作。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638631064219645672.png"></p> <p>這個 csv 要怎麼轉成 YouTube 播放清單呢？查了一下，YouTube 沒有提供從檔案匯入的功能，要<a href="https://support.google.com/youtube/answer/57792?hl=en&amp;co=GENIE.Platform%3DDesktop">在網頁手工操作</a>。另一條路是<a href="https://developers.google.com/youtube/v3/docs/playlists/insert?hl=zh-tw">用 YouTube Data API</a>，這個副本下次再打。我查到有個 <a href="https://soundiiz.com/">Soundiiz</a> 播放清單管理平台，提供<a href="https://soundiiz.com/zh/tutorial/import-excel-to-youtube">將 CSV 播放清單匯入 YouTube </a> 的功能，上傳 CSV 再授權 Soundiiz 存取你的 YouTube，播放清單就做好囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638631064221670973.jpg"></p> <p data-slug="create-youtube-playlist" data-title-en="Create YouTube playlist from web pages by jQuery and JavaScript" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">Exploring how to convert an online Python data analysis course into a YouTube playlist using jQuery, JavaScript, and CSV export to streamline video playback and speed adjustments.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>上回介紹 <a href="/blog/python-beginner-notes-1/">Python 新手線上教學資源</a>提到我有在看政大磨課師課程的線上開放課程 - <a href="https://sites.google.com/g.nccu.edu.tw/moocs/2024%E7%A7%8B%E5%AD%A3%E7%8F%AD%E7%A3%A8%E8%AA%B2%E5%B8%AB%E8%AA%B2%E7%A8%8B/%E6%88%90%E7%82%BApython%E6%95%B8%E6%93%9A%E5%88%86%E6%9E%90%E9%81%94%E4%BA%BA-%E7%9A%84%E7%AC%AC%E4%B8%80%E9%96%80%E8%AA%B2-113-1">成為python數據分析達人-的第一門課</a>，課程偏重數據分析演練，挺實用的。</p> <p>課程是開放的，只要申請個新帳號任何人都可以看課程影片。</p> <p>實際看了幾篇，發現上操作有點不便。以這堂 Python 課程為例，每一章有多個小節：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638631064210937196.png"></p> <p>每小節標題點進去的頁面如下圖，基本上就是一個內嵌 YouTube 影片播放器，下方則有按鈕可以跳上一節下一節：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638631064215968459.png"></p> <p>正常狀況用網頁看，點放到全螢幕，看完一節縮小再按下一節，倒也還行。但我習慣調快播放速度，每次切到下節會恢復正常速度，需要重新調快；所以我在想，若能做成 YouTube 播放清單，直接在 YouTube App 看，一來不用每次點一下放大能會自動播放下一節，二則播放速度不用每次重調，豈不美哉。</p> <p>YouTube 可以自訂播放清單，一般人應該就是一節一節點進去開影片加入播放清單就完了；但我可不行，手工操作重複到第三遍，通常就會喚醒我靈魂深處的王藍田，把滑鼠丟到地上用木屐踩，再放到嘴裡咬破吐掉... (謎之聲：這是什麼毛病)。因此，我寧可多花一倍時間寫程式完成它~</p> <p>我寫了一小段 jQuery + JavaScript 用 F12 跑，先掃出所有 n-n 小節標題對映的 URL，呼叫 fetch 取回該頁 HTML，從中取出 YouTube 內嵌播放器 URL 中的影片代碼，最後產生一個 CSV 自動下載。(嘿，幾十年的全端工程師沒有白幹啊~)</p> <pre><code>list = jQuery(".aalink[href*='view.php?id=']")
+.filter((i, e) =&gt; $(e).text().match(/^[0-9]*-[0-9]*/))
+.map((i, e) =&gt; {
+const o = $(e);
+return {
+text: o.text(),
+link: o.attr('href')
+}
+}).get();
+//list = list.slice(0, 10);
+const promises = list.map(item =&gt; {
+console.log(item.text, item.link);
+return fetch(item.link)
+.then(response =&gt; response.text())
+.then(html =&gt; new Promise((resolve, reject) =&gt; {
+const m = html.match(/https:\/\/www.youtube.com\/embed\/([^?]+)/);
+if (m) item.youtube = "https://www.youtube.com/watch?v=" + m[1];
+resolve(item);
+}));
+});
+Promise.all(promises)
+.then(items =&gt; {
+const playlist = [];
+list.filter(item =&gt; item.youtube).forEach(item =&gt; {
+playlist.push(item.youtube);
+});
+const csvUrl = URL.createObjectURL(new Blob([playlist.join('
+')], { type: 'text/csv' }));
+const downloadLink = document.createElement('a');
+downloadLink.href = csvUrl;
+downloadLink.download = 'playlist.csv';
+downloadLink.click();
+})
+.catch(error =&gt; {
+console.error(error);
+});
+</code></pre> <p>在課程章節清單網按 F12 跑程式，它會掃瞄出所有小節網頁 URL 再逐一從中抓出 YouTube 影片編號：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638631064217920754.png"></p> <p>醬子，就拿到全部影片的 YouTube 連結了，共 70 筆，估計能省下幾百次點擊操作。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638631064219645672.png"></p> <p>這個 csv 要怎麼轉成 YouTube 播放清單呢？查了一下，YouTube 沒有提供從檔案匯入的功能，要<a href="https://support.google.com/youtube/answer/57792?hl=en&amp;co=GENIE.Platform%3DDesktop">在網頁手工操作</a>。另一條路是<a href="https://developers.google.com/youtube/v3/docs/playlists/insert?hl=zh-tw">用 YouTube Data API</a>，這個副本下次再打。我查到有個 <a href="https://soundiiz.com/">Soundiiz</a> 播放清單管理平台，提供<a href="https://soundiiz.com/zh/tutorial/import-excel-to-youtube">將 CSV 播放清單匯入 YouTube </a> 的功能，上傳 CSV 再授權 Soundiiz 存取你的 YouTube，播放清單就做好囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638631064221670973.jpg"></p> <p data-slug="create-youtube-playlist" data-title-en="Create YouTube playlist from web pages by jQuery and JavaScript" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">Exploring how to convert an online Python data analysis course into a YouTube playlist using jQuery, JavaScript, and CSV export to streamline video playback and speed adjustments.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>上回介紹 <a href="/blog/python-beginner-notes-1/">Python 新手線上教學資源</a>提到我有在看政大磨課師課程的線上開放課程 - <a href="https://sites.google.com/g.nccu.edu.tw/moocs/2024%E7%A7%8B%E5%AD%A3%E7%8F%AD%E7%A3%A8%E8%AA%B2%E5%B8%AB%E8%AA%B2%E7%A8%8B/%E6%88%90%E7%82%BApython%E6%95%B8%E6%93%9A%E5%88%86%E6%9E%90%E9%81%94%E4%BA%BA-%E7%9A%84%E7%AC%AC%E4%B8%80%E9%96%80%E8%AA%B2-113-1">成為python數據分析達人-的第一門課</a>，課程偏重數據分析演練，挺實用的。</p> <p>課程是開放的，只要申請個新帳號任何人都可以看課程影片。</p> <p>實際看了幾篇，發現上操作有點不便。以這堂 Python 課程為例，每一章有多個小節：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638631064210937196.png"></p> <p>每小節標題點進去的頁面如下圖，基本上就是一個內嵌 YouTube 影片播放器，下方則有按鈕可以跳上一節下一節：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638631064215968459.png"></p> <p>正常狀況用網頁看，點放到全螢幕，看完一節縮小再按下一節，倒也還行。但我習慣調快播放速度，每次切到下節會恢復正常速度，需要重新調快；所以我在想，若能做成 YouTube 播放清單，直接在 YouTube App 看，一來不用每次點一下放大能會自動播放下一節，二則播放速度不用每次重調，豈不美哉。</p> <p>YouTube 可以自訂播放清單，一般人應該就是一節一節點進去開影片加入播放清單就完了；但我可不行，手工操作重複到第三遍，通常就會喚醒我靈魂深處的王藍田，把滑鼠丟到地上用木屐踩，再放到嘴裡咬破吐掉... (謎之聲：這是什麼毛病)。因此，我寧可多花一倍時間寫程式完成它~</p> <p>我寫了一小段 jQuery + JavaScript 用 F12 跑，先掃出所有 n-n 小節標題對映的 URL，呼叫 fetch 取回該頁 HTML，從中取出 YouTube 內嵌播放器 URL 中的影片代碼，最後產生一個 CSV 自動下載。(嘿，幾十年的全端工程師沒有白幹啊~)</p> <pre><code>list = jQuery(".aalink[href*='view.php?id=']")
+.filter((i, e) =&gt; $(e).text().match(/^[0-9]*-[0-9]*/))
+.map((i, e) =&gt; {
+const o = $(e);
+return {
+text: o.text(),
+link: o.attr('href')
+}
+}).get();
+//list = list.slice(0, 10);
+const promises = list.map(item =&gt; {
+console.log(item.text, item.link);
+return fetch(item.link)
+.then(response =&gt; response.text())
+.then(html =&gt; new Promise((resolve, reject) =&gt; {
+const m = html.match(/https:\/\/www.youtube.com\/embed\/([^?]+)/);
+if (m) item.youtube = "https://www.youtube.com/watch?v=" + m[1];
+resolve(item);
+}));
+});
+Promise.all(promises)
+.then(items =&gt; {
+const playlist = [];
+list.filter(item =&gt; item.youtube).forEach(item =&gt; {
+playlist.push(item.youtube);
+});
+const csvUrl = URL.createObjectURL(new Blob([playlist.join('
+')], { type: 'text/csv' }));
+const downloadLink = document.createElement('a');
+downloadLink.href = csvUrl;
+downloadLink.download = 'playlist.csv';
+downloadLink.click();
+})
+.catch(error =&gt; {
+console.error(error);
+});
+</code></pre> <p>在課程章節清單網按 F12 跑程式，它會掃瞄出所有小節網頁 URL 再逐一從中抓出 YouTube 影片編號：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638631064217920754.png"></p> <p>醬子，就拿到全部影片的 YouTube 連結了，共 70 筆，估計能省下幾百次點擊操作。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638631064219645672.png"></p> <p>這個 csv 要怎麼轉成 YouTube 播放清單呢？查了一下，YouTube 沒有提供從檔案匯入的功能，要<a href="https://support.google.com/youtube/answer/57792?hl=en&amp;co=GENIE.Platform%3DDesktop">在網頁手工操作</a>。另一條路是<a href="https://developers.google.com/youtube/v3/docs/playlists/insert?hl=zh-tw">用 YouTube Data API</a>，這個副本下次再打。我查到有個 <a href="https://soundiiz.com/">Soundiiz</a> 播放清單管理平台，提供<a href="https://soundiiz.com/zh/tutorial/import-excel-to-youtube">將 CSV 播放清單匯入 YouTube </a> 的功能，上傳 CSV 再授權 Soundiiz 存取你的 YouTube，播放清單就做好囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638631064221670973.jpg"></p> <p data-slug="create-youtube-playlist" data-title-en="Create YouTube playlist from web pages by jQuery and JavaScript" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/310983/pexels-photo-310983.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">Exploring how to convert an online Python data analysis course into a YouTube playlist using jQuery, JavaScript, and CSV export to streamline video playback and speed adjustments.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638631064210937196.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638631064210937196.png" medium="image"/>
+    <pubDate>Sat, 28 Sep 2024 07:42:41 GMT</pubDate>
+  </item><item>
     <title><![CDATA[閒聊：C++ 之父自爆 C++ 超危險？]]></title>
     <link>https://blog.darkthread.net/blog/cpp-blow-leg/</link>
     <itunes:title><![CDATA[閒聊：C++ 之父自爆 C++ 超危險？]]></itunes:title>
@@ -931,53 +1054,5 @@ $mailItem.Delete()
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png" medium="image"/>
     <pubDate>Thu, 05 Sep 2024 13:41:26 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[PowerShell Resolve-Path 解析不存在路徑]]></title>
-    <link>https://blog.darkthread.net/blog/ps-resolve-non-existing-path/</link>
-    <itunes:title><![CDATA[PowerShell Resolve-Path 解析不存在路徑]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="/blog/ps-curr-location-issue/">PowerShell 與 .NET 工作目錄不同步</a>是剛開始寫 PowerShell 常會踩到的坑之一。</p> <p>用下面的例子復習這個問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638610522158586005.png"></p> <p>我們在 D:\ 下啟動 PowerShell [1]，接著切到 D:\sub 資料夾[2]，寫入 <code>.\test.txt</code>，此時用 <code>Get-Content .\test.txt</code> 可順利讀取 [3]。但 <code>[IO.File]::ReadAllText('.\test.txt')</code> 裡 <code>.\test.txt</code> 則被解析成 'D:\test.txt' [4]，理由是 PowerShell 啟動時目錄在 D:\，故 .NET 世界的工作目錄還在 D:\。試著用 <code>Resolve-Path .\test.txt</code> 轉成絕對路徑再傳給 <code>File.ReadAllText()</code>，這次順利讀取。</p> <p>這不算什麼大問題，多遇幾次便會養成習慣，傳相對路徑給 .NET API 時，要嘛強制 <code>[System.IO.Directory]::SetCurrentDirectory($(PWD))</code> 強迫兩邊工作目錄同步，要嘛就是用 <code>Resolve-Path</code> 將 PowerShell 相對路徑轉成絕對路徑，我偏好後者。</p> <p>而 Resolve-Path 有個不好用的地方 - 它只會傳回已存在的路徑，若目錄或檔案不存在，它會觸發錯誤，回報某某絕對路徑不存在。</p> <p>這在處理"輸出路徑"參數最有困擾，要寫入的路徑或檔案本來就不存在，等下才要建立。可惡，明明都已經解析好了出現在錯誤訊息卻拿不到!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638610522160329139.png"></p> <p>Resolve-Path 能無視路徑是否存在，只幫我解析絕對路徑就好嗎？很遺憾，即便到了 PowerShell 7.4，<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/resolve-path?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Resolve-Path 還是沒有內建參數可以無視檔案不存在</a>只傳回解析結果。</p> <p>爬文後找到<a href="https://stackoverflow.com/q/3038337/288936">解法</a>：</p> <ol><li>既然錯誤訊息有解析出來的絕對路徑，用 <a href="https://devblogs.microsoft.com/powershell/erroraction-and-errorvariable/?WT.mc_id=DOP-MVP-37580">-ErrorVariable 參數</a>把它撈出來 <pre><code>$fullPath = Resolve-Path .\file-to-save.txt -ErrorAction SilentlyContinue -ErrorVariable err
-if (!$fullPath) {
-$fullPath = $err[0].TargetObject
-# 想了解 ErrorVariable 傳回變數屬性可用 $err[0] | Format-List -Force 觀察
-}
-$fullPath
-</code></pre> </li> <li>借用 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.pathintrinsics.getunresolvedproviderpathfrompspath?view=powershellsdk-7.4.0&amp;WT.mc_id=DOP-MVP-37580">GetUnresolvedProviderPathFromPSPath() 函式</a> <pre><code>$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(".\file-to-save.txt")
-</code></pre> 指令有點長，但一行搞定，不拖泥帶水。</li></ol> <p>若要方便應用，可將上述做法包成函式，例如：</p> <pre><code>function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-Resolve-AbsPath .\file-to-save.txt
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638610522162045233.png"></p> <p>就醬，又解決掉一個日常小問題囉~</p> <p data-slug="ps-resolve-non-existing-path" data-title-en="How to Resolve-Path a non-existing path?" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This blog post discusses the common PowerShell issue of desynchronization with .NET working directories and offers solutions, including a custom function to resolve relative paths to absolute paths.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="/blog/ps-curr-location-issue/">PowerShell 與 .NET 工作目錄不同步</a>是剛開始寫 PowerShell 常會踩到的坑之一。</p> <p>用下面的例子復習這個問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638610522158586005.png"></p> <p>我們在 D:\ 下啟動 PowerShell [1]，接著切到 D:\sub 資料夾[2]，寫入 <code>.\test.txt</code>，此時用 <code>Get-Content .\test.txt</code> 可順利讀取 [3]。但 <code>[IO.File]::ReadAllText('.\test.txt')</code> 裡 <code>.\test.txt</code> 則被解析成 'D:\test.txt' [4]，理由是 PowerShell 啟動時目錄在 D:\，故 .NET 世界的工作目錄還在 D:\。試著用 <code>Resolve-Path .\test.txt</code> 轉成絕對路徑再傳給 <code>File.ReadAllText()</code>，這次順利讀取。</p> <p>這不算什麼大問題，多遇幾次便會養成習慣，傳相對路徑給 .NET API 時，要嘛強制 <code>[System.IO.Directory]::SetCurrentDirectory($(PWD))</code> 強迫兩邊工作目錄同步，要嘛就是用 <code>Resolve-Path</code> 將 PowerShell 相對路徑轉成絕對路徑，我偏好後者。</p> <p>而 Resolve-Path 有個不好用的地方 - 它只會傳回已存在的路徑，若目錄或檔案不存在，它會觸發錯誤，回報某某絕對路徑不存在。</p> <p>這在處理"輸出路徑"參數最有困擾，要寫入的路徑或檔案本來就不存在，等下才要建立。可惡，明明都已經解析好了出現在錯誤訊息卻拿不到!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638610522160329139.png"></p> <p>Resolve-Path 能無視路徑是否存在，只幫我解析絕對路徑就好嗎？很遺憾，即便到了 PowerShell 7.4，<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/resolve-path?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Resolve-Path 還是沒有內建參數可以無視檔案不存在</a>只傳回解析結果。</p> <p>爬文後找到<a href="https://stackoverflow.com/q/3038337/288936">解法</a>：</p> <ol><li>既然錯誤訊息有解析出來的絕對路徑，用 <a href="https://devblogs.microsoft.com/powershell/erroraction-and-errorvariable/?WT.mc_id=DOP-MVP-37580">-ErrorVariable 參數</a>把它撈出來 <pre><code>$fullPath = Resolve-Path .\file-to-save.txt -ErrorAction SilentlyContinue -ErrorVariable err
-if (!$fullPath) {
-$fullPath = $err[0].TargetObject
-# 想了解 ErrorVariable 傳回變數屬性可用 $err[0] | Format-List -Force 觀察
-}
-$fullPath
-</code></pre> </li> <li>借用 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.pathintrinsics.getunresolvedproviderpathfrompspath?view=powershellsdk-7.4.0&amp;WT.mc_id=DOP-MVP-37580">GetUnresolvedProviderPathFromPSPath() 函式</a> <pre><code>$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(".\file-to-save.txt")
-</code></pre> 指令有點長，但一行搞定，不拖泥帶水。</li></ol> <p>若要方便應用，可將上述做法包成函式，例如：</p> <pre><code>function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-Resolve-AbsPath .\file-to-save.txt
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638610522162045233.png"></p> <p>就醬，又解決掉一個日常小問題囉~</p> <p data-slug="ps-resolve-non-existing-path" data-title-en="How to Resolve-Path a non-existing path?" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This blog post discusses the common PowerShell issue of desynchronization with .NET working directories and offers solutions, including a custom function to resolve relative paths to absolute paths.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="/blog/ps-curr-location-issue/">PowerShell 與 .NET 工作目錄不同步</a>是剛開始寫 PowerShell 常會踩到的坑之一。</p> <p>用下面的例子復習這個問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638610522158586005.png"></p> <p>我們在 D:\ 下啟動 PowerShell [1]，接著切到 D:\sub 資料夾[2]，寫入 <code>.\test.txt</code>，此時用 <code>Get-Content .\test.txt</code> 可順利讀取 [3]。但 <code>[IO.File]::ReadAllText('.\test.txt')</code> 裡 <code>.\test.txt</code> 則被解析成 'D:\test.txt' [4]，理由是 PowerShell 啟動時目錄在 D:\，故 .NET 世界的工作目錄還在 D:\。試著用 <code>Resolve-Path .\test.txt</code> 轉成絕對路徑再傳給 <code>File.ReadAllText()</code>，這次順利讀取。</p> <p>這不算什麼大問題，多遇幾次便會養成習慣，傳相對路徑給 .NET API 時，要嘛強制 <code>[System.IO.Directory]::SetCurrentDirectory($(PWD))</code> 強迫兩邊工作目錄同步，要嘛就是用 <code>Resolve-Path</code> 將 PowerShell 相對路徑轉成絕對路徑，我偏好後者。</p> <p>而 Resolve-Path 有個不好用的地方 - 它只會傳回已存在的路徑，若目錄或檔案不存在，它會觸發錯誤，回報某某絕對路徑不存在。</p> <p>這在處理"輸出路徑"參數最有困擾，要寫入的路徑或檔案本來就不存在，等下才要建立。可惡，明明都已經解析好了出現在錯誤訊息卻拿不到!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638610522160329139.png"></p> <p>Resolve-Path 能無視路徑是否存在，只幫我解析絕對路徑就好嗎？很遺憾，即便到了 PowerShell 7.4，<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/resolve-path?view=powershell-7.4&amp;WT.mc_id=DOP-MVP-37580">Resolve-Path 還是沒有內建參數可以無視檔案不存在</a>只傳回解析結果。</p> <p>爬文後找到<a href="https://stackoverflow.com/q/3038337/288936">解法</a>：</p> <ol><li>既然錯誤訊息有解析出來的絕對路徑，用 <a href="https://devblogs.microsoft.com/powershell/erroraction-and-errorvariable/?WT.mc_id=DOP-MVP-37580">-ErrorVariable 參數</a>把它撈出來 <pre><code>$fullPath = Resolve-Path .\file-to-save.txt -ErrorAction SilentlyContinue -ErrorVariable err
-if (!$fullPath) {
-$fullPath = $err[0].TargetObject
-# 想了解 ErrorVariable 傳回變數屬性可用 $err[0] | Format-List -Force 觀察
-}
-$fullPath
-</code></pre> </li> <li>借用 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.pathintrinsics.getunresolvedproviderpathfrompspath?view=powershellsdk-7.4.0&amp;WT.mc_id=DOP-MVP-37580">GetUnresolvedProviderPathFromPSPath() 函式</a> <pre><code>$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(".\file-to-save.txt")
-</code></pre> 指令有點長，但一行搞定，不拖泥帶水。</li></ol> <p>若要方便應用，可將上述做法包成函式，例如：</p> <pre><code>function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-Resolve-AbsPath .\file-to-save.txt
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638610522162045233.png"></p> <p>就醬，又解決掉一個日常小問題囉~</p> <p data-slug="ps-resolve-non-existing-path" data-title-en="How to Resolve-Path a non-existing path?" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This blog post discusses the common PowerShell issue of desynchronization with .NET working directories and offers solutions, including a custom function to resolve relative paths to absolute paths.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638610522158586005.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638610522158586005.png" medium="image"/>
-    <pubDate>Wed, 04 Sep 2024 13:07:14 GMT</pubDate>
   </item></channel>
 </rss>
