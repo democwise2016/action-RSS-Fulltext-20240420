@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/951/800/800.jpg?hmac=IZCJ0llFoRaafMCJGva6ss3cUrvwP8RA5v5noGcgXAw</url>
+      <url>https://fastly.picsum.photos/id/417/800/800.jpg?hmac=N5aD-9FF1xFGj7_HepZonu9Ap_1ihcKUGL797VgCvO4</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,56 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/951/800/800.jpg?hmac=IZCJ0llFoRaafMCJGva6ss3cUrvwP8RA5v5noGcgXAw"/>
+    <itunes:image href="https://fastly.picsum.photos/id/417/800/800.jpg?hmac=N5aD-9FF1xFGj7_HepZonu9Ap_1ihcKUGL797VgCvO4"/>
 <item>
+    <title><![CDATA[APatch安裝教學，融合KernelSU與Magisk優點的Android手機Root方案]]></title>
+    <link>https://ivonblog.com/posts/sony-xperia-5-ii-apatch/</link>
+    <itunes:title><![CDATA[APatch安裝教學，融合KernelSU與Magisk優點的Android手機Root方案]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-5-ii-apatch/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-183d797dc1.webp"></a></p>
+<p>本文Ivon分享2024年出現的開源Root方案「APatch」的安裝方式。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-772ce91e47.webp"><p>測試手機：</p><ul><li>Sony Xperia 5 II</li><li>Android 14 Lineage OS 21</li><li>Linux核心版本4.19</li></ul><h2>1. APatch介紹<span><a href="#1-apatch%E4%BB%8B%E7%B4%B9" aria-label="定位點">#</a></span></h2><p>根據<a href="https://apatch.dev/zh_CN/what-is-apatch.html" target="_blank">
+官網文件</a>介紹，APatch有以下特點：</p><ul><li>APatch支援Linux核心版本3.8以上、64位元的Android裝置。</li><li>Linux核心需啟用「<code>CONFIG_KALLSYMS=y </code>和<code>CONFIG_KALLSYMS_ALL=y</code>」或者「<code>CONFIG_KALLSYMS=y</code>和<code>CONFIG_KALLSYMS_ALL=n</code>」選項，大部分裝置應該都有</li><li>APatch不像KernelSU需要GKI核心，也不用重新編譯Linux核心，只要像Magisk那樣修補boot.img就好了，因此理論上支援更多裝置。</li><li>APatch的隱藏Root能力接近KernelSU，但要通過Play Integrity可能還是得裝Play Integrity Fix模組。</li><li>APatch同時支援Magisk與KernelSU的模組，也支援Zygisk。</li></ul><p>超級密鑰(SuperKey)為APatch所新增的項目，它是應用程式執行高權限的SuperCall所需的金鑰，使用者得用APatch的APP自行設定。它的權限比Root權限更高，因此不要用太簡單的密碼。</p><h2>2. 修補boot.img，安裝APatch<span><a href="#2-%E4%BF%AE%E8%A3%9Cbootimg%E5%AE%89%E8%A3%9Dapatch" aria-label="定位點">#</a></span></h2><ol><li><p>解鎖手機的Bootloader</p></li><li><p>如果能取得Root權限，先在ADB Shell執行指令，檢查目前的核心是否有啟用APatch要求的選項，否則就得重新編譯核心了：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>zcat /proc/config.gz <span>|</span> grep -w CONFIG_KALLSYMS
+</span></span><span><span><span># 應會列出CONFIG_KALLSYMS=y 和CONFIG_KALLSYMS_ALL=y</span>
+</span></span></code></pre></div><ol start="3"><li><p>準備裝置的boot.img，原廠Android系統通常能從刷機包裡面解出來，例如Sony有<a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">
+Sony Dump Tool</a>。而LineageOS的話就到ROM下載頁面取得boot.img。</p></li><li><p>將boot.img傳到手機</p></li><li><p>到APatch的<a href="https://github.com/bmax121/APatch/releases" target="_blank">
+Github</a>下載APK</p></li><li><p>開啟後點選右上角選取要修補的映像檔
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2bfcd2a4da.webp"></p></li><li><p>設定超級密鑰，然後開始修補
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fcdbad65b.webp"></p></li><li><p>修補完的boot.img應該會儲存到<code>Download</code>資料夾，把修補後的檔案傳到電腦。</p></li><li><p>讓手機進入Fastboot模式，再用fastboot指令刷入到手機的boot分區</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot apatch_patched_10763_0.10.7_etqa.img
+</span></span></code></pre></div><ol start="10"><li>重開機後輸入超級密鑰就能用了。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-776dc80a2e.webp"></li></ol><p>APatch界面操作類似KernelSU，所有的APP預設都無法使用Root權限，必須個別啟用。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1944cf9246.webp"></p><p>KernelSU模組請到KP模組界面刷入；Magisk模組則是到AP模組界面刷入。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-5-ii-apatch/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-183d797dc1.webp"></a></p>
+<p>本文Ivon分享2024年出現的開源Root方案「APatch」的安裝方式。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-772ce91e47.webp"><p>測試手機：</p><ul><li>Sony Xperia 5 II</li><li>Android 14 Lineage OS 21</li><li>Linux核心版本4.19</li></ul><h2>1. APatch介紹<span><a href="#1-apatch%E4%BB%8B%E7%B4%B9" aria-label="定位點">#</a></span></h2><p>根據<a href="https://apatch.dev/zh_CN/what-is-apatch.html" target="_blank">
+官網文件</a>介紹，APatch有以下特點：</p><ul><li>APatch支援Linux核心版本3.8以上、64位元的Android裝置。</li><li>Linux核心需啟用「<code>CONFIG_KALLSYMS=y </code>和<code>CONFIG_KALLSYMS_ALL=y</code>」或者「<code>CONFIG_KALLSYMS=y</code>和<code>CONFIG_KALLSYMS_ALL=n</code>」選項，大部分裝置應該都有</li><li>APatch不像KernelSU需要GKI核心，也不用重新編譯Linux核心，只要像Magisk那樣修補boot.img就好了，因此理論上支援更多裝置。</li><li>APatch的隱藏Root能力接近KernelSU，但要通過Play Integrity可能還是得裝Play Integrity Fix模組。</li><li>APatch同時支援Magisk與KernelSU的模組，也支援Zygisk。</li></ul><p>超級密鑰(SuperKey)為APatch所新增的項目，它是應用程式執行高權限的SuperCall所需的金鑰，使用者得用APatch的APP自行設定。它的權限比Root權限更高，因此不要用太簡單的密碼。</p><h2>2. 修補boot.img，安裝APatch<span><a href="#2-%E4%BF%AE%E8%A3%9Cbootimg%E5%AE%89%E8%A3%9Dapatch" aria-label="定位點">#</a></span></h2><ol><li><p>解鎖手機的Bootloader</p></li><li><p>如果能取得Root權限，先在ADB Shell執行指令，檢查目前的核心是否有啟用APatch要求的選項，否則就得重新編譯核心了：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>zcat /proc/config.gz <span>|</span> grep -w CONFIG_KALLSYMS
+</span></span><span><span><span># 應會列出CONFIG_KALLSYMS=y 和CONFIG_KALLSYMS_ALL=y</span>
+</span></span></code></pre></div><ol start="3"><li><p>準備裝置的boot.img，原廠Android系統通常能從刷機包裡面解出來，例如Sony有<a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">
+Sony Dump Tool</a>。而LineageOS的話就到ROM下載頁面取得boot.img。</p></li><li><p>將boot.img傳到手機</p></li><li><p>到APatch的<a href="https://github.com/bmax121/APatch/releases" target="_blank">
+Github</a>下載APK</p></li><li><p>開啟後點選右上角選取要修補的映像檔
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2bfcd2a4da.webp"></p></li><li><p>設定超級密鑰，然後開始修補
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fcdbad65b.webp"></p></li><li><p>修補完的boot.img應該會儲存到<code>Download</code>資料夾，把修補後的檔案傳到電腦。</p></li><li><p>讓手機進入Fastboot模式，再用fastboot指令刷入到手機的boot分區</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot apatch_patched_10763_0.10.7_etqa.img
+</span></span></code></pre></div><ol start="10"><li>重開機後輸入超級密鑰就能用了。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-776dc80a2e.webp"></li></ol><p>APatch界面操作類似KernelSU，所有的APP預設都無法使用Root權限，必須個別啟用。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1944cf9246.webp"></p><p>KernelSU模組請到KP模組界面刷入；Magisk模組則是到AP模組界面刷入。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-5-ii-apatch/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-183d797dc1.webp"></a></p>
+<p>本文Ivon分享2024年出現的開源Root方案「APatch」的安裝方式。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-772ce91e47.webp"><p>測試手機：</p><ul><li>Sony Xperia 5 II</li><li>Android 14 Lineage OS 21</li><li>Linux核心版本4.19</li></ul><h2>1. APatch介紹<span><a href="#1-apatch%E4%BB%8B%E7%B4%B9" aria-label="定位點">#</a></span></h2><p>根據<a href="https://apatch.dev/zh_CN/what-is-apatch.html" target="_blank">
+官網文件</a>介紹，APatch有以下特點：</p><ul><li>APatch支援Linux核心版本3.8以上、64位元的Android裝置。</li><li>Linux核心需啟用「<code>CONFIG_KALLSYMS=y </code>和<code>CONFIG_KALLSYMS_ALL=y</code>」或者「<code>CONFIG_KALLSYMS=y</code>和<code>CONFIG_KALLSYMS_ALL=n</code>」選項，大部分裝置應該都有</li><li>APatch不像KernelSU需要GKI核心，也不用重新編譯Linux核心，只要像Magisk那樣修補boot.img就好了，因此理論上支援更多裝置。</li><li>APatch的隱藏Root能力接近KernelSU，但要通過Play Integrity可能還是得裝Play Integrity Fix模組。</li><li>APatch同時支援Magisk與KernelSU的模組，也支援Zygisk。</li></ul><p>超級密鑰(SuperKey)為APatch所新增的項目，它是應用程式執行高權限的SuperCall所需的金鑰，使用者得用APatch的APP自行設定。它的權限比Root權限更高，因此不要用太簡單的密碼。</p><h2>2. 修補boot.img，安裝APatch<span><a href="#2-%E4%BF%AE%E8%A3%9Cbootimg%E5%AE%89%E8%A3%9Dapatch" aria-label="定位點">#</a></span></h2><ol><li><p>解鎖手機的Bootloader</p></li><li><p>如果能取得Root權限，先在ADB Shell執行指令，檢查目前的核心是否有啟用APatch要求的選項，否則就得重新編譯核心了：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>zcat /proc/config.gz <span>|</span> grep -w CONFIG_KALLSYMS
+</span></span><span><span><span># 應會列出CONFIG_KALLSYMS=y 和CONFIG_KALLSYMS_ALL=y</span>
+</span></span></code></pre></div><ol start="3"><li><p>準備裝置的boot.img，原廠Android系統通常能從刷機包裡面解出來，例如Sony有<a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">
+Sony Dump Tool</a>。而LineageOS的話就到ROM下載頁面取得boot.img。</p></li><li><p>將boot.img傳到手機</p></li><li><p>到APatch的<a href="https://github.com/bmax121/APatch/releases" target="_blank">
+Github</a>下載APK</p></li><li><p>開啟後點選右上角選取要修補的映像檔
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2bfcd2a4da.webp"></p></li><li><p>設定超級密鑰，然後開始修補
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fcdbad65b.webp"></p></li><li><p>修補完的boot.img應該會儲存到<code>Download</code>資料夾，把修補後的檔案傳到電腦。</p></li><li><p>讓手機進入Fastboot模式，再用fastboot指令刷入到手機的boot分區</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot apatch_patched_10763_0.10.7_etqa.img
+</span></span></code></pre></div><ol start="10"><li>重開機後輸入超級密鑰就能用了。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-776dc80a2e.webp"></li></ol><p>APatch界面操作類似KernelSU，所有的APP預設都無法使用Root權限，必須個別啟用。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1944cf9246.webp"></p><p>KernelSU模組請到KP模組界面刷入；Magisk模組則是到AP模組界面刷入。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-183d797dc1.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-183d797dc1.webp" medium="image"/>
+    <pubDate>Sun, 29 Sep 2024 23:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[如何下載Stable Diffusion相關的AI生圖模型＆網站分享]]></title>
     <link>https://ivonblog.com/posts/download-stable-diffusion-models/</link>
     <itunes:title><![CDATA[如何下載Stable Diffusion相關的AI生圖模型＆網站分享]]></itunes:title>
@@ -1001,56 +1049,5 @@ Google Play</a>下載。</p><h2>3. 啟動Shizuku服務<span><a href="#3-%E5%95%9
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12280a2743.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12280a2743.webp" medium="image"/>
     <pubDate>Sun, 15 Sep 2024 14:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Scrcpy for iOS，Android手機投影到iPad，從平板遠端控制手機]]></title>
-    <link>https://ivonblog.com/posts/scrcpy-for-ios/</link>
-    <itunes:title><![CDATA[Scrcpy for iOS，Android手機投影到iPad，從平板遠端控制手機]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-for-ios/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13ca09d2e1.webp"></a></p>
-<p>之前分享過<a href="https://ivonblog.com/posts/rustdesk-remote-control-phone-from-another-phone/" target="_blank">
-Rustdesk手機控制手機</a>的開源方案，理論上也可以用平板控制手機，但是不太好操控哪。</p><p>今天介紹一個Android手機投影到iPad的方案，那就是用開源的Scrcpy搭配無線ADB，將Android手機螢幕投影到iPad或者iPhone，進而從iPad控制Android手機。</p><p>這有什麼用呢？比如將手機的簡報投影到iPad與他人共享、遠端遊玩Android手機上的遊戲。</p><p>或者，把Android手機的神秘漫畫APP投影到iPad，直接放大閱讀。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83153fb851.webp"></p><p>此方案必須額外準備WiFi，無法透過手機行動熱點使用。</p><h2>1. Scrcpy為何？<span><a href="#1-scrcpy%E7%82%BA%E4%BD%95" aria-label="定位點">#</a></span></h2><p>Scrcpy為GenyMobile開發的螢幕投影＆遠端控制軟體，支援有線與無線連接，詳細用法<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-見此</a>。</p><p>Scrcpy為開源免費的軟體，然而原作者只有做電腦版，iOS版Scrcpy是其他開發者移植的，收費1美元，原始碼位於<a href="https://github.com/wsvn53/scrcpy-mobile" target="_blank">
-Github</a>。</p><p>Scrcpy for iOS可以用來控制實體Android機，也能用來控制<a href="https://ivonblog.com/posts/scrcpy-app-remote-control-android-in-cloud/" target="_blank">
-自架Android雲手機</a>。</p><p>另外，本文講述的是Android投影到iPad。如果你想將Android手機投影到Android平板，請改安裝<a href="https://ivonblog.com/posts/termux-scrcpy/" target="_blank">
-Android版的Scrcpy客戶端</a></p><h2>2. 連線到Android手機<span><a href="#2-%E9%80%A3%E7%B7%9A%E5%88%B0android%E6%89%8B%E6%A9%9F" aria-label="定位點">#</a></span></h2><ol><li><p>請至App Store購買<a href="https://apps.apple.com/us/app/scrcpy-remote/id1629352527" target="_blank">
-Scrcpy for iOS</a></p></li><li><p>Scrcpy預設開啟是VNC模式，請開啟Safari瀏覽器，輸入<code>scrcpy2://adb</code>切換為ADB模式。</p></li><li><p>讓iPad與Android手機位於同一個網路下。Android手機開啟開發人員選項，啟用無線ADB偵錯，取得配對碼
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a3637fd070.webp"></p></li><li><p>回到Scrcpy，點選右上角Pair with Pair Code，輸入IP、通訊埠、配對碼</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98c56fe412.webp"></li><li><p>接著填入Android機的IP、通訊埠、解析度、位元率，再點選<code>Connect</code>，Android螢幕就會跳出來了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a9584b8c69.webp"></li><li><p>在Scrcpy長按底部可以叫出導航鍵。為了避免iPad的手勢跟Android的衝突，建議把Android手機的操控方式改為三明治鍵。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e177f5c04f.webp"></p></li></ol><p>雖然Scrcpy支援傳輸音訊，不過似乎無法指定編碼器？有的手機只支援AAC的說，所以會導致靜音。</p><h2>3. 修改Android螢幕解析度<span><a href="#3-%E4%BF%AE%E6%94%B9android%E8%9E%A2%E5%B9%95%E8%A7%A3%E6%9E%90%E5%BA%A6" aria-label="定位點">#</a></span></h2><p>現在手機越做越長，投影到iPad難免會出現黑邊。</p><p>若要讓Android螢幕符合iPad解析度，可以使用<a href="https://ivonblog.com/posts/android-secondscreen/" target="_blank">
-SecondScreen</a>強制修改手機解析度。</p><p>如此一來，就好像在滑Android平板一樣的體驗了，Android 12以上原生系統對UI變化的適應性很強！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fde032dfb.webp"></p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-for-ios/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13ca09d2e1.webp"></a></p>
-<p>之前分享過<a href="https://ivonblog.com/posts/rustdesk-remote-control-phone-from-another-phone/" target="_blank">
-Rustdesk手機控制手機</a>的開源方案，理論上也可以用平板控制手機，但是不太好操控哪。</p><p>今天介紹一個Android手機投影到iPad的方案，那就是用開源的Scrcpy搭配無線ADB，將Android手機螢幕投影到iPad或者iPhone，進而從iPad控制Android手機。</p><p>這有什麼用呢？比如將手機的簡報投影到iPad與他人共享、遠端遊玩Android手機上的遊戲。</p><p>或者，把Android手機的神秘漫畫APP投影到iPad，直接放大閱讀。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83153fb851.webp"></p><p>此方案必須額外準備WiFi，無法透過手機行動熱點使用。</p><h2>1. Scrcpy為何？<span><a href="#1-scrcpy%E7%82%BA%E4%BD%95" aria-label="定位點">#</a></span></h2><p>Scrcpy為GenyMobile開發的螢幕投影＆遠端控制軟體，支援有線與無線連接，詳細用法<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-見此</a>。</p><p>Scrcpy為開源免費的軟體，然而原作者只有做電腦版，iOS版Scrcpy是其他開發者移植的，收費1美元，原始碼位於<a href="https://github.com/wsvn53/scrcpy-mobile" target="_blank">
-Github</a>。</p><p>Scrcpy for iOS可以用來控制實體Android機，也能用來控制<a href="https://ivonblog.com/posts/scrcpy-app-remote-control-android-in-cloud/" target="_blank">
-自架Android雲手機</a>。</p><p>另外，本文講述的是Android投影到iPad。如果你想將Android手機投影到Android平板，請改安裝<a href="https://ivonblog.com/posts/termux-scrcpy/" target="_blank">
-Android版的Scrcpy客戶端</a></p><h2>2. 連線到Android手機<span><a href="#2-%E9%80%A3%E7%B7%9A%E5%88%B0android%E6%89%8B%E6%A9%9F" aria-label="定位點">#</a></span></h2><ol><li><p>請至App Store購買<a href="https://apps.apple.com/us/app/scrcpy-remote/id1629352527" target="_blank">
-Scrcpy for iOS</a></p></li><li><p>Scrcpy預設開啟是VNC模式，請開啟Safari瀏覽器，輸入<code>scrcpy2://adb</code>切換為ADB模式。</p></li><li><p>讓iPad與Android手機位於同一個網路下。Android手機開啟開發人員選項，啟用無線ADB偵錯，取得配對碼
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a3637fd070.webp"></p></li><li><p>回到Scrcpy，點選右上角Pair with Pair Code，輸入IP、通訊埠、配對碼</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98c56fe412.webp"></li><li><p>接著填入Android機的IP、通訊埠、解析度、位元率，再點選<code>Connect</code>，Android螢幕就會跳出來了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a9584b8c69.webp"></li><li><p>在Scrcpy長按底部可以叫出導航鍵。為了避免iPad的手勢跟Android的衝突，建議把Android手機的操控方式改為三明治鍵。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e177f5c04f.webp"></p></li></ol><p>雖然Scrcpy支援傳輸音訊，不過似乎無法指定編碼器？有的手機只支援AAC的說，所以會導致靜音。</p><h2>3. 修改Android螢幕解析度<span><a href="#3-%E4%BF%AE%E6%94%B9android%E8%9E%A2%E5%B9%95%E8%A7%A3%E6%9E%90%E5%BA%A6" aria-label="定位點">#</a></span></h2><p>現在手機越做越長，投影到iPad難免會出現黑邊。</p><p>若要讓Android螢幕符合iPad解析度，可以使用<a href="https://ivonblog.com/posts/android-secondscreen/" target="_blank">
-SecondScreen</a>強制修改手機解析度。</p><p>如此一來，就好像在滑Android平板一樣的體驗了，Android 12以上原生系統對UI變化的適應性很強！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fde032dfb.webp"></p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/scrcpy-for-ios/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13ca09d2e1.webp"></a></p>
-<p>之前分享過<a href="https://ivonblog.com/posts/rustdesk-remote-control-phone-from-another-phone/" target="_blank">
-Rustdesk手機控制手機</a>的開源方案，理論上也可以用平板控制手機，但是不太好操控哪。</p><p>今天介紹一個Android手機投影到iPad的方案，那就是用開源的Scrcpy搭配無線ADB，將Android手機螢幕投影到iPad或者iPhone，進而從iPad控制Android手機。</p><p>這有什麼用呢？比如將手機的簡報投影到iPad與他人共享、遠端遊玩Android手機上的遊戲。</p><p>或者，把Android手機的神秘漫畫APP投影到iPad，直接放大閱讀。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-83153fb851.webp"></p><p>此方案必須額外準備WiFi，無法透過手機行動熱點使用。</p><h2>1. Scrcpy為何？<span><a href="#1-scrcpy%E7%82%BA%E4%BD%95" aria-label="定位點">#</a></span></h2><p>Scrcpy為GenyMobile開發的螢幕投影＆遠端控制軟體，支援有線與無線連接，詳細用法<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">
-見此</a>。</p><p>Scrcpy為開源免費的軟體，然而原作者只有做電腦版，iOS版Scrcpy是其他開發者移植的，收費1美元，原始碼位於<a href="https://github.com/wsvn53/scrcpy-mobile" target="_blank">
-Github</a>。</p><p>Scrcpy for iOS可以用來控制實體Android機，也能用來控制<a href="https://ivonblog.com/posts/scrcpy-app-remote-control-android-in-cloud/" target="_blank">
-自架Android雲手機</a>。</p><p>另外，本文講述的是Android投影到iPad。如果你想將Android手機投影到Android平板，請改安裝<a href="https://ivonblog.com/posts/termux-scrcpy/" target="_blank">
-Android版的Scrcpy客戶端</a></p><h2>2. 連線到Android手機<span><a href="#2-%E9%80%A3%E7%B7%9A%E5%88%B0android%E6%89%8B%E6%A9%9F" aria-label="定位點">#</a></span></h2><ol><li><p>請至App Store購買<a href="https://apps.apple.com/us/app/scrcpy-remote/id1629352527" target="_blank">
-Scrcpy for iOS</a></p></li><li><p>Scrcpy預設開啟是VNC模式，請開啟Safari瀏覽器，輸入<code>scrcpy2://adb</code>切換為ADB模式。</p></li><li><p>讓iPad與Android手機位於同一個網路下。Android手機開啟開發人員選項，啟用無線ADB偵錯，取得配對碼
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a3637fd070.webp"></p></li><li><p>回到Scrcpy，點選右上角Pair with Pair Code，輸入IP、通訊埠、配對碼</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98c56fe412.webp"></li><li><p>接著填入Android機的IP、通訊埠、解析度、位元率，再點選<code>Connect</code>，Android螢幕就會跳出來了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a9584b8c69.webp"></li><li><p>在Scrcpy長按底部可以叫出導航鍵。為了避免iPad的手勢跟Android的衝突，建議把Android手機的操控方式改為三明治鍵。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e177f5c04f.webp"></p></li></ol><p>雖然Scrcpy支援傳輸音訊，不過似乎無法指定編碼器？有的手機只支援AAC的說，所以會導致靜音。</p><h2>3. 修改Android螢幕解析度<span><a href="#3-%E4%BF%AE%E6%94%B9android%E8%9E%A2%E5%B9%95%E8%A7%A3%E6%9E%90%E5%BA%A6" aria-label="定位點">#</a></span></h2><p>現在手機越做越長，投影到iPad難免會出現黑邊。</p><p>若要讓Android螢幕符合iPad解析度，可以使用<a href="https://ivonblog.com/posts/android-secondscreen/" target="_blank">
-SecondScreen</a>強制修改手機解析度。</p><p>如此一來，就好像在滑Android平板一樣的體驗了，Android 12以上原生系統對UI變化的適應性很強！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6fde032dfb.webp"></p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13ca09d2e1.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13ca09d2e1.webp" medium="image"/>
-    <pubDate>Thu, 12 Sep 2024 23:00:00 +0800</pubDate>
   </item></channel>
 </rss>
