@@ -30,6 +30,51 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[C# 開源圖表程式庫 - ScottPlot]]></title>
+    <link>https://blog.darkthread.net/blog/scottplot/</link>
+    <itunes:title><![CDATA[C# 開源圖表程式庫 - ScottPlot]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>我的主力開發語言是 C#，<a href="/blog/python-pivot-table/">能用 Matplotlib 輕鬆繪製圖表</a>是我有時改用 Python 的理由。但有很多情境是，大半處理流程已用 C# 寫好且運作流暢，只為區區圖表在最後一百公尺鬼切 Python，讓架構硬生生變複雜，怎麼想都不划算。</p> <p>堂堂 C#，總不會連畫個簡單長條圖或折線圖都得外包？</p> <p>TIOBE 排名第五名，並<a href="https://www.ithome.com.tw/news/160776">榮獲 2023 年度程式語言</a>的 C#，普遍度雖然比不上 Python、JavaScript 或 Java，但開源社群及生態系也不至讓人失望~ 有個開源 C# 圖表程式庫 - <a href="https://github.com/ScottPlot/ScottPlot">ScottPlot</a>，支援許多種專業圖表，在 .NET 專案用 NuGet 下載後便能輕鬆畫圖：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638633085917283718.png"></p> <p>如果是 Windows Form/WPF/Blazor 程式，ScottPlot 還支援拖拉縮放等互動操作：</p> <p><img src="https://scottplot.net/images/scottplot.gif"></p> <p>學習 ScottPlot 最好的方法是下載 <a href="https://scottplot.net/demo/5.0/">Demo 程式</a>實際體驗，Cookbook 有完整功能展示並可互動操作玩看看，並都有附上範例原始碼：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638633085919104006.png"></p> <p>值得一提的是，互動模式除了基本的拖拉及縮放，ScottPlot 還加入不少酷炫功能，像是<a href="https://scottplot.net/demo/5.0/#draggable-data-points">拖拉移動資料點</a>、<a href="https://scottplot.net/demo/5.0/#selectable-data-points">選取範圍內資料點</a>、<a href="https://scottplot.net/demo/5.0/#shared-axes">多圖 X 軸同步捲動</a>、<a href="https://scottplot.net/demo/5.0/#plot-streaming-data">串流資料顯示</a>、<a href="https://scottplot.net/demo/5.0/#plot-live-financial-data">股票 K 線即時更新</a>... 等。(細節可參考<a href="https://scottplot.net/demo/5.0/">官方網站</a>)</p> <p>做了簡單評估，ScottPlot 的圖表種類、設定彈性及成熟度不及 Matplotlib (二者 Github 星星數為 5K vs 20K，非屬同一量級)，加上 ChatGPT 及 Github Copilot 等 AI 工具較熟悉 Matplotlib，能給更完整且精準的建議，Matplotlib 仍是繪製專業圖表較佳的選擇。但對 .NET 專案來說，簡單圖表需求用 ScottPlot 搞定，殺雞不需用牛刀，比串接 Python 輕巧。至於複雜圖表要求，我應該還是會選擇匯出處理結果用 Python + Matlibplot 畫圖，或是直接改用 Python 處理。</p> <p>最後，來個<a href="https://zh.wikipedia.org/zh-tw/%E7%8E%AB%E7%91%B0%E7%BA%BF">玫瑰曲線</a>練習結束這回合。</p> <pre><code>using ScottPlot;
+var pointCount = 1000;
+var n = 4;
+double[] theta = Enumerable.Range(0, pointCount).Select(o =&gt; 2 * Math.PI * o / pointCount).ToArray();
+double[] r = theta.Select((v, i) =&gt; Math.Sin(n * v)).ToArray();
+double[] x = r.Select((v, i) =&gt; v * Math.Cos(theta[i])).ToArray();
+double[] y = r.Select((v, i) =&gt; v * Math.Sin(theta[i])).ToArray();
+ScottPlot.Plot myPlot = new();
+myPlot.Add.ScatterLine(x, y);
+myPlot.SavePng("rose.png", 400, 400);
+</code></pre> <p>成品如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638633085920842601.png"></p> <p data-slug="scottplot" data-title-en=".NET charting library - ScottPlot" data-catg=".NET" data-fbimg="https://i.imgur.com/0metRM4.jpeg#640#453">Exploring ScottPlot, an open-source C# charting library for creating professional charts without switching to Python. It supports various interactive features and can be easily integrated into .NET projects.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>我的主力開發語言是 C#，<a href="/blog/python-pivot-table/">能用 Matplotlib 輕鬆繪製圖表</a>是我有時改用 Python 的理由。但有很多情境是，大半處理流程已用 C# 寫好且運作流暢，只為區區圖表在最後一百公尺鬼切 Python，讓架構硬生生變複雜，怎麼想都不划算。</p> <p>堂堂 C#，總不會連畫個簡單長條圖或折線圖都得外包？</p> <p>TIOBE 排名第五名，並<a href="https://www.ithome.com.tw/news/160776">榮獲 2023 年度程式語言</a>的 C#，普遍度雖然比不上 Python、JavaScript 或 Java，但開源社群及生態系也不至讓人失望~ 有個開源 C# 圖表程式庫 - <a href="https://github.com/ScottPlot/ScottPlot">ScottPlot</a>，支援許多種專業圖表，在 .NET 專案用 NuGet 下載後便能輕鬆畫圖：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638633085917283718.png"></p> <p>如果是 Windows Form/WPF/Blazor 程式，ScottPlot 還支援拖拉縮放等互動操作：</p> <p><img src="https://scottplot.net/images/scottplot.gif"></p> <p>學習 ScottPlot 最好的方法是下載 <a href="https://scottplot.net/demo/5.0/">Demo 程式</a>實際體驗，Cookbook 有完整功能展示並可互動操作玩看看，並都有附上範例原始碼：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638633085919104006.png"></p> <p>值得一提的是，互動模式除了基本的拖拉及縮放，ScottPlot 還加入不少酷炫功能，像是<a href="https://scottplot.net/demo/5.0/#draggable-data-points">拖拉移動資料點</a>、<a href="https://scottplot.net/demo/5.0/#selectable-data-points">選取範圍內資料點</a>、<a href="https://scottplot.net/demo/5.0/#shared-axes">多圖 X 軸同步捲動</a>、<a href="https://scottplot.net/demo/5.0/#plot-streaming-data">串流資料顯示</a>、<a href="https://scottplot.net/demo/5.0/#plot-live-financial-data">股票 K 線即時更新</a>... 等。(細節可參考<a href="https://scottplot.net/demo/5.0/">官方網站</a>)</p> <p>做了簡單評估，ScottPlot 的圖表種類、設定彈性及成熟度不及 Matplotlib (二者 Github 星星數為 5K vs 20K，非屬同一量級)，加上 ChatGPT 及 Github Copilot 等 AI 工具較熟悉 Matplotlib，能給更完整且精準的建議，Matplotlib 仍是繪製專業圖表較佳的選擇。但對 .NET 專案來說，簡單圖表需求用 ScottPlot 搞定，殺雞不需用牛刀，比串接 Python 輕巧。至於複雜圖表要求，我應該還是會選擇匯出處理結果用 Python + Matlibplot 畫圖，或是直接改用 Python 處理。</p> <p>最後，來個<a href="https://zh.wikipedia.org/zh-tw/%E7%8E%AB%E7%91%B0%E7%BA%BF">玫瑰曲線</a>練習結束這回合。</p> <pre><code>using ScottPlot;
+var pointCount = 1000;
+var n = 4;
+double[] theta = Enumerable.Range(0, pointCount).Select(o =&gt; 2 * Math.PI * o / pointCount).ToArray();
+double[] r = theta.Select((v, i) =&gt; Math.Sin(n * v)).ToArray();
+double[] x = r.Select((v, i) =&gt; v * Math.Cos(theta[i])).ToArray();
+double[] y = r.Select((v, i) =&gt; v * Math.Sin(theta[i])).ToArray();
+ScottPlot.Plot myPlot = new();
+myPlot.Add.ScatterLine(x, y);
+myPlot.SavePng("rose.png", 400, 400);
+</code></pre> <p>成品如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638633085920842601.png"></p> <p data-slug="scottplot" data-title-en=".NET charting library - ScottPlot" data-catg=".NET" data-fbimg="https://i.imgur.com/0metRM4.jpeg#640#453">Exploring ScottPlot, an open-source C# charting library for creating professional charts without switching to Python. It supports various interactive features and can be easily integrated into .NET projects.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>我的主力開發語言是 C#，<a href="/blog/python-pivot-table/">能用 Matplotlib 輕鬆繪製圖表</a>是我有時改用 Python 的理由。但有很多情境是，大半處理流程已用 C# 寫好且運作流暢，只為區區圖表在最後一百公尺鬼切 Python，讓架構硬生生變複雜，怎麼想都不划算。</p> <p>堂堂 C#，總不會連畫個簡單長條圖或折線圖都得外包？</p> <p>TIOBE 排名第五名，並<a href="https://www.ithome.com.tw/news/160776">榮獲 2023 年度程式語言</a>的 C#，普遍度雖然比不上 Python、JavaScript 或 Java，但開源社群及生態系也不至讓人失望~ 有個開源 C# 圖表程式庫 - <a href="https://github.com/ScottPlot/ScottPlot">ScottPlot</a>，支援許多種專業圖表，在 .NET 專案用 NuGet 下載後便能輕鬆畫圖：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638633085917283718.png"></p> <p>如果是 Windows Form/WPF/Blazor 程式，ScottPlot 還支援拖拉縮放等互動操作：</p> <p><img src="https://scottplot.net/images/scottplot.gif"></p> <p>學習 ScottPlot 最好的方法是下載 <a href="https://scottplot.net/demo/5.0/">Demo 程式</a>實際體驗，Cookbook 有完整功能展示並可互動操作玩看看，並都有附上範例原始碼：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638633085919104006.png"></p> <p>值得一提的是，互動模式除了基本的拖拉及縮放，ScottPlot 還加入不少酷炫功能，像是<a href="https://scottplot.net/demo/5.0/#draggable-data-points">拖拉移動資料點</a>、<a href="https://scottplot.net/demo/5.0/#selectable-data-points">選取範圍內資料點</a>、<a href="https://scottplot.net/demo/5.0/#shared-axes">多圖 X 軸同步捲動</a>、<a href="https://scottplot.net/demo/5.0/#plot-streaming-data">串流資料顯示</a>、<a href="https://scottplot.net/demo/5.0/#plot-live-financial-data">股票 K 線即時更新</a>... 等。(細節可參考<a href="https://scottplot.net/demo/5.0/">官方網站</a>)</p> <p>做了簡單評估，ScottPlot 的圖表種類、設定彈性及成熟度不及 Matplotlib (二者 Github 星星數為 5K vs 20K，非屬同一量級)，加上 ChatGPT 及 Github Copilot 等 AI 工具較熟悉 Matplotlib，能給更完整且精準的建議，Matplotlib 仍是繪製專業圖表較佳的選擇。但對 .NET 專案來說，簡單圖表需求用 ScottPlot 搞定，殺雞不需用牛刀，比串接 Python 輕巧。至於複雜圖表要求，我應該還是會選擇匯出處理結果用 Python + Matlibplot 畫圖，或是直接改用 Python 處理。</p> <p>最後，來個<a href="https://zh.wikipedia.org/zh-tw/%E7%8E%AB%E7%91%B0%E7%BA%BF">玫瑰曲線</a>練習結束這回合。</p> <pre><code>using ScottPlot;
+var pointCount = 1000;
+var n = 4;
+double[] theta = Enumerable.Range(0, pointCount).Select(o =&gt; 2 * Math.PI * o / pointCount).ToArray();
+double[] r = theta.Select((v, i) =&gt; Math.Sin(n * v)).ToArray();
+double[] x = r.Select((v, i) =&gt; v * Math.Cos(theta[i])).ToArray();
+double[] y = r.Select((v, i) =&gt; v * Math.Sin(theta[i])).ToArray();
+ScottPlot.Plot myPlot = new();
+myPlot.Add.ScatterLine(x, y);
+myPlot.SavePng("rose.png", 400, 400);
+</code></pre> <p>成品如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638633085920842601.png"></p> <p data-slug="scottplot" data-title-en=".NET charting library - ScottPlot" data-catg=".NET" data-fbimg="https://i.imgur.com/0metRM4.jpeg#640#453">Exploring ScottPlot, an open-source C# charting library for creating professional charts without switching to Python. It supports various interactive features and can be easily integrated into .NET projects.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638633085917283718.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638633085917283718.png" medium="image"/>
+    <pubDate>Mon, 30 Sep 2024 15:54:36 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Coding4Fun - 磨課師 Python 線上課程轉 YouTube 播放清單]]></title>
     <link>https://blog.darkthread.net/blog/create-youtube-playlist/</link>
     <itunes:title><![CDATA[Coding4Fun - 磨課師 Python 線上課程轉 YouTube 播放清單]]></itunes:title>
@@ -763,296 +808,5 @@ demo\Scripts\Activate.ps1 # PowerShell
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638613202338684184.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638613202338684184.jpg" medium="image"/>
     <pubDate>Sat, 07 Sep 2024 15:35:29 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手日記】Outlook 內嵌圖片在回信或轉信後失效]]></title>
-    <link>https://blog.darkthread.net/blog/fix-outlook-picture-disappear-issue/</link>
-    <itunes:title><![CDATA[【茶包射手日記】Outlook 內嵌圖片在回信或轉信後失效]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>我有個困擾，Outlook 收到幾位特定同事寄來內嵌圖片的信，圖片會在回信或轉信後消失，出現叉燒包圖示及<code>無法顯示連結的影像。檔案可能已移動、重新命名或刪除。請檢查連結是否指向正確的檔案及位置。/ The linked image cannot be displayed. The file may have been moved, renamed, or deleted. Verify that the link points to the correct file and location.</code> 訊息。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"><br> (示意圖)</p> <p>爬文發現我不孤獨，用「回信或轉信後圖片消失」可查到不少類似問題回報：</p> <ul><li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/pictures-disappear-when-i-forward-or-reply-to-an/d232f82d-6ea4-412f-baac-f9e49783d286?page=1&amp;WT.mc_id=DOP-MVP-37580">Pictures disappear when I forward or reply to an email.</a>，</li> <li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/photo-disappears-from-email-when-replying-or/1f635422-b5ca-4c58-936f-064d1cb1d77a?WT.mc_id=DOP-MVP-37580">photo disappears from email when replying or forwarding</a></li></ul> <p>可惜這些案例是發生在雲端網頁版，而我是在本機 Office 2019 遇到，不同情境原因未必相同，解法也不適用。</p> <p>摸摸鼻子，自己查看看好了。將信件另存成 .msg 檔進行解剖。</p> <p>.msg 本質是個壓縮檔，解開裡面有資料夾及檔案，可用來儲存 Exchange 郵件、約會、連絡人等物件內容，用 7-Zip 檢視可以看到資料是以一個屬性一個檔案方式保存。(註：想深入細節的同學可以去啃 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxmsg/b046868c-9fbf-41ae-9ffb-8de2bd4eec82?WT.mc_id=DOP-MVP-37580">官方規格</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638611406512241695.png"></p> <p>分析圖片消失的信件，找出問題所在。信件內嵌圖檔是以附件方式儲存，每個附檔會對映一個名為 <code>__attach_version1.0_#0000000n</code> 的資料夾，圖片消失的信件，其實圖檔都還在，只是這些圖片是以 <code>&lt;img width=217 height=222 style='width:2.2604in;height:2.3125in' id="圖片_x0020_2" src="cid:image001.png@01DAFF72.94F352E0"&gt;</code> HTML 標籤嵌入信件內文，而其中 <code>image001.png@01DAFF72.94F352E0</code> 是系統自動產生的 ContentId：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638611406515503814.png"></p> <p>圖片附檔都在，但檢視時說連結未指向正確的檔案及位置，最容易的解釋是附檔的 <code>cid:image001.png@...</code> 跟 HTML 中的 <code>src="cid:image001.png@..."</code> 因不明原因對不上。</p> <p>研究了一下，PowerShell 建立 Outlook.Application 後，可以用 CreateItemFromTemplate() 讀取 .msg，由 HtmlBody 取得 HTML 內容找出 <code>src="cid:image001.png@..."</code>，列舉 Attachments 並用 <code>Attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")</code> (<a href="https://learn.microsoft.com/en-us/office/client-developer/outlook/mapi/pidtagattachcontentid-canonical-property?WT.mc_id=DOP-MVP-37580">PidTagAttachContentId</a> 取得附件的 ContentId，比對二者是否有出入。</p> <p>我寫了一支小程式檢查內文與附檔 CID 的一致性。</p> <pre><code>[CmdletBinding()]
-param (
-[Parameter(Mandatory = $true)]
-[string]
-$msgPath
-)
-$ErrorActionPreference = 'STOP'
-function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-$outlookApp = New-Object -ComObject Outlook.Application
-if (!$outlookApp) {
-throw "無法開啟 Outlook 程式"
-}
-$fullPath = Resolve-Path $msgPath
-Write-Host "開啟 $fullPath"
-$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
-$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
-Write-Host "共有 $($res.Count) 個內嵌圖片"
-foreach ($match in $res) {
-$cid = $match.Groups[1].Value
-Write-Host "  $cid"
-}
-$attachments = $mailItem.Attachments
-Write-Host "共有 $($attachments.Count) 個附件"
-try {
-$attachments | ForEach-Object {
-$attachment = $_
-$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
-Write-Host "  [$cid]"
-}
-}
-finally {
-$mailItem.Delete()
-}
-</code></pre> <p>分別檢查正常郵件 good.msg 及問題郵件 broken.msg，證實了問題出在 CID 對映：正常郵件 HTML 中的 CID 與附件的 CID 一致，而問題郵件兩邊的數量相符，但 CID 對不起來。證實「CID 錯亂導致圖片無法顯示」是問題根源，但原因不明，也有可能是 Outlook 的 Bug，恐會查到心累。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638611406517187571.png"></p> <p>最後，我寫了一支 Workaround 小工具，將圖片附檔另存，至少能取回消失的圖片，並嘗試將 HTML 中的 CID 依序換成附檔目前的 CID 以修正問題。</p> <pre><code>[CmdletBinding()]
-param (
-[Parameter(Mandatory = $true)]
-[string]
-$msgPath,
-[string]
-$attachmentFolder = '.'
-)
-$ErrorActionPreference = 'STOP'
-function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-$outlookApp = New-Object -ComObject Outlook.Application
-if (!$outlookApp) {
-throw "無法開啟 Outlook 程式"
-}
-$fullPath = Resolve-Path $msgPath
-Write-Host "開啟 $fullPath"
-$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
-$mailItem.HtmlBody = $mailItem.HtmlBody.Replace('image001.png', 'image002.png')
-$mailItem.SaveAs((Resolve-AbsPath 'fixed.msg'))
-$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
-Write-Host "共有 $($res.Count) 個內嵌圖片"
-$htmlCids = @()
-foreach ($match in $res) {
-$cid = $match.Groups[1].Value
-$htmlCids += $cid
-Write-Host "  $cid"
-}
-$attachments = $mailItem.Attachments
-Write-Host "共有 $($attachments.Count) 個附件"
-$attCids = @()
-try {
-$saveFolderPath = Resolve-AbsPath $attachmentFolder
-$attachments | ForEach-Object {
-$attachment = $_
-$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
-$savePath = Join-Path $saveFolderPath $attachment.FileName
-Write-Host "  儲存[$cid] $savePath..."
-$attachment.SaveAsFile($savePath)
-if ($cid -match '^image\d+\.(png|jpg)@[0-9A-F]{8}\.[0-9A-F]{8}$') {
-$attCids += $cid
-}
-}
-$index = 0
-Write-Host "嘗試修正 CID"
-$htmlCids | ForEach-Object {
-$newCid = $attCids[$index]
-$index++
-Write-Host "  置換：$_ -&gt; $newCid"
-$mailItem.HtmlBody = $mailItem.HtmlBody.Replace("cid:$_", "cid:$newCid")
-}
-$mailItem.SaveAs((Resolve-AbsPath 'try-fix.msg'))
-}
-finally {
-$mailItem.Delete()
-}
-</code></pre> <p>實測成功，不但拿回消失的圖片，開啟郵件消失的圖片也重現了。讚~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638611406518934009.png"></p> <p data-slug="fix-outlook-picture-disappear-issue" data-title-en="Fix picture disappering after Outlook mail replied or forwarded issue" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/03/25/18/24/nutcracker-2174124_960_720.jpg#960#720">This blog post addresses the issue of embedded images disappearing in Outlook emails when replying or forwarding. It explains the problem’s root cause related to ContentId mismatches and offers PowerShell scripts to diagnose and fix the issue by extracting and reassigning ContentIds for embedded images.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>我有個困擾，Outlook 收到幾位特定同事寄來內嵌圖片的信，圖片會在回信或轉信後消失，出現叉燒包圖示及<code>無法顯示連結的影像。檔案可能已移動、重新命名或刪除。請檢查連結是否指向正確的檔案及位置。/ The linked image cannot be displayed. The file may have been moved, renamed, or deleted. Verify that the link points to the correct file and location.</code> 訊息。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"><br> (示意圖)</p> <p>爬文發現我不孤獨，用「回信或轉信後圖片消失」可查到不少類似問題回報：</p> <ul><li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/pictures-disappear-when-i-forward-or-reply-to-an/d232f82d-6ea4-412f-baac-f9e49783d286?page=1&amp;WT.mc_id=DOP-MVP-37580">Pictures disappear when I forward or reply to an email.</a>，</li> <li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/photo-disappears-from-email-when-replying-or/1f635422-b5ca-4c58-936f-064d1cb1d77a?WT.mc_id=DOP-MVP-37580">photo disappears from email when replying or forwarding</a></li></ul> <p>可惜這些案例是發生在雲端網頁版，而我是在本機 Office 2019 遇到，不同情境原因未必相同，解法也不適用。</p> <p>摸摸鼻子，自己查看看好了。將信件另存成 .msg 檔進行解剖。</p> <p>.msg 本質是個壓縮檔，解開裡面有資料夾及檔案，可用來儲存 Exchange 郵件、約會、連絡人等物件內容，用 7-Zip 檢視可以看到資料是以一個屬性一個檔案方式保存。(註：想深入細節的同學可以去啃 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxmsg/b046868c-9fbf-41ae-9ffb-8de2bd4eec82?WT.mc_id=DOP-MVP-37580">官方規格</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638611406512241695.png"></p> <p>分析圖片消失的信件，找出問題所在。信件內嵌圖檔是以附件方式儲存，每個附檔會對映一個名為 <code>__attach_version1.0_#0000000n</code> 的資料夾，圖片消失的信件，其實圖檔都還在，只是這些圖片是以 <code>&lt;img width=217 height=222 style='width:2.2604in;height:2.3125in' id="圖片_x0020_2" src="cid:image001.png@01DAFF72.94F352E0"&gt;</code> HTML 標籤嵌入信件內文，而其中 <code>image001.png@01DAFF72.94F352E0</code> 是系統自動產生的 ContentId：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638611406515503814.png"></p> <p>圖片附檔都在，但檢視時說連結未指向正確的檔案及位置，最容易的解釋是附檔的 <code>cid:image001.png@...</code> 跟 HTML 中的 <code>src="cid:image001.png@..."</code> 因不明原因對不上。</p> <p>研究了一下，PowerShell 建立 Outlook.Application 後，可以用 CreateItemFromTemplate() 讀取 .msg，由 HtmlBody 取得 HTML 內容找出 <code>src="cid:image001.png@..."</code>，列舉 Attachments 並用 <code>Attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")</code> (<a href="https://learn.microsoft.com/en-us/office/client-developer/outlook/mapi/pidtagattachcontentid-canonical-property?WT.mc_id=DOP-MVP-37580">PidTagAttachContentId</a> 取得附件的 ContentId，比對二者是否有出入。</p> <p>我寫了一支小程式檢查內文與附檔 CID 的一致性。</p> <pre><code>[CmdletBinding()]
-param (
-[Parameter(Mandatory = $true)]
-[string]
-$msgPath
-)
-$ErrorActionPreference = 'STOP'
-function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-$outlookApp = New-Object -ComObject Outlook.Application
-if (!$outlookApp) {
-throw "無法開啟 Outlook 程式"
-}
-$fullPath = Resolve-Path $msgPath
-Write-Host "開啟 $fullPath"
-$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
-$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
-Write-Host "共有 $($res.Count) 個內嵌圖片"
-foreach ($match in $res) {
-$cid = $match.Groups[1].Value
-Write-Host "  $cid"
-}
-$attachments = $mailItem.Attachments
-Write-Host "共有 $($attachments.Count) 個附件"
-try {
-$attachments | ForEach-Object {
-$attachment = $_
-$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
-Write-Host "  [$cid]"
-}
-}
-finally {
-$mailItem.Delete()
-}
-</code></pre> <p>分別檢查正常郵件 good.msg 及問題郵件 broken.msg，證實了問題出在 CID 對映：正常郵件 HTML 中的 CID 與附件的 CID 一致，而問題郵件兩邊的數量相符，但 CID 對不起來。證實「CID 錯亂導致圖片無法顯示」是問題根源，但原因不明，也有可能是 Outlook 的 Bug，恐會查到心累。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638611406517187571.png"></p> <p>最後，我寫了一支 Workaround 小工具，將圖片附檔另存，至少能取回消失的圖片，並嘗試將 HTML 中的 CID 依序換成附檔目前的 CID 以修正問題。</p> <pre><code>[CmdletBinding()]
-param (
-[Parameter(Mandatory = $true)]
-[string]
-$msgPath,
-[string]
-$attachmentFolder = '.'
-)
-$ErrorActionPreference = 'STOP'
-function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-$outlookApp = New-Object -ComObject Outlook.Application
-if (!$outlookApp) {
-throw "無法開啟 Outlook 程式"
-}
-$fullPath = Resolve-Path $msgPath
-Write-Host "開啟 $fullPath"
-$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
-$mailItem.HtmlBody = $mailItem.HtmlBody.Replace('image001.png', 'image002.png')
-$mailItem.SaveAs((Resolve-AbsPath 'fixed.msg'))
-$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
-Write-Host "共有 $($res.Count) 個內嵌圖片"
-$htmlCids = @()
-foreach ($match in $res) {
-$cid = $match.Groups[1].Value
-$htmlCids += $cid
-Write-Host "  $cid"
-}
-$attachments = $mailItem.Attachments
-Write-Host "共有 $($attachments.Count) 個附件"
-$attCids = @()
-try {
-$saveFolderPath = Resolve-AbsPath $attachmentFolder
-$attachments | ForEach-Object {
-$attachment = $_
-$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
-$savePath = Join-Path $saveFolderPath $attachment.FileName
-Write-Host "  儲存[$cid] $savePath..."
-$attachment.SaveAsFile($savePath)
-if ($cid -match '^image\d+\.(png|jpg)@[0-9A-F]{8}\.[0-9A-F]{8}$') {
-$attCids += $cid
-}
-}
-$index = 0
-Write-Host "嘗試修正 CID"
-$htmlCids | ForEach-Object {
-$newCid = $attCids[$index]
-$index++
-Write-Host "  置換：$_ -&gt; $newCid"
-$mailItem.HtmlBody = $mailItem.HtmlBody.Replace("cid:$_", "cid:$newCid")
-}
-$mailItem.SaveAs((Resolve-AbsPath 'try-fix.msg'))
-}
-finally {
-$mailItem.Delete()
-}
-</code></pre> <p>實測成功，不但拿回消失的圖片，開啟郵件消失的圖片也重現了。讚~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638611406518934009.png"></p> <p data-slug="fix-outlook-picture-disappear-issue" data-title-en="Fix picture disappering after Outlook mail replied or forwarded issue" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/03/25/18/24/nutcracker-2174124_960_720.jpg#960#720">This blog post addresses the issue of embedded images disappearing in Outlook emails when replying or forwarding. It explains the problem’s root cause related to ContentId mismatches and offers PowerShell scripts to diagnose and fix the issue by extracting and reassigning ContentIds for embedded images.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>我有個困擾，Outlook 收到幾位特定同事寄來內嵌圖片的信，圖片會在回信或轉信後消失，出現叉燒包圖示及<code>無法顯示連結的影像。檔案可能已移動、重新命名或刪除。請檢查連結是否指向正確的檔案及位置。/ The linked image cannot be displayed. The file may have been moved, renamed, or deleted. Verify that the link points to the correct file and location.</code> 訊息。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"><br> (示意圖)</p> <p>爬文發現我不孤獨，用「回信或轉信後圖片消失」可查到不少類似問題回報：</p> <ul><li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/pictures-disappear-when-i-forward-or-reply-to-an/d232f82d-6ea4-412f-baac-f9e49783d286?page=1&amp;WT.mc_id=DOP-MVP-37580">Pictures disappear when I forward or reply to an email.</a>，</li> <li><a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/photo-disappears-from-email-when-replying-or/1f635422-b5ca-4c58-936f-064d1cb1d77a?WT.mc_id=DOP-MVP-37580">photo disappears from email when replying or forwarding</a></li></ul> <p>可惜這些案例是發生在雲端網頁版，而我是在本機 Office 2019 遇到，不同情境原因未必相同，解法也不適用。</p> <p>摸摸鼻子，自己查看看好了。將信件另存成 .msg 檔進行解剖。</p> <p>.msg 本質是個壓縮檔，解開裡面有資料夾及檔案，可用來儲存 Exchange 郵件、約會、連絡人等物件內容，用 7-Zip 檢視可以看到資料是以一個屬性一個檔案方式保存。(註：想深入細節的同學可以去啃 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxmsg/b046868c-9fbf-41ae-9ffb-8de2bd4eec82?WT.mc_id=DOP-MVP-37580">官方規格</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638611406512241695.png"></p> <p>分析圖片消失的信件，找出問題所在。信件內嵌圖檔是以附件方式儲存，每個附檔會對映一個名為 <code>__attach_version1.0_#0000000n</code> 的資料夾，圖片消失的信件，其實圖檔都還在，只是這些圖片是以 <code>&lt;img width=217 height=222 style='width:2.2604in;height:2.3125in' id="圖片_x0020_2" src="cid:image001.png@01DAFF72.94F352E0"&gt;</code> HTML 標籤嵌入信件內文，而其中 <code>image001.png@01DAFF72.94F352E0</code> 是系統自動產生的 ContentId：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638611406515503814.png"></p> <p>圖片附檔都在，但檢視時說連結未指向正確的檔案及位置，最容易的解釋是附檔的 <code>cid:image001.png@...</code> 跟 HTML 中的 <code>src="cid:image001.png@..."</code> 因不明原因對不上。</p> <p>研究了一下，PowerShell 建立 Outlook.Application 後，可以用 CreateItemFromTemplate() 讀取 .msg，由 HtmlBody 取得 HTML 內容找出 <code>src="cid:image001.png@..."</code>，列舉 Attachments 並用 <code>Attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")</code> (<a href="https://learn.microsoft.com/en-us/office/client-developer/outlook/mapi/pidtagattachcontentid-canonical-property?WT.mc_id=DOP-MVP-37580">PidTagAttachContentId</a> 取得附件的 ContentId，比對二者是否有出入。</p> <p>我寫了一支小程式檢查內文與附檔 CID 的一致性。</p> <pre><code>[CmdletBinding()]
-param (
-[Parameter(Mandatory = $true)]
-[string]
-$msgPath
-)
-$ErrorActionPreference = 'STOP'
-function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-$outlookApp = New-Object -ComObject Outlook.Application
-if (!$outlookApp) {
-throw "無法開啟 Outlook 程式"
-}
-$fullPath = Resolve-Path $msgPath
-Write-Host "開啟 $fullPath"
-$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
-$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
-Write-Host "共有 $($res.Count) 個內嵌圖片"
-foreach ($match in $res) {
-$cid = $match.Groups[1].Value
-Write-Host "  $cid"
-}
-$attachments = $mailItem.Attachments
-Write-Host "共有 $($attachments.Count) 個附件"
-try {
-$attachments | ForEach-Object {
-$attachment = $_
-$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
-Write-Host "  [$cid]"
-}
-}
-finally {
-$mailItem.Delete()
-}
-</code></pre> <p>分別檢查正常郵件 good.msg 及問題郵件 broken.msg，證實了問題出在 CID 對映：正常郵件 HTML 中的 CID 與附件的 CID 一致，而問題郵件兩邊的數量相符，但 CID 對不起來。證實「CID 錯亂導致圖片無法顯示」是問題根源，但原因不明，也有可能是 Outlook 的 Bug，恐會查到心累。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638611406517187571.png"></p> <p>最後，我寫了一支 Workaround 小工具，將圖片附檔另存，至少能取回消失的圖片，並嘗試將 HTML 中的 CID 依序換成附檔目前的 CID 以修正問題。</p> <pre><code>[CmdletBinding()]
-param (
-[Parameter(Mandatory = $true)]
-[string]
-$msgPath,
-[string]
-$attachmentFolder = '.'
-)
-$ErrorActionPreference = 'STOP'
-function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-$outlookApp = New-Object -ComObject Outlook.Application
-if (!$outlookApp) {
-throw "無法開啟 Outlook 程式"
-}
-$fullPath = Resolve-Path $msgPath
-Write-Host "開啟 $fullPath"
-$mailItem = $outlookApp.CreateItemFromTemplate($fullPath)
-$mailItem.HtmlBody = $mailItem.HtmlBody.Replace('image001.png', 'image002.png')
-$mailItem.SaveAs((Resolve-AbsPath 'fixed.msg'))
-$res = [regex]::Matches($mailItem.HtmlBody, 'src="cid:([^"]+)"')
-Write-Host "共有 $($res.Count) 個內嵌圖片"
-$htmlCids = @()
-foreach ($match in $res) {
-$cid = $match.Groups[1].Value
-$htmlCids += $cid
-Write-Host "  $cid"
-}
-$attachments = $mailItem.Attachments
-Write-Host "共有 $($attachments.Count) 個附件"
-$attCids = @()
-try {
-$saveFolderPath = Resolve-AbsPath $attachmentFolder
-$attachments | ForEach-Object {
-$attachment = $_
-$cid = $attachment.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x3712001F")
-$savePath = Join-Path $saveFolderPath $attachment.FileName
-Write-Host "  儲存[$cid] $savePath..."
-$attachment.SaveAsFile($savePath)
-if ($cid -match '^image\d+\.(png|jpg)@[0-9A-F]{8}\.[0-9A-F]{8}$') {
-$attCids += $cid
-}
-}
-$index = 0
-Write-Host "嘗試修正 CID"
-$htmlCids | ForEach-Object {
-$newCid = $attCids[$index]
-$index++
-Write-Host "  置換：$_ -&gt; $newCid"
-$mailItem.HtmlBody = $mailItem.HtmlBody.Replace("cid:$_", "cid:$newCid")
-}
-$mailItem.SaveAs((Resolve-AbsPath 'try-fix.msg'))
-}
-finally {
-$mailItem.Delete()
-}
-</code></pre> <p>實測成功，不但拿回消失的圖片，開啟郵件消失的圖片也重現了。讚~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638611406518934009.png"></p> <p data-slug="fix-outlook-picture-disappear-issue" data-title-en="Fix picture disappering after Outlook mail replied or forwarded issue" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/03/25/18/24/nutcracker-2174124_960_720.jpg#960#720">This blog post addresses the issue of embedded images disappearing in Outlook emails when replying or forwarding. It explains the problem’s root cause related to ContentId mismatches and offers PowerShell scripts to diagnose and fix the issue by extracting and reassigning ContentIds for embedded images.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638611406510491422.png" medium="image"/>
-    <pubDate>Thu, 05 Sep 2024 13:41:26 GMT</pubDate>
   </item></channel>
 </rss>
