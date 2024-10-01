@@ -30,6 +30,177 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Python 新手筆記 3 - 字串/變數/布林值/迴圈 散記]]></title>
+    <link>https://blog.darkthread.net/blog/python-beginner-notes-3/</link>
+    <itunes:title><![CDATA[Python 新手筆記 3 - 字串/變數/布林值/迴圈 散記]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>關於字串、變數、布林值、迴圈的零散筆記。<a href="/blog/python-beginner-notes-1/">參考資源</a></p> <ul><li><code>x, y, z = 1, 2, 3</code> 相當於 <code>x, y, z = (1, 2, 3)</code>，對 Tuple 做 Unboxing</li> <li>跟 C# 一樣，<code>_</code> 常用在可忽略、用不到的變數名稱，例如 <code>x, _, z = (1, 2, 3)</code></li> <li>常數慣例用大寫，例如 <code>PI = 3.14</code></li> <li>保留字(關鍵字)共 35 個(Python 3.12)，可由 <code>keyword.kwlist</code> 取得，不能當成變數名稱</li> <li>軟關鍵字 <code>keyword.softkwlist</code>(<code>['_', 'case', 'match', 'type']</code>)、內建函式名稱，不建議用來當變數名稱</li> <li>變數以及函式命名慣用蛇式(<code>names_like_this</code>)、類別命名則用駝峰(‵MyClass`)</li> <li><code>del var_name</code> 可刪除變數</li> <li><code>user_input = input()</code> 讀取使用者終端機輸入內容</li> <li><code>var_name: int = 123</code> <code>def add(a: int, b: int) -&gt; int</code> 可提示型別，但僅供 IDE 跟人參考用，不具約束性</li> <li><code>type(var_name)</code> 可取得變數型別，<code>type(123)</code> 會傳回 <code>&lt;class 'int'&gt;</code></li> <li>數值型別有 int、float、str、bool, complex (複數，3 + 2j，電子電機界 i 代表電流，故用 j 表虛部)</li> <li>數字表示：0b10 二進位、0o10 八進位、010 十六進位、<code>1_000_000</code> 千位標示。oct(10) 得到 '0o12'、hex(10) 等 'oxa'<br> <code>int('10', 16)</code> 16 進位字串轉整數</li> <li><code>1 + '1'</code> 不同型別不能相加(不要被 JavaScript 慣壞了)，會 <code>TypeError: unsupported operand type(s) for +: 'int' and 'str'</code>，但 <code>1 + True</code> 可以，是因為 Ture/False 是 1/0 的別名</li> <li>bool() 轉換時，會當成 False 者：False、None、0, "", [], (), 等空容器</li> <li>字串用單引或雙引號都可以，\o ' " \ooo \xhh \uhhhh \Uhhhhhhhh \0 
+ \r \t... 等規則與大部分語言相同<br> r"\t' 類似 C# @"\t"，不解析轉義（Escape）字串<br> ''' 或 """ 可包夾有換行的字串內容</li> <li>字串可用加號串接，乘法會重複內容 n 之，<code>"abc" * 3</code> 等於 'abcabcabc'</li> <li>字串切片：</li></ul> <pre><code>n = 'Jeffrey'
+n[-1] # 'y'
+n[4:] # 'rey'
+n[1:3] # 'ef', 不含第 3 個
+n[:4] # 'Jeff'
+n[1::2] # 'efe'，第一個起到結尾，每次跳兩格
+n[::-1] # 'yerffeJ'
+</code></pre> <ul><li>n[4:] 相當於 n[4:None]，Python 的 None 相當於 C#/JavaScript 的 null，None 是 &lt;class 'NoneType'&gt;</li> <li>ASCII/Unicode 轉換：ord('黑')、char(40657)、'黑'.encode('big5')、'黑'.encode('utf-8') (會得到 bytes b'\xe9\xbb\x91'，.decode('utf-8') 還原回字串)、b"hello" 可宣告 bytes 但限 ASCII</li> <li>非數字 float('nan') / math.nan，NaN 加減乘除都是 NaN，NaN 自己跟自己做 == 也不相等，但可用 math.isnan() 檢查<br> 特殊計算：NaN 零次方是 1，1 ** math.nan == 1</li> <li>正負無限大：float('inf') float('-inf') math.inf math.isinfo()</li> <li>C# 的<a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/tutorials/string-interpolation?WT.mc_id=DOP-MVP-37580">字串插補(String Interpolation)</a> <code>$"Hello, {name}!"</code> 在 Python 叫格式化字串(Formatted String)，又稱為「F 字串（f-strings）」，寫為 <code>f"Hello, {name}!"</code></li> <li>F 字串格式標示：<br> <code>f"{qty:,}"</code>(千位號)、<code>f"{qty:.2f}"</code>(兩位小數)、<code>f"{qty:,.2f}"</code>(千位號+兩位小數)<br> <code>f"|{pi:20}|"</code>左補空白到 20 位、<code>f"|{pi:&lt;20}|"</code>(右補空白)、<code>f"|{pi:&gt;20}|"</code>(左補空白，預設行為)、<code>f"|{pi:&lt;20}|"</code>(置中)、<code>f"|{pi:X&gt;20}|(左補'X')</code><br> <code>f"{hour:02}:{minute:02}:{second:02}"</code> 補零到兩位<br> <code>f"{10:b}"</code>、<code>f"{10:o}"</code>、<code>f"{255:x}"</code>、<code>f"{big_value:.3e}"</code> 二、八、16 進位、科學記號<br> <code>f"{the_day:%Y/%m/%d}"</code> 日期<br> <code>f"{a + b =} "</code> 顯示 'a + b = ' 接上 a + b 的數值</li> <li>字串函數：startswith()、endswith()、isupper()、islower()、isnumeric()、index() 找第一個符合的索引值，找不到會錯 <code>ValueError: substring not found</code>、rindex() 從後面開始找 、find()/rfind() 找不到傳 -1<br> <code>replace('t', '-')</code> 置換、<code>replace('t', '-', 1)</code> 只取代 1 次、<code>strip(</code>) 刪頭尾空白、<code>strip("abc")</code> 刪頭尾的 a 或 b 或 c<br> <code>split('-')</code>、<code>split('-', 2)</code> 拆兩個出來，後面不拆成保留整體</li> <li>邏輯判斷時寫 and or</li> <li>邏輯短路(Short-Circuit)<br> <code>m &gt; 2 and print("m 大於 2")</code> <code>m &lt; 0 or print("m 大於 0")</code></li> <li>由於 Python 不像 C#/JS 可用 隔出空的流程分支區塊，必要時縮排再放上 pass 佔位</li> <li>Python 的 else if 要寫成 elif</li> <li>Python 沒有 switch (吵了很久，但作者覺得 if elif else 就夠了)，但有個功能更強大的 match，可以實現以下邏輯：</li></ul> <pre><code>match data:
+case int() | float():
+print("數字")
+case str():
+print("字串")
+case [uid, name, age]:
+print(f"人員：{uid} / {name} / {age}")
+case {"gender": "female", "name": name}:
+print(f"{name} 女士您好！")
+case x, y if y != 0:
+print(f"{x / y = }")
+case _:
+print("其他型別")
+</code></pre> <ul><li>Python 不用 <code>for i = 0; i &lt; 10; i++</code> 這種做法，會寫成 <code>for n in range(10)</code></li> <li><code>for .. in ...</code> 可以用在任何 Iterable 物件上，像是 List、Array、string，並可配合 enumerate() ：</li></ul> <pre><code>import numpy as np
+for n in [1, 2, 3]: # List
+print(n, end=" ")
+print()
+for t in enumerate(['a','b']):
+print(t, end=" ")
+print()
+for (i, v) in enumerate(['a','b']):
+print(f"{i}.{v}", end=" ")
+print()
+for n in np.array([1, 2, 3]): # Array
+print(n, end=" ")
+print()
+for c in "Jeffrey":
+print(c, end=" ")
+print()
+for k, v in enumerate({"id":1,"name":'Jeffrey'}): # Tuple
+print(f"[{k}]={v}")
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638633958848597448.png"></p> <ul><li>迴圈練習，華麗聖誕樹<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638633958873752788.png"></li> <li>Python 的 for 一樣有 break 跟 continue，另外有個特殊的 else 寫法，迴圈正常跑完非 break 跳出時觸發</li></ul> <pre><code>for n in [1, 2, -1, 3]:
+if (n &lt; 0):
+print('有內鬼中止交易')
+break
+print(n)
+else:
+print('完整跑完迴圈')
+</code></pre> <ul><li>迴圈的 else</li></ul> <pre><code>for n in range(5):
+if (n == 3):
+break
+print(n)
+else
+print('這行顯示代表沒break完整跑完') # 想成 break ... else ...
+</code></pre> <p data-slug="python-beginner-notes-3" data-title-en="Python beginner notes - string, variable, boolean and loop" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">Notes on strings, variables, booleans, and loops in Python, covering topics like tuple unpacking, naming conventions, data types, slicing, formatted strings, logical operations, the match statement, and loop constructs with examples.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>關於字串、變數、布林值、迴圈的零散筆記。<a href="/blog/python-beginner-notes-1/">參考資源</a></p> <ul><li><code>x, y, z = 1, 2, 3</code> 相當於 <code>x, y, z = (1, 2, 3)</code>，對 Tuple 做 Unboxing</li> <li>跟 C# 一樣，<code>_</code> 常用在可忽略、用不到的變數名稱，例如 <code>x, _, z = (1, 2, 3)</code></li> <li>常數慣例用大寫，例如 <code>PI = 3.14</code></li> <li>保留字(關鍵字)共 35 個(Python 3.12)，可由 <code>keyword.kwlist</code> 取得，不能當成變數名稱</li> <li>軟關鍵字 <code>keyword.softkwlist</code>(<code>['_', 'case', 'match', 'type']</code>)、內建函式名稱，不建議用來當變數名稱</li> <li>變數以及函式命名慣用蛇式(<code>names_like_this</code>)、類別命名則用駝峰(‵MyClass`)</li> <li><code>del var_name</code> 可刪除變數</li> <li><code>user_input = input()</code> 讀取使用者終端機輸入內容</li> <li><code>var_name: int = 123</code> <code>def add(a: int, b: int) -&gt; int</code> 可提示型別，但僅供 IDE 跟人參考用，不具約束性</li> <li><code>type(var_name)</code> 可取得變數型別，<code>type(123)</code> 會傳回 <code>&lt;class 'int'&gt;</code></li> <li>數值型別有 int、float、str、bool, complex (複數，3 + 2j，電子電機界 i 代表電流，故用 j 表虛部)</li> <li>數字表示：0b10 二進位、0o10 八進位、010 十六進位、<code>1_000_000</code> 千位標示。oct(10) 得到 '0o12'、hex(10) 等 'oxa'<br> <code>int('10', 16)</code> 16 進位字串轉整數</li> <li><code>1 + '1'</code> 不同型別不能相加(不要被 JavaScript 慣壞了)，會 <code>TypeError: unsupported operand type(s) for +: 'int' and 'str'</code>，但 <code>1 + True</code> 可以，是因為 Ture/False 是 1/0 的別名</li> <li>bool() 轉換時，會當成 False 者：False、None、0, "", [], (), 等空容器</li> <li>字串用單引或雙引號都可以，\o ' " \ooo \xhh \uhhhh \Uhhhhhhhh \0 
+ \r \t... 等規則與大部分語言相同<br> r"\t' 類似 C# @"\t"，不解析轉義（Escape）字串<br> ''' 或 """ 可包夾有換行的字串內容</li> <li>字串可用加號串接，乘法會重複內容 n 之，<code>"abc" * 3</code> 等於 'abcabcabc'</li> <li>字串切片：</li></ul> <pre><code>n = 'Jeffrey'
+n[-1] # 'y'
+n[4:] # 'rey'
+n[1:3] # 'ef', 不含第 3 個
+n[:4] # 'Jeff'
+n[1::2] # 'efe'，第一個起到結尾，每次跳兩格
+n[::-1] # 'yerffeJ'
+</code></pre> <ul><li>n[4:] 相當於 n[4:None]，Python 的 None 相當於 C#/JavaScript 的 null，None 是 &lt;class 'NoneType'&gt;</li> <li>ASCII/Unicode 轉換：ord('黑')、char(40657)、'黑'.encode('big5')、'黑'.encode('utf-8') (會得到 bytes b'\xe9\xbb\x91'，.decode('utf-8') 還原回字串)、b"hello" 可宣告 bytes 但限 ASCII</li> <li>非數字 float('nan') / math.nan，NaN 加減乘除都是 NaN，NaN 自己跟自己做 == 也不相等，但可用 math.isnan() 檢查<br> 特殊計算：NaN 零次方是 1，1 ** math.nan == 1</li> <li>正負無限大：float('inf') float('-inf') math.inf math.isinfo()</li> <li>C# 的<a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/tutorials/string-interpolation?WT.mc_id=DOP-MVP-37580">字串插補(String Interpolation)</a> <code>$"Hello, {name}!"</code> 在 Python 叫格式化字串(Formatted String)，又稱為「F 字串（f-strings）」，寫為 <code>f"Hello, {name}!"</code></li> <li>F 字串格式標示：<br> <code>f"{qty:,}"</code>(千位號)、<code>f"{qty:.2f}"</code>(兩位小數)、<code>f"{qty:,.2f}"</code>(千位號+兩位小數)<br> <code>f"|{pi:20}|"</code>左補空白到 20 位、<code>f"|{pi:&lt;20}|"</code>(右補空白)、<code>f"|{pi:&gt;20}|"</code>(左補空白，預設行為)、<code>f"|{pi:&lt;20}|"</code>(置中)、<code>f"|{pi:X&gt;20}|(左補'X')</code><br> <code>f"{hour:02}:{minute:02}:{second:02}"</code> 補零到兩位<br> <code>f"{10:b}"</code>、<code>f"{10:o}"</code>、<code>f"{255:x}"</code>、<code>f"{big_value:.3e}"</code> 二、八、16 進位、科學記號<br> <code>f"{the_day:%Y/%m/%d}"</code> 日期<br> <code>f"{a + b =} "</code> 顯示 'a + b = ' 接上 a + b 的數值</li> <li>字串函數：startswith()、endswith()、isupper()、islower()、isnumeric()、index() 找第一個符合的索引值，找不到會錯 <code>ValueError: substring not found</code>、rindex() 從後面開始找 、find()/rfind() 找不到傳 -1<br> <code>replace('t', '-')</code> 置換、<code>replace('t', '-', 1)</code> 只取代 1 次、<code>strip(</code>) 刪頭尾空白、<code>strip("abc")</code> 刪頭尾的 a 或 b 或 c<br> <code>split('-')</code>、<code>split('-', 2)</code> 拆兩個出來，後面不拆成保留整體</li> <li>邏輯判斷時寫 and or</li> <li>邏輯短路(Short-Circuit)<br> <code>m &gt; 2 and print("m 大於 2")</code> <code>m &lt; 0 or print("m 大於 0")</code></li> <li>由於 Python 不像 C#/JS 可用 隔出空的流程分支區塊，必要時縮排再放上 pass 佔位</li> <li>Python 的 else if 要寫成 elif</li> <li>Python 沒有 switch (吵了很久，但作者覺得 if elif else 就夠了)，但有個功能更強大的 match，可以實現以下邏輯：</li></ul> <pre><code>match data:
+case int() | float():
+print("數字")
+case str():
+print("字串")
+case [uid, name, age]:
+print(f"人員：{uid} / {name} / {age}")
+case {"gender": "female", "name": name}:
+print(f"{name} 女士您好！")
+case x, y if y != 0:
+print(f"{x / y = }")
+case _:
+print("其他型別")
+</code></pre> <ul><li>Python 不用 <code>for i = 0; i &lt; 10; i++</code> 這種做法，會寫成 <code>for n in range(10)</code></li> <li><code>for .. in ...</code> 可以用在任何 Iterable 物件上，像是 List、Array、string，並可配合 enumerate() ：</li></ul> <pre><code>import numpy as np
+for n in [1, 2, 3]: # List
+print(n, end=" ")
+print()
+for t in enumerate(['a','b']):
+print(t, end=" ")
+print()
+for (i, v) in enumerate(['a','b']):
+print(f"{i}.{v}", end=" ")
+print()
+for n in np.array([1, 2, 3]): # Array
+print(n, end=" ")
+print()
+for c in "Jeffrey":
+print(c, end=" ")
+print()
+for k, v in enumerate({"id":1,"name":'Jeffrey'}): # Tuple
+print(f"[{k}]={v}")
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638633958848597448.png"></p> <ul><li>迴圈練習，華麗聖誕樹<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638633958873752788.png"></li> <li>Python 的 for 一樣有 break 跟 continue，另外有個特殊的 else 寫法，迴圈正常跑完非 break 跳出時觸發</li></ul> <pre><code>for n in [1, 2, -1, 3]:
+if (n &lt; 0):
+print('有內鬼中止交易')
+break
+print(n)
+else:
+print('完整跑完迴圈')
+</code></pre> <ul><li>迴圈的 else</li></ul> <pre><code>for n in range(5):
+if (n == 3):
+break
+print(n)
+else
+print('這行顯示代表沒break完整跑完') # 想成 break ... else ...
+</code></pre> <p data-slug="python-beginner-notes-3" data-title-en="Python beginner notes - string, variable, boolean and loop" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">Notes on strings, variables, booleans, and loops in Python, covering topics like tuple unpacking, naming conventions, data types, slicing, formatted strings, logical operations, the match statement, and loop constructs with examples.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>關於字串、變數、布林值、迴圈的零散筆記。<a href="/blog/python-beginner-notes-1/">參考資源</a></p> <ul><li><code>x, y, z = 1, 2, 3</code> 相當於 <code>x, y, z = (1, 2, 3)</code>，對 Tuple 做 Unboxing</li> <li>跟 C# 一樣，<code>_</code> 常用在可忽略、用不到的變數名稱，例如 <code>x, _, z = (1, 2, 3)</code></li> <li>常數慣例用大寫，例如 <code>PI = 3.14</code></li> <li>保留字(關鍵字)共 35 個(Python 3.12)，可由 <code>keyword.kwlist</code> 取得，不能當成變數名稱</li> <li>軟關鍵字 <code>keyword.softkwlist</code>(<code>['_', 'case', 'match', 'type']</code>)、內建函式名稱，不建議用來當變數名稱</li> <li>變數以及函式命名慣用蛇式(<code>names_like_this</code>)、類別命名則用駝峰(‵MyClass`)</li> <li><code>del var_name</code> 可刪除變數</li> <li><code>user_input = input()</code> 讀取使用者終端機輸入內容</li> <li><code>var_name: int = 123</code> <code>def add(a: int, b: int) -&gt; int</code> 可提示型別，但僅供 IDE 跟人參考用，不具約束性</li> <li><code>type(var_name)</code> 可取得變數型別，<code>type(123)</code> 會傳回 <code>&lt;class 'int'&gt;</code></li> <li>數值型別有 int、float、str、bool, complex (複數，3 + 2j，電子電機界 i 代表電流，故用 j 表虛部)</li> <li>數字表示：0b10 二進位、0o10 八進位、010 十六進位、<code>1_000_000</code> 千位標示。oct(10) 得到 '0o12'、hex(10) 等 'oxa'<br> <code>int('10', 16)</code> 16 進位字串轉整數</li> <li><code>1 + '1'</code> 不同型別不能相加(不要被 JavaScript 慣壞了)，會 <code>TypeError: unsupported operand type(s) for +: 'int' and 'str'</code>，但 <code>1 + True</code> 可以，是因為 Ture/False 是 1/0 的別名</li> <li>bool() 轉換時，會當成 False 者：False、None、0, "", [], (), 等空容器</li> <li>字串用單引或雙引號都可以，\o ' " \ooo \xhh \uhhhh \Uhhhhhhhh \0 
+ \r \t... 等規則與大部分語言相同<br> r"\t' 類似 C# @"\t"，不解析轉義（Escape）字串<br> ''' 或 """ 可包夾有換行的字串內容</li> <li>字串可用加號串接，乘法會重複內容 n 之，<code>"abc" * 3</code> 等於 'abcabcabc'</li> <li>字串切片：</li></ul> <pre><code>n = 'Jeffrey'
+n[-1] # 'y'
+n[4:] # 'rey'
+n[1:3] # 'ef', 不含第 3 個
+n[:4] # 'Jeff'
+n[1::2] # 'efe'，第一個起到結尾，每次跳兩格
+n[::-1] # 'yerffeJ'
+</code></pre> <ul><li>n[4:] 相當於 n[4:None]，Python 的 None 相當於 C#/JavaScript 的 null，None 是 &lt;class 'NoneType'&gt;</li> <li>ASCII/Unicode 轉換：ord('黑')、char(40657)、'黑'.encode('big5')、'黑'.encode('utf-8') (會得到 bytes b'\xe9\xbb\x91'，.decode('utf-8') 還原回字串)、b"hello" 可宣告 bytes 但限 ASCII</li> <li>非數字 float('nan') / math.nan，NaN 加減乘除都是 NaN，NaN 自己跟自己做 == 也不相等，但可用 math.isnan() 檢查<br> 特殊計算：NaN 零次方是 1，1 ** math.nan == 1</li> <li>正負無限大：float('inf') float('-inf') math.inf math.isinfo()</li> <li>C# 的<a href="https://learn.microsoft.com/zh-tw/dotnet/csharp/tutorials/string-interpolation?WT.mc_id=DOP-MVP-37580">字串插補(String Interpolation)</a> <code>$"Hello, {name}!"</code> 在 Python 叫格式化字串(Formatted String)，又稱為「F 字串（f-strings）」，寫為 <code>f"Hello, {name}!"</code></li> <li>F 字串格式標示：<br> <code>f"{qty:,}"</code>(千位號)、<code>f"{qty:.2f}"</code>(兩位小數)、<code>f"{qty:,.2f}"</code>(千位號+兩位小數)<br> <code>f"|{pi:20}|"</code>左補空白到 20 位、<code>f"|{pi:&lt;20}|"</code>(右補空白)、<code>f"|{pi:&gt;20}|"</code>(左補空白，預設行為)、<code>f"|{pi:&lt;20}|"</code>(置中)、<code>f"|{pi:X&gt;20}|(左補'X')</code><br> <code>f"{hour:02}:{minute:02}:{second:02}"</code> 補零到兩位<br> <code>f"{10:b}"</code>、<code>f"{10:o}"</code>、<code>f"{255:x}"</code>、<code>f"{big_value:.3e}"</code> 二、八、16 進位、科學記號<br> <code>f"{the_day:%Y/%m/%d}"</code> 日期<br> <code>f"{a + b =} "</code> 顯示 'a + b = ' 接上 a + b 的數值</li> <li>字串函數：startswith()、endswith()、isupper()、islower()、isnumeric()、index() 找第一個符合的索引值，找不到會錯 <code>ValueError: substring not found</code>、rindex() 從後面開始找 、find()/rfind() 找不到傳 -1<br> <code>replace('t', '-')</code> 置換、<code>replace('t', '-', 1)</code> 只取代 1 次、<code>strip(</code>) 刪頭尾空白、<code>strip("abc")</code> 刪頭尾的 a 或 b 或 c<br> <code>split('-')</code>、<code>split('-', 2)</code> 拆兩個出來，後面不拆成保留整體</li> <li>邏輯判斷時寫 and or</li> <li>邏輯短路(Short-Circuit)<br> <code>m &gt; 2 and print("m 大於 2")</code> <code>m &lt; 0 or print("m 大於 0")</code></li> <li>由於 Python 不像 C#/JS 可用 隔出空的流程分支區塊，必要時縮排再放上 pass 佔位</li> <li>Python 的 else if 要寫成 elif</li> <li>Python 沒有 switch (吵了很久，但作者覺得 if elif else 就夠了)，但有個功能更強大的 match，可以實現以下邏輯：</li></ul> <pre><code>match data:
+case int() | float():
+print("數字")
+case str():
+print("字串")
+case [uid, name, age]:
+print(f"人員：{uid} / {name} / {age}")
+case {"gender": "female", "name": name}:
+print(f"{name} 女士您好！")
+case x, y if y != 0:
+print(f"{x / y = }")
+case _:
+print("其他型別")
+</code></pre> <ul><li>Python 不用 <code>for i = 0; i &lt; 10; i++</code> 這種做法，會寫成 <code>for n in range(10)</code></li> <li><code>for .. in ...</code> 可以用在任何 Iterable 物件上，像是 List、Array、string，並可配合 enumerate() ：</li></ul> <pre><code>import numpy as np
+for n in [1, 2, 3]: # List
+print(n, end=" ")
+print()
+for t in enumerate(['a','b']):
+print(t, end=" ")
+print()
+for (i, v) in enumerate(['a','b']):
+print(f"{i}.{v}", end=" ")
+print()
+for n in np.array([1, 2, 3]): # Array
+print(n, end=" ")
+print()
+for c in "Jeffrey":
+print(c, end=" ")
+print()
+for k, v in enumerate({"id":1,"name":'Jeffrey'}): # Tuple
+print(f"[{k}]={v}")
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638633958848597448.png"></p> <ul><li>迴圈練習，華麗聖誕樹<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638633958873752788.png"></li> <li>Python 的 for 一樣有 break 跟 continue，另外有個特殊的 else 寫法，迴圈正常跑完非 break 跳出時觸發</li></ul> <pre><code>for n in [1, 2, -1, 3]:
+if (n &lt; 0):
+print('有內鬼中止交易')
+break
+print(n)
+else:
+print('完整跑完迴圈')
+</code></pre> <ul><li>迴圈的 else</li></ul> <pre><code>for n in range(5):
+if (n == 3):
+break
+print(n)
+else
+print('這行顯示代表沒break完整跑完') # 想成 break ... else ...
+</code></pre> <p data-slug="python-beginner-notes-3" data-title-en="Python beginner notes - string, variable, boolean and loop" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">Notes on strings, variables, booleans, and loops in Python, covering topics like tuple unpacking, naming conventions, data types, slicing, formatted strings, logical operations, the match statement, and loop constructs with examples.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638633958848597448.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638633958848597448.png" medium="image"/>
+    <pubDate>Tue, 01 Oct 2024 15:59:06 GMT</pubDate>
+  </item><item>
     <title><![CDATA[C# 開源圖表程式庫 - ScottPlot]]></title>
     <link>https://blog.darkthread.net/blog/scottplot/</link>
     <itunes:title><![CDATA[C# 開源圖表程式庫 - ScottPlot]]></itunes:title>
@@ -793,20 +964,5 @@ demo\Scripts\Activate.ps1 # PowerShell
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638614933165137772.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638614933165137772.jpg" medium="image"/>
     <pubDate>Mon, 09 Sep 2024 15:34:39 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[計算機液晶螢幕掉字維修]]></title>
-    <link>https://blog.darkthread.net/blog/replace-heat-seal-connector/</link>
-    <itunes:title><![CDATA[計算機液晶螢幕掉字維修]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>故事的起源是前陣子幫一台計算機<a href="/blog/fat-coin-battery/">換了電池</a>，發現它還有另一個問題，十萬位的 8 少了三條線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638613202338684184.jpg" alt="thumbnail"></p> <p>推測是螢幕排線接觸不良，試著加壓改善，狀況時好時壞，有時甚至惡化到掉字掉整排：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638613202340610736.jpg" alt="thumbnail"></p> <p>爬文學到新知識，下圖連接計算機電路板跟液晶螢幕的軟排線俗稱斑馬紙，正式名稱應該叫 <a href="https://www.toa-twn.com.tw/product/383/106/Heat%20Seal%20Connector%20%E7%86%B1%E5%A3%93%E7%B4%99(%E6%96%91%E9%A6%AC%E7%B4%99)">Heat Seal Connector 熱壓密封連接器</a>，是用聚酯纖維薄膜當基材，上面有碳(Carbon)或是銀碳(銀Carbon)作成的導線，端子部會塗上異方導電性膠，可以熱壓方式接上液晶螢幕玻璃上的端子。江湖都叫它斑馬紙，好記又傳神~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638613202342401137.jpg" alt="thumbnail"></p> <p>班馬紙規格很多種，導線數量、線徑粗細各異，採購時可能會看到 4812、4015、6809 之類的型號，最後兩位是一條黑線加一條白線的寬度，12 表示 1.2mm、09 代表 0.9mm，而前方的數字代表導線數量。</p> <p>手上這台計算機共有 40 條線，總寬度 6cm，應該要買 4015。這玩意兒在淘寶超便宜，甚至不用 10 元，但在台灣因為銷量少，賣起來又沒啥利潤，要嘛找不到，要嘛賣到爆。在露天找到一位佛心賣家，一公分長度 10 元加減賣，服務 DIY 玩家。手上這台計算機排線長度只需要 2 公分，但考量自己沒經驗不知會失敗幾次，索性花 100 元買 21 公分，夠玩十次，國父革命都成功了，總不會還修不好。</p> <p>要斑馬紙需要加熱膠黏到端子上，還需要一個烙鐵熱壓頭跟膠條，而加熱溫度不可過高。於是我又順勢買了一支便宜的可調溫電烙鐵，加上熱壓頭、導熱膠條，器材跟材料成本已超過買一台新計算機了，哈。</p> <p>將舊排線撕下來，依前輩分享經驗是原本殘膠可以不用清，方便對準位置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638613202344239834.jpg" alt="thumbnail"></p> <p>但我這次的維修經驗，沒清膠重黏後掉字問題仍在，</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638613202346045301.jpg" alt="thumbnail"></p> <p>烙鐵溫度我是調 320 度，用熨衣服方式加壓，來回三四趟差不多就牢固了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638613202347888686.jpg" alt="thumbnail"></p> <p>電路板端也如法泡製：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638613202349742665.jpg" alt="thumbnail"></p> <p>薑! 薑! 薑! 薑~~~ 修復完成。我也成功解除「修好螢幕掉字計算機」的成就!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638613202352111727.jpg" alt="thumbnail"></p> <p data-slug="replace-heat-seal-connector" data-fbimg="https://i.imgur.com/8eOe0oG.png#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>故事的起源是前陣子幫一台計算機<a href="/blog/fat-coin-battery/">換了電池</a>，發現它還有另一個問題，十萬位的 8 少了三條線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638613202338684184.jpg" alt="thumbnail"></p> <p>推測是螢幕排線接觸不良，試著加壓改善，狀況時好時壞，有時甚至惡化到掉字掉整排：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638613202340610736.jpg" alt="thumbnail"></p> <p>爬文學到新知識，下圖連接計算機電路板跟液晶螢幕的軟排線俗稱斑馬紙，正式名稱應該叫 <a href="https://www.toa-twn.com.tw/product/383/106/Heat%20Seal%20Connector%20%E7%86%B1%E5%A3%93%E7%B4%99(%E6%96%91%E9%A6%AC%E7%B4%99)">Heat Seal Connector 熱壓密封連接器</a>，是用聚酯纖維薄膜當基材，上面有碳(Carbon)或是銀碳(銀Carbon)作成的導線，端子部會塗上異方導電性膠，可以熱壓方式接上液晶螢幕玻璃上的端子。江湖都叫它斑馬紙，好記又傳神~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638613202342401137.jpg" alt="thumbnail"></p> <p>班馬紙規格很多種，導線數量、線徑粗細各異，採購時可能會看到 4812、4015、6809 之類的型號，最後兩位是一條黑線加一條白線的寬度，12 表示 1.2mm、09 代表 0.9mm，而前方的數字代表導線數量。</p> <p>手上這台計算機共有 40 條線，總寬度 6cm，應該要買 4015。這玩意兒在淘寶超便宜，甚至不用 10 元，但在台灣因為銷量少，賣起來又沒啥利潤，要嘛找不到，要嘛賣到爆。在露天找到一位佛心賣家，一公分長度 10 元加減賣，服務 DIY 玩家。手上這台計算機排線長度只需要 2 公分，但考量自己沒經驗不知會失敗幾次，索性花 100 元買 21 公分，夠玩十次，國父革命都成功了，總不會還修不好。</p> <p>要斑馬紙需要加熱膠黏到端子上，還需要一個烙鐵熱壓頭跟膠條，而加熱溫度不可過高。於是我又順勢買了一支便宜的可調溫電烙鐵，加上熱壓頭、導熱膠條，器材跟材料成本已超過買一台新計算機了，哈。</p> <p>將舊排線撕下來，依前輩分享經驗是原本殘膠可以不用清，方便對準位置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638613202344239834.jpg" alt="thumbnail"></p> <p>但我這次的維修經驗，沒清膠重黏後掉字問題仍在，</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638613202346045301.jpg" alt="thumbnail"></p> <p>烙鐵溫度我是調 320 度，用熨衣服方式加壓，來回三四趟差不多就牢固了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638613202347888686.jpg" alt="thumbnail"></p> <p>電路板端也如法泡製：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638613202349742665.jpg" alt="thumbnail"></p> <p>薑! 薑! 薑! 薑~~~ 修復完成。我也成功解除「修好螢幕掉字計算機」的成就!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638613202352111727.jpg" alt="thumbnail"></p> <p data-slug="replace-heat-seal-connector" data-fbimg="https://i.imgur.com/8eOe0oG.png#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>故事的起源是前陣子幫一台計算機<a href="/blog/fat-coin-battery/">換了電池</a>，發現它還有另一個問題，十萬位的 8 少了三條線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638613202338684184.jpg" alt="thumbnail"></p> <p>推測是螢幕排線接觸不良，試著加壓改善，狀況時好時壞，有時甚至惡化到掉字掉整排：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638613202340610736.jpg" alt="thumbnail"></p> <p>爬文學到新知識，下圖連接計算機電路板跟液晶螢幕的軟排線俗稱斑馬紙，正式名稱應該叫 <a href="https://www.toa-twn.com.tw/product/383/106/Heat%20Seal%20Connector%20%E7%86%B1%E5%A3%93%E7%B4%99(%E6%96%91%E9%A6%AC%E7%B4%99)">Heat Seal Connector 熱壓密封連接器</a>，是用聚酯纖維薄膜當基材，上面有碳(Carbon)或是銀碳(銀Carbon)作成的導線，端子部會塗上異方導電性膠，可以熱壓方式接上液晶螢幕玻璃上的端子。江湖都叫它斑馬紙，好記又傳神~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638613202342401137.jpg" alt="thumbnail"></p> <p>班馬紙規格很多種，導線數量、線徑粗細各異，採購時可能會看到 4812、4015、6809 之類的型號，最後兩位是一條黑線加一條白線的寬度，12 表示 1.2mm、09 代表 0.9mm，而前方的數字代表導線數量。</p> <p>手上這台計算機共有 40 條線，總寬度 6cm，應該要買 4015。這玩意兒在淘寶超便宜，甚至不用 10 元，但在台灣因為銷量少，賣起來又沒啥利潤，要嘛找不到，要嘛賣到爆。在露天找到一位佛心賣家，一公分長度 10 元加減賣，服務 DIY 玩家。手上這台計算機排線長度只需要 2 公分，但考量自己沒經驗不知會失敗幾次，索性花 100 元買 21 公分，夠玩十次，國父革命都成功了，總不會還修不好。</p> <p>要斑馬紙需要加熱膠黏到端子上，還需要一個烙鐵熱壓頭跟膠條，而加熱溫度不可過高。於是我又順勢買了一支便宜的可調溫電烙鐵，加上熱壓頭、導熱膠條，器材跟材料成本已超過買一台新計算機了，哈。</p> <p>將舊排線撕下來，依前輩分享經驗是原本殘膠可以不用清，方便對準位置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638613202344239834.jpg" alt="thumbnail"></p> <p>但我這次的維修經驗，沒清膠重黏後掉字問題仍在，</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638613202346045301.jpg" alt="thumbnail"></p> <p>烙鐵溫度我是調 320 度，用熨衣服方式加壓，來回三四趟差不多就牢固了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638613202347888686.jpg" alt="thumbnail"></p> <p>電路板端也如法泡製：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638613202349742665.jpg" alt="thumbnail"></p> <p>薑! 薑! 薑! 薑~~~ 修復完成。我也成功解除「修好螢幕掉字計算機」的成就!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638613202352111727.jpg" alt="thumbnail"></p> <p data-slug="replace-heat-seal-connector" data-fbimg="https://i.imgur.com/8eOe0oG.png#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638613202338684184.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638613202338684184.jpg" medium="image"/>
-    <pubDate>Sat, 07 Sep 2024 15:35:29 GMT</pubDate>
   </item></channel>
 </rss>
