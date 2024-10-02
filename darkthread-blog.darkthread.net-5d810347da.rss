@@ -30,6 +30,453 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Coding4Fun - BIG5 常用字真的很常用？次常用字比例有多低？PTT 八卦版常用字分析]]></title>
+    <link>https://blog.darkthread.net/blog/big5-common-chars/</link>
+    <itunes:title><![CDATA[Coding4Fun - BIG5 常用字真的很常用？次常用字比例有多低？PTT 八卦版常用字分析]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>我有個自創 BIG5 快篩偵測法 - <a href="/blog/big5-gb2312-auto-detect/">Bad Smell</a>。</p> <p>偵測編碼最快速有效的做法是檢查二進位資料是否包含無法轉換的 Byte[] 組合，但較頭痛的問題是 BIG5 繁體中文與 GB2312 簡體中文、Shift JIS 日文等泛 ANSI 類編碼，有許多字碼在三種編碼都能對映效字元。因此若只是單純用 Encoding.GetEncoding(950) 轉換 GB2312/Shift JIS 檔案，可能因大部分 byte[] 都可映對到有效繁體字碼區而誤判成 BIG5。</p> <p>BIG5 有區分常用字區 A140 - C67E (5401 個)、次常用字區 C940 - F9D5 (7652 個) <a href="https://zi-hi.com/Big5">參考</a>，這些簡體中文或日文漢字很一定比例被映對成次常用字，導致次常用字出現的機率遠高於正常繁體文章的平均值。基於這個原理，我發明了 <code>( (無效字元*3 + 次常用字) / 總字元數 )</code> Bad Smell 指數實現簡易快篩。做法沒什麼學術根據，也存在誤判機率，但實務上可配合資料型態調整指數門檻，使用至今，準確率也很讓人滿意。</p> <p>前陣子跟讀者<a href="/blog/ps-enc-detector/#55efb90d-df76-4fe5-8abc-6d38cc8a08e9">討論</a>到「以次常用字作為判斷依據」的合理性，追根究底，設定 Bad Smell 指數 &lt; 0.1 是基於「次常用字在正常文章中必須小於總字數 10%」之類的假設，此一假設是否成真？好問題。</p> <p>寫個程式來玩看看吧。</p> <p>不同性質文章常出現的字不同，我打算寫支程式可以統計常用字及次常用字使用狀況、出現次數，並產生統計圖表。有了這種工具，未來只需從實際要處理的資料取樣進行分析，就知次常用字所佔比例，做為設定門檻的參考。</p> <p>為了趣味起見，我找到一份有趣的繁體中文資料集 - <a href="https://github.com/zake7749/Gossiping-Chinese-Corpus">PTT 中文語料</a>，包含 PTT 八卦版於 2015 年至 2017 年 6 月的文章，以 QA 格式呈現，共有 77 萬筆，近 1,800 萬字。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638634608177082828.png"></p> <p>程式範例如下，沒什麼大學問，就一些字串處理、用 Dictionary/LINQ 統計，中間使用 Parallel.ForEach() 平行處理 77 萬條 QA，最後用上前幾天介紹的 <a href="/blog/scottplot/">ScottPlot</a> 畫 TOP 50 長條圖跟<a href="https://zh.wikipedia.org/zh-tw/%E7%86%B1%E5%9C%96">熱圖(Heatmap)</a>，很久沒有寫娛樂用 C# 程式，藉這次機會暖身恢復手感。</p> <pre><code>using System.Diagnostics;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
+using ScottPlot;
+using ScottPlot.TickGenerators;
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+Encoding big5 = Encoding.GetEncoding("big5");
+var counters = new Dictionary&lt;string, int&gt;();
+var charMap = new Dictionary&lt;string, string&gt;();
+string charMapJsonPath = "charMap.json";
+if (!File.Exists(charMapJsonPath))
+{
+// BIG5 字集範圍
+var ranges = new[] {
+(0xa140, 0xa3e0),
+(0xa440, 0xc67e),
+(0xc940, 0xf9d5)
+};
+foreach (var range in ranges)
+{
+for (int i = range.Item1; i &lt;= range.Item2; i++)
+{
+var lo = (byte)(i &amp; 0xff);
+var hi = (byte)(i &gt;&gt; 8);
+if (lo &lt; 0x40 || lo &gt;= 0x80 &amp;&amp; lo &lt; 0xa0 || (lo &amp; 0xf) == 0xf) continue;
+if (lo == 0x7e || lo == 0xa0 || lo == 0xfe) continue;
+if (i &gt;= 0xa3c0 &amp;&amp; i &lt;= 0xa3e0) continue;
+var ch = big5.GetString(new byte[] { hi, lo });
+if (!counters.ContainsKey(ch))
+{
+counters.Add(ch, i);
+}
+else
+{
+Console.WriteLine($"一字多碼 [{ch}]: {i:X4},{counters[ch]:X4}");
+counters[ch] = i;
+}
+charMap[i.ToString("X4")] = ch;
+}
+}
+var jsonOpt = new JsonSerializerOptions
+{
+WriteIndented = true,
+Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+};
+File.WriteAllText(charMapJsonPath, JsonSerializer.Serialize(charMap, jsonOpt));
+counters.ToList().ForEach(kv =&gt; counters[kv.Key] = 0);
+}
+else {
+charMap = JsonSerializer.Deserialize&lt;Dictionary&lt;string, string&gt;&gt;(File.ReadAllText(charMapJsonPath))!;
+foreach (var kv in charMap) counters[kv.Value] = 0;
+}
+var sw = new Stopwatch();
+sw.Start();
+Parallel.ForEach(File.ReadAllLines("Gossiping-QA-Dataset-2_0.csv", Encoding.UTF8), line =&gt;
+{
+for (var i = 0; i &lt; line.Length; i++)
+{
+var ch = line.Substring(i, 1);
+if (counters.ContainsKey(ch))
+{
+lock (counters)
+{
+counters[ch]++;
+}
+}
+}
+});
+sw.Stop();
+Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}ms");
+var csv = new StringBuilder();
+csv.AppendLine("Catg,Code,Char,Count");
+// 0xa4 ~ 0xc6 = 0x22, 0xc9 ~ 0xf9 = 0x31, 0x40 ~ 0xff = 0xc0
+var heatData = new double[0x22 + 0x31 + 1, 0xc0];
+Func&lt;string, string&gt; GetGroup = code =&gt;
+{
+if (code.CompareTo("A440") &gt;= 0 &amp;&amp; code.CompareTo("C67E") &lt;= 0) return "常用字";
+if (code.CompareTo("C940") &gt;= 0 &amp;&amp; code.CompareTo("F9D5") &lt;= 0) return "次常用字";
+return string.Empty;
+};
+Dictionary&lt;string, List&lt;(string ch, int count)&gt;&gt; groupStats = new() {
+{ "常用字", new() },
+{ "次常用字", new() }
+};
+foreach (var code in charMap.Keys)
+{
+var catg = GetGroup(code);
+if (string.IsNullOrEmpty(catg)) continue;
+int y = catg == "常用字" ?
+(int)(Convert.ToInt32(code[..2], 16) - 0xa4) :
+(int)(Convert.ToInt32(code[..2], 16) - 0xc9 + 0x22 + 1);
+int x = (int)(Convert.ToInt32(code[2..], 16) - 0x40);
+var ch = charMap[code];
+var count = counters[ch];
+groupStats[catg].Add((ch, count));
+heatData[y, x] = count == 0 ? 0 : Math.Log10(count); // Logarithmic Scale
+csv.AppendLine($"{catg},{code},{ch},{count}");
+}
+File.WriteAllText("charStats.csv", csv.ToString());
+// 常用字次常用字數統計
+var common = groupStats["常用字"].ToDictionary(o =&gt; o.ch, o =&gt; o.count);
+var rare = groupStats["次常用字"].ToDictionary(o =&gt; o.ch, o =&gt; o.count);
+Console.WriteLine($"常用字：{common.Count():n0}個 {common.Values.Sum():n0}次");
+Console.WriteLine($"次常用字：{rare.Count():n0}個 {rare.Values.Sum():n0}次");
+// 前 50 常用字
+ScottPlot.Plot myPlot = new();
+var data = common.OrderByDescending(kv =&gt; kv.Value).Take(50).ToList();
+myPlot.Add.Bars(data.Select(kv =&gt; (double)kv.Value).ToArray());
+int idx = 0;
+var ticks = data.Select(kv =&gt; new Tick(idx++, kv.Key)).ToArray();
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks);
+myPlot.Axes.Bottom.TickLabelStyle.FontName = "PMingLiU";
+myPlot.SavePng("common.png", 720, 250);
+// 次常用字
+myPlot = new();
+data = rare.OrderByDescending(kv =&gt; kv.Value).Take(50).ToList();
+myPlot.Add.Bars(data.Select(kv =&gt; (double)kv.Value).ToArray());
+idx = 0;
+ticks = data.Select(kv =&gt; new Tick(idx++, kv.Key)).ToArray();
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks);
+myPlot.Axes.Bottom.TickLabelStyle.FontName = "PMingLiU";
+myPlot.SavePng("rare.png", 720, 250);
+// 熱圖
+myPlot = new();
+// 分隔線
+for (int x = 0x40; x &lt;= 0xff; x++) heatData[0x22, x - 0x40] = 1;
+var hm = myPlot.Add.Heatmap(heatData);
+hm.Colormap = new ScottPlot.Colormaps.Turbo();
+myPlot.Add.ColorBar(hm);
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(
+new[] {
+new Tick(0x00, "40"), new Tick(0x10, "50"), new Tick(0x20, "60"), new Tick(0x30, "70"),
+new Tick(0x40, "80"), new Tick(0x50, "90"), new Tick(0x60, "A0"), new Tick(0x70, "B0"),
+new Tick(0x80, "C0"), new Tick(0x90, "D0"), new Tick(0xa0, "E0"), new Tick(0xb0, "F0")
+}
+);
+myPlot.Axes.Left.TickGenerator = new ScottPlot.TickGenerators.NumericManual(
+new[] {
+new Tick(0x54, "A4"), new Tick(0x32, "C6"), new Tick(0x2f, "C9"), new Tick(0x0, "F9")
+}
+);
+myPlot.SavePng("heatmap.png", 720, 320);
+</code></pre> <p>用 ScottPlot 畫圖而非 Matplotlib，有印證<a href="/blog/scottplot/">上回所說</a>，在查找資料及 AI 提示會吃點虧(Github Copliot 給的 ScottPlot 寫法幾乎都是錯的)，所幸 ScottPlot 的官方文件挺完整，再加上靠經驗跟直覺推敲，都有找出程式的寫法。</p> <p>執行結果如下，60MB 77 萬筆中文 QA 只花了 3 秒處理完，整個 PTT 中文語料庫共用到 5,075 個常用中文字，出現 171 萬次，次常用字則是 7165 個，出現 6 萬 9 千多次。因此在八卦版次常用字的比例約為 69405 / (17135743 + 69405) = 0.4% 大約千分之四 (註：總字數不計入英數字符號)，但跟擲硬幣一樣，樣本愈大才會愈接近這個分布。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638634608178725122.png"></p> <p>程式會將結果存成 CSV，方便進階應用。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638634618882135132.png"></p> <p>接下來是有趣的統計，猜猜八卦版最常用的常用字跟次常用字前 50 名是哪些？</p> <p>常用字組第一名由「的」稱霸(近 60 萬次)無人異議，其餘的字都是生活口語常用字，上榜不意外。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638634608180361636.png"></p> <p>下個題目更有趣，那被狂用的次常用字又是哪些？前十名分別是 啥、欸、屌、噁、尻、掰、喵(貓派的勝利)、齁、飆、囧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638634608182009087.png"></p> <p>最後，雖然用想的就知道會怎麼分佈，我還是畫了人生第一張熱圖：(由於數值範圍從 60 萬到個位數，我將次數改為<a href="https://zh.wikipedia.org/zh-tw/%E5%B0%8D%E6%95%B8%E5%B0%BA%E5%BA%A6">對數尺度 Logarithmic Scale</a>提高圖表可讀性，1000 變成 3、10 萬轉成 5)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638634608183737451.png"></p> <p>伸展完畢。</p> <p data-slug="big5-common-chars" data-title-en="How often is BIG5 chars in articles?" data-catg=".NET" data-fbimg="https://i.imgur.com/VpqjJIk.png#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>我有個自創 BIG5 快篩偵測法 - <a href="/blog/big5-gb2312-auto-detect/">Bad Smell</a>。</p> <p>偵測編碼最快速有效的做法是檢查二進位資料是否包含無法轉換的 Byte[] 組合，但較頭痛的問題是 BIG5 繁體中文與 GB2312 簡體中文、Shift JIS 日文等泛 ANSI 類編碼，有許多字碼在三種編碼都能對映效字元。因此若只是單純用 Encoding.GetEncoding(950) 轉換 GB2312/Shift JIS 檔案，可能因大部分 byte[] 都可映對到有效繁體字碼區而誤判成 BIG5。</p> <p>BIG5 有區分常用字區 A140 - C67E (5401 個)、次常用字區 C940 - F9D5 (7652 個) <a href="https://zi-hi.com/Big5">參考</a>，這些簡體中文或日文漢字很一定比例被映對成次常用字，導致次常用字出現的機率遠高於正常繁體文章的平均值。基於這個原理，我發明了 <code>( (無效字元*3 + 次常用字) / 總字元數 )</code> Bad Smell 指數實現簡易快篩。做法沒什麼學術根據，也存在誤判機率，但實務上可配合資料型態調整指數門檻，使用至今，準確率也很讓人滿意。</p> <p>前陣子跟讀者<a href="/blog/ps-enc-detector/#55efb90d-df76-4fe5-8abc-6d38cc8a08e9">討論</a>到「以次常用字作為判斷依據」的合理性，追根究底，設定 Bad Smell 指數 &lt; 0.1 是基於「次常用字在正常文章中必須小於總字數 10%」之類的假設，此一假設是否成真？好問題。</p> <p>寫個程式來玩看看吧。</p> <p>不同性質文章常出現的字不同，我打算寫支程式可以統計常用字及次常用字使用狀況、出現次數，並產生統計圖表。有了這種工具，未來只需從實際要處理的資料取樣進行分析，就知次常用字所佔比例，做為設定門檻的參考。</p> <p>為了趣味起見，我找到一份有趣的繁體中文資料集 - <a href="https://github.com/zake7749/Gossiping-Chinese-Corpus">PTT 中文語料</a>，包含 PTT 八卦版於 2015 年至 2017 年 6 月的文章，以 QA 格式呈現，共有 77 萬筆，近 1,800 萬字。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638634608177082828.png"></p> <p>程式範例如下，沒什麼大學問，就一些字串處理、用 Dictionary/LINQ 統計，中間使用 Parallel.ForEach() 平行處理 77 萬條 QA，最後用上前幾天介紹的 <a href="/blog/scottplot/">ScottPlot</a> 畫 TOP 50 長條圖跟<a href="https://zh.wikipedia.org/zh-tw/%E7%86%B1%E5%9C%96">熱圖(Heatmap)</a>，很久沒有寫娛樂用 C# 程式，藉這次機會暖身恢復手感。</p> <pre><code>using System.Diagnostics;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
+using ScottPlot;
+using ScottPlot.TickGenerators;
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+Encoding big5 = Encoding.GetEncoding("big5");
+var counters = new Dictionary&lt;string, int&gt;();
+var charMap = new Dictionary&lt;string, string&gt;();
+string charMapJsonPath = "charMap.json";
+if (!File.Exists(charMapJsonPath))
+{
+// BIG5 字集範圍
+var ranges = new[] {
+(0xa140, 0xa3e0),
+(0xa440, 0xc67e),
+(0xc940, 0xf9d5)
+};
+foreach (var range in ranges)
+{
+for (int i = range.Item1; i &lt;= range.Item2; i++)
+{
+var lo = (byte)(i &amp; 0xff);
+var hi = (byte)(i &gt;&gt; 8);
+if (lo &lt; 0x40 || lo &gt;= 0x80 &amp;&amp; lo &lt; 0xa0 || (lo &amp; 0xf) == 0xf) continue;
+if (lo == 0x7e || lo == 0xa0 || lo == 0xfe) continue;
+if (i &gt;= 0xa3c0 &amp;&amp; i &lt;= 0xa3e0) continue;
+var ch = big5.GetString(new byte[] { hi, lo });
+if (!counters.ContainsKey(ch))
+{
+counters.Add(ch, i);
+}
+else
+{
+Console.WriteLine($"一字多碼 [{ch}]: {i:X4},{counters[ch]:X4}");
+counters[ch] = i;
+}
+charMap[i.ToString("X4")] = ch;
+}
+}
+var jsonOpt = new JsonSerializerOptions
+{
+WriteIndented = true,
+Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+};
+File.WriteAllText(charMapJsonPath, JsonSerializer.Serialize(charMap, jsonOpt));
+counters.ToList().ForEach(kv =&gt; counters[kv.Key] = 0);
+}
+else {
+charMap = JsonSerializer.Deserialize&lt;Dictionary&lt;string, string&gt;&gt;(File.ReadAllText(charMapJsonPath))!;
+foreach (var kv in charMap) counters[kv.Value] = 0;
+}
+var sw = new Stopwatch();
+sw.Start();
+Parallel.ForEach(File.ReadAllLines("Gossiping-QA-Dataset-2_0.csv", Encoding.UTF8), line =&gt;
+{
+for (var i = 0; i &lt; line.Length; i++)
+{
+var ch = line.Substring(i, 1);
+if (counters.ContainsKey(ch))
+{
+lock (counters)
+{
+counters[ch]++;
+}
+}
+}
+});
+sw.Stop();
+Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}ms");
+var csv = new StringBuilder();
+csv.AppendLine("Catg,Code,Char,Count");
+// 0xa4 ~ 0xc6 = 0x22, 0xc9 ~ 0xf9 = 0x31, 0x40 ~ 0xff = 0xc0
+var heatData = new double[0x22 + 0x31 + 1, 0xc0];
+Func&lt;string, string&gt; GetGroup = code =&gt;
+{
+if (code.CompareTo("A440") &gt;= 0 &amp;&amp; code.CompareTo("C67E") &lt;= 0) return "常用字";
+if (code.CompareTo("C940") &gt;= 0 &amp;&amp; code.CompareTo("F9D5") &lt;= 0) return "次常用字";
+return string.Empty;
+};
+Dictionary&lt;string, List&lt;(string ch, int count)&gt;&gt; groupStats = new() {
+{ "常用字", new() },
+{ "次常用字", new() }
+};
+foreach (var code in charMap.Keys)
+{
+var catg = GetGroup(code);
+if (string.IsNullOrEmpty(catg)) continue;
+int y = catg == "常用字" ?
+(int)(Convert.ToInt32(code[..2], 16) - 0xa4) :
+(int)(Convert.ToInt32(code[..2], 16) - 0xc9 + 0x22 + 1);
+int x = (int)(Convert.ToInt32(code[2..], 16) - 0x40);
+var ch = charMap[code];
+var count = counters[ch];
+groupStats[catg].Add((ch, count));
+heatData[y, x] = count == 0 ? 0 : Math.Log10(count); // Logarithmic Scale
+csv.AppendLine($"{catg},{code},{ch},{count}");
+}
+File.WriteAllText("charStats.csv", csv.ToString());
+// 常用字次常用字數統計
+var common = groupStats["常用字"].ToDictionary(o =&gt; o.ch, o =&gt; o.count);
+var rare = groupStats["次常用字"].ToDictionary(o =&gt; o.ch, o =&gt; o.count);
+Console.WriteLine($"常用字：{common.Count():n0}個 {common.Values.Sum():n0}次");
+Console.WriteLine($"次常用字：{rare.Count():n0}個 {rare.Values.Sum():n0}次");
+// 前 50 常用字
+ScottPlot.Plot myPlot = new();
+var data = common.OrderByDescending(kv =&gt; kv.Value).Take(50).ToList();
+myPlot.Add.Bars(data.Select(kv =&gt; (double)kv.Value).ToArray());
+int idx = 0;
+var ticks = data.Select(kv =&gt; new Tick(idx++, kv.Key)).ToArray();
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks);
+myPlot.Axes.Bottom.TickLabelStyle.FontName = "PMingLiU";
+myPlot.SavePng("common.png", 720, 250);
+// 次常用字
+myPlot = new();
+data = rare.OrderByDescending(kv =&gt; kv.Value).Take(50).ToList();
+myPlot.Add.Bars(data.Select(kv =&gt; (double)kv.Value).ToArray());
+idx = 0;
+ticks = data.Select(kv =&gt; new Tick(idx++, kv.Key)).ToArray();
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks);
+myPlot.Axes.Bottom.TickLabelStyle.FontName = "PMingLiU";
+myPlot.SavePng("rare.png", 720, 250);
+// 熱圖
+myPlot = new();
+// 分隔線
+for (int x = 0x40; x &lt;= 0xff; x++) heatData[0x22, x - 0x40] = 1;
+var hm = myPlot.Add.Heatmap(heatData);
+hm.Colormap = new ScottPlot.Colormaps.Turbo();
+myPlot.Add.ColorBar(hm);
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(
+new[] {
+new Tick(0x00, "40"), new Tick(0x10, "50"), new Tick(0x20, "60"), new Tick(0x30, "70"),
+new Tick(0x40, "80"), new Tick(0x50, "90"), new Tick(0x60, "A0"), new Tick(0x70, "B0"),
+new Tick(0x80, "C0"), new Tick(0x90, "D0"), new Tick(0xa0, "E0"), new Tick(0xb0, "F0")
+}
+);
+myPlot.Axes.Left.TickGenerator = new ScottPlot.TickGenerators.NumericManual(
+new[] {
+new Tick(0x54, "A4"), new Tick(0x32, "C6"), new Tick(0x2f, "C9"), new Tick(0x0, "F9")
+}
+);
+myPlot.SavePng("heatmap.png", 720, 320);
+</code></pre> <p>用 ScottPlot 畫圖而非 Matplotlib，有印證<a href="/blog/scottplot/">上回所說</a>，在查找資料及 AI 提示會吃點虧(Github Copliot 給的 ScottPlot 寫法幾乎都是錯的)，所幸 ScottPlot 的官方文件挺完整，再加上靠經驗跟直覺推敲，都有找出程式的寫法。</p> <p>執行結果如下，60MB 77 萬筆中文 QA 只花了 3 秒處理完，整個 PTT 中文語料庫共用到 5,075 個常用中文字，出現 171 萬次，次常用字則是 7165 個，出現 6 萬 9 千多次。因此在八卦版次常用字的比例約為 69405 / (17135743 + 69405) = 0.4% 大約千分之四 (註：總字數不計入英數字符號)，但跟擲硬幣一樣，樣本愈大才會愈接近這個分布。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638634608178725122.png"></p> <p>程式會將結果存成 CSV，方便進階應用。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638634618882135132.png"></p> <p>接下來是有趣的統計，猜猜八卦版最常用的常用字跟次常用字前 50 名是哪些？</p> <p>常用字組第一名由「的」稱霸(近 60 萬次)無人異議，其餘的字都是生活口語常用字，上榜不意外。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638634608180361636.png"></p> <p>下個題目更有趣，那被狂用的次常用字又是哪些？前十名分別是 啥、欸、屌、噁、尻、掰、喵(貓派的勝利)、齁、飆、囧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638634608182009087.png"></p> <p>最後，雖然用想的就知道會怎麼分佈，我還是畫了人生第一張熱圖：(由於數值範圍從 60 萬到個位數，我將次數改為<a href="https://zh.wikipedia.org/zh-tw/%E5%B0%8D%E6%95%B8%E5%B0%BA%E5%BA%A6">對數尺度 Logarithmic Scale</a>提高圖表可讀性，1000 變成 3、10 萬轉成 5)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638634608183737451.png"></p> <p>伸展完畢。</p> <p data-slug="big5-common-chars" data-title-en="How often is BIG5 chars in articles?" data-catg=".NET" data-fbimg="https://i.imgur.com/VpqjJIk.png#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>我有個自創 BIG5 快篩偵測法 - <a href="/blog/big5-gb2312-auto-detect/">Bad Smell</a>。</p> <p>偵測編碼最快速有效的做法是檢查二進位資料是否包含無法轉換的 Byte[] 組合，但較頭痛的問題是 BIG5 繁體中文與 GB2312 簡體中文、Shift JIS 日文等泛 ANSI 類編碼，有許多字碼在三種編碼都能對映效字元。因此若只是單純用 Encoding.GetEncoding(950) 轉換 GB2312/Shift JIS 檔案，可能因大部分 byte[] 都可映對到有效繁體字碼區而誤判成 BIG5。</p> <p>BIG5 有區分常用字區 A140 - C67E (5401 個)、次常用字區 C940 - F9D5 (7652 個) <a href="https://zi-hi.com/Big5">參考</a>，這些簡體中文或日文漢字很一定比例被映對成次常用字，導致次常用字出現的機率遠高於正常繁體文章的平均值。基於這個原理，我發明了 <code>( (無效字元*3 + 次常用字) / 總字元數 )</code> Bad Smell 指數實現簡易快篩。做法沒什麼學術根據，也存在誤判機率，但實務上可配合資料型態調整指數門檻，使用至今，準確率也很讓人滿意。</p> <p>前陣子跟讀者<a href="/blog/ps-enc-detector/#55efb90d-df76-4fe5-8abc-6d38cc8a08e9">討論</a>到「以次常用字作為判斷依據」的合理性，追根究底，設定 Bad Smell 指數 &lt; 0.1 是基於「次常用字在正常文章中必須小於總字數 10%」之類的假設，此一假設是否成真？好問題。</p> <p>寫個程式來玩看看吧。</p> <p>不同性質文章常出現的字不同，我打算寫支程式可以統計常用字及次常用字使用狀況、出現次數，並產生統計圖表。有了這種工具，未來只需從實際要處理的資料取樣進行分析，就知次常用字所佔比例，做為設定門檻的參考。</p> <p>為了趣味起見，我找到一份有趣的繁體中文資料集 - <a href="https://github.com/zake7749/Gossiping-Chinese-Corpus">PTT 中文語料</a>，包含 PTT 八卦版於 2015 年至 2017 年 6 月的文章，以 QA 格式呈現，共有 77 萬筆，近 1,800 萬字。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638634608177082828.png"></p> <p>程式範例如下，沒什麼大學問，就一些字串處理、用 Dictionary/LINQ 統計，中間使用 Parallel.ForEach() 平行處理 77 萬條 QA，最後用上前幾天介紹的 <a href="/blog/scottplot/">ScottPlot</a> 畫 TOP 50 長條圖跟<a href="https://zh.wikipedia.org/zh-tw/%E7%86%B1%E5%9C%96">熱圖(Heatmap)</a>，很久沒有寫娛樂用 C# 程式，藉這次機會暖身恢復手感。</p> <pre><code>using System.Diagnostics;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
+using ScottPlot;
+using ScottPlot.TickGenerators;
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+Encoding big5 = Encoding.GetEncoding("big5");
+var counters = new Dictionary&lt;string, int&gt;();
+var charMap = new Dictionary&lt;string, string&gt;();
+string charMapJsonPath = "charMap.json";
+if (!File.Exists(charMapJsonPath))
+{
+// BIG5 字集範圍
+var ranges = new[] {
+(0xa140, 0xa3e0),
+(0xa440, 0xc67e),
+(0xc940, 0xf9d5)
+};
+foreach (var range in ranges)
+{
+for (int i = range.Item1; i &lt;= range.Item2; i++)
+{
+var lo = (byte)(i &amp; 0xff);
+var hi = (byte)(i &gt;&gt; 8);
+if (lo &lt; 0x40 || lo &gt;= 0x80 &amp;&amp; lo &lt; 0xa0 || (lo &amp; 0xf) == 0xf) continue;
+if (lo == 0x7e || lo == 0xa0 || lo == 0xfe) continue;
+if (i &gt;= 0xa3c0 &amp;&amp; i &lt;= 0xa3e0) continue;
+var ch = big5.GetString(new byte[] { hi, lo });
+if (!counters.ContainsKey(ch))
+{
+counters.Add(ch, i);
+}
+else
+{
+Console.WriteLine($"一字多碼 [{ch}]: {i:X4},{counters[ch]:X4}");
+counters[ch] = i;
+}
+charMap[i.ToString("X4")] = ch;
+}
+}
+var jsonOpt = new JsonSerializerOptions
+{
+WriteIndented = true,
+Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+};
+File.WriteAllText(charMapJsonPath, JsonSerializer.Serialize(charMap, jsonOpt));
+counters.ToList().ForEach(kv =&gt; counters[kv.Key] = 0);
+}
+else {
+charMap = JsonSerializer.Deserialize&lt;Dictionary&lt;string, string&gt;&gt;(File.ReadAllText(charMapJsonPath))!;
+foreach (var kv in charMap) counters[kv.Value] = 0;
+}
+var sw = new Stopwatch();
+sw.Start();
+Parallel.ForEach(File.ReadAllLines("Gossiping-QA-Dataset-2_0.csv", Encoding.UTF8), line =&gt;
+{
+for (var i = 0; i &lt; line.Length; i++)
+{
+var ch = line.Substring(i, 1);
+if (counters.ContainsKey(ch))
+{
+lock (counters)
+{
+counters[ch]++;
+}
+}
+}
+});
+sw.Stop();
+Console.WriteLine($"Elapsed: {sw.ElapsedMilliseconds}ms");
+var csv = new StringBuilder();
+csv.AppendLine("Catg,Code,Char,Count");
+// 0xa4 ~ 0xc6 = 0x22, 0xc9 ~ 0xf9 = 0x31, 0x40 ~ 0xff = 0xc0
+var heatData = new double[0x22 + 0x31 + 1, 0xc0];
+Func&lt;string, string&gt; GetGroup = code =&gt;
+{
+if (code.CompareTo("A440") &gt;= 0 &amp;&amp; code.CompareTo("C67E") &lt;= 0) return "常用字";
+if (code.CompareTo("C940") &gt;= 0 &amp;&amp; code.CompareTo("F9D5") &lt;= 0) return "次常用字";
+return string.Empty;
+};
+Dictionary&lt;string, List&lt;(string ch, int count)&gt;&gt; groupStats = new() {
+{ "常用字", new() },
+{ "次常用字", new() }
+};
+foreach (var code in charMap.Keys)
+{
+var catg = GetGroup(code);
+if (string.IsNullOrEmpty(catg)) continue;
+int y = catg == "常用字" ?
+(int)(Convert.ToInt32(code[..2], 16) - 0xa4) :
+(int)(Convert.ToInt32(code[..2], 16) - 0xc9 + 0x22 + 1);
+int x = (int)(Convert.ToInt32(code[2..], 16) - 0x40);
+var ch = charMap[code];
+var count = counters[ch];
+groupStats[catg].Add((ch, count));
+heatData[y, x] = count == 0 ? 0 : Math.Log10(count); // Logarithmic Scale
+csv.AppendLine($"{catg},{code},{ch},{count}");
+}
+File.WriteAllText("charStats.csv", csv.ToString());
+// 常用字次常用字數統計
+var common = groupStats["常用字"].ToDictionary(o =&gt; o.ch, o =&gt; o.count);
+var rare = groupStats["次常用字"].ToDictionary(o =&gt; o.ch, o =&gt; o.count);
+Console.WriteLine($"常用字：{common.Count():n0}個 {common.Values.Sum():n0}次");
+Console.WriteLine($"次常用字：{rare.Count():n0}個 {rare.Values.Sum():n0}次");
+// 前 50 常用字
+ScottPlot.Plot myPlot = new();
+var data = common.OrderByDescending(kv =&gt; kv.Value).Take(50).ToList();
+myPlot.Add.Bars(data.Select(kv =&gt; (double)kv.Value).ToArray());
+int idx = 0;
+var ticks = data.Select(kv =&gt; new Tick(idx++, kv.Key)).ToArray();
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks);
+myPlot.Axes.Bottom.TickLabelStyle.FontName = "PMingLiU";
+myPlot.SavePng("common.png", 720, 250);
+// 次常用字
+myPlot = new();
+data = rare.OrderByDescending(kv =&gt; kv.Value).Take(50).ToList();
+myPlot.Add.Bars(data.Select(kv =&gt; (double)kv.Value).ToArray());
+idx = 0;
+ticks = data.Select(kv =&gt; new Tick(idx++, kv.Key)).ToArray();
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(ticks);
+myPlot.Axes.Bottom.TickLabelStyle.FontName = "PMingLiU";
+myPlot.SavePng("rare.png", 720, 250);
+// 熱圖
+myPlot = new();
+// 分隔線
+for (int x = 0x40; x &lt;= 0xff; x++) heatData[0x22, x - 0x40] = 1;
+var hm = myPlot.Add.Heatmap(heatData);
+hm.Colormap = new ScottPlot.Colormaps.Turbo();
+myPlot.Add.ColorBar(hm);
+myPlot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(
+new[] {
+new Tick(0x00, "40"), new Tick(0x10, "50"), new Tick(0x20, "60"), new Tick(0x30, "70"),
+new Tick(0x40, "80"), new Tick(0x50, "90"), new Tick(0x60, "A0"), new Tick(0x70, "B0"),
+new Tick(0x80, "C0"), new Tick(0x90, "D0"), new Tick(0xa0, "E0"), new Tick(0xb0, "F0")
+}
+);
+myPlot.Axes.Left.TickGenerator = new ScottPlot.TickGenerators.NumericManual(
+new[] {
+new Tick(0x54, "A4"), new Tick(0x32, "C6"), new Tick(0x2f, "C9"), new Tick(0x0, "F9")
+}
+);
+myPlot.SavePng("heatmap.png", 720, 320);
+</code></pre> <p>用 ScottPlot 畫圖而非 Matplotlib，有印證<a href="/blog/scottplot/">上回所說</a>，在查找資料及 AI 提示會吃點虧(Github Copliot 給的 ScottPlot 寫法幾乎都是錯的)，所幸 ScottPlot 的官方文件挺完整，再加上靠經驗跟直覺推敲，都有找出程式的寫法。</p> <p>執行結果如下，60MB 77 萬筆中文 QA 只花了 3 秒處理完，整個 PTT 中文語料庫共用到 5,075 個常用中文字，出現 171 萬次，次常用字則是 7165 個，出現 6 萬 9 千多次。因此在八卦版次常用字的比例約為 69405 / (17135743 + 69405) = 0.4% 大約千分之四 (註：總字數不計入英數字符號)，但跟擲硬幣一樣，樣本愈大才會愈接近這個分布。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638634608178725122.png"></p> <p>程式會將結果存成 CSV，方便進階應用。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638634618882135132.png"></p> <p>接下來是有趣的統計，猜猜八卦版最常用的常用字跟次常用字前 50 名是哪些？</p> <p>常用字組第一名由「的」稱霸(近 60 萬次)無人異議，其餘的字都是生活口語常用字，上榜不意外。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638634608180361636.png"></p> <p>下個題目更有趣，那被狂用的次常用字又是哪些？前十名分別是 啥、欸、屌、噁、尻、掰、喵(貓派的勝利)、齁、飆、囧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638634608182009087.png"></p> <p>最後，雖然用想的就知道會怎麼分佈，我還是畫了人生第一張熱圖：(由於數值範圍從 60 萬到個位數，我將次數改為<a href="https://zh.wikipedia.org/zh-tw/%E5%B0%8D%E6%95%B8%E5%B0%BA%E5%BA%A6">對數尺度 Logarithmic Scale</a>提高圖表可讀性，1000 變成 3、10 萬轉成 5)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638634608183737451.png"></p> <p>伸展完畢。</p> <p data-slug="big5-common-chars" data-title-en="How often is BIG5 chars in articles?" data-catg=".NET" data-fbimg="https://i.imgur.com/VpqjJIk.png#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638634608177082828.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638634608177082828.png" medium="image"/>
+    <pubDate>Wed, 02 Oct 2024 10:13:49 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Python 新手筆記 3 - 字串/變數/布林值/迴圈 散記]]></title>
     <link>https://blog.darkthread.net/blog/python-beginner-notes-3/</link>
     <itunes:title><![CDATA[Python 新手筆記 3 - 字串/變數/布林值/迴圈 散記]]></itunes:title>
@@ -913,56 +1360,5 @@ GenerateQRCode $shortUrl
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638619042325246024.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638619042325246024.png" medium="image"/>
     <pubDate>Sat, 14 Sep 2024 09:35:54 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Python 新手筆記 1 - 線上教學資源與開發環境]]></title>
-    <link>https://blog.darkthread.net/blog/python-beginner-notes-1/</link>
-    <itunes:title><![CDATA[Python 新手筆記 1 - 線上教學資源與開發環境]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>在 <a href="/blog/github-copilot-demo/">Github Copilot</a> 加持下，我過了一大段不懂 Python 但卻能用 Python 寫複雜程式的神奇時光，但心中不踏實感日益加深。</p> <p>尤其是 Copilot 吐了一段看不太懂的 Code，跑起來有問題，加多一些提示條件、換個問法又拿到另一段看不太懂的 Code 再試，就像一塊拼圖換過一塊塞進空格看是不是剛好，沒有設法找出問題來源的想法... 猛然驚醒，都寫了幾十年程式，你現在是在幹嘛？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638614933165137772.jpg" alt="thumbnail"></p> <p>球，不是這麼踢滴，程式也不該這樣寫。除非沒天分或厭惡寫程式，不打算擁有自己寫 Python 能力，覺得騎著裝輔助輪腳踏車環島也無妨。身為習武之人，如此輕忽朝夕相伴的兵器成為體統？</p> <p>這陣子，我陸續找了一些 Python 線上教材，決心從頭蹲馬步打好 Python 基礎，別讓 Copilot 笑我廢。</p> <p>這個 Python 新手筆記系列，我會整理自己學習 Python 的重點筆記(從資深 C# 開發者的視角)，以下的教學資源有完整解說，筆記僅整理重點跟關鍵字備忘。</p> <h3>線上教學資源</h3> <p>以下是我找到的幾個線上教學資源：</p> <ul><li><a href="https://openhome.cc/zh-tw/python/">Python 技術手冊</a> by 良格葛<br> 手冊幾乎是對 Python 語言規範做完一次巡禮，完整度直逼教科書等級，涵蓋你該知道的 Python 語言特性及特色。<br> 每個章節的篇幅都不長，範例很強，短短幾行展示完語言特性及行為差異，知識吸收上特別有效率，堪稱 Python 語言濃縮精華液。<br> 但也因資訊純度較高，有些地方需要讀者有程式開發背景才易消化。特別適合已具其他程式語言開發經驗，想在短時間內奠定 Python 基礎的同學。<p> </p></li> <li><a href="https://pythonbook.cc/">為你自己學 PYTHON</a> by 高見龍<br> 龍哥不久前剛釋出的 <a href="/blog/creative-commons/">CC BY-NC-SA 授權</a>電子書(時機恰到好處，有天上掉餡餅的感覺 XD)。<br> 沿續為自己學 Git 的風格，全書十分輕鬆好讀，講解簡單易懂，並完整涵蓋開發 Python 需要知道的細節及實務技巧。<br> 電子書排版看起來非常舒服，並有許多<del>對了解 Python 沒啥幫助的</del>精美插畫，美到讓人讚嘆。我只能說，要做出好看電子書也是講天分的。<br> 這部教學很適合零程式經驗的白紙新手(源要寫給唸國中的小朋友看)，老鳥用它學習 Python 也沒有任何問題，讀來相對輕鬆，算是快快樂樂學 Python。<p> </p></li> <li><a href="https://sites.google.com/g.nccu.edu.tw/moocs/2024%E7%A7%8B%E5%AD%A3%E7%8F%AD%E7%A3%A8%E8%AA%B2%E5%B8%AB%E8%AA%B2%E7%A8%8B/%E6%88%90%E7%82%BApython%E6%95%B8%E6%93%9A%E5%88%86%E6%9E%90%E9%81%94%E4%BA%BA-%E7%9A%84%E7%AC%AC%E4%B8%80%E9%96%80%E8%AA%B2-113-1">政大磨課師課程 / 成為python數據分析達人-的第一門課</a> by 蔡炎龍<br> 之前上過蔡炎龍老師的 <a href="/blog/neural-network-moocs/">Python 實現人工智慧</a>，這套課程則從基礎的 Python 語法出發，重點聚焦於 Numpy、Pandas、線性迴歸、機器學習的實務應用，跟「為你自己學 PYTHON」以 VSCode 為主不同，課程重度依賴 <a href="/blog/jupyter-notebook/">Jupyter Notebook</a> 及 Colab，包含大量數據分析演練，剛好補足不同的 Python 開發經驗。</li></ul> <h3>環境安裝</h3> <p> </p><ul><li>Python 版本眾多(目前最新的正式版是 3.12.6)，有些程式可能需要特定的 Python 版本(舊程式甚至可能要用 2.X 跑)，要在同一台主機同時安裝多個 Python 版本，可使用 pyenv。(<a href="/blog/jupyter-notebook/">Anaconda</a> 也是解決方案，但笨重一些) <pre><code>pyenv update # pyenv-win 安裝後記得更新才會看到新版 Python
-pyenv versions # 列舉已安裝版本
-pyenv list -l # 列舉可安裝版本
-pyenv install 3.12.4 # 安裝
-pyenv shell 3.12.4 # 切換
-pyenv global 3.12.4 # 設定預設版本
-</code></pre> 註1：若曾用 Chocolatey 安裝及解除安裝 Python，殘留的 <code>C:\ProgramData\Chocolatey\bin\python*.exe</code> 跟 pyenv 打架，可 <code>DEL C:\ProgramData\Chocolatey\bin\python*.exe</code> <a href="https://stackoverflow.com/a/45787295/288936">參考</a><br> 註2：pyenv-win 主要透過 <code>C:\Users\jeffrey\.pyenv\pyenv-win\shims\python.bat</code> 啟動目前的 Python 版本，呼叫 Python.exe 可能會執行到非 pyenv 安裝來源。</li> <li>IDE：PyCharm(商業軟體)、Google Colab、Jupyter Notebook、VSCode (筆記本的話我偏好用微軟的 <a href="/blog/dotnet-interactive/">Polyglot Notebooks</a>，還可通吃 PowerShell、JavaScript、HTML、Mermaid、SQL)</li> <li>VSCode 推薦套件：Pylance (隨 Python 主套件自動安裝，Syntax Highlight/Intellisense)、Black Formatter (自動排版)</li> <li>單純執行 python.exe 會進入輸入指令按 Enter 看結果的環境，術語為 REPL (Read-Eval-Print Loop)</li> <li>套件安裝工具 pip <pre><code>pip list
-pip install requests
-pip uninstall reqeusts
-</code></pre> </li> <li><strong>venv</strong> - Python 內建模組，可建立多個虛擬環境，每個環境可安裝自己的套件組合，避免專案共用套件時因需求版號不同打架 <pre><code>python -m venv demo --prompt="DemoVenv"
-demo\Scripts\Activate.ps1 # PowerShell
-# demo\Scripts\activate.bat # CMD
-</code></pre> </li> <li><strong>Poetry</strong> - 比 venv 功能更強大，並提供完整套件管理功能(打包，發佈)，能顯示相依樹狀關聯、移除相依套件，推薦在專案裡啟用 Poetry 虛擬環境更容易管理<br> (複雜度較高，待未來用到再深入)</li></ul> <h3>套件版號之語意化版本管理</h3> <p>開源界有一套不成文的版號編碼規則：<code>主版號(Major).次版號(Minor).修訂版號(Patch)</code></p> <p>而 Python 本身及套件多半也遵循這套語意化版本管理（Semantic Versioning）的江湖規矩：</p> <ul><li>修訂版號增加只修 Bug，無相容問題。</li> <li>次板號增加可加新功能，但與之前相容，升級不會出事。</li> <li>主版號異動為大修改，很可能不相容。</li></ul> <p>之前常在 npm 常看到 ^、~ 等版本相容標示，其用法如下：</p> <ul><li><code>^5.0.3</code> - 允許 5.1.0 這種次版號不同的新版本</li> <li><code>~5.0.3</code> - 允許修訂版號更新的版本，如 5.0.4&nbsp;或&nbsp;5.0.999</li> <li><code>==5.0.3</code> - 必須一模一樣，不接受其他版本</li> <li><code>&gt;=5.0.3</code> - 比 5.0.3 高的都可以，包含 6.0.0<br> (你無法預期新版會有什麼變化，是否還相容，實務上幾乎沒人敢這麼做)</li></ul> <p data-slug="python-beginner-notes-1" data-title-en="Python beginner notes 1" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">I reflect on relying too much on GitHub Copilot for Python coding without understanding the code. I decided to solidify their Python skills by using various online resources, focusing on foundational learning and proper coding practices. The post also shares Python setup tips, including using pyenv for managing multiple Python versions and recommended IDEs and tools.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>在 <a href="/blog/github-copilot-demo/">Github Copilot</a> 加持下，我過了一大段不懂 Python 但卻能用 Python 寫複雜程式的神奇時光，但心中不踏實感日益加深。</p> <p>尤其是 Copilot 吐了一段看不太懂的 Code，跑起來有問題，加多一些提示條件、換個問法又拿到另一段看不太懂的 Code 再試，就像一塊拼圖換過一塊塞進空格看是不是剛好，沒有設法找出問題來源的想法... 猛然驚醒，都寫了幾十年程式，你現在是在幹嘛？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638614933165137772.jpg" alt="thumbnail"></p> <p>球，不是這麼踢滴，程式也不該這樣寫。除非沒天分或厭惡寫程式，不打算擁有自己寫 Python 能力，覺得騎著裝輔助輪腳踏車環島也無妨。身為習武之人，如此輕忽朝夕相伴的兵器成為體統？</p> <p>這陣子，我陸續找了一些 Python 線上教材，決心從頭蹲馬步打好 Python 基礎，別讓 Copilot 笑我廢。</p> <p>這個 Python 新手筆記系列，我會整理自己學習 Python 的重點筆記(從資深 C# 開發者的視角)，以下的教學資源有完整解說，筆記僅整理重點跟關鍵字備忘。</p> <h3>線上教學資源</h3> <p>以下是我找到的幾個線上教學資源：</p> <ul><li><a href="https://openhome.cc/zh-tw/python/">Python 技術手冊</a> by 良格葛<br> 手冊幾乎是對 Python 語言規範做完一次巡禮，完整度直逼教科書等級，涵蓋你該知道的 Python 語言特性及特色。<br> 每個章節的篇幅都不長，範例很強，短短幾行展示完語言特性及行為差異，知識吸收上特別有效率，堪稱 Python 語言濃縮精華液。<br> 但也因資訊純度較高，有些地方需要讀者有程式開發背景才易消化。特別適合已具其他程式語言開發經驗，想在短時間內奠定 Python 基礎的同學。<p> </p></li> <li><a href="https://pythonbook.cc/">為你自己學 PYTHON</a> by 高見龍<br> 龍哥不久前剛釋出的 <a href="/blog/creative-commons/">CC BY-NC-SA 授權</a>電子書(時機恰到好處，有天上掉餡餅的感覺 XD)。<br> 沿續為自己學 Git 的風格，全書十分輕鬆好讀，講解簡單易懂，並完整涵蓋開發 Python 需要知道的細節及實務技巧。<br> 電子書排版看起來非常舒服，並有許多<del>對了解 Python 沒啥幫助的</del>精美插畫，美到讓人讚嘆。我只能說，要做出好看電子書也是講天分的。<br> 這部教學很適合零程式經驗的白紙新手(源要寫給唸國中的小朋友看)，老鳥用它學習 Python 也沒有任何問題，讀來相對輕鬆，算是快快樂樂學 Python。<p> </p></li> <li><a href="https://sites.google.com/g.nccu.edu.tw/moocs/2024%E7%A7%8B%E5%AD%A3%E7%8F%AD%E7%A3%A8%E8%AA%B2%E5%B8%AB%E8%AA%B2%E7%A8%8B/%E6%88%90%E7%82%BApython%E6%95%B8%E6%93%9A%E5%88%86%E6%9E%90%E9%81%94%E4%BA%BA-%E7%9A%84%E7%AC%AC%E4%B8%80%E9%96%80%E8%AA%B2-113-1">政大磨課師課程 / 成為python數據分析達人-的第一門課</a> by 蔡炎龍<br> 之前上過蔡炎龍老師的 <a href="/blog/neural-network-moocs/">Python 實現人工智慧</a>，這套課程則從基礎的 Python 語法出發，重點聚焦於 Numpy、Pandas、線性迴歸、機器學習的實務應用，跟「為你自己學 PYTHON」以 VSCode 為主不同，課程重度依賴 <a href="/blog/jupyter-notebook/">Jupyter Notebook</a> 及 Colab，包含大量數據分析演練，剛好補足不同的 Python 開發經驗。</li></ul> <h3>環境安裝</h3> <p> </p><ul><li>Python 版本眾多(目前最新的正式版是 3.12.6)，有些程式可能需要特定的 Python 版本(舊程式甚至可能要用 2.X 跑)，要在同一台主機同時安裝多個 Python 版本，可使用 pyenv。(<a href="/blog/jupyter-notebook/">Anaconda</a> 也是解決方案，但笨重一些) <pre><code>pyenv update # pyenv-win 安裝後記得更新才會看到新版 Python
-pyenv versions # 列舉已安裝版本
-pyenv list -l # 列舉可安裝版本
-pyenv install 3.12.4 # 安裝
-pyenv shell 3.12.4 # 切換
-pyenv global 3.12.4 # 設定預設版本
-</code></pre> 註1：若曾用 Chocolatey 安裝及解除安裝 Python，殘留的 <code>C:\ProgramData\Chocolatey\bin\python*.exe</code> 跟 pyenv 打架，可 <code>DEL C:\ProgramData\Chocolatey\bin\python*.exe</code> <a href="https://stackoverflow.com/a/45787295/288936">參考</a><br> 註2：pyenv-win 主要透過 <code>C:\Users\jeffrey\.pyenv\pyenv-win\shims\python.bat</code> 啟動目前的 Python 版本，呼叫 Python.exe 可能會執行到非 pyenv 安裝來源。</li> <li>IDE：PyCharm(商業軟體)、Google Colab、Jupyter Notebook、VSCode (筆記本的話我偏好用微軟的 <a href="/blog/dotnet-interactive/">Polyglot Notebooks</a>，還可通吃 PowerShell、JavaScript、HTML、Mermaid、SQL)</li> <li>VSCode 推薦套件：Pylance (隨 Python 主套件自動安裝，Syntax Highlight/Intellisense)、Black Formatter (自動排版)</li> <li>單純執行 python.exe 會進入輸入指令按 Enter 看結果的環境，術語為 REPL (Read-Eval-Print Loop)</li> <li>套件安裝工具 pip <pre><code>pip list
-pip install requests
-pip uninstall reqeusts
-</code></pre> </li> <li><strong>venv</strong> - Python 內建模組，可建立多個虛擬環境，每個環境可安裝自己的套件組合，避免專案共用套件時因需求版號不同打架 <pre><code>python -m venv demo --prompt="DemoVenv"
-demo\Scripts\Activate.ps1 # PowerShell
-# demo\Scripts\activate.bat # CMD
-</code></pre> </li> <li><strong>Poetry</strong> - 比 venv 功能更強大，並提供完整套件管理功能(打包，發佈)，能顯示相依樹狀關聯、移除相依套件，推薦在專案裡啟用 Poetry 虛擬環境更容易管理<br> (複雜度較高，待未來用到再深入)</li></ul> <h3>套件版號之語意化版本管理</h3> <p>開源界有一套不成文的版號編碼規則：<code>主版號(Major).次版號(Minor).修訂版號(Patch)</code></p> <p>而 Python 本身及套件多半也遵循這套語意化版本管理（Semantic Versioning）的江湖規矩：</p> <ul><li>修訂版號增加只修 Bug，無相容問題。</li> <li>次板號增加可加新功能，但與之前相容，升級不會出事。</li> <li>主版號異動為大修改，很可能不相容。</li></ul> <p>之前常在 npm 常看到 ^、~ 等版本相容標示，其用法如下：</p> <ul><li><code>^5.0.3</code> - 允許 5.1.0 這種次版號不同的新版本</li> <li><code>~5.0.3</code> - 允許修訂版號更新的版本，如 5.0.4&nbsp;或&nbsp;5.0.999</li> <li><code>==5.0.3</code> - 必須一模一樣，不接受其他版本</li> <li><code>&gt;=5.0.3</code> - 比 5.0.3 高的都可以，包含 6.0.0<br> (你無法預期新版會有什麼變化，是否還相容，實務上幾乎沒人敢這麼做)</li></ul> <p data-slug="python-beginner-notes-1" data-title-en="Python beginner notes 1" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">I reflect on relying too much on GitHub Copilot for Python coding without understanding the code. I decided to solidify their Python skills by using various online resources, focusing on foundational learning and proper coding practices. The post also shares Python setup tips, including using pyenv for managing multiple Python versions and recommended IDEs and tools.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>在 <a href="/blog/github-copilot-demo/">Github Copilot</a> 加持下，我過了一大段不懂 Python 但卻能用 Python 寫複雜程式的神奇時光，但心中不踏實感日益加深。</p> <p>尤其是 Copilot 吐了一段看不太懂的 Code，跑起來有問題，加多一些提示條件、換個問法又拿到另一段看不太懂的 Code 再試，就像一塊拼圖換過一塊塞進空格看是不是剛好，沒有設法找出問題來源的想法... 猛然驚醒，都寫了幾十年程式，你現在是在幹嘛？</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638614933165137772.jpg" alt="thumbnail"></p> <p>球，不是這麼踢滴，程式也不該這樣寫。除非沒天分或厭惡寫程式，不打算擁有自己寫 Python 能力，覺得騎著裝輔助輪腳踏車環島也無妨。身為習武之人，如此輕忽朝夕相伴的兵器成為體統？</p> <p>這陣子，我陸續找了一些 Python 線上教材，決心從頭蹲馬步打好 Python 基礎，別讓 Copilot 笑我廢。</p> <p>這個 Python 新手筆記系列，我會整理自己學習 Python 的重點筆記(從資深 C# 開發者的視角)，以下的教學資源有完整解說，筆記僅整理重點跟關鍵字備忘。</p> <h3>線上教學資源</h3> <p>以下是我找到的幾個線上教學資源：</p> <ul><li><a href="https://openhome.cc/zh-tw/python/">Python 技術手冊</a> by 良格葛<br> 手冊幾乎是對 Python 語言規範做完一次巡禮，完整度直逼教科書等級，涵蓋你該知道的 Python 語言特性及特色。<br> 每個章節的篇幅都不長，範例很強，短短幾行展示完語言特性及行為差異，知識吸收上特別有效率，堪稱 Python 語言濃縮精華液。<br> 但也因資訊純度較高，有些地方需要讀者有程式開發背景才易消化。特別適合已具其他程式語言開發經驗，想在短時間內奠定 Python 基礎的同學。<p> </p></li> <li><a href="https://pythonbook.cc/">為你自己學 PYTHON</a> by 高見龍<br> 龍哥不久前剛釋出的 <a href="/blog/creative-commons/">CC BY-NC-SA 授權</a>電子書(時機恰到好處，有天上掉餡餅的感覺 XD)。<br> 沿續為自己學 Git 的風格，全書十分輕鬆好讀，講解簡單易懂，並完整涵蓋開發 Python 需要知道的細節及實務技巧。<br> 電子書排版看起來非常舒服，並有許多<del>對了解 Python 沒啥幫助的</del>精美插畫，美到讓人讚嘆。我只能說，要做出好看電子書也是講天分的。<br> 這部教學很適合零程式經驗的白紙新手(源要寫給唸國中的小朋友看)，老鳥用它學習 Python 也沒有任何問題，讀來相對輕鬆，算是快快樂樂學 Python。<p> </p></li> <li><a href="https://sites.google.com/g.nccu.edu.tw/moocs/2024%E7%A7%8B%E5%AD%A3%E7%8F%AD%E7%A3%A8%E8%AA%B2%E5%B8%AB%E8%AA%B2%E7%A8%8B/%E6%88%90%E7%82%BApython%E6%95%B8%E6%93%9A%E5%88%86%E6%9E%90%E9%81%94%E4%BA%BA-%E7%9A%84%E7%AC%AC%E4%B8%80%E9%96%80%E8%AA%B2-113-1">政大磨課師課程 / 成為python數據分析達人-的第一門課</a> by 蔡炎龍<br> 之前上過蔡炎龍老師的 <a href="/blog/neural-network-moocs/">Python 實現人工智慧</a>，這套課程則從基礎的 Python 語法出發，重點聚焦於 Numpy、Pandas、線性迴歸、機器學習的實務應用，跟「為你自己學 PYTHON」以 VSCode 為主不同，課程重度依賴 <a href="/blog/jupyter-notebook/">Jupyter Notebook</a> 及 Colab，包含大量數據分析演練，剛好補足不同的 Python 開發經驗。</li></ul> <h3>環境安裝</h3> <p> </p><ul><li>Python 版本眾多(目前最新的正式版是 3.12.6)，有些程式可能需要特定的 Python 版本(舊程式甚至可能要用 2.X 跑)，要在同一台主機同時安裝多個 Python 版本，可使用 pyenv。(<a href="/blog/jupyter-notebook/">Anaconda</a> 也是解決方案，但笨重一些) <pre><code>pyenv update # pyenv-win 安裝後記得更新才會看到新版 Python
-pyenv versions # 列舉已安裝版本
-pyenv list -l # 列舉可安裝版本
-pyenv install 3.12.4 # 安裝
-pyenv shell 3.12.4 # 切換
-pyenv global 3.12.4 # 設定預設版本
-</code></pre> 註1：若曾用 Chocolatey 安裝及解除安裝 Python，殘留的 <code>C:\ProgramData\Chocolatey\bin\python*.exe</code> 跟 pyenv 打架，可 <code>DEL C:\ProgramData\Chocolatey\bin\python*.exe</code> <a href="https://stackoverflow.com/a/45787295/288936">參考</a><br> 註2：pyenv-win 主要透過 <code>C:\Users\jeffrey\.pyenv\pyenv-win\shims\python.bat</code> 啟動目前的 Python 版本，呼叫 Python.exe 可能會執行到非 pyenv 安裝來源。</li> <li>IDE：PyCharm(商業軟體)、Google Colab、Jupyter Notebook、VSCode (筆記本的話我偏好用微軟的 <a href="/blog/dotnet-interactive/">Polyglot Notebooks</a>，還可通吃 PowerShell、JavaScript、HTML、Mermaid、SQL)</li> <li>VSCode 推薦套件：Pylance (隨 Python 主套件自動安裝，Syntax Highlight/Intellisense)、Black Formatter (自動排版)</li> <li>單純執行 python.exe 會進入輸入指令按 Enter 看結果的環境，術語為 REPL (Read-Eval-Print Loop)</li> <li>套件安裝工具 pip <pre><code>pip list
-pip install requests
-pip uninstall reqeusts
-</code></pre> </li> <li><strong>venv</strong> - Python 內建模組，可建立多個虛擬環境，每個環境可安裝自己的套件組合，避免專案共用套件時因需求版號不同打架 <pre><code>python -m venv demo --prompt="DemoVenv"
-demo\Scripts\Activate.ps1 # PowerShell
-# demo\Scripts\activate.bat # CMD
-</code></pre> </li> <li><strong>Poetry</strong> - 比 venv 功能更強大，並提供完整套件管理功能(打包，發佈)，能顯示相依樹狀關聯、移除相依套件，推薦在專案裡啟用 Poetry 虛擬環境更容易管理<br> (複雜度較高，待未來用到再深入)</li></ul> <h3>套件版號之語意化版本管理</h3> <p>開源界有一套不成文的版號編碼規則：<code>主版號(Major).次版號(Minor).修訂版號(Patch)</code></p> <p>而 Python 本身及套件多半也遵循這套語意化版本管理（Semantic Versioning）的江湖規矩：</p> <ul><li>修訂版號增加只修 Bug，無相容問題。</li> <li>次板號增加可加新功能，但與之前相容，升級不會出事。</li> <li>主版號異動為大修改，很可能不相容。</li></ul> <p>之前常在 npm 常看到 ^、~ 等版本相容標示，其用法如下：</p> <ul><li><code>^5.0.3</code> - 允許 5.1.0 這種次版號不同的新版本</li> <li><code>~5.0.3</code> - 允許修訂版號更新的版本，如 5.0.4&nbsp;或&nbsp;5.0.999</li> <li><code>==5.0.3</code> - 必須一模一樣，不接受其他版本</li> <li><code>&gt;=5.0.3</code> - 比 5.0.3 高的都可以，包含 6.0.0<br> (你無法預期新版會有什麼變化，是否還相容，實務上幾乎沒人敢這麼做)</li></ul> <p data-slug="python-beginner-notes-1" data-title-en="Python beginner notes 1" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">I reflect on relying too much on GitHub Copilot for Python coding without understanding the code. I decided to solidify their Python skills by using various online resources, focusing on foundational learning and proper coding practices. The post also shares Python setup tips, including using pyenv for managing multiple Python versions and recommended IDEs and tools.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638614933165137772.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638614933165137772.jpg" medium="image"/>
-    <pubDate>Mon, 09 Sep 2024 15:34:39 GMT</pubDate>
   </item></channel>
 </rss>
