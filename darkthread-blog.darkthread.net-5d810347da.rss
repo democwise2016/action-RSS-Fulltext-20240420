@@ -30,6 +30,258 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Go 練習 - 圖檔轉 DataUri 微服務]]></title>
+    <link>https://blog.darkthread.net/blog/datauri-micro-service-by-golang/</link>
+    <itunes:title><![CDATA[Go 練習 - 圖檔轉 DataUri 微服務]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>最近重操舊業，想將網站上的技術系列文章轉成 <a href="/blog/epub-diy/">ePub 電子書</a>。</p> <p>電子書的圖檔部分我喜歡將<code>&lt;img&gt;</code>轉 <a href="/blog/data-uri/">Data URI</a> 內嵌簡化管理，方法不難，用一小段 JavaScript 透過 <a href="/blog/html5-canvas-sktechpad/">Canvas</a> 可輕易實現：</p> <pre><code>document.querySelectorAll('.article_content img').forEach(img =&gt; {
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+const image = new Image();
+image.src = img.src;
+image.crossOrigin = 'Anonymous';
+image.onload = () =&gt; {
+canvas.width = image.width;
+canvas.height = image.height;
+ctx.drawImage(image, 0, 0, image.width, image.height);
+img.src = canvas.toDataURL();
+};
+});
+</code></pre> <p>但老鳥都知道事實沒這麼簡單，遇上圖檔來自第三方網站或自家圖床伺服器，當圖檔與網頁 HTML 分屬不同站台，便會撞上 <a href="/blog/html5-canvas-orgin-clean/">Canvas 的 Origin-Clean 安全原則</a>這道高牆。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638635635657294600.png"></p> <p>這個問題去年<a href="/blog/conv-img-to-datauri-in-html/">遇過</a>也解決了，當時我寫了 ASP.NET Core Minimal API 負責轉換以克服限制。幾個月前認識<a href="/blog/whats-golang/">輕巧快速的 Go 語言</a>，覺得這個小題目超適合當成 Go 的自主練習題。沒想太多，動手寫下去就對。</p> <p>簡單拼湊了一個可用版本(程式隨小，記得要限定本機存取及圖檔型別，這類代理程式要留意被當跳板的資安風險)，約 60 行搞定。</p> <pre><code>package main
+import (
+"encoding/base64"
+"fmt"
+"io"
+"log"
+"net/http"
+"os"
+"strconv"
+)
+func main() {
+http.HandleFunc("/", imgBase64Handler)
+// 預設 port 為 13463，但可透過參數指定，語法：datauri-microsvc.exe 12345
+port := 13463
+if len(os.Args) &gt; 1 {
+argPort, err := strconv.Atoi(os.Args[1])
+if err == nil {
+port = argPort
+}
+}
+fmt.Printf("DataUri Microsevice on port [%d]...
+", port)
+// 只接受本機連線，避免被當成跳板
+log.Fatal(http.ListenAndServe("localhost:"+strconv.Itoa(port), nil))
+}
+func imgBase64Handler(w http.ResponseWriter, r *http.Request) {
+url := r.URL.Query().Get("u")
+if url == "" {
+http.Error(w, "u parameter is missing", http.StatusBadRequest)
+return
+}
+resp, err := http.Get(url)
+if err != nil {
+http.Error(w, "failed to fetch image: "+url, http.StatusInternalServerError)
+return
+}
+defer resp.Body.Close()
+// 限定只處理 image/* MIME type，避免被惡意利用
+mimeType := resp.Header.Get("Content-Type")
+if len(mimeType) &lt; 6 || mimeType[:5] != "image" {
+http.Error(w, "invalid image mime type: "+mimeType, http.StatusBadRequest)
+return
+}
+imageData, err := io.ReadAll(resp.Body)
+if err != nil {
+http.Error(w, "failed to read image data", http.StatusInternalServerError)
+return
+}
+base64Str := base64.StdEncoding.EncodeToString(imageData)
+base64Str = "data:" + mimeType + ";base64," + base64Str
+w.Header().Set("Content-Type", "text/plain")
+// 允許跨域存取
+w.Header().Set("Access-Control-Allow-Origin", "*")
+w.Write([]byte(base64Str))
+}
+</code></pre> <p>編譯成 .exe 檔只有 7.1MB，不需要任何 Runtime 或 DLL，一個小小執行檔搞定所有事，是我最喜歡 Go 的一點。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638635635659473374.png"></p> <p>網頁執行部分要稍做修改，改用 fetch 呼叫 Go API，這個有個小眉角：fetch 為非同步作業，若網頁上有多張圖檔，應等到所有圖都轉換完再讀取 HTML 內容。這次順便多練習了 async/await/Promise.all()，同一個題目做第二次還是會學到新東西。</p> <pre><code>const pending = [];
+content.querySelectorAll('img').forEach(async (img) =&gt; {
+if (!img.src.startsWith('http')) return;
+var url = 'http://localhost:13463/?u=' + encodeURIComponent(img.src);
+var job = fetch(url).then(res =&gt; res.text());
+pending.push(job);
+img.src = await job;
+});
+Promise.all(pending).then(() =&gt; {
+// 所有 fetch 動作完成後執行作業
+});
+</code></pre> <p>練習完畢。</p> <p data-slug="datauri-micro-service-by-golang" data-fbimg="https://cdn.pixabay.com/photo/2017/03/13/20/02/tyre-push-2140997_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>最近重操舊業，想將網站上的技術系列文章轉成 <a href="/blog/epub-diy/">ePub 電子書</a>。</p> <p>電子書的圖檔部分我喜歡將<code>&lt;img&gt;</code>轉 <a href="/blog/data-uri/">Data URI</a> 內嵌簡化管理，方法不難，用一小段 JavaScript 透過 <a href="/blog/html5-canvas-sktechpad/">Canvas</a> 可輕易實現：</p> <pre><code>document.querySelectorAll('.article_content img').forEach(img =&gt; {
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+const image = new Image();
+image.src = img.src;
+image.crossOrigin = 'Anonymous';
+image.onload = () =&gt; {
+canvas.width = image.width;
+canvas.height = image.height;
+ctx.drawImage(image, 0, 0, image.width, image.height);
+img.src = canvas.toDataURL();
+};
+});
+</code></pre> <p>但老鳥都知道事實沒這麼簡單，遇上圖檔來自第三方網站或自家圖床伺服器，當圖檔與網頁 HTML 分屬不同站台，便會撞上 <a href="/blog/html5-canvas-orgin-clean/">Canvas 的 Origin-Clean 安全原則</a>這道高牆。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638635635657294600.png"></p> <p>這個問題去年<a href="/blog/conv-img-to-datauri-in-html/">遇過</a>也解決了，當時我寫了 ASP.NET Core Minimal API 負責轉換以克服限制。幾個月前認識<a href="/blog/whats-golang/">輕巧快速的 Go 語言</a>，覺得這個小題目超適合當成 Go 的自主練習題。沒想太多，動手寫下去就對。</p> <p>簡單拼湊了一個可用版本(程式隨小，記得要限定本機存取及圖檔型別，這類代理程式要留意被當跳板的資安風險)，約 60 行搞定。</p> <pre><code>package main
+import (
+"encoding/base64"
+"fmt"
+"io"
+"log"
+"net/http"
+"os"
+"strconv"
+)
+func main() {
+http.HandleFunc("/", imgBase64Handler)
+// 預設 port 為 13463，但可透過參數指定，語法：datauri-microsvc.exe 12345
+port := 13463
+if len(os.Args) &gt; 1 {
+argPort, err := strconv.Atoi(os.Args[1])
+if err == nil {
+port = argPort
+}
+}
+fmt.Printf("DataUri Microsevice on port [%d]...
+", port)
+// 只接受本機連線，避免被當成跳板
+log.Fatal(http.ListenAndServe("localhost:"+strconv.Itoa(port), nil))
+}
+func imgBase64Handler(w http.ResponseWriter, r *http.Request) {
+url := r.URL.Query().Get("u")
+if url == "" {
+http.Error(w, "u parameter is missing", http.StatusBadRequest)
+return
+}
+resp, err := http.Get(url)
+if err != nil {
+http.Error(w, "failed to fetch image: "+url, http.StatusInternalServerError)
+return
+}
+defer resp.Body.Close()
+// 限定只處理 image/* MIME type，避免被惡意利用
+mimeType := resp.Header.Get("Content-Type")
+if len(mimeType) &lt; 6 || mimeType[:5] != "image" {
+http.Error(w, "invalid image mime type: "+mimeType, http.StatusBadRequest)
+return
+}
+imageData, err := io.ReadAll(resp.Body)
+if err != nil {
+http.Error(w, "failed to read image data", http.StatusInternalServerError)
+return
+}
+base64Str := base64.StdEncoding.EncodeToString(imageData)
+base64Str = "data:" + mimeType + ";base64," + base64Str
+w.Header().Set("Content-Type", "text/plain")
+// 允許跨域存取
+w.Header().Set("Access-Control-Allow-Origin", "*")
+w.Write([]byte(base64Str))
+}
+</code></pre> <p>編譯成 .exe 檔只有 7.1MB，不需要任何 Runtime 或 DLL，一個小小執行檔搞定所有事，是我最喜歡 Go 的一點。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638635635659473374.png"></p> <p>網頁執行部分要稍做修改，改用 fetch 呼叫 Go API，這個有個小眉角：fetch 為非同步作業，若網頁上有多張圖檔，應等到所有圖都轉換完再讀取 HTML 內容。這次順便多練習了 async/await/Promise.all()，同一個題目做第二次還是會學到新東西。</p> <pre><code>const pending = [];
+content.querySelectorAll('img').forEach(async (img) =&gt; {
+if (!img.src.startsWith('http')) return;
+var url = 'http://localhost:13463/?u=' + encodeURIComponent(img.src);
+var job = fetch(url).then(res =&gt; res.text());
+pending.push(job);
+img.src = await job;
+});
+Promise.all(pending).then(() =&gt; {
+// 所有 fetch 動作完成後執行作業
+});
+</code></pre> <p>練習完畢。</p> <p data-slug="datauri-micro-service-by-golang" data-fbimg="https://cdn.pixabay.com/photo/2017/03/13/20/02/tyre-push-2140997_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>最近重操舊業，想將網站上的技術系列文章轉成 <a href="/blog/epub-diy/">ePub 電子書</a>。</p> <p>電子書的圖檔部分我喜歡將<code>&lt;img&gt;</code>轉 <a href="/blog/data-uri/">Data URI</a> 內嵌簡化管理，方法不難，用一小段 JavaScript 透過 <a href="/blog/html5-canvas-sktechpad/">Canvas</a> 可輕易實現：</p> <pre><code>document.querySelectorAll('.article_content img').forEach(img =&gt; {
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+const image = new Image();
+image.src = img.src;
+image.crossOrigin = 'Anonymous';
+image.onload = () =&gt; {
+canvas.width = image.width;
+canvas.height = image.height;
+ctx.drawImage(image, 0, 0, image.width, image.height);
+img.src = canvas.toDataURL();
+};
+});
+</code></pre> <p>但老鳥都知道事實沒這麼簡單，遇上圖檔來自第三方網站或自家圖床伺服器，當圖檔與網頁 HTML 分屬不同站台，便會撞上 <a href="/blog/html5-canvas-orgin-clean/">Canvas 的 Origin-Clean 安全原則</a>這道高牆。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638635635657294600.png"></p> <p>這個問題去年<a href="/blog/conv-img-to-datauri-in-html/">遇過</a>也解決了，當時我寫了 ASP.NET Core Minimal API 負責轉換以克服限制。幾個月前認識<a href="/blog/whats-golang/">輕巧快速的 Go 語言</a>，覺得這個小題目超適合當成 Go 的自主練習題。沒想太多，動手寫下去就對。</p> <p>簡單拼湊了一個可用版本(程式隨小，記得要限定本機存取及圖檔型別，這類代理程式要留意被當跳板的資安風險)，約 60 行搞定。</p> <pre><code>package main
+import (
+"encoding/base64"
+"fmt"
+"io"
+"log"
+"net/http"
+"os"
+"strconv"
+)
+func main() {
+http.HandleFunc("/", imgBase64Handler)
+// 預設 port 為 13463，但可透過參數指定，語法：datauri-microsvc.exe 12345
+port := 13463
+if len(os.Args) &gt; 1 {
+argPort, err := strconv.Atoi(os.Args[1])
+if err == nil {
+port = argPort
+}
+}
+fmt.Printf("DataUri Microsevice on port [%d]...
+", port)
+// 只接受本機連線，避免被當成跳板
+log.Fatal(http.ListenAndServe("localhost:"+strconv.Itoa(port), nil))
+}
+func imgBase64Handler(w http.ResponseWriter, r *http.Request) {
+url := r.URL.Query().Get("u")
+if url == "" {
+http.Error(w, "u parameter is missing", http.StatusBadRequest)
+return
+}
+resp, err := http.Get(url)
+if err != nil {
+http.Error(w, "failed to fetch image: "+url, http.StatusInternalServerError)
+return
+}
+defer resp.Body.Close()
+// 限定只處理 image/* MIME type，避免被惡意利用
+mimeType := resp.Header.Get("Content-Type")
+if len(mimeType) &lt; 6 || mimeType[:5] != "image" {
+http.Error(w, "invalid image mime type: "+mimeType, http.StatusBadRequest)
+return
+}
+imageData, err := io.ReadAll(resp.Body)
+if err != nil {
+http.Error(w, "failed to read image data", http.StatusInternalServerError)
+return
+}
+base64Str := base64.StdEncoding.EncodeToString(imageData)
+base64Str = "data:" + mimeType + ";base64," + base64Str
+w.Header().Set("Content-Type", "text/plain")
+// 允許跨域存取
+w.Header().Set("Access-Control-Allow-Origin", "*")
+w.Write([]byte(base64Str))
+}
+</code></pre> <p>編譯成 .exe 檔只有 7.1MB，不需要任何 Runtime 或 DLL，一個小小執行檔搞定所有事，是我最喜歡 Go 的一點。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638635635659473374.png"></p> <p>網頁執行部分要稍做修改，改用 fetch 呼叫 Go API，這個有個小眉角：fetch 為非同步作業，若網頁上有多張圖檔，應等到所有圖都轉換完再讀取 HTML 內容。這次順便多練習了 async/await/Promise.all()，同一個題目做第二次還是會學到新東西。</p> <pre><code>const pending = [];
+content.querySelectorAll('img').forEach(async (img) =&gt; {
+if (!img.src.startsWith('http')) return;
+var url = 'http://localhost:13463/?u=' + encodeURIComponent(img.src);
+var job = fetch(url).then(res =&gt; res.text());
+pending.push(job);
+img.src = await job;
+});
+Promise.all(pending).then(() =&gt; {
+// 所有 fetch 動作完成後執行作業
+});
+</code></pre> <p>練習完畢。</p> <p data-slug="datauri-micro-service-by-golang" data-fbimg="https://cdn.pixabay.com/photo/2017/03/13/20/02/tyre-push-2140997_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638635635657294600.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638635635657294600.png" medium="image"/>
+    <pubDate>Thu, 03 Oct 2024 14:14:46 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Coding4Fun - BIG5 常用字真的很常用？次常用字比例有多低？PTT 八卦版常用字分析]]></title>
     <link>https://blog.darkthread.net/blog/big5-common-chars/</link>
     <itunes:title><![CDATA[Coding4Fun - BIG5 常用字真的很常用？次常用字比例有多低？PTT 八卦版常用字分析]]></itunes:title>
@@ -1345,20 +1597,5 @@ GenerateQRCode $shortUrl
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638619600155118995.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638619600155118995.png" medium="image"/>
     <pubDate>Sun, 15 Sep 2024 01:15:16 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[寫 C# 已得心應手，為什麼我該學 Python？]]></title>
-    <link>https://blog.darkthread.net/blog/why-learn-python/</link>
-    <itunes:title><![CDATA[寫 C# 已得心應手，為什麼我該學 Python？]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>陸續寫了幾篇 <a href="/blog/python-beginner-notes-1/">Python 新手筆記</a>，寫了二十幾年 C# 四處想推人入坑的老人，臨老學起新語言不免被問：「平時不是老吹噓 .NET 多強多好用，寫什麼都得心應手，幹嘛還要學 Python？」</p> <h3>Python 的崛起</h3> <p>Java 過去一直是通吃學術界、開源界及企業的王者，但從 2018 起 Python 異軍突起，在 TIOBE 程式排行榜開始急速上升，2020 年 11 月首次<a href="https://allaboutdataanalysis.medium.com/tiobe-11-%E6%9C%88%E6%A6%9C%E5%96%AE-python-%E6%93%A0%E6%8E%89-java-%E6%88%90%E5%8A%9F%E8%BA%8D%E8%87%B3%E7%AC%AC%E4%BA%8C-1bb02db35f1a">擠下 Java 升上第二名</a>，終結近 20 年持續由 Java 與 C 包辦冠亞軍的傳統，並於 2022 年後開始稱霸。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638619042325246024.png"><br> 藍線是 Python，Java 是綠線，橘線為 C</p> <p>你可能不知道，其實 Python 誕生於 1991，歷史比 Java (1995)、JavaScript (1995) 還悠久，依 TIOBE 指標大概是從 2018 才開始展露頭角，之後便扶搖直上，在四年後登基。</p> <p>Python 之所以廣受歡迎，主要在於語法簡潔易讀，初學者非常容易上手(註：但依我自身經驗，深陷其他程式語言思考慣性的老人，初學 Python 反而有撞牆期)，當使用的人愈來愈多，形成活躍的開發者社群，大量的程式庫、框架、開發工具、文件、教學如雨後春筍，學習及開發各式應用門檻不斷下降，形成豐富完整的生態系，茁壯至今。</p> <p>近年來 Python 的爆炸性成長，我個人將其歸功於資料科學及人工智慧領域的推波助瀾，Python 是許多殺手級應用的奧林匹克指定語言。以我自己為例，學習 Python 的最主要動機即是數據分析及 AI。</p> <p>不管要什麼專業圖表，如果你會 Python，引用開源程式庫寫幾行程式碼就有了，難道不香嗎？<a href="/blog/python-stats-cahrt/">範例</a>、<a href="/blog/boxplot-whisker-calculation/">範例</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638619042329977759.png"></p> <p>至於 LLM 模型的程式庫及範例，第一順位永遠是 Python 版。當然主流模型會同時提供其他語言版本，即便沒有，若是熱門模型很快會有人翻寫 C# 版，再不行，解析 WebAPI 介面自己寫也不算難事。但，這就像「先翻譯成中文」vs「直接讀原文」，效率高下立見，學會主流語言才不會在競爭時吃癟。</p> <h3>既視感 Déjà vu</h3> <p>回起起 AJAX 興起的年代，我面臨過類似的抉擇。</p> <p>當時 ASP.NET WebForm 針對 AJAX 提供了 <a href="/blog/why-not-updatepanel/">UpdatePanel</a> 技術，讓你留在 VB.NET/C# 的舒適圈，不用多學 JavaScript 語言一樣能寫出很炫的動態刷新網頁。繼續用 C#，工作上的需求一樣可以順利交差，省下多學一種程式語的力氣。</p> <p>我一度陷入要不要學 JavaScript 的掙扎，最後考量 JavaScript 是瀏覽器的原生語言，UpdatePanel 之類的解法只是隔靴騷癢，想完整掌控網頁發揮效能終究得學 JavaScript。於是我還是花了時間從頭學習 JavaScript、jQuery，在沒有 jsfiddle、jsbin 的年代還土砲 <a href="/blog/tools-mini-javascript-lab/">Mini JavaScript Lab</a>，無心插柳錄了 <a href="/blog/my-jquery-tutorial/">jQuery 教學</a>。</p> <p>後來的事大家都知道了。</p> <p>JavaScript 如今已成前端開發的必備技能，遇到提供程式開發語言選項的場合，JavaScript 總會在先發名單。在 JavaScript 最火紅的年代，JavaScript Everywhere，網頁伺服器(Node.js)、手機 App (React Native/Ionic/Cordova)、區塊鏈(web3.js)... 什麼鬼東西都可用 JavaScript 寫，甚至可以控制 Arudino ( <a href="https://www.espruino.com/">Espruino</a>)...</p> <p>事後來看，當年花時間建立 JavaScript 基礎是我技能樹上最超值的投資之一。即便稱不上精通，我的 JavaScript 能力足以應付工作與生活需求，遇到只支援有限語言的場合，只要選項包含 JavaScript 我就能活，被丟到荒野也能生存的自信，讓人格外安心。</p> <p>如今，我用同樣的心情看待 Python，相信學習 Python 肯定是這個時代的一項明智投資。</p> <h3>令人期待的殺手級應用 - Excel</h3> <p>如果你覺得以上的情境，都不足以構成學習 Python 應用的好理由。在此為大家介紹最近加入 Python 應援團的成員。</p> <p>嘖嘖嘖! 瞧瞧 Python 與 Excel 共舞的美妙身影... (<a href="/blog/boxplot-whisker-calculation/">盒鬚圖</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638619042331805965.png"></p> <p>如果當年我願意為寫 Word/Excel 巨集學 VBA，面對比 VBA 實用 100 倍的 Python，我想不出有理由不學？(謎：有! 不想想自己幾歲了，確定還學得動？)</p> <p>補充：對 Python + Excel 瀨尿牛丸有興趣的同學可參考 PAPAYA 電腦教室的<a href="https://www.youtube.com/watch?v=kYyIEnTXYRg">介紹影片</a></p> <h3>後記</h3> <p>即便決定學好 Python，對我來說，就像決心要學好英文，C# 則像中文是我的母語，是我最愛的語言。</p> <p>前陣子有幸跟<a href="https://pythonbook.cc/">為你自己學 PYTHON</a>作者龍哥小聊，他也說：「我還是最喜歡 Ruby」。</p> <p>嗯，我懂。</p> <p data-slug="why-learn-python" data-title-en="As a seasoned C# developer, why I should learn Python?" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">As a seasoned C# developer, I explains my motivation for learning Python despite my proficiency in .NET. This post highlight Python’s rise to prominence, especially in data science and AI, due to its simplicity and vast ecosystem. I compares Python’s current significance to the past rise of JavaScript, emphasizing the importance of staying updated with mainstream languages for competitive advantage.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>陸續寫了幾篇 <a href="/blog/python-beginner-notes-1/">Python 新手筆記</a>，寫了二十幾年 C# 四處想推人入坑的老人，臨老學起新語言不免被問：「平時不是老吹噓 .NET 多強多好用，寫什麼都得心應手，幹嘛還要學 Python？」</p> <h3>Python 的崛起</h3> <p>Java 過去一直是通吃學術界、開源界及企業的王者，但從 2018 起 Python 異軍突起，在 TIOBE 程式排行榜開始急速上升，2020 年 11 月首次<a href="https://allaboutdataanalysis.medium.com/tiobe-11-%E6%9C%88%E6%A6%9C%E5%96%AE-python-%E6%93%A0%E6%8E%89-java-%E6%88%90%E5%8A%9F%E8%BA%8D%E8%87%B3%E7%AC%AC%E4%BA%8C-1bb02db35f1a">擠下 Java 升上第二名</a>，終結近 20 年持續由 Java 與 C 包辦冠亞軍的傳統，並於 2022 年後開始稱霸。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638619042325246024.png"><br> 藍線是 Python，Java 是綠線，橘線為 C</p> <p>你可能不知道，其實 Python 誕生於 1991，歷史比 Java (1995)、JavaScript (1995) 還悠久，依 TIOBE 指標大概是從 2018 才開始展露頭角，之後便扶搖直上，在四年後登基。</p> <p>Python 之所以廣受歡迎，主要在於語法簡潔易讀，初學者非常容易上手(註：但依我自身經驗，深陷其他程式語言思考慣性的老人，初學 Python 反而有撞牆期)，當使用的人愈來愈多，形成活躍的開發者社群，大量的程式庫、框架、開發工具、文件、教學如雨後春筍，學習及開發各式應用門檻不斷下降，形成豐富完整的生態系，茁壯至今。</p> <p>近年來 Python 的爆炸性成長，我個人將其歸功於資料科學及人工智慧領域的推波助瀾，Python 是許多殺手級應用的奧林匹克指定語言。以我自己為例，學習 Python 的最主要動機即是數據分析及 AI。</p> <p>不管要什麼專業圖表，如果你會 Python，引用開源程式庫寫幾行程式碼就有了，難道不香嗎？<a href="/blog/python-stats-cahrt/">範例</a>、<a href="/blog/boxplot-whisker-calculation/">範例</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638619042329977759.png"></p> <p>至於 LLM 模型的程式庫及範例，第一順位永遠是 Python 版。當然主流模型會同時提供其他語言版本，即便沒有，若是熱門模型很快會有人翻寫 C# 版，再不行，解析 WebAPI 介面自己寫也不算難事。但，這就像「先翻譯成中文」vs「直接讀原文」，效率高下立見，學會主流語言才不會在競爭時吃癟。</p> <h3>既視感 Déjà vu</h3> <p>回起起 AJAX 興起的年代，我面臨過類似的抉擇。</p> <p>當時 ASP.NET WebForm 針對 AJAX 提供了 <a href="/blog/why-not-updatepanel/">UpdatePanel</a> 技術，讓你留在 VB.NET/C# 的舒適圈，不用多學 JavaScript 語言一樣能寫出很炫的動態刷新網頁。繼續用 C#，工作上的需求一樣可以順利交差，省下多學一種程式語的力氣。</p> <p>我一度陷入要不要學 JavaScript 的掙扎，最後考量 JavaScript 是瀏覽器的原生語言，UpdatePanel 之類的解法只是隔靴騷癢，想完整掌控網頁發揮效能終究得學 JavaScript。於是我還是花了時間從頭學習 JavaScript、jQuery，在沒有 jsfiddle、jsbin 的年代還土砲 <a href="/blog/tools-mini-javascript-lab/">Mini JavaScript Lab</a>，無心插柳錄了 <a href="/blog/my-jquery-tutorial/">jQuery 教學</a>。</p> <p>後來的事大家都知道了。</p> <p>JavaScript 如今已成前端開發的必備技能，遇到提供程式開發語言選項的場合，JavaScript 總會在先發名單。在 JavaScript 最火紅的年代，JavaScript Everywhere，網頁伺服器(Node.js)、手機 App (React Native/Ionic/Cordova)、區塊鏈(web3.js)... 什麼鬼東西都可用 JavaScript 寫，甚至可以控制 Arudino ( <a href="https://www.espruino.com/">Espruino</a>)...</p> <p>事後來看，當年花時間建立 JavaScript 基礎是我技能樹上最超值的投資之一。即便稱不上精通，我的 JavaScript 能力足以應付工作與生活需求，遇到只支援有限語言的場合，只要選項包含 JavaScript 我就能活，被丟到荒野也能生存的自信，讓人格外安心。</p> <p>如今，我用同樣的心情看待 Python，相信學習 Python 肯定是這個時代的一項明智投資。</p> <h3>令人期待的殺手級應用 - Excel</h3> <p>如果你覺得以上的情境，都不足以構成學習 Python 應用的好理由。在此為大家介紹最近加入 Python 應援團的成員。</p> <p>嘖嘖嘖! 瞧瞧 Python 與 Excel 共舞的美妙身影... (<a href="/blog/boxplot-whisker-calculation/">盒鬚圖</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638619042331805965.png"></p> <p>如果當年我願意為寫 Word/Excel 巨集學 VBA，面對比 VBA 實用 100 倍的 Python，我想不出有理由不學？(謎：有! 不想想自己幾歲了，確定還學得動？)</p> <p>補充：對 Python + Excel 瀨尿牛丸有興趣的同學可參考 PAPAYA 電腦教室的<a href="https://www.youtube.com/watch?v=kYyIEnTXYRg">介紹影片</a></p> <h3>後記</h3> <p>即便決定學好 Python，對我來說，就像決心要學好英文，C# 則像中文是我的母語，是我最愛的語言。</p> <p>前陣子有幸跟<a href="https://pythonbook.cc/">為你自己學 PYTHON</a>作者龍哥小聊，他也說：「我還是最喜歡 Ruby」。</p> <p>嗯，我懂。</p> <p data-slug="why-learn-python" data-title-en="As a seasoned C# developer, why I should learn Python?" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">As a seasoned C# developer, I explains my motivation for learning Python despite my proficiency in .NET. This post highlight Python’s rise to prominence, especially in data science and AI, due to its simplicity and vast ecosystem. I compares Python’s current significance to the past rise of JavaScript, emphasizing the importance of staying updated with mainstream languages for competitive advantage.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>陸續寫了幾篇 <a href="/blog/python-beginner-notes-1/">Python 新手筆記</a>，寫了二十幾年 C# 四處想推人入坑的老人，臨老學起新語言不免被問：「平時不是老吹噓 .NET 多強多好用，寫什麼都得心應手，幹嘛還要學 Python？」</p> <h3>Python 的崛起</h3> <p>Java 過去一直是通吃學術界、開源界及企業的王者，但從 2018 起 Python 異軍突起，在 TIOBE 程式排行榜開始急速上升，2020 年 11 月首次<a href="https://allaboutdataanalysis.medium.com/tiobe-11-%E6%9C%88%E6%A6%9C%E5%96%AE-python-%E6%93%A0%E6%8E%89-java-%E6%88%90%E5%8A%9F%E8%BA%8D%E8%87%B3%E7%AC%AC%E4%BA%8C-1bb02db35f1a">擠下 Java 升上第二名</a>，終結近 20 年持續由 Java 與 C 包辦冠亞軍的傳統，並於 2022 年後開始稱霸。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638619042325246024.png"><br> 藍線是 Python，Java 是綠線，橘線為 C</p> <p>你可能不知道，其實 Python 誕生於 1991，歷史比 Java (1995)、JavaScript (1995) 還悠久，依 TIOBE 指標大概是從 2018 才開始展露頭角，之後便扶搖直上，在四年後登基。</p> <p>Python 之所以廣受歡迎，主要在於語法簡潔易讀，初學者非常容易上手(註：但依我自身經驗，深陷其他程式語言思考慣性的老人，初學 Python 反而有撞牆期)，當使用的人愈來愈多，形成活躍的開發者社群，大量的程式庫、框架、開發工具、文件、教學如雨後春筍，學習及開發各式應用門檻不斷下降，形成豐富完整的生態系，茁壯至今。</p> <p>近年來 Python 的爆炸性成長，我個人將其歸功於資料科學及人工智慧領域的推波助瀾，Python 是許多殺手級應用的奧林匹克指定語言。以我自己為例，學習 Python 的最主要動機即是數據分析及 AI。</p> <p>不管要什麼專業圖表，如果你會 Python，引用開源程式庫寫幾行程式碼就有了，難道不香嗎？<a href="/blog/python-stats-cahrt/">範例</a>、<a href="/blog/boxplot-whisker-calculation/">範例</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638619042329977759.png"></p> <p>至於 LLM 模型的程式庫及範例，第一順位永遠是 Python 版。當然主流模型會同時提供其他語言版本，即便沒有，若是熱門模型很快會有人翻寫 C# 版，再不行，解析 WebAPI 介面自己寫也不算難事。但，這就像「先翻譯成中文」vs「直接讀原文」，效率高下立見，學會主流語言才不會在競爭時吃癟。</p> <h3>既視感 Déjà vu</h3> <p>回起起 AJAX 興起的年代，我面臨過類似的抉擇。</p> <p>當時 ASP.NET WebForm 針對 AJAX 提供了 <a href="/blog/why-not-updatepanel/">UpdatePanel</a> 技術，讓你留在 VB.NET/C# 的舒適圈，不用多學 JavaScript 語言一樣能寫出很炫的動態刷新網頁。繼續用 C#，工作上的需求一樣可以順利交差，省下多學一種程式語的力氣。</p> <p>我一度陷入要不要學 JavaScript 的掙扎，最後考量 JavaScript 是瀏覽器的原生語言，UpdatePanel 之類的解法只是隔靴騷癢，想完整掌控網頁發揮效能終究得學 JavaScript。於是我還是花了時間從頭學習 JavaScript、jQuery，在沒有 jsfiddle、jsbin 的年代還土砲 <a href="/blog/tools-mini-javascript-lab/">Mini JavaScript Lab</a>，無心插柳錄了 <a href="/blog/my-jquery-tutorial/">jQuery 教學</a>。</p> <p>後來的事大家都知道了。</p> <p>JavaScript 如今已成前端開發的必備技能，遇到提供程式開發語言選項的場合，JavaScript 總會在先發名單。在 JavaScript 最火紅的年代，JavaScript Everywhere，網頁伺服器(Node.js)、手機 App (React Native/Ionic/Cordova)、區塊鏈(web3.js)... 什麼鬼東西都可用 JavaScript 寫，甚至可以控制 Arudino ( <a href="https://www.espruino.com/">Espruino</a>)...</p> <p>事後來看，當年花時間建立 JavaScript 基礎是我技能樹上最超值的投資之一。即便稱不上精通，我的 JavaScript 能力足以應付工作與生活需求，遇到只支援有限語言的場合，只要選項包含 JavaScript 我就能活，被丟到荒野也能生存的自信，讓人格外安心。</p> <p>如今，我用同樣的心情看待 Python，相信學習 Python 肯定是這個時代的一項明智投資。</p> <h3>令人期待的殺手級應用 - Excel</h3> <p>如果你覺得以上的情境，都不足以構成學習 Python 應用的好理由。在此為大家介紹最近加入 Python 應援團的成員。</p> <p>嘖嘖嘖! 瞧瞧 Python 與 Excel 共舞的美妙身影... (<a href="/blog/boxplot-whisker-calculation/">盒鬚圖</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638619042331805965.png"></p> <p>如果當年我願意為寫 Word/Excel 巨集學 VBA，面對比 VBA 實用 100 倍的 Python，我想不出有理由不學？(謎：有! 不想想自己幾歲了，確定還學得動？)</p> <p>補充：對 Python + Excel 瀨尿牛丸有興趣的同學可參考 PAPAYA 電腦教室的<a href="https://www.youtube.com/watch?v=kYyIEnTXYRg">介紹影片</a></p> <h3>後記</h3> <p>即便決定學好 Python，對我來說，就像決心要學好英文，C# 則像中文是我的母語，是我最愛的語言。</p> <p>前陣子有幸跟<a href="https://pythonbook.cc/">為你自己學 PYTHON</a>作者龍哥小聊，他也說：「我還是最喜歡 Ruby」。</p> <p>嗯，我懂。</p> <p data-slug="why-learn-python" data-title-en="As a seasoned C# developer, why I should learn Python?" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">As a seasoned C# developer, I explains my motivation for learning Python despite my proficiency in .NET. This post highlight Python’s rise to prominence, especially in data science and AI, due to its simplicity and vast ecosystem. I compares Python’s current significance to the past rise of JavaScript, emphasizing the importance of staying updated with mainstream languages for competitive advantage.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638619042325246024.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638619042325246024.png" medium="image"/>
-    <pubDate>Sat, 14 Sep 2024 09:35:54 GMT</pubDate>
   </item></channel>
 </rss>
