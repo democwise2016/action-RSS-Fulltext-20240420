@@ -30,6 +30,411 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[筆記 - JavaScript Promise 串接與平行非同步作業]]></title>
+    <link>https://blog.darkthread.net/blog/js-promise-examples/</link>
+    <itunes:title><![CDATA[筆記 - JavaScript Promise 串接與平行非同步作業]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>隨著野生 IE 消失殆盡，我的前端開發進入新時代，不必再依賴 jQuery 幫忙跨瀏覽器，還可安心使用各式新式 JavaScript 及 CSS 語法。現在若不是要用 jQuery 套件，簡單程式我多半會用<a href="https://www.ithome.com.tw/voice/106182">香草 JavaScript (Vanilla JavaScript)</a>輕鬆搞定。涉及複雜輸入欄位互動或套版顯示，再<a href="/blog/vue-mvvm-tutorial/">搬出 Vue.js 實作 MVVM</a>從容應戰，寫起輕前端網頁比過去簡單許多。</p> <p>非同步作業在 jQuery 時代是靠 <a href="https://api.jquery.com/category/deferred-object/">Deferred</a>，在原生 JavaScript 則是用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>，存取網路資源或呼叫 API 使用的 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch">fetch() 方法</a>，傳回型別也正是 Promise。換言之，Promise 已是現在寫 JavaScript 不可不知的基本知識了。</p> <p>很不幸，即便是現在，每每遇上複雜一點 Promise 情境，像是同時做 A、B、C，都做完時再做 D，或是接續執行 A、B、C，前面成功才執行下一個... 我的頭腦還是會卡頓一下，要仔細想想或查範例才寫得出來。這一定是還沒寫筆記的關係，我想，所以就有了這篇。</p> <p>我整理了三種典型的 Promise 應用情境，寫成範例當成日後腦霧時參考：</p> <ol><li>Promise 串接：A 成功再做 B</li> <li>平行執行：同時執行 A、B、C，並等待它們完成</li> <li>循序執行：串接不定數量的 A、B、C... 作業，前一個成功再執行下一個</li></ol> <p>Promise 的起手式如下：(補充：<a href="https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Guide/Using_promises">MDN 關於 Promise 的介紹</a>)</p> <pre><code>// 建立 Promise 物件，傳入接收 resolve, reject 方法的自訂函式
+const promise = new Promise((resolve, reject) =&gt; {
+// 進行非同步作業
+// 執行完畢，若成功呼叫 resolve()，會觸發 .then()
+// resolve(data) 可將 data 傳給 then()
+// 失敗時呼叫 reject()，觸發 .catch()
+// reject(err) 可將 err 傳給 catch()
+});
+// 等待執行結果後要執行的邏輯
+promise.then((data) =&gt; ...) // 執行成功要做的動作
+.catch((err) =&gt; ...) // 失敗時要做的動作
+</code></pre> <p>為方便展示，我寫了一個小函式模擬非同步化作業，它會在頁面顯示 OK、Cancel 兩顆鈕，讓操作者模擬成功( resolve() 觸發 then() )或失敗( reject() 觸發 catch() )兩種情境。</p> <pre><code>function waitForAck(tile) {
+// 傳回 Promise
+return new Promise((resolve, reject) =&gt; {
+const fieldset = document.createElement('fieldset');
+fieldset.innerHTML = `&lt;legend&gt;${tile}&lt;/legend&gt;
+&lt;button&gt;OK&lt;/button&gt;
+&lt;button&gt;Cancel&lt;/button&gt;`;
+fieldset.addEventListener('click', (e) =&gt; {
+// fieldset click 事件中檢查是否按下 OK 或 Cancel 鈕
+if (e.target.tagName === 'BUTTON') {
+if (e.target.textContent === 'Cancel')
+reject(); // Reject
+else {
+log(`${tile} 完成`);
+resolve(); // Resolve
+}
+fieldset.remove(); // Reject 或 Resolve 後移除按鈕
+}
+});
+document.querySelector('#buttons').appendChild(fieldset);
+});
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638645054522260229.png"></p> <p>先附上範例程式及<a href="https://output.jsbin.com/xalajok">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Promise 循序與同步執行&lt;/title&gt;
+&lt;style&gt;
+html,
+body,
+button {
+font-family: Arial, sans-serif;
+font-size: 9pt;
+}
+#buttons {
+display: flex;
+min-height: 60px;
+margin: 6px 0;
+background-color: #eee;
+padding: 12px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;button onclick="testConcat()"&gt;Promise 串接&lt;/button&gt;
+&lt;button onclick="testParallel()"&gt;平行執行&lt;/button&gt;
+&lt;button onclick="testSerial()"&gt;循序執行&lt;/button&gt;
+&lt;/div&gt;
+&lt;div id="buttons"&gt;&lt;/div&gt;
+&lt;ul id="logs"&gt;&lt;/ul&gt;
+&lt;script&gt;
+function log(msg) { // 顯示 log
+const p = document.createElement('li');
+p.textContent = msg;
+document.querySelector('#logs').appendChild(p);
+}
+function clear() { // 清除 log
+document.querySelector('#logs').innerHTML = '';
+}
+function waitForAck(tile) {
+return new Promise((resolve, reject) =&gt; {
+const fieldset = document.createElement('fieldset');
+fieldset.innerHTML = `&lt;legend&gt;${tile}&lt;/legend&gt;
+&lt;button&gt;OK&lt;/button&gt;
+&lt;button&gt;Cancel&lt;/button&gt;`;
+fieldset.addEventListener('click', (e) =&gt; {
+if (e.target.tagName === 'BUTTON') {
+if (e.target.textContent === 'Cancel')
+reject();
+else {
+log(`${tile} 完成`);
+resolve();
+}
+fieldset.remove();
+}
+});
+document.querySelector('#buttons').appendChild(fieldset);
+});
+}
+function testConcat() {
+clear();
+log('Promise 串接');
+waitForAck('Promise A')
+.then(() =&gt; waitForAck('Promise B'))
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+const codes = ['A', 'B', 'C'];
+function testParallel() {
+clear();
+log('平行執行');
+const jobs = [];
+for (const c of codes) {
+jobs.push(waitForAck(`Promise ${c}`));
+}
+Promise.all(jobs)
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+function testSerial() {
+clear();
+log('循序執行');
+const jobs = [];
+for (const c of codes) {
+// 不要直接呼叫 waitForAck，而是將呼叫 waitForAck 的函式推入 jobs 陣列
+jobs.push(() =&gt; waitForAck(`Promise ${c}`));
+}
+// 這裡的 reduce() 相當於
+// let p = Promise.resolve();
+// for (const job of jobs) p = p.then(() =&gt; job());
+jobs.reduce((p, job) =&gt; p.then(() =&gt; job()), Promise.resolve())
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>再來看看實測結果：</p> <ol><li><p>Promise 串接<br> A resolve() 才會執行 B，A、B 都 resolve() 最後的 then() 才會顯示「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638645054528482630.gif"></p> </li> <li><p>平行執行<br> 同時顯示三個 Promise 的操作介面，三個都按 OK 才會出現「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638645054531700433.gif"></p> </li> <li><p>循序執行<br> A 成功才執行 B、B 成功執行 C，三個都成功才會得到「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638645054533992646.gif"></p> </li></ol> <p data-slug="js-promise-examples" data-title-en="common-promise-patterns" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/04/13/43/aerial-658795_960_720.jpg#920#720">This post provides three Promise examples of Vanilla JavaScript: chaining, parallel execution, and sequential execution.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>隨著野生 IE 消失殆盡，我的前端開發進入新時代，不必再依賴 jQuery 幫忙跨瀏覽器，還可安心使用各式新式 JavaScript 及 CSS 語法。現在若不是要用 jQuery 套件，簡單程式我多半會用<a href="https://www.ithome.com.tw/voice/106182">香草 JavaScript (Vanilla JavaScript)</a>輕鬆搞定。涉及複雜輸入欄位互動或套版顯示，再<a href="/blog/vue-mvvm-tutorial/">搬出 Vue.js 實作 MVVM</a>從容應戰，寫起輕前端網頁比過去簡單許多。</p> <p>非同步作業在 jQuery 時代是靠 <a href="https://api.jquery.com/category/deferred-object/">Deferred</a>，在原生 JavaScript 則是用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>，存取網路資源或呼叫 API 使用的 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch">fetch() 方法</a>，傳回型別也正是 Promise。換言之，Promise 已是現在寫 JavaScript 不可不知的基本知識了。</p> <p>很不幸，即便是現在，每每遇上複雜一點 Promise 情境，像是同時做 A、B、C，都做完時再做 D，或是接續執行 A、B、C，前面成功才執行下一個... 我的頭腦還是會卡頓一下，要仔細想想或查範例才寫得出來。這一定是還沒寫筆記的關係，我想，所以就有了這篇。</p> <p>我整理了三種典型的 Promise 應用情境，寫成範例當成日後腦霧時參考：</p> <ol><li>Promise 串接：A 成功再做 B</li> <li>平行執行：同時執行 A、B、C，並等待它們完成</li> <li>循序執行：串接不定數量的 A、B、C... 作業，前一個成功再執行下一個</li></ol> <p>Promise 的起手式如下：(補充：<a href="https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Guide/Using_promises">MDN 關於 Promise 的介紹</a>)</p> <pre><code>// 建立 Promise 物件，傳入接收 resolve, reject 方法的自訂函式
+const promise = new Promise((resolve, reject) =&gt; {
+// 進行非同步作業
+// 執行完畢，若成功呼叫 resolve()，會觸發 .then()
+// resolve(data) 可將 data 傳給 then()
+// 失敗時呼叫 reject()，觸發 .catch()
+// reject(err) 可將 err 傳給 catch()
+});
+// 等待執行結果後要執行的邏輯
+promise.then((data) =&gt; ...) // 執行成功要做的動作
+.catch((err) =&gt; ...) // 失敗時要做的動作
+</code></pre> <p>為方便展示，我寫了一個小函式模擬非同步化作業，它會在頁面顯示 OK、Cancel 兩顆鈕，讓操作者模擬成功( resolve() 觸發 then() )或失敗( reject() 觸發 catch() )兩種情境。</p> <pre><code>function waitForAck(tile) {
+// 傳回 Promise
+return new Promise((resolve, reject) =&gt; {
+const fieldset = document.createElement('fieldset');
+fieldset.innerHTML = `&lt;legend&gt;${tile}&lt;/legend&gt;
+&lt;button&gt;OK&lt;/button&gt;
+&lt;button&gt;Cancel&lt;/button&gt;`;
+fieldset.addEventListener('click', (e) =&gt; {
+// fieldset click 事件中檢查是否按下 OK 或 Cancel 鈕
+if (e.target.tagName === 'BUTTON') {
+if (e.target.textContent === 'Cancel')
+reject(); // Reject
+else {
+log(`${tile} 完成`);
+resolve(); // Resolve
+}
+fieldset.remove(); // Reject 或 Resolve 後移除按鈕
+}
+});
+document.querySelector('#buttons').appendChild(fieldset);
+});
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638645054522260229.png"></p> <p>先附上範例程式及<a href="https://output.jsbin.com/xalajok">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Promise 循序與同步執行&lt;/title&gt;
+&lt;style&gt;
+html,
+body,
+button {
+font-family: Arial, sans-serif;
+font-size: 9pt;
+}
+#buttons {
+display: flex;
+min-height: 60px;
+margin: 6px 0;
+background-color: #eee;
+padding: 12px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;button onclick="testConcat()"&gt;Promise 串接&lt;/button&gt;
+&lt;button onclick="testParallel()"&gt;平行執行&lt;/button&gt;
+&lt;button onclick="testSerial()"&gt;循序執行&lt;/button&gt;
+&lt;/div&gt;
+&lt;div id="buttons"&gt;&lt;/div&gt;
+&lt;ul id="logs"&gt;&lt;/ul&gt;
+&lt;script&gt;
+function log(msg) { // 顯示 log
+const p = document.createElement('li');
+p.textContent = msg;
+document.querySelector('#logs').appendChild(p);
+}
+function clear() { // 清除 log
+document.querySelector('#logs').innerHTML = '';
+}
+function waitForAck(tile) {
+return new Promise((resolve, reject) =&gt; {
+const fieldset = document.createElement('fieldset');
+fieldset.innerHTML = `&lt;legend&gt;${tile}&lt;/legend&gt;
+&lt;button&gt;OK&lt;/button&gt;
+&lt;button&gt;Cancel&lt;/button&gt;`;
+fieldset.addEventListener('click', (e) =&gt; {
+if (e.target.tagName === 'BUTTON') {
+if (e.target.textContent === 'Cancel')
+reject();
+else {
+log(`${tile} 完成`);
+resolve();
+}
+fieldset.remove();
+}
+});
+document.querySelector('#buttons').appendChild(fieldset);
+});
+}
+function testConcat() {
+clear();
+log('Promise 串接');
+waitForAck('Promise A')
+.then(() =&gt; waitForAck('Promise B'))
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+const codes = ['A', 'B', 'C'];
+function testParallel() {
+clear();
+log('平行執行');
+const jobs = [];
+for (const c of codes) {
+jobs.push(waitForAck(`Promise ${c}`));
+}
+Promise.all(jobs)
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+function testSerial() {
+clear();
+log('循序執行');
+const jobs = [];
+for (const c of codes) {
+// 不要直接呼叫 waitForAck，而是將呼叫 waitForAck 的函式推入 jobs 陣列
+jobs.push(() =&gt; waitForAck(`Promise ${c}`));
+}
+// 這裡的 reduce() 相當於
+// let p = Promise.resolve();
+// for (const job of jobs) p = p.then(() =&gt; job());
+jobs.reduce((p, job) =&gt; p.then(() =&gt; job()), Promise.resolve())
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>再來看看實測結果：</p> <ol><li><p>Promise 串接<br> A resolve() 才會執行 B，A、B 都 resolve() 最後的 then() 才會顯示「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638645054528482630.gif"></p> </li> <li><p>平行執行<br> 同時顯示三個 Promise 的操作介面，三個都按 OK 才會出現「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638645054531700433.gif"></p> </li> <li><p>循序執行<br> A 成功才執行 B、B 成功執行 C，三個都成功才會得到「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638645054533992646.gif"></p> </li></ol> <p data-slug="js-promise-examples" data-title-en="common-promise-patterns" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/04/13/43/aerial-658795_960_720.jpg#920#720">This post provides three Promise examples of Vanilla JavaScript: chaining, parallel execution, and sequential execution.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>隨著野生 IE 消失殆盡，我的前端開發進入新時代，不必再依賴 jQuery 幫忙跨瀏覽器，還可安心使用各式新式 JavaScript 及 CSS 語法。現在若不是要用 jQuery 套件，簡單程式我多半會用<a href="https://www.ithome.com.tw/voice/106182">香草 JavaScript (Vanilla JavaScript)</a>輕鬆搞定。涉及複雜輸入欄位互動或套版顯示，再<a href="/blog/vue-mvvm-tutorial/">搬出 Vue.js 實作 MVVM</a>從容應戰，寫起輕前端網頁比過去簡單許多。</p> <p>非同步作業在 jQuery 時代是靠 <a href="https://api.jquery.com/category/deferred-object/">Deferred</a>，在原生 JavaScript 則是用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>，存取網路資源或呼叫 API 使用的 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch">fetch() 方法</a>，傳回型別也正是 Promise。換言之，Promise 已是現在寫 JavaScript 不可不知的基本知識了。</p> <p>很不幸，即便是現在，每每遇上複雜一點 Promise 情境，像是同時做 A、B、C，都做完時再做 D，或是接續執行 A、B、C，前面成功才執行下一個... 我的頭腦還是會卡頓一下，要仔細想想或查範例才寫得出來。這一定是還沒寫筆記的關係，我想，所以就有了這篇。</p> <p>我整理了三種典型的 Promise 應用情境，寫成範例當成日後腦霧時參考：</p> <ol><li>Promise 串接：A 成功再做 B</li> <li>平行執行：同時執行 A、B、C，並等待它們完成</li> <li>循序執行：串接不定數量的 A、B、C... 作業，前一個成功再執行下一個</li></ol> <p>Promise 的起手式如下：(補充：<a href="https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Guide/Using_promises">MDN 關於 Promise 的介紹</a>)</p> <pre><code>// 建立 Promise 物件，傳入接收 resolve, reject 方法的自訂函式
+const promise = new Promise((resolve, reject) =&gt; {
+// 進行非同步作業
+// 執行完畢，若成功呼叫 resolve()，會觸發 .then()
+// resolve(data) 可將 data 傳給 then()
+// 失敗時呼叫 reject()，觸發 .catch()
+// reject(err) 可將 err 傳給 catch()
+});
+// 等待執行結果後要執行的邏輯
+promise.then((data) =&gt; ...) // 執行成功要做的動作
+.catch((err) =&gt; ...) // 失敗時要做的動作
+</code></pre> <p>為方便展示，我寫了一個小函式模擬非同步化作業，它會在頁面顯示 OK、Cancel 兩顆鈕，讓操作者模擬成功( resolve() 觸發 then() )或失敗( reject() 觸發 catch() )兩種情境。</p> <pre><code>function waitForAck(tile) {
+// 傳回 Promise
+return new Promise((resolve, reject) =&gt; {
+const fieldset = document.createElement('fieldset');
+fieldset.innerHTML = `&lt;legend&gt;${tile}&lt;/legend&gt;
+&lt;button&gt;OK&lt;/button&gt;
+&lt;button&gt;Cancel&lt;/button&gt;`;
+fieldset.addEventListener('click', (e) =&gt; {
+// fieldset click 事件中檢查是否按下 OK 或 Cancel 鈕
+if (e.target.tagName === 'BUTTON') {
+if (e.target.textContent === 'Cancel')
+reject(); // Reject
+else {
+log(`${tile} 完成`);
+resolve(); // Resolve
+}
+fieldset.remove(); // Reject 或 Resolve 後移除按鈕
+}
+});
+document.querySelector('#buttons').appendChild(fieldset);
+});
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638645054522260229.png"></p> <p>先附上範例程式及<a href="https://output.jsbin.com/xalajok">線上展示</a>：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Promise 循序與同步執行&lt;/title&gt;
+&lt;style&gt;
+html,
+body,
+button {
+font-family: Arial, sans-serif;
+font-size: 9pt;
+}
+#buttons {
+display: flex;
+min-height: 60px;
+margin: 6px 0;
+background-color: #eee;
+padding: 12px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;button onclick="testConcat()"&gt;Promise 串接&lt;/button&gt;
+&lt;button onclick="testParallel()"&gt;平行執行&lt;/button&gt;
+&lt;button onclick="testSerial()"&gt;循序執行&lt;/button&gt;
+&lt;/div&gt;
+&lt;div id="buttons"&gt;&lt;/div&gt;
+&lt;ul id="logs"&gt;&lt;/ul&gt;
+&lt;script&gt;
+function log(msg) { // 顯示 log
+const p = document.createElement('li');
+p.textContent = msg;
+document.querySelector('#logs').appendChild(p);
+}
+function clear() { // 清除 log
+document.querySelector('#logs').innerHTML = '';
+}
+function waitForAck(tile) {
+return new Promise((resolve, reject) =&gt; {
+const fieldset = document.createElement('fieldset');
+fieldset.innerHTML = `&lt;legend&gt;${tile}&lt;/legend&gt;
+&lt;button&gt;OK&lt;/button&gt;
+&lt;button&gt;Cancel&lt;/button&gt;`;
+fieldset.addEventListener('click', (e) =&gt; {
+if (e.target.tagName === 'BUTTON') {
+if (e.target.textContent === 'Cancel')
+reject();
+else {
+log(`${tile} 完成`);
+resolve();
+}
+fieldset.remove();
+}
+});
+document.querySelector('#buttons').appendChild(fieldset);
+});
+}
+function testConcat() {
+clear();
+log('Promise 串接');
+waitForAck('Promise A')
+.then(() =&gt; waitForAck('Promise B'))
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+const codes = ['A', 'B', 'C'];
+function testParallel() {
+clear();
+log('平行執行');
+const jobs = [];
+for (const c of codes) {
+jobs.push(waitForAck(`Promise ${c}`));
+}
+Promise.all(jobs)
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+function testSerial() {
+clear();
+log('循序執行');
+const jobs = [];
+for (const c of codes) {
+// 不要直接呼叫 waitForAck，而是將呼叫 waitForAck 的函式推入 jobs 陣列
+jobs.push(() =&gt; waitForAck(`Promise ${c}`));
+}
+// 這裡的 reduce() 相當於
+// let p = Promise.resolve();
+// for (const job of jobs) p = p.then(() =&gt; job());
+jobs.reduce((p, job) =&gt; p.then(() =&gt; job()), Promise.resolve())
+.then(() =&gt; log('執行完畢'))
+.catch(() =&gt; log('未完成'));
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>再來看看實測結果：</p> <ol><li><p>Promise 串接<br> A resolve() 才會執行 B，A、B 都 resolve() 最後的 then() 才會顯示「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638645054528482630.gif"></p> </li> <li><p>平行執行<br> 同時顯示三個 Promise 的操作介面，三個都按 OK 才會出現「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638645054531700433.gif"></p> </li> <li><p>循序執行<br> A 成功才執行 B、B 成功執行 C，三個都成功才會得到「執行完畢」<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638645054533992646.gif"></p> </li></ol> <p data-slug="js-promise-examples" data-title-en="common-promise-patterns" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/04/13/43/aerial-658795_960_720.jpg#920#720">This post provides three Promise examples of Vanilla JavaScript: chaining, parallel execution, and sequential execution.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638645054522260229.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638645054522260229.png" medium="image"/>
+    <pubDate>Mon, 14 Oct 2024 12:20:49 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Go 練習 - 圖檔轉 DataUri 微服務]]></title>
     <link>https://blog.darkthread.net/blog/datauri-micro-service-by-golang/</link>
     <itunes:title><![CDATA[Go 練習 - 圖檔轉 DataUri 微服務]]></itunes:title>
@@ -1378,224 +1783,5 @@ Write-Host $ws.Cell(1, 1).Value
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638621618671428104.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638621618671428104.png" medium="image"/>
     <pubDate>Tue, 17 Sep 2024 09:09:25 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[PowerShell 小品 - 產生短網址 QR Code 複製到剪貼簿]]></title>
-    <link>https://blog.darkthread.net/blog/ps-create-shorten-url-qrcode/</link>
-    <itunes:title><![CDATA[PowerShell 小品 - 產生短網址 QR Code 複製到剪貼簿]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>最近遇到一個需求，想將網址轉成 QR Code 附在 Word 文件上。</p> <p>QR Code 的複雜度與文字長度有關，為了簡化 QR Code 降低掃瞄失敗率，我打算用縮網址服務將又臭又長的 <code>https://www.facebook.com/darkthread.net/posts/pfbid02FB837H4YHFB4DwxvvCiqh4P9e5jzbVD3Nts3rr5b1Pn7otMxiw3UaJ8AG4dyx3J8l</code> 網址轉成 <code>https://reurl.cc/rvY3V1</code>，二者 QR Code 的複雜度對照圖如下。若大家有掃密密麻麻 QR Code 掃不出來的經驗，應能體會為什麼值得多花這個功夫。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638619600155118995.png"></p> <p>這年頭縮網址跟產生 QRCode 的免費線上服務多如牛毛，但拎杯就是想要有一個 CLI 指令能 「URL 轉短網址產生 QRCode 再 複製到剪貼簿」一氣喝成，方便我直接在 Word 貼 QR Code。</p> <p>一把年紀了還這麼任性，那就自己寫一個吧! 寫就寫，誰怕誰。</p> <p>我打算全部套用免費 API：</p> <ol><li>縮網址用 <a href="https://reurl.cc/info/about/tw">recurl.cc</a>，它只需要用 FB 或 Google SSO 登入，免填註冊資料就能<a href="https://reurl.cc/dev/main/tw">拿到 API Key</a>，額度為每小時 100 次，日常使用綽綽有餘。</li> <li>好用的 Google QRCode API 今年關閉了，參考 <a href="https://the-walking-fish.com/p/google-qrcode-api-is-dead/">Google QR Code API 已不可用　呼叫只會顯示 404｜其他可用替代方案</a>我選擇 <a href="https://quickchart.io/documentation/qr-codes/">quickchart.io QR Code API</a> 作為替代方案。</li></ol> <p>程式不難，我寫了一個 Atk-GenUrlQRCode.ps1 (放在 <code>C:\Users\&lt;userName&gt;\Documents\WindowsPowerShell\Scripts</code>，從任何目錄都可執行)，除了輸入 URL，再提供幾個參數：</p> <ul><li>-NoQRCode 只縮網址複製到剪胋簿，不產生 QR Code</li> <li>-NoShorten 不縮網址只產生 QR Code 複製到剪貼簿</li> <li>-Show 產生 QR Code 後顯示圖檔</li> <li>-Size QR Code 尺寸，預設 150</li></ul> <p>recurl.cc 需要 API Key，第一次使用時程式會提示連上網站取得，並自動開啟瀏覽器，API Key 則會存入環境變數，下次便可直接使用。評估了一下，這 API Key 沒什麼盜用價值，就不做加密保護了。(延伸閱讀：<a href="/blog/secure-apikey-for-console-app/">如何在 .NET 工具程式安全儲存 API Key 設定</a>)</p> <p>程式範例如下：</p> <pre><code>param (
-[parameter(Mandatory = $true)]
-[string]$Url,
-[switch]$NoShorten,
-[switch]$NoQRCode,
-[switch]$Show,
-[int]$Size = 150
-)
-$envVarName = "ReurlApiKey"
-$apiKey = [Environment]::GetEnvironmentVariable($envVarName, "User")
-function CallRecurlApi($url, $apiKey) {
-$jsonBody = @{ url = $url } | ConvertTo-Json
-$headers = @{ 'reurl-api-key' = $apiKey }
-$res = Invoke-RestMethod -Method Post -Uri "https://api.reurl.cc/shorten" -Body $jsonBody -Headers $headers -ContentType "application/json"
-if ($res.res -ne "success") { throw ($res.code + ' ' + $res.msg) }
-return $res.short_url
-}
-function ShortenUrl($url) {
-# 若未設定 API Key，提示使用者輸入
-if ([string]::IsNullOrEmpty($apiKey)) {
-$reurlDevUrl = "https://reurl.cc/dev/main/tw"
-Write-Host "請登入 reurl.cc 開發者介面 $reurlDevUrl 取得 API Key"
-Start-Process $reurlDevUrl # 開啟瀏覽器連至 reurl.cc 開發者介面
-while ($true) {
-$apiKey = Read-Host "輸入 apikey: "
-if ([string]::IsNullOrEmpty($apiKey)) {
-Write-Host "不可空白" -ForegroundColor Brown
-}
-else {
-try {
-$shortenUrl = CallRecurlApi $url $apiKey
-[Environment]::SetEnvironmentVariable($envVarName, $apiKey, "User")
-return $shortenUrl
-}
-catch {
-Write-Host $_ -ForegroundColor Red
-}
-}
-}
-}
-else {
-return CallRecurlApi $url $apiKey
-}
-}
-function GenerateQRCode($text) {
-$qrCodeUrl = "https://quickchart.io/qr?text=$([Uri]::EscapeDataString($text))&amp;size=$Size"
-$tempFile = [IO.Path]::GetTempFileName() + ".png"
-Invoke-WebRequest -Uri $qrCodeUrl -OutFile $tempFile
-Add-Type -AssemblyName System.Windows.Forms
-$image = [System.Drawing.Image]::FromFile($tempFile)
-[System.Windows.Forms.Clipboard]::SetImage($image)
-Write-Host "QR Code 已複製到剪貼簿"
-if ($Show) { Start-Process $tempFile } # 開啟圖片
-}
-if (!$NoShorten) {
-$shortUrl = ShortenUrl $Url $apiKey
-}
-else {
-$shortUrl = $Url
-}
-if ($NoQRCode) {
-Set-Clipboard -Value $shortUrl
-Write-Host "短網址已複製到剪貼簿: $shortUrl"
-}
-else {
-Write-Host "短網址: $shortUrl"
-GenerateQRCode $shortUrl
-}
-</code></pre> <p>來看一下效果。</p> <p>輸入 URL 執行縮網址、產生 QR Code，訊息顯示 QR Code 已存入剪貼簿。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638619600158426125.png"></p> <p>在 Word 貼上，薑薑薑薑~~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638619600161666306.gif"></p> <p>分享給跟我一樣愛敲指令的朋友。</p> <p data-slug="ps-create-shorten-url-qrcode" data-title-en="A handy PowerShell tool to create shorten url QR code and copy it to clipboard" data-catg=".NET" data-fbimg="https://i.imgur.com/dm3nKaC.jpg#640#349">This blog post explains how to create a CLI tool that converts URLs into QR Codes to be used in Word documents. It uses the recurl.cc API for URL shortening and quickchart.io for generating QR Codes.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>最近遇到一個需求，想將網址轉成 QR Code 附在 Word 文件上。</p> <p>QR Code 的複雜度與文字長度有關，為了簡化 QR Code 降低掃瞄失敗率，我打算用縮網址服務將又臭又長的 <code>https://www.facebook.com/darkthread.net/posts/pfbid02FB837H4YHFB4DwxvvCiqh4P9e5jzbVD3Nts3rr5b1Pn7otMxiw3UaJ8AG4dyx3J8l</code> 網址轉成 <code>https://reurl.cc/rvY3V1</code>，二者 QR Code 的複雜度對照圖如下。若大家有掃密密麻麻 QR Code 掃不出來的經驗，應能體會為什麼值得多花這個功夫。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638619600155118995.png"></p> <p>這年頭縮網址跟產生 QRCode 的免費線上服務多如牛毛，但拎杯就是想要有一個 CLI 指令能 「URL 轉短網址產生 QRCode 再 複製到剪貼簿」一氣喝成，方便我直接在 Word 貼 QR Code。</p> <p>一把年紀了還這麼任性，那就自己寫一個吧! 寫就寫，誰怕誰。</p> <p>我打算全部套用免費 API：</p> <ol><li>縮網址用 <a href="https://reurl.cc/info/about/tw">recurl.cc</a>，它只需要用 FB 或 Google SSO 登入，免填註冊資料就能<a href="https://reurl.cc/dev/main/tw">拿到 API Key</a>，額度為每小時 100 次，日常使用綽綽有餘。</li> <li>好用的 Google QRCode API 今年關閉了，參考 <a href="https://the-walking-fish.com/p/google-qrcode-api-is-dead/">Google QR Code API 已不可用　呼叫只會顯示 404｜其他可用替代方案</a>我選擇 <a href="https://quickchart.io/documentation/qr-codes/">quickchart.io QR Code API</a> 作為替代方案。</li></ol> <p>程式不難，我寫了一個 Atk-GenUrlQRCode.ps1 (放在 <code>C:\Users\&lt;userName&gt;\Documents\WindowsPowerShell\Scripts</code>，從任何目錄都可執行)，除了輸入 URL，再提供幾個參數：</p> <ul><li>-NoQRCode 只縮網址複製到剪胋簿，不產生 QR Code</li> <li>-NoShorten 不縮網址只產生 QR Code 複製到剪貼簿</li> <li>-Show 產生 QR Code 後顯示圖檔</li> <li>-Size QR Code 尺寸，預設 150</li></ul> <p>recurl.cc 需要 API Key，第一次使用時程式會提示連上網站取得，並自動開啟瀏覽器，API Key 則會存入環境變數，下次便可直接使用。評估了一下，這 API Key 沒什麼盜用價值，就不做加密保護了。(延伸閱讀：<a href="/blog/secure-apikey-for-console-app/">如何在 .NET 工具程式安全儲存 API Key 設定</a>)</p> <p>程式範例如下：</p> <pre><code>param (
-[parameter(Mandatory = $true)]
-[string]$Url,
-[switch]$NoShorten,
-[switch]$NoQRCode,
-[switch]$Show,
-[int]$Size = 150
-)
-$envVarName = "ReurlApiKey"
-$apiKey = [Environment]::GetEnvironmentVariable($envVarName, "User")
-function CallRecurlApi($url, $apiKey) {
-$jsonBody = @{ url = $url } | ConvertTo-Json
-$headers = @{ 'reurl-api-key' = $apiKey }
-$res = Invoke-RestMethod -Method Post -Uri "https://api.reurl.cc/shorten" -Body $jsonBody -Headers $headers -ContentType "application/json"
-if ($res.res -ne "success") { throw ($res.code + ' ' + $res.msg) }
-return $res.short_url
-}
-function ShortenUrl($url) {
-# 若未設定 API Key，提示使用者輸入
-if ([string]::IsNullOrEmpty($apiKey)) {
-$reurlDevUrl = "https://reurl.cc/dev/main/tw"
-Write-Host "請登入 reurl.cc 開發者介面 $reurlDevUrl 取得 API Key"
-Start-Process $reurlDevUrl # 開啟瀏覽器連至 reurl.cc 開發者介面
-while ($true) {
-$apiKey = Read-Host "輸入 apikey: "
-if ([string]::IsNullOrEmpty($apiKey)) {
-Write-Host "不可空白" -ForegroundColor Brown
-}
-else {
-try {
-$shortenUrl = CallRecurlApi $url $apiKey
-[Environment]::SetEnvironmentVariable($envVarName, $apiKey, "User")
-return $shortenUrl
-}
-catch {
-Write-Host $_ -ForegroundColor Red
-}
-}
-}
-}
-else {
-return CallRecurlApi $url $apiKey
-}
-}
-function GenerateQRCode($text) {
-$qrCodeUrl = "https://quickchart.io/qr?text=$([Uri]::EscapeDataString($text))&amp;size=$Size"
-$tempFile = [IO.Path]::GetTempFileName() + ".png"
-Invoke-WebRequest -Uri $qrCodeUrl -OutFile $tempFile
-Add-Type -AssemblyName System.Windows.Forms
-$image = [System.Drawing.Image]::FromFile($tempFile)
-[System.Windows.Forms.Clipboard]::SetImage($image)
-Write-Host "QR Code 已複製到剪貼簿"
-if ($Show) { Start-Process $tempFile } # 開啟圖片
-}
-if (!$NoShorten) {
-$shortUrl = ShortenUrl $Url $apiKey
-}
-else {
-$shortUrl = $Url
-}
-if ($NoQRCode) {
-Set-Clipboard -Value $shortUrl
-Write-Host "短網址已複製到剪貼簿: $shortUrl"
-}
-else {
-Write-Host "短網址: $shortUrl"
-GenerateQRCode $shortUrl
-}
-</code></pre> <p>來看一下效果。</p> <p>輸入 URL 執行縮網址、產生 QR Code，訊息顯示 QR Code 已存入剪貼簿。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638619600158426125.png"></p> <p>在 Word 貼上，薑薑薑薑~~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638619600161666306.gif"></p> <p>分享給跟我一樣愛敲指令的朋友。</p> <p data-slug="ps-create-shorten-url-qrcode" data-title-en="A handy PowerShell tool to create shorten url QR code and copy it to clipboard" data-catg=".NET" data-fbimg="https://i.imgur.com/dm3nKaC.jpg#640#349">This blog post explains how to create a CLI tool that converts URLs into QR Codes to be used in Word documents. It uses the recurl.cc API for URL shortening and quickchart.io for generating QR Codes.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>最近遇到一個需求，想將網址轉成 QR Code 附在 Word 文件上。</p> <p>QR Code 的複雜度與文字長度有關，為了簡化 QR Code 降低掃瞄失敗率，我打算用縮網址服務將又臭又長的 <code>https://www.facebook.com/darkthread.net/posts/pfbid02FB837H4YHFB4DwxvvCiqh4P9e5jzbVD3Nts3rr5b1Pn7otMxiw3UaJ8AG4dyx3J8l</code> 網址轉成 <code>https://reurl.cc/rvY3V1</code>，二者 QR Code 的複雜度對照圖如下。若大家有掃密密麻麻 QR Code 掃不出來的經驗，應能體會為什麼值得多花這個功夫。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638619600155118995.png"></p> <p>這年頭縮網址跟產生 QRCode 的免費線上服務多如牛毛，但拎杯就是想要有一個 CLI 指令能 「URL 轉短網址產生 QRCode 再 複製到剪貼簿」一氣喝成，方便我直接在 Word 貼 QR Code。</p> <p>一把年紀了還這麼任性，那就自己寫一個吧! 寫就寫，誰怕誰。</p> <p>我打算全部套用免費 API：</p> <ol><li>縮網址用 <a href="https://reurl.cc/info/about/tw">recurl.cc</a>，它只需要用 FB 或 Google SSO 登入，免填註冊資料就能<a href="https://reurl.cc/dev/main/tw">拿到 API Key</a>，額度為每小時 100 次，日常使用綽綽有餘。</li> <li>好用的 Google QRCode API 今年關閉了，參考 <a href="https://the-walking-fish.com/p/google-qrcode-api-is-dead/">Google QR Code API 已不可用　呼叫只會顯示 404｜其他可用替代方案</a>我選擇 <a href="https://quickchart.io/documentation/qr-codes/">quickchart.io QR Code API</a> 作為替代方案。</li></ol> <p>程式不難，我寫了一個 Atk-GenUrlQRCode.ps1 (放在 <code>C:\Users\&lt;userName&gt;\Documents\WindowsPowerShell\Scripts</code>，從任何目錄都可執行)，除了輸入 URL，再提供幾個參數：</p> <ul><li>-NoQRCode 只縮網址複製到剪胋簿，不產生 QR Code</li> <li>-NoShorten 不縮網址只產生 QR Code 複製到剪貼簿</li> <li>-Show 產生 QR Code 後顯示圖檔</li> <li>-Size QR Code 尺寸，預設 150</li></ul> <p>recurl.cc 需要 API Key，第一次使用時程式會提示連上網站取得，並自動開啟瀏覽器，API Key 則會存入環境變數，下次便可直接使用。評估了一下，這 API Key 沒什麼盜用價值，就不做加密保護了。(延伸閱讀：<a href="/blog/secure-apikey-for-console-app/">如何在 .NET 工具程式安全儲存 API Key 設定</a>)</p> <p>程式範例如下：</p> <pre><code>param (
-[parameter(Mandatory = $true)]
-[string]$Url,
-[switch]$NoShorten,
-[switch]$NoQRCode,
-[switch]$Show,
-[int]$Size = 150
-)
-$envVarName = "ReurlApiKey"
-$apiKey = [Environment]::GetEnvironmentVariable($envVarName, "User")
-function CallRecurlApi($url, $apiKey) {
-$jsonBody = @{ url = $url } | ConvertTo-Json
-$headers = @{ 'reurl-api-key' = $apiKey }
-$res = Invoke-RestMethod -Method Post -Uri "https://api.reurl.cc/shorten" -Body $jsonBody -Headers $headers -ContentType "application/json"
-if ($res.res -ne "success") { throw ($res.code + ' ' + $res.msg) }
-return $res.short_url
-}
-function ShortenUrl($url) {
-# 若未設定 API Key，提示使用者輸入
-if ([string]::IsNullOrEmpty($apiKey)) {
-$reurlDevUrl = "https://reurl.cc/dev/main/tw"
-Write-Host "請登入 reurl.cc 開發者介面 $reurlDevUrl 取得 API Key"
-Start-Process $reurlDevUrl # 開啟瀏覽器連至 reurl.cc 開發者介面
-while ($true) {
-$apiKey = Read-Host "輸入 apikey: "
-if ([string]::IsNullOrEmpty($apiKey)) {
-Write-Host "不可空白" -ForegroundColor Brown
-}
-else {
-try {
-$shortenUrl = CallRecurlApi $url $apiKey
-[Environment]::SetEnvironmentVariable($envVarName, $apiKey, "User")
-return $shortenUrl
-}
-catch {
-Write-Host $_ -ForegroundColor Red
-}
-}
-}
-}
-else {
-return CallRecurlApi $url $apiKey
-}
-}
-function GenerateQRCode($text) {
-$qrCodeUrl = "https://quickchart.io/qr?text=$([Uri]::EscapeDataString($text))&amp;size=$Size"
-$tempFile = [IO.Path]::GetTempFileName() + ".png"
-Invoke-WebRequest -Uri $qrCodeUrl -OutFile $tempFile
-Add-Type -AssemblyName System.Windows.Forms
-$image = [System.Drawing.Image]::FromFile($tempFile)
-[System.Windows.Forms.Clipboard]::SetImage($image)
-Write-Host "QR Code 已複製到剪貼簿"
-if ($Show) { Start-Process $tempFile } # 開啟圖片
-}
-if (!$NoShorten) {
-$shortUrl = ShortenUrl $Url $apiKey
-}
-else {
-$shortUrl = $Url
-}
-if ($NoQRCode) {
-Set-Clipboard -Value $shortUrl
-Write-Host "短網址已複製到剪貼簿: $shortUrl"
-}
-else {
-Write-Host "短網址: $shortUrl"
-GenerateQRCode $shortUrl
-}
-</code></pre> <p>來看一下效果。</p> <p>輸入 URL 執行縮網址、產生 QR Code，訊息顯示 QR Code 已存入剪貼簿。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638619600158426125.png"></p> <p>在 Word 貼上，薑薑薑薑~~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638619600161666306.gif"></p> <p>分享給跟我一樣愛敲指令的朋友。</p> <p data-slug="ps-create-shorten-url-qrcode" data-title-en="A handy PowerShell tool to create shorten url QR code and copy it to clipboard" data-catg=".NET" data-fbimg="https://i.imgur.com/dm3nKaC.jpg#640#349">This blog post explains how to create a CLI tool that converts URLs into QR Codes to be used in Word documents. It uses the recurl.cc API for URL shortening and quickchart.io for generating QR Codes.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638619600155118995.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638619600155118995.png" medium="image"/>
-    <pubDate>Sun, 15 Sep 2024 01:15:16 GMT</pubDate>
   </item></channel>
 </rss>
