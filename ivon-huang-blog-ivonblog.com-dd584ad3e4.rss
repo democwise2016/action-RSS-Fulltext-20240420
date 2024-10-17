@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/198/800/800.jpg?hmac=LNMNn3J6Bz2PKtVqpEQcBx9qDcF8_KoFvOOGMDQD3aE</url>
+      <url>https://fastly.picsum.photos/id/118/800/800.jpg?hmac=NnfpyhhI5V-Gf64Ob4waDq9Fj35-VxxgnbepKyMdiSc</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,452 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/198/800/800.jpg?hmac=LNMNn3J6Bz2PKtVqpEQcBx9qDcF8_KoFvOOGMDQD3aE"/>
+    <itunes:image href="https://fastly.picsum.photos/id/118/800/800.jpg?hmac=NnfpyhhI5V-Gf64Ob4waDq9Fj35-VxxgnbepKyMdiSc"/>
 <item>
+    <title><![CDATA[Ubuntu使用vgpu_unlock解鎖NVIDIA vGPU，給QEMU/KVM虛擬機啟用GPU虛擬化]]></title>
+    <link>https://ivonblog.com/posts/ubuntu-libvirt-nvidia-vgpu-unlock/</link>
+    <itunes:title><![CDATA[Ubuntu使用vgpu_unlock解鎖NVIDIA vGPU，給QEMU/KVM虛擬機啟用GPU虛擬化]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ubuntu-libvirt-nvidia-vgpu-unlock/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ec306d2fd7.webp"></a></p>
+<p>vGPU (Virtual GPU) 為Nvidia推出的GPU虛擬化技術，能夠Linux上的一張GPU分配給多個虛擬機使用，如此一來可提昇QEMU/KVM虛擬機的圖形效能。</p><p>圖例，Linux宿主機與Windows虛擬機共享GPU</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-592b050480.webp"><p>圖例，Linux宿主機與Linux虛擬機共享GPU</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-753748c519.webp"><p>「GPU虛擬化」跟「GPU直通」不一樣，後者是直接將Linux宿主機的GPU封印，透過VFIO分配給虛擬機使用，宿主機無法存取GPU。</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/ubuntu-gpu-passthrough/" target="_blank">
+Ubuntu Nvidia GPU直通Windows QEMU/KVM虛擬機</a></li></ul><p>若是採用GPU虛擬化的話，宿主機就能和虛擬機共享同一個GPU的資源了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c604e38ca6.webp"><figcaption>vGPU原圖</figcaption><p>不過，目前Nvidia官方僅將vGPU功能開放給伺服器GPU使用，而且需要購買授權。一般消費級的Nvidia GPU雖然硬體支援vGPU，但是vGPU是無法使用的。故我們得使用第三方開發者製作的「vgpu unlock」程式解鎖該功能，並用自訂伺服器取得Nvidia的授權。</p><p>整個啟用過程有點麻煩，你需要很熟悉Linux Nivdia驅動的安裝與解除安裝方式，不然的話搞砸了可能得整個系統要重裝。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c9be58aa5f.webp"><h2>1. vgpu unlock支援的GPU<span><a href="#1-vgpu-unlock%E6%94%AF%E6%8F%B4%E7%9A%84gpu" aria-label="定位點">#</a></span></h2><p>目前vgpu unlock支援：</p><ul><li>Maxwell架構 (GTX 9xx, Quadro Mxxxx, Tesla Mxx)，GTX 970除外</li><li>Pascal架構 (GTX 10xx, Quadro Pxxxx, Tesla Pxx)</li><li>Turing架構 (GTX 16xx, RTX 20xx, Txxxx)</li></ul><p>Ampere架構 (RTX30xx) 以上的GPU尚未支援。</p><h2>2. 測試環境<span><a href="#2-%E6%B8%AC%E8%A9%A6%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>宿主機：Ubuntu 24.04 LTS</li><li>Linux 核心版本：6.5.0-35-generic</li><li>CPU：Intel® Core™ i5-7400</li><li>GPU 1：Intel® UHD Graphics 630</li><li>GPU 2：NVIDIA GeForce GTX 1050 Ti</li><li>Nvidia vGPU驅動版本：535.183.04</li><li>虛擬機系統1：Windows Server 2022</li><li>虛擬機系統2：Ubuntu Server 24.04 LTS</li></ul><p>由於vGPU啟用後可能會暫時讓電腦螢幕沒畫面，因此在啟用vGPU之後就要改成使用內顯或者SSH登入了。</p><h2>3. 安裝QEMU/KVM與Livirt<span><a href="#3-%E5%AE%89%E8%A3%9Dqemukvm%E8%88%87livirt" aria-label="定位點">#</a></span></h2><p>請先設定好虛擬化套件。</p><p>參考：<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+Ubuntu安裝QEMU/KVM和Virt Manager虛擬機管理員</a></p><h2>4. 啟用IOMMU與VFIO<span><a href="#4-%E5%95%9F%E7%94%A8iommu%E8%88%87vfio" aria-label="定位點">#</a></span></h2><ol><li>編輯GRUB開機選項</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/default/grub
+</span></span></code></pre></div><ol start="2"><li>針對Intel CPU，在<code>GRUB_CMDLINE_LINUX_DEFAULT</code>後面加入以下內容，啟用IOMMU</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>GRUB_CMDLINE_LINUX_DEFAULT</span><span>=</span><span>"quiet splash intel_iommu=on iommu=pt"</span>
+</span></span></code></pre></div><ol start="3"><li>設定開機載入VFIO核心模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> -e <span>"vfio
+vfio_iommu_type1
+vfio_pci
+vfio_virqfd"</span> <span>|</span> sudo tee -a  /etc/modules
+</span></span></code></pre></div><ol start="5"><li>將Nvidia開源驅動加入黑名單</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>"blacklist nouveau"</span> <span>|</span> sudo tee -a /etc/modprobe.d/blacklist.conf
+</span></span></code></pre></div><ol start="6"><li>刪除目前系統的全部Nvidia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge *nvidia*
+</span></span></code></pre></div><ol start="7"><li>更新GRUB並重開機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo update-initramfs -u -k all
+</span></span><span><span>
+</span></span><span><span>sudo update-grub
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="8"><li>進入電腦的UEFI設定，設定為以內顯優先開機。</li></ol><h2>5. 設定vgpu unlock解鎖服務<span><a href="#5-%E8%A8%AD%E5%AE%9Avgpu-unlock%E8%A7%A3%E9%8E%96%E6%9C%8D%E5%8B%99" aria-label="定位點">#</a></span></h2><p>Matthew Bilker的「vgpu_unlock-rs」為基於Jonathan Johansson的vgpu_unlock所開發的程式，它能夠將GPU偽裝成為支援vGPU的型號。</p><ol><li>安裝Rust，編譯解鎖工具vgpu_unlock-rs</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>curl --proto <span>'=https'</span> --tlsv1.3 https://sh.rustup.rs -sSf <span>|</span> sh
+</span></span><span><span>
+</span></span><span><span><span>source</span> <span>$HOME</span>/.cargo/env
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/mbilker/vgpu_unlock-rs.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> vgpu_unlock-rs
+</span></span><span><span>
+</span></span><span><span>cargo build --release
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ..
+</span></span><span><span>
+</span></span><span><span>sudo mv gpu_unlock-rs /opt
+</span></span></code></pre></div><ol start="2"><li>建立vgpu_unlock-rs所需的檔案</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir -p /etc/vgpu_unlock
+</span></span><span><span>
+</span></span><span><span>sudo touch /etc/vgpu_unlock/profile_override.toml
+</span></span></code></pre></div><ol start="3"><li>建立開機自動啟動的Systemd服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir /etc/systemd/system/<span>{</span>nvidia-vgpud.service.d,nvidia-vgpu-mgr.service.d<span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>echo</span> -e <span>"[Service]
+Environment=LD_PRELOAD=/opt/vgpu_unlock-rs/target/release/libvgpu_unlock_rs.so"</span> <span>|</span> sudo tee -a /etc/systemd/system/nvidia-vgpud.service.d/vgpu_unlock.conf
+</span></span><span><span>
+</span></span><span><span><span>echo</span> -e <span>"[Service]
+Environment=LD_PRELOAD=/opt/vgpu_unlock-rs/target/release/libvgpu_unlock_rs.so"</span> <span>|</span> sudo tee -a /etc/systemd/system/nvidia-vgpu-mgr.service.d/vgpu_unlock.conf
+</span></span></code></pre></div><h2>6. Linux宿主機安裝vGPU驅動<span><a href="#6-linux%E5%AE%BF%E4%B8%BB%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>在此我們要取得Nvidia vGPU的特製驅動，使用第三方提供的程式修補之後，再以執行<code>.run</code>檔案的方式安裝驅動。</p><p>宿主機得安裝vGPU驅動(host driver)，虛擬機內部也得安裝vGPU GRID驅動(guest driver)。虛擬機內部的驅動稱作「NVIDIA virtual GPU software」，所以版本命名規則與Nvidia驅動不同，但是二者版本建議要一樣。</p><ol><li><p>到<a href="https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/" target="_blank">
+NVIDIA Licensing Portal</a>，用企業或組織的電子郵件註冊，即可取得評估版的驅動檔案。或者你可以自己Google，找熱心網友分享的驅動（風險自負）。你可以在<a href="https://cloud.google.com/compute/docs/gpus/grid-drivers-table" target="_blank">
+Google Cloud Compute</a>找到部份vGPU GRID驅動。</p></li><li><p>下載後你應該會得到三個檔案，分為Linux宿主機使用的<code>-vgpu-kvm.run</code>和Linux虛擬機用的<code>-grid.run</code>。Windows虛擬機的驅動則是<code>_grid_win10_win11.exe</code>。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c1c532a55.webp"></li><li><p>這裡使用的驅動版本為<code>NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run</code>。因為我的GTX 1050Ti已經不受支援，所以使用16.x LTS分支的驅動，不使用17.x的最新版本。</p></li><li><p>安裝編譯依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install git build-essential dkms mdevctl linux-headers-<span>$(</span>uname -r<span>)</span>
+</span></span></code></pre></div><ol start="5"><li>取得vgpu-proxmox作者所提供的patch</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://gitlab.com/polloloco/vgpu-proxmox.git
+</span></span></code></pre></div><ol start="6"><li>將對應版本的patch套用到Nividia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run
+</span></span><span><span>
+</span></span><span><span>./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run --apply-patch ~/vgpu-proxmox/535.183.04.patch
+</span></span></code></pre></div><ol start="7"><li>執行新產生的檔案，以DKMS安裝Nvidia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm-custom.run --dkms -m<span>=</span>kernel
+</span></span></code></pre></div><p>註：解除安裝使用此指令</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm-custom.run -uninstall
+</span></span></code></pre></div><ol start="8"><li>重開機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo reboot
+</span></span></code></pre></div><ol start="9"><li>確認Nvidia vGPU狀態：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi vgpu
+</span></span></code></pre></div><ol start="10"><li>確認mdev設定檔是否有出現：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mdevctl types
+</span></span></code></pre></div><h2>7. 調整vGPU設定檔<span><a href="#7-%E8%AA%BF%E6%95%B4vgpu%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><ol><li><p>使用指令<code>sudo mdevctl types</code>查看可用的設定檔，裡面規定了每個虛擬機的解析度</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1df0d026c2.webp"></li><li><p>編輯設定檔</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/vgpu_unlock/profile_override.toml
+</span></span></code></pre></div><ol start="3"><li>因為我的GTX 1050Ti只有4GB VRAM，上限也就兩個虛擬機吧，所以我選取nvidia-52的設定檔，並且分配2GB VRAM給虛擬機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>profile.nvidia-52<span>]</span>
+</span></span><span><span><span>num_displays</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>display_width</span> <span>=</span> <span>1920</span>
+</span></span><span><span><span>display_height</span> <span>=</span> <span>1080</span>
+</span></span><span><span><span>max_pixels</span> <span>=</span> <span>2073600</span>
+</span></span><span><span><span>cuda_enabled</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>frl_enabled</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>framebuffer</span> <span>=</span> 0x74000000
+</span></span><span><span><span>framebuffer_reservation</span> <span>=</span> 0xC000000
+</span></span></code></pre></div><ol start="4"><li>取得NVIDIA GPU的PCI位址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>lspci <span>|</span> grep NVIDIA
+</span></span></code></pre></div><ol start="5"><li>定義mdev裝置，後面依序填入UUID、PCI位址、vGPU設定檔。mdev裝置可依照虛擬機數量定義多個。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mdevctl define --parent 0000:01:00.0 --type nvidia-52
+</span></span><span><span>
+</span></span><span><span>sudo mdevctl start --uuid <span>"填入上面生成的UUID"</span> --parent <span>"0000:01:00.0"</span> --type <span>"nvidia-52"</span>
+</span></span><span><span>
+</span></span><span><span><span># 移除medv裝置請用此指令</span>
+</span></span><span><span>sudo mdevctl undefine --uuid <span>"填入UUID"</span>
+</span></span></code></pre></div><ol start="6"><li><p>開啟Virt Manager，編輯虛擬機硬體，新增mdev裝置</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-afe6bdc2a2.webp"></li><li><p>編輯mdev裝置的XML檔，調整為以下內容</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>&lt;hostdev <span>mode</span><span>=</span><span>"subsystem"</span> <span>type</span><span>=</span><span>"mdev"</span> <span>managed</span><span>=</span><span>"yes"</span> <span>model</span><span>=</span><span>"vfio-pci"</span> <span>display</span><span>=</span><span>"on"</span> <span>ramfb</span><span>=</span><span>"on"</span>&gt;
+</span></span><span><span>  &lt;source&gt;
+</span></span><span><span>    &lt;address <span>uuid</span><span>=</span><span>"填入UUID"</span>/&gt;
+</span></span><span><span>  &lt;/source&gt;
+</span></span><span><span>  &lt;<span>alias</span> <span>name</span><span>=</span><span>"hostdev0"</span>/&gt;
+</span></span><span><span>  &lt;address <span>type</span><span>=</span><span>"pci"</span> <span>domain</span><span>=</span><span>"0x0000"</span> <span>bus</span><span>=</span><span>"0x02"</span> <span>slot</span><span>=</span><span>"0x00"</span> <span>function</span><span>=</span><span>"0x0"</span>/&gt;
+</span></span><span><span>&lt;/hostdev&gt;
+</span></span></code></pre></div><h2>8. 架設vGPU授權伺服器<span><a href="#8-%E6%9E%B6%E8%A8%ADvgpu%E6%8E%88%E6%AC%8A%E4%BC%BA%E6%9C%8D%E5%99%A8" aria-label="定位點">#</a></span></h2><p>「FastAPI-DLS」用於偽造Nvidia授權認證伺服器，使用Docker架設在宿主機或其他電腦，用於給虛擬機內的Nvidia驅動啟用授權。</p><ol><li>建立自簽SSL憑證</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WORKING_DIR</span><span>=</span>/home/user/fastapi-dls/cert
+</span></span><span><span>
+</span></span><span><span>mkdir -p <span>$WORKING_DIR</span>
+</span></span><span><span>
+</span></span><span><span><span>cd</span> <span>$WORKING_DIR</span>
+</span></span><span><span>
+</span></span><span><span>openssl genrsa -out <span>$WORKING_DIR</span>/instance.private.pem <span>2048</span>
+</span></span><span><span>
+</span></span><span><span>openssl rsa -in <span>$WORKING_DIR</span>/instance.private.pem -outform PEM -pubout -out <span>$WORKING_DIR</span>/instance.public.pem
+</span></span><span><span>
+</span></span><span><span>openssl req -subj <span>'/CN=issuer'</span> -x509 -nodes -days <span>3650</span> -newkey rsa:2048 -keyout  <span>$WORKING_DIR</span>/webserver.key -out <span>$WORKING_DIR</span>/webserver.crt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ../
+</span></span></code></pre></div><ol start="2"><li>新增<code>docker-compose.yml</code></li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.9'</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>x-dls-variables</span><span>:</span><span> </span><span>&amp;dls-variables</span><span>
+</span></span></span><span><span><span>  </span><span>TZ</span><span>:</span><span> </span><span>Asia/Taipei</span><span> </span><span># 修改時區</span><span>
+</span></span></span><span><span><span>  </span><span>DLS_URL</span><span>:</span><span> </span><span>localhost</span><span> </span><span># 修改IP</span><span>
+</span></span></span><span><span><span>  </span><span>DLS_PORT</span><span>:</span><span> </span><span>443</span><span>
+</span></span></span><span><span><span>  </span><span>LEASE_EXPIRE_DAYS</span><span>:</span><span> </span><span>90</span><span>  </span><span># 90 days is maximum</span><span>
+</span></span></span><span><span><span>  </span><span>DATABASE</span><span>:</span><span> </span><span>sqlite:////app/database/db.sqlite</span><span>
+</span></span></span><span><span><span>  </span><span>DEBUG</span><span>:</span><span> </span><span>false</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>services</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>dls</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>collinwebdesigns/fastapi-dls:latest</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>always</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>&lt;&lt;</span><span>:</span><span> </span><span>*dls-variables</span><span>
+</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"443:443"</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>/home/user/fastapi-dls/cert/:/app/cert</span><span>
+</span></span></span><span><span><span>      </span>- <span>dls-db:/app/database</span><span>
+</span></span></span><span><span><span>    </span><span>logging</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>driver</span><span>:</span><span> </span><span>"json-file"</span><span>
+</span></span></span><span><span><span>      </span><span>options</span><span>:</span><span>
+</span></span></span><span><span><span>        </span><span>max-file</span><span>:</span><span> </span><span>5</span><span>
+</span></span></span><span><span><span>        </span><span>max-size</span><span>:</span><span> </span><span>10m</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>dls-db</span><span>:</span><span>
+</span></span></span></code></pre></div><ol start="3"><li>啟動容器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo docker compose up -d
+</span></span></code></pre></div><h2>9. 在Linux虛擬機安裝vGPU GRID驅動<span><a href="#9-%E5%9C%A8linux%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu-grid%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>註：我取得的GRID驅動版本跟宿主機的vGPU驅動不太一樣，但還是可以裝。</p><ol><li><p>將GRID驅動傳送到Linux虛擬機內部，例如用scp指令傳</p></li><li><p>在虛擬機內安裝編譯依賴套件，將nouveau核心模組加入黑名單</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install git build-essential dkms mdevctl linux-headers-<span>$(</span>uname -r<span>)</span>
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>"blacklist nouveau"</span> <span>|</span> sudo tee -a /etc/modprobe.d/blacklist.conf
+</span></span><span><span>
+</span></span><span><span>sudo update-initramfs -k all -u
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="3"><li>安裝vGPU GRID驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x NVIDIA-Linux-x86_64-535.183.06-grid.run
+</span></span><span><span>
+</span></span><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.06-grid.run
+</span></span></code></pre></div><ol start="4"><li>設定跟宿主機一樣的時區</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo timedatectl set-timezone Asia/Taipei
+</span></span></code></pre></div><ol start="5"><li>連線到自架的伺服器，取得授權碼</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo curl --insecure -L -X GET https://宿主機IP:通訊埠/-/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token_<span>$(</span>date <span>'+%d-%m-%Y-%H-%M-%S'</span><span>)</span>.tok
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart nvidia-gridd
+</span></span></code></pre></div><ol start="6"><li>確認授權狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi -q <span>|</span> grep License
+</span></span></code></pre></div><ol start="7"><li>如果要在Linux虛擬機裡面安裝CUDA，得用.run執行檔的方式安裝，不可以使用套件管理器。</li></ol><h2>10. 在Windows虛擬機安裝vGPU GRID驅動<span><a href="#10-%E5%9C%A8windows%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu-grid%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>註：我取得的GRID驅動版本跟宿主機的vGPU驅動不太一樣，但還是可以裝。我在Windows 11安裝驅動會出現Error 43錯誤，所以才用Windows Server。</p><ol><li><p>使用Virt Manager<a href="https://ivonblog.com/posts/install-windows-11-qemu-kvm-on-linux" target="_blank">
+安裝Windows 11虛擬機</a>。Windows Server 2022的安裝過程大致相同。</p></li><li><p>為防止偵測到虛擬機導致Nvidia驅動出現<code>Erro -43</code>，可能需要<a href="https://ivonblog.com/posts/qemu-kvm-bypass-easy-anti-cheat/" target="_blank">
+隱藏KVM</a></p></li><li><p>分配mdev裝置，將虛擬機開機</p></li><li><p>確認Windows的裝置管理員出現GPU。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d13ccadd9.webp"></li><li><p>Nvidia vGPU的驅動不能用GeForce Experience安裝，需要手動將我們之前下載的<code>_grid.exe</code>傳到虛擬機內部安裝。</p></li><li><p>安裝驅動</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d8b13e82c.webp"></li><li><p>之後，裝置管理員應該就會顯示GPU型號。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-da67f13820.webp"></li><li><p>在Windows以系統管理員開啟終端機，執行以下指令，連線到自架的認證伺服器，取得授權碼。若<code>"C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\</code>資料夾不存在就手動新增。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>curl.exe --insecure -L -X GET https://宿主機IP:通訊埠/-/client-token -o <span>"C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_</span><span>$($(</span>Get-Date<span>)</span>.tostring<span>(</span><span>'dd-MM-yy-hh-mm-ss'</span><span>)</span><span>).tok"</span>
+</span></span><span><span>
+</span></span><span><span>Restart-Service NVDisplay.ContainerLocalSystem
+</span></span></code></pre></div><ol start="9"><li>確認授權狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi.exe -q <span>|</span> Select-String License
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.nvidia.com/vgpu/index.html" target="_blank">NVIDIA Virtual GPU (vGPU) Software - NVIDIA Docs</a></li><li><a href="https://documentation.ubuntu.com/server/how-to/graphics/gpu-virtualization-with-qemu-kvm/" target="_blank">GPU virtualization with QEMU/KVM - Ubuntu Server tutorials</a></li><li><a href="https://pve.proxmox.com/wiki/NVIDIA_vGPU_on_Proxmox_VE" target="_blank">NVIDIA vGPU on Proxmox VE - Proxmox VE Wiki</a></li><li><a href="https://gitlab.com/polloloco/vgpu-proxmox" target="_blank">PolloLoco / NVIDIA vGPU Guide - GitLab</a></li><li><a href="https://github.com/mbilker/vgpu_unlock-rs" target="_blank">mbilker/vgpu_unlock-rs: Unlock vGPU functionality for consumer grade GPUs - Github</a></li><li><a href="https://git.collinwebdesigns.de/oscar.krause/fastapi-dls" target="_blank">FastAPI-DLS - Oscar Krause - GitLab</a></li><li><a href="https://www.cnblogs.com/doracloud/p/18003262/pve7_vgpu_unlock" target="_blank">朵拉云 - Proxmox 7.4 使用vgpu_unlock，为GTX1060开启vGPU支持</a></li><li><a href="https://bytehorizon.net/archives/crystalast/74/" target="_blank">Linux解锁NVIDIA消费级显卡vGPU功能的入坑记录 - ByteHorizon</a></li><li><a href="https://fairysen.com/844.html" target="_blank">在Proxmox VE下开启vGPU - Tesla P4为例 - 雾时の森</a></li><li><a href="https://cloud-atlas.readthedocs.io/zh-cn/latest/kvm/vgpu/vgpu_quickstart.html" target="_blank">vGPU快速起步— Cloud Atlas beta 文档</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ubuntu-libvirt-nvidia-vgpu-unlock/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ec306d2fd7.webp"></a></p>
+<p>vGPU (Virtual GPU) 為Nvidia推出的GPU虛擬化技術，能夠Linux上的一張GPU分配給多個虛擬機使用，如此一來可提昇QEMU/KVM虛擬機的圖形效能。</p><p>圖例，Linux宿主機與Windows虛擬機共享GPU</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-592b050480.webp"><p>圖例，Linux宿主機與Linux虛擬機共享GPU</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-753748c519.webp"><p>「GPU虛擬化」跟「GPU直通」不一樣，後者是直接將Linux宿主機的GPU封印，透過VFIO分配給虛擬機使用，宿主機無法存取GPU。</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/ubuntu-gpu-passthrough/" target="_blank">
+Ubuntu Nvidia GPU直通Windows QEMU/KVM虛擬機</a></li></ul><p>若是採用GPU虛擬化的話，宿主機就能和虛擬機共享同一個GPU的資源了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c604e38ca6.webp"><figcaption>vGPU原圖</figcaption><p>不過，目前Nvidia官方僅將vGPU功能開放給伺服器GPU使用，而且需要購買授權。一般消費級的Nvidia GPU雖然硬體支援vGPU，但是vGPU是無法使用的。故我們得使用第三方開發者製作的「vgpu unlock」程式解鎖該功能，並用自訂伺服器取得Nvidia的授權。</p><p>整個啟用過程有點麻煩，你需要很熟悉Linux Nivdia驅動的安裝與解除安裝方式，不然的話搞砸了可能得整個系統要重裝。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c9be58aa5f.webp"><h2>1. vgpu unlock支援的GPU<span><a href="#1-vgpu-unlock%E6%94%AF%E6%8F%B4%E7%9A%84gpu" aria-label="定位點">#</a></span></h2><p>目前vgpu unlock支援：</p><ul><li>Maxwell架構 (GTX 9xx, Quadro Mxxxx, Tesla Mxx)，GTX 970除外</li><li>Pascal架構 (GTX 10xx, Quadro Pxxxx, Tesla Pxx)</li><li>Turing架構 (GTX 16xx, RTX 20xx, Txxxx)</li></ul><p>Ampere架構 (RTX30xx) 以上的GPU尚未支援。</p><h2>2. 測試環境<span><a href="#2-%E6%B8%AC%E8%A9%A6%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>宿主機：Ubuntu 24.04 LTS</li><li>Linux 核心版本：6.5.0-35-generic</li><li>CPU：Intel® Core™ i5-7400</li><li>GPU 1：Intel® UHD Graphics 630</li><li>GPU 2：NVIDIA GeForce GTX 1050 Ti</li><li>Nvidia vGPU驅動版本：535.183.04</li><li>虛擬機系統1：Windows Server 2022</li><li>虛擬機系統2：Ubuntu Server 24.04 LTS</li></ul><p>由於vGPU啟用後可能會暫時讓電腦螢幕沒畫面，因此在啟用vGPU之後就要改成使用內顯或者SSH登入了。</p><h2>3. 安裝QEMU/KVM與Livirt<span><a href="#3-%E5%AE%89%E8%A3%9Dqemukvm%E8%88%87livirt" aria-label="定位點">#</a></span></h2><p>請先設定好虛擬化套件。</p><p>參考：<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+Ubuntu安裝QEMU/KVM和Virt Manager虛擬機管理員</a></p><h2>4. 啟用IOMMU與VFIO<span><a href="#4-%E5%95%9F%E7%94%A8iommu%E8%88%87vfio" aria-label="定位點">#</a></span></h2><ol><li>編輯GRUB開機選項</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/default/grub
+</span></span></code></pre></div><ol start="2"><li>針對Intel CPU，在<code>GRUB_CMDLINE_LINUX_DEFAULT</code>後面加入以下內容，啟用IOMMU</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>GRUB_CMDLINE_LINUX_DEFAULT</span><span>=</span><span>"quiet splash intel_iommu=on iommu=pt"</span>
+</span></span></code></pre></div><ol start="3"><li>設定開機載入VFIO核心模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> -e <span>"vfio
+vfio_iommu_type1
+vfio_pci
+vfio_virqfd"</span> <span>|</span> sudo tee -a  /etc/modules
+</span></span></code></pre></div><ol start="5"><li>將Nvidia開源驅動加入黑名單</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>"blacklist nouveau"</span> <span>|</span> sudo tee -a /etc/modprobe.d/blacklist.conf
+</span></span></code></pre></div><ol start="6"><li>刪除目前系統的全部Nvidia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge *nvidia*
+</span></span></code></pre></div><ol start="7"><li>更新GRUB並重開機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo update-initramfs -u -k all
+</span></span><span><span>
+</span></span><span><span>sudo update-grub
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="8"><li>進入電腦的UEFI設定，設定為以內顯優先開機。</li></ol><h2>5. 設定vgpu unlock解鎖服務<span><a href="#5-%E8%A8%AD%E5%AE%9Avgpu-unlock%E8%A7%A3%E9%8E%96%E6%9C%8D%E5%8B%99" aria-label="定位點">#</a></span></h2><p>Matthew Bilker的「vgpu_unlock-rs」為基於Jonathan Johansson的vgpu_unlock所開發的程式，它能夠將GPU偽裝成為支援vGPU的型號。</p><ol><li>安裝Rust，編譯解鎖工具vgpu_unlock-rs</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>curl --proto <span>'=https'</span> --tlsv1.3 https://sh.rustup.rs -sSf <span>|</span> sh
+</span></span><span><span>
+</span></span><span><span><span>source</span> <span>$HOME</span>/.cargo/env
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/mbilker/vgpu_unlock-rs.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> vgpu_unlock-rs
+</span></span><span><span>
+</span></span><span><span>cargo build --release
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ..
+</span></span><span><span>
+</span></span><span><span>sudo mv gpu_unlock-rs /opt
+</span></span></code></pre></div><ol start="2"><li>建立vgpu_unlock-rs所需的檔案</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir -p /etc/vgpu_unlock
+</span></span><span><span>
+</span></span><span><span>sudo touch /etc/vgpu_unlock/profile_override.toml
+</span></span></code></pre></div><ol start="3"><li>建立開機自動啟動的Systemd服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir /etc/systemd/system/<span>{</span>nvidia-vgpud.service.d,nvidia-vgpu-mgr.service.d<span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>echo</span> -e <span>"[Service]
+Environment=LD_PRELOAD=/opt/vgpu_unlock-rs/target/release/libvgpu_unlock_rs.so"</span> <span>|</span> sudo tee -a /etc/systemd/system/nvidia-vgpud.service.d/vgpu_unlock.conf
+</span></span><span><span>
+</span></span><span><span><span>echo</span> -e <span>"[Service]
+Environment=LD_PRELOAD=/opt/vgpu_unlock-rs/target/release/libvgpu_unlock_rs.so"</span> <span>|</span> sudo tee -a /etc/systemd/system/nvidia-vgpu-mgr.service.d/vgpu_unlock.conf
+</span></span></code></pre></div><h2>6. Linux宿主機安裝vGPU驅動<span><a href="#6-linux%E5%AE%BF%E4%B8%BB%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>在此我們要取得Nvidia vGPU的特製驅動，使用第三方提供的程式修補之後，再以執行<code>.run</code>檔案的方式安裝驅動。</p><p>宿主機得安裝vGPU驅動(host driver)，虛擬機內部也得安裝vGPU GRID驅動(guest driver)。虛擬機內部的驅動稱作「NVIDIA virtual GPU software」，所以版本命名規則與Nvidia驅動不同，但是二者版本建議要一樣。</p><ol><li><p>到<a href="https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/" target="_blank">
+NVIDIA Licensing Portal</a>，用企業或組織的電子郵件註冊，即可取得評估版的驅動檔案。或者你可以自己Google，找熱心網友分享的驅動（風險自負）。你可以在<a href="https://cloud.google.com/compute/docs/gpus/grid-drivers-table" target="_blank">
+Google Cloud Compute</a>找到部份vGPU GRID驅動。</p></li><li><p>下載後你應該會得到三個檔案，分為Linux宿主機使用的<code>-vgpu-kvm.run</code>和Linux虛擬機用的<code>-grid.run</code>。Windows虛擬機的驅動則是<code>_grid_win10_win11.exe</code>。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c1c532a55.webp"></li><li><p>這裡使用的驅動版本為<code>NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run</code>。因為我的GTX 1050Ti已經不受支援，所以使用16.x LTS分支的驅動，不使用17.x的最新版本。</p></li><li><p>安裝編譯依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install git build-essential dkms mdevctl linux-headers-<span>$(</span>uname -r<span>)</span>
+</span></span></code></pre></div><ol start="5"><li>取得vgpu-proxmox作者所提供的patch</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://gitlab.com/polloloco/vgpu-proxmox.git
+</span></span></code></pre></div><ol start="6"><li>將對應版本的patch套用到Nividia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run
+</span></span><span><span>
+</span></span><span><span>./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run --apply-patch ~/vgpu-proxmox/535.183.04.patch
+</span></span></code></pre></div><ol start="7"><li>執行新產生的檔案，以DKMS安裝Nvidia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm-custom.run --dkms -m<span>=</span>kernel
+</span></span></code></pre></div><p>註：解除安裝使用此指令</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm-custom.run -uninstall
+</span></span></code></pre></div><ol start="8"><li>重開機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo reboot
+</span></span></code></pre></div><ol start="9"><li>確認Nvidia vGPU狀態：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi vgpu
+</span></span></code></pre></div><ol start="10"><li>確認mdev設定檔是否有出現：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mdevctl types
+</span></span></code></pre></div><h2>7. 調整vGPU設定檔<span><a href="#7-%E8%AA%BF%E6%95%B4vgpu%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><ol><li><p>使用指令<code>sudo mdevctl types</code>查看可用的設定檔，裡面規定了每個虛擬機的解析度</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1df0d026c2.webp"></li><li><p>編輯設定檔</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/vgpu_unlock/profile_override.toml
+</span></span></code></pre></div><ol start="3"><li>因為我的GTX 1050Ti只有4GB VRAM，上限也就兩個虛擬機吧，所以我選取nvidia-52的設定檔，並且分配2GB VRAM給虛擬機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>profile.nvidia-52<span>]</span>
+</span></span><span><span><span>num_displays</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>display_width</span> <span>=</span> <span>1920</span>
+</span></span><span><span><span>display_height</span> <span>=</span> <span>1080</span>
+</span></span><span><span><span>max_pixels</span> <span>=</span> <span>2073600</span>
+</span></span><span><span><span>cuda_enabled</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>frl_enabled</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>framebuffer</span> <span>=</span> 0x74000000
+</span></span><span><span><span>framebuffer_reservation</span> <span>=</span> 0xC000000
+</span></span></code></pre></div><ol start="4"><li>取得NVIDIA GPU的PCI位址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>lspci <span>|</span> grep NVIDIA
+</span></span></code></pre></div><ol start="5"><li>定義mdev裝置，後面依序填入UUID、PCI位址、vGPU設定檔。mdev裝置可依照虛擬機數量定義多個。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mdevctl define --parent 0000:01:00.0 --type nvidia-52
+</span></span><span><span>
+</span></span><span><span>sudo mdevctl start --uuid <span>"填入上面生成的UUID"</span> --parent <span>"0000:01:00.0"</span> --type <span>"nvidia-52"</span>
+</span></span><span><span>
+</span></span><span><span><span># 移除medv裝置請用此指令</span>
+</span></span><span><span>sudo mdevctl undefine --uuid <span>"填入UUID"</span>
+</span></span></code></pre></div><ol start="6"><li><p>開啟Virt Manager，編輯虛擬機硬體，新增mdev裝置</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-afe6bdc2a2.webp"></li><li><p>編輯mdev裝置的XML檔，調整為以下內容</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>&lt;hostdev <span>mode</span><span>=</span><span>"subsystem"</span> <span>type</span><span>=</span><span>"mdev"</span> <span>managed</span><span>=</span><span>"yes"</span> <span>model</span><span>=</span><span>"vfio-pci"</span> <span>display</span><span>=</span><span>"on"</span> <span>ramfb</span><span>=</span><span>"on"</span>&gt;
+</span></span><span><span>  &lt;source&gt;
+</span></span><span><span>    &lt;address <span>uuid</span><span>=</span><span>"填入UUID"</span>/&gt;
+</span></span><span><span>  &lt;/source&gt;
+</span></span><span><span>  &lt;<span>alias</span> <span>name</span><span>=</span><span>"hostdev0"</span>/&gt;
+</span></span><span><span>  &lt;address <span>type</span><span>=</span><span>"pci"</span> <span>domain</span><span>=</span><span>"0x0000"</span> <span>bus</span><span>=</span><span>"0x02"</span> <span>slot</span><span>=</span><span>"0x00"</span> <span>function</span><span>=</span><span>"0x0"</span>/&gt;
+</span></span><span><span>&lt;/hostdev&gt;
+</span></span></code></pre></div><h2>8. 架設vGPU授權伺服器<span><a href="#8-%E6%9E%B6%E8%A8%ADvgpu%E6%8E%88%E6%AC%8A%E4%BC%BA%E6%9C%8D%E5%99%A8" aria-label="定位點">#</a></span></h2><p>「FastAPI-DLS」用於偽造Nvidia授權認證伺服器，使用Docker架設在宿主機或其他電腦，用於給虛擬機內的Nvidia驅動啟用授權。</p><ol><li>建立自簽SSL憑證</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WORKING_DIR</span><span>=</span>/home/user/fastapi-dls/cert
+</span></span><span><span>
+</span></span><span><span>mkdir -p <span>$WORKING_DIR</span>
+</span></span><span><span>
+</span></span><span><span><span>cd</span> <span>$WORKING_DIR</span>
+</span></span><span><span>
+</span></span><span><span>openssl genrsa -out <span>$WORKING_DIR</span>/instance.private.pem <span>2048</span>
+</span></span><span><span>
+</span></span><span><span>openssl rsa -in <span>$WORKING_DIR</span>/instance.private.pem -outform PEM -pubout -out <span>$WORKING_DIR</span>/instance.public.pem
+</span></span><span><span>
+</span></span><span><span>openssl req -subj <span>'/CN=issuer'</span> -x509 -nodes -days <span>3650</span> -newkey rsa:2048 -keyout  <span>$WORKING_DIR</span>/webserver.key -out <span>$WORKING_DIR</span>/webserver.crt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ../
+</span></span></code></pre></div><ol start="2"><li>新增<code>docker-compose.yml</code></li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.9'</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>x-dls-variables</span><span>:</span><span> </span><span>&amp;dls-variables</span><span>
+</span></span></span><span><span><span>  </span><span>TZ</span><span>:</span><span> </span><span>Asia/Taipei</span><span> </span><span># 修改時區</span><span>
+</span></span></span><span><span><span>  </span><span>DLS_URL</span><span>:</span><span> </span><span>localhost</span><span> </span><span># 修改IP</span><span>
+</span></span></span><span><span><span>  </span><span>DLS_PORT</span><span>:</span><span> </span><span>443</span><span>
+</span></span></span><span><span><span>  </span><span>LEASE_EXPIRE_DAYS</span><span>:</span><span> </span><span>90</span><span>  </span><span># 90 days is maximum</span><span>
+</span></span></span><span><span><span>  </span><span>DATABASE</span><span>:</span><span> </span><span>sqlite:////app/database/db.sqlite</span><span>
+</span></span></span><span><span><span>  </span><span>DEBUG</span><span>:</span><span> </span><span>false</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>services</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>dls</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>collinwebdesigns/fastapi-dls:latest</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>always</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>&lt;&lt;</span><span>:</span><span> </span><span>*dls-variables</span><span>
+</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"443:443"</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>/home/user/fastapi-dls/cert/:/app/cert</span><span>
+</span></span></span><span><span><span>      </span>- <span>dls-db:/app/database</span><span>
+</span></span></span><span><span><span>    </span><span>logging</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>driver</span><span>:</span><span> </span><span>"json-file"</span><span>
+</span></span></span><span><span><span>      </span><span>options</span><span>:</span><span>
+</span></span></span><span><span><span>        </span><span>max-file</span><span>:</span><span> </span><span>5</span><span>
+</span></span></span><span><span><span>        </span><span>max-size</span><span>:</span><span> </span><span>10m</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>dls-db</span><span>:</span><span>
+</span></span></span></code></pre></div><ol start="3"><li>啟動容器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo docker compose up -d
+</span></span></code></pre></div><h2>9. 在Linux虛擬機安裝vGPU GRID驅動<span><a href="#9-%E5%9C%A8linux%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu-grid%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>註：我取得的GRID驅動版本跟宿主機的vGPU驅動不太一樣，但還是可以裝。</p><ol><li><p>將GRID驅動傳送到Linux虛擬機內部，例如用scp指令傳</p></li><li><p>在虛擬機內安裝編譯依賴套件，將nouveau核心模組加入黑名單</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install git build-essential dkms mdevctl linux-headers-<span>$(</span>uname -r<span>)</span>
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>"blacklist nouveau"</span> <span>|</span> sudo tee -a /etc/modprobe.d/blacklist.conf
+</span></span><span><span>
+</span></span><span><span>sudo update-initramfs -k all -u
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="3"><li>安裝vGPU GRID驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x NVIDIA-Linux-x86_64-535.183.06-grid.run
+</span></span><span><span>
+</span></span><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.06-grid.run
+</span></span></code></pre></div><ol start="4"><li>設定跟宿主機一樣的時區</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo timedatectl set-timezone Asia/Taipei
+</span></span></code></pre></div><ol start="5"><li>連線到自架的伺服器，取得授權碼</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo curl --insecure -L -X GET https://宿主機IP:通訊埠/-/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token_<span>$(</span>date <span>'+%d-%m-%Y-%H-%M-%S'</span><span>)</span>.tok
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart nvidia-gridd
+</span></span></code></pre></div><ol start="6"><li>確認授權狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi -q <span>|</span> grep License
+</span></span></code></pre></div><ol start="7"><li>如果要在Linux虛擬機裡面安裝CUDA，得用.run執行檔的方式安裝，不可以使用套件管理器。</li></ol><h2>10. 在Windows虛擬機安裝vGPU GRID驅動<span><a href="#10-%E5%9C%A8windows%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu-grid%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>註：我取得的GRID驅動版本跟宿主機的vGPU驅動不太一樣，但還是可以裝。我在Windows 11安裝驅動會出現Error 43錯誤，所以才用Windows Server。</p><ol><li><p>使用Virt Manager<a href="https://ivonblog.com/posts/install-windows-11-qemu-kvm-on-linux" target="_blank">
+安裝Windows 11虛擬機</a>。Windows Server 2022的安裝過程大致相同。</p></li><li><p>為防止偵測到虛擬機導致Nvidia驅動出現<code>Erro -43</code>，可能需要<a href="https://ivonblog.com/posts/qemu-kvm-bypass-easy-anti-cheat/" target="_blank">
+隱藏KVM</a></p></li><li><p>分配mdev裝置，將虛擬機開機</p></li><li><p>確認Windows的裝置管理員出現GPU。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d13ccadd9.webp"></li><li><p>Nvidia vGPU的驅動不能用GeForce Experience安裝，需要手動將我們之前下載的<code>_grid.exe</code>傳到虛擬機內部安裝。</p></li><li><p>安裝驅動</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d8b13e82c.webp"></li><li><p>之後，裝置管理員應該就會顯示GPU型號。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-da67f13820.webp"></li><li><p>在Windows以系統管理員開啟終端機，執行以下指令，連線到自架的認證伺服器，取得授權碼。若<code>"C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\</code>資料夾不存在就手動新增。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>curl.exe --insecure -L -X GET https://宿主機IP:通訊埠/-/client-token -o <span>"C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_</span><span>$($(</span>Get-Date<span>)</span>.tostring<span>(</span><span>'dd-MM-yy-hh-mm-ss'</span><span>)</span><span>).tok"</span>
+</span></span><span><span>
+</span></span><span><span>Restart-Service NVDisplay.ContainerLocalSystem
+</span></span></code></pre></div><ol start="9"><li>確認授權狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi.exe -q <span>|</span> Select-String License
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.nvidia.com/vgpu/index.html" target="_blank">NVIDIA Virtual GPU (vGPU) Software - NVIDIA Docs</a></li><li><a href="https://documentation.ubuntu.com/server/how-to/graphics/gpu-virtualization-with-qemu-kvm/" target="_blank">GPU virtualization with QEMU/KVM - Ubuntu Server tutorials</a></li><li><a href="https://pve.proxmox.com/wiki/NVIDIA_vGPU_on_Proxmox_VE" target="_blank">NVIDIA vGPU on Proxmox VE - Proxmox VE Wiki</a></li><li><a href="https://gitlab.com/polloloco/vgpu-proxmox" target="_blank">PolloLoco / NVIDIA vGPU Guide - GitLab</a></li><li><a href="https://github.com/mbilker/vgpu_unlock-rs" target="_blank">mbilker/vgpu_unlock-rs: Unlock vGPU functionality for consumer grade GPUs - Github</a></li><li><a href="https://git.collinwebdesigns.de/oscar.krause/fastapi-dls" target="_blank">FastAPI-DLS - Oscar Krause - GitLab</a></li><li><a href="https://www.cnblogs.com/doracloud/p/18003262/pve7_vgpu_unlock" target="_blank">朵拉云 - Proxmox 7.4 使用vgpu_unlock，为GTX1060开启vGPU支持</a></li><li><a href="https://bytehorizon.net/archives/crystalast/74/" target="_blank">Linux解锁NVIDIA消费级显卡vGPU功能的入坑记录 - ByteHorizon</a></li><li><a href="https://fairysen.com/844.html" target="_blank">在Proxmox VE下开启vGPU - Tesla P4为例 - 雾时の森</a></li><li><a href="https://cloud-atlas.readthedocs.io/zh-cn/latest/kvm/vgpu/vgpu_quickstart.html" target="_blank">vGPU快速起步— Cloud Atlas beta 文档</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ubuntu-libvirt-nvidia-vgpu-unlock/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ec306d2fd7.webp"></a></p>
+<p>vGPU (Virtual GPU) 為Nvidia推出的GPU虛擬化技術，能夠Linux上的一張GPU分配給多個虛擬機使用，如此一來可提昇QEMU/KVM虛擬機的圖形效能。</p><p>圖例，Linux宿主機與Windows虛擬機共享GPU</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-592b050480.webp"><p>圖例，Linux宿主機與Linux虛擬機共享GPU</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-753748c519.webp"><p>「GPU虛擬化」跟「GPU直通」不一樣，後者是直接將Linux宿主機的GPU封印，透過VFIO分配給虛擬機使用，宿主機無法存取GPU。</p><ul><li>相關文章：<a href="https://ivonblog.com/posts/ubuntu-gpu-passthrough/" target="_blank">
+Ubuntu Nvidia GPU直通Windows QEMU/KVM虛擬機</a></li></ul><p>若是採用GPU虛擬化的話，宿主機就能和虛擬機共享同一個GPU的資源了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c604e38ca6.webp"><figcaption>vGPU原圖</figcaption><p>不過，目前Nvidia官方僅將vGPU功能開放給伺服器GPU使用，而且需要購買授權。一般消費級的Nvidia GPU雖然硬體支援vGPU，但是vGPU是無法使用的。故我們得使用第三方開發者製作的「vgpu unlock」程式解鎖該功能，並用自訂伺服器取得Nvidia的授權。</p><p>整個啟用過程有點麻煩，你需要很熟悉Linux Nivdia驅動的安裝與解除安裝方式，不然的話搞砸了可能得整個系統要重裝。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c9be58aa5f.webp"><h2>1. vgpu unlock支援的GPU<span><a href="#1-vgpu-unlock%E6%94%AF%E6%8F%B4%E7%9A%84gpu" aria-label="定位點">#</a></span></h2><p>目前vgpu unlock支援：</p><ul><li>Maxwell架構 (GTX 9xx, Quadro Mxxxx, Tesla Mxx)，GTX 970除外</li><li>Pascal架構 (GTX 10xx, Quadro Pxxxx, Tesla Pxx)</li><li>Turing架構 (GTX 16xx, RTX 20xx, Txxxx)</li></ul><p>Ampere架構 (RTX30xx) 以上的GPU尚未支援。</p><h2>2. 測試環境<span><a href="#2-%E6%B8%AC%E8%A9%A6%E7%92%B0%E5%A2%83" aria-label="定位點">#</a></span></h2><ul><li>宿主機：Ubuntu 24.04 LTS</li><li>Linux 核心版本：6.5.0-35-generic</li><li>CPU：Intel® Core™ i5-7400</li><li>GPU 1：Intel® UHD Graphics 630</li><li>GPU 2：NVIDIA GeForce GTX 1050 Ti</li><li>Nvidia vGPU驅動版本：535.183.04</li><li>虛擬機系統1：Windows Server 2022</li><li>虛擬機系統2：Ubuntu Server 24.04 LTS</li></ul><p>由於vGPU啟用後可能會暫時讓電腦螢幕沒畫面，因此在啟用vGPU之後就要改成使用內顯或者SSH登入了。</p><h2>3. 安裝QEMU/KVM與Livirt<span><a href="#3-%E5%AE%89%E8%A3%9Dqemukvm%E8%88%87livirt" aria-label="定位點">#</a></span></h2><p>請先設定好虛擬化套件。</p><p>參考：<a href="https://ivonblog.com/posts/ubuntu-virt-manager/" target="_blank">
+Ubuntu安裝QEMU/KVM和Virt Manager虛擬機管理員</a></p><h2>4. 啟用IOMMU與VFIO<span><a href="#4-%E5%95%9F%E7%94%A8iommu%E8%88%87vfio" aria-label="定位點">#</a></span></h2><ol><li>編輯GRUB開機選項</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/default/grub
+</span></span></code></pre></div><ol start="2"><li>針對Intel CPU，在<code>GRUB_CMDLINE_LINUX_DEFAULT</code>後面加入以下內容，啟用IOMMU</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>GRUB_CMDLINE_LINUX_DEFAULT</span><span>=</span><span>"quiet splash intel_iommu=on iommu=pt"</span>
+</span></span></code></pre></div><ol start="3"><li>設定開機載入VFIO核心模組</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> -e <span>"vfio
+vfio_iommu_type1
+vfio_pci
+vfio_virqfd"</span> <span>|</span> sudo tee -a  /etc/modules
+</span></span></code></pre></div><ol start="5"><li>將Nvidia開源驅動加入黑名單</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>echo</span> <span>"blacklist nouveau"</span> <span>|</span> sudo tee -a /etc/modprobe.d/blacklist.conf
+</span></span></code></pre></div><ol start="6"><li>刪除目前系統的全部Nvidia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge *nvidia*
+</span></span></code></pre></div><ol start="7"><li>更新GRUB並重開機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo update-initramfs -u -k all
+</span></span><span><span>
+</span></span><span><span>sudo update-grub
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="8"><li>進入電腦的UEFI設定，設定為以內顯優先開機。</li></ol><h2>5. 設定vgpu unlock解鎖服務<span><a href="#5-%E8%A8%AD%E5%AE%9Avgpu-unlock%E8%A7%A3%E9%8E%96%E6%9C%8D%E5%8B%99" aria-label="定位點">#</a></span></h2><p>Matthew Bilker的「vgpu_unlock-rs」為基於Jonathan Johansson的vgpu_unlock所開發的程式，它能夠將GPU偽裝成為支援vGPU的型號。</p><ol><li>安裝Rust，編譯解鎖工具vgpu_unlock-rs</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>curl --proto <span>'=https'</span> --tlsv1.3 https://sh.rustup.rs -sSf <span>|</span> sh
+</span></span><span><span>
+</span></span><span><span><span>source</span> <span>$HOME</span>/.cargo/env
+</span></span><span><span>
+</span></span><span><span>git clone https://github.com/mbilker/vgpu_unlock-rs.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> vgpu_unlock-rs
+</span></span><span><span>
+</span></span><span><span>cargo build --release
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ..
+</span></span><span><span>
+</span></span><span><span>sudo mv gpu_unlock-rs /opt
+</span></span></code></pre></div><ol start="2"><li>建立vgpu_unlock-rs所需的檔案</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir -p /etc/vgpu_unlock
+</span></span><span><span>
+</span></span><span><span>sudo touch /etc/vgpu_unlock/profile_override.toml
+</span></span></code></pre></div><ol start="3"><li>建立開機自動啟動的Systemd服務</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mkdir /etc/systemd/system/<span>{</span>nvidia-vgpud.service.d,nvidia-vgpu-mgr.service.d<span>}</span>
+</span></span><span><span>
+</span></span><span><span><span>echo</span> -e <span>"[Service]
+Environment=LD_PRELOAD=/opt/vgpu_unlock-rs/target/release/libvgpu_unlock_rs.so"</span> <span>|</span> sudo tee -a /etc/systemd/system/nvidia-vgpud.service.d/vgpu_unlock.conf
+</span></span><span><span>
+</span></span><span><span><span>echo</span> -e <span>"[Service]
+Environment=LD_PRELOAD=/opt/vgpu_unlock-rs/target/release/libvgpu_unlock_rs.so"</span> <span>|</span> sudo tee -a /etc/systemd/system/nvidia-vgpu-mgr.service.d/vgpu_unlock.conf
+</span></span></code></pre></div><h2>6. Linux宿主機安裝vGPU驅動<span><a href="#6-linux%E5%AE%BF%E4%B8%BB%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>在此我們要取得Nvidia vGPU的特製驅動，使用第三方提供的程式修補之後，再以執行<code>.run</code>檔案的方式安裝驅動。</p><p>宿主機得安裝vGPU驅動(host driver)，虛擬機內部也得安裝vGPU GRID驅動(guest driver)。虛擬機內部的驅動稱作「NVIDIA virtual GPU software」，所以版本命名規則與Nvidia驅動不同，但是二者版本建議要一樣。</p><ol><li><p>到<a href="https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/" target="_blank">
+NVIDIA Licensing Portal</a>，用企業或組織的電子郵件註冊，即可取得評估版的驅動檔案。或者你可以自己Google，找熱心網友分享的驅動（風險自負）。你可以在<a href="https://cloud.google.com/compute/docs/gpus/grid-drivers-table" target="_blank">
+Google Cloud Compute</a>找到部份vGPU GRID驅動。</p></li><li><p>下載後你應該會得到三個檔案，分為Linux宿主機使用的<code>-vgpu-kvm.run</code>和Linux虛擬機用的<code>-grid.run</code>。Windows虛擬機的驅動則是<code>_grid_win10_win11.exe</code>。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c1c532a55.webp"></li><li><p>這裡使用的驅動版本為<code>NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run</code>。因為我的GTX 1050Ti已經不受支援，所以使用16.x LTS分支的驅動，不使用17.x的最新版本。</p></li><li><p>安裝編譯依賴套件</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install git build-essential dkms mdevctl linux-headers-<span>$(</span>uname -r<span>)</span>
+</span></span></code></pre></div><ol start="5"><li>取得vgpu-proxmox作者所提供的patch</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>cd</span> ~
+</span></span><span><span>
+</span></span><span><span>git clone https://gitlab.com/polloloco/vgpu-proxmox.git
+</span></span></code></pre></div><ol start="6"><li>將對應版本的patch套用到Nividia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run
+</span></span><span><span>
+</span></span><span><span>./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm.run --apply-patch ~/vgpu-proxmox/535.183.04.patch
+</span></span></code></pre></div><ol start="7"><li>執行新產生的檔案，以DKMS安裝Nvidia驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm-custom.run --dkms -m<span>=</span>kernel
+</span></span></code></pre></div><p>註：解除安裝使用此指令</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.04-vgpu-kvm-custom.run -uninstall
+</span></span></code></pre></div><ol start="8"><li>重開機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo reboot
+</span></span></code></pre></div><ol start="9"><li>確認Nvidia vGPU狀態：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi vgpu
+</span></span></code></pre></div><ol start="10"><li>確認mdev設定檔是否有出現：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mdevctl types
+</span></span></code></pre></div><h2>7. 調整vGPU設定檔<span><a href="#7-%E8%AA%BF%E6%95%B4vgpu%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><ol><li><p>使用指令<code>sudo mdevctl types</code>查看可用的設定檔，裡面規定了每個虛擬機的解析度</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1df0d026c2.webp"></li><li><p>編輯設定檔</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vim /etc/vgpu_unlock/profile_override.toml
+</span></span></code></pre></div><ol start="3"><li>因為我的GTX 1050Ti只有4GB VRAM，上限也就兩個虛擬機吧，所以我選取nvidia-52的設定檔，並且分配2GB VRAM給虛擬機</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>[</span>profile.nvidia-52<span>]</span>
+</span></span><span><span><span>num_displays</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>display_width</span> <span>=</span> <span>1920</span>
+</span></span><span><span><span>display_height</span> <span>=</span> <span>1080</span>
+</span></span><span><span><span>max_pixels</span> <span>=</span> <span>2073600</span>
+</span></span><span><span><span>cuda_enabled</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>frl_enabled</span> <span>=</span> <span>1</span>
+</span></span><span><span><span>framebuffer</span> <span>=</span> 0x74000000
+</span></span><span><span><span>framebuffer_reservation</span> <span>=</span> 0xC000000
+</span></span></code></pre></div><ol start="4"><li>取得NVIDIA GPU的PCI位址</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>lspci <span>|</span> grep NVIDIA
+</span></span></code></pre></div><ol start="5"><li>定義mdev裝置，後面依序填入UUID、PCI位址、vGPU設定檔。mdev裝置可依照虛擬機數量定義多個。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo mdevctl define --parent 0000:01:00.0 --type nvidia-52
+</span></span><span><span>
+</span></span><span><span>sudo mdevctl start --uuid <span>"填入上面生成的UUID"</span> --parent <span>"0000:01:00.0"</span> --type <span>"nvidia-52"</span>
+</span></span><span><span>
+</span></span><span><span><span># 移除medv裝置請用此指令</span>
+</span></span><span><span>sudo mdevctl undefine --uuid <span>"填入UUID"</span>
+</span></span></code></pre></div><ol start="6"><li><p>開啟Virt Manager，編輯虛擬機硬體，新增mdev裝置</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-afe6bdc2a2.webp"></li><li><p>編輯mdev裝置的XML檔，調整為以下內容</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>&lt;hostdev <span>mode</span><span>=</span><span>"subsystem"</span> <span>type</span><span>=</span><span>"mdev"</span> <span>managed</span><span>=</span><span>"yes"</span> <span>model</span><span>=</span><span>"vfio-pci"</span> <span>display</span><span>=</span><span>"on"</span> <span>ramfb</span><span>=</span><span>"on"</span>&gt;
+</span></span><span><span>  &lt;source&gt;
+</span></span><span><span>    &lt;address <span>uuid</span><span>=</span><span>"填入UUID"</span>/&gt;
+</span></span><span><span>  &lt;/source&gt;
+</span></span><span><span>  &lt;<span>alias</span> <span>name</span><span>=</span><span>"hostdev0"</span>/&gt;
+</span></span><span><span>  &lt;address <span>type</span><span>=</span><span>"pci"</span> <span>domain</span><span>=</span><span>"0x0000"</span> <span>bus</span><span>=</span><span>"0x02"</span> <span>slot</span><span>=</span><span>"0x00"</span> <span>function</span><span>=</span><span>"0x0"</span>/&gt;
+</span></span><span><span>&lt;/hostdev&gt;
+</span></span></code></pre></div><h2>8. 架設vGPU授權伺服器<span><a href="#8-%E6%9E%B6%E8%A8%ADvgpu%E6%8E%88%E6%AC%8A%E4%BC%BA%E6%9C%8D%E5%99%A8" aria-label="定位點">#</a></span></h2><p>「FastAPI-DLS」用於偽造Nvidia授權認證伺服器，使用Docker架設在宿主機或其他電腦，用於給虛擬機內的Nvidia驅動啟用授權。</p><ol><li>建立自簽SSL憑證</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>WORKING_DIR</span><span>=</span>/home/user/fastapi-dls/cert
+</span></span><span><span>
+</span></span><span><span>mkdir -p <span>$WORKING_DIR</span>
+</span></span><span><span>
+</span></span><span><span><span>cd</span> <span>$WORKING_DIR</span>
+</span></span><span><span>
+</span></span><span><span>openssl genrsa -out <span>$WORKING_DIR</span>/instance.private.pem <span>2048</span>
+</span></span><span><span>
+</span></span><span><span>openssl rsa -in <span>$WORKING_DIR</span>/instance.private.pem -outform PEM -pubout -out <span>$WORKING_DIR</span>/instance.public.pem
+</span></span><span><span>
+</span></span><span><span>openssl req -subj <span>'/CN=issuer'</span> -x509 -nodes -days <span>3650</span> -newkey rsa:2048 -keyout  <span>$WORKING_DIR</span>/webserver.key -out <span>$WORKING_DIR</span>/webserver.crt
+</span></span><span><span>
+</span></span><span><span><span>cd</span> ../
+</span></span></code></pre></div><ol start="2"><li>新增<code>docker-compose.yml</code></li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>version</span><span>:</span><span> </span><span>'3.9'</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>x-dls-variables</span><span>:</span><span> </span><span>&amp;dls-variables</span><span>
+</span></span></span><span><span><span>  </span><span>TZ</span><span>:</span><span> </span><span>Asia/Taipei</span><span> </span><span># 修改時區</span><span>
+</span></span></span><span><span><span>  </span><span>DLS_URL</span><span>:</span><span> </span><span>localhost</span><span> </span><span># 修改IP</span><span>
+</span></span></span><span><span><span>  </span><span>DLS_PORT</span><span>:</span><span> </span><span>443</span><span>
+</span></span></span><span><span><span>  </span><span>LEASE_EXPIRE_DAYS</span><span>:</span><span> </span><span>90</span><span>  </span><span># 90 days is maximum</span><span>
+</span></span></span><span><span><span>  </span><span>DATABASE</span><span>:</span><span> </span><span>sqlite:////app/database/db.sqlite</span><span>
+</span></span></span><span><span><span>  </span><span>DEBUG</span><span>:</span><span> </span><span>false</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>services</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>dls</span><span>:</span><span>
+</span></span></span><span><span><span>    </span><span>image</span><span>:</span><span> </span><span>collinwebdesigns/fastapi-dls:latest</span><span>
+</span></span></span><span><span><span>    </span><span>restart</span><span>:</span><span> </span><span>always</span><span>
+</span></span></span><span><span><span>    </span><span>environment</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>&lt;&lt;</span><span>:</span><span> </span><span>*dls-variables</span><span>
+</span></span></span><span><span><span>    </span><span>ports</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>"443:443"</span><span>
+</span></span></span><span><span><span>    </span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>      </span>- <span>/home/user/fastapi-dls/cert/:/app/cert</span><span>
+</span></span></span><span><span><span>      </span>- <span>dls-db:/app/database</span><span>
+</span></span></span><span><span><span>    </span><span>logging</span><span>:</span><span>
+</span></span></span><span><span><span>      </span><span>driver</span><span>:</span><span> </span><span>"json-file"</span><span>
+</span></span></span><span><span><span>      </span><span>options</span><span>:</span><span>
+</span></span></span><span><span><span>        </span><span>max-file</span><span>:</span><span> </span><span>5</span><span>
+</span></span></span><span><span><span>        </span><span>max-size</span><span>:</span><span> </span><span>10m</span><span>
+</span></span></span><span><span><span>
+</span></span></span><span><span><span>volumes</span><span>:</span><span>
+</span></span></span><span><span><span>  </span><span>dls-db</span><span>:</span><span>
+</span></span></span></code></pre></div><ol start="3"><li>啟動容器</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo docker compose up -d
+</span></span></code></pre></div><h2>9. 在Linux虛擬機安裝vGPU GRID驅動<span><a href="#9-%E5%9C%A8linux%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu-grid%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>註：我取得的GRID驅動版本跟宿主機的vGPU驅動不太一樣，但還是可以裝。</p><ol><li><p>將GRID驅動傳送到Linux虛擬機內部，例如用scp指令傳</p></li><li><p>在虛擬機內安裝編譯依賴套件，將nouveau核心模組加入黑名單</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install git build-essential dkms mdevctl linux-headers-<span>$(</span>uname -r<span>)</span>
+</span></span><span><span>
+</span></span><span><span><span>echo</span> <span>"blacklist nouveau"</span> <span>|</span> sudo tee -a /etc/modprobe.d/blacklist.conf
+</span></span><span><span>
+</span></span><span><span>sudo update-initramfs -k all -u
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><ol start="3"><li>安裝vGPU GRID驅動</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>chmod +x NVIDIA-Linux-x86_64-535.183.06-grid.run
+</span></span><span><span>
+</span></span><span><span>sudo ./NVIDIA-Linux-x86_64-535.183.06-grid.run
+</span></span></code></pre></div><ol start="4"><li>設定跟宿主機一樣的時區</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo timedatectl set-timezone Asia/Taipei
+</span></span></code></pre></div><ol start="5"><li>連線到自架的伺服器，取得授權碼</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo curl --insecure -L -X GET https://宿主機IP:通訊埠/-/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token_<span>$(</span>date <span>'+%d-%m-%Y-%H-%M-%S'</span><span>)</span>.tok
+</span></span><span><span>
+</span></span><span><span>sudo systemctl restart nvidia-gridd
+</span></span></code></pre></div><ol start="6"><li>確認授權狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi -q <span>|</span> grep License
+</span></span></code></pre></div><ol start="7"><li>如果要在Linux虛擬機裡面安裝CUDA，得用.run執行檔的方式安裝，不可以使用套件管理器。</li></ol><h2>10. 在Windows虛擬機安裝vGPU GRID驅動<span><a href="#10-%E5%9C%A8windows%E8%99%9B%E6%93%AC%E6%A9%9F%E5%AE%89%E8%A3%9Dvgpu-grid%E9%A9%85%E5%8B%95" aria-label="定位點">#</a></span></h2><p>註：我取得的GRID驅動版本跟宿主機的vGPU驅動不太一樣，但還是可以裝。我在Windows 11安裝驅動會出現Error 43錯誤，所以才用Windows Server。</p><ol><li><p>使用Virt Manager<a href="https://ivonblog.com/posts/install-windows-11-qemu-kvm-on-linux" target="_blank">
+安裝Windows 11虛擬機</a>。Windows Server 2022的安裝過程大致相同。</p></li><li><p>為防止偵測到虛擬機導致Nvidia驅動出現<code>Erro -43</code>，可能需要<a href="https://ivonblog.com/posts/qemu-kvm-bypass-easy-anti-cheat/" target="_blank">
+隱藏KVM</a></p></li><li><p>分配mdev裝置，將虛擬機開機</p></li><li><p>確認Windows的裝置管理員出現GPU。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d13ccadd9.webp"></li><li><p>Nvidia vGPU的驅動不能用GeForce Experience安裝，需要手動將我們之前下載的<code>_grid.exe</code>傳到虛擬機內部安裝。</p></li><li><p>安裝驅動</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d8b13e82c.webp"></li><li><p>之後，裝置管理員應該就會顯示GPU型號。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-da67f13820.webp"></li><li><p>在Windows以系統管理員開啟終端機，執行以下指令，連線到自架的認證伺服器，取得授權碼。若<code>"C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\</code>資料夾不存在就手動新增。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>curl.exe --insecure -L -X GET https://宿主機IP:通訊埠/-/client-token -o <span>"C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_</span><span>$($(</span>Get-Date<span>)</span>.tostring<span>(</span><span>'dd-MM-yy-hh-mm-ss'</span><span>)</span><span>).tok"</span>
+</span></span><span><span>
+</span></span><span><span>Restart-Service NVDisplay.ContainerLocalSystem
+</span></span></code></pre></div><ol start="9"><li>確認授權狀態</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>nvidia-smi.exe -q <span>|</span> Select-String License
+</span></span></code></pre></div><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://docs.nvidia.com/vgpu/index.html" target="_blank">NVIDIA Virtual GPU (vGPU) Software - NVIDIA Docs</a></li><li><a href="https://documentation.ubuntu.com/server/how-to/graphics/gpu-virtualization-with-qemu-kvm/" target="_blank">GPU virtualization with QEMU/KVM - Ubuntu Server tutorials</a></li><li><a href="https://pve.proxmox.com/wiki/NVIDIA_vGPU_on_Proxmox_VE" target="_blank">NVIDIA vGPU on Proxmox VE - Proxmox VE Wiki</a></li><li><a href="https://gitlab.com/polloloco/vgpu-proxmox" target="_blank">PolloLoco / NVIDIA vGPU Guide - GitLab</a></li><li><a href="https://github.com/mbilker/vgpu_unlock-rs" target="_blank">mbilker/vgpu_unlock-rs: Unlock vGPU functionality for consumer grade GPUs - Github</a></li><li><a href="https://git.collinwebdesigns.de/oscar.krause/fastapi-dls" target="_blank">FastAPI-DLS - Oscar Krause - GitLab</a></li><li><a href="https://www.cnblogs.com/doracloud/p/18003262/pve7_vgpu_unlock" target="_blank">朵拉云 - Proxmox 7.4 使用vgpu_unlock，为GTX1060开启vGPU支持</a></li><li><a href="https://bytehorizon.net/archives/crystalast/74/" target="_blank">Linux解锁NVIDIA消费级显卡vGPU功能的入坑记录 - ByteHorizon</a></li><li><a href="https://fairysen.com/844.html" target="_blank">在Proxmox VE下开启vGPU - Tesla P4为例 - 雾时の森</a></li><li><a href="https://cloud-atlas.readthedocs.io/zh-cn/latest/kvm/vgpu/vgpu_quickstart.html" target="_blank">vGPU快速起步— Cloud Atlas beta 文档</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ec306d2fd7.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ec306d2fd7.webp" medium="image"/>
+    <pubDate>Thu, 17 Oct 2024 13:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Linux系統如何讀取Windows的NTFS硬碟＆開機自動掛載]]></title>
     <link>https://ivonblog.com/posts/mount-ntfs-drives-on-linux/</link>
     <itunes:title><![CDATA[Linux系統如何讀取Windows的NTFS硬碟＆開機自動掛載]]></itunes:title>
@@ -1292,71 +1736,5 @@ SoMainline提供的表格</a>就知道，幾乎全部的硬體功能都是打叉
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ea60bd3392.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ea60bd3392.webp" medium="image"/>
     <pubDate>Mon, 07 Oct 2024 08:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[TrollStore (巨魔商店) 教學 ～ iPhone安裝第三方IPA，簽名永久有效]]></title>
-    <link>https://ivonblog.com/posts/ios-trollstore/</link>
-    <itunes:title><![CDATA[TrollStore (巨魔商店) 教學 ～ iPhone安裝第三方IPA，簽名永久有效]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-trollstore/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f34cb4a584.webp"></a></p>
-<p>TrollStore為一款開放原始碼的iOS應用程式商店，讓你免越獄安裝IPA，側載第三方APP。</p><p>這款APP由opa334開發，中文名叫做巨魔商店（巨魔為網路用語，意思為網路白目），象徵利用iOS系統的漏洞，「欺騙」系統簽名機制，從而安裝IPA。圖示是嘲諷意味滿滿的暴走漫畫臉。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f3b69dafde.webp"><p>裝TrollStore能幹嘛呢？你可以任意安裝第三方APP，例如<a href="https://github.com/swaggyP36000/TrollStore-IPAs" target="_blank">
-網友crypti1c整理的表格</a>就列出了數以百計不會在App Store上架的APP。</p><p>本文介紹如何在iPhone/iPad安裝TrollStore，以及相關工具。</p><h2>1. TrollStore與AltStore的差別<span><a href="#1-trollstore%E8%88%87altstore%E7%9A%84%E5%B7%AE%E5%88%A5" aria-label="定位點">#</a></span></h2><p>TrollStore不等同越獄。</p><p>同樣是側載IPA，跟<a href="https://ivonblog.com/posts/ios-altstore" target="_blank">
-AltStore</a>有什麼差呢？根據<a href="https://github.com/opa334/TrollStore" target="_blank">
-官方Github</a>介紹，TrollStore本身是永久簽名的APP，利用iOS的「CoreTrust」漏洞，騙過系統簽名驗證機制，讓使用者不只能任意安裝IPA，還可以不用簽名，即<strong>永久不必重簽</strong>，不用像AltStore每7天要連到電腦重簽。</p><p>這即是說，IPA一安裝後就是永久有效的。過去要達到「IPA永久不必重簽」只能靠越獄，而TrollStore不會讓你的裝置變成越獄狀態（不用怕銀行APP閃退），也能夠擁有類似越獄的好處。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1e36d10e04.webp"><p>TrollStore一旦安裝成功後，好處當然是不言而喻：你可以不用再連到電腦重簽IPA了，APP一安裝永久有效，且<strong>IPA安裝數量無上限</strong>。</p><p>另外，TrollStore支援以「JIT即時轉譯模式」啟動APP，可加速部份模擬器APP的效能，例如UTM、iSH Shell、PojavLauncher。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-10776917e8.webp"></p><hr><p>不過，TrollStore安裝比較複雜，因為它必須利用特定iOS版本的漏洞來安裝，可能Apple一更新漏洞就失效了。</p><p>而AltStore的安裝方式相對來說比較「合法」，已經出來好幾年了都沒被Apple擋掉過，適應性較強。</p><h2>2. TrollStore支援的裝置列表<span><a href="#2-trollstore%E6%94%AF%E6%8F%B4%E7%9A%84%E8%A3%9D%E7%BD%AE%E5%88%97%E8%A1%A8" aria-label="定位點">#</a></span></h2><p>TrollStore主要依賴的是軟體漏洞，其次才是iPhone/iPad硬體。</p><p>因為每個版本的漏洞都不一樣，導致TrollStore有很多種奇怪的裝法。安裝時要檢查iOS版本有沒有對上。</p><p>撰文當下，TrollStore的版本為V2.1。</p><p>請到<a href="https://ios.cfw.guide/installing-trollstore/" target="_blank">
-CFW Guide網站</a>看開發者提供的表格，選取適當的安裝方式。</p><p>如下圖所示，撰文時點iOS 14、iOS 15、iOS 16的裝置比較有機會裝TrollStore。其餘顯示<code>Not Applicable</code>和<code>Unsupported</code>的裝置就是不支援。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f1fccb1807.webp"><p>你也可以用<a href="/posts/ios-dopamine-jailbreak">
-Dopamine (iOS 15/iOS 16)</a>這類工具越獄後，再透過Sileo安裝TrollStore Helper，用以安裝TrollStore。</p><h2>3. 安裝TrollStore<span><a href="#3-%E5%AE%89%E8%A3%9Dtrollstore" aria-label="定位點">#</a></span></h2><p>請謹慎閱讀上一節的表格再往下看。</p><p>我的裝置是iPhone SE第一代，系統版本iOS 15.8.3，所以我採用「TrollInstallerX」的安裝方式。</p><ol><li><p>將<a href="/posts/ios-altstore">
-AltStore</a>安裝到iPhone。</p></li><li><p>到<a href="https://github.com/alfiecg24/TrollInstallerX/releases" target="_blank">
-Github</a>下載<code>TrollInstallerX.ipa</code>，透過AltStore安裝。在安裝的時候，記得點選<code>Keep The Extension</code>選項。</p></li><li><p>開啟APP，點選Install TrollStore
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ab50cfa345.webp"></p></li><li><p>選擇要覆蓋的系統APP，選取「提示」APP
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-961dbb73a1.webp"></p></li><li><p>通常之後TrollStore就會安裝成功了。如果不行，多試幾次。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a91de1c7bf.webp"></p></li><li><p>你應該會在iOS桌面看到TrollStore的圖示。由於TrollStore是永久簽名的APP，故不會有AltStore 7天過期的問題。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b1fcc0b30.webp"></p></li></ol><h2>4. 如何透過TrollStore安裝IPA<span><a href="#4-%E5%A6%82%E4%BD%95%E9%80%8F%E9%81%8Etrollstore%E5%AE%89%E8%A3%9Dipa" aria-label="定位點">#</a></span></h2><p>以虛擬機軟體<a href="https://ivonblog.com/posts/utm-app-ios/" target="_blank">
-UTM</a>為例子：</p><ol><li><p>開啟Safari，下載IPA</p></li><li><p>IPA下載後會放到我的iPhone →下載資料夾</p></li><li><p>點選TrollStore右上方＋號，選取下載的IPA檔案
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f3ec3214e8.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69078ba663.webp"></p></li><li><p>閱讀APP內容後即可安裝，不需要連著電腦，亦無需重簽。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-89adc52887.webp"></p></li></ol>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-trollstore/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f34cb4a584.webp"></a></p>
-<p>TrollStore為一款開放原始碼的iOS應用程式商店，讓你免越獄安裝IPA，側載第三方APP。</p><p>這款APP由opa334開發，中文名叫做巨魔商店（巨魔為網路用語，意思為網路白目），象徵利用iOS系統的漏洞，「欺騙」系統簽名機制，從而安裝IPA。圖示是嘲諷意味滿滿的暴走漫畫臉。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f3b69dafde.webp"><p>裝TrollStore能幹嘛呢？你可以任意安裝第三方APP，例如<a href="https://github.com/swaggyP36000/TrollStore-IPAs" target="_blank">
-網友crypti1c整理的表格</a>就列出了數以百計不會在App Store上架的APP。</p><p>本文介紹如何在iPhone/iPad安裝TrollStore，以及相關工具。</p><h2>1. TrollStore與AltStore的差別<span><a href="#1-trollstore%E8%88%87altstore%E7%9A%84%E5%B7%AE%E5%88%A5" aria-label="定位點">#</a></span></h2><p>TrollStore不等同越獄。</p><p>同樣是側載IPA，跟<a href="https://ivonblog.com/posts/ios-altstore" target="_blank">
-AltStore</a>有什麼差呢？根據<a href="https://github.com/opa334/TrollStore" target="_blank">
-官方Github</a>介紹，TrollStore本身是永久簽名的APP，利用iOS的「CoreTrust」漏洞，騙過系統簽名驗證機制，讓使用者不只能任意安裝IPA，還可以不用簽名，即<strong>永久不必重簽</strong>，不用像AltStore每7天要連到電腦重簽。</p><p>這即是說，IPA一安裝後就是永久有效的。過去要達到「IPA永久不必重簽」只能靠越獄，而TrollStore不會讓你的裝置變成越獄狀態（不用怕銀行APP閃退），也能夠擁有類似越獄的好處。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1e36d10e04.webp"><p>TrollStore一旦安裝成功後，好處當然是不言而喻：你可以不用再連到電腦重簽IPA了，APP一安裝永久有效，且<strong>IPA安裝數量無上限</strong>。</p><p>另外，TrollStore支援以「JIT即時轉譯模式」啟動APP，可加速部份模擬器APP的效能，例如UTM、iSH Shell、PojavLauncher。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-10776917e8.webp"></p><hr><p>不過，TrollStore安裝比較複雜，因為它必須利用特定iOS版本的漏洞來安裝，可能Apple一更新漏洞就失效了。</p><p>而AltStore的安裝方式相對來說比較「合法」，已經出來好幾年了都沒被Apple擋掉過，適應性較強。</p><h2>2. TrollStore支援的裝置列表<span><a href="#2-trollstore%E6%94%AF%E6%8F%B4%E7%9A%84%E8%A3%9D%E7%BD%AE%E5%88%97%E8%A1%A8" aria-label="定位點">#</a></span></h2><p>TrollStore主要依賴的是軟體漏洞，其次才是iPhone/iPad硬體。</p><p>因為每個版本的漏洞都不一樣，導致TrollStore有很多種奇怪的裝法。安裝時要檢查iOS版本有沒有對上。</p><p>撰文當下，TrollStore的版本為V2.1。</p><p>請到<a href="https://ios.cfw.guide/installing-trollstore/" target="_blank">
-CFW Guide網站</a>看開發者提供的表格，選取適當的安裝方式。</p><p>如下圖所示，撰文時點iOS 14、iOS 15、iOS 16的裝置比較有機會裝TrollStore。其餘顯示<code>Not Applicable</code>和<code>Unsupported</code>的裝置就是不支援。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f1fccb1807.webp"><p>你也可以用<a href="/posts/ios-dopamine-jailbreak">
-Dopamine (iOS 15/iOS 16)</a>這類工具越獄後，再透過Sileo安裝TrollStore Helper，用以安裝TrollStore。</p><h2>3. 安裝TrollStore<span><a href="#3-%E5%AE%89%E8%A3%9Dtrollstore" aria-label="定位點">#</a></span></h2><p>請謹慎閱讀上一節的表格再往下看。</p><p>我的裝置是iPhone SE第一代，系統版本iOS 15.8.3，所以我採用「TrollInstallerX」的安裝方式。</p><ol><li><p>將<a href="/posts/ios-altstore">
-AltStore</a>安裝到iPhone。</p></li><li><p>到<a href="https://github.com/alfiecg24/TrollInstallerX/releases" target="_blank">
-Github</a>下載<code>TrollInstallerX.ipa</code>，透過AltStore安裝。在安裝的時候，記得點選<code>Keep The Extension</code>選項。</p></li><li><p>開啟APP，點選Install TrollStore
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ab50cfa345.webp"></p></li><li><p>選擇要覆蓋的系統APP，選取「提示」APP
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-961dbb73a1.webp"></p></li><li><p>通常之後TrollStore就會安裝成功了。如果不行，多試幾次。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a91de1c7bf.webp"></p></li><li><p>你應該會在iOS桌面看到TrollStore的圖示。由於TrollStore是永久簽名的APP，故不會有AltStore 7天過期的問題。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b1fcc0b30.webp"></p></li></ol><h2>4. 如何透過TrollStore安裝IPA<span><a href="#4-%E5%A6%82%E4%BD%95%E9%80%8F%E9%81%8Etrollstore%E5%AE%89%E8%A3%9Dipa" aria-label="定位點">#</a></span></h2><p>以虛擬機軟體<a href="https://ivonblog.com/posts/utm-app-ios/" target="_blank">
-UTM</a>為例子：</p><ol><li><p>開啟Safari，下載IPA</p></li><li><p>IPA下載後會放到我的iPhone →下載資料夾</p></li><li><p>點選TrollStore右上方＋號，選取下載的IPA檔案
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f3ec3214e8.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69078ba663.webp"></p></li><li><p>閱讀APP內容後即可安裝，不需要連著電腦，亦無需重簽。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-89adc52887.webp"></p></li></ol>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ios-trollstore/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f34cb4a584.webp"></a></p>
-<p>TrollStore為一款開放原始碼的iOS應用程式商店，讓你免越獄安裝IPA，側載第三方APP。</p><p>這款APP由opa334開發，中文名叫做巨魔商店（巨魔為網路用語，意思為網路白目），象徵利用iOS系統的漏洞，「欺騙」系統簽名機制，從而安裝IPA。圖示是嘲諷意味滿滿的暴走漫畫臉。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f3b69dafde.webp"><p>裝TrollStore能幹嘛呢？你可以任意安裝第三方APP，例如<a href="https://github.com/swaggyP36000/TrollStore-IPAs" target="_blank">
-網友crypti1c整理的表格</a>就列出了數以百計不會在App Store上架的APP。</p><p>本文介紹如何在iPhone/iPad安裝TrollStore，以及相關工具。</p><h2>1. TrollStore與AltStore的差別<span><a href="#1-trollstore%E8%88%87altstore%E7%9A%84%E5%B7%AE%E5%88%A5" aria-label="定位點">#</a></span></h2><p>TrollStore不等同越獄。</p><p>同樣是側載IPA，跟<a href="https://ivonblog.com/posts/ios-altstore" target="_blank">
-AltStore</a>有什麼差呢？根據<a href="https://github.com/opa334/TrollStore" target="_blank">
-官方Github</a>介紹，TrollStore本身是永久簽名的APP，利用iOS的「CoreTrust」漏洞，騙過系統簽名驗證機制，讓使用者不只能任意安裝IPA，還可以不用簽名，即<strong>永久不必重簽</strong>，不用像AltStore每7天要連到電腦重簽。</p><p>這即是說，IPA一安裝後就是永久有效的。過去要達到「IPA永久不必重簽」只能靠越獄，而TrollStore不會讓你的裝置變成越獄狀態（不用怕銀行APP閃退），也能夠擁有類似越獄的好處。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1e36d10e04.webp"><p>TrollStore一旦安裝成功後，好處當然是不言而喻：你可以不用再連到電腦重簽IPA了，APP一安裝永久有效，且<strong>IPA安裝數量無上限</strong>。</p><p>另外，TrollStore支援以「JIT即時轉譯模式」啟動APP，可加速部份模擬器APP的效能，例如UTM、iSH Shell、PojavLauncher。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-10776917e8.webp"></p><hr><p>不過，TrollStore安裝比較複雜，因為它必須利用特定iOS版本的漏洞來安裝，可能Apple一更新漏洞就失效了。</p><p>而AltStore的安裝方式相對來說比較「合法」，已經出來好幾年了都沒被Apple擋掉過，適應性較強。</p><h2>2. TrollStore支援的裝置列表<span><a href="#2-trollstore%E6%94%AF%E6%8F%B4%E7%9A%84%E8%A3%9D%E7%BD%AE%E5%88%97%E8%A1%A8" aria-label="定位點">#</a></span></h2><p>TrollStore主要依賴的是軟體漏洞，其次才是iPhone/iPad硬體。</p><p>因為每個版本的漏洞都不一樣，導致TrollStore有很多種奇怪的裝法。安裝時要檢查iOS版本有沒有對上。</p><p>撰文當下，TrollStore的版本為V2.1。</p><p>請到<a href="https://ios.cfw.guide/installing-trollstore/" target="_blank">
-CFW Guide網站</a>看開發者提供的表格，選取適當的安裝方式。</p><p>如下圖所示，撰文時點iOS 14、iOS 15、iOS 16的裝置比較有機會裝TrollStore。其餘顯示<code>Not Applicable</code>和<code>Unsupported</code>的裝置就是不支援。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f1fccb1807.webp"><p>你也可以用<a href="/posts/ios-dopamine-jailbreak">
-Dopamine (iOS 15/iOS 16)</a>這類工具越獄後，再透過Sileo安裝TrollStore Helper，用以安裝TrollStore。</p><h2>3. 安裝TrollStore<span><a href="#3-%E5%AE%89%E8%A3%9Dtrollstore" aria-label="定位點">#</a></span></h2><p>請謹慎閱讀上一節的表格再往下看。</p><p>我的裝置是iPhone SE第一代，系統版本iOS 15.8.3，所以我採用「TrollInstallerX」的安裝方式。</p><ol><li><p>將<a href="/posts/ios-altstore">
-AltStore</a>安裝到iPhone。</p></li><li><p>到<a href="https://github.com/alfiecg24/TrollInstallerX/releases" target="_blank">
-Github</a>下載<code>TrollInstallerX.ipa</code>，透過AltStore安裝。在安裝的時候，記得點選<code>Keep The Extension</code>選項。</p></li><li><p>開啟APP，點選Install TrollStore
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ab50cfa345.webp"></p></li><li><p>選擇要覆蓋的系統APP，選取「提示」APP
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-961dbb73a1.webp"></p></li><li><p>通常之後TrollStore就會安裝成功了。如果不行，多試幾次。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a91de1c7bf.webp"></p></li><li><p>你應該會在iOS桌面看到TrollStore的圖示。由於TrollStore是永久簽名的APP，故不會有AltStore 7天過期的問題。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b1fcc0b30.webp"></p></li></ol><h2>4. 如何透過TrollStore安裝IPA<span><a href="#4-%E5%A6%82%E4%BD%95%E9%80%8F%E9%81%8Etrollstore%E5%AE%89%E8%A3%9Dipa" aria-label="定位點">#</a></span></h2><p>以虛擬機軟體<a href="https://ivonblog.com/posts/utm-app-ios/" target="_blank">
-UTM</a>為例子：</p><ol><li><p>開啟Safari，下載IPA</p></li><li><p>IPA下載後會放到我的iPhone →下載資料夾</p></li><li><p>點選TrollStore右上方＋號，選取下載的IPA檔案
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f3ec3214e8.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69078ba663.webp"></p></li><li><p>閱讀APP內容後即可安裝，不需要連著電腦，亦無需重簽。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-89adc52887.webp"></p></li></ol>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f34cb4a584.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f34cb4a584.webp" medium="image"/>
-    <pubDate>Mon, 07 Oct 2024 07:00:00 +0800</pubDate>
   </item></channel>
 </rss>
