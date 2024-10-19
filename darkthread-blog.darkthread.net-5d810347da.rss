@@ -1508,7 +1508,7 @@ console.error(error);
     <itunes:title><![CDATA[PowerShell 小品 - 查誰在半夜偷用 CPU？]]></itunes:title>
     <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
     <itunes:summary>
-      <![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對發生時點並無已知的應用系統排程，想抓出是當時是什麼程式在跑？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，就算忘了停掉排程也不致吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').log"
+      <![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對該時間並無已知的應用系統排程，想抓出當時是什麼程式在偷用 CPU？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，如此長期跑排程也不會吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').csv"
 New-Item -ItemType File -Force -Path $logPath | Out-Null # 借用 New-Item 自動建資料夾
 Get-Process -IncludeUserName | Select-Object Id, Name, CPU, WorkingSet, UserName, Path | ConvertTo-Csv -NoTypeInformation | Out-File $logPath -Encoding UTF8
 # 每天早上七點，自動刪除超過一個月前的資料夾
@@ -1536,10 +1536,29 @@ $trigger = New-ScheduledTaskTrigger -Daily -At 00:00
 $trigger.Repetition = (New-ScheduledTaskTrigger -Once -At 00:00 -RepetitionDuration "23:59:30" -RepetitionInterval "00:01:00").Repetition
 $principle = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 Register-ScheduledTask -TaskName $taskName -Principal $principle -Action $action -Trigger $trigger
-</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]>
+</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p>這裡有個小眉角，Get-Process 抓取的 CPU 欄位指的是程序累積執行秒數，若想取得當下的 CPU 使用率百分比，可考慮改用 <a href="/blog/typeperf/">typeperf</a> 或從 Performance Counter 取得。</p> <p>我想的簡便做法是與前一分鐘的 CPU 秒數相減，算出前一分鐘的增量，這個資料便足以抓出吃 CPU 的元兇。</p> <p>寫了一個小程式 ShowTopCpu.ps1 簡單計算：</p> <pre><code>param (
+[Parameter(Mandatory=$true)]
+[string]$HHmm
+)
+$ErrorActionPreference = 'STOP'
+$time = [DateTime]::ParseExact($HHmm, 'HHmm', $null)
+$lastMin = $time.AddMinutes(-1).ToString('HHmm')
+$lastCpu = @{}
+Import-Csv "$lastMin.csv" | ForEach-Object {
+$lastCpu['P' + $_.Id] = $_
+}
+$data = Import-Csv "$HHmm.csv"
+$data | ForEach-Object {
+$lastData = $lastCpu['P' + $_.Id]
+if ($lastData) {
+$_.CPU = [float]$_.CPU - [float]$lastData.CPU
+}
+return $_
+} | Sort-Object -Descending { $_.CPU }
+</code></pre> <p>下圖展示我在 22:56 用 PowerShell 跑無窮迴圈，分別查詢 22:55、22:56、22:57 的統計，有抓出 PID 2272 PowerShell 吃掉最多 CPU，與 Task Manager 的觀察一致。成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638623553735022447.png"></p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]>
     </itunes:summary>
     <description>
-      <![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對發生時點並無已知的應用系統排程，想抓出是當時是什麼程式在跑？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，就算忘了停掉排程也不致吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').log"
+      <![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對該時間並無已知的應用系統排程，想抓出當時是什麼程式在偷用 CPU？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，如此長期跑排程也不會吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').csv"
 New-Item -ItemType File -Force -Path $logPath | Out-Null # 借用 New-Item 自動建資料夾
 Get-Process -IncludeUserName | Select-Object Id, Name, CPU, WorkingSet, UserName, Path | ConvertTo-Csv -NoTypeInformation | Out-File $logPath -Encoding UTF8
 # 每天早上七點，自動刪除超過一個月前的資料夾
@@ -1567,9 +1586,28 @@ $trigger = New-ScheduledTaskTrigger -Daily -At 00:00
 $trigger.Repetition = (New-ScheduledTaskTrigger -Once -At 00:00 -RepetitionDuration "23:59:30" -RepetitionInterval "00:01:00").Repetition
 $principle = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 Register-ScheduledTask -TaskName $taskName -Principal $principle -Action $action -Trigger $trigger
-</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]>
+</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p>這裡有個小眉角，Get-Process 抓取的 CPU 欄位指的是程序累積執行秒數，若想取得當下的 CPU 使用率百分比，可考慮改用 <a href="/blog/typeperf/">typeperf</a> 或從 Performance Counter 取得。</p> <p>我想的簡便做法是與前一分鐘的 CPU 秒數相減，算出前一分鐘的增量，這個資料便足以抓出吃 CPU 的元兇。</p> <p>寫了一個小程式 ShowTopCpu.ps1 簡單計算：</p> <pre><code>param (
+[Parameter(Mandatory=$true)]
+[string]$HHmm
+)
+$ErrorActionPreference = 'STOP'
+$time = [DateTime]::ParseExact($HHmm, 'HHmm', $null)
+$lastMin = $time.AddMinutes(-1).ToString('HHmm')
+$lastCpu = @{}
+Import-Csv "$lastMin.csv" | ForEach-Object {
+$lastCpu['P' + $_.Id] = $_
+}
+$data = Import-Csv "$HHmm.csv"
+$data | ForEach-Object {
+$lastData = $lastCpu['P' + $_.Id]
+if ($lastData) {
+$_.CPU = [float]$_.CPU - [float]$lastData.CPU
+}
+return $_
+} | Sort-Object -Descending { $_.CPU }
+</code></pre> <p>下圖展示我在 22:56 用 PowerShell 跑無窮迴圈，分別查詢 22:55、22:56、22:57 的統計，有抓出 PID 2272 PowerShell 吃掉最多 CPU，與 Task Manager 的觀察一致。成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638623553735022447.png"></p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]>
     </description>
-    <content:encoded><![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對發生時點並無已知的應用系統排程，想抓出是當時是什麼程式在跑？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，就算忘了停掉排程也不致吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').log"
+    <content:encoded><![CDATA[<p>系統維運會遇到的狀況：<a href="https://blog.paessler.com/comparing-prtg-traffic-grapher-with-mrtg">MRTG / PRTG</a> 等監控服務顯示某台伺服器在半夜有一段時間異常 CPU 飆高，比對該時間並無已知的應用系統排程，想抓出當時是什麼程式在偷用 CPU？</p> <p>由於發生時間是在半夜，總不能找人熬夜加班，登入主機守株待兔吧？我慣用的簡單解法是設個排程，每分鐘一次把當下執行中的程序、耗用 CPU%、記憶體記下來，就像行車記錄器一樣。等隔天由 PRTG 報表得知 CPU 飆高時間，再調閱監視器還原現場。</p> <p>用 C# 程式查 CPU、RAM 效能的事兒我幹過很多回(<a href="/blog/web-stats-mon-prototype/">網站 CPU 與記憶體即時監看視窗</a>、<a href="/blog/perf-counter-min-webapi/">用 36 行 C# 寫個 CPU、RAM、Disk 效能監視 WebAPI</a>)，依賴 C# 程式會增加部署複雜度，我決定用純 PowerShell 來搞定這項任務。</p> <p>首先，我寫了一個 ProcStats.ps1，呼叫 <a href="https://learn.microsoft.com/zh-tw/powershell/scripting/samples/managing-processes-with-process-cmdlets?WT.mc_id=DOP-MVP-37580">Get-Process -IncludeUserName</a> 取得 Id, Name, CPU(CPU 使用率), WorkingSet(實體記憶體用量), UserName, Path(檔案路徑) 等資訊，並以 yyyyMMdd 資料夾名、HHmm.csv 檔名以天為單位蒐集每分鐘的程序快照。並加上刪除超過一個月 csv 檔的自動清理機制，如此長期跑排程也不會吃掉太多磁碟空間。</p> <pre><code>$logPath = "$PSScriptRoot\$(Get-Date -Format 'yyMMdd')\$(Get-Date -Format 'HHmm').csv"
 New-Item -ItemType File -Force -Path $logPath | Out-Null # 借用 New-Item 自動建資料夾
 Get-Process -IncludeUserName | Select-Object Id, Name, CPU, WorkingSet, UserName, Path | ConvertTo-Csv -NoTypeInformation | Out-File $logPath -Encoding UTF8
 # 每天早上七點，自動刪除超過一個月前的資料夾
@@ -1597,7 +1635,26 @@ $trigger = New-ScheduledTaskTrigger -Daily -At 00:00
 $trigger.Repetition = (New-ScheduledTaskTrigger -Once -At 00:00 -RepetitionDuration "23:59:30" -RepetitionInterval "00:01:00").Repetition
 $principle = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 Register-ScheduledTask -TaskName $taskName -Principal $principle -Action $action -Trigger $trigger
-</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]></content:encoded>
+</code></pre> <p>用管理權限裝好排程：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"></p> <p>設好後排程便會開始建立資料夾跟匯出檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638623508231731839.png"></p> <p>就醬，一個簡單的 Windows 程序行車記錄器就裝好囉~</p> <p>這裡有個小眉角，Get-Process 抓取的 CPU 欄位指的是程序累積執行秒數，若想取得當下的 CPU 使用率百分比，可考慮改用 <a href="/blog/typeperf/">typeperf</a> 或從 Performance Counter 取得。</p> <p>我想的簡便做法是與前一分鐘的 CPU 秒數相減，算出前一分鐘的增量，這個資料便足以抓出吃 CPU 的元兇。</p> <p>寫了一個小程式 ShowTopCpu.ps1 簡單計算：</p> <pre><code>param (
+[Parameter(Mandatory=$true)]
+[string]$HHmm
+)
+$ErrorActionPreference = 'STOP'
+$time = [DateTime]::ParseExact($HHmm, 'HHmm', $null)
+$lastMin = $time.AddMinutes(-1).ToString('HHmm')
+$lastCpu = @{}
+Import-Csv "$lastMin.csv" | ForEach-Object {
+$lastCpu['P' + $_.Id] = $_
+}
+$data = Import-Csv "$HHmm.csv"
+$data | ForEach-Object {
+$lastData = $lastCpu['P' + $_.Id]
+if ($lastData) {
+$_.CPU = [float]$_.CPU - [float]$lastData.CPU
+}
+return $_
+} | Sort-Object -Descending { $_.CPU }
+</code></pre> <p>下圖展示我在 22:56 用 PowerShell 跑無窮迴圈，分別查詢 22:55、22:56、22:57 的統計，有抓出 PID 2272 PowerShell 吃掉最多 CPU，與 Task Manager 的觀察一致。成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638623553735022447.png"></p> <p data-slug="ps-proc-snapshot" data-title-en="Snapshotting processes by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/04/03/17/48/monitoring-1305045_1280.jpg#1280#720">A simple solution for tracking high CPU usage on servers using PowerShell scripts and scheduled tasks to log process information every minute, allowing for easy analysis.</p>]]></content:encoded>
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png" medium="image"/>
     <pubDate>Thu, 19 Sep 2024 13:54:21 GMT</pubDate>
