@@ -30,6 +30,699 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Coding4Fun - 從網頁游標追蹤範例到喪屍遊戲]]></title>
+    <link>https://blog.darkthread.net/blog/arrow-tracker/</link>
+    <itunes:title><![CDATA[Coding4Fun - 從網頁游標追蹤範例到喪屍遊戲]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>之前在某個前端技術部落格看過一種很酷的特效：瀏覽網頁時有一堆綠色小點追著滑鼠游標跑，滑鼠移到哪裡，整群小點就跟到哪裡。早不記得是在哪裡看到的，自然也很難再找到連結給大家參考，但接近以下這種<a href="https://websim.ai/p/25hmdmbeoz87qi25y87c/10">展示效果</a>：</p> <p><a href="https://www.youtube.com/watch?v=JYfFSBiP2tU">粒子效果模擬</a></p> <p>說真的，在網頁要追蹤滑鼠游標並不難，從 onmousehover 事件取得目前游標座標。想追著游標跑，可依據游標 X,Y 與追蹤者的 X,Y 計算游標位於哪個角度，有了角度，就不難用三角函數算出每一步的 X, Y 軸移動量，如此即能朝游標前進。</p> <p><img src="https://github.com/crgimenes/neko/raw/master/fixtures/neko.gif"></p> <p>題外話：爬文過程發現可愛的<a href="https://github.com/crgimenes/neko">游標貓 Neko</a>，程式碼便有抓游標角度的範例(用 <a href="https://zh.wikipedia.org/zh-tw/Atan2">Atan2</a>)，至於移動它是用角度區間分成米字的八個方向(上，右上，右，右下...)，配合播放朝八個方向跑的貓咪動畫：</p> <pre><code>// get mouse direction
+r := math.Atan2(float64(y), float64(x))
+if r &lt;= 0 {
+tr = 360
+}
+</code></pre> <p>一直覺得這題目挺有趣，但裡面有不少數學，想在網頁操控物件旋轉、前進要用到 CSS/JS 技巧，以前的我可能會嫌花時間燒腦而猶豫；但現在有 <a href="/blog/github-copilot-demo/">Github Copliot 黑魔法</a>，寫起來應該不會太費力，那還等什麼？就來寫個 Vue.js 物件化導向版本練手感。<br> (事後證明確實超省力，程式用到的數學算式、Vue.js 語法、CSS 樣式幾乎都靠 Github Copilot 輸出，我負責監工及修改調整，從無到有不到兩小時)</p> <p>我的構想是在網頁上放幾十個 <code>&lt;div&gt;</code>，當游標在網頁上移動時，這幾十個 DIV 會朝著游標前進。由於想精準觀察 DIV 有正確轉向，我決定用 CSS border 技巧將 DIV 畫成三角形，並透過 CSS <code>transform: 'rotate(90deg)'</code>, 樣式旋轉。為方便理解及修改，我打算定義用自訂元素 Arrow，輸入 x, y, rotate(旋轉角度), color 以便在指定位置繪製箭頭 DIV。為進一步物件導向化，我再定義了 ArrowData 類別，除保存 x, y, rotate, color 等屬性外，新增 aim(x, y) 重算 rotate 以瞄準 x, y 、calcDistance(x, y) 計算與 x, y 間的距離、move(step) 朝著 rotate 所指角度進 step 距離... 等三個方法。</p> <p>接下來，透過 Vue 依據 ArrowData 陣列在頁面上產生 N 個 Arrow 自訂元件，當游標移動時，跑迴圈執行 ArrowData aim() 更新朝向角度，再用 setInterval() 跑迴圈呼叫每個箭頭的 move() 向游標前進，基本雛型就完成了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638650273595953966.gif"></p> <p>噗，簡單試玩，我竟有種被喪屍包圍的緊張感，練功程式寫著寫著，竟寫出了遊戲娛樂性。</p> <p>於是我決定加碼，多加一個爆擊功能，點滑鼠左鍵可將方圓 100px 內的箭頭震開，如以下效果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638650273598066430.gif"></p> <p>看起挺有趣的，但原理不難。在 onclick 事件跑迴圈呼叫所有箭頭的 calcDistance() 算距離，找出方圓 100px 以內的箭頭，依遠近決算威力大小再配上一點亂數決定彈開距離，呼叫 move() 負值使其向後移動，並用亂數重設 rotate 角度，最後配上橘紅圈圈由小變大的 CSS 動畫，連爆炸特效都有了，效果意外的好。而物件導向程式，修改起來就是這麼輕鬆愉快。</p> <p>最終成品還包含決定數箭頭數量、活動範圍輸入欄位，按下 Restart 就可以開始玩：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638650273599682306.png"></p> <p>全部程式連同 HTML、CSS 不超過 250 行，單一 HTML 搞定，符合我對簡單輕巧的要求。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Cursor Followers&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body,input,select,button { font-size: 9pt; }
+.arrow {
+width: 0;
+height: 0;
+border-left: 5px solid transparent;
+border-right: 5px solid transparent;
+border-bottom-width: 10px;
+border-bottom-style: solid;
+position: absolute;
+}
+.canvas {
+position: relative;
+border: 1px solid black;
+margin: 10px 0;
+background-color: #eee;
+}
+.boom {
+width: 10px; /* Initial diameter (2 * radius) */
+height: 10px;
+background-color: orangered;
+border-radius: 50%;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+animation: explode 0.8s forwards;
+}
+@keyframes explode {
+from {
+width: 10px; /* Initial diameter (2 * radius) */
+height: 10px;
+}
+to {
+width: 100px; /* Final diameter (2 * radius) */
+height: 100px;
+opacity: 0;
+}
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div&gt;
+Count: &lt;input type="number" v-model="count" min="0" max="100"&gt; /
+Size: &lt;select v-model="size"&gt;
+&lt;option value="360x270"&gt;360x270&lt;/option&gt;
+&lt;option value="480x360"&gt;480x360&lt;/option&gt;
+&lt;option value="640x480"&gt;640x480&lt;/option&gt;
+&lt;option value="800x600"&gt;800x600&lt;/option&gt;
+&lt;/select&gt; /
+&lt;button @click="setup"&gt;Restart&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="canvas" :style="{width: width + 'px', height: height + 'px'}"
+@mouseenter="active = true" @mouseleave="active = false"
+@mousemove="handleMouseMove" @click="explode"&gt;
+&lt;arrow v-for="arrow in arrows" :x="arrow.x" :y="arrow.y" :rotate="arrow.rotate" :color="arrow.color"&gt;
+&lt;/arrow&gt;
+&lt;div class="boom" v-if="active &amp;&amp; boom" :style="{left: cursorX + 'px', top: cursorY + 'px'}"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="circle"&gt;&lt;/div&gt;
+&lt;script&gt;
+const Arrow = Vue.defineComponent({
+props: {
+x: {
+type: Number,
+required: true
+},
+y: {
+type: Number,
+required: true
+},
+rotate: {
+type: Number,
+required: true
+},
+color: {
+type: String,
+required: true
+}
+},
+template: `
+&lt;div
+class="arrow"
+:style="{
+position: 'absolute',
+left: x + 'px',
+top: y + 'px',
+transform: 'rotate(' + rotate + 'deg)',
+'border-bottom-color': color
+}"&gt;
+&lt;/div&gt;
+`
+});
+class ArrowData {
+static minX = 0;
+static minY = 0;
+static maxX = 640;
+static maxY = 480;
+constructor(x, y, rotate, color) {
+this.x = x;
+this.y = y;
+this.rotate = rotate;
+this.color = color;
+}
+aim(x, y) {
+const dy = y - this.y;
+const dx = x - this.x;
+let angle = Math.atan2(dy, dx) / Math.PI * 180 + 90;;
+if (angle &lt; 0) {
+angle += 360; // 確保角度在 0 到 360 度之間
+}
+this.rotate = angle;
+}
+calcDistance(x, y) {
+return Math.sqrt((x - this.x) ** 2 + (y - this.y) ** 2);
+}
+move(step) {
+// 朝著 rotate 的方向移動
+const radian = (this.rotate -90)/ 180 * Math.PI;
+this.x += Math.cos(radian) * step;
+this.y += Math.sin(radian) * step;
+if (this.x &lt; ArrowData.minX) this.x = ArrowData.minX;
+if (this.x &gt; ArrowData.maxX) this.x = ArrowData.maxX;
+if (this.y &lt; ArrowData.minY) this.y = ArrowData.minY;
+if (this.y &gt; ArrowData.maxY) this.y = ArrowData.maxY;
+}
+}
+const randomColors = ['red', 'orange', 'green', 'blue', 'indigo', 'magenta', 'black'];
+const app = Vue.createApp({
+components: {
+Arrow
+},
+data() {
+return {
+width: 640,
+height: 480,
+size: '640x480',
+cursorX: 0,
+cursorY: 0,
+count: 25,
+arrows: [],
+lines: [],
+active: false,
+boom: false
+}
+},
+methods: {
+setup() {
+this.arrows = [];
+this.lines = [];
+const [width, height] = this.size.split('x');
+this.width = width;
+this.height = height;
+this.cursorX = width / 2;
+this.cursorY = height / 2;
+const padding = 10;
+const genXY = () =&gt; [
+Math.random() * (this.width - (padding * 2)) + padding,
+Math.random() * (this.height - (padding * 2)) + padding
+];
+ArrowData.minX = ArrowData.minY = padding;
+ArrowData.maxX = this.width - padding;
+ArrowData.maxY = this.height - padding;
+for (let i = 0; i &lt; this.count; i++) {
+let [x, y] = genXY(); // 計算與已存在者距離，避免重疊
+while (this.arrows.some(arrow =&gt; arrow.calcDistance(x, y) &lt; 20)) {
+[x, y] = genXY();
+}
+this.arrows.push(new ArrowData(
+x, y,
+0, //Math.random() * 360,
+randomColors[Math.floor(Math.random() * randomColors.length)]
+));
+}
+},
+handleMouseMove(event) {
+if (!event.target.classList.contains('canvas')) return;
+const rect = event.target.getBoundingClientRect();
+this.cursorX = event.clientX - rect.left;
+this.cursorY = event.clientY - rect.top;
+for (const arrow of this.arrows) {
+arrow.aim(this.cursorX, this.cursorY);
+}
+},
+explode() {
+for (const arrow of this.arrows) {
+const distance = arrow.calcDistance(this.cursorX, this.cursorY);
+if (distance &lt; 100) {
+// 距離越近，移動距離越遠
+const step = -1000 / distance * (Math.random() * 2 + 0.5);
+arrow.move(step);
+arrow.rotate += Math.random() * 360;
+}
+}
+const self = this;
+self.boom = true;
+setTimeout(() =&gt; {
+self.boom = false;
+}, 800);
+}
+}
+});
+const vm = app.mount('#app');
+setInterval(() =&gt; {
+if (!vm.active) return;
+for (const arrow of vm.arrows) {
+arrow.move(2);
+}
+}, 200);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>附上<a href="https://darkthread.github.io/arrow-tracker/">線上展示</a>，有興趣的同學可以玩看看。</p> <p data-slug="arrow-tracker" data-title-en="Fun cursor tracker JavaScript program" data-catg="Web Development" data-fbimg="https://i.imgur.com/tA9gO1v.png#1777#999">I created a Vue.js project where multiple triangular DIV elements follow the mouse cursor. The project demonstrates mouse tracking, geometric calculations, and CSS transformations. The triangles follow the cursor, and clicking on the page triggers an explosion effect that pushes them away. Check out the online demo for a live experience.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>之前在某個前端技術部落格看過一種很酷的特效：瀏覽網頁時有一堆綠色小點追著滑鼠游標跑，滑鼠移到哪裡，整群小點就跟到哪裡。早不記得是在哪裡看到的，自然也很難再找到連結給大家參考，但接近以下這種<a href="https://websim.ai/p/25hmdmbeoz87qi25y87c/10">展示效果</a>：</p> <p><a href="https://www.youtube.com/watch?v=JYfFSBiP2tU">粒子效果模擬</a></p> <p>說真的，在網頁要追蹤滑鼠游標並不難，從 onmousehover 事件取得目前游標座標。想追著游標跑，可依據游標 X,Y 與追蹤者的 X,Y 計算游標位於哪個角度，有了角度，就不難用三角函數算出每一步的 X, Y 軸移動量，如此即能朝游標前進。</p> <p><img src="https://github.com/crgimenes/neko/raw/master/fixtures/neko.gif"></p> <p>題外話：爬文過程發現可愛的<a href="https://github.com/crgimenes/neko">游標貓 Neko</a>，程式碼便有抓游標角度的範例(用 <a href="https://zh.wikipedia.org/zh-tw/Atan2">Atan2</a>)，至於移動它是用角度區間分成米字的八個方向(上，右上，右，右下...)，配合播放朝八個方向跑的貓咪動畫：</p> <pre><code>// get mouse direction
+r := math.Atan2(float64(y), float64(x))
+if r &lt;= 0 {
+tr = 360
+}
+</code></pre> <p>一直覺得這題目挺有趣，但裡面有不少數學，想在網頁操控物件旋轉、前進要用到 CSS/JS 技巧，以前的我可能會嫌花時間燒腦而猶豫；但現在有 <a href="/blog/github-copilot-demo/">Github Copliot 黑魔法</a>，寫起來應該不會太費力，那還等什麼？就來寫個 Vue.js 物件化導向版本練手感。<br> (事後證明確實超省力，程式用到的數學算式、Vue.js 語法、CSS 樣式幾乎都靠 Github Copilot 輸出，我負責監工及修改調整，從無到有不到兩小時)</p> <p>我的構想是在網頁上放幾十個 <code>&lt;div&gt;</code>，當游標在網頁上移動時，這幾十個 DIV 會朝著游標前進。由於想精準觀察 DIV 有正確轉向，我決定用 CSS border 技巧將 DIV 畫成三角形，並透過 CSS <code>transform: 'rotate(90deg)'</code>, 樣式旋轉。為方便理解及修改，我打算定義用自訂元素 Arrow，輸入 x, y, rotate(旋轉角度), color 以便在指定位置繪製箭頭 DIV。為進一步物件導向化，我再定義了 ArrowData 類別，除保存 x, y, rotate, color 等屬性外，新增 aim(x, y) 重算 rotate 以瞄準 x, y 、calcDistance(x, y) 計算與 x, y 間的距離、move(step) 朝著 rotate 所指角度進 step 距離... 等三個方法。</p> <p>接下來，透過 Vue 依據 ArrowData 陣列在頁面上產生 N 個 Arrow 自訂元件，當游標移動時，跑迴圈執行 ArrowData aim() 更新朝向角度，再用 setInterval() 跑迴圈呼叫每個箭頭的 move() 向游標前進，基本雛型就完成了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638650273595953966.gif"></p> <p>噗，簡單試玩，我竟有種被喪屍包圍的緊張感，練功程式寫著寫著，竟寫出了遊戲娛樂性。</p> <p>於是我決定加碼，多加一個爆擊功能，點滑鼠左鍵可將方圓 100px 內的箭頭震開，如以下效果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638650273598066430.gif"></p> <p>看起挺有趣的，但原理不難。在 onclick 事件跑迴圈呼叫所有箭頭的 calcDistance() 算距離，找出方圓 100px 以內的箭頭，依遠近決算威力大小再配上一點亂數決定彈開距離，呼叫 move() 負值使其向後移動，並用亂數重設 rotate 角度，最後配上橘紅圈圈由小變大的 CSS 動畫，連爆炸特效都有了，效果意外的好。而物件導向程式，修改起來就是這麼輕鬆愉快。</p> <p>最終成品還包含決定數箭頭數量、活動範圍輸入欄位，按下 Restart 就可以開始玩：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638650273599682306.png"></p> <p>全部程式連同 HTML、CSS 不超過 250 行，單一 HTML 搞定，符合我對簡單輕巧的要求。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Cursor Followers&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body,input,select,button { font-size: 9pt; }
+.arrow {
+width: 0;
+height: 0;
+border-left: 5px solid transparent;
+border-right: 5px solid transparent;
+border-bottom-width: 10px;
+border-bottom-style: solid;
+position: absolute;
+}
+.canvas {
+position: relative;
+border: 1px solid black;
+margin: 10px 0;
+background-color: #eee;
+}
+.boom {
+width: 10px; /* Initial diameter (2 * radius) */
+height: 10px;
+background-color: orangered;
+border-radius: 50%;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+animation: explode 0.8s forwards;
+}
+@keyframes explode {
+from {
+width: 10px; /* Initial diameter (2 * radius) */
+height: 10px;
+}
+to {
+width: 100px; /* Final diameter (2 * radius) */
+height: 100px;
+opacity: 0;
+}
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div&gt;
+Count: &lt;input type="number" v-model="count" min="0" max="100"&gt; /
+Size: &lt;select v-model="size"&gt;
+&lt;option value="360x270"&gt;360x270&lt;/option&gt;
+&lt;option value="480x360"&gt;480x360&lt;/option&gt;
+&lt;option value="640x480"&gt;640x480&lt;/option&gt;
+&lt;option value="800x600"&gt;800x600&lt;/option&gt;
+&lt;/select&gt; /
+&lt;button @click="setup"&gt;Restart&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="canvas" :style="{width: width + 'px', height: height + 'px'}"
+@mouseenter="active = true" @mouseleave="active = false"
+@mousemove="handleMouseMove" @click="explode"&gt;
+&lt;arrow v-for="arrow in arrows" :x="arrow.x" :y="arrow.y" :rotate="arrow.rotate" :color="arrow.color"&gt;
+&lt;/arrow&gt;
+&lt;div class="boom" v-if="active &amp;&amp; boom" :style="{left: cursorX + 'px', top: cursorY + 'px'}"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="circle"&gt;&lt;/div&gt;
+&lt;script&gt;
+const Arrow = Vue.defineComponent({
+props: {
+x: {
+type: Number,
+required: true
+},
+y: {
+type: Number,
+required: true
+},
+rotate: {
+type: Number,
+required: true
+},
+color: {
+type: String,
+required: true
+}
+},
+template: `
+&lt;div
+class="arrow"
+:style="{
+position: 'absolute',
+left: x + 'px',
+top: y + 'px',
+transform: 'rotate(' + rotate + 'deg)',
+'border-bottom-color': color
+}"&gt;
+&lt;/div&gt;
+`
+});
+class ArrowData {
+static minX = 0;
+static minY = 0;
+static maxX = 640;
+static maxY = 480;
+constructor(x, y, rotate, color) {
+this.x = x;
+this.y = y;
+this.rotate = rotate;
+this.color = color;
+}
+aim(x, y) {
+const dy = y - this.y;
+const dx = x - this.x;
+let angle = Math.atan2(dy, dx) / Math.PI * 180 + 90;;
+if (angle &lt; 0) {
+angle += 360; // 確保角度在 0 到 360 度之間
+}
+this.rotate = angle;
+}
+calcDistance(x, y) {
+return Math.sqrt((x - this.x) ** 2 + (y - this.y) ** 2);
+}
+move(step) {
+// 朝著 rotate 的方向移動
+const radian = (this.rotate -90)/ 180 * Math.PI;
+this.x += Math.cos(radian) * step;
+this.y += Math.sin(radian) * step;
+if (this.x &lt; ArrowData.minX) this.x = ArrowData.minX;
+if (this.x &gt; ArrowData.maxX) this.x = ArrowData.maxX;
+if (this.y &lt; ArrowData.minY) this.y = ArrowData.minY;
+if (this.y &gt; ArrowData.maxY) this.y = ArrowData.maxY;
+}
+}
+const randomColors = ['red', 'orange', 'green', 'blue', 'indigo', 'magenta', 'black'];
+const app = Vue.createApp({
+components: {
+Arrow
+},
+data() {
+return {
+width: 640,
+height: 480,
+size: '640x480',
+cursorX: 0,
+cursorY: 0,
+count: 25,
+arrows: [],
+lines: [],
+active: false,
+boom: false
+}
+},
+methods: {
+setup() {
+this.arrows = [];
+this.lines = [];
+const [width, height] = this.size.split('x');
+this.width = width;
+this.height = height;
+this.cursorX = width / 2;
+this.cursorY = height / 2;
+const padding = 10;
+const genXY = () =&gt; [
+Math.random() * (this.width - (padding * 2)) + padding,
+Math.random() * (this.height - (padding * 2)) + padding
+];
+ArrowData.minX = ArrowData.minY = padding;
+ArrowData.maxX = this.width - padding;
+ArrowData.maxY = this.height - padding;
+for (let i = 0; i &lt; this.count; i++) {
+let [x, y] = genXY(); // 計算與已存在者距離，避免重疊
+while (this.arrows.some(arrow =&gt; arrow.calcDistance(x, y) &lt; 20)) {
+[x, y] = genXY();
+}
+this.arrows.push(new ArrowData(
+x, y,
+0, //Math.random() * 360,
+randomColors[Math.floor(Math.random() * randomColors.length)]
+));
+}
+},
+handleMouseMove(event) {
+if (!event.target.classList.contains('canvas')) return;
+const rect = event.target.getBoundingClientRect();
+this.cursorX = event.clientX - rect.left;
+this.cursorY = event.clientY - rect.top;
+for (const arrow of this.arrows) {
+arrow.aim(this.cursorX, this.cursorY);
+}
+},
+explode() {
+for (const arrow of this.arrows) {
+const distance = arrow.calcDistance(this.cursorX, this.cursorY);
+if (distance &lt; 100) {
+// 距離越近，移動距離越遠
+const step = -1000 / distance * (Math.random() * 2 + 0.5);
+arrow.move(step);
+arrow.rotate += Math.random() * 360;
+}
+}
+const self = this;
+self.boom = true;
+setTimeout(() =&gt; {
+self.boom = false;
+}, 800);
+}
+}
+});
+const vm = app.mount('#app');
+setInterval(() =&gt; {
+if (!vm.active) return;
+for (const arrow of vm.arrows) {
+arrow.move(2);
+}
+}, 200);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>附上<a href="https://darkthread.github.io/arrow-tracker/">線上展示</a>，有興趣的同學可以玩看看。</p> <p data-slug="arrow-tracker" data-title-en="Fun cursor tracker JavaScript program" data-catg="Web Development" data-fbimg="https://i.imgur.com/tA9gO1v.png#1777#999">I created a Vue.js project where multiple triangular DIV elements follow the mouse cursor. The project demonstrates mouse tracking, geometric calculations, and CSS transformations. The triangles follow the cursor, and clicking on the page triggers an explosion effect that pushes them away. Check out the online demo for a live experience.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>之前在某個前端技術部落格看過一種很酷的特效：瀏覽網頁時有一堆綠色小點追著滑鼠游標跑，滑鼠移到哪裡，整群小點就跟到哪裡。早不記得是在哪裡看到的，自然也很難再找到連結給大家參考，但接近以下這種<a href="https://websim.ai/p/25hmdmbeoz87qi25y87c/10">展示效果</a>：</p> <p><a href="https://www.youtube.com/watch?v=JYfFSBiP2tU">粒子效果模擬</a></p> <p>說真的，在網頁要追蹤滑鼠游標並不難，從 onmousehover 事件取得目前游標座標。想追著游標跑，可依據游標 X,Y 與追蹤者的 X,Y 計算游標位於哪個角度，有了角度，就不難用三角函數算出每一步的 X, Y 軸移動量，如此即能朝游標前進。</p> <p><img src="https://github.com/crgimenes/neko/raw/master/fixtures/neko.gif"></p> <p>題外話：爬文過程發現可愛的<a href="https://github.com/crgimenes/neko">游標貓 Neko</a>，程式碼便有抓游標角度的範例(用 <a href="https://zh.wikipedia.org/zh-tw/Atan2">Atan2</a>)，至於移動它是用角度區間分成米字的八個方向(上，右上，右，右下...)，配合播放朝八個方向跑的貓咪動畫：</p> <pre><code>// get mouse direction
+r := math.Atan2(float64(y), float64(x))
+if r &lt;= 0 {
+tr = 360
+}
+</code></pre> <p>一直覺得這題目挺有趣，但裡面有不少數學，想在網頁操控物件旋轉、前進要用到 CSS/JS 技巧，以前的我可能會嫌花時間燒腦而猶豫；但現在有 <a href="/blog/github-copilot-demo/">Github Copliot 黑魔法</a>，寫起來應該不會太費力，那還等什麼？就來寫個 Vue.js 物件化導向版本練手感。<br> (事後證明確實超省力，程式用到的數學算式、Vue.js 語法、CSS 樣式幾乎都靠 Github Copilot 輸出，我負責監工及修改調整，從無到有不到兩小時)</p> <p>我的構想是在網頁上放幾十個 <code>&lt;div&gt;</code>，當游標在網頁上移動時，這幾十個 DIV 會朝著游標前進。由於想精準觀察 DIV 有正確轉向，我決定用 CSS border 技巧將 DIV 畫成三角形，並透過 CSS <code>transform: 'rotate(90deg)'</code>, 樣式旋轉。為方便理解及修改，我打算定義用自訂元素 Arrow，輸入 x, y, rotate(旋轉角度), color 以便在指定位置繪製箭頭 DIV。為進一步物件導向化，我再定義了 ArrowData 類別，除保存 x, y, rotate, color 等屬性外，新增 aim(x, y) 重算 rotate 以瞄準 x, y 、calcDistance(x, y) 計算與 x, y 間的距離、move(step) 朝著 rotate 所指角度進 step 距離... 等三個方法。</p> <p>接下來，透過 Vue 依據 ArrowData 陣列在頁面上產生 N 個 Arrow 自訂元件，當游標移動時，跑迴圈執行 ArrowData aim() 更新朝向角度，再用 setInterval() 跑迴圈呼叫每個箭頭的 move() 向游標前進，基本雛型就完成了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638650273595953966.gif"></p> <p>噗，簡單試玩，我竟有種被喪屍包圍的緊張感，練功程式寫著寫著，竟寫出了遊戲娛樂性。</p> <p>於是我決定加碼，多加一個爆擊功能，點滑鼠左鍵可將方圓 100px 內的箭頭震開，如以下效果：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638650273598066430.gif"></p> <p>看起挺有趣的，但原理不難。在 onclick 事件跑迴圈呼叫所有箭頭的 calcDistance() 算距離，找出方圓 100px 以內的箭頭，依遠近決算威力大小再配上一點亂數決定彈開距離，呼叫 move() 負值使其向後移動，並用亂數重設 rotate 角度，最後配上橘紅圈圈由小變大的 CSS 動畫，連爆炸特效都有了，效果意外的好。而物件導向程式，修改起來就是這麼輕鬆愉快。</p> <p>最終成品還包含決定數箭頭數量、活動範圍輸入欄位，按下 Restart 就可以開始玩：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638650273599682306.png"></p> <p>全部程式連同 HTML、CSS 不超過 250 行，單一 HTML 搞定，符合我對簡單輕巧的要求。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Cursor Followers&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;
+&lt;style&gt;
+html,body,input,select,button { font-size: 9pt; }
+.arrow {
+width: 0;
+height: 0;
+border-left: 5px solid transparent;
+border-right: 5px solid transparent;
+border-bottom-width: 10px;
+border-bottom-style: solid;
+position: absolute;
+}
+.canvas {
+position: relative;
+border: 1px solid black;
+margin: 10px 0;
+background-color: #eee;
+}
+.boom {
+width: 10px; /* Initial diameter (2 * radius) */
+height: 10px;
+background-color: orangered;
+border-radius: 50%;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+animation: explode 0.8s forwards;
+}
+@keyframes explode {
+from {
+width: 10px; /* Initial diameter (2 * radius) */
+height: 10px;
+}
+to {
+width: 100px; /* Final diameter (2 * radius) */
+height: 100px;
+opacity: 0;
+}
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div&gt;
+Count: &lt;input type="number" v-model="count" min="0" max="100"&gt; /
+Size: &lt;select v-model="size"&gt;
+&lt;option value="360x270"&gt;360x270&lt;/option&gt;
+&lt;option value="480x360"&gt;480x360&lt;/option&gt;
+&lt;option value="640x480"&gt;640x480&lt;/option&gt;
+&lt;option value="800x600"&gt;800x600&lt;/option&gt;
+&lt;/select&gt; /
+&lt;button @click="setup"&gt;Restart&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="canvas" :style="{width: width + 'px', height: height + 'px'}"
+@mouseenter="active = true" @mouseleave="active = false"
+@mousemove="handleMouseMove" @click="explode"&gt;
+&lt;arrow v-for="arrow in arrows" :x="arrow.x" :y="arrow.y" :rotate="arrow.rotate" :color="arrow.color"&gt;
+&lt;/arrow&gt;
+&lt;div class="boom" v-if="active &amp;&amp; boom" :style="{left: cursorX + 'px', top: cursorY + 'px'}"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="circle"&gt;&lt;/div&gt;
+&lt;script&gt;
+const Arrow = Vue.defineComponent({
+props: {
+x: {
+type: Number,
+required: true
+},
+y: {
+type: Number,
+required: true
+},
+rotate: {
+type: Number,
+required: true
+},
+color: {
+type: String,
+required: true
+}
+},
+template: `
+&lt;div
+class="arrow"
+:style="{
+position: 'absolute',
+left: x + 'px',
+top: y + 'px',
+transform: 'rotate(' + rotate + 'deg)',
+'border-bottom-color': color
+}"&gt;
+&lt;/div&gt;
+`
+});
+class ArrowData {
+static minX = 0;
+static minY = 0;
+static maxX = 640;
+static maxY = 480;
+constructor(x, y, rotate, color) {
+this.x = x;
+this.y = y;
+this.rotate = rotate;
+this.color = color;
+}
+aim(x, y) {
+const dy = y - this.y;
+const dx = x - this.x;
+let angle = Math.atan2(dy, dx) / Math.PI * 180 + 90;;
+if (angle &lt; 0) {
+angle += 360; // 確保角度在 0 到 360 度之間
+}
+this.rotate = angle;
+}
+calcDistance(x, y) {
+return Math.sqrt((x - this.x) ** 2 + (y - this.y) ** 2);
+}
+move(step) {
+// 朝著 rotate 的方向移動
+const radian = (this.rotate -90)/ 180 * Math.PI;
+this.x += Math.cos(radian) * step;
+this.y += Math.sin(radian) * step;
+if (this.x &lt; ArrowData.minX) this.x = ArrowData.minX;
+if (this.x &gt; ArrowData.maxX) this.x = ArrowData.maxX;
+if (this.y &lt; ArrowData.minY) this.y = ArrowData.minY;
+if (this.y &gt; ArrowData.maxY) this.y = ArrowData.maxY;
+}
+}
+const randomColors = ['red', 'orange', 'green', 'blue', 'indigo', 'magenta', 'black'];
+const app = Vue.createApp({
+components: {
+Arrow
+},
+data() {
+return {
+width: 640,
+height: 480,
+size: '640x480',
+cursorX: 0,
+cursorY: 0,
+count: 25,
+arrows: [],
+lines: [],
+active: false,
+boom: false
+}
+},
+methods: {
+setup() {
+this.arrows = [];
+this.lines = [];
+const [width, height] = this.size.split('x');
+this.width = width;
+this.height = height;
+this.cursorX = width / 2;
+this.cursorY = height / 2;
+const padding = 10;
+const genXY = () =&gt; [
+Math.random() * (this.width - (padding * 2)) + padding,
+Math.random() * (this.height - (padding * 2)) + padding
+];
+ArrowData.minX = ArrowData.minY = padding;
+ArrowData.maxX = this.width - padding;
+ArrowData.maxY = this.height - padding;
+for (let i = 0; i &lt; this.count; i++) {
+let [x, y] = genXY(); // 計算與已存在者距離，避免重疊
+while (this.arrows.some(arrow =&gt; arrow.calcDistance(x, y) &lt; 20)) {
+[x, y] = genXY();
+}
+this.arrows.push(new ArrowData(
+x, y,
+0, //Math.random() * 360,
+randomColors[Math.floor(Math.random() * randomColors.length)]
+));
+}
+},
+handleMouseMove(event) {
+if (!event.target.classList.contains('canvas')) return;
+const rect = event.target.getBoundingClientRect();
+this.cursorX = event.clientX - rect.left;
+this.cursorY = event.clientY - rect.top;
+for (const arrow of this.arrows) {
+arrow.aim(this.cursorX, this.cursorY);
+}
+},
+explode() {
+for (const arrow of this.arrows) {
+const distance = arrow.calcDistance(this.cursorX, this.cursorY);
+if (distance &lt; 100) {
+// 距離越近，移動距離越遠
+const step = -1000 / distance * (Math.random() * 2 + 0.5);
+arrow.move(step);
+arrow.rotate += Math.random() * 360;
+}
+}
+const self = this;
+self.boom = true;
+setTimeout(() =&gt; {
+self.boom = false;
+}, 800);
+}
+}
+});
+const vm = app.mount('#app');
+setInterval(() =&gt; {
+if (!vm.active) return;
+for (const arrow of vm.arrows) {
+arrow.move(2);
+}
+}, 200);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>附上<a href="https://darkthread.github.io/arrow-tracker/">線上展示</a>，有興趣的同學可以玩看看。</p> <p data-slug="arrow-tracker" data-title-en="Fun cursor tracker JavaScript program" data-catg="Web Development" data-fbimg="https://i.imgur.com/tA9gO1v.png#1777#999">I created a Vue.js project where multiple triangular DIV elements follow the mouse cursor. The project demonstrates mouse tracking, geometric calculations, and CSS transformations. The triangles follow the cursor, and clicking on the page triggers an explosion effect that pushes them away. Check out the online demo for a live experience.</p>]]></content:encoded>
+    <itunes:image href="https://github.com/crgimenes/neko/raw/master/fixtures/neko.gif"/>
+          <media:content url="https://github.com/crgimenes/neko/raw/master/fixtures/neko.gif" medium="image"/>
+    <pubDate>Sun, 20 Oct 2024 13:11:11 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【打破砂鍋】量子電腦已成功破解 AES 加密？真的假的？]]></title>
     <link>https://blog.darkthread.net/blog/quantum-crack-aes/</link>
     <itunes:title><![CDATA[【打破砂鍋】量子電腦已成功破解 AES 加密？真的假的？]]></itunes:title>
@@ -1658,157 +2351,5 @@ return $_
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638623504980278386.png" medium="image"/>
     <pubDate>Thu, 19 Sep 2024 13:54:21 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Python 新手筆記 2 - List 與 For Comprehension]]></title>
-    <link>https://blog.darkthread.net/blog/python-beginner-notes-2/</link>
-    <itunes:title><![CDATA[Python 新手筆記 2 - List 與 For Comprehension]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>List (清單/串列)、Array (陣列)、Tuple (元組)、Dictionary (字典) 在 C# 都有，接觸 Python 之初，它們卻常讓我迷惑，尤其結合 For Comprehension (推導式) 後，對我成了一團能約略猜出用意但無法徒手寫出來的半模糊語法。</p> <p>後來想想，關鍵應出在 Python 追求簡潔，常以符號、保留字(關鍵字)取代函式，有時符號還可以省略。而同樣動作，C# 多半是靠函式、屬性或建構式完成，容易望文生意(但後來語法糖也愈來愈多)。理解 Python 程式時，靠字面記憶及猜意思的慣性反成阻礙。加上同一結構有好幾種等效寫法，前幾次遇到以為是新玩意兒，多看幾次才意識「啊，原來這就等於 XXX」。</p> <p>舉幾個例子：</p> <ul><li>在 Python 你可以用 <code>y, x = x, y</code> 交換變數，乍看很謎，但理解成「Tuple <code>(x, y)</code> 解構(Destructuring) 存回原變數，再省略 Tuple 括號」便會豁然開朗。</li> <li>要怎麼比對 Dictionary 是否存在某 Key 值，我起初想試著找 ContainsKey()、Has() 之類的 API，後來學到 Python 風格會用 <code>"some-key" in dict</code>。</li> <li>要取出字串第 3 到第 5 個字元，應該是靠 Substring() 或 Mid() 之類的函式吧？不，寫 <code>mystr[3:6]</code> 就成了。</li> <li>Python 物件導向思維不如 C#、JavaScript 強烈。舉個例子：想取得字串長度，我直覺會猜字串物件有個 Length 之類的屬性，但 Python 是用 <code>len(str_var)</code>。</li></ul> <p>有時覺得，若我沒寫過 C#、JavaScript，或許初學 Python 還會更順利些。(反過來想，若寫慣 Python 的人要跨足其他語言，也會被慣性所絆吧)<br> 但後期學到較複雜觀念，想成「這相當於 C#/JavaScript 的 OOO 」便能快理解，這時有 C#/JavaScript 經驗再變成加分條件。</p> <p>走過這段，改變心態接受用符號、關鍵字、語法取代建構物件、呼叫方法的慣性思維，C# 老人學 Python 倒也能漸入佳境。</p> <p>這篇筆記先整理 List 與 For Comprehension。</p> <h3>List 清單/串列</h3> <p>Python 的 List 可想像成 C# 的 <code>List&lt;object&gt;</code>，用來儲放任意型別，但多了一些方便簡潔的用法。常用操作如下：</p> <ul><li>算長度用 <code>len(list_var)</code></li> <li>負數索引可從後方取元素 <code>list_var[-2]</code> (倒數第 2 個)</li> <li>檢查元素是否存在用 <code>'find' in [1, 2, 3]</code>；另一種做法是 <code>list_var.index('find')</code>，但要注意，找不到時會拋 ValueError</li> <li>計算出現次數 <code>list_var.count('target')</code></li> <li>新增一個 <code>list_var.append('new')</code>、新增多個 <code>list_var.extend([4,5])</code></li> <li>在特定位置插入新元素 <code>list_var.insert(1, 'elem-at-2nd-pos')</code></li> <li>移除元素 <code>list_var.pop()</code>(最後一個)、<code>list_var.pop(2)</code>(第三個)、<code>list_var.remove('target')</code>(移除比對相符的第一筆)</li> <li>清除 <code>list_var.clear()</code></li> <li>排序 <code>list_var.sort()</code>(本身順序會被改變)、<code>list_var.sort(reverse = True)</code> 或 <code>list_var.reverse()</code>(反向排序)、<code>sorted(list_var)</code>(傳回排序過的新串列)<br> 自訂比較邏輯 <code>sorted(list_var, key = len)</code> 用 len() 比較</li> <li>串接字串 <code>', '.join(list_var)</code></li> <li>有些函式凡是實作 Iterable 特性的都可以用，例如：<code>sorted('hello')</code> 會得到 <code>['e', 'h', 'l', 'l', 'o']</code><br> 參考：sorted()、sum()、any() (任一為 True)、all() (需全部為 True)</li> <li>複製 <pre><code>a = [1,2,3]
-b = a
-a is b       # 指向同物件，得到 True
-id(a), id(b) # 得到 (2480536168704, 2480536168704) 相同位址
-b[-1] = 0    # 會改變 a 的內容
-b = a.copy() # 淺複製，深複製可用 .deepcopy()
-a == b       # 內容相同，True
-a is b       # 不同物件，False
-</code></pre> </li> <li>List 加法可串接，乘法會重複元素 <pre><code>a = [1, 2]
-b = [3, 4]
-print(a + b) # [1, 2, 3, 4]
-print(a * 2) # [1, 2, 1, 2]
-</code></pre> </li> <li>切片(Slice)：適用所有可迭代(Iterable)物件，如字串、List、Tuple、Dictionary、Set...。切片可選取指定範圍元素，進行讀取、置換，非常簡潔好用。 <pre><code>a = [1, 2, 3, 4]
-print(a[1:3]) # [2, 3]
-a[-1] = 'END' # [1, 2, 3, 'END']
-a[1:3] = ['a', 'b', 'c'] # [1, 'a', 'b', 'c', 'END']
-print(a)
-</code></pre> </li> <li>開箱(Unpacking)：將 List、Tuple 中的特定元素轉成變數，類似 JavaScript 的解構(Destructuring) <pre><code># 基本用法(變數個數必須與元素數量一致)
-x, y = [1, 2] # List 開箱，x=1, y=2
-a, b = (3, 4) # Tuple 開箱，a=3, b=4
-# 用星號通吃剩餘元素
-x, y, *others = [1, 2, 3, 4, 5] # x=1, y=2, others=[3, 4, 5]
-x, y, *_ = [1, 2, 3, 4, 5] # 不需要的部分用底線
-# 取頭尾
-head, *_, tail = [1, 2, 3, 4] # head=1, tail=4
-first, second, *rest, last = [1, 2, 3, 4, 5] # first=1, second=2, rest=[3, 4], last=5
-# 套用 List, Tuple
-_, [_, a], (_, b) = [1, [2, 3], (4, 5)] # a=3, b=5
-</code></pre> </li> <li>開箱運算子(Unpacking Operator)：展開 Iterable 物件，相當於 JavaScript 的 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">... 語法</a>。 <pre><code>a = [1, 2]
-b = [3, 4]
-n = [*a, ' ', *b] # [1, 2, ' ', 3, 4]
-</code></pre> </li></ul> <h3>For Comprehension 串列推導式</h3> <p>這是我心中最具 Python 風格的快捷語法，與 C# LINQ 語法異曲同工，但簡潔度更勝一籌。</p> <p>一開始看 Github Copilot 示範用 <code>.. for ... in .. if ..</code> 處理各種資料篩選組裝有些摸不著頭緒，熟悉後我很快就愛上它惹。</p> <p>直接看幾則應用，應該能很快上手。</p> <ul><li>加工轉換產生新清單 <pre><code>a = [1, 2, 3]
-n = [f'No.{n}' for n in a] # ['No.1', 'No.2', 'No.3']
-# C# a.Select(o =&gt; $"No.{o}").ToList();
-</code></pre> </li> <li>加上篩選條件 <pre><code>a = [1, 2, 3, 4, 5]
-n = [f'No.{n}' for n in a if n % 2 == 1] # ['No.1', 'No.3', 'No.5']
-# C# a.Where(o =&gt; o % 2 == 1).Select(o =&gt; $"No.{o}").ToList();
-</code></pre> </li> <li>也可以用來產生 Dictionary，語法為 for 搭配 key: value 產生鍵值資料對： <pre><code>d = { n: f"item{n}" for n in range(10) }
-# {0: 'item0', 1: 'item1', 2: 'item2', 3: 'item3', ... }
-</code></pre> </li> <li>For Comprehension 本質是一個產生器(Generator)物件，具有惰性求值(Lazy Evaluation)的特性，當寫成 <code>[n for n in range(10000)]</code> 會展開生成 List，若寫成 <code>(n for n in range(10000))</code> 是一個產生器，在某些應用情境可一次只吐一個數字，不用一次產生 10000 個元素，減少記憶體耗用增進效能。熟悉 C# 的同學可想成 <code>IEnumerable&lt;T&gt;</code> <a href="/blog/yield-return/">靠 yield return 省時省 CPU 省 RAM</a>，應能馬上理解。 <pre><code>from sys import getsizeof
-list = [n for n in range(10000)]
-print(getsizeof(list)) # 耗用 85176 bytes
-print(sum(list)) # 49995000
-gen = (n for n in range(10000))
-print(getsizeof(gen)) # 耗用 112 bytes
-print(sum(gen)) # 49995000
-</code></pre> </li></ul> <p data-slug="python-beginner-notes-2" data-title-en="Python notes 2 - list and for comprehension" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">This blog post explores the initial confusion and eventual clarity experienced when transitioning from C# to Python, especially regarding data structures and list comprehensions. Key takeaways include understanding Python’s use of symbols and keywords over functions, and how Python’s syntax can simplify operations like swapping variables, checking for dictionary keys, slicing strings, and more. The post also covers Python’s list operations and comprehensions, highlighting their similarities to C# LINQ but with more concise syntax.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>List (清單/串列)、Array (陣列)、Tuple (元組)、Dictionary (字典) 在 C# 都有，接觸 Python 之初，它們卻常讓我迷惑，尤其結合 For Comprehension (推導式) 後，對我成了一團能約略猜出用意但無法徒手寫出來的半模糊語法。</p> <p>後來想想，關鍵應出在 Python 追求簡潔，常以符號、保留字(關鍵字)取代函式，有時符號還可以省略。而同樣動作，C# 多半是靠函式、屬性或建構式完成，容易望文生意(但後來語法糖也愈來愈多)。理解 Python 程式時，靠字面記憶及猜意思的慣性反成阻礙。加上同一結構有好幾種等效寫法，前幾次遇到以為是新玩意兒，多看幾次才意識「啊，原來這就等於 XXX」。</p> <p>舉幾個例子：</p> <ul><li>在 Python 你可以用 <code>y, x = x, y</code> 交換變數，乍看很謎，但理解成「Tuple <code>(x, y)</code> 解構(Destructuring) 存回原變數，再省略 Tuple 括號」便會豁然開朗。</li> <li>要怎麼比對 Dictionary 是否存在某 Key 值，我起初想試著找 ContainsKey()、Has() 之類的 API，後來學到 Python 風格會用 <code>"some-key" in dict</code>。</li> <li>要取出字串第 3 到第 5 個字元，應該是靠 Substring() 或 Mid() 之類的函式吧？不，寫 <code>mystr[3:6]</code> 就成了。</li> <li>Python 物件導向思維不如 C#、JavaScript 強烈。舉個例子：想取得字串長度，我直覺會猜字串物件有個 Length 之類的屬性，但 Python 是用 <code>len(str_var)</code>。</li></ul> <p>有時覺得，若我沒寫過 C#、JavaScript，或許初學 Python 還會更順利些。(反過來想，若寫慣 Python 的人要跨足其他語言，也會被慣性所絆吧)<br> 但後期學到較複雜觀念，想成「這相當於 C#/JavaScript 的 OOO 」便能快理解，這時有 C#/JavaScript 經驗再變成加分條件。</p> <p>走過這段，改變心態接受用符號、關鍵字、語法取代建構物件、呼叫方法的慣性思維，C# 老人學 Python 倒也能漸入佳境。</p> <p>這篇筆記先整理 List 與 For Comprehension。</p> <h3>List 清單/串列</h3> <p>Python 的 List 可想像成 C# 的 <code>List&lt;object&gt;</code>，用來儲放任意型別，但多了一些方便簡潔的用法。常用操作如下：</p> <ul><li>算長度用 <code>len(list_var)</code></li> <li>負數索引可從後方取元素 <code>list_var[-2]</code> (倒數第 2 個)</li> <li>檢查元素是否存在用 <code>'find' in [1, 2, 3]</code>；另一種做法是 <code>list_var.index('find')</code>，但要注意，找不到時會拋 ValueError</li> <li>計算出現次數 <code>list_var.count('target')</code></li> <li>新增一個 <code>list_var.append('new')</code>、新增多個 <code>list_var.extend([4,5])</code></li> <li>在特定位置插入新元素 <code>list_var.insert(1, 'elem-at-2nd-pos')</code></li> <li>移除元素 <code>list_var.pop()</code>(最後一個)、<code>list_var.pop(2)</code>(第三個)、<code>list_var.remove('target')</code>(移除比對相符的第一筆)</li> <li>清除 <code>list_var.clear()</code></li> <li>排序 <code>list_var.sort()</code>(本身順序會被改變)、<code>list_var.sort(reverse = True)</code> 或 <code>list_var.reverse()</code>(反向排序)、<code>sorted(list_var)</code>(傳回排序過的新串列)<br> 自訂比較邏輯 <code>sorted(list_var, key = len)</code> 用 len() 比較</li> <li>串接字串 <code>', '.join(list_var)</code></li> <li>有些函式凡是實作 Iterable 特性的都可以用，例如：<code>sorted('hello')</code> 會得到 <code>['e', 'h', 'l', 'l', 'o']</code><br> 參考：sorted()、sum()、any() (任一為 True)、all() (需全部為 True)</li> <li>複製 <pre><code>a = [1,2,3]
-b = a
-a is b       # 指向同物件，得到 True
-id(a), id(b) # 得到 (2480536168704, 2480536168704) 相同位址
-b[-1] = 0    # 會改變 a 的內容
-b = a.copy() # 淺複製，深複製可用 .deepcopy()
-a == b       # 內容相同，True
-a is b       # 不同物件，False
-</code></pre> </li> <li>List 加法可串接，乘法會重複元素 <pre><code>a = [1, 2]
-b = [3, 4]
-print(a + b) # [1, 2, 3, 4]
-print(a * 2) # [1, 2, 1, 2]
-</code></pre> </li> <li>切片(Slice)：適用所有可迭代(Iterable)物件，如字串、List、Tuple、Dictionary、Set...。切片可選取指定範圍元素，進行讀取、置換，非常簡潔好用。 <pre><code>a = [1, 2, 3, 4]
-print(a[1:3]) # [2, 3]
-a[-1] = 'END' # [1, 2, 3, 'END']
-a[1:3] = ['a', 'b', 'c'] # [1, 'a', 'b', 'c', 'END']
-print(a)
-</code></pre> </li> <li>開箱(Unpacking)：將 List、Tuple 中的特定元素轉成變數，類似 JavaScript 的解構(Destructuring) <pre><code># 基本用法(變數個數必須與元素數量一致)
-x, y = [1, 2] # List 開箱，x=1, y=2
-a, b = (3, 4) # Tuple 開箱，a=3, b=4
-# 用星號通吃剩餘元素
-x, y, *others = [1, 2, 3, 4, 5] # x=1, y=2, others=[3, 4, 5]
-x, y, *_ = [1, 2, 3, 4, 5] # 不需要的部分用底線
-# 取頭尾
-head, *_, tail = [1, 2, 3, 4] # head=1, tail=4
-first, second, *rest, last = [1, 2, 3, 4, 5] # first=1, second=2, rest=[3, 4], last=5
-# 套用 List, Tuple
-_, [_, a], (_, b) = [1, [2, 3], (4, 5)] # a=3, b=5
-</code></pre> </li> <li>開箱運算子(Unpacking Operator)：展開 Iterable 物件，相當於 JavaScript 的 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">... 語法</a>。 <pre><code>a = [1, 2]
-b = [3, 4]
-n = [*a, ' ', *b] # [1, 2, ' ', 3, 4]
-</code></pre> </li></ul> <h3>For Comprehension 串列推導式</h3> <p>這是我心中最具 Python 風格的快捷語法，與 C# LINQ 語法異曲同工，但簡潔度更勝一籌。</p> <p>一開始看 Github Copilot 示範用 <code>.. for ... in .. if ..</code> 處理各種資料篩選組裝有些摸不著頭緒，熟悉後我很快就愛上它惹。</p> <p>直接看幾則應用，應該能很快上手。</p> <ul><li>加工轉換產生新清單 <pre><code>a = [1, 2, 3]
-n = [f'No.{n}' for n in a] # ['No.1', 'No.2', 'No.3']
-# C# a.Select(o =&gt; $"No.{o}").ToList();
-</code></pre> </li> <li>加上篩選條件 <pre><code>a = [1, 2, 3, 4, 5]
-n = [f'No.{n}' for n in a if n % 2 == 1] # ['No.1', 'No.3', 'No.5']
-# C# a.Where(o =&gt; o % 2 == 1).Select(o =&gt; $"No.{o}").ToList();
-</code></pre> </li> <li>也可以用來產生 Dictionary，語法為 for 搭配 key: value 產生鍵值資料對： <pre><code>d = { n: f"item{n}" for n in range(10) }
-# {0: 'item0', 1: 'item1', 2: 'item2', 3: 'item3', ... }
-</code></pre> </li> <li>For Comprehension 本質是一個產生器(Generator)物件，具有惰性求值(Lazy Evaluation)的特性，當寫成 <code>[n for n in range(10000)]</code> 會展開生成 List，若寫成 <code>(n for n in range(10000))</code> 是一個產生器，在某些應用情境可一次只吐一個數字，不用一次產生 10000 個元素，減少記憶體耗用增進效能。熟悉 C# 的同學可想成 <code>IEnumerable&lt;T&gt;</code> <a href="/blog/yield-return/">靠 yield return 省時省 CPU 省 RAM</a>，應能馬上理解。 <pre><code>from sys import getsizeof
-list = [n for n in range(10000)]
-print(getsizeof(list)) # 耗用 85176 bytes
-print(sum(list)) # 49995000
-gen = (n for n in range(10000))
-print(getsizeof(gen)) # 耗用 112 bytes
-print(sum(gen)) # 49995000
-</code></pre> </li></ul> <p data-slug="python-beginner-notes-2" data-title-en="Python notes 2 - list and for comprehension" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">This blog post explores the initial confusion and eventual clarity experienced when transitioning from C# to Python, especially regarding data structures and list comprehensions. Key takeaways include understanding Python’s use of symbols and keywords over functions, and how Python’s syntax can simplify operations like swapping variables, checking for dictionary keys, slicing strings, and more. The post also covers Python’s list operations and comprehensions, highlighting their similarities to C# LINQ but with more concise syntax.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>List (清單/串列)、Array (陣列)、Tuple (元組)、Dictionary (字典) 在 C# 都有，接觸 Python 之初，它們卻常讓我迷惑，尤其結合 For Comprehension (推導式) 後，對我成了一團能約略猜出用意但無法徒手寫出來的半模糊語法。</p> <p>後來想想，關鍵應出在 Python 追求簡潔，常以符號、保留字(關鍵字)取代函式，有時符號還可以省略。而同樣動作，C# 多半是靠函式、屬性或建構式完成，容易望文生意(但後來語法糖也愈來愈多)。理解 Python 程式時，靠字面記憶及猜意思的慣性反成阻礙。加上同一結構有好幾種等效寫法，前幾次遇到以為是新玩意兒，多看幾次才意識「啊，原來這就等於 XXX」。</p> <p>舉幾個例子：</p> <ul><li>在 Python 你可以用 <code>y, x = x, y</code> 交換變數，乍看很謎，但理解成「Tuple <code>(x, y)</code> 解構(Destructuring) 存回原變數，再省略 Tuple 括號」便會豁然開朗。</li> <li>要怎麼比對 Dictionary 是否存在某 Key 值，我起初想試著找 ContainsKey()、Has() 之類的 API，後來學到 Python 風格會用 <code>"some-key" in dict</code>。</li> <li>要取出字串第 3 到第 5 個字元，應該是靠 Substring() 或 Mid() 之類的函式吧？不，寫 <code>mystr[3:6]</code> 就成了。</li> <li>Python 物件導向思維不如 C#、JavaScript 強烈。舉個例子：想取得字串長度，我直覺會猜字串物件有個 Length 之類的屬性，但 Python 是用 <code>len(str_var)</code>。</li></ul> <p>有時覺得，若我沒寫過 C#、JavaScript，或許初學 Python 還會更順利些。(反過來想，若寫慣 Python 的人要跨足其他語言，也會被慣性所絆吧)<br> 但後期學到較複雜觀念，想成「這相當於 C#/JavaScript 的 OOO 」便能快理解，這時有 C#/JavaScript 經驗再變成加分條件。</p> <p>走過這段，改變心態接受用符號、關鍵字、語法取代建構物件、呼叫方法的慣性思維，C# 老人學 Python 倒也能漸入佳境。</p> <p>這篇筆記先整理 List 與 For Comprehension。</p> <h3>List 清單/串列</h3> <p>Python 的 List 可想像成 C# 的 <code>List&lt;object&gt;</code>，用來儲放任意型別，但多了一些方便簡潔的用法。常用操作如下：</p> <ul><li>算長度用 <code>len(list_var)</code></li> <li>負數索引可從後方取元素 <code>list_var[-2]</code> (倒數第 2 個)</li> <li>檢查元素是否存在用 <code>'find' in [1, 2, 3]</code>；另一種做法是 <code>list_var.index('find')</code>，但要注意，找不到時會拋 ValueError</li> <li>計算出現次數 <code>list_var.count('target')</code></li> <li>新增一個 <code>list_var.append('new')</code>、新增多個 <code>list_var.extend([4,5])</code></li> <li>在特定位置插入新元素 <code>list_var.insert(1, 'elem-at-2nd-pos')</code></li> <li>移除元素 <code>list_var.pop()</code>(最後一個)、<code>list_var.pop(2)</code>(第三個)、<code>list_var.remove('target')</code>(移除比對相符的第一筆)</li> <li>清除 <code>list_var.clear()</code></li> <li>排序 <code>list_var.sort()</code>(本身順序會被改變)、<code>list_var.sort(reverse = True)</code> 或 <code>list_var.reverse()</code>(反向排序)、<code>sorted(list_var)</code>(傳回排序過的新串列)<br> 自訂比較邏輯 <code>sorted(list_var, key = len)</code> 用 len() 比較</li> <li>串接字串 <code>', '.join(list_var)</code></li> <li>有些函式凡是實作 Iterable 特性的都可以用，例如：<code>sorted('hello')</code> 會得到 <code>['e', 'h', 'l', 'l', 'o']</code><br> 參考：sorted()、sum()、any() (任一為 True)、all() (需全部為 True)</li> <li>複製 <pre><code>a = [1,2,3]
-b = a
-a is b       # 指向同物件，得到 True
-id(a), id(b) # 得到 (2480536168704, 2480536168704) 相同位址
-b[-1] = 0    # 會改變 a 的內容
-b = a.copy() # 淺複製，深複製可用 .deepcopy()
-a == b       # 內容相同，True
-a is b       # 不同物件，False
-</code></pre> </li> <li>List 加法可串接，乘法會重複元素 <pre><code>a = [1, 2]
-b = [3, 4]
-print(a + b) # [1, 2, 3, 4]
-print(a * 2) # [1, 2, 1, 2]
-</code></pre> </li> <li>切片(Slice)：適用所有可迭代(Iterable)物件，如字串、List、Tuple、Dictionary、Set...。切片可選取指定範圍元素，進行讀取、置換，非常簡潔好用。 <pre><code>a = [1, 2, 3, 4]
-print(a[1:3]) # [2, 3]
-a[-1] = 'END' # [1, 2, 3, 'END']
-a[1:3] = ['a', 'b', 'c'] # [1, 'a', 'b', 'c', 'END']
-print(a)
-</code></pre> </li> <li>開箱(Unpacking)：將 List、Tuple 中的特定元素轉成變數，類似 JavaScript 的解構(Destructuring) <pre><code># 基本用法(變數個數必須與元素數量一致)
-x, y = [1, 2] # List 開箱，x=1, y=2
-a, b = (3, 4) # Tuple 開箱，a=3, b=4
-# 用星號通吃剩餘元素
-x, y, *others = [1, 2, 3, 4, 5] # x=1, y=2, others=[3, 4, 5]
-x, y, *_ = [1, 2, 3, 4, 5] # 不需要的部分用底線
-# 取頭尾
-head, *_, tail = [1, 2, 3, 4] # head=1, tail=4
-first, second, *rest, last = [1, 2, 3, 4, 5] # first=1, second=2, rest=[3, 4], last=5
-# 套用 List, Tuple
-_, [_, a], (_, b) = [1, [2, 3], (4, 5)] # a=3, b=5
-</code></pre> </li> <li>開箱運算子(Unpacking Operator)：展開 Iterable 物件，相當於 JavaScript 的 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax">... 語法</a>。 <pre><code>a = [1, 2]
-b = [3, 4]
-n = [*a, ' ', *b] # [1, 2, ' ', 3, 4]
-</code></pre> </li></ul> <h3>For Comprehension 串列推導式</h3> <p>這是我心中最具 Python 風格的快捷語法，與 C# LINQ 語法異曲同工，但簡潔度更勝一籌。</p> <p>一開始看 Github Copilot 示範用 <code>.. for ... in .. if ..</code> 處理各種資料篩選組裝有些摸不著頭緒，熟悉後我很快就愛上它惹。</p> <p>直接看幾則應用，應該能很快上手。</p> <ul><li>加工轉換產生新清單 <pre><code>a = [1, 2, 3]
-n = [f'No.{n}' for n in a] # ['No.1', 'No.2', 'No.3']
-# C# a.Select(o =&gt; $"No.{o}").ToList();
-</code></pre> </li> <li>加上篩選條件 <pre><code>a = [1, 2, 3, 4, 5]
-n = [f'No.{n}' for n in a if n % 2 == 1] # ['No.1', 'No.3', 'No.5']
-# C# a.Where(o =&gt; o % 2 == 1).Select(o =&gt; $"No.{o}").ToList();
-</code></pre> </li> <li>也可以用來產生 Dictionary，語法為 for 搭配 key: value 產生鍵值資料對： <pre><code>d = { n: f"item{n}" for n in range(10) }
-# {0: 'item0', 1: 'item1', 2: 'item2', 3: 'item3', ... }
-</code></pre> </li> <li>For Comprehension 本質是一個產生器(Generator)物件，具有惰性求值(Lazy Evaluation)的特性，當寫成 <code>[n for n in range(10000)]</code> 會展開生成 List，若寫成 <code>(n for n in range(10000))</code> 是一個產生器，在某些應用情境可一次只吐一個數字，不用一次產生 10000 個元素，減少記憶體耗用增進效能。熟悉 C# 的同學可想成 <code>IEnumerable&lt;T&gt;</code> <a href="/blog/yield-return/">靠 yield return 省時省 CPU 省 RAM</a>，應能馬上理解。 <pre><code>from sys import getsizeof
-list = [n for n in range(10000)]
-print(getsizeof(list)) # 耗用 85176 bytes
-print(sum(list)) # 49995000
-gen = (n for n in range(10000))
-print(getsizeof(gen)) # 耗用 112 bytes
-print(sum(gen)) # 49995000
-</code></pre> </li></ul> <p data-slug="python-beginner-notes-2" data-title-en="Python notes 2 - list and for comprehension" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">This blog post explores the initial confusion and eventual clarity experienced when transitioning from C# to Python, especially regarding data structures and list comprehensions. Key takeaways include understanding Python’s use of symbols and keywords over functions, and how Python’s syntax can simplify operations like swapping variables, checking for dictionary keys, slicing strings, and more. The post also covers Python’s list operations and comprehensions, highlighting their similarities to C# LINQ but with more concise syntax.</p>]]></content:encoded>
-    
-    <pubDate>Wed, 18 Sep 2024 15:29:41 GMT</pubDate>
   </item></channel>
 </rss>
