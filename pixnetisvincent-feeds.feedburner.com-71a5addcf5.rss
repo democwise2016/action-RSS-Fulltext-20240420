@@ -3,7 +3,7 @@
     <title><![CDATA[學不完．教不停．用不盡[RSS+]]]></title>
     <link>undefined</link>
     <image>
-      <url>https://fastly.picsum.photos/id/107/800/800.jpg?hmac=30BJ1IxaPcaBZ2vDasND6OBx3fw-6oqCZg_YDqB0k58</url>
+      <url>https://fastly.picsum.photos/id/494/800/800.jpg?hmac=N_b29zk2XSNrH_nUJu6bmDi7Kmjy7h2wD1dFsS7rBKg</url>
       <title>學不完．教不停．用不盡[RSS+]</title>
       <link>undefined</link>
     </image>
@@ -28,8 +28,242 @@
     <itunes:owner>
       <itunes:name><![CDATA[學不完．教不停．用不盡[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/107/800/800.jpg?hmac=30BJ1IxaPcaBZ2vDasND6OBx3fw-6oqCZg_YDqB0k58"/>
+    <itunes:image href="https://fastly.picsum.photos/id/494/800/800.jpg?hmac=N_b29zk2XSNrH_nUJu6bmDi7Kmjy7h2wD1dFsS7rBKg"/>
 <item>
+    <title><![CDATA[將Excel表格裡的欄位內容自動填入PowerPoint投影片的對應文字方塊中]]></title>
+    <link>https://isvincent.pixnet.net/blog/post/50947172</link>
+    <itunes:title><![CDATA[將Excel表格裡的欄位內容自動填入PowerPoint投影片的對應文字方塊中]]></itunes:title>
+    <itunes:author><![CDATA[學不完．教不停．用不盡[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614341-18456034-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>我想要將下圖中的資料來源裡的一個表格內容（10列 X 3欄），其中每一列有三個儲存格內容，分別要對應到10張投影片裡每一張投影片的三個文字方塊。</p>
+<p>以下是資料來源，是在 Excel 的一個表格內容。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729612732-58131123-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>其中：</p>
+<p>表格中的第1欄內容對應到PowrePoint投影片中的最下層文字方塊（Name）：學校名稱</p>
+<p>表格中的第2欄內容對應到PowrePoint投影片中的中間層文字方塊（Title）：課程名稱</p>
+<p>表格中的第3欄內容對應到PowrePoint投影片中的最上層文字方塊（Content）：課程內容</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613306-2357490646-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>我求助於 ChatGPT 給我 VBA 程式：</p>
+<p><strong>指令：我要將一個三欄多列的表格內容，轉換至現存PowerPoint簡報每張投影片的三個文字方塊中？其中，每一列的三個欄位內容，對應到每一張投影片的三個文字方塊。 請提供我VBA程式碼。</strong></p>
+<p>結果如下：（先複製這些程式碼）</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613147-343831346-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>準備工作：</p>
+<p>1. 開啟 PowerPoint，並準備好 10 張投影片。（本例的 Excel 表格中有 10 列）</p>
+<p>注意：不要關閉 PowerPoint 檔案。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613585-2672466757-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>2. 在 Excel 檔案中選取「開發人員」，再開啟 Visual Basic。</p>
+<p>3. 選取「插入／模組」。</p>
+<p>4. 將程式碼貼在這個程式區域中。</p>
+<p>5. 本例只要在程式碼中修改 Excel 工作表名稱即可。</p>
+<p>6. 點選：執行。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613726-2358765630-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>一瞬間，PowerPoint 投影片裡的三個文字方塊，即依 Excel 表格三個欄位內容對應填入了！</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614129-1341035485-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>所有內容一次完成。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614405-645563795-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p><strong>在此附上程式碼：</strong></p>
+<p>Sub FillPowerPointTextBoxes()<br>
+&nbsp; &nbsp; Dim pptApp As Object<br>
+&nbsp; &nbsp; Dim pptPresentation As Object<br>
+&nbsp; &nbsp; Dim pptSlide As Object<br>
+&nbsp; &nbsp; Dim ws As Worksheet<br>
+&nbsp; &nbsp; Dim rng As Range<br>
+&nbsp; &nbsp; Dim row As Range<br>
+&nbsp; &nbsp; Dim i As Integer<br>
+&nbsp; &nbsp; Dim textBox1 As Object<br>
+&nbsp; &nbsp; Dim textBox2 As Object<br>
+&nbsp; &nbsp; Dim textBox3 As Object</p>
+<p>&nbsp; &nbsp; ' 設定Excel中的表格範圍<br>
+&nbsp; &nbsp; Set ws = ThisWorkbook.Sheets("資料") ' <strong>更改為你的工作表名稱</strong><br>
+&nbsp; &nbsp; Set rng = ws.Range("A2:C" &amp; ws.Cells(ws.Rows.Count, "A").End(xlUp).row) ' <strong>假設數據從A2開始</strong></p>
+<p>&nbsp; &nbsp; ' 打開已存在的PowerPoint<br>
+&nbsp; &nbsp; On Error Resume Next<br>
+&nbsp; &nbsp; Set pptApp = GetObject(Class:="PowerPoint.Application")<br>
+&nbsp; &nbsp; If pptApp Is Nothing Then<br>
+&nbsp; &nbsp; &nbsp; &nbsp; Set pptApp = CreateObject(Class:="PowerPoint.Application")<br>
+&nbsp; &nbsp; End If<br>
+&nbsp; &nbsp; pptApp.Visible = True<br>
+&nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; ' <strong>假設已經打開了你的PowerPoint簡報</strong><br>
+&nbsp; &nbsp; Set pptPresentation = pptApp.ActivePresentation</p>
+<p>&nbsp; &nbsp; ' 遍歷表格的每一列，並將內容填入PowerPoint<br>
+&nbsp; &nbsp; i = 1<br>
+&nbsp; &nbsp; For Each row In rng.Rows<br>
+&nbsp; &nbsp; &nbsp; &nbsp; ' 確保有足夠的投影片來填充內容<br>
+&nbsp; &nbsp; &nbsp; &nbsp; If i &lt;= pptPresentation.Slides.Count Then<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set pptSlide = pptPresentation.Slides(i) ' 將每一列數據對應到每張投影片<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ' 假設每張投影片上有三個文字方塊，依次填入表格中的三個欄位<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox1 = pptSlide.Shapes(1) ' 第一個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox1.TextFrame.TextRange.Text = row.Cells(1, 1).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox2 = pptSlide.Shapes(2) ' 第二個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox2.TextFrame.TextRange.Text = row.Cells(1, 2).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox3 = pptSlide.Shapes(3) ' 第三個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox3.TextFrame.TextRange.Text = row.Cells(1, 3).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; End If<br>
+&nbsp; &nbsp; &nbsp; &nbsp; i = i + 1<br>
+&nbsp; &nbsp; Next row</p>
+<p>&nbsp; &nbsp; MsgBox "內容填充完成！"<br>
+End Sub</p>
+<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614341-18456034-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>我想要將下圖中的資料來源裡的一個表格內容（10列 X 3欄），其中每一列有三個儲存格內容，分別要對應到10張投影片裡每一張投影片的三個文字方塊。</p>
+<p>以下是資料來源，是在 Excel 的一個表格內容。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729612732-58131123-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>其中：</p>
+<p>表格中的第1欄內容對應到PowrePoint投影片中的最下層文字方塊（Name）：學校名稱</p>
+<p>表格中的第2欄內容對應到PowrePoint投影片中的中間層文字方塊（Title）：課程名稱</p>
+<p>表格中的第3欄內容對應到PowrePoint投影片中的最上層文字方塊（Content）：課程內容</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613306-2357490646-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>我求助於 ChatGPT 給我 VBA 程式：</p>
+<p><strong>指令：我要將一個三欄多列的表格內容，轉換至現存PowerPoint簡報每張投影片的三個文字方塊中？其中，每一列的三個欄位內容，對應到每一張投影片的三個文字方塊。 請提供我VBA程式碼。</strong></p>
+<p>結果如下：（先複製這些程式碼）</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613147-343831346-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>準備工作：</p>
+<p>1. 開啟 PowerPoint，並準備好 10 張投影片。（本例的 Excel 表格中有 10 列）</p>
+<p>注意：不要關閉 PowerPoint 檔案。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613585-2672466757-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>2. 在 Excel 檔案中選取「開發人員」，再開啟 Visual Basic。</p>
+<p>3. 選取「插入／模組」。</p>
+<p>4. 將程式碼貼在這個程式區域中。</p>
+<p>5. 本例只要在程式碼中修改 Excel 工作表名稱即可。</p>
+<p>6. 點選：執行。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613726-2358765630-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>一瞬間，PowerPoint 投影片裡的三個文字方塊，即依 Excel 表格三個欄位內容對應填入了！</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614129-1341035485-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>所有內容一次完成。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614405-645563795-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p><strong>在此附上程式碼：</strong></p>
+<p>Sub FillPowerPointTextBoxes()<br>
+&nbsp; &nbsp; Dim pptApp As Object<br>
+&nbsp; &nbsp; Dim pptPresentation As Object<br>
+&nbsp; &nbsp; Dim pptSlide As Object<br>
+&nbsp; &nbsp; Dim ws As Worksheet<br>
+&nbsp; &nbsp; Dim rng As Range<br>
+&nbsp; &nbsp; Dim row As Range<br>
+&nbsp; &nbsp; Dim i As Integer<br>
+&nbsp; &nbsp; Dim textBox1 As Object<br>
+&nbsp; &nbsp; Dim textBox2 As Object<br>
+&nbsp; &nbsp; Dim textBox3 As Object</p>
+<p>&nbsp; &nbsp; ' 設定Excel中的表格範圍<br>
+&nbsp; &nbsp; Set ws = ThisWorkbook.Sheets("資料") ' <strong>更改為你的工作表名稱</strong><br>
+&nbsp; &nbsp; Set rng = ws.Range("A2:C" &amp; ws.Cells(ws.Rows.Count, "A").End(xlUp).row) ' <strong>假設數據從A2開始</strong></p>
+<p>&nbsp; &nbsp; ' 打開已存在的PowerPoint<br>
+&nbsp; &nbsp; On Error Resume Next<br>
+&nbsp; &nbsp; Set pptApp = GetObject(Class:="PowerPoint.Application")<br>
+&nbsp; &nbsp; If pptApp Is Nothing Then<br>
+&nbsp; &nbsp; &nbsp; &nbsp; Set pptApp = CreateObject(Class:="PowerPoint.Application")<br>
+&nbsp; &nbsp; End If<br>
+&nbsp; &nbsp; pptApp.Visible = True<br>
+&nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; ' <strong>假設已經打開了你的PowerPoint簡報</strong><br>
+&nbsp; &nbsp; Set pptPresentation = pptApp.ActivePresentation</p>
+<p>&nbsp; &nbsp; ' 遍歷表格的每一列，並將內容填入PowerPoint<br>
+&nbsp; &nbsp; i = 1<br>
+&nbsp; &nbsp; For Each row In rng.Rows<br>
+&nbsp; &nbsp; &nbsp; &nbsp; ' 確保有足夠的投影片來填充內容<br>
+&nbsp; &nbsp; &nbsp; &nbsp; If i &lt;= pptPresentation.Slides.Count Then<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set pptSlide = pptPresentation.Slides(i) ' 將每一列數據對應到每張投影片<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ' 假設每張投影片上有三個文字方塊，依次填入表格中的三個欄位<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox1 = pptSlide.Shapes(1) ' 第一個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox1.TextFrame.TextRange.Text = row.Cells(1, 1).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox2 = pptSlide.Shapes(2) ' 第二個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox2.TextFrame.TextRange.Text = row.Cells(1, 2).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox3 = pptSlide.Shapes(3) ' 第三個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox3.TextFrame.TextRange.Text = row.Cells(1, 3).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; End If<br>
+&nbsp; &nbsp; &nbsp; &nbsp; i = i + 1<br>
+&nbsp; &nbsp; Next row</p>
+<p>&nbsp; &nbsp; MsgBox "內容填充完成！"<br>
+End Sub</p>
+<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614341-18456034-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>我想要將下圖中的資料來源裡的一個表格內容（10列 X 3欄），其中每一列有三個儲存格內容，分別要對應到10張投影片裡每一張投影片的三個文字方塊。</p>
+<p>以下是資料來源，是在 Excel 的一個表格內容。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729612732-58131123-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>其中：</p>
+<p>表格中的第1欄內容對應到PowrePoint投影片中的最下層文字方塊（Name）：學校名稱</p>
+<p>表格中的第2欄內容對應到PowrePoint投影片中的中間層文字方塊（Title）：課程名稱</p>
+<p>表格中的第3欄內容對應到PowrePoint投影片中的最上層文字方塊（Content）：課程內容</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613306-2357490646-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>我求助於 ChatGPT 給我 VBA 程式：</p>
+<p><strong>指令：我要將一個三欄多列的表格內容，轉換至現存PowerPoint簡報每張投影片的三個文字方塊中？其中，每一列的三個欄位內容，對應到每一張投影片的三個文字方塊。 請提供我VBA程式碼。</strong></p>
+<p>結果如下：（先複製這些程式碼）</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613147-343831346-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>準備工作：</p>
+<p>1. 開啟 PowerPoint，並準備好 10 張投影片。（本例的 Excel 表格中有 10 列）</p>
+<p>注意：不要關閉 PowerPoint 檔案。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613585-2672466757-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>2. 在 Excel 檔案中選取「開發人員」，再開啟 Visual Basic。</p>
+<p>3. 選取「插入／模組」。</p>
+<p>4. 將程式碼貼在這個程式區域中。</p>
+<p>5. 本例只要在程式碼中修改 Excel 工作表名稱即可。</p>
+<p>6. 點選：執行。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729613726-2358765630-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>一瞬間，PowerPoint 投影片裡的三個文字方塊，即依 Excel 表格三個欄位內容對應填入了！</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614129-1341035485-g.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p>所有內容一次完成。</p>
+<p><img alt="將Excel表格裡的欄位內容自動填入PowerPoint投影" src="https://pic.pimg.tw/isvincent/1729614405-645563795-g_l.png" title="將Excel表格裡的欄位內容自動填入PowerPoint投影"></p>
+<p><strong>在此附上程式碼：</strong></p>
+<p>Sub FillPowerPointTextBoxes()<br>
+&nbsp; &nbsp; Dim pptApp As Object<br>
+&nbsp; &nbsp; Dim pptPresentation As Object<br>
+&nbsp; &nbsp; Dim pptSlide As Object<br>
+&nbsp; &nbsp; Dim ws As Worksheet<br>
+&nbsp; &nbsp; Dim rng As Range<br>
+&nbsp; &nbsp; Dim row As Range<br>
+&nbsp; &nbsp; Dim i As Integer<br>
+&nbsp; &nbsp; Dim textBox1 As Object<br>
+&nbsp; &nbsp; Dim textBox2 As Object<br>
+&nbsp; &nbsp; Dim textBox3 As Object</p>
+<p>&nbsp; &nbsp; ' 設定Excel中的表格範圍<br>
+&nbsp; &nbsp; Set ws = ThisWorkbook.Sheets("資料") ' <strong>更改為你的工作表名稱</strong><br>
+&nbsp; &nbsp; Set rng = ws.Range("A2:C" &amp; ws.Cells(ws.Rows.Count, "A").End(xlUp).row) ' <strong>假設數據從A2開始</strong></p>
+<p>&nbsp; &nbsp; ' 打開已存在的PowerPoint<br>
+&nbsp; &nbsp; On Error Resume Next<br>
+&nbsp; &nbsp; Set pptApp = GetObject(Class:="PowerPoint.Application")<br>
+&nbsp; &nbsp; If pptApp Is Nothing Then<br>
+&nbsp; &nbsp; &nbsp; &nbsp; Set pptApp = CreateObject(Class:="PowerPoint.Application")<br>
+&nbsp; &nbsp; End If<br>
+&nbsp; &nbsp; pptApp.Visible = True<br>
+&nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; ' <strong>假設已經打開了你的PowerPoint簡報</strong><br>
+&nbsp; &nbsp; Set pptPresentation = pptApp.ActivePresentation</p>
+<p>&nbsp; &nbsp; ' 遍歷表格的每一列，並將內容填入PowerPoint<br>
+&nbsp; &nbsp; i = 1<br>
+&nbsp; &nbsp; For Each row In rng.Rows<br>
+&nbsp; &nbsp; &nbsp; &nbsp; ' 確保有足夠的投影片來填充內容<br>
+&nbsp; &nbsp; &nbsp; &nbsp; If i &lt;= pptPresentation.Slides.Count Then<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set pptSlide = pptPresentation.Slides(i) ' 將每一列數據對應到每張投影片<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ' 假設每張投影片上有三個文字方塊，依次填入表格中的三個欄位<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox1 = pptSlide.Shapes(1) ' 第一個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox1.TextFrame.TextRange.Text = row.Cells(1, 1).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox2 = pptSlide.Shapes(2) ' 第二個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox2.TextFrame.TextRange.Text = row.Cells(1, 2).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Set textBox3 = pptSlide.Shapes(3) ' 第三個文字方塊<br>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; textBox3.TextFrame.TextRange.Text = row.Cells(1, 3).Value<br>
+&nbsp; &nbsp; &nbsp; &nbsp; End If<br>
+&nbsp; &nbsp; &nbsp; &nbsp; i = i + 1<br>
+&nbsp; &nbsp; Next row</p>
+<p>&nbsp; &nbsp; MsgBox "內容填充完成！"<br>
+End Sub</p>
+<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]></content:encoded>
+    <itunes:image href="https://pic.pimg.tw/isvincent/1729614341-18456034-g.png"/>
+          <media:content url="https://pic.pimg.tw/isvincent/1729614341-18456034-g.png" medium="image"/>
+    <pubDate>Tue, 22 Oct 2024 23:58:44 +0800</pubDate>
+  </item><item>
     <title><![CDATA[多個將音訊取出轉錄稿的工具]]></title>
     <link>https://isvincent.pixnet.net/blog/post/50944152</link>
     <itunes:title><![CDATA[多個將音訊取出轉錄稿的工具]]></itunes:title>
@@ -3284,80 +3518,5 @@
     <itunes:image href="https://pic.pimg.tw/isvincent/1724325849-1611955139-g.png"/>
           <media:content url="https://pic.pimg.tw/isvincent/1724325849-1611955139-g.png" medium="image"/>
     <pubDate>Thu, 22 Aug 2024 18:57:16 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[在Google表單中利用取得預先填入的連結以快速報名]]></title>
-    <link>https://isvincent.pixnet.net/blog/post/50898928</link>
-    <itunes:title><![CDATA[在Google表單中利用取得預先填入的連結以快速報名]]></itunes:title>
-    <itunes:author><![CDATA[學不完．教不停．用不盡[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>當你利用 Google 表單製作報名表時，有時只想確認是否出席，為了讓報名者方便，如何以最簡單的方式讓對方填答？</p>
-<p>例如，以下的的報名表只想要讓報名者填入姓名和確認是否參加，你可以使用選單中的「取得預先填入的連結」的方法。</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724129430-2921870163-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>例如，填入姓名：王小明，出席勾選：是。再按「取得連結」。</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724129679-2871982619-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>會得到以下的網址範例：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=王小明&amp;entry.556097372=是</p>
-<p>如果你要個別請特定填答者（例如：李小華）來填，只要把網址改為：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=李小華&amp;entry.556097372=是</p>
-<p>再把網址 Line 給填答者，對方只要按下「提交」即可。</p>
-<p>如果想要大量產生該網址，可以利用以下公式：</p>
-<p>儲存格B2：=HYPERLINK("https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903="&amp;A2&amp;"&amp;entry.556097372=是",A2)</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724131144-396078324-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>如果你將：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=王小明&amp;entry.556097372=是</p>
-<p>改成：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.556097372=是&amp;entry.1258775903=王小明</p>
-<p>則，只要 Line 給填答者網址：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.556097372=是&amp;entry.1258775903=</p>
-<p>讓填答者自行填入姓名，則超連結網址即可。</p>
-<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>當你利用 Google 表單製作報名表時，有時只想確認是否出席，為了讓報名者方便，如何以最簡單的方式讓對方填答？</p>
-<p>例如，以下的的報名表只想要讓報名者填入姓名和確認是否參加，你可以使用選單中的「取得預先填入的連結」的方法。</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724129430-2921870163-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>例如，填入姓名：王小明，出席勾選：是。再按「取得連結」。</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724129679-2871982619-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>會得到以下的網址範例：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=王小明&amp;entry.556097372=是</p>
-<p>如果你要個別請特定填答者（例如：李小華）來填，只要把網址改為：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=李小華&amp;entry.556097372=是</p>
-<p>再把網址 Line 給填答者，對方只要按下「提交」即可。</p>
-<p>如果想要大量產生該網址，可以利用以下公式：</p>
-<p>儲存格B2：=HYPERLINK("https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903="&amp;A2&amp;"&amp;entry.556097372=是",A2)</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724131144-396078324-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>如果你將：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=王小明&amp;entry.556097372=是</p>
-<p>改成：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.556097372=是&amp;entry.1258775903=王小明</p>
-<p>則，只要 Line 給填答者網址：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.556097372=是&amp;entry.1258775903=</p>
-<p>讓填答者自行填入姓名，則超連結網址即可。</p>
-<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>當你利用 Google 表單製作報名表時，有時只想確認是否出席，為了讓報名者方便，如何以最簡單的方式讓對方填答？</p>
-<p>例如，以下的的報名表只想要讓報名者填入姓名和確認是否參加，你可以使用選單中的「取得預先填入的連結」的方法。</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724129430-2921870163-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>例如，填入姓名：王小明，出席勾選：是。再按「取得連結」。</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724129679-2871982619-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>會得到以下的網址範例：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=王小明&amp;entry.556097372=是</p>
-<p>如果你要個別請特定填答者（例如：李小華）來填，只要把網址改為：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=李小華&amp;entry.556097372=是</p>
-<p>再把網址 Line 給填答者，對方只要按下「提交」即可。</p>
-<p>如果想要大量產生該網址，可以利用以下公式：</p>
-<p>儲存格B2：=HYPERLINK("https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903="&amp;A2&amp;"&amp;entry.556097372=是",A2)</p>
-<p><img alt="在Google表單中利用取得預先填入的連結以快速報名" src="https://pic.pimg.tw/isvincent/1724131144-396078324-g.png" title="在Google表單中利用取得預先填入的連結以快速報名"></p>
-<p>如果你將：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.1258775903=王小明&amp;entry.556097372=是</p>
-<p>改成：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.556097372=是&amp;entry.1258775903=王小明</p>
-<p>則，只要 Line 給填答者網址：</p>
-<p>https://docs.google.com/forms/d/e/1FAIp...略...oKwg/viewform?usp=pp_url&amp;entry.556097372=是&amp;entry.1258775903=</p>
-<p>讓填答者自行填入姓名，則超連結網址即可。</p>
-<p><a href="https://isvincent.pixnet.net/blog/listall/1"><img alt="學不完．教不停．用不盡文章列表" border="0" src="https://pic.pimg.tw/isvincent/1582297154-2143912198.png" title="學不完．教不停．用不盡文章列表"></a></p>]]></content:encoded>
-    <itunes:image href="https://pic.pimg.tw/isvincent/1724129430-2921870163-g.png"/>
-          <media:content url="https://pic.pimg.tw/isvincent/1724129430-2921870163-g.png" medium="image"/>
-    <pubDate>Tue, 20 Aug 2024 12:50:18 +0800</pubDate>
   </item></channel>
 </rss>
