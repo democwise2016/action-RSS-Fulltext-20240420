@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/365/800/800.jpg?hmac=5Y5g3JINCWZPMOckPLS_D02LE0Z34NomIpXmVYGorwI</url>
+      <url>https://fastly.picsum.photos/id/502/800/800.jpg?hmac=uPtl86qrbHFFRvAdfmSGfAbeC8ZkXI1alpchEKRsKWc</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,74 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/365/800/800.jpg?hmac=5Y5g3JINCWZPMOckPLS_D02LE0Z34NomIpXmVYGorwI"/>
+    <itunes:image href="https://fastly.picsum.photos/id/502/800/800.jpg?hmac=uPtl86qrbHFFRvAdfmSGfAbeC8ZkXI1alpchEKRsKWc"/>
 <item>
+    <title><![CDATA[嘗試解決Kubuntu 24.04 (KDE 5.27) Nvidia顯卡玩遊戲畫面撕裂的問題]]></title>
+    <link>https://ivonblog.com/posts/kubuntu-2404-nvidia-gaming/</link>
+    <itunes:title><![CDATA[嘗試解決Kubuntu 24.04 (KDE 5.27) Nvidia顯卡玩遊戲畫面撕裂的問題]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/kubuntu-2404-nvidia-gaming/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f97aa05982.webp"></a></p>
+<p>Kubuntu 24.04 + KDE 5.27 + Wayland + Nvidia，真的準備好了嗎？</p><p>這幾個月以來遊戲都無法好好的玩。</p><p>KDE 5.27 + Nvidia 550版驅動，遊戲進入全螢幕瘋狂出現畫面撕裂(tearing)、閃爍(flickering)、出現黑影(glitching)等現象。</p><p>主因應該是Nvidia驅動，嘗試了好多方案，最終升級驅動才解決。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ac19d4522b.webp"><p>測試環境：</p><ul><li>Kubuntu 24.04 LTS</li><li>KDE 5.27.11</li><li>Linux核心6.8.0</li><li>Nvidia GeForce® GTX 1050 Ti</li><li>Nvidia專有驅動560.35.03</li><li>Steam Flatpak 1.0.0.79</li><li>Steam Proton 9.0</li></ul><p>玩遊戲還要先debug…</p><p>今年將主力電腦從Arch Linux換成Kubuntu，尋求較為穩定的桌面使用體驗。因為Kubuntu開發組來不及跟上KDE 6更新，所以我可能得在KDE 5多待二年（加上過去用Gentoo的經驗就四年了！），用著半吊子的Wayland支援度。想到得繼續用這最後的5.27版兩年，沒有關係…我有非主力的筆電能體驗KDE 6。</p><p>即使是穩定發行版，KDE與Nvidia的相性還是很糟糕，尤其是X11工作階段，該卡頓的依然卡。而Wayland？或許他們會把它調整到起碼能用的狀態？</p><p>如果Kubuntu開發組有這個願景的話，就不會把24.04預設工作階段設定為X11了，KDE Wayland現在還是實驗性狀態，not production ready。那些說KDE Wayland works for me的用戶，嘩！一抓一大把是AMD仔。我們這些可憐的Average Joe，為了CUDA，繼續忍痛用Nvidia。</p><p>看看最新版的Ubuntu 24.10才終於要預設採用GNOME Wayland了，也許跟RHEL 10準備移除X11有關。這樣給Nvidia很大的壓力呢，皮衣刀客不要整天只想著炒AI啦，不然未來還有比不完的中指。</p><p>話說回來，Wayland似乎能徹底解決X11畫面撕裂的問題。</p><p>Kubuntu 24.04的KDE預設沒有Wayland，需要手動安裝。SDDM的登入選項才會出現。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install plasma-workspace-wayland
+</span></span></code></pre></div><p>Intel CPU內顯，不論X11還是Wayland一切流暢，開源Mesa驅動是真的穩。問題就是CPU內顯實在玩不了遊戲。</p><p>切換到Nvidia專有驅動後，X11，KDE系統動畫lag，這問題Arch Linux和KDE Neon也有。遊戲畫面撕裂，全螢幕War Thunder遊戲出現破圖黑影。我試過其他Steam Proton遊戲，例如GTA 3最終版，也一樣出現全螢幕畫面撕裂。</p><p>老招，開啟"Force Composition Pipeline"試過了，無效。還可能導致遊戲崩潰。我不想調整Xorg設定檔，麻煩。</p><p>順便分享我遇到全螢幕遊戲當掉的無回應的處理方式：按CTRL＋ESC叫出KDE的工作管理員，中止殭屍行程。</p><p>換到Wayland，動畫lag和撕裂沒有了，似乎還變順暢了些，但是全螢幕玩遊戲畫面會抖動。</p><p>聽聞Reddit Linux社群對新版的Nvidia驅動評價不賴，據說他們釋出560版驅動後Wayland改善了很多，支援Explicit sync，是起飛了的等級。</p><p>但也有Ubuntu用戶說560在較新的Nvidia顯示卡問題很多。</p><p>不管了。</p><p>所以我從Ubuntu官方的 “Graphics Drivers” PPA取得實驗性的最新版驅動（Nvidia CUDA的套件庫也有收新版驅動），把Kubuntu預設的Nvidia 550版升級到560版</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge *nvidia*
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span><span><span>
+</span></span><span><span>sudo apt install pkg-config libglvnd-dev dkms build-essential libegl-dev libegl1 libgl-dev libgl1 libgles-dev libgles1 libglvnd-core-dev libglx-dev libopengl-dev gcc make
+</span></span><span><span>
+</span></span><span><span>sudo add-apt-repository ppa:graphics-drivers/ppa
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install nvidia-driver-560
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><p>這個版本的Nvidia驅動已經預設啟用<code>nvidia_drm.modeset=1</code>，所以不用調整GRUB核心參數。</p><p>結果X11還是繼續撕裂。事實上KDE X11動畫相較於Wayland本就看起來鈍鈍的。</p><p>順帶一提GNOME 46 X11也瘋狂畫面撕裂（原生，非Ubuntu版本）。Nvidia對X11早就放棄治療了。</p><p>換到Wayland玩遊戲，一切流暢，畫面終於不抖動了。雖然遊戲FPS被強制鎖在60FPS就是了。</p><p>問題暫時解決。Now it works for me. YMMV.</p><p>寫完的當下，幹，我又遇到KDE工作列凍結的bug了，應用程式和時鐘完全靜止，看來Wayland問題還是很多呀。根據<a href="https://bugs.kde.org/show_bug.cgi?id=449163" target="_blank">
+bugs.kde.org的回答</a>，這個問題到KDE 6依然存在。</p><p>再看看KDE開發者整理的<a href="https://community.kde.org/Plasma/Wayland_Known_Significant_Issues" target="_blank">
+Plasma Wayland Known Significant Issues</a>列表…嗯，我看等KDE 7才會是The Year of Wayland Desktop了吧。</p><p>你要嘛用滾動發行版取得最新的Wayland修正，不然就只能在穩定發行版用著根本不穩定的Wayland半成品！</p><p>我在想，或許Intel + Nvidia PRIME是目前最好的折衷解方。Intel負責穩定地顯示桌面環境，玩遊戲的時候再offload那部份給Nvidia顯示卡運算。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/kubuntu-2404-nvidia-gaming/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f97aa05982.webp"></a></p>
+<p>Kubuntu 24.04 + KDE 5.27 + Wayland + Nvidia，真的準備好了嗎？</p><p>這幾個月以來遊戲都無法好好的玩。</p><p>KDE 5.27 + Nvidia 550版驅動，遊戲進入全螢幕瘋狂出現畫面撕裂(tearing)、閃爍(flickering)、出現黑影(glitching)等現象。</p><p>主因應該是Nvidia驅動，嘗試了好多方案，最終升級驅動才解決。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ac19d4522b.webp"><p>測試環境：</p><ul><li>Kubuntu 24.04 LTS</li><li>KDE 5.27.11</li><li>Linux核心6.8.0</li><li>Nvidia GeForce® GTX 1050 Ti</li><li>Nvidia專有驅動560.35.03</li><li>Steam Flatpak 1.0.0.79</li><li>Steam Proton 9.0</li></ul><p>玩遊戲還要先debug…</p><p>今年將主力電腦從Arch Linux換成Kubuntu，尋求較為穩定的桌面使用體驗。因為Kubuntu開發組來不及跟上KDE 6更新，所以我可能得在KDE 5多待二年（加上過去用Gentoo的經驗就四年了！），用著半吊子的Wayland支援度。想到得繼續用這最後的5.27版兩年，沒有關係…我有非主力的筆電能體驗KDE 6。</p><p>即使是穩定發行版，KDE與Nvidia的相性還是很糟糕，尤其是X11工作階段，該卡頓的依然卡。而Wayland？或許他們會把它調整到起碼能用的狀態？</p><p>如果Kubuntu開發組有這個願景的話，就不會把24.04預設工作階段設定為X11了，KDE Wayland現在還是實驗性狀態，not production ready。那些說KDE Wayland works for me的用戶，嘩！一抓一大把是AMD仔。我們這些可憐的Average Joe，為了CUDA，繼續忍痛用Nvidia。</p><p>看看最新版的Ubuntu 24.10才終於要預設採用GNOME Wayland了，也許跟RHEL 10準備移除X11有關。這樣給Nvidia很大的壓力呢，皮衣刀客不要整天只想著炒AI啦，不然未來還有比不完的中指。</p><p>話說回來，Wayland似乎能徹底解決X11畫面撕裂的問題。</p><p>Kubuntu 24.04的KDE預設沒有Wayland，需要手動安裝。SDDM的登入選項才會出現。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install plasma-workspace-wayland
+</span></span></code></pre></div><p>Intel CPU內顯，不論X11還是Wayland一切流暢，開源Mesa驅動是真的穩。問題就是CPU內顯實在玩不了遊戲。</p><p>切換到Nvidia專有驅動後，X11，KDE系統動畫lag，這問題Arch Linux和KDE Neon也有。遊戲畫面撕裂，全螢幕War Thunder遊戲出現破圖黑影。我試過其他Steam Proton遊戲，例如GTA 3最終版，也一樣出現全螢幕畫面撕裂。</p><p>老招，開啟"Force Composition Pipeline"試過了，無效。還可能導致遊戲崩潰。我不想調整Xorg設定檔，麻煩。</p><p>順便分享我遇到全螢幕遊戲當掉的無回應的處理方式：按CTRL＋ESC叫出KDE的工作管理員，中止殭屍行程。</p><p>換到Wayland，動畫lag和撕裂沒有了，似乎還變順暢了些，但是全螢幕玩遊戲畫面會抖動。</p><p>聽聞Reddit Linux社群對新版的Nvidia驅動評價不賴，據說他們釋出560版驅動後Wayland改善了很多，支援Explicit sync，是起飛了的等級。</p><p>但也有Ubuntu用戶說560在較新的Nvidia顯示卡問題很多。</p><p>不管了。</p><p>所以我從Ubuntu官方的 “Graphics Drivers” PPA取得實驗性的最新版驅動（Nvidia CUDA的套件庫也有收新版驅動），把Kubuntu預設的Nvidia 550版升級到560版</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge *nvidia*
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span><span><span>
+</span></span><span><span>sudo apt install pkg-config libglvnd-dev dkms build-essential libegl-dev libegl1 libgl-dev libgl1 libgles-dev libgles1 libglvnd-core-dev libglx-dev libopengl-dev gcc make
+</span></span><span><span>
+</span></span><span><span>sudo add-apt-repository ppa:graphics-drivers/ppa
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install nvidia-driver-560
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><p>這個版本的Nvidia驅動已經預設啟用<code>nvidia_drm.modeset=1</code>，所以不用調整GRUB核心參數。</p><p>結果X11還是繼續撕裂。事實上KDE X11動畫相較於Wayland本就看起來鈍鈍的。</p><p>順帶一提GNOME 46 X11也瘋狂畫面撕裂（原生，非Ubuntu版本）。Nvidia對X11早就放棄治療了。</p><p>換到Wayland玩遊戲，一切流暢，畫面終於不抖動了。雖然遊戲FPS被強制鎖在60FPS就是了。</p><p>問題暫時解決。Now it works for me. YMMV.</p><p>寫完的當下，幹，我又遇到KDE工作列凍結的bug了，應用程式和時鐘完全靜止，看來Wayland問題還是很多呀。根據<a href="https://bugs.kde.org/show_bug.cgi?id=449163" target="_blank">
+bugs.kde.org的回答</a>，這個問題到KDE 6依然存在。</p><p>再看看KDE開發者整理的<a href="https://community.kde.org/Plasma/Wayland_Known_Significant_Issues" target="_blank">
+Plasma Wayland Known Significant Issues</a>列表…嗯，我看等KDE 7才會是The Year of Wayland Desktop了吧。</p><p>你要嘛用滾動發行版取得最新的Wayland修正，不然就只能在穩定發行版用著根本不穩定的Wayland半成品！</p><p>我在想，或許Intel + Nvidia PRIME是目前最好的折衷解方。Intel負責穩定地顯示桌面環境，玩遊戲的時候再offload那部份給Nvidia顯示卡運算。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/kubuntu-2404-nvidia-gaming/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f97aa05982.webp"></a></p>
+<p>Kubuntu 24.04 + KDE 5.27 + Wayland + Nvidia，真的準備好了嗎？</p><p>這幾個月以來遊戲都無法好好的玩。</p><p>KDE 5.27 + Nvidia 550版驅動，遊戲進入全螢幕瘋狂出現畫面撕裂(tearing)、閃爍(flickering)、出現黑影(glitching)等現象。</p><p>主因應該是Nvidia驅動，嘗試了好多方案，最終升級驅動才解決。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ac19d4522b.webp"><p>測試環境：</p><ul><li>Kubuntu 24.04 LTS</li><li>KDE 5.27.11</li><li>Linux核心6.8.0</li><li>Nvidia GeForce® GTX 1050 Ti</li><li>Nvidia專有驅動560.35.03</li><li>Steam Flatpak 1.0.0.79</li><li>Steam Proton 9.0</li></ul><p>玩遊戲還要先debug…</p><p>今年將主力電腦從Arch Linux換成Kubuntu，尋求較為穩定的桌面使用體驗。因為Kubuntu開發組來不及跟上KDE 6更新，所以我可能得在KDE 5多待二年（加上過去用Gentoo的經驗就四年了！），用著半吊子的Wayland支援度。想到得繼續用這最後的5.27版兩年，沒有關係…我有非主力的筆電能體驗KDE 6。</p><p>即使是穩定發行版，KDE與Nvidia的相性還是很糟糕，尤其是X11工作階段，該卡頓的依然卡。而Wayland？或許他們會把它調整到起碼能用的狀態？</p><p>如果Kubuntu開發組有這個願景的話，就不會把24.04預設工作階段設定為X11了，KDE Wayland現在還是實驗性狀態，not production ready。那些說KDE Wayland works for me的用戶，嘩！一抓一大把是AMD仔。我們這些可憐的Average Joe，為了CUDA，繼續忍痛用Nvidia。</p><p>看看最新版的Ubuntu 24.10才終於要預設採用GNOME Wayland了，也許跟RHEL 10準備移除X11有關。這樣給Nvidia很大的壓力呢，皮衣刀客不要整天只想著炒AI啦，不然未來還有比不完的中指。</p><p>話說回來，Wayland似乎能徹底解決X11畫面撕裂的問題。</p><p>Kubuntu 24.04的KDE預設沒有Wayland，需要手動安裝。SDDM的登入選項才會出現。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install plasma-workspace-wayland
+</span></span></code></pre></div><p>Intel CPU內顯，不論X11還是Wayland一切流暢，開源Mesa驅動是真的穩。問題就是CPU內顯實在玩不了遊戲。</p><p>切換到Nvidia專有驅動後，X11，KDE系統動畫lag，這問題Arch Linux和KDE Neon也有。遊戲畫面撕裂，全螢幕War Thunder遊戲出現破圖黑影。我試過其他Steam Proton遊戲，例如GTA 3最終版，也一樣出現全螢幕畫面撕裂。</p><p>老招，開啟"Force Composition Pipeline"試過了，無效。還可能導致遊戲崩潰。我不想調整Xorg設定檔，麻煩。</p><p>順便分享我遇到全螢幕遊戲當掉的無回應的處理方式：按CTRL＋ESC叫出KDE的工作管理員，中止殭屍行程。</p><p>換到Wayland，動畫lag和撕裂沒有了，似乎還變順暢了些，但是全螢幕玩遊戲畫面會抖動。</p><p>聽聞Reddit Linux社群對新版的Nvidia驅動評價不賴，據說他們釋出560版驅動後Wayland改善了很多，支援Explicit sync，是起飛了的等級。</p><p>但也有Ubuntu用戶說560在較新的Nvidia顯示卡問題很多。</p><p>不管了。</p><p>所以我從Ubuntu官方的 “Graphics Drivers” PPA取得實驗性的最新版驅動（Nvidia CUDA的套件庫也有收新版驅動），把Kubuntu預設的Nvidia 550版升級到560版</p><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge *nvidia*
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span><span><span>
+</span></span><span><span>sudo apt install pkg-config libglvnd-dev dkms build-essential libegl-dev libegl1 libgl-dev libgl1 libgles-dev libgles1 libglvnd-core-dev libglx-dev libopengl-dev gcc make
+</span></span><span><span>
+</span></span><span><span>sudo add-apt-repository ppa:graphics-drivers/ppa
+</span></span><span><span>
+</span></span><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span>sudo apt install nvidia-driver-560
+</span></span><span><span>
+</span></span><span><span>sudo reboot
+</span></span></code></pre></div><p>這個版本的Nvidia驅動已經預設啟用<code>nvidia_drm.modeset=1</code>，所以不用調整GRUB核心參數。</p><p>結果X11還是繼續撕裂。事實上KDE X11動畫相較於Wayland本就看起來鈍鈍的。</p><p>順帶一提GNOME 46 X11也瘋狂畫面撕裂（原生，非Ubuntu版本）。Nvidia對X11早就放棄治療了。</p><p>換到Wayland玩遊戲，一切流暢，畫面終於不抖動了。雖然遊戲FPS被強制鎖在60FPS就是了。</p><p>問題暫時解決。Now it works for me. YMMV.</p><p>寫完的當下，幹，我又遇到KDE工作列凍結的bug了，應用程式和時鐘完全靜止，看來Wayland問題還是很多呀。根據<a href="https://bugs.kde.org/show_bug.cgi?id=449163" target="_blank">
+bugs.kde.org的回答</a>，這個問題到KDE 6依然存在。</p><p>再看看KDE開發者整理的<a href="https://community.kde.org/Plasma/Wayland_Known_Significant_Issues" target="_blank">
+Plasma Wayland Known Significant Issues</a>列表…嗯，我看等KDE 7才會是The Year of Wayland Desktop了吧。</p><p>你要嘛用滾動發行版取得最新的Wayland修正，不然就只能在穩定發行版用著根本不穩定的Wayland半成品！</p><p>我在想，或許Intel + Nvidia PRIME是目前最好的折衷解方。Intel負責穩定地顯示桌面環境，玩遊戲的時候再offload那部份給Nvidia顯示卡運算。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f97aa05982.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f97aa05982.webp" medium="image"/>
+    <pubDate>Thu, 24 Oct 2024 22:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[隱身台南市巷弄的日式霜淇淋，京美人甘味屋 ＆ 毛利屋珈琲食記]]></title>
     <link>https://ivonblog.com/posts/2024102001/</link>
     <itunes:title><![CDATA[隱身台南市巷弄的日式霜淇淋，京美人甘味屋 ＆ 毛利屋珈琲食記]]></itunes:title>
