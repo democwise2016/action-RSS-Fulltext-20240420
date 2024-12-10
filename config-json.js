@@ -17,7 +17,7 @@ let CONFIG = {
   newArrialMax: 50,
   maxDownloadItems: 100,
   maxExcutionMinutes: 25,
-  maxWait: 2,
+  maxWait: 5,
 
   maxFileCache: 2000,
   BATCH_REMOVE: 100,
