@@ -1,0 +1,1483 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[黑暗執行緒[RSS+]]]></title>
+    <link>undefined</link>
+    <image>
+      <url>https://blog.darkthread.net/img/icon512x512.png</url>
+      <title>黑暗執行緒[RSS+]</title>
+      <link>undefined</link>
+    </image>
+    <language>en-us</language>
+    <atom:link href="https://blog.darkthread.net/feed/rss/" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[黑暗執行緒[RSS+]]]></copyright>
+    <itunes:author><![CDATA[黑暗執行緒[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[黑暗執行緒[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
+<item>
+    <title><![CDATA[Coding4Fun - 也來玩梗圖產生 (CSS + Playwright)]]></title>
+    <link>https://blog.darkthread.net/blog/meme-picture-w-css-playwright/</link>
+    <itunes:title><![CDATA[Coding4Fun - 也來玩梗圖產生 (CSS + Playwright)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>很久沒玩 <a href="/blog/playwright-notes/">Playwright</a> 了，找了個題目暖身。</p> <p>講到自己做梗圖，首推「Meme 梗圖倉庫」的「<a href="https://memes.tw/maker/template/270">梗圖產生器</a>」，介面好用素材又齊全，基本上你看過的，想得到的梗圖都做得出來。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png"></p> <p>正常人其實沒什麼必要花時間自己搞，但我想到梗圖產生器的原理基本上就是在素材底圖指定位置放上自訂文字，理論上用 CSS 不難實現，順便再練習用 .NET 呼叫 Playwright 操作 HTML 網頁組裝後存成 png，便成了一個大小適中的日常練習題。這就是本次的計劃，開始!</p> <p>我選了 <a href="https://www.facebook.com/permalink.php?story_fbid=pfbid028FAsDoVyuUkvbazBuCkgME6Aq9CMyyN8fd8VKvzbrpMFwmaVAQBdsR9UeNw4YcMvl&amp;id=102252681704373">Drake 的 No / Yes 迷因圖</a> 當素材底圖，圖片尺寸 600x600，用 <code>display: flex; flex-wrap: wrap;</code> 橫式排四個寬度 50% 的區塊 <code>flex: 1 0 50%</code>，自動折成兩列，則第 2 個跟第 4 個就是填入上下文字的文字容器。文字容器內部用 <code>display: flex; justify-content: center; align-items: center;</code> 讓文字上下左右置中。</p> <p>至於粗黑框白字的文字特效，我參考這篇<a href="https://www.hellosanta.com.tw/knowledge/category-13/post-433">如何利用 CSS 製作完美的文字外框</a>，用 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-text-stroke">-webkit-text-stroke</a> 粗體特效配合 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::before">::before</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::after">::after</a> 偽元素，控制 z-index 先疊一層 8px 黑邊框文字、再疊一層 1px 白邊框字，黑框字理論上要圓角才好看，但我沒找到用 CSS 實現的方法，為避免邊角太銳利，我套用 <code>filter: drop-shadow(0px 0px 1px black);</code> 加減柔化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638698518599553554.png"></p> <p>完整網頁範例如下：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;style&gt;
+html,body { margin: 0; padding:0 }
+div.meme {
+background-image: url(meme.png);
+display: flex;
+flex-wrap: wrap;
+width: 600px;
+height: 600px;
+border: 1px solid black;
+div.cell {
+flex: 1 0 50%;
+border-bottom: 1px solid #777;
+box-sizing: border-box;
+display: flex;
+justify-content: center;
+align-items: center;
+font-family: '微軟正黑體';
+height: 300px;
+}
+[data-stroke] {
+display: inline-block;
+margin: 0 16px;
+font-size: 20pt;
+line-height: 145%;
+position: relative;
+white-space: pre-wrap;
+&amp;::before,&amp;::after {
+content: attr(data-stroke);
+position: absolute;
+left: 0;
+top: 0;
+}
+&amp;::after {
+z-index: 1;
+-webkit-text-stroke: 8px #222;
+filter: drop-shadow(0px 0px 1px black);
+}
+&amp;::before {
+z-index: 2;
+color: white;
+-webkit-text-stroke: 1px white;
+}
+}
+}
+&lt;/style&gt;
+&lt;div class="meme"&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="top-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="bottom-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function setWord(word, loc) {
+const elem = document.getElementById(loc + "-word");
+elem.innerText = word;
+elem.setAttribute("data-stroke", word);
+return true;
+}
+setWord("上梗圖產生器網站
+一分鐘做完梗圖", "top");
+setWord("CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成", "bottom");
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>Playwright 部分相對簡單，都是以前介紹過的<a href="/blog/playwright-notes/">技巧</a>：</p> <pre><code>using System.Text.Json;
+using Microsoft.Playwright;
+public class MemeMaker
+{
+static BrowserTypeLaunchOptions browserOptions = new BrowserTypeLaunchOptions
+{
+// TODO: 自動尋找路徑 https://blog.darkthread.net/blog/playwright-app-dep-issue/
+ExecutablePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+Headless = true
+};
+public async Task&lt;byte[]&gt; MakeMeme(string workingFolder, string topText, string bottomText)
+{
+using var playwright = await Playwright.CreateAsync();
+await using var browser = await playwright.Chromium.LaunchAsync(browserOptions);
+var page = await browser.NewPageAsync();
+await page.GotoAsync($"file:///{Path.Combine(workingFolder, "template.html")}");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(topText)}, 'top')");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(bottomText)}, 'bottom')");
+var imgBytes = await page.ScreenshotAsync(new PageScreenshotOptions
+{
+Clip = new Clip
+{
+X = 0,
+Y = 0,
+Width = 600,
+Height = 600
+}
+});
+File.WriteAllBytes(Path.Combine(workingFolder, "meme-result.png"), imgBytes);
+await page.CloseAsync();
+return imgBytes;
+}
+}
+</code></pre> <p>簡單實測，成功!</p> <pre><code>var memeMaker = new MemeMaker();
+var memeFolder = Path.Combine(builder.Environment.ContentRootPath, "data");
+await memeMaker.MakeMeme(memeFolder,
+"上梗圖產生器網站
+一分鐘做完梗圖",
+"CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成");
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638698518602273607.png"></p> <p data-slug="meme-picture-w-css-playwright" data-title-en="Creating memes with CSS and Playwright for .NET" data-catg="Web Development" data-fbimg="https://i.imgur.com/XGX9mMZ.png#533#300">This article explores creating memes with CSS and Playwright for .NET. It uses a HTML template and Playwright to automate meme creation by adding text to a base image. The provided C# code demonstrates using Playwright to manipulate the HTML and capture a screenshot of the final meme.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>很久沒玩 <a href="/blog/playwright-notes/">Playwright</a> 了，找了個題目暖身。</p> <p>講到自己做梗圖，首推「Meme 梗圖倉庫」的「<a href="https://memes.tw/maker/template/270">梗圖產生器</a>」，介面好用素材又齊全，基本上你看過的，想得到的梗圖都做得出來。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png"></p> <p>正常人其實沒什麼必要花時間自己搞，但我想到梗圖產生器的原理基本上就是在素材底圖指定位置放上自訂文字，理論上用 CSS 不難實現，順便再練習用 .NET 呼叫 Playwright 操作 HTML 網頁組裝後存成 png，便成了一個大小適中的日常練習題。這就是本次的計劃，開始!</p> <p>我選了 <a href="https://www.facebook.com/permalink.php?story_fbid=pfbid028FAsDoVyuUkvbazBuCkgME6Aq9CMyyN8fd8VKvzbrpMFwmaVAQBdsR9UeNw4YcMvl&amp;id=102252681704373">Drake 的 No / Yes 迷因圖</a> 當素材底圖，圖片尺寸 600x600，用 <code>display: flex; flex-wrap: wrap;</code> 橫式排四個寬度 50% 的區塊 <code>flex: 1 0 50%</code>，自動折成兩列，則第 2 個跟第 4 個就是填入上下文字的文字容器。文字容器內部用 <code>display: flex; justify-content: center; align-items: center;</code> 讓文字上下左右置中。</p> <p>至於粗黑框白字的文字特效，我參考這篇<a href="https://www.hellosanta.com.tw/knowledge/category-13/post-433">如何利用 CSS 製作完美的文字外框</a>，用 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-text-stroke">-webkit-text-stroke</a> 粗體特效配合 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::before">::before</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::after">::after</a> 偽元素，控制 z-index 先疊一層 8px 黑邊框文字、再疊一層 1px 白邊框字，黑框字理論上要圓角才好看，但我沒找到用 CSS 實現的方法，為避免邊角太銳利，我套用 <code>filter: drop-shadow(0px 0px 1px black);</code> 加減柔化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638698518599553554.png"></p> <p>完整網頁範例如下：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;style&gt;
+html,body { margin: 0; padding:0 }
+div.meme {
+background-image: url(meme.png);
+display: flex;
+flex-wrap: wrap;
+width: 600px;
+height: 600px;
+border: 1px solid black;
+div.cell {
+flex: 1 0 50%;
+border-bottom: 1px solid #777;
+box-sizing: border-box;
+display: flex;
+justify-content: center;
+align-items: center;
+font-family: '微軟正黑體';
+height: 300px;
+}
+[data-stroke] {
+display: inline-block;
+margin: 0 16px;
+font-size: 20pt;
+line-height: 145%;
+position: relative;
+white-space: pre-wrap;
+&amp;::before,&amp;::after {
+content: attr(data-stroke);
+position: absolute;
+left: 0;
+top: 0;
+}
+&amp;::after {
+z-index: 1;
+-webkit-text-stroke: 8px #222;
+filter: drop-shadow(0px 0px 1px black);
+}
+&amp;::before {
+z-index: 2;
+color: white;
+-webkit-text-stroke: 1px white;
+}
+}
+}
+&lt;/style&gt;
+&lt;div class="meme"&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="top-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="bottom-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function setWord(word, loc) {
+const elem = document.getElementById(loc + "-word");
+elem.innerText = word;
+elem.setAttribute("data-stroke", word);
+return true;
+}
+setWord("上梗圖產生器網站
+一分鐘做完梗圖", "top");
+setWord("CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成", "bottom");
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>Playwright 部分相對簡單，都是以前介紹過的<a href="/blog/playwright-notes/">技巧</a>：</p> <pre><code>using System.Text.Json;
+using Microsoft.Playwright;
+public class MemeMaker
+{
+static BrowserTypeLaunchOptions browserOptions = new BrowserTypeLaunchOptions
+{
+// TODO: 自動尋找路徑 https://blog.darkthread.net/blog/playwright-app-dep-issue/
+ExecutablePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+Headless = true
+};
+public async Task&lt;byte[]&gt; MakeMeme(string workingFolder, string topText, string bottomText)
+{
+using var playwright = await Playwright.CreateAsync();
+await using var browser = await playwright.Chromium.LaunchAsync(browserOptions);
+var page = await browser.NewPageAsync();
+await page.GotoAsync($"file:///{Path.Combine(workingFolder, "template.html")}");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(topText)}, 'top')");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(bottomText)}, 'bottom')");
+var imgBytes = await page.ScreenshotAsync(new PageScreenshotOptions
+{
+Clip = new Clip
+{
+X = 0,
+Y = 0,
+Width = 600,
+Height = 600
+}
+});
+File.WriteAllBytes(Path.Combine(workingFolder, "meme-result.png"), imgBytes);
+await page.CloseAsync();
+return imgBytes;
+}
+}
+</code></pre> <p>簡單實測，成功!</p> <pre><code>var memeMaker = new MemeMaker();
+var memeFolder = Path.Combine(builder.Environment.ContentRootPath, "data");
+await memeMaker.MakeMeme(memeFolder,
+"上梗圖產生器網站
+一分鐘做完梗圖",
+"CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成");
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638698518602273607.png"></p> <p data-slug="meme-picture-w-css-playwright" data-title-en="Creating memes with CSS and Playwright for .NET" data-catg="Web Development" data-fbimg="https://i.imgur.com/XGX9mMZ.png#533#300">This article explores creating memes with CSS and Playwright for .NET. It uses a HTML template and Playwright to automate meme creation by adding text to a base image. The provided C# code demonstrates using Playwright to manipulate the HTML and capture a screenshot of the final meme.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>很久沒玩 <a href="/blog/playwright-notes/">Playwright</a> 了，找了個題目暖身。</p> <p>講到自己做梗圖，首推「Meme 梗圖倉庫」的「<a href="https://memes.tw/maker/template/270">梗圖產生器</a>」，介面好用素材又齊全，基本上你看過的，想得到的梗圖都做得出來。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png"></p> <p>正常人其實沒什麼必要花時間自己搞，但我想到梗圖產生器的原理基本上就是在素材底圖指定位置放上自訂文字，理論上用 CSS 不難實現，順便再練習用 .NET 呼叫 Playwright 操作 HTML 網頁組裝後存成 png，便成了一個大小適中的日常練習題。這就是本次的計劃，開始!</p> <p>我選了 <a href="https://www.facebook.com/permalink.php?story_fbid=pfbid028FAsDoVyuUkvbazBuCkgME6Aq9CMyyN8fd8VKvzbrpMFwmaVAQBdsR9UeNw4YcMvl&amp;id=102252681704373">Drake 的 No / Yes 迷因圖</a> 當素材底圖，圖片尺寸 600x600，用 <code>display: flex; flex-wrap: wrap;</code> 橫式排四個寬度 50% 的區塊 <code>flex: 1 0 50%</code>，自動折成兩列，則第 2 個跟第 4 個就是填入上下文字的文字容器。文字容器內部用 <code>display: flex; justify-content: center; align-items: center;</code> 讓文字上下左右置中。</p> <p>至於粗黑框白字的文字特效，我參考這篇<a href="https://www.hellosanta.com.tw/knowledge/category-13/post-433">如何利用 CSS 製作完美的文字外框</a>，用 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-text-stroke">-webkit-text-stroke</a> 粗體特效配合 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::before">::before</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::after">::after</a> 偽元素，控制 z-index 先疊一層 8px 黑邊框文字、再疊一層 1px 白邊框字，黑框字理論上要圓角才好看，但我沒找到用 CSS 實現的方法，為避免邊角太銳利，我套用 <code>filter: drop-shadow(0px 0px 1px black);</code> 加減柔化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638698518599553554.png"></p> <p>完整網頁範例如下：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;style&gt;
+html,body { margin: 0; padding:0 }
+div.meme {
+background-image: url(meme.png);
+display: flex;
+flex-wrap: wrap;
+width: 600px;
+height: 600px;
+border: 1px solid black;
+div.cell {
+flex: 1 0 50%;
+border-bottom: 1px solid #777;
+box-sizing: border-box;
+display: flex;
+justify-content: center;
+align-items: center;
+font-family: '微軟正黑體';
+height: 300px;
+}
+[data-stroke] {
+display: inline-block;
+margin: 0 16px;
+font-size: 20pt;
+line-height: 145%;
+position: relative;
+white-space: pre-wrap;
+&amp;::before,&amp;::after {
+content: attr(data-stroke);
+position: absolute;
+left: 0;
+top: 0;
+}
+&amp;::after {
+z-index: 1;
+-webkit-text-stroke: 8px #222;
+filter: drop-shadow(0px 0px 1px black);
+}
+&amp;::before {
+z-index: 2;
+color: white;
+-webkit-text-stroke: 1px white;
+}
+}
+}
+&lt;/style&gt;
+&lt;div class="meme"&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="top-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="bottom-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function setWord(word, loc) {
+const elem = document.getElementById(loc + "-word");
+elem.innerText = word;
+elem.setAttribute("data-stroke", word);
+return true;
+}
+setWord("上梗圖產生器網站
+一分鐘做完梗圖", "top");
+setWord("CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成", "bottom");
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>Playwright 部分相對簡單，都是以前介紹過的<a href="/blog/playwright-notes/">技巧</a>：</p> <pre><code>using System.Text.Json;
+using Microsoft.Playwright;
+public class MemeMaker
+{
+static BrowserTypeLaunchOptions browserOptions = new BrowserTypeLaunchOptions
+{
+// TODO: 自動尋找路徑 https://blog.darkthread.net/blog/playwright-app-dep-issue/
+ExecutablePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+Headless = true
+};
+public async Task&lt;byte[]&gt; MakeMeme(string workingFolder, string topText, string bottomText)
+{
+using var playwright = await Playwright.CreateAsync();
+await using var browser = await playwright.Chromium.LaunchAsync(browserOptions);
+var page = await browser.NewPageAsync();
+await page.GotoAsync($"file:///{Path.Combine(workingFolder, "template.html")}");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(topText)}, 'top')");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(bottomText)}, 'bottom')");
+var imgBytes = await page.ScreenshotAsync(new PageScreenshotOptions
+{
+Clip = new Clip
+{
+X = 0,
+Y = 0,
+Width = 600,
+Height = 600
+}
+});
+File.WriteAllBytes(Path.Combine(workingFolder, "meme-result.png"), imgBytes);
+await page.CloseAsync();
+return imgBytes;
+}
+}
+</code></pre> <p>簡單實測，成功!</p> <pre><code>var memeMaker = new MemeMaker();
+var memeFolder = Path.Combine(builder.Environment.ContentRootPath, "data");
+await memeMaker.MakeMeme(memeFolder,
+"上梗圖產生器網站
+一分鐘做完梗圖",
+"CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成");
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638698518602273607.png"></p> <p data-slug="meme-picture-w-css-playwright" data-title-en="Creating memes with CSS and Playwright for .NET" data-catg="Web Development" data-fbimg="https://i.imgur.com/XGX9mMZ.png#533#300">This article explores creating memes with CSS and Playwright for .NET. It uses a HTML template and Playwright to automate meme creation by adding text to a base image. The provided C# code demonstrates using Playwright to manipulate the HTML and capture a screenshot of the final meme.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png" medium="image"/>
+    <pubDate>Sun, 15 Dec 2024 09:17:32 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【打破砂鍋】路口沒行人汽機車也必須停等，否則開罰 1200？]]></title>
+    <link>https://blog.darkthread.net/blog/force-stop-and-wait/</link>
+    <itunes:title><![CDATA[【打破砂鍋】路口沒行人汽機車也必須停等，否則開罰 1200？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這兩天冒出一堆「汽機車注意！不管有無行人路口未停讓秒噴1200元」的新聞。報導指出，交通部長陳世凱強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，否則都有罰則可罰。</p> <p>先聲明，我自己當行人的機會遠高於駕駛，雙手雙腳贊成汽機車應禮讓行人，但看到疑似不合邏輯或不合事實的結論，腦中頓時警報聲大作，這不科學吧？即便已「 100 % 確認無行人」也必須停車再開的意義何在？法條真是如此規定？是部長口誤還是記者亂寫？</p> <p>查了幾則新聞內文，想搞清楚到底是怎麼一回事。</p> <ul><li><a href="https://www.chinatimes.com/realtimenews/20241202003606-260405">汽機車注意！不管有無行人 路口未停讓秒噴1200元</a> <strong>中時</strong><br> 陳世凱也強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，而客運、大貨車還要「指差確認」，否則都有罰則可罰。<br> 台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://news.tvbs.com.tw/life/2706182">「把路讓給人」！不管路口有無行人　汽機車未停讓1200元秒掰」</a> <strong>TVBS</strong><br> 陳世凱也再次呼籲，駕駛人無論汽、機車行經穿越道，無論有無行人都應停等，大貨車、客運駕駛更要執行「指差確認」，否則可能面臨罰則。<br> 依《道路交通管理處罰條例》，駕駛人行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，將處新台幣1200元以上至6000元以下罰鍰。</li> <li><a href="https://www.setn.com/News.aspx?NewsID=1573432">「汽機車族注意！轉彎時「路口不論有無行人」未停讓秒噴1200元」</a> <strong>三立</strong><br> 陳世凱也強調，交通規則中有規定，駕駛行經行人穿越道時，不論有無行人都要停等，大貨車、客運還需強制「指差確認」，若無做到恐面臨罰則。<br> 有媒體提問，汽機車行駛於路口準備轉彎時，無行人未停等是否也開罰？對此陳世凱回應，由於所有遺憾的發生都是駕駛人認為路口沒有行人，因此不論行人穿越道上有無行人，駕駛都應先確認再前進。<br> 對此，台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://www.storm.mg/lifestyle/5285468">「路口無行人，汽機車要「停等再開」嗎？做錯1事秒收1200元罰單，駕駛要注意了」</a> <strong>風傳媒</strong><br> 陳世凱也強調，駕駛行經行人穿越道不管有沒有行人一定要停等，這是在交通規則有規定，而大貨車及客運還要強制「指差確認」，如果沒有做到是會有罰則的。<br> 根據《道路交通管理處罰條例第44條》，汽機車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，可處1200元到6000元罰鍰。</li></ul> <p>綜合上述媒體報導，部長的確這麼說了的機率頗高。但沒查到影片，不確定部長原話如何。就「就算沒有行人也要停等」、「在交通規則有規定」以及「處1200元到6000元罰鍰」等資訊，我猜部長指的法條是《道路交通管理處罰條例第44條》，其<a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&amp;flno=44">法條原文</a>如下：</p> <blockquote> <ol start="2"><li>汽車駕駛人，駕駛汽車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，處新臺幣一千二百元以上六千元以下罰鍰。</li></ol> </blockquote> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"></p> <p>依現行法規，停讓的前題是「有行人穿越時」，罰則也針對未停讓行人，我不認為可以擴大解讀成「即使沒有行人穿越時也必須停讓，否則要罰」。部長呼籲尊重及禮讓行人是一回事(我也贊成)，甚至也可考慮修法要求未來不管有無行人都必須停讓(是否過當則有待討論)，但直接說「依現行法規無行人也必須停讓，否則罰 1200 到 6000」則缺乏事實根據。而我相信不存在相關法條的理由是 - 若真有，台中監理所應會搬出其對應法條火力支援長官，但能端出來的只有第 44 條。</p> <p>好奇當下沒有記者覺得怪，查一下法條當場<del>吐糟</del>提問？ XD</p> <p data-slug="force-stop-and-wait" data-fbimg="https://i.imgur.com/vnpysjm.png#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這兩天冒出一堆「汽機車注意！不管有無行人路口未停讓秒噴1200元」的新聞。報導指出，交通部長陳世凱強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，否則都有罰則可罰。</p> <p>先聲明，我自己當行人的機會遠高於駕駛，雙手雙腳贊成汽機車應禮讓行人，但看到疑似不合邏輯或不合事實的結論，腦中頓時警報聲大作，這不科學吧？即便已「 100 % 確認無行人」也必須停車再開的意義何在？法條真是如此規定？是部長口誤還是記者亂寫？</p> <p>查了幾則新聞內文，想搞清楚到底是怎麼一回事。</p> <ul><li><a href="https://www.chinatimes.com/realtimenews/20241202003606-260405">汽機車注意！不管有無行人 路口未停讓秒噴1200元</a> <strong>中時</strong><br> 陳世凱也強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，而客運、大貨車還要「指差確認」，否則都有罰則可罰。<br> 台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://news.tvbs.com.tw/life/2706182">「把路讓給人」！不管路口有無行人　汽機車未停讓1200元秒掰」</a> <strong>TVBS</strong><br> 陳世凱也再次呼籲，駕駛人無論汽、機車行經穿越道，無論有無行人都應停等，大貨車、客運駕駛更要執行「指差確認」，否則可能面臨罰則。<br> 依《道路交通管理處罰條例》，駕駛人行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，將處新台幣1200元以上至6000元以下罰鍰。</li> <li><a href="https://www.setn.com/News.aspx?NewsID=1573432">「汽機車族注意！轉彎時「路口不論有無行人」未停讓秒噴1200元」</a> <strong>三立</strong><br> 陳世凱也強調，交通規則中有規定，駕駛行經行人穿越道時，不論有無行人都要停等，大貨車、客運還需強制「指差確認」，若無做到恐面臨罰則。<br> 有媒體提問，汽機車行駛於路口準備轉彎時，無行人未停等是否也開罰？對此陳世凱回應，由於所有遺憾的發生都是駕駛人認為路口沒有行人，因此不論行人穿越道上有無行人，駕駛都應先確認再前進。<br> 對此，台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://www.storm.mg/lifestyle/5285468">「路口無行人，汽機車要「停等再開」嗎？做錯1事秒收1200元罰單，駕駛要注意了」</a> <strong>風傳媒</strong><br> 陳世凱也強調，駕駛行經行人穿越道不管有沒有行人一定要停等，這是在交通規則有規定，而大貨車及客運還要強制「指差確認」，如果沒有做到是會有罰則的。<br> 根據《道路交通管理處罰條例第44條》，汽機車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，可處1200元到6000元罰鍰。</li></ul> <p>綜合上述媒體報導，部長的確這麼說了的機率頗高。但沒查到影片，不確定部長原話如何。就「就算沒有行人也要停等」、「在交通規則有規定」以及「處1200元到6000元罰鍰」等資訊，我猜部長指的法條是《道路交通管理處罰條例第44條》，其<a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&amp;flno=44">法條原文</a>如下：</p> <blockquote> <ol start="2"><li>汽車駕駛人，駕駛汽車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，處新臺幣一千二百元以上六千元以下罰鍰。</li></ol> </blockquote> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"></p> <p>依現行法規，停讓的前題是「有行人穿越時」，罰則也針對未停讓行人，我不認為可以擴大解讀成「即使沒有行人穿越時也必須停讓，否則要罰」。部長呼籲尊重及禮讓行人是一回事(我也贊成)，甚至也可考慮修法要求未來不管有無行人都必須停讓(是否過當則有待討論)，但直接說「依現行法規無行人也必須停讓，否則罰 1200 到 6000」則缺乏事實根據。而我相信不存在相關法條的理由是 - 若真有，台中監理所應會搬出其對應法條火力支援長官，但能端出來的只有第 44 條。</p> <p>好奇當下沒有記者覺得怪，查一下法條當場<del>吐糟</del>提問？ XD</p> <p data-slug="force-stop-and-wait" data-fbimg="https://i.imgur.com/vnpysjm.png#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這兩天冒出一堆「汽機車注意！不管有無行人路口未停讓秒噴1200元」的新聞。報導指出，交通部長陳世凱強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，否則都有罰則可罰。</p> <p>先聲明，我自己當行人的機會遠高於駕駛，雙手雙腳贊成汽機車應禮讓行人，但看到疑似不合邏輯或不合事實的結論，腦中頓時警報聲大作，這不科學吧？即便已「 100 % 確認無行人」也必須停車再開的意義何在？法條真是如此規定？是部長口誤還是記者亂寫？</p> <p>查了幾則新聞內文，想搞清楚到底是怎麼一回事。</p> <ul><li><a href="https://www.chinatimes.com/realtimenews/20241202003606-260405">汽機車注意！不管有無行人 路口未停讓秒噴1200元</a> <strong>中時</strong><br> 陳世凱也強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，而客運、大貨車還要「指差確認」，否則都有罰則可罰。<br> 台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://news.tvbs.com.tw/life/2706182">「把路讓給人」！不管路口有無行人　汽機車未停讓1200元秒掰」</a> <strong>TVBS</strong><br> 陳世凱也再次呼籲，駕駛人無論汽、機車行經穿越道，無論有無行人都應停等，大貨車、客運駕駛更要執行「指差確認」，否則可能面臨罰則。<br> 依《道路交通管理處罰條例》，駕駛人行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，將處新台幣1200元以上至6000元以下罰鍰。</li> <li><a href="https://www.setn.com/News.aspx?NewsID=1573432">「汽機車族注意！轉彎時「路口不論有無行人」未停讓秒噴1200元」</a> <strong>三立</strong><br> 陳世凱也強調，交通規則中有規定，駕駛行經行人穿越道時，不論有無行人都要停等，大貨車、客運還需強制「指差確認」，若無做到恐面臨罰則。<br> 有媒體提問，汽機車行駛於路口準備轉彎時，無行人未停等是否也開罰？對此陳世凱回應，由於所有遺憾的發生都是駕駛人認為路口沒有行人，因此不論行人穿越道上有無行人，駕駛都應先確認再前進。<br> 對此，台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://www.storm.mg/lifestyle/5285468">「路口無行人，汽機車要「停等再開」嗎？做錯1事秒收1200元罰單，駕駛要注意了」</a> <strong>風傳媒</strong><br> 陳世凱也強調，駕駛行經行人穿越道不管有沒有行人一定要停等，這是在交通規則有規定，而大貨車及客運還要強制「指差確認」，如果沒有做到是會有罰則的。<br> 根據《道路交通管理處罰條例第44條》，汽機車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，可處1200元到6000元罰鍰。</li></ul> <p>綜合上述媒體報導，部長的確這麼說了的機率頗高。但沒查到影片，不確定部長原話如何。就「就算沒有行人也要停等」、「在交通規則有規定」以及「處1200元到6000元罰鍰」等資訊，我猜部長指的法條是《道路交通管理處罰條例第44條》，其<a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&amp;flno=44">法條原文</a>如下：</p> <blockquote> <ol start="2"><li>汽車駕駛人，駕駛汽車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，處新臺幣一千二百元以上六千元以下罰鍰。</li></ol> </blockquote> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"></p> <p>依現行法規，停讓的前題是「有行人穿越時」，罰則也針對未停讓行人，我不認為可以擴大解讀成「即使沒有行人穿越時也必須停讓，否則要罰」。部長呼籲尊重及禮讓行人是一回事(我也贊成)，甚至也可考慮修法要求未來不管有無行人都必須停讓(是否過當則有待討論)，但直接說「依現行法規無行人也必須停讓，否則罰 1200 到 6000」則缺乏事實根據。而我相信不存在相關法條的理由是 - 若真有，台中監理所應會搬出其對應法條火力支援長官，但能端出來的只有第 44 條。</p> <p>好奇當下沒有記者覺得怪，查一下法條當場<del>吐糟</del>提問？ XD</p> <p data-slug="force-stop-and-wait" data-fbimg="https://i.imgur.com/vnpysjm.png#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png" medium="image"/>
+    <pubDate>Tue, 03 Dec 2024 15:24:23 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Coding4Fun - .NET 串接 Whisper 麥克風語音識別整合 ChatGPT 即時翻譯]]></title>
+    <link>https://blog.darkthread.net/blog/whisper-realtime-translation/</link>
+    <itunes:title><![CDATA[Coding4Fun - .NET 串接 Whisper 麥克風語音識別整合 ChatGPT 即時翻譯]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
+<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
+<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
+<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
+<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
+<pre><code>using System.Text;
+using Microsoft.Extensions.Configuration;
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+var config = new ConfigurationBuilder()
+.SetBasePath(Directory.GetCurrentDirectory())
+.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+.AddEnvironmentVariables()
+.Build();
+Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
+var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
+using var httpClient = new HttpClient();
+using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
+response.EnsureSuccessStatusCode();
+Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
+using var stream = await response.Content.ReadAsStreamAsync();
+using var reader = new System.IO.StreamReader(stream);
+var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
+while (true)
+{
+var line = await reader.ReadLineAsync();
+if (line != null &amp;&amp; line.StartsWith("data: "))
+{
+var text = line.Substring("data: ".Length);
+// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"原文：{text}");
+var answer = await chatSvc.Complete(sysPrompt, text, true);
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"翻譯：{answer}");
+Console.ResetColor();
+}
+}
+</code></pre>
+<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
+<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
+<p>打完收工。</p>
+<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
+<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
+<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
+<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
+<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
+<pre><code>using System.Text;
+using Microsoft.Extensions.Configuration;
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+var config = new ConfigurationBuilder()
+.SetBasePath(Directory.GetCurrentDirectory())
+.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+.AddEnvironmentVariables()
+.Build();
+Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
+var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
+using var httpClient = new HttpClient();
+using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
+response.EnsureSuccessStatusCode();
+Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
+using var stream = await response.Content.ReadAsStreamAsync();
+using var reader = new System.IO.StreamReader(stream);
+var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
+while (true)
+{
+var line = await reader.ReadLineAsync();
+if (line != null &amp;&amp; line.StartsWith("data: "))
+{
+var text = line.Substring("data: ".Length);
+// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"原文：{text}");
+var answer = await chatSvc.Complete(sysPrompt, text, true);
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"翻譯：{answer}");
+Console.ResetColor();
+}
+}
+</code></pre>
+<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
+<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
+<p>打完收工。</p>
+<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
+<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
+<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
+<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
+<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
+<pre><code>using System.Text;
+using Microsoft.Extensions.Configuration;
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+var config = new ConfigurationBuilder()
+.SetBasePath(Directory.GetCurrentDirectory())
+.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+.AddEnvironmentVariables()
+.Build();
+Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
+var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
+using var httpClient = new HttpClient();
+using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
+response.EnsureSuccessStatusCode();
+Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
+using var stream = await response.Content.ReadAsStreamAsync();
+using var reader = new System.IO.StreamReader(stream);
+var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
+while (true)
+{
+var line = await reader.ReadLineAsync();
+if (line != null &amp;&amp; line.StartsWith("data: "))
+{
+var text = line.Substring("data: ".Length);
+// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"原文：{text}");
+var answer = await chatSvc.Complete(sysPrompt, text, true);
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"翻譯：{answer}");
+Console.ResetColor();
+}
+}
+</code></pre>
+<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
+<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
+<p>打完收工。</p>
+<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png" medium="image"/>
+    <pubDate>Mon, 02 Dec 2024 11:34:02 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Whisper Mic 微服務 - 為程式加上麥克風語音轉文字功能]]></title>
+    <link>https://blog.darkthread.net/blog/whisper-microservice/</link>
+    <itunes:title><![CDATA[Whisper Mic 微服務 - 為程式加上麥克風語音轉文字功能]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
+mic = WhisperMic()
+result = mic.listen()
+print(result)
+</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
+from flask import Flask, Response, request
+import queue
+import threading
+mic = WhisperMic(model='small', pause=0.5)
+app = Flask(__name__)
+text_queue = queue.Queue()
+stop_flag = False
+def listen_continuously():
+for text in mic.listen_continuously():
+if text is not None:
+if text.lower() == '打完收工':
+stop_flag = True
+print("停止識別，請按 Ctrl-C 結束")
+text_queue.put('[EOS]')
+break
+text_queue.put(text)
+print(text)
+@app.route('/listen')
+def stream():
+if stop_flag is True:
+return Response("service stopped", status=503)
+def generate():
+while stop_flag is False:
+text = text_queue.get()
+if text == '[EOS]':
+break
+yield f"data: {text}
+
+"
+return Response(generate(), mimetype='text/event-stream')
+if __name__ == '__main__':
+listener_thread = threading.Thread(target=listen_continuously)
+listener_thread.start()
+app.run()
+</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
+mic = WhisperMic()
+result = mic.listen()
+print(result)
+</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
+from flask import Flask, Response, request
+import queue
+import threading
+mic = WhisperMic(model='small', pause=0.5)
+app = Flask(__name__)
+text_queue = queue.Queue()
+stop_flag = False
+def listen_continuously():
+for text in mic.listen_continuously():
+if text is not None:
+if text.lower() == '打完收工':
+stop_flag = True
+print("停止識別，請按 Ctrl-C 結束")
+text_queue.put('[EOS]')
+break
+text_queue.put(text)
+print(text)
+@app.route('/listen')
+def stream():
+if stop_flag is True:
+return Response("service stopped", status=503)
+def generate():
+while stop_flag is False:
+text = text_queue.get()
+if text == '[EOS]':
+break
+yield f"data: {text}
+
+"
+return Response(generate(), mimetype='text/event-stream')
+if __name__ == '__main__':
+listener_thread = threading.Thread(target=listen_continuously)
+listener_thread.start()
+app.run()
+</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
+mic = WhisperMic()
+result = mic.listen()
+print(result)
+</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
+from flask import Flask, Response, request
+import queue
+import threading
+mic = WhisperMic(model='small', pause=0.5)
+app = Flask(__name__)
+text_queue = queue.Queue()
+stop_flag = False
+def listen_continuously():
+for text in mic.listen_continuously():
+if text is not None:
+if text.lower() == '打完收工':
+stop_flag = True
+print("停止識別，請按 Ctrl-C 結束")
+text_queue.put('[EOS]')
+break
+text_queue.put(text)
+print(text)
+@app.route('/listen')
+def stream():
+if stop_flag is True:
+return Response("service stopped", status=503)
+def generate():
+while stop_flag is False:
+text = text_queue.get()
+if text == '[EOS]':
+break
+yield f"data: {text}
+
+"
+return Response(generate(), mimetype='text/event-stream')
+if __name__ == '__main__':
+listener_thread = threading.Thread(target=listen_continuously)
+listener_thread.start()
+app.run()
+</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]></content:encoded>
+    
+    <pubDate>Sun, 01 Dec 2024 15:15:14 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Coding4Fun - 純 CSS 切換顯示 CIDR 與 IP 範圍]]></title>
+    <link>https://blog.darkthread.net/blog/css-cidr-iprange-toggle-display/</link>
+    <itunes:title><![CDATA[Coding4Fun - 純 CSS 切換顯示 CIDR 與 IP 範圍]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number); // 轉成四個數字
+const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
+// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
+&lt;style&gt;
+html {
+font-family: Arial, sans-serif;
+font-size: 11pt;
+line-height: 150%;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="sample"&gt;
+&lt;ul&gt;
+&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
+&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
+&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;style&gt;
+.cidr {
+input[type="checkbox"] {
+display: none;
+}
+label {
+opacity: 0.2;
+cursor: pointer;
+border: 1px solid #444;
+background-color: #ccc;
+display: inline-block;
+width: 9pt;
+height: 9pt;
+font-size: 9pt;
+line-height: 9.2pt;
+text-align: center;
+vertical-align: middle;
+margin-right: 2px;
+&amp;:hover {
+opacity: 1;
+}
+}
+&gt; span {
+background-color: #eee;
+padding: 2px 6px;
+}
+.cidr-e {
+display: none;
+}
+.toggle:checked+.cidr-c {
+display: none;
+}
+.toggle:checked+.cidr-c+.cidr-e {
+display: inline;
+}
+}
+&lt;/style&gt;
+&lt;script&gt;
+function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number);
+const maskParts = [0, 0, 0, 0];
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+function injectExpandButton(selector) {
+document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+}
+injectExpandButton('.sample');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number); // 轉成四個數字
+const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
+// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
+&lt;style&gt;
+html {
+font-family: Arial, sans-serif;
+font-size: 11pt;
+line-height: 150%;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="sample"&gt;
+&lt;ul&gt;
+&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
+&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
+&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;style&gt;
+.cidr {
+input[type="checkbox"] {
+display: none;
+}
+label {
+opacity: 0.2;
+cursor: pointer;
+border: 1px solid #444;
+background-color: #ccc;
+display: inline-block;
+width: 9pt;
+height: 9pt;
+font-size: 9pt;
+line-height: 9.2pt;
+text-align: center;
+vertical-align: middle;
+margin-right: 2px;
+&amp;:hover {
+opacity: 1;
+}
+}
+&gt; span {
+background-color: #eee;
+padding: 2px 6px;
+}
+.cidr-e {
+display: none;
+}
+.toggle:checked+.cidr-c {
+display: none;
+}
+.toggle:checked+.cidr-c+.cidr-e {
+display: inline;
+}
+}
+&lt;/style&gt;
+&lt;script&gt;
+function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number);
+const maskParts = [0, 0, 0, 0];
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+function injectExpandButton(selector) {
+document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+}
+injectExpandButton('.sample');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number); // 轉成四個數字
+const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
+// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
+&lt;style&gt;
+html {
+font-family: Arial, sans-serif;
+font-size: 11pt;
+line-height: 150%;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="sample"&gt;
+&lt;ul&gt;
+&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
+&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
+&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;style&gt;
+.cidr {
+input[type="checkbox"] {
+display: none;
+}
+label {
+opacity: 0.2;
+cursor: pointer;
+border: 1px solid #444;
+background-color: #ccc;
+display: inline-block;
+width: 9pt;
+height: 9pt;
+font-size: 9pt;
+line-height: 9.2pt;
+text-align: center;
+vertical-align: middle;
+margin-right: 2px;
+&amp;:hover {
+opacity: 1;
+}
+}
+&gt; span {
+background-color: #eee;
+padding: 2px 6px;
+}
+.cidr-e {
+display: none;
+}
+.toggle:checked+.cidr-c {
+display: none;
+}
+.toggle:checked+.cidr-c+.cidr-e {
+display: inline;
+}
+}
+&lt;/style&gt;
+&lt;script&gt;
+function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number);
+const maskParts = [0, 0, 0, 0];
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+function injectExpandButton(selector) {
+document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+}
+injectExpandButton('.sample');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif" medium="image"/>
+    <pubDate>Sat, 30 Nov 2024 03:33:28 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[CSV 資料處理演練 - 從 .NET LINQ 到 Python Pandas (上)]]></title>
+    <link>https://blog.darkthread.net/blog/polyglot-csvhelper-linq/</link>
+    <itunes:title><![CDATA[CSV 資料處理演練 - 從 .NET LINQ 到 Python Pandas (上)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .bib 格式 (.bib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
+using System.Globalization;
+using System.IO;
+// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
+// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
+var reader = new StreamReader("imdb_top_1000.csv");
+var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+// 讀取 CSV 檔案，解析成動態物件
+var records = csv.GetRecords&lt;dynamic&gt;().ToList();
+// 取得作品數量前 10 的導演
+var top10Directors = records.GroupBy(record =&gt; record.Director)
+.Where(group =&gt; group.Count() &gt; 1)
+.OrderByDescending(group =&gt; group.Count())
+.Take(10)
+.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
+Console.WriteLine("Top 10 Directors:");
+var list = new List&lt;dynamic&gt;();
+foreach (var director in top10Directors)
+{
+// 顯示導演姓名與其作品數量
+Console.WriteLine($" * {director.Director} ({director.Count})");
+// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
+var movies = records.Where(o =&gt; o.Director == director.Director)
+.OrderBy(o =&gt; o.Released_Year)
+// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
+.Select(o =&gt; new { Director = (string)o.Director,
+Title = (string)o.Series_Title, Year = (string)o.Released_Year })
+.ToList();
+list.AddRange(movies);
+// 顯示其作品
+list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
+}
+// 將資料寫入 CSV 檔案
+var writer = new StreamWriter("top10_director_movies.csv");
+var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+csvWriter.WriteRecords(list);
+csvWriter.Dispose();
+</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .bib 格式 (.bib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
+using System.Globalization;
+using System.IO;
+// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
+// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
+var reader = new StreamReader("imdb_top_1000.csv");
+var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+// 讀取 CSV 檔案，解析成動態物件
+var records = csv.GetRecords&lt;dynamic&gt;().ToList();
+// 取得作品數量前 10 的導演
+var top10Directors = records.GroupBy(record =&gt; record.Director)
+.Where(group =&gt; group.Count() &gt; 1)
+.OrderByDescending(group =&gt; group.Count())
+.Take(10)
+.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
+Console.WriteLine("Top 10 Directors:");
+var list = new List&lt;dynamic&gt;();
+foreach (var director in top10Directors)
+{
+// 顯示導演姓名與其作品數量
+Console.WriteLine($" * {director.Director} ({director.Count})");
+// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
+var movies = records.Where(o =&gt; o.Director == director.Director)
+.OrderBy(o =&gt; o.Released_Year)
+// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
+.Select(o =&gt; new { Director = (string)o.Director,
+Title = (string)o.Series_Title, Year = (string)o.Released_Year })
+.ToList();
+list.AddRange(movies);
+// 顯示其作品
+list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
+}
+// 將資料寫入 CSV 檔案
+var writer = new StreamWriter("top10_director_movies.csv");
+var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+csvWriter.WriteRecords(list);
+csvWriter.Dispose();
+</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .bib 格式 (.bib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
+using System.Globalization;
+using System.IO;
+// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
+// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
+var reader = new StreamReader("imdb_top_1000.csv");
+var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+// 讀取 CSV 檔案，解析成動態物件
+var records = csv.GetRecords&lt;dynamic&gt;().ToList();
+// 取得作品數量前 10 的導演
+var top10Directors = records.GroupBy(record =&gt; record.Director)
+.Where(group =&gt; group.Count() &gt; 1)
+.OrderByDescending(group =&gt; group.Count())
+.Take(10)
+.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
+Console.WriteLine("Top 10 Directors:");
+var list = new List&lt;dynamic&gt;();
+foreach (var director in top10Directors)
+{
+// 顯示導演姓名與其作品數量
+Console.WriteLine($" * {director.Director} ({director.Count})");
+// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
+var movies = records.Where(o =&gt; o.Director == director.Director)
+.OrderBy(o =&gt; o.Released_Year)
+// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
+.Select(o =&gt; new { Director = (string)o.Director,
+Title = (string)o.Series_Title, Year = (string)o.Released_Year })
+.ToList();
+list.AddRange(movies);
+// 顯示其作品
+list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
+}
+// 將資料寫入 CSV 檔案
+var writer = new StreamWriter("top10_director_movies.csv");
+var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+csvWriter.WriteRecords(list);
+csvWriter.Dispose();
+</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png" medium="image"/>
+    <pubDate>Thu, 28 Nov 2024 15:59:01 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Chrome 131 升級踩雷與 HTML5 超客製化 SELECT 元素]]></title>
+    <link>https://blog.darkthread.net/blog/html5-customizable-select/</link>
+    <itunes:title><![CDATA[Chrome 131 升級踩雷與 HTML5 超客製化 SELECT 元素]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>同事分享，這幾天踩到 Chrome/Edge 升級 131 版的雷。</p> <p>古蹟系統有段用 innerHTML 動態更新 <code>&lt;select&gt;</code> 選項的網頁，在 Chrome/Edge 升級 131 版後壞掉了。</p> <p>設法重現問題，找了台久未開機的 VM 還有 Edge 130 版測試模擬網頁如下圖，<code>&lt;select&gt;</code> 下方原本有個 <code>&lt;input type="hidden"&gt;</code>：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638677144867541605.png"></p> <p>自動升級 131 版後，一模一樣的程式，下方的 <code>&lt;input type="hidden"&gt;</code> 消失惹：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638677144864030160.png"></p> <p>其實，會踩雷是因為原本程式寫法有問題：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meat charset="utf-8"&gt;
+&lt;title&gt;Custom Select&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;select name="lang" /&gt;
+&lt;input type="hidden" name="flag" value="Y" /&gt;
+&lt;/div&gt;
+&lt;script&gt;
+document.querySelector("select[name=lang]")
+.innerHTML = `&lt;option value="C#"&gt;C#&lt;/option&gt;
+&lt;option value="JavaScript"&gt;JavaScript&lt;/option&gt;
+&lt;option value="Python"&gt;Python&lt;/option&gt;`;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>上面的 <code>&lt;select name="lang" /&gt;</code> 寫法是關鍵。XML 語法中 <code>&lt;elementTag ...&gt;&lt;/elementTag&gt;</code> 與 <code>&lt;elementTag ... /&gt;</code> 意義相同且可互換，但在 HTML 中 Self-Closing Tag 只能用在 Void Elemen，像 <code>&lt;span /&gt;</code> 便不是合法寫法，這個雷我在兩年前踩過。(參考：<a href="/blog/html5-self-closing-tags/">HTML5 自閉標籤(Self-Closing Tag)誤用案例</a>)</p> <p>同事遇到的這枚地雷則又再藏了兩年，撐到 Chrome 131 <code>&lt;select /&gt;</code> 解析行為改變才引爆。131 版把 <code>&lt;select /&gt;</code> 後方的 <code>&lt;input type="hidden"&gt;</code> 也視為其子元素，置換 innerHTML 時一併被 <code>&lt;option&gt;...</code> 取代，導致隱藏欄位消失。</p> <p>不過，為什麼 Chrome 沒事幹嘛做了這項調整？131 版發行公告<a href="https://developer.chrome.com/release-notes/131?hl=zh-tw#select_parser_relaxation">提到</a>是為了支援未來可能的新規格 - <a href="https://open-ui.org/components/customizableselect/">Customizable Select</a>。</p> <p>這項還在預覽階段的新規格將允許在 <code>&lt;select&gt;&lt;/select&gt;</code> 放入 <code>&lt;button&gt;</code>、<code>&lt;div&gt;</code> 等元素、在 <code>&lt;option&gt;</code> 中放入 <code>&lt;img&gt;</code> (如下圖)，把百年傳統的 <code>&lt;select&gt;</code> 玩出新高度。(個人不怎麼愛就是了，因為很吃瀏覽器支援度，我寧可自刻選擇器，較無跨瀏覽器限制且更具彈性)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638677144869311808.png"></p> <p>要嘗試這個新功能，實測得安裝金絲雀版的 Chrome 或 Edge，並開啟 #experimental-web-platform-features 設定才看得到。(參考：<a href="https://developer.chrome.com/blog/rfc-customizable-select">Request for developer feedback: customizable select</a>)</p> <p>不知是否版本還在調整中，實測呈現效果與文章的展示有落差，但意思到了。</p> <p><img src="Fig.png"><br> 文章範例如上圖</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638677144872789700.gif"><br> 我執行的結果國旗圖案大小不一，選擇器上的國旗也沒顯示</p> <p>增長見聞完畢。</p> <p data-slug="html5-customizable-select" data-title-en="Chrome/Edge 131 breaking change and customizable select" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2013/11/23/01/08/lion-tailed-macaque-216227_960_720.jpg#960#720">A issues with dynamic select updates using innerHTML after Chrome/Edge updated to version 131. This change is due to Chrome’s preparation for the new Customizable Select feature. Proper HTML syntax avoids such issues.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>同事分享，這幾天踩到 Chrome/Edge 升級 131 版的雷。</p> <p>古蹟系統有段用 innerHTML 動態更新 <code>&lt;select&gt;</code> 選項的網頁，在 Chrome/Edge 升級 131 版後壞掉了。</p> <p>設法重現問題，找了台久未開機的 VM 還有 Edge 130 版測試模擬網頁如下圖，<code>&lt;select&gt;</code> 下方原本有個 <code>&lt;input type="hidden"&gt;</code>：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638677144867541605.png"></p> <p>自動升級 131 版後，一模一樣的程式，下方的 <code>&lt;input type="hidden"&gt;</code> 消失惹：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638677144864030160.png"></p> <p>其實，會踩雷是因為原本程式寫法有問題：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meat charset="utf-8"&gt;
+&lt;title&gt;Custom Select&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;select name="lang" /&gt;
+&lt;input type="hidden" name="flag" value="Y" /&gt;
+&lt;/div&gt;
+&lt;script&gt;
+document.querySelector("select[name=lang]")
+.innerHTML = `&lt;option value="C#"&gt;C#&lt;/option&gt;
+&lt;option value="JavaScript"&gt;JavaScript&lt;/option&gt;
+&lt;option value="Python"&gt;Python&lt;/option&gt;`;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>上面的 <code>&lt;select name="lang" /&gt;</code> 寫法是關鍵。XML 語法中 <code>&lt;elementTag ...&gt;&lt;/elementTag&gt;</code> 與 <code>&lt;elementTag ... /&gt;</code> 意義相同且可互換，但在 HTML 中 Self-Closing Tag 只能用在 Void Elemen，像 <code>&lt;span /&gt;</code> 便不是合法寫法，這個雷我在兩年前踩過。(參考：<a href="/blog/html5-self-closing-tags/">HTML5 自閉標籤(Self-Closing Tag)誤用案例</a>)</p> <p>同事遇到的這枚地雷則又再藏了兩年，撐到 Chrome 131 <code>&lt;select /&gt;</code> 解析行為改變才引爆。131 版把 <code>&lt;select /&gt;</code> 後方的 <code>&lt;input type="hidden"&gt;</code> 也視為其子元素，置換 innerHTML 時一併被 <code>&lt;option&gt;...</code> 取代，導致隱藏欄位消失。</p> <p>不過，為什麼 Chrome 沒事幹嘛做了這項調整？131 版發行公告<a href="https://developer.chrome.com/release-notes/131?hl=zh-tw#select_parser_relaxation">提到</a>是為了支援未來可能的新規格 - <a href="https://open-ui.org/components/customizableselect/">Customizable Select</a>。</p> <p>這項還在預覽階段的新規格將允許在 <code>&lt;select&gt;&lt;/select&gt;</code> 放入 <code>&lt;button&gt;</code>、<code>&lt;div&gt;</code> 等元素、在 <code>&lt;option&gt;</code> 中放入 <code>&lt;img&gt;</code> (如下圖)，把百年傳統的 <code>&lt;select&gt;</code> 玩出新高度。(個人不怎麼愛就是了，因為很吃瀏覽器支援度，我寧可自刻選擇器，較無跨瀏覽器限制且更具彈性)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638677144869311808.png"></p> <p>要嘗試這個新功能，實測得安裝金絲雀版的 Chrome 或 Edge，並開啟 #experimental-web-platform-features 設定才看得到。(參考：<a href="https://developer.chrome.com/blog/rfc-customizable-select">Request for developer feedback: customizable select</a>)</p> <p>不知是否版本還在調整中，實測呈現效果與文章的展示有落差，但意思到了。</p> <p><img src="Fig.png"><br> 文章範例如上圖</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638677144872789700.gif"><br> 我執行的結果國旗圖案大小不一，選擇器上的國旗也沒顯示</p> <p>增長見聞完畢。</p> <p data-slug="html5-customizable-select" data-title-en="Chrome/Edge 131 breaking change and customizable select" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2013/11/23/01/08/lion-tailed-macaque-216227_960_720.jpg#960#720">A issues with dynamic select updates using innerHTML after Chrome/Edge updated to version 131. This change is due to Chrome’s preparation for the new Customizable Select feature. Proper HTML syntax avoids such issues.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>同事分享，這幾天踩到 Chrome/Edge 升級 131 版的雷。</p> <p>古蹟系統有段用 innerHTML 動態更新 <code>&lt;select&gt;</code> 選項的網頁，在 Chrome/Edge 升級 131 版後壞掉了。</p> <p>設法重現問題，找了台久未開機的 VM 還有 Edge 130 版測試模擬網頁如下圖，<code>&lt;select&gt;</code> 下方原本有個 <code>&lt;input type="hidden"&gt;</code>：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638677144867541605.png"></p> <p>自動升級 131 版後，一模一樣的程式，下方的 <code>&lt;input type="hidden"&gt;</code> 消失惹：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638677144864030160.png"></p> <p>其實，會踩雷是因為原本程式寫法有問題：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meat charset="utf-8"&gt;
+&lt;title&gt;Custom Select&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;select name="lang" /&gt;
+&lt;input type="hidden" name="flag" value="Y" /&gt;
+&lt;/div&gt;
+&lt;script&gt;
+document.querySelector("select[name=lang]")
+.innerHTML = `&lt;option value="C#"&gt;C#&lt;/option&gt;
+&lt;option value="JavaScript"&gt;JavaScript&lt;/option&gt;
+&lt;option value="Python"&gt;Python&lt;/option&gt;`;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>上面的 <code>&lt;select name="lang" /&gt;</code> 寫法是關鍵。XML 語法中 <code>&lt;elementTag ...&gt;&lt;/elementTag&gt;</code> 與 <code>&lt;elementTag ... /&gt;</code> 意義相同且可互換，但在 HTML 中 Self-Closing Tag 只能用在 Void Elemen，像 <code>&lt;span /&gt;</code> 便不是合法寫法，這個雷我在兩年前踩過。(參考：<a href="/blog/html5-self-closing-tags/">HTML5 自閉標籤(Self-Closing Tag)誤用案例</a>)</p> <p>同事遇到的這枚地雷則又再藏了兩年，撐到 Chrome 131 <code>&lt;select /&gt;</code> 解析行為改變才引爆。131 版把 <code>&lt;select /&gt;</code> 後方的 <code>&lt;input type="hidden"&gt;</code> 也視為其子元素，置換 innerHTML 時一併被 <code>&lt;option&gt;...</code> 取代，導致隱藏欄位消失。</p> <p>不過，為什麼 Chrome 沒事幹嘛做了這項調整？131 版發行公告<a href="https://developer.chrome.com/release-notes/131?hl=zh-tw#select_parser_relaxation">提到</a>是為了支援未來可能的新規格 - <a href="https://open-ui.org/components/customizableselect/">Customizable Select</a>。</p> <p>這項還在預覽階段的新規格將允許在 <code>&lt;select&gt;&lt;/select&gt;</code> 放入 <code>&lt;button&gt;</code>、<code>&lt;div&gt;</code> 等元素、在 <code>&lt;option&gt;</code> 中放入 <code>&lt;img&gt;</code> (如下圖)，把百年傳統的 <code>&lt;select&gt;</code> 玩出新高度。(個人不怎麼愛就是了，因為很吃瀏覽器支援度，我寧可自刻選擇器，較無跨瀏覽器限制且更具彈性)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638677144869311808.png"></p> <p>要嘗試這個新功能，實測得安裝金絲雀版的 Chrome 或 Edge，並開啟 #experimental-web-platform-features 設定才看得到。(參考：<a href="https://developer.chrome.com/blog/rfc-customizable-select">Request for developer feedback: customizable select</a>)</p> <p>不知是否版本還在調整中，實測呈現效果與文章的展示有落差，但意思到了。</p> <p><img src="Fig.png"><br> 文章範例如上圖</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638677144872789700.gif"><br> 我執行的結果國旗圖案大小不一，選擇器上的國旗也沒顯示</p> <p>增長見聞完畢。</p> <p data-slug="html5-customizable-select" data-title-en="Chrome/Edge 131 breaking change and customizable select" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2013/11/23/01/08/lion-tailed-macaque-216227_960_720.jpg#960#720">A issues with dynamic select updates using innerHTML after Chrome/Edge updated to version 131. This change is due to Chrome’s preparation for the new Customizable Select feature. Proper HTML syntax avoids such issues.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig3_638677144867541605.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig3_638677144867541605.png" medium="image"/>
+    <pubDate>Wed, 20 Nov 2024 15:40:57 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Docker 效能監控豪華套餐 - cAdvisor Prometheus 佐 Grafana]]></title>
+    <link>https://blog.darkthread.net/blog/cadvisor-prometheus-grafana/</link>
+    <itunes:title><![CDATA[Docker 效能監控豪華套餐 - cAdvisor Prometheus 佐 Grafana]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>最近在用 Docker 容器跑壓力測試，我想知道每個容器的 CPU、記憶體使用狀況，有無超出 Host 主機承載上限。</p> <p>爬文查到 <a href="https://docs.docker.com/reference/cli/docker/container/stats/"><code>docker stats</code></a> 能顯示當下各容器 CPU、記憶體、網路跟磁碟 IO，既然能拿到這些資料，定期輪詢寫成 Log，後續要出什麼分析報表都不成問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638675307013249942.png"></p> <p>不過，查資料時找到更有趣的東西 - <a href="https://github.com/google/cadvisor">cAdvisor</a>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638675307017986189.png"></p> <p>cAdvisor 是 Google 開發的開源監控工具，專門用來收集容器資源使用狀況及效能數據。它能自動發現並監控運行中的 Docker 容器，提供 CPU、記憶體、網路和磁碟使用等即時統計。最酷的是你只需用 Docker 跑現成的 cAdvisor 容器，即可用網頁介面查看容器的即時狀況，還能資料導出給 Prometheus 等監控系統進行統一監控及長期分析。</p> <p>都講到 Prometheus，不意外 Grafana 馬上跟著登場，你攔都攔不住。</p> <p>用 Grafana + Prometheus 建構監控預警系統，這些年已成管理大型雲端服務的主流解決方案， 在 SRE / DevOps 領域成為顯學。Prometheus 負責蒐集及儲存營運數據(CPU、Memory、IO)、並發展出自己的查詢語言(PromQL)可以分析數據及設置告警；而 Grafana 可將 Prometheus 的數據可視化，做成美美的監控儀表板，還提供高度的客制化彈性，二者相輔相成。網路上專業介紹文很多，這裡就不班門弄斧了。<br> (延伸參考：<a href="https://github.com/880831ian/Prometheus-Grafana-Docker">使用 Prometheus 和 Grafana 打造監控預警系統</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638675307745871005.png"><br> <a href="https://blog.techbridge.cc/2019/08/26/how-to-use-prometheus-grafana-in-flask-app/">圖片來源</a></p> <p>cAdvisor 雖有網頁介面但功能陽春，只能看最近十分鐘的資料，且缺乏客製圖表、告警通知等功能。於是有社群朋友用 Docker Composer 把 cAdvisor、Prometheus、Grafana 容器串起來寫好設定檔，做到下一行指令，不用三分鐘，一套雲端機房等級的高彈性監控系統就架好了，是容器化技術又一次經典的火力展示。</p> <p>實驗性質的小網站，理論上不需要如此奢華的專案效能監控系統，但容器化把事情變簡單了，裝整套大系統比自己組裝寫程式還快，git clone 完下一行指令就好，耗用資源也不高，管它是不是牛刀，免費又好用為什麼不要？</p> <p>再說，不拿小需求練兵增廣見聞累積經驗，將來真遇上大場面，豈不又像劉佬佬進大觀園。</p> <p>我找到這個 Github 專案 - - <a href="https://github.com/sohammohite/container-monitoring">Docker Container Monitoring with cAdvisor, Prometheus, and Grafana using Docker Compose</a>。(<a href="https://medium.com/@sohammohite/docker-container-monitoring-with-cadvisor-prometheus-and-grafana-using-docker-compose-b47ec78efbc">相關說明</a>)</p> <p>裡面有一個 docker-compose.yml 會同時啟用 cAdvisor、Prometheus、Grafana 三個容器，分別傾聽 8080、9090、3000 Port；另外有個 prometheus.yml 設定檔指定每 15 秒抓一次資料，除了從 cAdvisor 取得容器效能數據，也抓自己的資料 (預設抓取網址為 <code>http://localhost:xxxx/metrics</code>)：</p> <pre><code>global:
+scrape_interval: 15s # 每15秒抓取一次數據。
+evaluation_interval: 15s # 每15秒評估一次規則。
+scrape_configs:
+- job_name: "prometheus"
+# metrics_path 預設為 '/metrics'
+static_configs:
+- targets: ["localhost:9090"] # 抓取 Prometheus 自身的數據。
+- job_name: "cadvisor"
+static_configs:
+- targets: ["localhost:8080"] # 抓取 cAdvisor 的數據。
+</code></pre> <p>Grafana 則需要三個相關設定檔，datasources.yml 指定 Prometheus 位於 <code>http://localhost:9090</code>、default.yml 指定載入 dashboard.json 做為預設儀表板、dashboard.json 則是基本儀表板組合，預設抓取各容器的 CPU、記憶體、網路傳輸縮製即時線圖，呈現效果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638675307022173450.png"></p> <p>我故意開 Python 容器在裡面跑一分鐘無窮迴圈後中斷，成功在 CPU 圖表畫出一個梯形。這裡的 CPU 線圖有用 PromQL rate() 函數取固定時間間隔(Time Window)內耗用 CPU 秒數的平均值，線形比較平滑，不像傳統效能監視器 CPU 負載圖一堆尖銳轉折。</p> <p>記錄實測過程我做的小調整：</p> <ol><li>原 docker-compose.yml 中 <code>network_model: host</code> 與 <code>ports</code> 映對設定並存，二者只需留一種。由於相關設定檔是用 localhost 互相溝通，故保留 <code>network_model: host</code> 較簡單，不然要改走容器內部網路並將設定檔 URL 的 localhost 改為容器名稱，工程較大。</li> <li>原本 dashboard.json 設定抓 CPU 等數字時 PromQL <code>"rate(container_cpu_user_seconds_total{image!=\"\"}[5m]) * 100"</code> 抓最近五分鐘指標值平均(換言之，短暫的尖峰會被攤平，有興趣測入推薦這篇：<a href="https://cloud.tencent.com/developer/article/2415949">Prometheus 指标值不准：是 feature，还是 bug？</a>)，讓曲線平滑化以觀察長期趨勢。我的壓力測試期間長度較短，故調成 30s 平均讓它更明顯反映變化。</li></ol> <p>【延伸閱讀】</p> <ul><li><a href="https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/exporter/commonly-eporter-usage/use-prometheus-monitor-container">Prometheus cAdvisor 指標整合</a></li></ul> <p data-slug="cadvisor-prometheus-grafana" data-title-en="Monitoring docker containers with cAdvisor + Prometheus + Granfana" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/26/18/44/space-center-693251_960_720.jpg#960#720">This post explores monitoring Docker container resource usage using docker stats and cAdvisor for real-time stats. It further discusses integrating cAdvisor with Prometheus and Grafana for a comprehensive and scalable monitoring system. A recommended GitHub project simplifies setup using Docker Compose.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>最近在用 Docker 容器跑壓力測試，我想知道每個容器的 CPU、記憶體使用狀況，有無超出 Host 主機承載上限。</p> <p>爬文查到 <a href="https://docs.docker.com/reference/cli/docker/container/stats/"><code>docker stats</code></a> 能顯示當下各容器 CPU、記憶體、網路跟磁碟 IO，既然能拿到這些資料，定期輪詢寫成 Log，後續要出什麼分析報表都不成問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638675307013249942.png"></p> <p>不過，查資料時找到更有趣的東西 - <a href="https://github.com/google/cadvisor">cAdvisor</a>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638675307017986189.png"></p> <p>cAdvisor 是 Google 開發的開源監控工具，專門用來收集容器資源使用狀況及效能數據。它能自動發現並監控運行中的 Docker 容器，提供 CPU、記憶體、網路和磁碟使用等即時統計。最酷的是你只需用 Docker 跑現成的 cAdvisor 容器，即可用網頁介面查看容器的即時狀況，還能資料導出給 Prometheus 等監控系統進行統一監控及長期分析。</p> <p>都講到 Prometheus，不意外 Grafana 馬上跟著登場，你攔都攔不住。</p> <p>用 Grafana + Prometheus 建構監控預警系統，這些年已成管理大型雲端服務的主流解決方案， 在 SRE / DevOps 領域成為顯學。Prometheus 負責蒐集及儲存營運數據(CPU、Memory、IO)、並發展出自己的查詢語言(PromQL)可以分析數據及設置告警；而 Grafana 可將 Prometheus 的數據可視化，做成美美的監控儀表板，還提供高度的客制化彈性，二者相輔相成。網路上專業介紹文很多，這裡就不班門弄斧了。<br> (延伸參考：<a href="https://github.com/880831ian/Prometheus-Grafana-Docker">使用 Prometheus 和 Grafana 打造監控預警系統</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638675307745871005.png"><br> <a href="https://blog.techbridge.cc/2019/08/26/how-to-use-prometheus-grafana-in-flask-app/">圖片來源</a></p> <p>cAdvisor 雖有網頁介面但功能陽春，只能看最近十分鐘的資料，且缺乏客製圖表、告警通知等功能。於是有社群朋友用 Docker Composer 把 cAdvisor、Prometheus、Grafana 容器串起來寫好設定檔，做到下一行指令，不用三分鐘，一套雲端機房等級的高彈性監控系統就架好了，是容器化技術又一次經典的火力展示。</p> <p>實驗性質的小網站，理論上不需要如此奢華的專案效能監控系統，但容器化把事情變簡單了，裝整套大系統比自己組裝寫程式還快，git clone 完下一行指令就好，耗用資源也不高，管它是不是牛刀，免費又好用為什麼不要？</p> <p>再說，不拿小需求練兵增廣見聞累積經驗，將來真遇上大場面，豈不又像劉佬佬進大觀園。</p> <p>我找到這個 Github 專案 - - <a href="https://github.com/sohammohite/container-monitoring">Docker Container Monitoring with cAdvisor, Prometheus, and Grafana using Docker Compose</a>。(<a href="https://medium.com/@sohammohite/docker-container-monitoring-with-cadvisor-prometheus-and-grafana-using-docker-compose-b47ec78efbc">相關說明</a>)</p> <p>裡面有一個 docker-compose.yml 會同時啟用 cAdvisor、Prometheus、Grafana 三個容器，分別傾聽 8080、9090、3000 Port；另外有個 prometheus.yml 設定檔指定每 15 秒抓一次資料，除了從 cAdvisor 取得容器效能數據，也抓自己的資料 (預設抓取網址為 <code>http://localhost:xxxx/metrics</code>)：</p> <pre><code>global:
+scrape_interval: 15s # 每15秒抓取一次數據。
+evaluation_interval: 15s # 每15秒評估一次規則。
+scrape_configs:
+- job_name: "prometheus"
+# metrics_path 預設為 '/metrics'
+static_configs:
+- targets: ["localhost:9090"] # 抓取 Prometheus 自身的數據。
+- job_name: "cadvisor"
+static_configs:
+- targets: ["localhost:8080"] # 抓取 cAdvisor 的數據。
+</code></pre> <p>Grafana 則需要三個相關設定檔，datasources.yml 指定 Prometheus 位於 <code>http://localhost:9090</code>、default.yml 指定載入 dashboard.json 做為預設儀表板、dashboard.json 則是基本儀表板組合，預設抓取各容器的 CPU、記憶體、網路傳輸縮製即時線圖，呈現效果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638675307022173450.png"></p> <p>我故意開 Python 容器在裡面跑一分鐘無窮迴圈後中斷，成功在 CPU 圖表畫出一個梯形。這裡的 CPU 線圖有用 PromQL rate() 函數取固定時間間隔(Time Window)內耗用 CPU 秒數的平均值，線形比較平滑，不像傳統效能監視器 CPU 負載圖一堆尖銳轉折。</p> <p>記錄實測過程我做的小調整：</p> <ol><li>原 docker-compose.yml 中 <code>network_model: host</code> 與 <code>ports</code> 映對設定並存，二者只需留一種。由於相關設定檔是用 localhost 互相溝通，故保留 <code>network_model: host</code> 較簡單，不然要改走容器內部網路並將設定檔 URL 的 localhost 改為容器名稱，工程較大。</li> <li>原本 dashboard.json 設定抓 CPU 等數字時 PromQL <code>"rate(container_cpu_user_seconds_total{image!=\"\"}[5m]) * 100"</code> 抓最近五分鐘指標值平均(換言之，短暫的尖峰會被攤平，有興趣測入推薦這篇：<a href="https://cloud.tencent.com/developer/article/2415949">Prometheus 指标值不准：是 feature，还是 bug？</a>)，讓曲線平滑化以觀察長期趨勢。我的壓力測試期間長度較短，故調成 30s 平均讓它更明顯反映變化。</li></ol> <p>【延伸閱讀】</p> <ul><li><a href="https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/exporter/commonly-eporter-usage/use-prometheus-monitor-container">Prometheus cAdvisor 指標整合</a></li></ul> <p data-slug="cadvisor-prometheus-grafana" data-title-en="Monitoring docker containers with cAdvisor + Prometheus + Granfana" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/26/18/44/space-center-693251_960_720.jpg#960#720">This post explores monitoring Docker container resource usage using docker stats and cAdvisor for real-time stats. It further discusses integrating cAdvisor with Prometheus and Grafana for a comprehensive and scalable monitoring system. A recommended GitHub project simplifies setup using Docker Compose.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>最近在用 Docker 容器跑壓力測試，我想知道每個容器的 CPU、記憶體使用狀況，有無超出 Host 主機承載上限。</p> <p>爬文查到 <a href="https://docs.docker.com/reference/cli/docker/container/stats/"><code>docker stats</code></a> 能顯示當下各容器 CPU、記憶體、網路跟磁碟 IO，既然能拿到這些資料，定期輪詢寫成 Log，後續要出什麼分析報表都不成問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638675307013249942.png"></p> <p>不過，查資料時找到更有趣的東西 - <a href="https://github.com/google/cadvisor">cAdvisor</a>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638675307017986189.png"></p> <p>cAdvisor 是 Google 開發的開源監控工具，專門用來收集容器資源使用狀況及效能數據。它能自動發現並監控運行中的 Docker 容器，提供 CPU、記憶體、網路和磁碟使用等即時統計。最酷的是你只需用 Docker 跑現成的 cAdvisor 容器，即可用網頁介面查看容器的即時狀況，還能資料導出給 Prometheus 等監控系統進行統一監控及長期分析。</p> <p>都講到 Prometheus，不意外 Grafana 馬上跟著登場，你攔都攔不住。</p> <p>用 Grafana + Prometheus 建構監控預警系統，這些年已成管理大型雲端服務的主流解決方案， 在 SRE / DevOps 領域成為顯學。Prometheus 負責蒐集及儲存營運數據(CPU、Memory、IO)、並發展出自己的查詢語言(PromQL)可以分析數據及設置告警；而 Grafana 可將 Prometheus 的數據可視化，做成美美的監控儀表板，還提供高度的客制化彈性，二者相輔相成。網路上專業介紹文很多，這裡就不班門弄斧了。<br> (延伸參考：<a href="https://github.com/880831ian/Prometheus-Grafana-Docker">使用 Prometheus 和 Grafana 打造監控預警系統</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638675307745871005.png"><br> <a href="https://blog.techbridge.cc/2019/08/26/how-to-use-prometheus-grafana-in-flask-app/">圖片來源</a></p> <p>cAdvisor 雖有網頁介面但功能陽春，只能看最近十分鐘的資料，且缺乏客製圖表、告警通知等功能。於是有社群朋友用 Docker Composer 把 cAdvisor、Prometheus、Grafana 容器串起來寫好設定檔，做到下一行指令，不用三分鐘，一套雲端機房等級的高彈性監控系統就架好了，是容器化技術又一次經典的火力展示。</p> <p>實驗性質的小網站，理論上不需要如此奢華的專案效能監控系統，但容器化把事情變簡單了，裝整套大系統比自己組裝寫程式還快，git clone 完下一行指令就好，耗用資源也不高，管它是不是牛刀，免費又好用為什麼不要？</p> <p>再說，不拿小需求練兵增廣見聞累積經驗，將來真遇上大場面，豈不又像劉佬佬進大觀園。</p> <p>我找到這個 Github 專案 - - <a href="https://github.com/sohammohite/container-monitoring">Docker Container Monitoring with cAdvisor, Prometheus, and Grafana using Docker Compose</a>。(<a href="https://medium.com/@sohammohite/docker-container-monitoring-with-cadvisor-prometheus-and-grafana-using-docker-compose-b47ec78efbc">相關說明</a>)</p> <p>裡面有一個 docker-compose.yml 會同時啟用 cAdvisor、Prometheus、Grafana 三個容器，分別傾聽 8080、9090、3000 Port；另外有個 prometheus.yml 設定檔指定每 15 秒抓一次資料，除了從 cAdvisor 取得容器效能數據，也抓自己的資料 (預設抓取網址為 <code>http://localhost:xxxx/metrics</code>)：</p> <pre><code>global:
+scrape_interval: 15s # 每15秒抓取一次數據。
+evaluation_interval: 15s # 每15秒評估一次規則。
+scrape_configs:
+- job_name: "prometheus"
+# metrics_path 預設為 '/metrics'
+static_configs:
+- targets: ["localhost:9090"] # 抓取 Prometheus 自身的數據。
+- job_name: "cadvisor"
+static_configs:
+- targets: ["localhost:8080"] # 抓取 cAdvisor 的數據。
+</code></pre> <p>Grafana 則需要三個相關設定檔，datasources.yml 指定 Prometheus 位於 <code>http://localhost:9090</code>、default.yml 指定載入 dashboard.json 做為預設儀表板、dashboard.json 則是基本儀表板組合，預設抓取各容器的 CPU、記憶體、網路傳輸縮製即時線圖，呈現效果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638675307022173450.png"></p> <p>我故意開 Python 容器在裡面跑一分鐘無窮迴圈後中斷，成功在 CPU 圖表畫出一個梯形。這裡的 CPU 線圖有用 PromQL rate() 函數取固定時間間隔(Time Window)內耗用 CPU 秒數的平均值，線形比較平滑，不像傳統效能監視器 CPU 負載圖一堆尖銳轉折。</p> <p>記錄實測過程我做的小調整：</p> <ol><li>原 docker-compose.yml 中 <code>network_model: host</code> 與 <code>ports</code> 映對設定並存，二者只需留一種。由於相關設定檔是用 localhost 互相溝通，故保留 <code>network_model: host</code> 較簡單，不然要改走容器內部網路並將設定檔 URL 的 localhost 改為容器名稱，工程較大。</li> <li>原本 dashboard.json 設定抓 CPU 等數字時 PromQL <code>"rate(container_cpu_user_seconds_total{image!=\"\"}[5m]) * 100"</code> 抓最近五分鐘指標值平均(換言之，短暫的尖峰會被攤平，有興趣測入推薦這篇：<a href="https://cloud.tencent.com/developer/article/2415949">Prometheus 指标值不准：是 feature，还是 bug？</a>)，讓曲線平滑化以觀察長期趨勢。我的壓力測試期間長度較短，故調成 30s 平均讓它更明顯反映變化。</li></ol> <p>【延伸閱讀】</p> <ul><li><a href="https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/exporter/commonly-eporter-usage/use-prometheus-monitor-container">Prometheus cAdvisor 指標整合</a></li></ul> <p data-slug="cadvisor-prometheus-grafana" data-title-en="Monitoring docker containers with cAdvisor + Prometheus + Granfana" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2015/03/26/18/44/space-center-693251_960_720.jpg#960#720">This post explores monitoring Docker container resource usage using docker stats and cAdvisor for real-time stats. It further discusses integrating cAdvisor with Prometheus and Grafana for a comprehensive and scalable monitoring system. A recommended GitHub project simplifies setup using Docker Compose.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638675307013249942.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638675307013249942.png" medium="image"/>
+    <pubDate>Mon, 18 Nov 2024 12:44:34 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[使用 VSCode 在 Linux 遠端編寫 Polyglot Notebook 跑 Python]]></title>
+    <link>https://blog.darkthread.net/blog/run-ployglot-w-remote-ssh/</link>
+    <itunes:title><![CDATA[使用 VSCode 在 Linux 遠端編寫 Polyglot Notebook 跑 Python]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>看標題就知是篇冷門筆記。</p> <p>如果你跟我一樣偏好 Polyglot Notebook 勝過 Jupyter Notebook，並需要在遠端 Linux (非 WSL) 跑 Python 筆記本，又想沿續 VSCode + Github Copilot AI 輔助開發的流暢，那你恰巧是本文為數不多的目標讀者，歡迎繼續讀下去。至於其他的朋友，我們下回見。(揮手下降)</p> <p>我有個需求要在遠端 Linux (Ubuntu/Debian) 上跑 Python 程式，想用 <a href="/blog/dotnet-interactive/">Polyglot Notebook</a> 觀察資料形式及摸索程式寫法。</p> <p>之前學過<a href="/blog/vscode-remote-ssh/">使用 VSCode 遠端開發與測試 Linux 專案</a>，知道 VSCode 能用 SSH 協定把 Linux 目錄當本地資料夾用，甚至能 Line By Line 偵錯，跟遠端主機做到無縫接軌。Ployglot Notebook 自然也可以這樣玩，但不到無腦安裝的地步，這裡簡單記錄安裝細節：</p> <ol><li>若是第一次要在 Linux 跑 Polyglot 筆記，按 Ctrl-Shift-P 會發現找不到下圖的 「Polyglot Notebook: Create default notebook」選項：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638674200490542692.png"><br> 原因是 Linux 端需要先安裝相關程式。照慣例 Polyglot 套件有安裝鈕，點一下便會自動裝好：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638674200494276142.png"></li> <li>Github Copilot 也一樣需要在 Linux <a href="/blog/vscode-remote-ssh/">安裝 Remote Extension Host 才能跑</a>，但也是點一下搞定：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638674200496403976.png"></li> <li>如此，我們便能建立 Polyglot 筆記，在 Code 區按 Ctrl-I 召喚 Copliot 助拳[1]、點上方的 Copilot 圖示[2]則可開啟右側 Chat 視窗[3]，切換到 AI 輔助高速 Coding 模式：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638674200500202328.png"></li> <li>選擇 Python Kernel 時，VSCode 會偵測 Linux 端有哪些 Python、pyenv 版本或 venv 虛擬環境，若沒有虛擬環境也可以當場用「Create Python Environment」建一個，操作體驗跟在本地開發無異：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638674200501842727.png"><br> 提醒如果要用現成虛擬環境，可能需要加裝 Jupyter Kernel 可能跟其他套件打架；建議為筆記新建虛擬環境，新建時會一併裝好 Jupyter Kernel 較省事。</li> <li>我遇到一個小狀況，在 Ubuntu 22.04 執行 Polyglot 筆記的 Python 程式碼出現「The kernel failed to start due to the missing module '_sqlite3'.」錯誤：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638674200503793996.png"><br> 根本原因超出我的知識範圍。最後參考<a href="https://stackoverflow.com/a/48229955/288936">網路討論</a>：<code>sudo apt install libsqlite3-dev</code>、<code>pyenv install 3.12.4</code> 重裝 Python、砍掉 venv 環境重建一次排除問題。</li></ol> <p data-slug="run-ployglot-w-remote-ssh" data-title-en="Running Ployglot notebook on remote Linux" data-catg="Python" data-fbimg="https://i.imgur.com/qSw7jrf.png#1024#577">This blog post outlines the steps to run Python programs on a remote Linux server using Polyglot Notebook in VSCode. It covers installing necessary extensions and setting up the environment for seamless coding, including handling potential issues with missing modules.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>看標題就知是篇冷門筆記。</p> <p>如果你跟我一樣偏好 Polyglot Notebook 勝過 Jupyter Notebook，並需要在遠端 Linux (非 WSL) 跑 Python 筆記本，又想沿續 VSCode + Github Copilot AI 輔助開發的流暢，那你恰巧是本文為數不多的目標讀者，歡迎繼續讀下去。至於其他的朋友，我們下回見。(揮手下降)</p> <p>我有個需求要在遠端 Linux (Ubuntu/Debian) 上跑 Python 程式，想用 <a href="/blog/dotnet-interactive/">Polyglot Notebook</a> 觀察資料形式及摸索程式寫法。</p> <p>之前學過<a href="/blog/vscode-remote-ssh/">使用 VSCode 遠端開發與測試 Linux 專案</a>，知道 VSCode 能用 SSH 協定把 Linux 目錄當本地資料夾用，甚至能 Line By Line 偵錯，跟遠端主機做到無縫接軌。Ployglot Notebook 自然也可以這樣玩，但不到無腦安裝的地步，這裡簡單記錄安裝細節：</p> <ol><li>若是第一次要在 Linux 跑 Polyglot 筆記，按 Ctrl-Shift-P 會發現找不到下圖的 「Polyglot Notebook: Create default notebook」選項：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638674200490542692.png"><br> 原因是 Linux 端需要先安裝相關程式。照慣例 Polyglot 套件有安裝鈕，點一下便會自動裝好：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638674200494276142.png"></li> <li>Github Copilot 也一樣需要在 Linux <a href="/blog/vscode-remote-ssh/">安裝 Remote Extension Host 才能跑</a>，但也是點一下搞定：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638674200496403976.png"></li> <li>如此，我們便能建立 Polyglot 筆記，在 Code 區按 Ctrl-I 召喚 Copliot 助拳[1]、點上方的 Copilot 圖示[2]則可開啟右側 Chat 視窗[3]，切換到 AI 輔助高速 Coding 模式：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638674200500202328.png"></li> <li>選擇 Python Kernel 時，VSCode 會偵測 Linux 端有哪些 Python、pyenv 版本或 venv 虛擬環境，若沒有虛擬環境也可以當場用「Create Python Environment」建一個，操作體驗跟在本地開發無異：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638674200501842727.png"><br> 提醒如果要用現成虛擬環境，可能需要加裝 Jupyter Kernel 可能跟其他套件打架；建議為筆記新建虛擬環境，新建時會一併裝好 Jupyter Kernel 較省事。</li> <li>我遇到一個小狀況，在 Ubuntu 22.04 執行 Polyglot 筆記的 Python 程式碼出現「The kernel failed to start due to the missing module '_sqlite3'.」錯誤：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638674200503793996.png"><br> 根本原因超出我的知識範圍。最後參考<a href="https://stackoverflow.com/a/48229955/288936">網路討論</a>：<code>sudo apt install libsqlite3-dev</code>、<code>pyenv install 3.12.4</code> 重裝 Python、砍掉 venv 環境重建一次排除問題。</li></ol> <p data-slug="run-ployglot-w-remote-ssh" data-title-en="Running Ployglot notebook on remote Linux" data-catg="Python" data-fbimg="https://i.imgur.com/qSw7jrf.png#1024#577">This blog post outlines the steps to run Python programs on a remote Linux server using Polyglot Notebook in VSCode. It covers installing necessary extensions and setting up the environment for seamless coding, including handling potential issues with missing modules.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>看標題就知是篇冷門筆記。</p> <p>如果你跟我一樣偏好 Polyglot Notebook 勝過 Jupyter Notebook，並需要在遠端 Linux (非 WSL) 跑 Python 筆記本，又想沿續 VSCode + Github Copilot AI 輔助開發的流暢，那你恰巧是本文為數不多的目標讀者，歡迎繼續讀下去。至於其他的朋友，我們下回見。(揮手下降)</p> <p>我有個需求要在遠端 Linux (Ubuntu/Debian) 上跑 Python 程式，想用 <a href="/blog/dotnet-interactive/">Polyglot Notebook</a> 觀察資料形式及摸索程式寫法。</p> <p>之前學過<a href="/blog/vscode-remote-ssh/">使用 VSCode 遠端開發與測試 Linux 專案</a>，知道 VSCode 能用 SSH 協定把 Linux 目錄當本地資料夾用，甚至能 Line By Line 偵錯，跟遠端主機做到無縫接軌。Ployglot Notebook 自然也可以這樣玩，但不到無腦安裝的地步，這裡簡單記錄安裝細節：</p> <ol><li>若是第一次要在 Linux 跑 Polyglot 筆記，按 Ctrl-Shift-P 會發現找不到下圖的 「Polyglot Notebook: Create default notebook」選項：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638674200490542692.png"><br> 原因是 Linux 端需要先安裝相關程式。照慣例 Polyglot 套件有安裝鈕，點一下便會自動裝好：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638674200494276142.png"></li> <li>Github Copilot 也一樣需要在 Linux <a href="/blog/vscode-remote-ssh/">安裝 Remote Extension Host 才能跑</a>，但也是點一下搞定：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638674200496403976.png"></li> <li>如此，我們便能建立 Polyglot 筆記，在 Code 區按 Ctrl-I 召喚 Copliot 助拳[1]、點上方的 Copilot 圖示[2]則可開啟右側 Chat 視窗[3]，切換到 AI 輔助高速 Coding 模式：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638674200500202328.png"></li> <li>選擇 Python Kernel 時，VSCode 會偵測 Linux 端有哪些 Python、pyenv 版本或 venv 虛擬環境，若沒有虛擬環境也可以當場用「Create Python Environment」建一個，操作體驗跟在本地開發無異：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638674200501842727.png"><br> 提醒如果要用現成虛擬環境，可能需要加裝 Jupyter Kernel 可能跟其他套件打架；建議為筆記新建虛擬環境，新建時會一併裝好 Jupyter Kernel 較省事。</li> <li>我遇到一個小狀況，在 Ubuntu 22.04 執行 Polyglot 筆記的 Python 程式碼出現「The kernel failed to start due to the missing module '_sqlite3'.」錯誤：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638674200503793996.png"><br> 根本原因超出我的知識範圍。最後參考<a href="https://stackoverflow.com/a/48229955/288936">網路討論</a>：<code>sudo apt install libsqlite3-dev</code>、<code>pyenv install 3.12.4</code> 重裝 Python、砍掉 venv 環境重建一次排除問題。</li></ol> <p data-slug="run-ployglot-w-remote-ssh" data-title-en="Running Ployglot notebook on remote Linux" data-catg="Python" data-fbimg="https://i.imgur.com/qSw7jrf.png#1024#577">This blog post outlines the steps to run Python programs on a remote Linux server using Polyglot Notebook in VSCode. It covers installing necessary extensions and setting up the environment for seamless coding, including handling potential issues with missing modules.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig2_638674200490542692.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig2_638674200490542692.png" medium="image"/>
+    <pubDate>Sun, 17 Nov 2024 05:58:33 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Nginx Docker 附掛靜態子網站]]></title>
+    <link>https://blog.darkthread.net/blog/nginx-docker-serve-static-web/</link>
+    <itunes:title><![CDATA[Nginx Docker 附掛靜態子網站]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>先說一下需求情境，假設我用 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>在 Linux 主機跑了一個 <a href="/blog/aspnetcore-docker-with-cli/">ASP.NET Core Docker</a> / <a href="/blog/python-in-docker/">Python 網站 Docker</a>，網站自動套用了 Let's Encrypt TLS 憑證且會自動更新。此時，你想要在這個現成的網站 Docker 下加掛子資料夾放 .html, .js 等靜態檔案，檔案直接放在 <code>~/htmls</code> 目錄方便隨時修改。</p> <p>第一種解法是如果 ASP.NET Core 有設 wwwroot、Python Flask 有用 <code>app = Flask(__name__, static_folder='static')</code> 對映靜態目錄，那麼在 docker-compose.yml 加一條 volumes 設定指向實體目錄就可以了。例如：</p> <pre><code>    volumes:
+- /home/jeffrey/htmls:/app/wwwroot/htmls
+</code></pre> <p>但如果 Docker 跑的網站本身沒有啟用靜態檔案對映，除了之前提過<a href="/blog/simplest-http-server-linux/">用 ASP.NET Core Minimal API、Python http.server 簡易架個靜態網站</a>，還有個更快的做法 - 直接用 Nginx 內建的靜態網站功能。</p> <p>第一次設定沒經驗，我花了半個小時才搞定，值得寫篇筆記備忘。</p> <p>假設我的 index.html 檔放在 /home/jeffrey/htmls。第一步是在 ASP.NET Core/Python 的 Nginx 設定檔加一條 <code>location /htmls</code> 設定：</p> <pre><code>server {
+listen              443 ssl http2;
+server_name         &lt;my-web-host&gt;
+ssl_certificate     /etc/letsencrypt/live/&lt;my-web-host&gt;/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/&lt;my-web-host&gt;/privkey.pem;
+location /htmls {
+rewrite ^/htmls/(.*)$ /$1 break;
+root /var/www/htmls;
+index index.html;
+}
+location / {
+proxy_pass         http://localhost:5000;
+proxy_http_version 1.1;
+proxy_set_header   Upgrade $http_upgrade;
+proxy_set_header   Connection keep-alive;
+proxy_set_header   Host $host;
+proxy_cache_bypass $http_upgrade;
+proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header   X-Forwarded-Proto $scheme;
+}
+}
+</code></pre> <p>設定包含三條內容：(註：此非最佳做法，見下方更新)</p> <ol><li><code>rewrite ^/htmls/(.*)$ /$1 break;</code> 改寫路徑，將流入請求路徑最前方的 /htmls 去除，否則使用者輸入 /htmls/blah.html 會對映成 /var/www/htmls/htmls/blah.html，多了一層。(最後的 break 指轉換完就確定，不再管其他 rewrite 指令)</li> <li>將 /htmls 指向容器中的 /app/www/htmls 路徑</li> <li>預設文件為 index.html</li></ol> <p>【2024-11-16 更新】感謝讀者 GO GO Chin 分享更簡便的解法：rewrite + root 可用一行 <code>alias /var/www/htmls</code> 取代。</p> <p>二者比較：使用 root 時，URI 會被視為根目錄的一部分，即本例中的 /htmls；而 alias 則會拿掉 URI 中的 /htmls。故 alias 更適用如本案例非對映到根目錄的情境。</p> <pre><code>    location /htmls {
+alias /var/www/htmls;
+index index.html;
+}
+</code></pre> <p>如此，未來 Nginx 會將 <code>http://&lt;my-web-host&gt;/htmls/example.html</code> 指向 <code>/app/www/htmls/example.html</code> 傳回檔案內容。由於這項工作由 Nginx + Certbox Docker 負責，與 ASP.NET Core 或 Python 網站無關，故要修改的是 Nginx + Certbox 的 docker-compose.yml，將 /app/www/htmls 指向 /home/jeffrey/htmls：</p> <pre><code>services:
+nginx:
+image: docker.io/staticfloat/nginx-certbot
+container_name: nginx
+volumes:
+- /var/log/nginx:/var/log/nginx
+- /var/log/letsencrypt:/var/log/letsencrypt
+- /etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+- /etc/nginx/conf.d:/etc/nginx/conf.d
+- /etc/letsencrypt:/etc/letsencrypt
+- /home/jeffrey/htmls:/var/www/htmls
+restart: always
+environment:
+- CERTBOT_EMAIL=&lt;email&gt;
+network_mode: "host"
+</code></pre> <p>接著 <code>docker-compose down; docker-compose up -d</code> 重啟 Nginx Docker，醬就大功告成囉~</p> <p data-slug="nginx-docker-serve-static-web" data-title-en="Serving static web with Nginx docker" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/08/14/17/19/container-418132_960_720.jpg#960#720">This blog post demonstrates how to serve static files from a specific directory in an existing ASP.NET Core or Python web application using Nginx. The solution involves modifying the Nginx configuration to map a directory on the host machine to a directory within the Docker container, allowing for the direct serving of static files. This approach leverages Nginx’s built-in functionality, providing a quick and efficient way to handle static content.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>先說一下需求情境，假設我用 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>在 Linux 主機跑了一個 <a href="/blog/aspnetcore-docker-with-cli/">ASP.NET Core Docker</a> / <a href="/blog/python-in-docker/">Python 網站 Docker</a>，網站自動套用了 Let's Encrypt TLS 憑證且會自動更新。此時，你想要在這個現成的網站 Docker 下加掛子資料夾放 .html, .js 等靜態檔案，檔案直接放在 <code>~/htmls</code> 目錄方便隨時修改。</p> <p>第一種解法是如果 ASP.NET Core 有設 wwwroot、Python Flask 有用 <code>app = Flask(__name__, static_folder='static')</code> 對映靜態目錄，那麼在 docker-compose.yml 加一條 volumes 設定指向實體目錄就可以了。例如：</p> <pre><code>    volumes:
+- /home/jeffrey/htmls:/app/wwwroot/htmls
+</code></pre> <p>但如果 Docker 跑的網站本身沒有啟用靜態檔案對映，除了之前提過<a href="/blog/simplest-http-server-linux/">用 ASP.NET Core Minimal API、Python http.server 簡易架個靜態網站</a>，還有個更快的做法 - 直接用 Nginx 內建的靜態網站功能。</p> <p>第一次設定沒經驗，我花了半個小時才搞定，值得寫篇筆記備忘。</p> <p>假設我的 index.html 檔放在 /home/jeffrey/htmls。第一步是在 ASP.NET Core/Python 的 Nginx 設定檔加一條 <code>location /htmls</code> 設定：</p> <pre><code>server {
+listen              443 ssl http2;
+server_name         &lt;my-web-host&gt;
+ssl_certificate     /etc/letsencrypt/live/&lt;my-web-host&gt;/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/&lt;my-web-host&gt;/privkey.pem;
+location /htmls {
+rewrite ^/htmls/(.*)$ /$1 break;
+root /var/www/htmls;
+index index.html;
+}
+location / {
+proxy_pass         http://localhost:5000;
+proxy_http_version 1.1;
+proxy_set_header   Upgrade $http_upgrade;
+proxy_set_header   Connection keep-alive;
+proxy_set_header   Host $host;
+proxy_cache_bypass $http_upgrade;
+proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header   X-Forwarded-Proto $scheme;
+}
+}
+</code></pre> <p>設定包含三條內容：(註：此非最佳做法，見下方更新)</p> <ol><li><code>rewrite ^/htmls/(.*)$ /$1 break;</code> 改寫路徑，將流入請求路徑最前方的 /htmls 去除，否則使用者輸入 /htmls/blah.html 會對映成 /var/www/htmls/htmls/blah.html，多了一層。(最後的 break 指轉換完就確定，不再管其他 rewrite 指令)</li> <li>將 /htmls 指向容器中的 /app/www/htmls 路徑</li> <li>預設文件為 index.html</li></ol> <p>【2024-11-16 更新】感謝讀者 GO GO Chin 分享更簡便的解法：rewrite + root 可用一行 <code>alias /var/www/htmls</code> 取代。</p> <p>二者比較：使用 root 時，URI 會被視為根目錄的一部分，即本例中的 /htmls；而 alias 則會拿掉 URI 中的 /htmls。故 alias 更適用如本案例非對映到根目錄的情境。</p> <pre><code>    location /htmls {
+alias /var/www/htmls;
+index index.html;
+}
+</code></pre> <p>如此，未來 Nginx 會將 <code>http://&lt;my-web-host&gt;/htmls/example.html</code> 指向 <code>/app/www/htmls/example.html</code> 傳回檔案內容。由於這項工作由 Nginx + Certbox Docker 負責，與 ASP.NET Core 或 Python 網站無關，故要修改的是 Nginx + Certbox 的 docker-compose.yml，將 /app/www/htmls 指向 /home/jeffrey/htmls：</p> <pre><code>services:
+nginx:
+image: docker.io/staticfloat/nginx-certbot
+container_name: nginx
+volumes:
+- /var/log/nginx:/var/log/nginx
+- /var/log/letsencrypt:/var/log/letsencrypt
+- /etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+- /etc/nginx/conf.d:/etc/nginx/conf.d
+- /etc/letsencrypt:/etc/letsencrypt
+- /home/jeffrey/htmls:/var/www/htmls
+restart: always
+environment:
+- CERTBOT_EMAIL=&lt;email&gt;
+network_mode: "host"
+</code></pre> <p>接著 <code>docker-compose down; docker-compose up -d</code> 重啟 Nginx Docker，醬就大功告成囉~</p> <p data-slug="nginx-docker-serve-static-web" data-title-en="Serving static web with Nginx docker" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/08/14/17/19/container-418132_960_720.jpg#960#720">This blog post demonstrates how to serve static files from a specific directory in an existing ASP.NET Core or Python web application using Nginx. The solution involves modifying the Nginx configuration to map a directory on the host machine to a directory within the Docker container, allowing for the direct serving of static files. This approach leverages Nginx’s built-in functionality, providing a quick and efficient way to handle static content.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>先說一下需求情境，假設我用 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>在 Linux 主機跑了一個 <a href="/blog/aspnetcore-docker-with-cli/">ASP.NET Core Docker</a> / <a href="/blog/python-in-docker/">Python 網站 Docker</a>，網站自動套用了 Let's Encrypt TLS 憑證且會自動更新。此時，你想要在這個現成的網站 Docker 下加掛子資料夾放 .html, .js 等靜態檔案，檔案直接放在 <code>~/htmls</code> 目錄方便隨時修改。</p> <p>第一種解法是如果 ASP.NET Core 有設 wwwroot、Python Flask 有用 <code>app = Flask(__name__, static_folder='static')</code> 對映靜態目錄，那麼在 docker-compose.yml 加一條 volumes 設定指向實體目錄就可以了。例如：</p> <pre><code>    volumes:
+- /home/jeffrey/htmls:/app/wwwroot/htmls
+</code></pre> <p>但如果 Docker 跑的網站本身沒有啟用靜態檔案對映，除了之前提過<a href="/blog/simplest-http-server-linux/">用 ASP.NET Core Minimal API、Python http.server 簡易架個靜態網站</a>，還有個更快的做法 - 直接用 Nginx 內建的靜態網站功能。</p> <p>第一次設定沒經驗，我花了半個小時才搞定，值得寫篇筆記備忘。</p> <p>假設我的 index.html 檔放在 /home/jeffrey/htmls。第一步是在 ASP.NET Core/Python 的 Nginx 設定檔加一條 <code>location /htmls</code> 設定：</p> <pre><code>server {
+listen              443 ssl http2;
+server_name         &lt;my-web-host&gt;
+ssl_certificate     /etc/letsencrypt/live/&lt;my-web-host&gt;/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/&lt;my-web-host&gt;/privkey.pem;
+location /htmls {
+rewrite ^/htmls/(.*)$ /$1 break;
+root /var/www/htmls;
+index index.html;
+}
+location / {
+proxy_pass         http://localhost:5000;
+proxy_http_version 1.1;
+proxy_set_header   Upgrade $http_upgrade;
+proxy_set_header   Connection keep-alive;
+proxy_set_header   Host $host;
+proxy_cache_bypass $http_upgrade;
+proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header   X-Forwarded-Proto $scheme;
+}
+}
+</code></pre> <p>設定包含三條內容：(註：此非最佳做法，見下方更新)</p> <ol><li><code>rewrite ^/htmls/(.*)$ /$1 break;</code> 改寫路徑，將流入請求路徑最前方的 /htmls 去除，否則使用者輸入 /htmls/blah.html 會對映成 /var/www/htmls/htmls/blah.html，多了一層。(最後的 break 指轉換完就確定，不再管其他 rewrite 指令)</li> <li>將 /htmls 指向容器中的 /app/www/htmls 路徑</li> <li>預設文件為 index.html</li></ol> <p>【2024-11-16 更新】感謝讀者 GO GO Chin 分享更簡便的解法：rewrite + root 可用一行 <code>alias /var/www/htmls</code> 取代。</p> <p>二者比較：使用 root 時，URI 會被視為根目錄的一部分，即本例中的 /htmls；而 alias 則會拿掉 URI 中的 /htmls。故 alias 更適用如本案例非對映到根目錄的情境。</p> <pre><code>    location /htmls {
+alias /var/www/htmls;
+index index.html;
+}
+</code></pre> <p>如此，未來 Nginx 會將 <code>http://&lt;my-web-host&gt;/htmls/example.html</code> 指向 <code>/app/www/htmls/example.html</code> 傳回檔案內容。由於這項工作由 Nginx + Certbox Docker 負責，與 ASP.NET Core 或 Python 網站無關，故要修改的是 Nginx + Certbox 的 docker-compose.yml，將 /app/www/htmls 指向 /home/jeffrey/htmls：</p> <pre><code>services:
+nginx:
+image: docker.io/staticfloat/nginx-certbot
+container_name: nginx
+volumes:
+- /var/log/nginx:/var/log/nginx
+- /var/log/letsencrypt:/var/log/letsencrypt
+- /etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+- /etc/nginx/conf.d:/etc/nginx/conf.d
+- /etc/letsencrypt:/etc/letsencrypt
+- /home/jeffrey/htmls:/var/www/htmls
+restart: always
+environment:
+- CERTBOT_EMAIL=&lt;email&gt;
+network_mode: "host"
+</code></pre> <p>接著 <code>docker-compose down; docker-compose up -d</code> 重啟 Nginx Docker，醬就大功告成囉~</p> <p data-slug="nginx-docker-serve-static-web" data-title-en="Serving static web with Nginx docker" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2014/08/14/17/19/container-418132_960_720.jpg#960#720">This blog post demonstrates how to serve static files from a specific directory in an existing ASP.NET Core or Python web application using Nginx. The solution involves modifying the Nginx configuration to map a directory on the host machine to a directory within the Docker container, allowing for the direct serving of static files. This approach leverages Nginx’s built-in functionality, providing a quick and efficient way to handle static content.</p>]]></content:encoded>
+    
+    <pubDate>Sat, 16 Nov 2024 02:22:48 GMT</pubDate>
+  </item></channel>
+</rss>
