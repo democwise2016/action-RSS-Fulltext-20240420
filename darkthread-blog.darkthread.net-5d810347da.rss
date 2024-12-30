@@ -1,0 +1,1409 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[黑暗執行緒[RSS+]]]></title>
+    <link>undefined</link>
+    <image>
+      <url>https://blog.darkthread.net/img/icon512x512.png</url>
+      <title>黑暗執行緒[RSS+]</title>
+      <link>undefined</link>
+    </image>
+    <language>en-us</language>
+    <atom:link href="https://blog.darkthread.net/feed/rss/" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[黑暗執行緒[RSS+]]]></copyright>
+    <itunes:author><![CDATA[黑暗執行緒[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[黑暗執行緒[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
+<item>
+    <title><![CDATA[Python 新手筆記 4 - Dictionary、Tuple 與 Set]]></title>
+    <link>https://blog.darkthread.net/blog/python-beginner-notes-4/</link>
+    <itunes:title><![CDATA[Python 新手筆記 4 - Dictionary、Tuple 與 Set]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
+keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
+print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
+# 簡化寫法
+print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
+</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
+k, v = dcit_name.popitem()
+print(f"{k}: {v}")
+</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
+print("{k}: {v}")
+</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
+keys1 = big_dict.keys()
+keys2 = list(big_dict.keys())
+# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
+</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
+squars = { x: x**2 for i in nums }
+# zip 可將兩個 List 的元素一配一組成 Tuple
+fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
+</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
+keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
+print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
+# 簡化寫法
+print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
+</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
+k, v = dcit_name.popitem()
+print(f"{k}: {v}")
+</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
+print("{k}: {v}")
+</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
+keys1 = big_dict.keys()
+keys2 = list(big_dict.keys())
+# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
+</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
+squars = { x: x**2 for i in nums }
+# zip 可將兩個 List 的元素一配一組成 Tuple
+fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
+</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
+keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
+print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
+# 簡化寫法
+print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
+</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
+k, v = dcit_name.popitem()
+print(f"{k}: {v}")
+</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
+print("{k}: {v}")
+</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
+keys1 = big_dict.keys()
+keys2 = list(big_dict.keys())
+# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
+</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
+squars = { x: x**2 for i in nums }
+# zip 可將兩個 List 的元素一配一組成 Tuple
+fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
+</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg" medium="image"/>
+    <pubDate>Mon, 30 Dec 2024 13:14:59 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[架設 Docker Mailserver 進行 SMTP/POP3 內部測試]]></title>
+    <link>https://blog.darkthread.net/blog/docker-mailserver-for-internal-test/</link>
+    <itunes:title><![CDATA[架設 Docker Mailserver 進行 SMTP/POP3 內部測試]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>一開始我只是想省點事，真的。想說自己架台 SMTP/POP3 伺服器，要測 Outlook 接收內嵌圖檔信件的效果會方便許多。</p> <p>伺服器架在內網自己玩不對外，通訊協定用 SMTP/POP3 明碼通訊即可，不必搞煩人的帳號密碼登入、OAuth 認證、API Key，也不需要考慮垃圾信檢核，聚焦郵件內容呈現才是重點。郵件伺服器有 <a href="https://docker-mailserver.github.io/docker-mailserver/latest/">Docker Mailserver</a> 可用，花兩分鐘下載啟動容器，接著就有台標準 SMTP/POP3 能用 C# SmtpClient 發信、Outlook POP3 收信測個痛快，豈不美哉？</p> <p>如意算盤打得好，但代誌沒憨人想的哈尼甘單。由於缺少郵件服務專業，原以為幾分鐘的事，一路踩坑、爬文、踩坑、爬文，我足足花了兩個多小時才搞定，但欣慰的是過程有學到不少新知識。</p> <p>踩坑心得最後再講，以下是我測試成功的做法。</p> <p>Docker Mailserver 安裝方式我是參考這篇 - <a href="https://miyago9267.com/Tutorial/misc/exp-mailserver/">Docker MailServer 架設與踩坑紀錄 by DJ MYG</a>，但有些小更改：</p> <ol><li>從 Github 下載 docker-composer.yml，由於我打算走 POP3 110 協定，ports: 要多加 "110:110"，hostname 沿用預設的 mail.example.com 即可：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png"></li> <li>從 Github 下載 mailserver.env，這是這次學到的新技巧，docker-composer.yml 可用 env_file 將 environments 設定移到另外的設定檔集中管理。以下幾處跟預設值不同要調 <pre><code>OVERRIDE_HOSTNAME=mail.example.com
+ENABLE_POLICYD_SPF=0 # 停用 SPF
+ENABLE_OPENDMARC=0 # 停用 DMARC
+ENABLE_POP3=1 # 啟用 POP3
+</code></pre> </li> <li>使用指令 <code>docker-compose up -d</code> 安裝並執行容器<br> 註：也可以選擇 <code>docker-compose up</code> 即時監查伺服器 Log，但後續建立帳號操作要用 <a href="/blog/tmux/">tmux</a> 或開 Terminal 執行。</li> <li>建立 <code>admin@example.com</code> 帳號，密碼隨便給，另為 admin 帳號新增 postmaster 別名</li></ol> <p>完整指令碼整理如下：</p> <pre><code>S_GITHUB_URL="https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master"
+curl -LO "${DMS_GITHUB_URL}/compose.yaml" &amp;&amp; mv compose.yaml docker-compose.yaml
+# nano docker-compose.yml 增加 POP3 Port
+curl -LO "${DMS_GITHUB_URL}/mailserver.env"
+# nano mailserver.env，依上述說明修改
+# 把 Docker 跑起來
+docker-compose up
+# 用 tmux 或另外一個 Terminal 執行以下指令建立帳號
+# 建立 admin
+docker exec -it mailserver setup email add admin@example.com "password"
+# 將 postmaster 建立為 admin 的別名
+docker exec -it mailserver setup alias add postmaster@example.com admin@example.com
+</code></pre> <p>以上程序做完，在客戶端設定 <code>C:\Widows\System32\drivers\etc\hosts</code> 將 <code>mail.example.con</code> 指向該主機 IP，測試 <code>telent mail.example.com 25</code> 及 <code>telent mail.example.com 110</code> 有通(或者用更好用的 PowerShell <a href="/blog/ps-test-netconnection/">Test-NetConnection 指令</a>)，下一步是 Outlook 新增帳號用 POP3 收信。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638706752229747435.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638706752231335338.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638706752233162133.png"><br> (註：我實測用 25 Port 會出現伺服器不支援 Outlook 使用的安全認證方式，改設 465 Port，加密方式選自動才 OK。問題似乎跟 amavisd-new 垃圾信防護有關，但由於不影響 C# SmtpClient 測試，我沒再深入研究。)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638706752234759726.png"></p> <p>若一切順利，到這裡應該能用 Outlook 收信。(寄信會不會被退被擋是另一回事)</p> <p>接著說說我踩到的坑。</p> <p>Docker Mailserver 是個能用於正式環境，Production 等級的伺服器，因此常用的垃圾信防護及認證機制一樣沒少，我一口氣學會：DMARC、DKIM、SPF 三個名詞。(延伸閱讀：<a href="https://www.cloudflare.com/zh-tw/learning/email-security/dmarc-dkim-spf/">什麼是 DMARC、DKIM 和 SPF？ by Cloudflare</a>)</p> <ul><li>DKIM (DomainKeys Identified Mail) 是一種公鑰簽名驗證機制，以用證明郵件系出名門</li> <li>SPF (Sender Policy Framework) 是在 DNS 列舉授權該網域可發送郵件的有效伺服器 IP，方便收信方查證來源</li> <li>DMARC (Domain-based Message Authentication, Reporting &amp; Conformance) 是一種電子郵件驗證、報告和一致性協定，它基於 DKIM 及 SPF，用來決定未通過驗證郵件的處理方式(例：隔離或拒絕)</li></ul> <p>Docker Mailserver 預設啟用 SPF 及 DMARC 都是啟用的，故你就算 SMTP 從 <code>admin@example.com</code> 寄給 <code>admin@example.com</code> 都會可能被擋掉，出現以下訊息。</p> <pre><code>550 5.7.23 &lt;admin@example.com&gt;: Recipient address rejected: Message rejected due to: SPF fail - not authorized.
+550 5.7.1 rejected by DMARC policy for example.com
+</code></pre> <p>由於測試伺服器並不會用來收外部信，故省事做法是如前面所說的，修改 mailserver.env 將 SPF、DMARC 停用。</p> <p>另外，我用 .NET SmtpClient 走 25 Port 送信時收到另一個錯誤：<code>The server response was: 5.5.2 &lt;MY-PC-HOSTNAME&gt;: Helo command rejected: need fully-qualified hostname</code>，看起來是 POSIX SMTP 的要求，之前用 Exchange SMTP HELO/EHLO 只給機器名稱沒問題的。查了一下，.NET Framework 可以<a href="https://stackoverflow.com/a/37417017/288936">透過 .config <code>&lt;network clientDomain="mail.example.com" /&gt;</code></a> 設 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.configuration.smtpnetworkelement.clientdomain?view=netframework-4.8.1&amp;WT.mc_id=DOP-MVP-37580">clientDomain</a> 決定 HELO/EHLO 傳送的名稱，但這是 .NET 4.X 時代的事，我是用 .NET 8 啊啊啊啊~</p> <p>最後，參考網友的解法：<a href="https://umbracare.net/blog/resolving-syntactically-invalid-ehlo-argument-smtpexception-in-c/">Resolving Syntactically invalid EHLO argument SmtpException in C#</a>，我動用 Reflection 偷改私有 Field _clientDomain 結束這回合。</p> <pre><code>using (var client = new SmtpClient("mail.example.com", 25))
+{
+var clientDomainField = typeof(SmtpClient).GetField("_clientDomain", BindingFlags.Instance | BindingFlags.NonPublic);
+if (clientDomainField != null)
+{
+clientDomainField.SetValue(client, "client.example.com"); // 隨便給即可
+}
+client.UseDefaultCredentials = false;
+client.EnableSsl = false;
+client.Send(message);
+}
+</code></pre> <p>終於。</p> <p data-slug="docker-mailserver-for-internal-test" data-title-en="Setting up a local test SMTP/POP3 server with Docker Mailserver" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">This post details the author’s experience setting up a local SMTP/POP3 server with Docker Mailserver for testing embedded images in Outlook. Key issues included disabling DMARC and SPF checks and handling .NET SmtpClient’s fully-qualified hostname requirement with Reflection.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>一開始我只是想省點事，真的。想說自己架台 SMTP/POP3 伺服器，要測 Outlook 接收內嵌圖檔信件的效果會方便許多。</p> <p>伺服器架在內網自己玩不對外，通訊協定用 SMTP/POP3 明碼通訊即可，不必搞煩人的帳號密碼登入、OAuth 認證、API Key，也不需要考慮垃圾信檢核，聚焦郵件內容呈現才是重點。郵件伺服器有 <a href="https://docker-mailserver.github.io/docker-mailserver/latest/">Docker Mailserver</a> 可用，花兩分鐘下載啟動容器，接著就有台標準 SMTP/POP3 能用 C# SmtpClient 發信、Outlook POP3 收信測個痛快，豈不美哉？</p> <p>如意算盤打得好，但代誌沒憨人想的哈尼甘單。由於缺少郵件服務專業，原以為幾分鐘的事，一路踩坑、爬文、踩坑、爬文，我足足花了兩個多小時才搞定，但欣慰的是過程有學到不少新知識。</p> <p>踩坑心得最後再講，以下是我測試成功的做法。</p> <p>Docker Mailserver 安裝方式我是參考這篇 - <a href="https://miyago9267.com/Tutorial/misc/exp-mailserver/">Docker MailServer 架設與踩坑紀錄 by DJ MYG</a>，但有些小更改：</p> <ol><li>從 Github 下載 docker-composer.yml，由於我打算走 POP3 110 協定，ports: 要多加 "110:110"，hostname 沿用預設的 mail.example.com 即可：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png"></li> <li>從 Github 下載 mailserver.env，這是這次學到的新技巧，docker-composer.yml 可用 env_file 將 environments 設定移到另外的設定檔集中管理。以下幾處跟預設值不同要調 <pre><code>OVERRIDE_HOSTNAME=mail.example.com
+ENABLE_POLICYD_SPF=0 # 停用 SPF
+ENABLE_OPENDMARC=0 # 停用 DMARC
+ENABLE_POP3=1 # 啟用 POP3
+</code></pre> </li> <li>使用指令 <code>docker-compose up -d</code> 安裝並執行容器<br> 註：也可以選擇 <code>docker-compose up</code> 即時監查伺服器 Log，但後續建立帳號操作要用 <a href="/blog/tmux/">tmux</a> 或開 Terminal 執行。</li> <li>建立 <code>admin@example.com</code> 帳號，密碼隨便給，另為 admin 帳號新增 postmaster 別名</li></ol> <p>完整指令碼整理如下：</p> <pre><code>S_GITHUB_URL="https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master"
+curl -LO "${DMS_GITHUB_URL}/compose.yaml" &amp;&amp; mv compose.yaml docker-compose.yaml
+# nano docker-compose.yml 增加 POP3 Port
+curl -LO "${DMS_GITHUB_URL}/mailserver.env"
+# nano mailserver.env，依上述說明修改
+# 把 Docker 跑起來
+docker-compose up
+# 用 tmux 或另外一個 Terminal 執行以下指令建立帳號
+# 建立 admin
+docker exec -it mailserver setup email add admin@example.com "password"
+# 將 postmaster 建立為 admin 的別名
+docker exec -it mailserver setup alias add postmaster@example.com admin@example.com
+</code></pre> <p>以上程序做完，在客戶端設定 <code>C:\Widows\System32\drivers\etc\hosts</code> 將 <code>mail.example.con</code> 指向該主機 IP，測試 <code>telent mail.example.com 25</code> 及 <code>telent mail.example.com 110</code> 有通(或者用更好用的 PowerShell <a href="/blog/ps-test-netconnection/">Test-NetConnection 指令</a>)，下一步是 Outlook 新增帳號用 POP3 收信。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638706752229747435.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638706752231335338.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638706752233162133.png"><br> (註：我實測用 25 Port 會出現伺服器不支援 Outlook 使用的安全認證方式，改設 465 Port，加密方式選自動才 OK。問題似乎跟 amavisd-new 垃圾信防護有關，但由於不影響 C# SmtpClient 測試，我沒再深入研究。)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638706752234759726.png"></p> <p>若一切順利，到這裡應該能用 Outlook 收信。(寄信會不會被退被擋是另一回事)</p> <p>接著說說我踩到的坑。</p> <p>Docker Mailserver 是個能用於正式環境，Production 等級的伺服器，因此常用的垃圾信防護及認證機制一樣沒少，我一口氣學會：DMARC、DKIM、SPF 三個名詞。(延伸閱讀：<a href="https://www.cloudflare.com/zh-tw/learning/email-security/dmarc-dkim-spf/">什麼是 DMARC、DKIM 和 SPF？ by Cloudflare</a>)</p> <ul><li>DKIM (DomainKeys Identified Mail) 是一種公鑰簽名驗證機制，以用證明郵件系出名門</li> <li>SPF (Sender Policy Framework) 是在 DNS 列舉授權該網域可發送郵件的有效伺服器 IP，方便收信方查證來源</li> <li>DMARC (Domain-based Message Authentication, Reporting &amp; Conformance) 是一種電子郵件驗證、報告和一致性協定，它基於 DKIM 及 SPF，用來決定未通過驗證郵件的處理方式(例：隔離或拒絕)</li></ul> <p>Docker Mailserver 預設啟用 SPF 及 DMARC 都是啟用的，故你就算 SMTP 從 <code>admin@example.com</code> 寄給 <code>admin@example.com</code> 都會可能被擋掉，出現以下訊息。</p> <pre><code>550 5.7.23 &lt;admin@example.com&gt;: Recipient address rejected: Message rejected due to: SPF fail - not authorized.
+550 5.7.1 rejected by DMARC policy for example.com
+</code></pre> <p>由於測試伺服器並不會用來收外部信，故省事做法是如前面所說的，修改 mailserver.env 將 SPF、DMARC 停用。</p> <p>另外，我用 .NET SmtpClient 走 25 Port 送信時收到另一個錯誤：<code>The server response was: 5.5.2 &lt;MY-PC-HOSTNAME&gt;: Helo command rejected: need fully-qualified hostname</code>，看起來是 POSIX SMTP 的要求，之前用 Exchange SMTP HELO/EHLO 只給機器名稱沒問題的。查了一下，.NET Framework 可以<a href="https://stackoverflow.com/a/37417017/288936">透過 .config <code>&lt;network clientDomain="mail.example.com" /&gt;</code></a> 設 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.configuration.smtpnetworkelement.clientdomain?view=netframework-4.8.1&amp;WT.mc_id=DOP-MVP-37580">clientDomain</a> 決定 HELO/EHLO 傳送的名稱，但這是 .NET 4.X 時代的事，我是用 .NET 8 啊啊啊啊~</p> <p>最後，參考網友的解法：<a href="https://umbracare.net/blog/resolving-syntactically-invalid-ehlo-argument-smtpexception-in-c/">Resolving Syntactically invalid EHLO argument SmtpException in C#</a>，我動用 Reflection 偷改私有 Field _clientDomain 結束這回合。</p> <pre><code>using (var client = new SmtpClient("mail.example.com", 25))
+{
+var clientDomainField = typeof(SmtpClient).GetField("_clientDomain", BindingFlags.Instance | BindingFlags.NonPublic);
+if (clientDomainField != null)
+{
+clientDomainField.SetValue(client, "client.example.com"); // 隨便給即可
+}
+client.UseDefaultCredentials = false;
+client.EnableSsl = false;
+client.Send(message);
+}
+</code></pre> <p>終於。</p> <p data-slug="docker-mailserver-for-internal-test" data-title-en="Setting up a local test SMTP/POP3 server with Docker Mailserver" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">This post details the author’s experience setting up a local SMTP/POP3 server with Docker Mailserver for testing embedded images in Outlook. Key issues included disabling DMARC and SPF checks and handling .NET SmtpClient’s fully-qualified hostname requirement with Reflection.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>一開始我只是想省點事，真的。想說自己架台 SMTP/POP3 伺服器，要測 Outlook 接收內嵌圖檔信件的效果會方便許多。</p> <p>伺服器架在內網自己玩不對外，通訊協定用 SMTP/POP3 明碼通訊即可，不必搞煩人的帳號密碼登入、OAuth 認證、API Key，也不需要考慮垃圾信檢核，聚焦郵件內容呈現才是重點。郵件伺服器有 <a href="https://docker-mailserver.github.io/docker-mailserver/latest/">Docker Mailserver</a> 可用，花兩分鐘下載啟動容器，接著就有台標準 SMTP/POP3 能用 C# SmtpClient 發信、Outlook POP3 收信測個痛快，豈不美哉？</p> <p>如意算盤打得好，但代誌沒憨人想的哈尼甘單。由於缺少郵件服務專業，原以為幾分鐘的事，一路踩坑、爬文、踩坑、爬文，我足足花了兩個多小時才搞定，但欣慰的是過程有學到不少新知識。</p> <p>踩坑心得最後再講，以下是我測試成功的做法。</p> <p>Docker Mailserver 安裝方式我是參考這篇 - <a href="https://miyago9267.com/Tutorial/misc/exp-mailserver/">Docker MailServer 架設與踩坑紀錄 by DJ MYG</a>，但有些小更改：</p> <ol><li>從 Github 下載 docker-composer.yml，由於我打算走 POP3 110 協定，ports: 要多加 "110:110"，hostname 沿用預設的 mail.example.com 即可：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png"></li> <li>從 Github 下載 mailserver.env，這是這次學到的新技巧，docker-composer.yml 可用 env_file 將 environments 設定移到另外的設定檔集中管理。以下幾處跟預設值不同要調 <pre><code>OVERRIDE_HOSTNAME=mail.example.com
+ENABLE_POLICYD_SPF=0 # 停用 SPF
+ENABLE_OPENDMARC=0 # 停用 DMARC
+ENABLE_POP3=1 # 啟用 POP3
+</code></pre> </li> <li>使用指令 <code>docker-compose up -d</code> 安裝並執行容器<br> 註：也可以選擇 <code>docker-compose up</code> 即時監查伺服器 Log，但後續建立帳號操作要用 <a href="/blog/tmux/">tmux</a> 或開 Terminal 執行。</li> <li>建立 <code>admin@example.com</code> 帳號，密碼隨便給，另為 admin 帳號新增 postmaster 別名</li></ol> <p>完整指令碼整理如下：</p> <pre><code>S_GITHUB_URL="https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master"
+curl -LO "${DMS_GITHUB_URL}/compose.yaml" &amp;&amp; mv compose.yaml docker-compose.yaml
+# nano docker-compose.yml 增加 POP3 Port
+curl -LO "${DMS_GITHUB_URL}/mailserver.env"
+# nano mailserver.env，依上述說明修改
+# 把 Docker 跑起來
+docker-compose up
+# 用 tmux 或另外一個 Terminal 執行以下指令建立帳號
+# 建立 admin
+docker exec -it mailserver setup email add admin@example.com "password"
+# 將 postmaster 建立為 admin 的別名
+docker exec -it mailserver setup alias add postmaster@example.com admin@example.com
+</code></pre> <p>以上程序做完，在客戶端設定 <code>C:\Widows\System32\drivers\etc\hosts</code> 將 <code>mail.example.con</code> 指向該主機 IP，測試 <code>telent mail.example.com 25</code> 及 <code>telent mail.example.com 110</code> 有通(或者用更好用的 PowerShell <a href="/blog/ps-test-netconnection/">Test-NetConnection 指令</a>)，下一步是 Outlook 新增帳號用 POP3 收信。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638706752229747435.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638706752231335338.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638706752233162133.png"><br> (註：我實測用 25 Port 會出現伺服器不支援 Outlook 使用的安全認證方式，改設 465 Port，加密方式選自動才 OK。問題似乎跟 amavisd-new 垃圾信防護有關，但由於不影響 C# SmtpClient 測試，我沒再深入研究。)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638706752234759726.png"></p> <p>若一切順利，到這裡應該能用 Outlook 收信。(寄信會不會被退被擋是另一回事)</p> <p>接著說說我踩到的坑。</p> <p>Docker Mailserver 是個能用於正式環境，Production 等級的伺服器，因此常用的垃圾信防護及認證機制一樣沒少，我一口氣學會：DMARC、DKIM、SPF 三個名詞。(延伸閱讀：<a href="https://www.cloudflare.com/zh-tw/learning/email-security/dmarc-dkim-spf/">什麼是 DMARC、DKIM 和 SPF？ by Cloudflare</a>)</p> <ul><li>DKIM (DomainKeys Identified Mail) 是一種公鑰簽名驗證機制，以用證明郵件系出名門</li> <li>SPF (Sender Policy Framework) 是在 DNS 列舉授權該網域可發送郵件的有效伺服器 IP，方便收信方查證來源</li> <li>DMARC (Domain-based Message Authentication, Reporting &amp; Conformance) 是一種電子郵件驗證、報告和一致性協定，它基於 DKIM 及 SPF，用來決定未通過驗證郵件的處理方式(例：隔離或拒絕)</li></ul> <p>Docker Mailserver 預設啟用 SPF 及 DMARC 都是啟用的，故你就算 SMTP 從 <code>admin@example.com</code> 寄給 <code>admin@example.com</code> 都會可能被擋掉，出現以下訊息。</p> <pre><code>550 5.7.23 &lt;admin@example.com&gt;: Recipient address rejected: Message rejected due to: SPF fail - not authorized.
+550 5.7.1 rejected by DMARC policy for example.com
+</code></pre> <p>由於測試伺服器並不會用來收外部信，故省事做法是如前面所說的，修改 mailserver.env 將 SPF、DMARC 停用。</p> <p>另外，我用 .NET SmtpClient 走 25 Port 送信時收到另一個錯誤：<code>The server response was: 5.5.2 &lt;MY-PC-HOSTNAME&gt;: Helo command rejected: need fully-qualified hostname</code>，看起來是 POSIX SMTP 的要求，之前用 Exchange SMTP HELO/EHLO 只給機器名稱沒問題的。查了一下，.NET Framework 可以<a href="https://stackoverflow.com/a/37417017/288936">透過 .config <code>&lt;network clientDomain="mail.example.com" /&gt;</code></a> 設 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.configuration.smtpnetworkelement.clientdomain?view=netframework-4.8.1&amp;WT.mc_id=DOP-MVP-37580">clientDomain</a> 決定 HELO/EHLO 傳送的名稱，但這是 .NET 4.X 時代的事，我是用 .NET 8 啊啊啊啊~</p> <p>最後，參考網友的解法：<a href="https://umbracare.net/blog/resolving-syntactically-invalid-ehlo-argument-smtpexception-in-c/">Resolving Syntactically invalid EHLO argument SmtpException in C#</a>，我動用 Reflection 偷改私有 Field _clientDomain 結束這回合。</p> <pre><code>using (var client = new SmtpClient("mail.example.com", 25))
+{
+var clientDomainField = typeof(SmtpClient).GetField("_clientDomain", BindingFlags.Instance | BindingFlags.NonPublic);
+if (clientDomainField != null)
+{
+clientDomainField.SetValue(client, "client.example.com"); // 隨便給即可
+}
+client.UseDefaultCredentials = false;
+client.EnableSsl = false;
+client.Send(message);
+}
+</code></pre> <p>終於。</p> <p data-slug="docker-mailserver-for-internal-test" data-title-en="Setting up a local test SMTP/POP3 server with Docker Mailserver" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">This post details the author’s experience setting up a local SMTP/POP3 server with Docker Mailserver for testing embedded images in Outlook. Key issues included disabling DMARC and SPF checks and handling .NET SmtpClient’s fully-qualified hostname requirement with Reflection.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png" medium="image"/>
+    <pubDate>Tue, 24 Dec 2024 21:59:35 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【笨問題】VSCode 的 Github Copilot Chat 視窗要怎麼移回左側？]]></title>
+    <link>https://blog.darkthread.net/blog/copilot-chat-to-left/</link>
+    <itunes:title><![CDATA[【笨問題】VSCode 的 Github Copilot Chat 視窗要怎麼移回左側？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>VSCode 在最近的版本更新，把 Github Copilot 移到右邊去了，升級要換位置前，VSCode 有問我要移過去還是留在左側，當時有說，覺得不習慣隨時可以換回來。</p> <p>用了一陣子發現，左右側都開視窗時中間區域會變小，有時我只想在 Github Chat 快問快答，這時又覺得之前統一顯示在左側只開一邊比較好。不過好笑了，在設定區摸一陣子居然沒找到設定開左還是開右的選項。但坦白說，在右側顯示也還行，就是空間小了點，我也學著習慣，沒認真去找設定方法。</p> <p>昨天分享了<a href="/blog/github-copilot-free-plan/">Github Copilot 免費版跟好用新功能盤點</a>，在<a href="https://www.facebook.com/darkthread.net/posts/pfbid02AvFgbBG4RWbd5cNe1iqH7ktqTr6AEF3icrEQQxXsMb13MdCBvNczkjN63WTh4vnvl">臉書留言</a>發現我不是唯一個找不到方式切換回左邊的人(笑)，網友林兄回答：用拖的就行了。</p> <p>一開始我用 Visual Studio 的概念拖整個右視窗沒試成功。後來乖乖<a href="https://code.visualstudio.com/docs/editor/custom-layout">上網爬文</a>，發現原來真的要用拖的，但不是拖視窗，而是拖 Icon。差不多就如網友所說，喊一下「過去」就過去了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638705581685837034.jpg" alt="thumbnail"><br> <a href="https://www.youtube.com/watch?v=fvFj5iJGIvU">照片來源</a></p> <p>像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638705581692050897.gif"></p> <p>用 VSCode 的術語，左邊是 Primary Side Bar、右側是 Secondary Side Bar，二者的項目、位置可以自由組合調整，蠻方便的。<a href="https://code.visualstudio.com/docs/editor/custom-layout">官方文件</a>有完整說明。</p> <p>分享給跟我一樣找不到方法切回去的人。</p> <p data-slug="copilot-chat-to-left" data-fbimg="https://images.pexels.com/photos/2853130/pexels-photo-2853130.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>VSCode 在最近的版本更新，把 Github Copilot 移到右邊去了，升級要換位置前，VSCode 有問我要移過去還是留在左側，當時有說，覺得不習慣隨時可以換回來。</p> <p>用了一陣子發現，左右側都開視窗時中間區域會變小，有時我只想在 Github Chat 快問快答，這時又覺得之前統一顯示在左側只開一邊比較好。不過好笑了，在設定區摸一陣子居然沒找到設定開左還是開右的選項。但坦白說，在右側顯示也還行，就是空間小了點，我也學著習慣，沒認真去找設定方法。</p> <p>昨天分享了<a href="/blog/github-copilot-free-plan/">Github Copilot 免費版跟好用新功能盤點</a>，在<a href="https://www.facebook.com/darkthread.net/posts/pfbid02AvFgbBG4RWbd5cNe1iqH7ktqTr6AEF3icrEQQxXsMb13MdCBvNczkjN63WTh4vnvl">臉書留言</a>發現我不是唯一個找不到方式切換回左邊的人(笑)，網友林兄回答：用拖的就行了。</p> <p>一開始我用 Visual Studio 的概念拖整個右視窗沒試成功。後來乖乖<a href="https://code.visualstudio.com/docs/editor/custom-layout">上網爬文</a>，發現原來真的要用拖的，但不是拖視窗，而是拖 Icon。差不多就如網友所說，喊一下「過去」就過去了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638705581685837034.jpg" alt="thumbnail"><br> <a href="https://www.youtube.com/watch?v=fvFj5iJGIvU">照片來源</a></p> <p>像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638705581692050897.gif"></p> <p>用 VSCode 的術語，左邊是 Primary Side Bar、右側是 Secondary Side Bar，二者的項目、位置可以自由組合調整，蠻方便的。<a href="https://code.visualstudio.com/docs/editor/custom-layout">官方文件</a>有完整說明。</p> <p>分享給跟我一樣找不到方法切回去的人。</p> <p data-slug="copilot-chat-to-left" data-fbimg="https://images.pexels.com/photos/2853130/pexels-photo-2853130.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>VSCode 在最近的版本更新，把 Github Copilot 移到右邊去了，升級要換位置前，VSCode 有問我要移過去還是留在左側，當時有說，覺得不習慣隨時可以換回來。</p> <p>用了一陣子發現，左右側都開視窗時中間區域會變小，有時我只想在 Github Chat 快問快答，這時又覺得之前統一顯示在左側只開一邊比較好。不過好笑了，在設定區摸一陣子居然沒找到設定開左還是開右的選項。但坦白說，在右側顯示也還行，就是空間小了點，我也學著習慣，沒認真去找設定方法。</p> <p>昨天分享了<a href="/blog/github-copilot-free-plan/">Github Copilot 免費版跟好用新功能盤點</a>，在<a href="https://www.facebook.com/darkthread.net/posts/pfbid02AvFgbBG4RWbd5cNe1iqH7ktqTr6AEF3icrEQQxXsMb13MdCBvNczkjN63WTh4vnvl">臉書留言</a>發現我不是唯一個找不到方式切換回左邊的人(笑)，網友林兄回答：用拖的就行了。</p> <p>一開始我用 Visual Studio 的概念拖整個右視窗沒試成功。後來乖乖<a href="https://code.visualstudio.com/docs/editor/custom-layout">上網爬文</a>，發現原來真的要用拖的，但不是拖視窗，而是拖 Icon。差不多就如網友所說，喊一下「過去」就過去了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638705581685837034.jpg" alt="thumbnail"><br> <a href="https://www.youtube.com/watch?v=fvFj5iJGIvU">照片來源</a></p> <p>像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638705581692050897.gif"></p> <p>用 VSCode 的術語，左邊是 Primary Side Bar、右側是 Secondary Side Bar，二者的項目、位置可以自由組合調整，蠻方便的。<a href="https://code.visualstudio.com/docs/editor/custom-layout">官方文件</a>有完整說明。</p> <p>分享給跟我一樣找不到方法切回去的人。</p> <p data-slug="copilot-chat-to-left" data-fbimg="https://images.pexels.com/photos/2853130/pexels-photo-2853130.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638705581685837034.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638705581685837034.jpg" medium="image"/>
+    <pubDate>Mon, 23 Dec 2024 00:51:49 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Github Copilot 免費版 + 盤點好用新功能]]></title>
+    <link>https://blog.darkthread.net/blog/github-copilot-free-plan/</link>
+    <itunes:title><![CDATA[Github Copilot 免費版 + 盤點好用新功能]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>講到 AI 輔助開發，有一派聲音崇尚 Less Code 甚至 No Code，主張動手寫 Code 這種髒活兒爛事愈少愈好，期望講完需求 AI 便把程式碼生好，最好能十指不沾 use try set。 (謎：啥鬼，不要硬湊諧音好嗎？)</p> <p>許多標榜更自動化、更省事的 AI 輔助開發工具如雨後春笱陸續問市，像 Cursor、Windsurf... 推出後都吸引眾多目光。而在這個議題上，我這個寫了快四十年程式的老人，再次淪為少數派。</p> <p>我還是喜歡程式要保有自己特有的風格與味道，即便不完美，但必須真真實實是「我的作品」。所以我不想要太自動化，偏好半自動式的 AI 輔助開發，只想 AI 代勞重複性工作跟煩人細節，至於流程該怎麼跑、模組如何切割、系統該怎麼串，我想保有主導權並全程參與，覺得程式核心仍該依據人的想法設計。</p> <p>本著這樣的理念，Github Copilot 的副駕駛精神一直很對我的頻率，也就沒啥動機去 Survey 更自動化更省力的 AI 輔助開發工具。使用 Github Copilot 的感覺，比較像有個程式老手坐在旁邊跟你一起 Pair Programming，而非自己升級成主管或 PM，指揮一堆程序員幫你寫程式。而既然是 Pair Programming，一大特點是一定有意見不同的時候，還蠻多時候我會拒絕 Copilot 建議，維持原有想法。而這是個重要指標：代表你知道這段程式在做什麼，有能力評斷不同做法的優缺點，並在程式出錯有辦法修正，即便有朝一日拿掉 AI 也還有能力寫出可用的程式(只是速度慢三倍)。這跟標榜全自動化，不用懂程式如何運作也能寫完程式，是完全不同的概念。</p> <p>Github Copilot 像是 Pair Programming 的角色對我來說剛好。程式該怎麼寫仍由自己主導，全程參與但差在少做許多瑣碎細節及重複手工；我也很常從 Copilot 身上<a href="/blog/csharp11-raw-string-literal/">學到新語法</a>、見識更輕巧有效率的做法，知識與經驗也持續成長。這樣的合作模式我覺得很自在，沒什麼大問題。</p> <p>【延伸閱讀】</p> <ul><li><a href="/blog/github-copilot-demo/">讓會讀心術的 Github Copilot 陪你寫程式</a></li> <li><a href="/blog/github-student-dev-pack-n-copliot/">介紹 Github 學生大禮包 - Developer Pack 與魔法武器 Github Copilot</a></li> <li><a href="/blog/github-copilot-thoughts/">閒聊 - 老鳥的 Github Copilot 危機？</a></li></ul> <p>這幾天有個好消息!</p> <p>雖然我覺得跟 Github Copilot 帶來的生產力提升相比，每個月只要 10 塊美金真的便宜(註：學生與老師另有免費方案)，花兩份大麥克套餐的錢讓寫程式速度至少快三倍，太超值了。Github 11/18 宣佈開放 <a href="/blogs/2024/12/18/free-github-copilot">Github Copilot 免費版訂閱方案</a>，提供每個月 2000 次程式碼自動補完跟 50 次聊天區發問的額度，還沒用過的朋友可以快去體驗一下。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638703468285120573.png"></p> <p>都滑到 Copilot 的官方部落格，我順便盤點 Copilot 新功能(有些推出一陣子了，但對我來說是新的)補充知識：</p> <ol><li>Copilot Edits</li></ol> <p>Copilot 介面開啟鈕現在移到 VSCode 標題列[1]，預設是 Chat 視窗，左邊有一個 Edits [2]，操作介面跟 Chat 很像，預設會選取你目前編輯的檔案，但也可 Add Files 或拖拉新增更多檔案 [3]，接著下方可輸入你希望對這些檔案進行的修改 [4]：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638703468288916962.png"></p> <p>VSCode 會以 Git 修改前照形式呈現對程式碼的異動建議，開發者可微調後決定接受或放棄：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638703468291270502.png"></p> <p>比起自動完成全面性，省去在 Chat 問完自己剪貼程式片段，很好用。</p> <p><a href="https://code.visualstudio.com/blogs/2024/12/18/free-github-copilot#_work-with-multiple-files-using-copilot-edits">官方展示影片</a></p> <ol start="2"><li>客製化指示(Custom Instruction)</li></ol> <p>概念很像 LLM 的 System Prompt，會在每次 Chat 時送出，可調整 Copilot Chat/Edits 行為。一些實用例子像是：</p> <ul><li>命名習慣：要求私有變數命名時一律加 _ 底線開頭</li> <li>產生自動測試程式時用哪一套測試框架</li> <li>Commit 訊息的格式、內容要求</li></ul> <p>客製化指示可透過 JSON 設定，但簡便做法是在工作區根目錄放一個 .github/copilot-instructions.md 檔案(也方便分享給團隊成員)。我小試了一下，指定 C# 的私有 Field 命名前面要加兩條底線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638703468292921810.png"></p> <p>Markdown 裡的 <code>## Csharp</code> 用來指定程式類別，可依語言設定專屬指示。程式名稱可用 Ctrl-P 用 "Preferences: Configure Language Specific Settings..." 查：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638703468294602669.png"></p> <p>設定後，在 Edits 要求新增建構式(add constructor with IWebHostEnvironment)，Copilot 果然依我的要求加了兩條底線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638703468296393008.png"></p> <p>但這個指示只適用 Chat、Inline Chat 及 Edits，自動完成部分仍會依預設行為。Custom Instruction 能把 Copilot 變成你的形狀，不適用自動完成有點美中不足，但還是蠻實用的，詳情可參考<a href="https://code.visualstudio.com/docs/copilot/copilot-customization">官方說明書</a>。</p> <ol start="3"><li>全專案感知模式</li></ol> <p>在 Chat 時加上 <code>@workspace</code> 可針對整個專案發問，採索陌生專案時特別好用，例如：接手專案我最愛的起手式問題："DB 是用哪一種、連線字串在哪"，Copilot 很快奉上我滿意的答案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638703468298129096.png"></p> <ol start="4"><li>變數命名小幫手</li></ol> <p>開發者的千古難題，變數、函式要取什麼名字？Copilot 了解大家的痛苦，按 F2 更名時會主動分析相關程式主動提供建議：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638703468299885306.png"></p> <ol start="5"><li>在 Terminal 使用 Copilot</li></ol> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig10_638703468301520168.png"></p> <p>如圖，按 Ctrl-I 也可叫出 Copilot 問事，並可選擇 Run 或 Insert，省去在 Chat 或 ChatGPT 問好貼 Code 的麻煩。</p> <ol start="6"><li>自動產生 Commit 訊息</li></ol> <p>Commit 時我習慣認真回想這次修改項目做個總結，寫成簡單易懂的扼要說明，有溫度的 Commit 訊息像是一張張舊照片，日後追 Code 時更容易幫你穿越回到當下時空。</p> <p>但我知道許多人 Commit 一想到要寫訊息就頭大，大半天也擠不出字來，那可以試試 Commit 訊息欄右上角的小星星，點一下讓 Copilot 幫你彙整總結，雖然遠不及人工整理的品質，至少好過隨便塞一句「修改」充數。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig11_638703468303188952.png"></p> <p>如希望自動產生的 Commit 訊息符合特定規格，可用前面提到的 Custom Instruction 指定。</p> <ol start="7"><li>支援多種語言模型</li></ol> <p>Chat 及 Edits 時可選擇不同的語言模型，包含標榜推理跟程式理解能力的 o1 跟 o1-mini (限付費版本)，不過貴森森的 o1 額度不高，<a href="https://github.blog/news-insights/openais-o1-model-available-in-copilot-chat-and-github-models/#how-can-i-try-o1-out-in-chat">每 12 小時只能發 10 則訊息</a>，得用在刀口上，我打算下回遇到刁鑽問題戰再來見識它的威力。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638703468304828553.png"></p> <p data-slug="github-copilot-free-plan" data-title-en="Github Copilot free plan and new features" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/26/07/36/travel-3039899_1280.jpg#1280#720">This post discusses the debate between less code/no-code and traditional coding with AI assistance. I prefers a semi-automated approach using Github Copilot for repetitive tasks while maintaining control over the core design. New features of Copilot, such as Copilot Edits, Custom Instructions, and Workspace Awareness, are explored to enhance development productivity.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>講到 AI 輔助開發，有一派聲音崇尚 Less Code 甚至 No Code，主張動手寫 Code 這種髒活兒爛事愈少愈好，期望講完需求 AI 便把程式碼生好，最好能十指不沾 use try set。 (謎：啥鬼，不要硬湊諧音好嗎？)</p> <p>許多標榜更自動化、更省事的 AI 輔助開發工具如雨後春笱陸續問市，像 Cursor、Windsurf... 推出後都吸引眾多目光。而在這個議題上，我這個寫了快四十年程式的老人，再次淪為少數派。</p> <p>我還是喜歡程式要保有自己特有的風格與味道，即便不完美，但必須真真實實是「我的作品」。所以我不想要太自動化，偏好半自動式的 AI 輔助開發，只想 AI 代勞重複性工作跟煩人細節，至於流程該怎麼跑、模組如何切割、系統該怎麼串，我想保有主導權並全程參與，覺得程式核心仍該依據人的想法設計。</p> <p>本著這樣的理念，Github Copilot 的副駕駛精神一直很對我的頻率，也就沒啥動機去 Survey 更自動化更省力的 AI 輔助開發工具。使用 Github Copilot 的感覺，比較像有個程式老手坐在旁邊跟你一起 Pair Programming，而非自己升級成主管或 PM，指揮一堆程序員幫你寫程式。而既然是 Pair Programming，一大特點是一定有意見不同的時候，還蠻多時候我會拒絕 Copilot 建議，維持原有想法。而這是個重要指標：代表你知道這段程式在做什麼，有能力評斷不同做法的優缺點，並在程式出錯有辦法修正，即便有朝一日拿掉 AI 也還有能力寫出可用的程式(只是速度慢三倍)。這跟標榜全自動化，不用懂程式如何運作也能寫完程式，是完全不同的概念。</p> <p>Github Copilot 像是 Pair Programming 的角色對我來說剛好。程式該怎麼寫仍由自己主導，全程參與但差在少做許多瑣碎細節及重複手工；我也很常從 Copilot 身上<a href="/blog/csharp11-raw-string-literal/">學到新語法</a>、見識更輕巧有效率的做法，知識與經驗也持續成長。這樣的合作模式我覺得很自在，沒什麼大問題。</p> <p>【延伸閱讀】</p> <ul><li><a href="/blog/github-copilot-demo/">讓會讀心術的 Github Copilot 陪你寫程式</a></li> <li><a href="/blog/github-student-dev-pack-n-copliot/">介紹 Github 學生大禮包 - Developer Pack 與魔法武器 Github Copilot</a></li> <li><a href="/blog/github-copilot-thoughts/">閒聊 - 老鳥的 Github Copilot 危機？</a></li></ul> <p>這幾天有個好消息!</p> <p>雖然我覺得跟 Github Copilot 帶來的生產力提升相比，每個月只要 10 塊美金真的便宜(註：學生與老師另有免費方案)，花兩份大麥克套餐的錢讓寫程式速度至少快三倍，太超值了。Github 11/18 宣佈開放 <a href="/blogs/2024/12/18/free-github-copilot">Github Copilot 免費版訂閱方案</a>，提供每個月 2000 次程式碼自動補完跟 50 次聊天區發問的額度，還沒用過的朋友可以快去體驗一下。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638703468285120573.png"></p> <p>都滑到 Copilot 的官方部落格，我順便盤點 Copilot 新功能(有些推出一陣子了，但對我來說是新的)補充知識：</p> <ol><li>Copilot Edits</li></ol> <p>Copilot 介面開啟鈕現在移到 VSCode 標題列[1]，預設是 Chat 視窗，左邊有一個 Edits [2]，操作介面跟 Chat 很像，預設會選取你目前編輯的檔案，但也可 Add Files 或拖拉新增更多檔案 [3]，接著下方可輸入你希望對這些檔案進行的修改 [4]：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638703468288916962.png"></p> <p>VSCode 會以 Git 修改前照形式呈現對程式碼的異動建議，開發者可微調後決定接受或放棄：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638703468291270502.png"></p> <p>比起自動完成全面性，省去在 Chat 問完自己剪貼程式片段，很好用。</p> <p><a href="https://code.visualstudio.com/blogs/2024/12/18/free-github-copilot#_work-with-multiple-files-using-copilot-edits">官方展示影片</a></p> <ol start="2"><li>客製化指示(Custom Instruction)</li></ol> <p>概念很像 LLM 的 System Prompt，會在每次 Chat 時送出，可調整 Copilot Chat/Edits 行為。一些實用例子像是：</p> <ul><li>命名習慣：要求私有變數命名時一律加 _ 底線開頭</li> <li>產生自動測試程式時用哪一套測試框架</li> <li>Commit 訊息的格式、內容要求</li></ul> <p>客製化指示可透過 JSON 設定，但簡便做法是在工作區根目錄放一個 .github/copilot-instructions.md 檔案(也方便分享給團隊成員)。我小試了一下，指定 C# 的私有 Field 命名前面要加兩條底線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638703468292921810.png"></p> <p>Markdown 裡的 <code>## Csharp</code> 用來指定程式類別，可依語言設定專屬指示。程式名稱可用 Ctrl-P 用 "Preferences: Configure Language Specific Settings..." 查：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638703468294602669.png"></p> <p>設定後，在 Edits 要求新增建構式(add constructor with IWebHostEnvironment)，Copilot 果然依我的要求加了兩條底線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638703468296393008.png"></p> <p>但這個指示只適用 Chat、Inline Chat 及 Edits，自動完成部分仍會依預設行為。Custom Instruction 能把 Copilot 變成你的形狀，不適用自動完成有點美中不足，但還是蠻實用的，詳情可參考<a href="https://code.visualstudio.com/docs/copilot/copilot-customization">官方說明書</a>。</p> <ol start="3"><li>全專案感知模式</li></ol> <p>在 Chat 時加上 <code>@workspace</code> 可針對整個專案發問，採索陌生專案時特別好用，例如：接手專案我最愛的起手式問題："DB 是用哪一種、連線字串在哪"，Copilot 很快奉上我滿意的答案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638703468298129096.png"></p> <ol start="4"><li>變數命名小幫手</li></ol> <p>開發者的千古難題，變數、函式要取什麼名字？Copilot 了解大家的痛苦，按 F2 更名時會主動分析相關程式主動提供建議：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638703468299885306.png"></p> <ol start="5"><li>在 Terminal 使用 Copilot</li></ol> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig10_638703468301520168.png"></p> <p>如圖，按 Ctrl-I 也可叫出 Copilot 問事，並可選擇 Run 或 Insert，省去在 Chat 或 ChatGPT 問好貼 Code 的麻煩。</p> <ol start="6"><li>自動產生 Commit 訊息</li></ol> <p>Commit 時我習慣認真回想這次修改項目做個總結，寫成簡單易懂的扼要說明，有溫度的 Commit 訊息像是一張張舊照片，日後追 Code 時更容易幫你穿越回到當下時空。</p> <p>但我知道許多人 Commit 一想到要寫訊息就頭大，大半天也擠不出字來，那可以試試 Commit 訊息欄右上角的小星星，點一下讓 Copilot 幫你彙整總結，雖然遠不及人工整理的品質，至少好過隨便塞一句「修改」充數。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig11_638703468303188952.png"></p> <p>如希望自動產生的 Commit 訊息符合特定規格，可用前面提到的 Custom Instruction 指定。</p> <ol start="7"><li>支援多種語言模型</li></ol> <p>Chat 及 Edits 時可選擇不同的語言模型，包含標榜推理跟程式理解能力的 o1 跟 o1-mini (限付費版本)，不過貴森森的 o1 額度不高，<a href="https://github.blog/news-insights/openais-o1-model-available-in-copilot-chat-and-github-models/#how-can-i-try-o1-out-in-chat">每 12 小時只能發 10 則訊息</a>，得用在刀口上，我打算下回遇到刁鑽問題戰再來見識它的威力。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638703468304828553.png"></p> <p data-slug="github-copilot-free-plan" data-title-en="Github Copilot free plan and new features" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/26/07/36/travel-3039899_1280.jpg#1280#720">This post discusses the debate between less code/no-code and traditional coding with AI assistance. I prefers a semi-automated approach using Github Copilot for repetitive tasks while maintaining control over the core design. New features of Copilot, such as Copilot Edits, Custom Instructions, and Workspace Awareness, are explored to enhance development productivity.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>講到 AI 輔助開發，有一派聲音崇尚 Less Code 甚至 No Code，主張動手寫 Code 這種髒活兒爛事愈少愈好，期望講完需求 AI 便把程式碼生好，最好能十指不沾 use try set。 (謎：啥鬼，不要硬湊諧音好嗎？)</p> <p>許多標榜更自動化、更省事的 AI 輔助開發工具如雨後春笱陸續問市，像 Cursor、Windsurf... 推出後都吸引眾多目光。而在這個議題上，我這個寫了快四十年程式的老人，再次淪為少數派。</p> <p>我還是喜歡程式要保有自己特有的風格與味道，即便不完美，但必須真真實實是「我的作品」。所以我不想要太自動化，偏好半自動式的 AI 輔助開發，只想 AI 代勞重複性工作跟煩人細節，至於流程該怎麼跑、模組如何切割、系統該怎麼串，我想保有主導權並全程參與，覺得程式核心仍該依據人的想法設計。</p> <p>本著這樣的理念，Github Copilot 的副駕駛精神一直很對我的頻率，也就沒啥動機去 Survey 更自動化更省力的 AI 輔助開發工具。使用 Github Copilot 的感覺，比較像有個程式老手坐在旁邊跟你一起 Pair Programming，而非自己升級成主管或 PM，指揮一堆程序員幫你寫程式。而既然是 Pair Programming，一大特點是一定有意見不同的時候，還蠻多時候我會拒絕 Copilot 建議，維持原有想法。而這是個重要指標：代表你知道這段程式在做什麼，有能力評斷不同做法的優缺點，並在程式出錯有辦法修正，即便有朝一日拿掉 AI 也還有能力寫出可用的程式(只是速度慢三倍)。這跟標榜全自動化，不用懂程式如何運作也能寫完程式，是完全不同的概念。</p> <p>Github Copilot 像是 Pair Programming 的角色對我來說剛好。程式該怎麼寫仍由自己主導，全程參與但差在少做許多瑣碎細節及重複手工；我也很常從 Copilot 身上<a href="/blog/csharp11-raw-string-literal/">學到新語法</a>、見識更輕巧有效率的做法，知識與經驗也持續成長。這樣的合作模式我覺得很自在，沒什麼大問題。</p> <p>【延伸閱讀】</p> <ul><li><a href="/blog/github-copilot-demo/">讓會讀心術的 Github Copilot 陪你寫程式</a></li> <li><a href="/blog/github-student-dev-pack-n-copliot/">介紹 Github 學生大禮包 - Developer Pack 與魔法武器 Github Copilot</a></li> <li><a href="/blog/github-copilot-thoughts/">閒聊 - 老鳥的 Github Copilot 危機？</a></li></ul> <p>這幾天有個好消息!</p> <p>雖然我覺得跟 Github Copilot 帶來的生產力提升相比，每個月只要 10 塊美金真的便宜(註：學生與老師另有免費方案)，花兩份大麥克套餐的錢讓寫程式速度至少快三倍，太超值了。Github 11/18 宣佈開放 <a href="/blogs/2024/12/18/free-github-copilot">Github Copilot 免費版訂閱方案</a>，提供每個月 2000 次程式碼自動補完跟 50 次聊天區發問的額度，還沒用過的朋友可以快去體驗一下。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638703468285120573.png"></p> <p>都滑到 Copilot 的官方部落格，我順便盤點 Copilot 新功能(有些推出一陣子了，但對我來說是新的)補充知識：</p> <ol><li>Copilot Edits</li></ol> <p>Copilot 介面開啟鈕現在移到 VSCode 標題列[1]，預設是 Chat 視窗，左邊有一個 Edits [2]，操作介面跟 Chat 很像，預設會選取你目前編輯的檔案，但也可 Add Files 或拖拉新增更多檔案 [3]，接著下方可輸入你希望對這些檔案進行的修改 [4]：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638703468288916962.png"></p> <p>VSCode 會以 Git 修改前照形式呈現對程式碼的異動建議，開發者可微調後決定接受或放棄：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638703468291270502.png"></p> <p>比起自動完成全面性，省去在 Chat 問完自己剪貼程式片段，很好用。</p> <p><a href="https://code.visualstudio.com/blogs/2024/12/18/free-github-copilot#_work-with-multiple-files-using-copilot-edits">官方展示影片</a></p> <ol start="2"><li>客製化指示(Custom Instruction)</li></ol> <p>概念很像 LLM 的 System Prompt，會在每次 Chat 時送出，可調整 Copilot Chat/Edits 行為。一些實用例子像是：</p> <ul><li>命名習慣：要求私有變數命名時一律加 _ 底線開頭</li> <li>產生自動測試程式時用哪一套測試框架</li> <li>Commit 訊息的格式、內容要求</li></ul> <p>客製化指示可透過 JSON 設定，但簡便做法是在工作區根目錄放一個 .github/copilot-instructions.md 檔案(也方便分享給團隊成員)。我小試了一下，指定 C# 的私有 Field 命名前面要加兩條底線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638703468292921810.png"></p> <p>Markdown 裡的 <code>## Csharp</code> 用來指定程式類別，可依語言設定專屬指示。程式名稱可用 Ctrl-P 用 "Preferences: Configure Language Specific Settings..." 查：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638703468294602669.png"></p> <p>設定後，在 Edits 要求新增建構式(add constructor with IWebHostEnvironment)，Copilot 果然依我的要求加了兩條底線：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig7_638703468296393008.png"></p> <p>但這個指示只適用 Chat、Inline Chat 及 Edits，自動完成部分仍會依預設行為。Custom Instruction 能把 Copilot 變成你的形狀，不適用自動完成有點美中不足，但還是蠻實用的，詳情可參考<a href="https://code.visualstudio.com/docs/copilot/copilot-customization">官方說明書</a>。</p> <ol start="3"><li>全專案感知模式</li></ol> <p>在 Chat 時加上 <code>@workspace</code> 可針對整個專案發問，採索陌生專案時特別好用，例如：接手專案我最愛的起手式問題："DB 是用哪一種、連線字串在哪"，Copilot 很快奉上我滿意的答案。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig8_638703468298129096.png"></p> <ol start="4"><li>變數命名小幫手</li></ol> <p>開發者的千古難題，變數、函式要取什麼名字？Copilot 了解大家的痛苦，按 F2 更名時會主動分析相關程式主動提供建議：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig9_638703468299885306.png"></p> <ol start="5"><li>在 Terminal 使用 Copilot</li></ol> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig10_638703468301520168.png"></p> <p>如圖，按 Ctrl-I 也可叫出 Copilot 問事，並可選擇 Run 或 Insert，省去在 Chat 或 ChatGPT 問好貼 Code 的麻煩。</p> <ol start="6"><li>自動產生 Commit 訊息</li></ol> <p>Commit 時我習慣認真回想這次修改項目做個總結，寫成簡單易懂的扼要說明，有溫度的 Commit 訊息像是一張張舊照片，日後追 Code 時更容易幫你穿越回到當下時空。</p> <p>但我知道許多人 Commit 一想到要寫訊息就頭大，大半天也擠不出字來，那可以試試 Commit 訊息欄右上角的小星星，點一下讓 Copilot 幫你彙整總結，雖然遠不及人工整理的品質，至少好過隨便塞一句「修改」充數。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig11_638703468303188952.png"></p> <p>如希望自動產生的 Commit 訊息符合特定規格，可用前面提到的 Custom Instruction 指定。</p> <ol start="7"><li>支援多種語言模型</li></ol> <p>Chat 及 Edits 時可選擇不同的語言模型，包含標榜推理跟程式理解能力的 o1 跟 o1-mini (限付費版本)，不過貴森森的 o1 額度不高，<a href="https://github.blog/news-insights/openais-o1-model-available-in-copilot-chat-and-github-models/#how-can-i-try-o1-out-in-chat">每 12 小時只能發 10 則訊息</a>，得用在刀口上，我打算下回遇到刁鑽問題戰再來見識它的威力。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638703468304828553.png"></p> <p data-slug="github-copilot-free-plan" data-title-en="Github Copilot free plan and new features" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/26/07/36/travel-3039899_1280.jpg#1280#720">This post discusses the debate between less code/no-code and traditional coding with AI assistance. I prefers a semi-automated approach using Github Copilot for repetitive tasks while maintaining control over the core design. New features of Copilot, such as Copilot Edits, Custom Instructions, and Workspace Awareness, are explored to enhance development productivity.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638703468285120573.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638703468285120573.png" medium="image"/>
+    <pubDate>Sat, 21 Dec 2024 02:54:19 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Coding4Fun - 也來玩梗圖產生 (CSS + Playwright)]]></title>
+    <link>https://blog.darkthread.net/blog/meme-picture-w-css-playwright/</link>
+    <itunes:title><![CDATA[Coding4Fun - 也來玩梗圖產生 (CSS + Playwright)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>很久沒玩 <a href="/blog/playwright-notes/">Playwright</a> 了，找了個題目暖身。</p> <p>講到自己做梗圖，首推「Meme 梗圖倉庫」的「<a href="https://memes.tw/maker/template/270">梗圖產生器</a>」，介面好用素材又齊全，基本上你看過的，想得到的梗圖都做得出來。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png"></p> <p>正常人其實沒什麼必要花時間自己搞，但我想到梗圖產生器的原理基本上就是在素材底圖指定位置放上自訂文字，理論上用 CSS 不難實現，順便再練習用 .NET 呼叫 Playwright 操作 HTML 網頁組裝後存成 png，便成了一個大小適中的日常練習題。這就是本次的計劃，開始!</p> <p>我選了 <a href="https://www.facebook.com/permalink.php?story_fbid=pfbid028FAsDoVyuUkvbazBuCkgME6Aq9CMyyN8fd8VKvzbrpMFwmaVAQBdsR9UeNw4YcMvl&amp;id=102252681704373">Drake 的 No / Yes 迷因圖</a> 當素材底圖，圖片尺寸 600x600，用 <code>display: flex; flex-wrap: wrap;</code> 橫式排四個寬度 50% 的區塊 <code>flex: 1 0 50%</code>，自動折成兩列，則第 2 個跟第 4 個就是填入上下文字的文字容器。文字容器內部用 <code>display: flex; justify-content: center; align-items: center;</code> 讓文字上下左右置中。</p> <p>至於粗黑框白字的文字特效，我參考這篇<a href="https://www.hellosanta.com.tw/knowledge/category-13/post-433">如何利用 CSS 製作完美的文字外框</a>，用 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-text-stroke">-webkit-text-stroke</a> 粗體特效配合 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::before">::before</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::after">::after</a> 偽元素，控制 z-index 先疊一層 8px 黑邊框文字、再疊一層 1px 白邊框字，黑框字理論上要圓角才好看，但我沒找到用 CSS 實現的方法，為避免邊角太銳利，我套用 <code>filter: drop-shadow(0px 0px 1px black);</code> 加減柔化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638698518599553554.png"></p> <p>完整網頁範例如下：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;style&gt;
+html,body { margin: 0; padding:0 }
+div.meme {
+background-image: url(meme.png);
+display: flex;
+flex-wrap: wrap;
+width: 600px;
+height: 600px;
+border: 1px solid black;
+div.cell {
+flex: 1 0 50%;
+border-bottom: 1px solid #777;
+box-sizing: border-box;
+display: flex;
+justify-content: center;
+align-items: center;
+font-family: '微軟正黑體';
+height: 300px;
+}
+[data-stroke] {
+display: inline-block;
+margin: 0 16px;
+font-size: 20pt;
+line-height: 145%;
+position: relative;
+white-space: pre-wrap;
+&amp;::before,&amp;::after {
+content: attr(data-stroke);
+position: absolute;
+left: 0;
+top: 0;
+}
+&amp;::after {
+z-index: 1;
+-webkit-text-stroke: 8px #222;
+filter: drop-shadow(0px 0px 1px black);
+}
+&amp;::before {
+z-index: 2;
+color: white;
+-webkit-text-stroke: 1px white;
+}
+}
+}
+&lt;/style&gt;
+&lt;div class="meme"&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="top-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="bottom-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function setWord(word, loc) {
+const elem = document.getElementById(loc + "-word");
+elem.innerText = word;
+elem.setAttribute("data-stroke", word);
+return true;
+}
+setWord("上梗圖產生器網站
+一分鐘做完梗圖", "top");
+setWord("CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成", "bottom");
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>Playwright 部分相對簡單，都是以前介紹過的<a href="/blog/playwright-notes/">技巧</a>：</p> <pre><code>using System.Text.Json;
+using Microsoft.Playwright;
+public class MemeMaker
+{
+static BrowserTypeLaunchOptions browserOptions = new BrowserTypeLaunchOptions
+{
+// TODO: 自動尋找路徑 https://blog.darkthread.net/blog/playwright-app-dep-issue/
+ExecutablePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+Headless = true
+};
+public async Task&lt;byte[]&gt; MakeMeme(string workingFolder, string topText, string bottomText)
+{
+using var playwright = await Playwright.CreateAsync();
+await using var browser = await playwright.Chromium.LaunchAsync(browserOptions);
+var page = await browser.NewPageAsync();
+await page.GotoAsync($"file:///{Path.Combine(workingFolder, "template.html")}");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(topText)}, 'top')");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(bottomText)}, 'bottom')");
+var imgBytes = await page.ScreenshotAsync(new PageScreenshotOptions
+{
+Clip = new Clip
+{
+X = 0,
+Y = 0,
+Width = 600,
+Height = 600
+}
+});
+File.WriteAllBytes(Path.Combine(workingFolder, "meme-result.png"), imgBytes);
+await page.CloseAsync();
+return imgBytes;
+}
+}
+</code></pre> <p>簡單實測，成功!</p> <pre><code>var memeMaker = new MemeMaker();
+var memeFolder = Path.Combine(builder.Environment.ContentRootPath, "data");
+await memeMaker.MakeMeme(memeFolder,
+"上梗圖產生器網站
+一分鐘做完梗圖",
+"CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成");
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638698518602273607.png"></p> <p data-slug="meme-picture-w-css-playwright" data-title-en="Creating memes with CSS and Playwright for .NET" data-catg="Web Development" data-fbimg="https://i.imgur.com/XGX9mMZ.png#533#300">This article explores creating memes with CSS and Playwright for .NET. It uses a HTML template and Playwright to automate meme creation by adding text to a base image. The provided C# code demonstrates using Playwright to manipulate the HTML and capture a screenshot of the final meme.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>很久沒玩 <a href="/blog/playwright-notes/">Playwright</a> 了，找了個題目暖身。</p> <p>講到自己做梗圖，首推「Meme 梗圖倉庫」的「<a href="https://memes.tw/maker/template/270">梗圖產生器</a>」，介面好用素材又齊全，基本上你看過的，想得到的梗圖都做得出來。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png"></p> <p>正常人其實沒什麼必要花時間自己搞，但我想到梗圖產生器的原理基本上就是在素材底圖指定位置放上自訂文字，理論上用 CSS 不難實現，順便再練習用 .NET 呼叫 Playwright 操作 HTML 網頁組裝後存成 png，便成了一個大小適中的日常練習題。這就是本次的計劃，開始!</p> <p>我選了 <a href="https://www.facebook.com/permalink.php?story_fbid=pfbid028FAsDoVyuUkvbazBuCkgME6Aq9CMyyN8fd8VKvzbrpMFwmaVAQBdsR9UeNw4YcMvl&amp;id=102252681704373">Drake 的 No / Yes 迷因圖</a> 當素材底圖，圖片尺寸 600x600，用 <code>display: flex; flex-wrap: wrap;</code> 橫式排四個寬度 50% 的區塊 <code>flex: 1 0 50%</code>，自動折成兩列，則第 2 個跟第 4 個就是填入上下文字的文字容器。文字容器內部用 <code>display: flex; justify-content: center; align-items: center;</code> 讓文字上下左右置中。</p> <p>至於粗黑框白字的文字特效，我參考這篇<a href="https://www.hellosanta.com.tw/knowledge/category-13/post-433">如何利用 CSS 製作完美的文字外框</a>，用 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-text-stroke">-webkit-text-stroke</a> 粗體特效配合 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::before">::before</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::after">::after</a> 偽元素，控制 z-index 先疊一層 8px 黑邊框文字、再疊一層 1px 白邊框字，黑框字理論上要圓角才好看，但我沒找到用 CSS 實現的方法，為避免邊角太銳利，我套用 <code>filter: drop-shadow(0px 0px 1px black);</code> 加減柔化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638698518599553554.png"></p> <p>完整網頁範例如下：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;style&gt;
+html,body { margin: 0; padding:0 }
+div.meme {
+background-image: url(meme.png);
+display: flex;
+flex-wrap: wrap;
+width: 600px;
+height: 600px;
+border: 1px solid black;
+div.cell {
+flex: 1 0 50%;
+border-bottom: 1px solid #777;
+box-sizing: border-box;
+display: flex;
+justify-content: center;
+align-items: center;
+font-family: '微軟正黑體';
+height: 300px;
+}
+[data-stroke] {
+display: inline-block;
+margin: 0 16px;
+font-size: 20pt;
+line-height: 145%;
+position: relative;
+white-space: pre-wrap;
+&amp;::before,&amp;::after {
+content: attr(data-stroke);
+position: absolute;
+left: 0;
+top: 0;
+}
+&amp;::after {
+z-index: 1;
+-webkit-text-stroke: 8px #222;
+filter: drop-shadow(0px 0px 1px black);
+}
+&amp;::before {
+z-index: 2;
+color: white;
+-webkit-text-stroke: 1px white;
+}
+}
+}
+&lt;/style&gt;
+&lt;div class="meme"&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="top-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="bottom-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function setWord(word, loc) {
+const elem = document.getElementById(loc + "-word");
+elem.innerText = word;
+elem.setAttribute("data-stroke", word);
+return true;
+}
+setWord("上梗圖產生器網站
+一分鐘做完梗圖", "top");
+setWord("CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成", "bottom");
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>Playwright 部分相對簡單，都是以前介紹過的<a href="/blog/playwright-notes/">技巧</a>：</p> <pre><code>using System.Text.Json;
+using Microsoft.Playwright;
+public class MemeMaker
+{
+static BrowserTypeLaunchOptions browserOptions = new BrowserTypeLaunchOptions
+{
+// TODO: 自動尋找路徑 https://blog.darkthread.net/blog/playwright-app-dep-issue/
+ExecutablePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+Headless = true
+};
+public async Task&lt;byte[]&gt; MakeMeme(string workingFolder, string topText, string bottomText)
+{
+using var playwright = await Playwright.CreateAsync();
+await using var browser = await playwright.Chromium.LaunchAsync(browserOptions);
+var page = await browser.NewPageAsync();
+await page.GotoAsync($"file:///{Path.Combine(workingFolder, "template.html")}");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(topText)}, 'top')");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(bottomText)}, 'bottom')");
+var imgBytes = await page.ScreenshotAsync(new PageScreenshotOptions
+{
+Clip = new Clip
+{
+X = 0,
+Y = 0,
+Width = 600,
+Height = 600
+}
+});
+File.WriteAllBytes(Path.Combine(workingFolder, "meme-result.png"), imgBytes);
+await page.CloseAsync();
+return imgBytes;
+}
+}
+</code></pre> <p>簡單實測，成功!</p> <pre><code>var memeMaker = new MemeMaker();
+var memeFolder = Path.Combine(builder.Environment.ContentRootPath, "data");
+await memeMaker.MakeMeme(memeFolder,
+"上梗圖產生器網站
+一分鐘做完梗圖",
+"CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成");
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638698518602273607.png"></p> <p data-slug="meme-picture-w-css-playwright" data-title-en="Creating memes with CSS and Playwright for .NET" data-catg="Web Development" data-fbimg="https://i.imgur.com/XGX9mMZ.png#533#300">This article explores creating memes with CSS and Playwright for .NET. It uses a HTML template and Playwright to automate meme creation by adding text to a base image. The provided C# code demonstrates using Playwright to manipulate the HTML and capture a screenshot of the final meme.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>很久沒玩 <a href="/blog/playwright-notes/">Playwright</a> 了，找了個題目暖身。</p> <p>講到自己做梗圖，首推「Meme 梗圖倉庫」的「<a href="https://memes.tw/maker/template/270">梗圖產生器</a>」，介面好用素材又齊全，基本上你看過的，想得到的梗圖都做得出來。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png"></p> <p>正常人其實沒什麼必要花時間自己搞，但我想到梗圖產生器的原理基本上就是在素材底圖指定位置放上自訂文字，理論上用 CSS 不難實現，順便再練習用 .NET 呼叫 Playwright 操作 HTML 網頁組裝後存成 png，便成了一個大小適中的日常練習題。這就是本次的計劃，開始!</p> <p>我選了 <a href="https://www.facebook.com/permalink.php?story_fbid=pfbid028FAsDoVyuUkvbazBuCkgME6Aq9CMyyN8fd8VKvzbrpMFwmaVAQBdsR9UeNw4YcMvl&amp;id=102252681704373">Drake 的 No / Yes 迷因圖</a> 當素材底圖，圖片尺寸 600x600，用 <code>display: flex; flex-wrap: wrap;</code> 橫式排四個寬度 50% 的區塊 <code>flex: 1 0 50%</code>，自動折成兩列，則第 2 個跟第 4 個就是填入上下文字的文字容器。文字容器內部用 <code>display: flex; justify-content: center; align-items: center;</code> 讓文字上下左右置中。</p> <p>至於粗黑框白字的文字特效，我參考這篇<a href="https://www.hellosanta.com.tw/knowledge/category-13/post-433">如何利用 CSS 製作完美的文字外框</a>，用 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-text-stroke">-webkit-text-stroke</a> 粗體特效配合 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::before">::before</a>、<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::after">::after</a> 偽元素，控制 z-index 先疊一層 8px 黑邊框文字、再疊一層 1px 白邊框字，黑框字理論上要圓角才好看，但我沒找到用 CSS 實現的方法，為避免邊角太銳利，我套用 <code>filter: drop-shadow(0px 0px 1px black);</code> 加減柔化。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638698518599553554.png"></p> <p>完整網頁範例如下：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;style&gt;
+html,body { margin: 0; padding:0 }
+div.meme {
+background-image: url(meme.png);
+display: flex;
+flex-wrap: wrap;
+width: 600px;
+height: 600px;
+border: 1px solid black;
+div.cell {
+flex: 1 0 50%;
+border-bottom: 1px solid #777;
+box-sizing: border-box;
+display: flex;
+justify-content: center;
+align-items: center;
+font-family: '微軟正黑體';
+height: 300px;
+}
+[data-stroke] {
+display: inline-block;
+margin: 0 16px;
+font-size: 20pt;
+line-height: 145%;
+position: relative;
+white-space: pre-wrap;
+&amp;::before,&amp;::after {
+content: attr(data-stroke);
+position: absolute;
+left: 0;
+top: 0;
+}
+&amp;::after {
+z-index: 1;
+-webkit-text-stroke: 8px #222;
+filter: drop-shadow(0px 0px 1px black);
+}
+&amp;::before {
+z-index: 2;
+color: white;
+-webkit-text-stroke: 1px white;
+}
+}
+}
+&lt;/style&gt;
+&lt;div class="meme"&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="top-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="cell"&gt;&lt;/div&gt;
+&lt;div class="cell"&gt;
+&lt;span id="bottom-word"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function setWord(word, loc) {
+const elem = document.getElementById(loc + "-word");
+elem.innerText = word;
+elem.setAttribute("data-stroke", word);
+return true;
+}
+setWord("上梗圖產生器網站
+一分鐘做完梗圖", "top");
+setWord("CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成", "bottom");
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>Playwright 部分相對簡單，都是以前介紹過的<a href="/blog/playwright-notes/">技巧</a>：</p> <pre><code>using System.Text.Json;
+using Microsoft.Playwright;
+public class MemeMaker
+{
+static BrowserTypeLaunchOptions browserOptions = new BrowserTypeLaunchOptions
+{
+// TODO: 自動尋找路徑 https://blog.darkthread.net/blog/playwright-app-dep-issue/
+ExecutablePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+Headless = true
+};
+public async Task&lt;byte[]&gt; MakeMeme(string workingFolder, string topText, string bottomText)
+{
+using var playwright = await Playwright.CreateAsync();
+await using var browser = await playwright.Chromium.LaunchAsync(browserOptions);
+var page = await browser.NewPageAsync();
+await page.GotoAsync($"file:///{Path.Combine(workingFolder, "template.html")}");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(topText)}, 'top')");
+await page.EvaluateAsync&lt;bool&gt;($"window.setWord({JsonSerializer.Serialize(bottomText)}, 'bottom')");
+var imgBytes = await page.ScreenshotAsync(new PageScreenshotOptions
+{
+Clip = new Clip
+{
+X = 0,
+Y = 0,
+Width = 600,
+Height = 600
+}
+});
+File.WriteAllBytes(Path.Combine(workingFolder, "meme-result.png"), imgBytes);
+await page.CloseAsync();
+return imgBytes;
+}
+}
+</code></pre> <p>簡單實測，成功!</p> <pre><code>var memeMaker = new MemeMaker();
+var memeFolder = Path.Combine(builder.Environment.ContentRootPath, "data");
+await memeMaker.MakeMeme(memeFolder,
+"上梗圖產生器網站
+一分鐘做完梗圖",
+"CSS + Playwright 
+連 Coding 帶寫文
+花兩小時完成");
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638698518602273607.png"></p> <p data-slug="meme-picture-w-css-playwright" data-title-en="Creating memes with CSS and Playwright for .NET" data-catg="Web Development" data-fbimg="https://i.imgur.com/XGX9mMZ.png#533#300">This article explores creating memes with CSS and Playwright for .NET. It uses a HTML template and Playwright to automate meme creation by adding text to a base image. The provided C# code demonstrates using Playwright to manipulate the HTML and capture a screenshot of the final meme.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638698518597084031.png" medium="image"/>
+    <pubDate>Sun, 15 Dec 2024 09:17:32 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【打破砂鍋】路口沒行人汽機車也必須停等，否則開罰 1200？]]></title>
+    <link>https://blog.darkthread.net/blog/force-stop-and-wait/</link>
+    <itunes:title><![CDATA[【打破砂鍋】路口沒行人汽機車也必須停等，否則開罰 1200？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這兩天冒出一堆「汽機車注意！不管有無行人路口未停讓秒噴1200元」的新聞。報導指出，交通部長陳世凱強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，否則都有罰則可罰。</p> <p>先聲明，我自己當行人的機會遠高於駕駛，雙手雙腳贊成汽機車應禮讓行人，但看到疑似不合邏輯或不合事實的結論，腦中頓時警報聲大作，這不科學吧？即便已「 100 % 確認無行人」也必須停車再開的意義何在？法條真是如此規定？是部長口誤還是記者亂寫？</p> <p>查了幾則新聞內文，想搞清楚到底是怎麼一回事。</p> <ul><li><a href="https://www.chinatimes.com/realtimenews/20241202003606-260405">汽機車注意！不管有無行人 路口未停讓秒噴1200元</a> <strong>中時</strong><br> 陳世凱也強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，而客運、大貨車還要「指差確認」，否則都有罰則可罰。<br> 台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://news.tvbs.com.tw/life/2706182">「把路讓給人」！不管路口有無行人　汽機車未停讓1200元秒掰」</a> <strong>TVBS</strong><br> 陳世凱也再次呼籲，駕駛人無論汽、機車行經穿越道，無論有無行人都應停等，大貨車、客運駕駛更要執行「指差確認」，否則可能面臨罰則。<br> 依《道路交通管理處罰條例》，駕駛人行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，將處新台幣1200元以上至6000元以下罰鍰。</li> <li><a href="https://www.setn.com/News.aspx?NewsID=1573432">「汽機車族注意！轉彎時「路口不論有無行人」未停讓秒噴1200元」</a> <strong>三立</strong><br> 陳世凱也強調，交通規則中有規定，駕駛行經行人穿越道時，不論有無行人都要停等，大貨車、客運還需強制「指差確認」，若無做到恐面臨罰則。<br> 有媒體提問，汽機車行駛於路口準備轉彎時，無行人未停等是否也開罰？對此陳世凱回應，由於所有遺憾的發生都是駕駛人認為路口沒有行人，因此不論行人穿越道上有無行人，駕駛都應先確認再前進。<br> 對此，台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://www.storm.mg/lifestyle/5285468">「路口無行人，汽機車要「停等再開」嗎？做錯1事秒收1200元罰單，駕駛要注意了」</a> <strong>風傳媒</strong><br> 陳世凱也強調，駕駛行經行人穿越道不管有沒有行人一定要停等，這是在交通規則有規定，而大貨車及客運還要強制「指差確認」，如果沒有做到是會有罰則的。<br> 根據《道路交通管理處罰條例第44條》，汽機車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，可處1200元到6000元罰鍰。</li></ul> <p>綜合上述媒體報導，部長的確這麼說了的機率頗高。但沒查到影片，不確定部長原話如何。就「就算沒有行人也要停等」、「在交通規則有規定」以及「處1200元到6000元罰鍰」等資訊，我猜部長指的法條是《道路交通管理處罰條例第44條》，其<a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&amp;flno=44">法條原文</a>如下：</p> <blockquote> <ol start="2"><li>汽車駕駛人，駕駛汽車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，處新臺幣一千二百元以上六千元以下罰鍰。</li></ol> </blockquote> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"></p> <p>依現行法規，停讓的前題是「有行人穿越時」，罰則也針對未停讓行人，我不認為可以擴大解讀成「即使沒有行人穿越時也必須停讓，否則要罰」。部長呼籲尊重及禮讓行人是一回事(我也贊成)，甚至也可考慮修法要求未來不管有無行人都必須停讓(是否過當則有待討論)，但直接說「依現行法規無行人也必須停讓，否則罰 1200 到 6000」則缺乏事實根據。而我相信不存在相關法條的理由是 - 若真有，台中監理所應會搬出其對應法條火力支援長官，但能端出來的只有第 44 條。</p> <p>好奇當下沒有記者覺得怪，查一下法條當場<del>吐糟</del>提問？ XD</p> <p data-slug="force-stop-and-wait" data-fbimg="https://i.imgur.com/vnpysjm.png#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這兩天冒出一堆「汽機車注意！不管有無行人路口未停讓秒噴1200元」的新聞。報導指出，交通部長陳世凱強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，否則都有罰則可罰。</p> <p>先聲明，我自己當行人的機會遠高於駕駛，雙手雙腳贊成汽機車應禮讓行人，但看到疑似不合邏輯或不合事實的結論，腦中頓時警報聲大作，這不科學吧？即便已「 100 % 確認無行人」也必須停車再開的意義何在？法條真是如此規定？是部長口誤還是記者亂寫？</p> <p>查了幾則新聞內文，想搞清楚到底是怎麼一回事。</p> <ul><li><a href="https://www.chinatimes.com/realtimenews/20241202003606-260405">汽機車注意！不管有無行人 路口未停讓秒噴1200元</a> <strong>中時</strong><br> 陳世凱也強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，而客運、大貨車還要「指差確認」，否則都有罰則可罰。<br> 台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://news.tvbs.com.tw/life/2706182">「把路讓給人」！不管路口有無行人　汽機車未停讓1200元秒掰」</a> <strong>TVBS</strong><br> 陳世凱也再次呼籲，駕駛人無論汽、機車行經穿越道，無論有無行人都應停等，大貨車、客運駕駛更要執行「指差確認」，否則可能面臨罰則。<br> 依《道路交通管理處罰條例》，駕駛人行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，將處新台幣1200元以上至6000元以下罰鍰。</li> <li><a href="https://www.setn.com/News.aspx?NewsID=1573432">「汽機車族注意！轉彎時「路口不論有無行人」未停讓秒噴1200元」</a> <strong>三立</strong><br> 陳世凱也強調，交通規則中有規定，駕駛行經行人穿越道時，不論有無行人都要停等，大貨車、客運還需強制「指差確認」，若無做到恐面臨罰則。<br> 有媒體提問，汽機車行駛於路口準備轉彎時，無行人未停等是否也開罰？對此陳世凱回應，由於所有遺憾的發生都是駕駛人認為路口沒有行人，因此不論行人穿越道上有無行人，駕駛都應先確認再前進。<br> 對此，台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://www.storm.mg/lifestyle/5285468">「路口無行人，汽機車要「停等再開」嗎？做錯1事秒收1200元罰單，駕駛要注意了」</a> <strong>風傳媒</strong><br> 陳世凱也強調，駕駛行經行人穿越道不管有沒有行人一定要停等，這是在交通規則有規定，而大貨車及客運還要強制「指差確認」，如果沒有做到是會有罰則的。<br> 根據《道路交通管理處罰條例第44條》，汽機車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，可處1200元到6000元罰鍰。</li></ul> <p>綜合上述媒體報導，部長的確這麼說了的機率頗高。但沒查到影片，不確定部長原話如何。就「就算沒有行人也要停等」、「在交通規則有規定」以及「處1200元到6000元罰鍰」等資訊，我猜部長指的法條是《道路交通管理處罰條例第44條》，其<a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&amp;flno=44">法條原文</a>如下：</p> <blockquote> <ol start="2"><li>汽車駕駛人，駕駛汽車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，處新臺幣一千二百元以上六千元以下罰鍰。</li></ol> </blockquote> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"></p> <p>依現行法規，停讓的前題是「有行人穿越時」，罰則也針對未停讓行人，我不認為可以擴大解讀成「即使沒有行人穿越時也必須停讓，否則要罰」。部長呼籲尊重及禮讓行人是一回事(我也贊成)，甚至也可考慮修法要求未來不管有無行人都必須停讓(是否過當則有待討論)，但直接說「依現行法規無行人也必須停讓，否則罰 1200 到 6000」則缺乏事實根據。而我相信不存在相關法條的理由是 - 若真有，台中監理所應會搬出其對應法條火力支援長官，但能端出來的只有第 44 條。</p> <p>好奇當下沒有記者覺得怪，查一下法條當場<del>吐糟</del>提問？ XD</p> <p data-slug="force-stop-and-wait" data-fbimg="https://i.imgur.com/vnpysjm.png#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這兩天冒出一堆「汽機車注意！不管有無行人路口未停讓秒噴1200元」的新聞。報導指出，交通部長陳世凱強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，否則都有罰則可罰。</p> <p>先聲明，我自己當行人的機會遠高於駕駛，雙手雙腳贊成汽機車應禮讓行人，但看到疑似不合邏輯或不合事實的結論，腦中頓時警報聲大作，這不科學吧？即便已「 100 % 確認無行人」也必須停車再開的意義何在？法條真是如此規定？是部長口誤還是記者亂寫？</p> <p>查了幾則新聞內文，想搞清楚到底是怎麼一回事。</p> <ul><li><a href="https://www.chinatimes.com/realtimenews/20241202003606-260405">汽機車注意！不管有無行人 路口未停讓秒噴1200元</a> <strong>中時</strong><br> 陳世凱也強調，汽機車行駕駛經路口不管有無行人右轉都要強制停等，而客運、大貨車還要「指差確認」，否則都有罰則可罰。<br> 台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://news.tvbs.com.tw/life/2706182">「把路讓給人」！不管路口有無行人　汽機車未停讓1200元秒掰」</a> <strong>TVBS</strong><br> 陳世凱也再次呼籲，駕駛人無論汽、機車行經穿越道，無論有無行人都應停等，大貨車、客運駕駛更要執行「指差確認」，否則可能面臨罰則。<br> 依《道路交通管理處罰條例》，駕駛人行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，將處新台幣1200元以上至6000元以下罰鍰。</li> <li><a href="https://www.setn.com/News.aspx?NewsID=1573432">「汽機車族注意！轉彎時「路口不論有無行人」未停讓秒噴1200元」</a> <strong>三立</strong><br> 陳世凱也強調，交通規則中有規定，駕駛行經行人穿越道時，不論有無行人都要停等，大貨車、客運還需強制「指差確認」，若無做到恐面臨罰則。<br> 有媒體提問，汽機車行駛於路口準備轉彎時，無行人未停等是否也開罰？對此陳世凱回應，由於所有遺憾的發生都是駕駛人認為路口沒有行人，因此不論行人穿越道上有無行人，駕駛都應先確認再前進。<br> 對此，台中監理站說明，依道路依《道路交通管理處罰條例》駕駛行經路口未停讓可處1200元到6000元罰鍰。</li> <li><a href="https://www.storm.mg/lifestyle/5285468">「路口無行人，汽機車要「停等再開」嗎？做錯1事秒收1200元罰單，駕駛要注意了」</a> <strong>風傳媒</strong><br> 陳世凱也強調，駕駛行經行人穿越道不管有沒有行人一定要停等，這是在交通規則有規定，而大貨車及客運還要強制「指差確認」，如果沒有做到是會有罰則的。<br> 根據《道路交通管理處罰條例第44條》，汽機車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，可處1200元到6000元罰鍰。</li></ul> <p>綜合上述媒體報導，部長的確這麼說了的機率頗高。但沒查到影片，不確定部長原話如何。就「就算沒有行人也要停等」、「在交通規則有規定」以及「處1200元到6000元罰鍰」等資訊，我猜部長指的法條是《道路交通管理處罰條例第44條》，其<a href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=K0040012&amp;flno=44">法條原文</a>如下：</p> <blockquote> <ol start="2"><li>汽車駕駛人，駕駛汽車行近行人穿越道或其他依法可供行人穿越之交岔路口，有行人穿越時，不暫停讓行人先行通過者，處新臺幣一千二百元以上六千元以下罰鍰。</li></ol> </blockquote> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"></p> <p>依現行法規，停讓的前題是「有行人穿越時」，罰則也針對未停讓行人，我不認為可以擴大解讀成「即使沒有行人穿越時也必須停讓，否則要罰」。部長呼籲尊重及禮讓行人是一回事(我也贊成)，甚至也可考慮修法要求未來不管有無行人都必須停讓(是否過當則有待討論)，但直接說「依現行法規無行人也必須停讓，否則罰 1200 到 6000」則缺乏事實根據。而我相信不存在相關法條的理由是 - 若真有，台中監理所應會搬出其對應法條火力支援長官，但能端出來的只有第 44 條。</p> <p>好奇當下沒有記者覺得怪，查一下法條當場<del>吐糟</del>提問？ XD</p> <p data-slug="force-stop-and-wait" data-fbimg="https://i.imgur.com/vnpysjm.png#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png" medium="image"/>
+    <pubDate>Tue, 03 Dec 2024 15:24:23 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Coding4Fun - .NET 串接 Whisper 麥克風語音識別整合 ChatGPT 即時翻譯]]></title>
+    <link>https://blog.darkthread.net/blog/whisper-realtime-translation/</link>
+    <itunes:title><![CDATA[Coding4Fun - .NET 串接 Whisper 麥克風語音識別整合 ChatGPT 即時翻譯]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
+<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
+<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
+<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
+<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
+<pre><code>using System.Text;
+using Microsoft.Extensions.Configuration;
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+var config = new ConfigurationBuilder()
+.SetBasePath(Directory.GetCurrentDirectory())
+.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+.AddEnvironmentVariables()
+.Build();
+Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
+var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
+using var httpClient = new HttpClient();
+using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
+response.EnsureSuccessStatusCode();
+Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
+using var stream = await response.Content.ReadAsStreamAsync();
+using var reader = new System.IO.StreamReader(stream);
+var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
+while (true)
+{
+var line = await reader.ReadLineAsync();
+if (line != null &amp;&amp; line.StartsWith("data: "))
+{
+var text = line.Substring("data: ".Length);
+// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"原文：{text}");
+var answer = await chatSvc.Complete(sysPrompt, text, true);
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"翻譯：{answer}");
+Console.ResetColor();
+}
+}
+</code></pre>
+<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
+<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
+<p>打完收工。</p>
+<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
+<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
+<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
+<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
+<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
+<pre><code>using System.Text;
+using Microsoft.Extensions.Configuration;
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+var config = new ConfigurationBuilder()
+.SetBasePath(Directory.GetCurrentDirectory())
+.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+.AddEnvironmentVariables()
+.Build();
+Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
+var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
+using var httpClient = new HttpClient();
+using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
+response.EnsureSuccessStatusCode();
+Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
+using var stream = await response.Content.ReadAsStreamAsync();
+using var reader = new System.IO.StreamReader(stream);
+var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
+while (true)
+{
+var line = await reader.ReadLineAsync();
+if (line != null &amp;&amp; line.StartsWith("data: "))
+{
+var text = line.Substring("data: ".Length);
+// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"原文：{text}");
+var answer = await chatSvc.Complete(sysPrompt, text, true);
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"翻譯：{answer}");
+Console.ResetColor();
+}
+}
+</code></pre>
+<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
+<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
+<p>打完收工。</p>
+<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
+<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
+<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
+<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
+<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
+<pre><code>using System.Text;
+using Microsoft.Extensions.Configuration;
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+var config = new ConfigurationBuilder()
+.SetBasePath(Directory.GetCurrentDirectory())
+.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+.AddEnvironmentVariables()
+.Build();
+Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
+var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
+using var httpClient = new HttpClient();
+using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
+response.EnsureSuccessStatusCode();
+Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
+using var stream = await response.Content.ReadAsStreamAsync();
+using var reader = new System.IO.StreamReader(stream);
+var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
+while (true)
+{
+var line = await reader.ReadLineAsync();
+if (line != null &amp;&amp; line.StartsWith("data: "))
+{
+var text = line.Substring("data: ".Length);
+// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"原文：{text}");
+var answer = await chatSvc.Complete(sysPrompt, text, true);
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"翻譯：{answer}");
+Console.ResetColor();
+}
+}
+</code></pre>
+<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
+<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
+<p>打完收工。</p>
+<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png" medium="image"/>
+    <pubDate>Mon, 02 Dec 2024 11:34:02 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Whisper Mic 微服務 - 為程式加上麥克風語音轉文字功能]]></title>
+    <link>https://blog.darkthread.net/blog/whisper-microservice/</link>
+    <itunes:title><![CDATA[Whisper Mic 微服務 - 為程式加上麥克風語音轉文字功能]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
+mic = WhisperMic()
+result = mic.listen()
+print(result)
+</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
+from flask import Flask, Response, request
+import queue
+import threading
+mic = WhisperMic(model='small', pause=0.5)
+app = Flask(__name__)
+text_queue = queue.Queue()
+stop_flag = False
+def listen_continuously():
+for text in mic.listen_continuously():
+if text is not None:
+if text.lower() == '打完收工':
+stop_flag = True
+print("停止識別，請按 Ctrl-C 結束")
+text_queue.put('[EOS]')
+break
+text_queue.put(text)
+print(text)
+@app.route('/listen')
+def stream():
+if stop_flag is True:
+return Response("service stopped", status=503)
+def generate():
+while stop_flag is False:
+text = text_queue.get()
+if text == '[EOS]':
+break
+yield f"data: {text}
+
+"
+return Response(generate(), mimetype='text/event-stream')
+if __name__ == '__main__':
+listener_thread = threading.Thread(target=listen_continuously)
+listener_thread.start()
+app.run()
+</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
+mic = WhisperMic()
+result = mic.listen()
+print(result)
+</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
+from flask import Flask, Response, request
+import queue
+import threading
+mic = WhisperMic(model='small', pause=0.5)
+app = Flask(__name__)
+text_queue = queue.Queue()
+stop_flag = False
+def listen_continuously():
+for text in mic.listen_continuously():
+if text is not None:
+if text.lower() == '打完收工':
+stop_flag = True
+print("停止識別，請按 Ctrl-C 結束")
+text_queue.put('[EOS]')
+break
+text_queue.put(text)
+print(text)
+@app.route('/listen')
+def stream():
+if stop_flag is True:
+return Response("service stopped", status=503)
+def generate():
+while stop_flag is False:
+text = text_queue.get()
+if text == '[EOS]':
+break
+yield f"data: {text}
+
+"
+return Response(generate(), mimetype='text/event-stream')
+if __name__ == '__main__':
+listener_thread = threading.Thread(target=listen_continuously)
+listener_thread.start()
+app.run()
+</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
+mic = WhisperMic()
+result = mic.listen()
+print(result)
+</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
+from flask import Flask, Response, request
+import queue
+import threading
+mic = WhisperMic(model='small', pause=0.5)
+app = Flask(__name__)
+text_queue = queue.Queue()
+stop_flag = False
+def listen_continuously():
+for text in mic.listen_continuously():
+if text is not None:
+if text.lower() == '打完收工':
+stop_flag = True
+print("停止識別，請按 Ctrl-C 結束")
+text_queue.put('[EOS]')
+break
+text_queue.put(text)
+print(text)
+@app.route('/listen')
+def stream():
+if stop_flag is True:
+return Response("service stopped", status=503)
+def generate():
+while stop_flag is False:
+text = text_queue.get()
+if text == '[EOS]':
+break
+yield f"data: {text}
+
+"
+return Response(generate(), mimetype='text/event-stream')
+if __name__ == '__main__':
+listener_thread = threading.Thread(target=listen_continuously)
+listener_thread.start()
+app.run()
+</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]></content:encoded>
+    
+    <pubDate>Sun, 01 Dec 2024 15:15:14 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Coding4Fun - 純 CSS 切換顯示 CIDR 與 IP 範圍]]></title>
+    <link>https://blog.darkthread.net/blog/css-cidr-iprange-toggle-display/</link>
+    <itunes:title><![CDATA[Coding4Fun - 純 CSS 切換顯示 CIDR 與 IP 範圍]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number); // 轉成四個數字
+const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
+// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
+&lt;style&gt;
+html {
+font-family: Arial, sans-serif;
+font-size: 11pt;
+line-height: 150%;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="sample"&gt;
+&lt;ul&gt;
+&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
+&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
+&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;style&gt;
+.cidr {
+input[type="checkbox"] {
+display: none;
+}
+label {
+opacity: 0.2;
+cursor: pointer;
+border: 1px solid #444;
+background-color: #ccc;
+display: inline-block;
+width: 9pt;
+height: 9pt;
+font-size: 9pt;
+line-height: 9.2pt;
+text-align: center;
+vertical-align: middle;
+margin-right: 2px;
+&amp;:hover {
+opacity: 1;
+}
+}
+&gt; span {
+background-color: #eee;
+padding: 2px 6px;
+}
+.cidr-e {
+display: none;
+}
+.toggle:checked+.cidr-c {
+display: none;
+}
+.toggle:checked+.cidr-c+.cidr-e {
+display: inline;
+}
+}
+&lt;/style&gt;
+&lt;script&gt;
+function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number);
+const maskParts = [0, 0, 0, 0];
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+function injectExpandButton(selector) {
+document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+}
+injectExpandButton('.sample');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number); // 轉成四個數字
+const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
+// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
+&lt;style&gt;
+html {
+font-family: Arial, sans-serif;
+font-size: 11pt;
+line-height: 150%;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="sample"&gt;
+&lt;ul&gt;
+&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
+&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
+&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;style&gt;
+.cidr {
+input[type="checkbox"] {
+display: none;
+}
+label {
+opacity: 0.2;
+cursor: pointer;
+border: 1px solid #444;
+background-color: #ccc;
+display: inline-block;
+width: 9pt;
+height: 9pt;
+font-size: 9pt;
+line-height: 9.2pt;
+text-align: center;
+vertical-align: middle;
+margin-right: 2px;
+&amp;:hover {
+opacity: 1;
+}
+}
+&gt; span {
+background-color: #eee;
+padding: 2px 6px;
+}
+.cidr-e {
+display: none;
+}
+.toggle:checked+.cidr-c {
+display: none;
+}
+.toggle:checked+.cidr-c+.cidr-e {
+display: inline;
+}
+}
+&lt;/style&gt;
+&lt;script&gt;
+function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number);
+const maskParts = [0, 0, 0, 0];
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+function injectExpandButton(selector) {
+document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+}
+injectExpandButton('.sample');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number); // 轉成四個數字
+const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
+// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
+&lt;style&gt;
+html {
+font-family: Arial, sans-serif;
+font-size: 11pt;
+line-height: 150%;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="sample"&gt;
+&lt;ul&gt;
+&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
+&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
+&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;style&gt;
+.cidr {
+input[type="checkbox"] {
+display: none;
+}
+label {
+opacity: 0.2;
+cursor: pointer;
+border: 1px solid #444;
+background-color: #ccc;
+display: inline-block;
+width: 9pt;
+height: 9pt;
+font-size: 9pt;
+line-height: 9.2pt;
+text-align: center;
+vertical-align: middle;
+margin-right: 2px;
+&amp;:hover {
+opacity: 1;
+}
+}
+&gt; span {
+background-color: #eee;
+padding: 2px 6px;
+}
+.cidr-e {
+display: none;
+}
+.toggle:checked+.cidr-c {
+display: none;
+}
+.toggle:checked+.cidr-c+.cidr-e {
+display: inline;
+}
+}
+&lt;/style&gt;
+&lt;script&gt;
+function cidrToRange(cidr) {
+const [ip, mask] = cidr.split('/');
+const ipParts = ip.split('.').map(Number);
+const maskParts = [0, 0, 0, 0];
+const maskLength = Number(mask);
+for (let i = 0; i &lt; maskLength; i++) {
+maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
+}
+const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
+const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
+return [start, end];
+}
+function injectExpandButton(selector) {
+document.querySelectorAll(selector).forEach(e =&gt; {
+const idPrefix = "_" + Math.random().toString(36).substring(2);
+let idx = 0;
+e.innerHTML = e.innerHTML.replace(
+/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
+cidr =&gt; {
+const [start, end] = cidrToRange(cidr);
+if (start === end) {
+return cidr;
+}
+const id = idPrefix + (idx++);
+return `&lt;span class="cidr"&gt;
+&lt;input type="checkbox" id="${id}" class="toggle"&gt;
+&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
+&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
+&lt;/span&gt;`;
+});
+});
+}
+injectExpandButton('.sample');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif" medium="image"/>
+    <pubDate>Sat, 30 Nov 2024 03:33:28 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[CSV 資料處理演練 - 從 .NET LINQ 到 Python Pandas (上)]]></title>
+    <link>https://blog.darkthread.net/blog/polyglot-csvhelper-linq/</link>
+    <itunes:title><![CDATA[CSV 資料處理演練 - 從 .NET LINQ 到 Python Pandas (上)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .dib 格式 (.dib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
+using System.Globalization;
+using System.IO;
+// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
+// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
+var reader = new StreamReader("imdb_top_1000.csv");
+var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+// 讀取 CSV 檔案，解析成動態物件
+var records = csv.GetRecords&lt;dynamic&gt;().ToList();
+// 取得作品數量前 10 的導演
+var top10Directors = records.GroupBy(record =&gt; record.Director)
+.Where(group =&gt; group.Count() &gt; 1)
+.OrderByDescending(group =&gt; group.Count())
+.Take(10)
+.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
+Console.WriteLine("Top 10 Directors:");
+var list = new List&lt;dynamic&gt;();
+foreach (var director in top10Directors)
+{
+// 顯示導演姓名與其作品數量
+Console.WriteLine($" * {director.Director} ({director.Count})");
+// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
+var movies = records.Where(o =&gt; o.Director == director.Director)
+.OrderBy(o =&gt; o.Released_Year)
+// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
+.Select(o =&gt; new { Director = (string)o.Director,
+Title = (string)o.Series_Title, Year = (string)o.Released_Year })
+.ToList();
+list.AddRange(movies);
+// 顯示其作品
+list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
+}
+// 將資料寫入 CSV 檔案
+var writer = new StreamWriter("top10_director_movies.csv");
+var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+csvWriter.WriteRecords(list);
+csvWriter.Dispose();
+</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .dib 格式 (.dib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
+using System.Globalization;
+using System.IO;
+// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
+// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
+var reader = new StreamReader("imdb_top_1000.csv");
+var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+// 讀取 CSV 檔案，解析成動態物件
+var records = csv.GetRecords&lt;dynamic&gt;().ToList();
+// 取得作品數量前 10 的導演
+var top10Directors = records.GroupBy(record =&gt; record.Director)
+.Where(group =&gt; group.Count() &gt; 1)
+.OrderByDescending(group =&gt; group.Count())
+.Take(10)
+.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
+Console.WriteLine("Top 10 Directors:");
+var list = new List&lt;dynamic&gt;();
+foreach (var director in top10Directors)
+{
+// 顯示導演姓名與其作品數量
+Console.WriteLine($" * {director.Director} ({director.Count})");
+// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
+var movies = records.Where(o =&gt; o.Director == director.Director)
+.OrderBy(o =&gt; o.Released_Year)
+// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
+.Select(o =&gt; new { Director = (string)o.Director,
+Title = (string)o.Series_Title, Year = (string)o.Released_Year })
+.ToList();
+list.AddRange(movies);
+// 顯示其作品
+list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
+}
+// 將資料寫入 CSV 檔案
+var writer = new StreamWriter("top10_director_movies.csv");
+var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+csvWriter.WriteRecords(list);
+csvWriter.Dispose();
+</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .dib 格式 (.dib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
+using System.Globalization;
+using System.IO;
+// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
+// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
+var reader = new StreamReader("imdb_top_1000.csv");
+var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+// 讀取 CSV 檔案，解析成動態物件
+var records = csv.GetRecords&lt;dynamic&gt;().ToList();
+// 取得作品數量前 10 的導演
+var top10Directors = records.GroupBy(record =&gt; record.Director)
+.Where(group =&gt; group.Count() &gt; 1)
+.OrderByDescending(group =&gt; group.Count())
+.Take(10)
+.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
+Console.WriteLine("Top 10 Directors:");
+var list = new List&lt;dynamic&gt;();
+foreach (var director in top10Directors)
+{
+// 顯示導演姓名與其作品數量
+Console.WriteLine($" * {director.Director} ({director.Count})");
+// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
+var movies = records.Where(o =&gt; o.Director == director.Director)
+.OrderBy(o =&gt; o.Released_Year)
+// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
+.Select(o =&gt; new { Director = (string)o.Director,
+Title = (string)o.Series_Title, Year = (string)o.Released_Year })
+.ToList();
+list.AddRange(movies);
+// 顯示其作品
+list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
+}
+// 將資料寫入 CSV 檔案
+var writer = new StreamWriter("top10_director_movies.csv");
+var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+csvWriter.WriteRecords(list);
+csvWriter.Dispose();
+</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png" medium="image"/>
+    <pubDate>Thu, 28 Nov 2024 15:59:01 GMT</pubDate>
+  </item></channel>
+</rss>
