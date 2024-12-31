@@ -30,6 +30,363 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[使用 LINE 聊天機器人回應圖片或檔案]]></title>
+    <link>https://blog.darkthread.net/blog/linebot-reply-images-or-files/</link>
+    <itunes:title><![CDATA[使用 LINE 聊天機器人回應圖片或檔案]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前陣子說完<a href="/blog/meme-picture-w-css-playwright/">用 CSS + Playwright 製作梗圖</a>，這篇來試試我過去沒玩過的新嘗試 - 用 LINE Bot 聊天機器人回傳圖片或檔案。</p> <p>之前寫的 LINE 聊天機器人，不管是投票人數統計、AI 聊天或是即時翻譯，都是接收使用者指令或談話內容，利用不計費的 <a href="https://developers.line.biz/en/reference/messaging-api/#send-reply-message">Reply API</a> 回傳文字提供服務，而 LINE 可回傳的訊息格式並不限於純文字，還可傳回應貼圖、圖片、影片、聲音檔、地理位置、可點擊圖片以，及確認對話框、選項按鈕、圖片輪播... 等各種彈性化互動介面 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/">參考</a>... 等。我平日開發 LINE 機器人主要靠 <a href="/blog/line-bot-sdk-notes/">.NET LineBotSDK 套件</a>，本身對這類訊息格式便有一定程度的支援。這篇就來試試在聊天室下指令叫 LINE 機器人動態生成梗圖，再分別用圖檔跟 PDF 格式傳給使用者。</p> <p>實做效果會像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"></p> <p>在 LINE 要回傳圖檔或 PDF，不是將檔案 byte[] 傳給 LINE API，而是要自己把檔案放上外界可存取的網站，再將下載網址提供給 LINE API。若不想費事，要串 LINK API 原本就有個對外的 Webhook 網站，把檔案放在上面給人下載是最簡單的解法。</p> <p>若是圖檔內容，在聊天室會直接以圖片方式呈現，使用者可用 LINE 內建的儲存、另存新檔、分享、傳送至 Keep 筆記... 等選單操作，而點擊圖片時則會開啟 LINE 內建的圖片檢視器。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638712511360359295.png"></p> <p>至於檔案下載，最無腦的簡單做法是用文字回傳 URL，LINE 會自動轉成超連結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638712511362057711.png"></p> <p>如果覺得這個做法太陽春，可考慮做成 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/#buttons-template">Buttons Template</a>，以圖片、標題、說明形式呈現，下方則可放上一到多個連結。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638712511364019856.png"></p> <p>點選下載連結會開啟你指定的網址，呈現形式可完全客製打造。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638712511367979132.png"></p> <p>回到如何用 LineBotSDK 實現以上需求。若要回傳圖片，可建立一個 ImageMessage 物件，提供圖片及預覽圖片網址，將用 ReplyMessage() 送出 ImageMessage：</p> <pre><code>var imgMsg = new ImageMessage(new Uri(imgUrl), new Uri(previewImgUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+</code></pre> <p>至於 ButtonsTemplate，Bot.ReplyMesssage() 沒有直接支援此一格式，我的解決方法是改用 isRock.LineBot.Utility.ReplyTemplateMessage()，程式寫法會像這樣：</p> <pre><code>var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, apiKey);
+</code></pre> <p>借用之前<a href="/blog/line-gpt-trans-bot/">大砲打小鳥之 ChatGPT 翻譯鳳梨酥 LINE Bot</a>範例為基礎，略加修改後即可實現上面擷圖所展示的效果。</p> <pre><code>// 使用快取暫存檔案，在 Webhook Web API 新增 GET 路由提供下載
+var fileCache = new MemoryCache(new MemoryCacheOptions());
+app.MapGet("/Files/{id}/{fileName}", (string id) =&gt;
+{
+if (fileCache.TryGetValue(id, out (string fileName, string contentType, byte[] content) file))
+{
+if (file.contentType.StartsWith("image") || // 圖片與 PDF 開放瀏覽器直接顯示
+file.contentType.StartsWith("application/pdf"))
+return Results.File(file.content, file.contentType);
+else
+// 其他檔案類型則提供檔名，下載後開啟
+return Results.File(file.content, file.contentType, file.fileName);
+}
+return Results.NotFound();
+});
+app.MapPost("/MsgCallback", async (context) =&gt;
+{
+var body = context.Request.Body;
+using var reader = new StreamReader(body);
+var json = await reader.ReadToEndAsync();
+var msg = Utility.Parsing(json);
+foreach (var evt in msg.events)
+{
+if (evt.type == "message")
+{
+if (evt.message.type == "text")
+{
+var text = evt.message.text;
+// 檢查是否為 #MEMEPNG 或 #MEMEPDF 指令
+var m = Regex.Match(text, @"(?ims)^#(?&lt;tag&gt;(MEMEPNG|MEMEPDF))\s*(?&lt;top&gt;.+?)\s*\|\s*(?&lt;bottom&gt;.+)");
+if (m.Success)
+{
+var baseUri = $"https://{context.Request.Host}{context.Request.PathBase}";
+var id = Guid.NewGuid().ToString();
+var tag = m.Groups["tag"].Value;
+var topWord = m.Groups["top"].Value;
+var bottomWord = m.Groups["bottom"].Value;
+if (tag == "MEMEPNG")
+{
+var imgBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.png";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "image/png", file: imgBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+ImageMessage imgMsg = new ImageMessage(new Uri(fileUrl), new Uri(fileUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+}
+else
+{
+var pdfBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord, true);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.pdf";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "application/pdf", file: pdfBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, lineBotKey);
+}
+continue;
+}
+}
+}
+}
+await context.Response.WriteAsync("OK");
+}
+</code></pre> <p>不過，美中不足的是 - LineBotSDK 的 ButtonsTemplate 不支援將預覽圖設定正方形，另外原本 API 規格預覽圖也可點擊，會連到我們指定的超連結，這塊目前 SDK 也沒有實做。所幸，有個 ReplyMessageWithJSON() 函式允許自行組裝 Message JSON 原始內容，故程式可小改如下：(不得不說，C# 加入的 <a href="/blog/csharp11-raw-string-literal/">Raw String Literal (用 """ 取代 @" )</a> 超好用，文字可縮排、用 $$"""...""" 在其中改用 {{ varName }} 插值，原本的 不用跳脫，都比 @"..." 方便)</p> <pre><code>var templMsgJson= $$"""
+[{
+"type": "template",
+"altText": "Download File",
+"template": {
+"type": "buttons",
+"thumbnailImageUrl": "https://www.svgrepo.com/show/33873/pdf.svg",
+"imageAspectRatio": "square",
+"imageSize": "cover",
+"imageBackgroundColor": "#FFFFFF",
+"title": "LINE Bot 回傳檔案展示",
+"text": "檔案僅保留5分鐘，請儘速下載",
+"defaultAction": {
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+},
+"actions": [
+{
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+}
+]
+}
+}]
+""";
+lineBot.ReplyMessageWithJSON(evt.replyToken, templMsgJson);
+</code></pre> <p>修改後的版本，可以使用正方形縮圖，滑鼠移到縮圖上會變手指，點下去可以下載檔案，感覺又更高級了。打完收工。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638712511369788317.png"></p> <p data-slug="linebot-reply-images-or-files" data-title-en="Replying images or files from LINE bot" data-catg=".NET" data-fbimg="https://i.imgur.com/mpmKFXh.jpg#1280#720">In this post, I explore how to make a LINE Bot return dynamically generated images or PDFs. The bot uses the .NET LineBotSDK to respond to user commands by creating memes and providing links to download the files. The article covers setting up the bot, generating the files, and sending them back to users using LINE’s messaging API.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前陣子說完<a href="/blog/meme-picture-w-css-playwright/">用 CSS + Playwright 製作梗圖</a>，這篇來試試我過去沒玩過的新嘗試 - 用 LINE Bot 聊天機器人回傳圖片或檔案。</p> <p>之前寫的 LINE 聊天機器人，不管是投票人數統計、AI 聊天或是即時翻譯，都是接收使用者指令或談話內容，利用不計費的 <a href="https://developers.line.biz/en/reference/messaging-api/#send-reply-message">Reply API</a> 回傳文字提供服務，而 LINE 可回傳的訊息格式並不限於純文字，還可傳回應貼圖、圖片、影片、聲音檔、地理位置、可點擊圖片以，及確認對話框、選項按鈕、圖片輪播... 等各種彈性化互動介面 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/">參考</a>... 等。我平日開發 LINE 機器人主要靠 <a href="/blog/line-bot-sdk-notes/">.NET LineBotSDK 套件</a>，本身對這類訊息格式便有一定程度的支援。這篇就來試試在聊天室下指令叫 LINE 機器人動態生成梗圖，再分別用圖檔跟 PDF 格式傳給使用者。</p> <p>實做效果會像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"></p> <p>在 LINE 要回傳圖檔或 PDF，不是將檔案 byte[] 傳給 LINE API，而是要自己把檔案放上外界可存取的網站，再將下載網址提供給 LINE API。若不想費事，要串 LINK API 原本就有個對外的 Webhook 網站，把檔案放在上面給人下載是最簡單的解法。</p> <p>若是圖檔內容，在聊天室會直接以圖片方式呈現，使用者可用 LINE 內建的儲存、另存新檔、分享、傳送至 Keep 筆記... 等選單操作，而點擊圖片時則會開啟 LINE 內建的圖片檢視器。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638712511360359295.png"></p> <p>至於檔案下載，最無腦的簡單做法是用文字回傳 URL，LINE 會自動轉成超連結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638712511362057711.png"></p> <p>如果覺得這個做法太陽春，可考慮做成 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/#buttons-template">Buttons Template</a>，以圖片、標題、說明形式呈現，下方則可放上一到多個連結。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638712511364019856.png"></p> <p>點選下載連結會開啟你指定的網址，呈現形式可完全客製打造。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638712511367979132.png"></p> <p>回到如何用 LineBotSDK 實現以上需求。若要回傳圖片，可建立一個 ImageMessage 物件，提供圖片及預覽圖片網址，將用 ReplyMessage() 送出 ImageMessage：</p> <pre><code>var imgMsg = new ImageMessage(new Uri(imgUrl), new Uri(previewImgUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+</code></pre> <p>至於 ButtonsTemplate，Bot.ReplyMesssage() 沒有直接支援此一格式，我的解決方法是改用 isRock.LineBot.Utility.ReplyTemplateMessage()，程式寫法會像這樣：</p> <pre><code>var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, apiKey);
+</code></pre> <p>借用之前<a href="/blog/line-gpt-trans-bot/">大砲打小鳥之 ChatGPT 翻譯鳳梨酥 LINE Bot</a>範例為基礎，略加修改後即可實現上面擷圖所展示的效果。</p> <pre><code>// 使用快取暫存檔案，在 Webhook Web API 新增 GET 路由提供下載
+var fileCache = new MemoryCache(new MemoryCacheOptions());
+app.MapGet("/Files/{id}/{fileName}", (string id) =&gt;
+{
+if (fileCache.TryGetValue(id, out (string fileName, string contentType, byte[] content) file))
+{
+if (file.contentType.StartsWith("image") || // 圖片與 PDF 開放瀏覽器直接顯示
+file.contentType.StartsWith("application/pdf"))
+return Results.File(file.content, file.contentType);
+else
+// 其他檔案類型則提供檔名，下載後開啟
+return Results.File(file.content, file.contentType, file.fileName);
+}
+return Results.NotFound();
+});
+app.MapPost("/MsgCallback", async (context) =&gt;
+{
+var body = context.Request.Body;
+using var reader = new StreamReader(body);
+var json = await reader.ReadToEndAsync();
+var msg = Utility.Parsing(json);
+foreach (var evt in msg.events)
+{
+if (evt.type == "message")
+{
+if (evt.message.type == "text")
+{
+var text = evt.message.text;
+// 檢查是否為 #MEMEPNG 或 #MEMEPDF 指令
+var m = Regex.Match(text, @"(?ims)^#(?&lt;tag&gt;(MEMEPNG|MEMEPDF))\s*(?&lt;top&gt;.+?)\s*\|\s*(?&lt;bottom&gt;.+)");
+if (m.Success)
+{
+var baseUri = $"https://{context.Request.Host}{context.Request.PathBase}";
+var id = Guid.NewGuid().ToString();
+var tag = m.Groups["tag"].Value;
+var topWord = m.Groups["top"].Value;
+var bottomWord = m.Groups["bottom"].Value;
+if (tag == "MEMEPNG")
+{
+var imgBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.png";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "image/png", file: imgBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+ImageMessage imgMsg = new ImageMessage(new Uri(fileUrl), new Uri(fileUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+}
+else
+{
+var pdfBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord, true);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.pdf";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "application/pdf", file: pdfBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, lineBotKey);
+}
+continue;
+}
+}
+}
+}
+await context.Response.WriteAsync("OK");
+}
+</code></pre> <p>不過，美中不足的是 - LineBotSDK 的 ButtonsTemplate 不支援將預覽圖設定正方形，另外原本 API 規格預覽圖也可點擊，會連到我們指定的超連結，這塊目前 SDK 也沒有實做。所幸，有個 ReplyMessageWithJSON() 函式允許自行組裝 Message JSON 原始內容，故程式可小改如下：(不得不說，C# 加入的 <a href="/blog/csharp11-raw-string-literal/">Raw String Literal (用 """ 取代 @" )</a> 超好用，文字可縮排、用 $$"""...""" 在其中改用 {{ varName }} 插值，原本的 不用跳脫，都比 @"..." 方便)</p> <pre><code>var templMsgJson= $$"""
+[{
+"type": "template",
+"altText": "Download File",
+"template": {
+"type": "buttons",
+"thumbnailImageUrl": "https://www.svgrepo.com/show/33873/pdf.svg",
+"imageAspectRatio": "square",
+"imageSize": "cover",
+"imageBackgroundColor": "#FFFFFF",
+"title": "LINE Bot 回傳檔案展示",
+"text": "檔案僅保留5分鐘，請儘速下載",
+"defaultAction": {
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+},
+"actions": [
+{
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+}
+]
+}
+}]
+""";
+lineBot.ReplyMessageWithJSON(evt.replyToken, templMsgJson);
+</code></pre> <p>修改後的版本，可以使用正方形縮圖，滑鼠移到縮圖上會變手指，點下去可以下載檔案，感覺又更高級了。打完收工。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638712511369788317.png"></p> <p data-slug="linebot-reply-images-or-files" data-title-en="Replying images or files from LINE bot" data-catg=".NET" data-fbimg="https://i.imgur.com/mpmKFXh.jpg#1280#720">In this post, I explore how to make a LINE Bot return dynamically generated images or PDFs. The bot uses the .NET LineBotSDK to respond to user commands by creating memes and providing links to download the files. The article covers setting up the bot, generating the files, and sending them back to users using LINE’s messaging API.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前陣子說完<a href="/blog/meme-picture-w-css-playwright/">用 CSS + Playwright 製作梗圖</a>，這篇來試試我過去沒玩過的新嘗試 - 用 LINE Bot 聊天機器人回傳圖片或檔案。</p> <p>之前寫的 LINE 聊天機器人，不管是投票人數統計、AI 聊天或是即時翻譯，都是接收使用者指令或談話內容，利用不計費的 <a href="https://developers.line.biz/en/reference/messaging-api/#send-reply-message">Reply API</a> 回傳文字提供服務，而 LINE 可回傳的訊息格式並不限於純文字，還可傳回應貼圖、圖片、影片、聲音檔、地理位置、可點擊圖片以，及確認對話框、選項按鈕、圖片輪播... 等各種彈性化互動介面 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/">參考</a>... 等。我平日開發 LINE 機器人主要靠 <a href="/blog/line-bot-sdk-notes/">.NET LineBotSDK 套件</a>，本身對這類訊息格式便有一定程度的支援。這篇就來試試在聊天室下指令叫 LINE 機器人動態生成梗圖，再分別用圖檔跟 PDF 格式傳給使用者。</p> <p>實做效果會像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"></p> <p>在 LINE 要回傳圖檔或 PDF，不是將檔案 byte[] 傳給 LINE API，而是要自己把檔案放上外界可存取的網站，再將下載網址提供給 LINE API。若不想費事，要串 LINK API 原本就有個對外的 Webhook 網站，把檔案放在上面給人下載是最簡單的解法。</p> <p>若是圖檔內容，在聊天室會直接以圖片方式呈現，使用者可用 LINE 內建的儲存、另存新檔、分享、傳送至 Keep 筆記... 等選單操作，而點擊圖片時則會開啟 LINE 內建的圖片檢視器。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638712511360359295.png"></p> <p>至於檔案下載，最無腦的簡單做法是用文字回傳 URL，LINE 會自動轉成超連結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638712511362057711.png"></p> <p>如果覺得這個做法太陽春，可考慮做成 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/#buttons-template">Buttons Template</a>，以圖片、標題、說明形式呈現，下方則可放上一到多個連結。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638712511364019856.png"></p> <p>點選下載連結會開啟你指定的網址，呈現形式可完全客製打造。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638712511367979132.png"></p> <p>回到如何用 LineBotSDK 實現以上需求。若要回傳圖片，可建立一個 ImageMessage 物件，提供圖片及預覽圖片網址，將用 ReplyMessage() 送出 ImageMessage：</p> <pre><code>var imgMsg = new ImageMessage(new Uri(imgUrl), new Uri(previewImgUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+</code></pre> <p>至於 ButtonsTemplate，Bot.ReplyMesssage() 沒有直接支援此一格式，我的解決方法是改用 isRock.LineBot.Utility.ReplyTemplateMessage()，程式寫法會像這樣：</p> <pre><code>var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, apiKey);
+</code></pre> <p>借用之前<a href="/blog/line-gpt-trans-bot/">大砲打小鳥之 ChatGPT 翻譯鳳梨酥 LINE Bot</a>範例為基礎，略加修改後即可實現上面擷圖所展示的效果。</p> <pre><code>// 使用快取暫存檔案，在 Webhook Web API 新增 GET 路由提供下載
+var fileCache = new MemoryCache(new MemoryCacheOptions());
+app.MapGet("/Files/{id}/{fileName}", (string id) =&gt;
+{
+if (fileCache.TryGetValue(id, out (string fileName, string contentType, byte[] content) file))
+{
+if (file.contentType.StartsWith("image") || // 圖片與 PDF 開放瀏覽器直接顯示
+file.contentType.StartsWith("application/pdf"))
+return Results.File(file.content, file.contentType);
+else
+// 其他檔案類型則提供檔名，下載後開啟
+return Results.File(file.content, file.contentType, file.fileName);
+}
+return Results.NotFound();
+});
+app.MapPost("/MsgCallback", async (context) =&gt;
+{
+var body = context.Request.Body;
+using var reader = new StreamReader(body);
+var json = await reader.ReadToEndAsync();
+var msg = Utility.Parsing(json);
+foreach (var evt in msg.events)
+{
+if (evt.type == "message")
+{
+if (evt.message.type == "text")
+{
+var text = evt.message.text;
+// 檢查是否為 #MEMEPNG 或 #MEMEPDF 指令
+var m = Regex.Match(text, @"(?ims)^#(?&lt;tag&gt;(MEMEPNG|MEMEPDF))\s*(?&lt;top&gt;.+?)\s*\|\s*(?&lt;bottom&gt;.+)");
+if (m.Success)
+{
+var baseUri = $"https://{context.Request.Host}{context.Request.PathBase}";
+var id = Guid.NewGuid().ToString();
+var tag = m.Groups["tag"].Value;
+var topWord = m.Groups["top"].Value;
+var bottomWord = m.Groups["bottom"].Value;
+if (tag == "MEMEPNG")
+{
+var imgBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.png";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "image/png", file: imgBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+ImageMessage imgMsg = new ImageMessage(new Uri(fileUrl), new Uri(fileUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+}
+else
+{
+var pdfBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord, true);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.pdf";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "application/pdf", file: pdfBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, lineBotKey);
+}
+continue;
+}
+}
+}
+}
+await context.Response.WriteAsync("OK");
+}
+</code></pre> <p>不過，美中不足的是 - LineBotSDK 的 ButtonsTemplate 不支援將預覽圖設定正方形，另外原本 API 規格預覽圖也可點擊，會連到我們指定的超連結，這塊目前 SDK 也沒有實做。所幸，有個 ReplyMessageWithJSON() 函式允許自行組裝 Message JSON 原始內容，故程式可小改如下：(不得不說，C# 加入的 <a href="/blog/csharp11-raw-string-literal/">Raw String Literal (用 """ 取代 @" )</a> 超好用，文字可縮排、用 $$"""...""" 在其中改用 {{ varName }} 插值，原本的 不用跳脫，都比 @"..." 方便)</p> <pre><code>var templMsgJson= $$"""
+[{
+"type": "template",
+"altText": "Download File",
+"template": {
+"type": "buttons",
+"thumbnailImageUrl": "https://www.svgrepo.com/show/33873/pdf.svg",
+"imageAspectRatio": "square",
+"imageSize": "cover",
+"imageBackgroundColor": "#FFFFFF",
+"title": "LINE Bot 回傳檔案展示",
+"text": "檔案僅保留5分鐘，請儘速下載",
+"defaultAction": {
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+},
+"actions": [
+{
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+}
+]
+}
+}]
+""";
+lineBot.ReplyMessageWithJSON(evt.replyToken, templMsgJson);
+</code></pre> <p>修改後的版本，可以使用正方形縮圖，滑鼠移到縮圖上會變手指，點下去可以下載檔案，感覺又更高級了。打完收工。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638712511369788317.png"></p> <p data-slug="linebot-reply-images-or-files" data-title-en="Replying images or files from LINE bot" data-catg=".NET" data-fbimg="https://i.imgur.com/mpmKFXh.jpg#1280#720">In this post, I explore how to make a LINE Bot return dynamically generated images or PDFs. The bot uses the .NET LineBotSDK to respond to user commands by creating memes and providing links to download the files. The article covers setting up the bot, generating the files, and sending them back to users using LINE’s messaging API.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png" medium="image"/>
+    <pubDate>Tue, 31 Dec 2024 14:11:58 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Git 小技巧 - 將 Commit 打包成檔案送到異地同步]]></title>
     <link>https://blog.darkthread.net/blog/git-bundle/</link>
     <itunes:title><![CDATA[Git 小技巧 - 將 Commit 打包成檔案送到異地同步]]></itunes:title>
@@ -925,410 +1282,5 @@ app.run()
 </code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]></content:encoded>
     
     <pubDate>Sun, 01 Dec 2024 15:15:14 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Coding4Fun - 純 CSS 切換顯示 CIDR 與 IP 範圍]]></title>
-    <link>https://blog.darkthread.net/blog/css-cidr-iprange-toggle-display/</link>
-    <itunes:title><![CDATA[Coding4Fun - 純 CSS 切換顯示 CIDR 與 IP 範圍]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
-const idPrefix = "_" + Math.random().toString(36).substring(2);
-let idx = 0;
-e.innerHTML = e.innerHTML.replace(
-/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
-cidr =&gt; {
-const [start, end] = cidrToRange(cidr);
-if (start === end) {
-return cidr;
-}
-const id = idPrefix + (idx++);
-return `&lt;span class="cidr"&gt;
-&lt;input type="checkbox" id="${id}" class="toggle"&gt;
-&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
-&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
-&lt;/span&gt;`;
-});
-});
-</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
-const [ip, mask] = cidr.split('/');
-const ipParts = ip.split('.').map(Number); // 轉成四個數字
-const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
-const maskLength = Number(mask);
-for (let i = 0; i &lt; maskLength; i++) {
-// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
-// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
-maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
-}
-// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
-const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
-// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
-const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
-return [start, end];
-}
-</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-&lt;meta charset="UTF-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
-&lt;style&gt;
-html {
-font-family: Arial, sans-serif;
-font-size: 11pt;
-line-height: 150%;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div class="sample"&gt;
-&lt;ul&gt;
-&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
-&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
-&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;style&gt;
-.cidr {
-input[type="checkbox"] {
-display: none;
-}
-label {
-opacity: 0.2;
-cursor: pointer;
-border: 1px solid #444;
-background-color: #ccc;
-display: inline-block;
-width: 9pt;
-height: 9pt;
-font-size: 9pt;
-line-height: 9.2pt;
-text-align: center;
-vertical-align: middle;
-margin-right: 2px;
-&amp;:hover {
-opacity: 1;
-}
-}
-&gt; span {
-background-color: #eee;
-padding: 2px 6px;
-}
-.cidr-e {
-display: none;
-}
-.toggle:checked+.cidr-c {
-display: none;
-}
-.toggle:checked+.cidr-c+.cidr-e {
-display: inline;
-}
-}
-&lt;/style&gt;
-&lt;script&gt;
-function cidrToRange(cidr) {
-const [ip, mask] = cidr.split('/');
-const ipParts = ip.split('.').map(Number);
-const maskParts = [0, 0, 0, 0];
-const maskLength = Number(mask);
-for (let i = 0; i &lt; maskLength; i++) {
-maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
-}
-const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
-const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
-return [start, end];
-}
-function injectExpandButton(selector) {
-document.querySelectorAll(selector).forEach(e =&gt; {
-const idPrefix = "_" + Math.random().toString(36).substring(2);
-let idx = 0;
-e.innerHTML = e.innerHTML.replace(
-/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
-cidr =&gt; {
-const [start, end] = cidrToRange(cidr);
-if (start === end) {
-return cidr;
-}
-const id = idPrefix + (idx++);
-return `&lt;span class="cidr"&gt;
-&lt;input type="checkbox" id="${id}" class="toggle"&gt;
-&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
-&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
-&lt;/span&gt;`;
-});
-});
-}
-injectExpandButton('.sample');
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
-const idPrefix = "_" + Math.random().toString(36).substring(2);
-let idx = 0;
-e.innerHTML = e.innerHTML.replace(
-/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
-cidr =&gt; {
-const [start, end] = cidrToRange(cidr);
-if (start === end) {
-return cidr;
-}
-const id = idPrefix + (idx++);
-return `&lt;span class="cidr"&gt;
-&lt;input type="checkbox" id="${id}" class="toggle"&gt;
-&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
-&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
-&lt;/span&gt;`;
-});
-});
-</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
-const [ip, mask] = cidr.split('/');
-const ipParts = ip.split('.').map(Number); // 轉成四個數字
-const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
-const maskLength = Number(mask);
-for (let i = 0; i &lt; maskLength; i++) {
-// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
-// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
-maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
-}
-// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
-const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
-// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
-const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
-return [start, end];
-}
-</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-&lt;meta charset="UTF-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
-&lt;style&gt;
-html {
-font-family: Arial, sans-serif;
-font-size: 11pt;
-line-height: 150%;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div class="sample"&gt;
-&lt;ul&gt;
-&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
-&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
-&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;style&gt;
-.cidr {
-input[type="checkbox"] {
-display: none;
-}
-label {
-opacity: 0.2;
-cursor: pointer;
-border: 1px solid #444;
-background-color: #ccc;
-display: inline-block;
-width: 9pt;
-height: 9pt;
-font-size: 9pt;
-line-height: 9.2pt;
-text-align: center;
-vertical-align: middle;
-margin-right: 2px;
-&amp;:hover {
-opacity: 1;
-}
-}
-&gt; span {
-background-color: #eee;
-padding: 2px 6px;
-}
-.cidr-e {
-display: none;
-}
-.toggle:checked+.cidr-c {
-display: none;
-}
-.toggle:checked+.cidr-c+.cidr-e {
-display: inline;
-}
-}
-&lt;/style&gt;
-&lt;script&gt;
-function cidrToRange(cidr) {
-const [ip, mask] = cidr.split('/');
-const ipParts = ip.split('.').map(Number);
-const maskParts = [0, 0, 0, 0];
-const maskLength = Number(mask);
-for (let i = 0; i &lt; maskLength; i++) {
-maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
-}
-const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
-const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
-return [start, end];
-}
-function injectExpandButton(selector) {
-document.querySelectorAll(selector).forEach(e =&gt; {
-const idPrefix = "_" + Math.random().toString(36).substring(2);
-let idx = 0;
-e.innerHTML = e.innerHTML.replace(
-/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
-cidr =&gt; {
-const [start, end] = cidrToRange(cidr);
-if (start === end) {
-return cidr;
-}
-const id = idPrefix + (idx++);
-return `&lt;span class="cidr"&gt;
-&lt;input type="checkbox" id="${id}" class="toggle"&gt;
-&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
-&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
-&lt;/span&gt;`;
-});
-});
-}
-injectExpandButton('.sample');
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>對於網管或系統管理人員來說，看懂 172.28.16.0/20 CIDR (<a href="https://zh.wikipedia.org/zh-tw/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">Classless Inter-Domain Routing</a>) 格式，搞懂 Net Mask 網段概念是基本要求，不然路由器、防火牆都不用玩了。</p> <p>不過即使是資訊從業人員，平時沒碰不到網路、網站設定，網路不通時有工具人可用，不需下海自射茶包，看不懂 CIDR 好像也是正常的。</p> <p>前幾天被問了一個問題(對方也是資訊單位)，說網頁上的防火牆資料判別 172.28.17.X 跟 172.28.16.0/20 在同一網段，是不是寫錯了？</p> <p>對非網管人員，CIDR 確實有點難懂，如果是 16/24 切齊 Byte 直接前兩節、前三節數字還好，遇到 20/22 一個 Byte 只用部分位元，得做 16 進位計算才知道 IP 是否屬於該網站，就算是網管人員，要不按計算機得到答案也是個挑戰。</p> <p>對一般人來說，172.28.16.0 ~ 172.28.31.255 才是給人看的東西，比 172.28.16.0/20 友善多了。於是我有個好點子，何不在 CIDR 自動加個展開鈕，點下去展開成 IP 範圍；IP 範圍旁則有收合鈕，點下去再變回 CIDR。魔法師跟麻瓜挑自己習慣的格式看，豈不兩全其美？</p> <p>最終呈現效果像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"></p> <p>直覺上是個兩三行 JavaScript 可搞定的小需求，但我想試試用純 CSS 實現。原理跟圖形化 ON/OFF 開關很像，放一個隱藏的 <code>&lt;input type="checkbox" id="..."&gt;</code>，展開收合鈕包成 <code>&lt;label for="..."&gt;</code> 讓它被點擊時會勾選或取消勾選 CheckBox 元素。而 CSS 選擇器有 <code>:checked</code> 可為 CheckBox 勾選及未勾選狀態設定不同樣式，於是我們一開始將 CIDR 設 <code>display:inline</code>，IP 範圍文字設 <code>display:none</code>， 點展開鈕所在的 <code>&lt;label&gt;</code> 觸發 CheckBox 被勾選，<code>:checked</code> 選擇器指定的樣式會將 CIDR 換成 <code>display:none</code>，IP 範圍變成 <code>display:inline</code>，如此便實現了切換顯示效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638685347165524164.png"></p> <p>而原本 CIDR 被包含網頁的一般文字中，我想透過事後加工方式，將文字中的 CIDR 文字置換成可動態切換顯示 CIDR 或 IP 範圍的區塊。做法不難，用 Regular Expression 尋找 <code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}</code>，計算其對映的起始及結束 IP 地址，組裝 HTML 內容。由於 <code>&lt;input type="checkbox" id="XXX"&gt;</code> 與 <code>&lt;label for="XXX"&gt;</code> 的 id 識別必須成對且不跟其他元素重複，我用 Math.random() 產生亂數名稱(順便分享 Copilot 教我一招，用 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString#radix">Number.toString(36)</a> 可以直接將數字轉成 36 進位[0-9a-z]，超方便)配合自動跳號，確保各 CIDR 區塊 ID 不打架。</p> <pre><code>document.querySelectorAll(selector).forEach(e =&gt; {
-const idPrefix = "_" + Math.random().toString(36).substring(2);
-let idx = 0;
-e.innerHTML = e.innerHTML.replace(
-/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
-cidr =&gt; {
-const [start, end] = cidrToRange(cidr);
-if (start === end) {
-return cidr;
-}
-const id = idPrefix + (idx++);
-return `&lt;span class="cidr"&gt;
-&lt;input type="checkbox" id="${id}" class="toggle"&gt;
-&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
-&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
-&lt;/span&gt;`;
-});
-});
-</code></pre> <p>至於 CIDR 轉 IP 範團，算是計算機概論的 2 進位及 AND/OR 練習題，不想動腦也可以丟給 Copliot 寫，但請務必看懂：</p> <pre><code>function cidrToRange(cidr) {
-const [ip, mask] = cidr.split('/');
-const ipParts = ip.split('.').map(Number); // 轉成四個數字
-const maskParts = [0, 0, 0, 0]; // Net Mask 先預設四個 0
-const maskLength = Number(mask);
-for (let i = 0; i &lt; maskLength; i++) {
-// i &gt;&gt; 3 相當於除以 8，計算是 maskParts 的第 0, 1, 2 還是第 3 段
-// 由 i 決定 1 要放第個 Bit，依序產生 10000000, 01000000, 00100000... 跟 maskParts[..] 做 OR 運算
-maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
-}
-// IP 的每一段跟 maskParts 每一段做 AND 決定開始地址
-const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
-// IP 的每一段跟 maskParts 每一段的補數(0與1互換)做 OR 決定結束地址
-const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
-return [start, end];
-}
-</code></pre> <p>最後將全部組裝在一起：<a href="https://darkthread.github.io/cidr-display/">線上展示</a></p> <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-&lt;meta charset="UTF-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-&lt;title&gt;CIDR / Range Toggle Display&lt;/title&gt;
-&lt;style&gt;
-html {
-font-family: Arial, sans-serif;
-font-size: 11pt;
-line-height: 150%;
-}
-&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div class="sample"&gt;
-&lt;ul&gt;
-&lt;li&gt;from 127.0.0.1/32 to 172.28.16.0/20&lt;/li&gt;
-&lt;li&gt;from 192.168.1.1 to 0.0.0.0/0&lt;/li&gt;
-&lt;li&gt;subnet 192.168.1.0/24&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/div&gt;
-&lt;style&gt;
-.cidr {
-input[type="checkbox"] {
-display: none;
-}
-label {
-opacity: 0.2;
-cursor: pointer;
-border: 1px solid #444;
-background-color: #ccc;
-display: inline-block;
-width: 9pt;
-height: 9pt;
-font-size: 9pt;
-line-height: 9.2pt;
-text-align: center;
-vertical-align: middle;
-margin-right: 2px;
-&amp;:hover {
-opacity: 1;
-}
-}
-&gt; span {
-background-color: #eee;
-padding: 2px 6px;
-}
-.cidr-e {
-display: none;
-}
-.toggle:checked+.cidr-c {
-display: none;
-}
-.toggle:checked+.cidr-c+.cidr-e {
-display: inline;
-}
-}
-&lt;/style&gt;
-&lt;script&gt;
-function cidrToRange(cidr) {
-const [ip, mask] = cidr.split('/');
-const ipParts = ip.split('.').map(Number);
-const maskParts = [0, 0, 0, 0];
-const maskLength = Number(mask);
-for (let i = 0; i &lt; maskLength; i++) {
-maskParts[i &gt;&gt; 3] |= 1 &lt;&lt; (7 - i % 8);
-}
-const start = ipParts.map((part, i) =&gt; part &amp; maskParts[i]).join('.');
-const end = ipParts.map((part, i) =&gt; part | ~maskParts[i] &amp; 255).join('.');
-return [start, end];
-}
-function injectExpandButton(selector) {
-document.querySelectorAll(selector).forEach(e =&gt; {
-const idPrefix = "_" + Math.random().toString(36).substring(2);
-let idx = 0;
-e.innerHTML = e.innerHTML.replace(
-/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})/g,
-cidr =&gt; {
-const [start, end] = cidrToRange(cidr);
-if (start === end) {
-return cidr;
-}
-const id = idPrefix + (idx++);
-return `&lt;span class="cidr"&gt;
-&lt;input type="checkbox" id="${id}" class="toggle"&gt;
-&lt;span class="cidr-c"&gt;&lt;label for="${id}"&gt;+&lt;/label&gt;${cidr}&lt;/span&gt;
-&lt;span class="cidr-e"&gt;&lt;label for="${id}"&gt;–&lt;/label&gt;${start} ~ ${end}&lt;/span&gt;
-&lt;/span&gt;`;
-});
-});
-}
-injectExpandButton('.sample');
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre> <p>收工。</p> <p data-slug="css-cidr-iprange-toggle-display" data-title-en="Pure CSS CIDR/IP range toggle display" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">This article discusses a method for converting CIDR notation to IP range using pure CSS and JavaScript. The solution involves toggling between CIDR and IP range views using hidden checkboxes and CSS selectors, making it more user-friendly for non-network administrators.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif" medium="image"/>
-    <pubDate>Sat, 30 Nov 2024 03:33:28 GMT</pubDate>
   </item></channel>
 </rss>
