@@ -30,6 +30,57 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Git 小技巧 - 將 Commit 打包成檔案送到異地同步]]></title>
+    <link>https://blog.darkthread.net/blog/git-bundle/</link>
+    <itunes:title><![CDATA[Git 小技巧 - 將 Commit 打包成檔案送到異地同步]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
+# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
+git bundle create D:\repo.bundle master dev
+# 目的端
+git clone D:\reop.bundle MyProject # 指令資料夾
+</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
+# 只打包最近一次 Commit
+git bundle create D:\latest.bundle HEAD~..HEAD
+# 最近兩次
+git bundle create D:\recent.bundle HEAD~2..HEAD
+# 目的端
+git pull D:\latest.bundle
+</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
+# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
+git bundle create D:\repo.bundle master dev
+# 目的端
+git clone D:\reop.bundle MyProject # 指令資料夾
+</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
+# 只打包最近一次 Commit
+git bundle create D:\latest.bundle HEAD~..HEAD
+# 最近兩次
+git bundle create D:\recent.bundle HEAD~2..HEAD
+# 目的端
+git pull D:\latest.bundle
+</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
+# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
+git bundle create D:\repo.bundle master dev
+# 目的端
+git clone D:\reop.bundle MyProject # 指令資料夾
+</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
+# 只打包最近一次 Commit
+git bundle create D:\latest.bundle HEAD~..HEAD
+# 最近兩次
+git bundle create D:\recent.bundle HEAD~2..HEAD
+# 目的端
+git pull D:\latest.bundle
+</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png" medium="image"/>
+    <pubDate>Mon, 30 Dec 2024 23:45:28 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Python 新手筆記 4 - Dictionary、Tuple 與 Set]]></title>
     <link>https://blog.darkthread.net/blog/python-beginner-notes-4/</link>
     <itunes:title><![CDATA[Python 新手筆記 4 - Dictionary、Tuple 與 Set]]></itunes:title>
@@ -1279,131 +1330,5 @@ injectExpandButton('.sample');
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638685347163796198.gif" medium="image"/>
     <pubDate>Sat, 30 Nov 2024 03:33:28 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[CSV 資料處理演練 - 從 .NET LINQ 到 Python Pandas (上)]]></title>
-    <link>https://blog.darkthread.net/blog/polyglot-csvhelper-linq/</link>
-    <itunes:title><![CDATA[CSV 資料處理演練 - 從 .NET LINQ 到 Python Pandas (上)]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .dib 格式 (.dib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
-using System.Globalization;
-using System.IO;
-// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
-// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
-var reader = new StreamReader("imdb_top_1000.csv");
-var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-// 讀取 CSV 檔案，解析成動態物件
-var records = csv.GetRecords&lt;dynamic&gt;().ToList();
-// 取得作品數量前 10 的導演
-var top10Directors = records.GroupBy(record =&gt; record.Director)
-.Where(group =&gt; group.Count() &gt; 1)
-.OrderByDescending(group =&gt; group.Count())
-.Take(10)
-.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
-Console.WriteLine("Top 10 Directors:");
-var list = new List&lt;dynamic&gt;();
-foreach (var director in top10Directors)
-{
-// 顯示導演姓名與其作品數量
-Console.WriteLine($" * {director.Director} ({director.Count})");
-// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
-var movies = records.Where(o =&gt; o.Director == director.Director)
-.OrderBy(o =&gt; o.Released_Year)
-// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
-.Select(o =&gt; new { Director = (string)o.Director,
-Title = (string)o.Series_Title, Year = (string)o.Released_Year })
-.ToList();
-list.AddRange(movies);
-// 顯示其作品
-list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
-}
-// 將資料寫入 CSV 檔案
-var writer = new StreamWriter("top10_director_movies.csv");
-var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-csvWriter.WriteRecords(list);
-csvWriter.Dispose();
-</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .dib 格式 (.dib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
-using System.Globalization;
-using System.IO;
-// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
-// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
-var reader = new StreamReader("imdb_top_1000.csv");
-var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-// 讀取 CSV 檔案，解析成動態物件
-var records = csv.GetRecords&lt;dynamic&gt;().ToList();
-// 取得作品數量前 10 的導演
-var top10Directors = records.GroupBy(record =&gt; record.Director)
-.Where(group =&gt; group.Count() &gt; 1)
-.OrderByDescending(group =&gt; group.Count())
-.Take(10)
-.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
-Console.WriteLine("Top 10 Directors:");
-var list = new List&lt;dynamic&gt;();
-foreach (var director in top10Directors)
-{
-// 顯示導演姓名與其作品數量
-Console.WriteLine($" * {director.Director} ({director.Count})");
-// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
-var movies = records.Where(o =&gt; o.Director == director.Director)
-.OrderBy(o =&gt; o.Released_Year)
-// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
-.Select(o =&gt; new { Director = (string)o.Director,
-Title = (string)o.Series_Title, Year = (string)o.Released_Year })
-.ToList();
-list.AddRange(movies);
-// 顯示其作品
-list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
-}
-// 將資料寫入 CSV 檔案
-var writer = new StreamWriter("top10_director_movies.csv");
-var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-csvWriter.WriteRecords(list);
-csvWriter.Dispose();
-</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>最近開始探索 Python 新大陸(延伸閱讀：<a href="/blog/why-learn-python/">寫 C# 已得心應手，為什麼我該學 Python？</a>)，雖然有 Github Copilot 助拳，卡在基本功不夠紮實，連一些基本的 Group By、排序、資料重新組裝都要耗上大半天。</p> <p>細究原因，明明腦中一秒就想好用 .NET 要怎麼做，用文字跟 AI 解釋得講上一大串。說明不到位 AI 會錯意給錯 Python 寫法，自己又無力一眼看出問題，只能不斷試誤修正... 心中難免碎唸：幹! 拎杯用 LINQ 一分鐘就寫完的東西，居然搞了十幾分鐘還沒弄好!</p> <p>靈光乍現，幹嘛花力氣想盡辦法用文字跟 AI 解釋？程式碼本身就是最完美的程式規格呀，直接給 LINQ 程式請 Copilot 翻成 Python 不就好了？</p> <p>以常見 CSV 原始資料彙整分析為例。之前我多半會開個 C# 免洗專案，在其中讀檔用 LINQ 分群排序，必要時再搭配 <code>Dictionary&lt;T, T&gt;</code>/<code>List&lt;T&gt;</code>，邊寫邊改，改完再重跑。而這類摸索程式寫法的過程，我從 Python 的 Jupyter 筆記本學到另一種更方便即興式操作概念。</p> <p>假設 CSV 資料要歷經分群、比對、匯出三個步驟，其中比對這部分比較複雜，有好幾種可能做法，要反覆嘗試。我可以先在一個程式區塊先分群好存成清單變數，在第二個程式區塊對該清單執行比對運算，若結果不理想，只需修改第二區塊的程式碼嘗試對同一清單變數進行運算，不像之前開 C# 免洗專案，改完程式要重頭開始跑，第一段分群做了又做。在需要進行各式即興操作，嘗試不同做法的情境下，Jupyter 筆記比開 Console 專案更方便。</p> <p>花了點時間，我學會用 VSCode 開 Polyglot Notebook 讀 CSV 檔，用 LINQ 整理彙總資料的做法，比過去開免洗 Console 專案簡便有效率，可分段儲存執行結果，反覆嘗試而不用每次從頭跑。找出 LINQ 版資料處理方式後，若有需要改用 Python，將程式碼交給 Copilot 翻成 Python 版，通常能一次到位得到等效寫法，比起打字跟 AI 解釋半天有效率十倍。</p> <p>我用 Kaggle 的 <a href="https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows">IMDB 前 1000 部電影資料集</a>當對象練習，試著出作品最多的前 10 名導演，整理這 10 名導演的所有作品。</p> <p>以上資料整理需求對 LINQ 是小菜一碟，用 VSCode 開個 <a href="https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode">Polyglot Notebook</a> 邊寫邊試，程式碼可分段處理，在同一畫面反覆嘗試，比開專案測試簡便。</p> <p>若要測 C# 程式，可選 Polyglot .dib 格式 (.dib 不支援 Python，但 VSCode 整合性比 .ipynb 好)，一開始先 <code>#r "nuget: CsvHelper"</code> 引用 <a href="/blog/csvhelper/">CsvHelper</a> NuGet 套件，接著便可使用 CsvReader 讀入 CSV。建議將程式拆成多段，如下圖，第一段載入 NuGet、第二段讀入 CSV 並 GroupBy + OrderBy + Take 取前十名、第三段整理前 10 名導演作品、第四段將結果匯出成 CSV 檔。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"></p> <p>分段的好處是前段處理完的結果會保存在記憶體，下一段可以直接取得該變數加工，若結果不如預期，可繼續對該變數做不同嘗試，不需重頭跑起。Polyglot Notebook 的這個特性在學習程式或嘗試新點子時格外好用。按一下 Variables [1]可以檢視目前筆記本使用中的變數，還可以跨程式語法共用[2]：(註：按下 Share 選 JavaScript 會新增 JavaScript 程式區塊，填入 <code>#!set --value @csharp:top10Directors --name top10Directors</code> 指令)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638684070257523762.png"></p> <p>如下圖，可以將 C# 產生的變數交給 JavaScript 區塊接力處理：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638684070259458675.png"></p> <p>這裡分享實戰小技巧，網路上看到的 CsvHelper 範例，多半依 CSV 欄位規格定義物件接收資料並支援<a href="https://joshclose.github.io/CsvHelper/examples/type-conversion/custom-type-converter/">自訂型別對映邏輯</a>。但對於較簡單的 CSV 操作，其實可省去宣告強型別物件的工夫，比照 Dapper 用 <code>CsvReader.GetRecords&lt;dynamic&gt;()</code> 轉成動態物件就好。不過有個眉角，dynamic 型別在轉成 JSON 或匯出 CSV 時會發生無法識別屬性的問題，要解決不難，轉成匿名型別另外宣告名稱並強制轉換型別即可，例如： <code>.Select(o =&gt; new { Director = (string)o.Director, Title = (string)o.Series_Title, Year = (string)o.Released_Year })</code> 。</p> <p>完整程式範例如下：</p> <pre><code>using CsvHelper;
-using System.Globalization;
-using System.IO;
-// Columns: Poster_Link,Series_Title,Released_Year,Certificate,Runtime,Genre,IMDB_Rating,
-// Overview,Meta_score,Director,Star1,Star2,Star3,Star4,No_of_Votes,Gross
-var reader = new StreamReader("imdb_top_1000.csv");
-var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-// 讀取 CSV 檔案，解析成動態物件
-var records = csv.GetRecords&lt;dynamic&gt;().ToList();
-// 取得作品數量前 10 的導演
-var top10Directors = records.GroupBy(record =&gt; record.Director)
-.Where(group =&gt; group.Count() &gt; 1)
-.OrderByDescending(group =&gt; group.Count())
-.Take(10)
-.Select(group =&gt; new { Director = group.Key, Count = group.Count() }).ToList();
-Console.WriteLine("Top 10 Directors:");
-var list = new List&lt;dynamic&gt;();
-foreach (var director in top10Directors)
-{
-// 顯示導演姓名與其作品數量
-Console.WriteLine($" * {director.Director} ({director.Count})");
-// 取得該導演的作品，並依照發行年份排序，列出導演、作品名稱與發行年份
-var movies = records.Where(o =&gt; o.Director == director.Director)
-.OrderBy(o =&gt; o.Released_Year)
-// 只取導演、作品名稱與發行年份，轉換成匿名型別需命名屬性並指定型別，後續寫入 CSV 檔案時才能正確轉換
-.Select(o =&gt; new { Director = (string)o.Director,
-Title = (string)o.Series_Title, Year = (string)o.Released_Year })
-.ToList();
-list.AddRange(movies);
-// 顯示其作品
-list.Select(o =&gt; $"   - {o.Title} ({o.Year})").ToList().ForEach(Console.WriteLine);
-}
-// 將資料寫入 CSV 檔案
-var writer = new StreamWriter("top10_director_movies.csv");
-var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-csvWriter.WriteRecords(list);
-csvWriter.Dispose();
-</code></pre> <p>最後匯出前十名導演的作品共 101 部：(赫然發現，侏儸紀公園竟已是三十多年前的事惹...)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638684070261295169.png"></p> <p>至此，我們學會不需開專案，分階段用 LINQ 與 .NET 程式庫對 CSV 進行即興資料整理的工作模式，擁有完整 Intellisense 及 Github Copilot 支援，又比開免洗 Console 專案方便，整理資料再多了好選擇。</p> <p data-slug="polyglot-csvhelper-linq" data-title-en="Using CsvHelper + LINQ to process CSV data in Polyglot Notebook" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720">Exploring Python with the help of Github Copilot, I leveraged C# LINQ for efficient data manipulation from CSV files. Using VSCode’s Polyglot Notebook, I streamlined the process of grouping, sorting, and transforming data. The best part is now I have a convenient way to convert the code to Python for equivalent functionality.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638684070255733787.png" medium="image"/>
-    <pubDate>Thu, 28 Nov 2024 15:59:01 GMT</pubDate>
   </item></channel>
 </rss>
