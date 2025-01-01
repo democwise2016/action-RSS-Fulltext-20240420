@@ -30,6 +30,21 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手小記】無法生效的 .gitignore]]></title>
+    <link>https://blog.darkthread.net/blog/gitignore-not-working/</link>
+    <itunes:title><![CDATA[【茶包射手小記】無法生效的 .gitignore]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>2025 開年第一天就踩雷，耗了快二十分鐘才找出問題，筆記留念。</p> <p>問題出在我明明在 .gitignore 寫了 .venv，Git 怎麼就是無視我的設定，硬要把 Python .venv 虛擬環境目錄包進版控。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png"></p> <p>起初以為會不會是檔名打錯字之類的低級問題，睜大眼睛看到眼眶都痛了都沒看出端倪。而在 VSCode 按 Add to .gitignore 也能正確加入項目，也證明檔名沒問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638713410383298588.png"></p> <p>試了很久，終於發現問題所在：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638713410385080392.png"></p> <p>我的這個 .gitignore 是在 VSCode PowerShell Terminal 用 <code>echo .venv &gt; .gitignore</code> 做出來的，這裡犯了一個錯，在 PowerShell 5.1 使用 &gt; 導向，預設會用 UTF-16LE (UCS-2 LE)，不是 UTF-8，這個雷之前踩過，且一不留神就會踩了又踩。 參考：<a href="/blog/ps-encoding/">PowerShell 輸出結果編碼問題</a></p> <p>PowerShell 6+ (pwsh) 起預設編碼已改成 UTF-8，預估比較不會再有類似問題。(如下例，對照 "echo HELLO &gt; d:\file-name.txt" 在 PowerShell 與 pwsh 執行結果大不同)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638713410386804748.png"></p> <p>總之，歷經這次刻骨銘心的經驗，我以後應該不會再忘記惹...</p> <p data-slug="gitignore-not-working" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>2025 開年第一天就踩雷，耗了快二十分鐘才找出問題，筆記留念。</p> <p>問題出在我明明在 .gitignore 寫了 .venv，Git 怎麼就是無視我的設定，硬要把 Python .venv 虛擬環境目錄包進版控。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png"></p> <p>起初以為會不會是檔名打錯字之類的低級問題，睜大眼睛看到眼眶都痛了都沒看出端倪。而在 VSCode 按 Add to .gitignore 也能正確加入項目，也證明檔名沒問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638713410383298588.png"></p> <p>試了很久，終於發現問題所在：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638713410385080392.png"></p> <p>我的這個 .gitignore 是在 VSCode PowerShell Terminal 用 <code>echo .venv &gt; .gitignore</code> 做出來的，這裡犯了一個錯，在 PowerShell 5.1 使用 &gt; 導向，預設會用 UTF-16LE (UCS-2 LE)，不是 UTF-8，這個雷之前踩過，且一不留神就會踩了又踩。 參考：<a href="/blog/ps-encoding/">PowerShell 輸出結果編碼問題</a></p> <p>PowerShell 6+ (pwsh) 起預設編碼已改成 UTF-8，預估比較不會再有類似問題。(如下例，對照 "echo HELLO &gt; d:\file-name.txt" 在 PowerShell 與 pwsh 執行結果大不同)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638713410386804748.png"></p> <p>總之，歷經這次刻骨銘心的經驗，我以後應該不會再忘記惹...</p> <p data-slug="gitignore-not-working" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>2025 開年第一天就踩雷，耗了快二十分鐘才找出問題，筆記留念。</p> <p>問題出在我明明在 .gitignore 寫了 .venv，Git 怎麼就是無視我的設定，硬要把 Python .venv 虛擬環境目錄包進版控。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png"></p> <p>起初以為會不會是檔名打錯字之類的低級問題，睜大眼睛看到眼眶都痛了都沒看出端倪。而在 VSCode 按 Add to .gitignore 也能正確加入項目，也證明檔名沒問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638713410383298588.png"></p> <p>試了很久，終於發現問題所在：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638713410385080392.png"></p> <p>我的這個 .gitignore 是在 VSCode PowerShell Terminal 用 <code>echo .venv &gt; .gitignore</code> 做出來的，這裡犯了一個錯，在 PowerShell 5.1 使用 &gt; 導向，預設會用 UTF-16LE (UCS-2 LE)，不是 UTF-8，這個雷之前踩過，且一不留神就會踩了又踩。 參考：<a href="/blog/ps-encoding/">PowerShell 輸出結果編碼問題</a></p> <p>PowerShell 6+ (pwsh) 起預設編碼已改成 UTF-8，預估比較不會再有類似問題。(如下例，對照 "echo HELLO &gt; d:\file-name.txt" 在 PowerShell 與 pwsh 執行結果大不同)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638713410386804748.png"></p> <p>總之，歷經這次刻骨銘心的經驗，我以後應該不會再忘記惹...</p> <p data-slug="gitignore-not-working" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png" medium="image"/>
+    <pubDate>Wed, 01 Jan 2025 15:09:38 GMT</pubDate>
+  </item><item>
     <title><![CDATA[使用 LINE 聊天機器人回應圖片或檔案]]></title>
     <link>https://blog.darkthread.net/blog/linebot-reply-images-or-files/</link>
     <itunes:title><![CDATA[使用 LINE 聊天機器人回應圖片或檔案]]></itunes:title>
@@ -1151,136 +1166,5 @@ Console.ResetColor();
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png" medium="image"/>
     <pubDate>Mon, 02 Dec 2024 11:34:02 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Whisper Mic 微服務 - 為程式加上麥克風語音轉文字功能]]></title>
-    <link>https://blog.darkthread.net/blog/whisper-microservice/</link>
-    <itunes:title><![CDATA[Whisper Mic 微服務 - 為程式加上麥克風語音轉文字功能]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
-mic = WhisperMic()
-result = mic.listen()
-print(result)
-</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
-from flask import Flask, Response, request
-import queue
-import threading
-mic = WhisperMic(model='small', pause=0.5)
-app = Flask(__name__)
-text_queue = queue.Queue()
-stop_flag = False
-def listen_continuously():
-for text in mic.listen_continuously():
-if text is not None:
-if text.lower() == '打完收工':
-stop_flag = True
-print("停止識別，請按 Ctrl-C 結束")
-text_queue.put('[EOS]')
-break
-text_queue.put(text)
-print(text)
-@app.route('/listen')
-def stream():
-if stop_flag is True:
-return Response("service stopped", status=503)
-def generate():
-while stop_flag is False:
-text = text_queue.get()
-if text == '[EOS]':
-break
-yield f"data: {text}
-
-"
-return Response(generate(), mimetype='text/event-stream')
-if __name__ == '__main__':
-listener_thread = threading.Thread(target=listen_continuously)
-listener_thread.start()
-app.run()
-</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
-mic = WhisperMic()
-result = mic.listen()
-print(result)
-</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
-from flask import Flask, Response, request
-import queue
-import threading
-mic = WhisperMic(model='small', pause=0.5)
-app = Flask(__name__)
-text_queue = queue.Queue()
-stop_flag = False
-def listen_continuously():
-for text in mic.listen_continuously():
-if text is not None:
-if text.lower() == '打完收工':
-stop_flag = True
-print("停止識別，請按 Ctrl-C 結束")
-text_queue.put('[EOS]')
-break
-text_queue.put(text)
-print(text)
-@app.route('/listen')
-def stream():
-if stop_flag is True:
-return Response("service stopped", status=503)
-def generate():
-while stop_flag is False:
-text = text_queue.get()
-if text == '[EOS]':
-break
-yield f"data: {text}
-
-"
-return Response(generate(), mimetype='text/event-stream')
-if __name__ == '__main__':
-listener_thread = threading.Thread(target=listen_continuously)
-listener_thread.start()
-app.run()
-</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>這些年拜深度學習之賜，語音轉文字(STT)及文字轉語音(TTS)技術突飛猛進，電腦開始聽得懂南腔北調，合成語音幾可亂真。如今語音轉文字的服務多如牛毛，語音功能都快成為軟體標配，彷彿程式聽不懂人話都不好意思收錢了。(不要瞎掰好嗎？)</p> <p>那... 如果是自己寫的程式呢？我們能不能也加上語音輸入功能？最好還是不用花錢的。</p> <p>之前玩過 <a href="/blog/openai-whisper/">OpenAI Whisper</a>，效果讓人驚豔，小模型(純英語版 224MB，多國語言 472MB)配上 3050 等級顯卡，識別中文的速度及準確性好到出奇。而 Whisper 採 MIT 開源授權，能在本機離線執行，硬體門檻不高(平民版 RTX-3050 便能順跑，小模型只需要約 2G VRAM)，說它是目前 AI 語音識別模型的王者也不為過。</p> <p>之前我只玩過 MP3 轉逐字檔，這回則要直接由麥克風輸入，找到一個開源專案 - <a href="https://github.com/mallorbc/whisper_mic">Whisper Mic</a>，巧妙地整合 Whiper，可直接將麥克風收音資料傳到 Whisper 即時轉文字(<a href="https://youtu.be/S58MGCU7Wgg?t=351">示範影片</a>)，有巨人的肩膀可站，做不出來只怕無顏見江東父老了。</p> <p>whisper_mic.exe 是個執行檔，但它也可以從程式呼叫，要整進自己的程式不難：</p> <pre><code>from whisper_mic import WhisperMic
-mic = WhisperMic()
-result = mic.listen()
-print(result)
-</code></pre> <p>不過，Whisper 依賴 PyTorch 適用 Python 環境，我大部分的程式是用 .NET C# 開發，不太可能為了語音功能用 Python 改寫。但我的想法很簡單，那就加幾行把它包成微服務，走 Web 介面用 <a href="/blog/sse-notify-example/">Server Sent Event</a> 串流方式輸出識別文字。</p> <p>Wishper Mic 有個 .listen_continuously() 方法，配合 for in 迴圈可持續接收語音識別結果；而我依據過去 ASP.NET 玩訊息廣播的經驗，選擇另起一條 Thread 跑迴圈，將結果字串塞進 Queue 裡。Web 方法則用 while 迴圈檢查 Queue 是否有新內容，有則輸出到 MIME Type 為 text/event-stream 的串流 Response。</p> <p>實測發現一個小麻煩 - .listen_continuously() 無法用 Ctrl-C 隨意中斷。我對 Python 了解不夠暫時射不了茶包，選擇採用鋸箭解法是設計一個"結束口令" - 「打完收工」，若偵測到使用者嚷著要收工，主動中斷迴圈。</p> <p>這個簡單的土砲微服務 PoC 如下：</p> <pre><code>from whisper_mic import WhisperMic
-from flask import Flask, Response, request
-import queue
-import threading
-mic = WhisperMic(model='small', pause=0.5)
-app = Flask(__name__)
-text_queue = queue.Queue()
-stop_flag = False
-def listen_continuously():
-for text in mic.listen_continuously():
-if text is not None:
-if text.lower() == '打完收工':
-stop_flag = True
-print("停止識別，請按 Ctrl-C 結束")
-text_queue.put('[EOS]')
-break
-text_queue.put(text)
-print(text)
-@app.route('/listen')
-def stream():
-if stop_flag is True:
-return Response("service stopped", status=503)
-def generate():
-while stop_flag is False:
-text = text_queue.get()
-if text == '[EOS]':
-break
-yield f"data: {text}
-
-"
-return Response(generate(), mimetype='text/event-stream')
-if __name__ == '__main__':
-listener_thread = threading.Thread(target=listen_continuously)
-listener_thread.start()
-app.run()
-</code></pre> <p>由於 Server Sent Event 是 HTTP 標準規格，用 <code>curl.exe http://localhost:5000/listen</code> 就能測試，只要 curl.exe 能成功測通，理論上不管什麼程式語言或平台都要能串接，整合上不會有什麼障礙。</p> <p>最後，來看看我的土砲 Whisper 即時語音轉文字微服務實測結果如何，在一般規格的筆電 (RTX-3050 4G VRAM) 跑起來還算順，雖稱不上行雲流水，但堪用了。</p> <p><a href="https://www.youtube.com/watch?v=7IT5x3ghe-U">Whisper Mic 語音識別實測</a></p> <p>出錯的兩個小地方是 CUDA 被聽成「枯打」、小模型講 Small Model 有被正確解讀，講 Small 模型被聽成「Smo模型」，這些需要很深度的前後文參照才可能被正確解讀，我認為不能算責任分失。</p> <p>【CUDA 啟用補充】</p> <p>我的做法是先 <code>python -m venv .venv</code>、<code>.venv\scripts\activate.bat</code> 切換到虛擬環境，依據官方說明輸入 <code>pip install whisper_mic</code> 下載安裝 Whisper Mic，接著用 <code>whisper_mic --model small</code> 就能測試了。但這種方式不會啟用 CUDA，用 CPU 跑速度大約慢了四五倍。後來研究了一下，用 <code>python -c "import torch; print(torch.cuda.is_available())"</code> 可以檢測有沒有啟用 CUDA，若執行結果為 False，可用 <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code> 重裝 CUDA 版本，先確認 <code>torch.cuda.is_available()</code> 已傳回 True，之後重跑 Whisper Mic 應可感受速度明顯變快，從工作管理員檢視顯卡專屬 GPU 記憶體(VRAM)的使用量應該也會上升。(檢視方法可參考 <a href="/blog/testing-ollama-slm-w-gpu/">Ollama 文</a>)</p> <p data-slug="whisper-microservice" data-title-en="A simple Whisper Mic microservice" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2023/05/08/13/24/laptop-7978588_1280.jpg#1280#720">This article explores using OpenAI’s Whisper for real-time speech input, integrating it with a Python microservice to stream recognized text via Server Sent Events (SSE). The provided code demonstrates setting up a Flask app to handle continuous speech recognition and stream results to a client.</p>]]></content:encoded>
-    
-    <pubDate>Sun, 01 Dec 2024 15:15:14 GMT</pubDate>
   </item></channel>
 </rss>
