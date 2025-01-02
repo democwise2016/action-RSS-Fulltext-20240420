@@ -30,6 +30,111 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[開發雜記 - JPG MIME Type、JFIF 格式與 LEADTOOLS]]></title>
+    <link>https://blog.darkthread.net/blog/jpg-mime-type/</link>
+    <itunes:title><![CDATA[開發雜記 - JPG MIME Type、JFIF 格式與 LEADTOOLS]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>2025 年第二天，來個低級錯誤連發。</p> <p>寫了如下程式發送圖文信。(參考：<a href="/blog/smtp-richtext-mail-with-csharp/">使用 C# 寄送圖文並茂郵件</a>)</p> <pre><code>public static void TestEmbImgMail()
+{
+var mailBody = """
+&lt;div&gt;
+&lt;div&gt;
+JPG: &lt;img src="cid:sample.jpg" /&gt;
+&lt;/div&gt;
+&lt;div&gt;
+PNG: &lt;img src="cid:sample.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+""";
+using var message = new MailMessage
+{
+Body = mailBody,
+IsBodyHtml = true
+};
+using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, "text/html");
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), "image/jpg") { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), "image/png") { ContentId = "sample.png" });
+message.AlternateViews.Add(avHtmlView);
+SendOutlookMail("admin@example.com", "JPG/PNG Embedded Image Test", message);
+}
+</code></pre> <p>Outlook 收信測試看起來沒啥問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png"></p> <p>接獲反映，雖然郵件可以順利檢視，但在某幾台 Outlook 會出現名為 ATT00001 的不明附件。且似乎與 Outlook 版本有關，只會某些人會遇到。</p> <p>我找到一個方法重現類似結果，是啟用「信任中心設定/電子郵件安全性/以純文字檔讀取所有標準郵件」選項，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638714298021979664.png"></p> <p>Outlook 純文模式下，會出現兩個附件檔：「未命名的附件 00104.dat」/「未命名的附件 00107.png」，而前者約略為 sample.jpg 的大小，意思是 sample.jpg 沒被正確解析。</p> <p>好奇瞄了 sample.jpg 看有什麼異常，看到 JFIF 跟 LEADTOOLS v22.0 等陌生字樣，而我腦海中的 JPEG 規格還停在 JPEG 2000...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638714298023715160.png"></p> <p>這個時代，遇到常識類問題，LLM 是最好的老師。</p> <p>把以上擷圖胋到 ChatGPT、Gemini、Claude，提問「如何解析這個 .jpg 檔的檔頭，從中可得到哪些資訊？」，三者都能給出答案。其中我最喜歡 Gemini 的回答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638714298027122838.png"></p> <p>除了 JFIF OCR 誤轉成 JEIF，Gemini 針對內容逐段解析，詳細說明，完整解答了我的疑惑。我得到以下結論：</p> <ol><li>由 FF D8 可確認這是一個 JPEG 檔案無誤</li> <li>FF E0 後方為 APP0 (Application Seciont 0，應用程式區段 0)，JFIF 字樣代表案使用 JFIF 規格</li> <li>FF FE 後方為 COM (Comment 註解區段)，註記檔案可能由 LEADTOOLS v22.0 處理過</li></ol> <p>進一步查了 JFIF 跟 LEADTOOLS，再搞懂兩個新名詞。</p> <ul><li>JFIF (JPEG File Interchange Format，JPEG 檔案交換格式)，是一種圖像檔案格式標準。早期的 JPEG 標準 (JIF) 只定義了圖像的壓縮方式，但沒有規範檔案的具體結構，這導致不同軟體或硬體產生的 JPEG 檔案可能無法互相相容。JFIF 在 JPEG 基礎上添加了一些必要的資訊，使得 JPEG 檔案能夠在不同的系統上正確顯示。</li> <li>JFIF 和 JPEG 常被混用，是因為二者關係非常密切。我們可以把 JFIF 看作是 JPEG 的一種具體實現方式，或是「標準化的 JPEG」。實際上，目前網路上大部分看到的 JPEG 檔案，都是採用 JFIF 標準。</li> <li>而 LEADTOOLS 是常見的的影像處理函式庫，提供影像處理、壓縮、轉換、OCR 等功能，JPEG 檔案的 COM (Comment) 區段的 "LEADTOOLS v22.0" 字串，應是使用 LEADTOOLS 程式庫留下了，我的圖檔使用 Snagit 處理，而其<a href="https://support.techsmith.com/hc/en-us/articles/115006435067-Snagit-Windows-Version-History">官網</a>也提到它有用到 LeadTools (17 October 2023: Snagit 2024.0.1 / Updates for IT Administrators)</li></ul> <p>所以，這是一個正常的 JPG 檔，回頭再看程式，這才發現錯誤所在，sample.jpg 的 MIME Type 我寫成了 "image/jpg"，雖然 .jpg、.jpeg 副檔名可以互動，但 JPEG 的 <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types">MIME Type 是 image/jpeg</a>，而 image/jpg 從來不是個有效值。修正後，彈出 ATT00001 的問題就排除了。</p> <p>而上面的這段程式，其實有更好的寫法：</p> <pre><code>    using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, MediaTypeNames.Text.Html);
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), MediaTypeNames.Image.Jpeg) { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), MediaTypeNames.Image.Png) { ContentId = "sample.png" });
+</code></pre> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.mime.mediatypenames.image?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">System.Net.Mime.MediaTypeNames.Image</a> 有定義好標準字串，既能免除記錯拼錯的風險，又能享受強型別的關聯性，不要自己敲。(筆記)</p> <p data-slug="jpg-mime-type" data-title-en="Incorrect .jpg MIME type issue when sending MailMessage" data-catg=".NET" data-fbimg="https://i.imgur.com/pi0kqzm.png#640#640">The blog post discusses an issue with sending HTML emails containing embedded images using C#. An error occurred due to using an incorrect MIME type for a JPEG image. The correct MIME type is image/jpeg, not image/jpg. The post also highlights the benefits of using predefined constants in System.Net.Mime.MediaTypeNames to avoid such errors.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>2025 年第二天，來個低級錯誤連發。</p> <p>寫了如下程式發送圖文信。(參考：<a href="/blog/smtp-richtext-mail-with-csharp/">使用 C# 寄送圖文並茂郵件</a>)</p> <pre><code>public static void TestEmbImgMail()
+{
+var mailBody = """
+&lt;div&gt;
+&lt;div&gt;
+JPG: &lt;img src="cid:sample.jpg" /&gt;
+&lt;/div&gt;
+&lt;div&gt;
+PNG: &lt;img src="cid:sample.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+""";
+using var message = new MailMessage
+{
+Body = mailBody,
+IsBodyHtml = true
+};
+using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, "text/html");
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), "image/jpg") { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), "image/png") { ContentId = "sample.png" });
+message.AlternateViews.Add(avHtmlView);
+SendOutlookMail("admin@example.com", "JPG/PNG Embedded Image Test", message);
+}
+</code></pre> <p>Outlook 收信測試看起來沒啥問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png"></p> <p>接獲反映，雖然郵件可以順利檢視，但在某幾台 Outlook 會出現名為 ATT00001 的不明附件。且似乎與 Outlook 版本有關，只會某些人會遇到。</p> <p>我找到一個方法重現類似結果，是啟用「信任中心設定/電子郵件安全性/以純文字檔讀取所有標準郵件」選項，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638714298021979664.png"></p> <p>Outlook 純文模式下，會出現兩個附件檔：「未命名的附件 00104.dat」/「未命名的附件 00107.png」，而前者約略為 sample.jpg 的大小，意思是 sample.jpg 沒被正確解析。</p> <p>好奇瞄了 sample.jpg 看有什麼異常，看到 JFIF 跟 LEADTOOLS v22.0 等陌生字樣，而我腦海中的 JPEG 規格還停在 JPEG 2000...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638714298023715160.png"></p> <p>這個時代，遇到常識類問題，LLM 是最好的老師。</p> <p>把以上擷圖胋到 ChatGPT、Gemini、Claude，提問「如何解析這個 .jpg 檔的檔頭，從中可得到哪些資訊？」，三者都能給出答案。其中我最喜歡 Gemini 的回答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638714298027122838.png"></p> <p>除了 JFIF OCR 誤轉成 JEIF，Gemini 針對內容逐段解析，詳細說明，完整解答了我的疑惑。我得到以下結論：</p> <ol><li>由 FF D8 可確認這是一個 JPEG 檔案無誤</li> <li>FF E0 後方為 APP0 (Application Seciont 0，應用程式區段 0)，JFIF 字樣代表案使用 JFIF 規格</li> <li>FF FE 後方為 COM (Comment 註解區段)，註記檔案可能由 LEADTOOLS v22.0 處理過</li></ol> <p>進一步查了 JFIF 跟 LEADTOOLS，再搞懂兩個新名詞。</p> <ul><li>JFIF (JPEG File Interchange Format，JPEG 檔案交換格式)，是一種圖像檔案格式標準。早期的 JPEG 標準 (JIF) 只定義了圖像的壓縮方式，但沒有規範檔案的具體結構，這導致不同軟體或硬體產生的 JPEG 檔案可能無法互相相容。JFIF 在 JPEG 基礎上添加了一些必要的資訊，使得 JPEG 檔案能夠在不同的系統上正確顯示。</li> <li>JFIF 和 JPEG 常被混用，是因為二者關係非常密切。我們可以把 JFIF 看作是 JPEG 的一種具體實現方式，或是「標準化的 JPEG」。實際上，目前網路上大部分看到的 JPEG 檔案，都是採用 JFIF 標準。</li> <li>而 LEADTOOLS 是常見的的影像處理函式庫，提供影像處理、壓縮、轉換、OCR 等功能，JPEG 檔案的 COM (Comment) 區段的 "LEADTOOLS v22.0" 字串，應是使用 LEADTOOLS 程式庫留下了，我的圖檔使用 Snagit 處理，而其<a href="https://support.techsmith.com/hc/en-us/articles/115006435067-Snagit-Windows-Version-History">官網</a>也提到它有用到 LeadTools (17 October 2023: Snagit 2024.0.1 / Updates for IT Administrators)</li></ul> <p>所以，這是一個正常的 JPG 檔，回頭再看程式，這才發現錯誤所在，sample.jpg 的 MIME Type 我寫成了 "image/jpg"，雖然 .jpg、.jpeg 副檔名可以互動，但 JPEG 的 <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types">MIME Type 是 image/jpeg</a>，而 image/jpg 從來不是個有效值。修正後，彈出 ATT00001 的問題就排除了。</p> <p>而上面的這段程式，其實有更好的寫法：</p> <pre><code>    using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, MediaTypeNames.Text.Html);
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), MediaTypeNames.Image.Jpeg) { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), MediaTypeNames.Image.Png) { ContentId = "sample.png" });
+</code></pre> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.mime.mediatypenames.image?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">System.Net.Mime.MediaTypeNames.Image</a> 有定義好標準字串，既能免除記錯拼錯的風險，又能享受強型別的關聯性，不要自己敲。(筆記)</p> <p data-slug="jpg-mime-type" data-title-en="Incorrect .jpg MIME type issue when sending MailMessage" data-catg=".NET" data-fbimg="https://i.imgur.com/pi0kqzm.png#640#640">The blog post discusses an issue with sending HTML emails containing embedded images using C#. An error occurred due to using an incorrect MIME type for a JPEG image. The correct MIME type is image/jpeg, not image/jpg. The post also highlights the benefits of using predefined constants in System.Net.Mime.MediaTypeNames to avoid such errors.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>2025 年第二天，來個低級錯誤連發。</p> <p>寫了如下程式發送圖文信。(參考：<a href="/blog/smtp-richtext-mail-with-csharp/">使用 C# 寄送圖文並茂郵件</a>)</p> <pre><code>public static void TestEmbImgMail()
+{
+var mailBody = """
+&lt;div&gt;
+&lt;div&gt;
+JPG: &lt;img src="cid:sample.jpg" /&gt;
+&lt;/div&gt;
+&lt;div&gt;
+PNG: &lt;img src="cid:sample.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+""";
+using var message = new MailMessage
+{
+Body = mailBody,
+IsBodyHtml = true
+};
+using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, "text/html");
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), "image/jpg") { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), "image/png") { ContentId = "sample.png" });
+message.AlternateViews.Add(avHtmlView);
+SendOutlookMail("admin@example.com", "JPG/PNG Embedded Image Test", message);
+}
+</code></pre> <p>Outlook 收信測試看起來沒啥問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png"></p> <p>接獲反映，雖然郵件可以順利檢視，但在某幾台 Outlook 會出現名為 ATT00001 的不明附件。且似乎與 Outlook 版本有關，只會某些人會遇到。</p> <p>我找到一個方法重現類似結果，是啟用「信任中心設定/電子郵件安全性/以純文字檔讀取所有標準郵件」選項，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638714298021979664.png"></p> <p>Outlook 純文模式下，會出現兩個附件檔：「未命名的附件 00104.dat」/「未命名的附件 00107.png」，而前者約略為 sample.jpg 的大小，意思是 sample.jpg 沒被正確解析。</p> <p>好奇瞄了 sample.jpg 看有什麼異常，看到 JFIF 跟 LEADTOOLS v22.0 等陌生字樣，而我腦海中的 JPEG 規格還停在 JPEG 2000...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638714298023715160.png"></p> <p>這個時代，遇到常識類問題，LLM 是最好的老師。</p> <p>把以上擷圖胋到 ChatGPT、Gemini、Claude，提問「如何解析這個 .jpg 檔的檔頭，從中可得到哪些資訊？」，三者都能給出答案。其中我最喜歡 Gemini 的回答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638714298027122838.png"></p> <p>除了 JFIF OCR 誤轉成 JEIF，Gemini 針對內容逐段解析，詳細說明，完整解答了我的疑惑。我得到以下結論：</p> <ol><li>由 FF D8 可確認這是一個 JPEG 檔案無誤</li> <li>FF E0 後方為 APP0 (Application Seciont 0，應用程式區段 0)，JFIF 字樣代表案使用 JFIF 規格</li> <li>FF FE 後方為 COM (Comment 註解區段)，註記檔案可能由 LEADTOOLS v22.0 處理過</li></ol> <p>進一步查了 JFIF 跟 LEADTOOLS，再搞懂兩個新名詞。</p> <ul><li>JFIF (JPEG File Interchange Format，JPEG 檔案交換格式)，是一種圖像檔案格式標準。早期的 JPEG 標準 (JIF) 只定義了圖像的壓縮方式，但沒有規範檔案的具體結構，這導致不同軟體或硬體產生的 JPEG 檔案可能無法互相相容。JFIF 在 JPEG 基礎上添加了一些必要的資訊，使得 JPEG 檔案能夠在不同的系統上正確顯示。</li> <li>JFIF 和 JPEG 常被混用，是因為二者關係非常密切。我們可以把 JFIF 看作是 JPEG 的一種具體實現方式，或是「標準化的 JPEG」。實際上，目前網路上大部分看到的 JPEG 檔案，都是採用 JFIF 標準。</li> <li>而 LEADTOOLS 是常見的的影像處理函式庫，提供影像處理、壓縮、轉換、OCR 等功能，JPEG 檔案的 COM (Comment) 區段的 "LEADTOOLS v22.0" 字串，應是使用 LEADTOOLS 程式庫留下了，我的圖檔使用 Snagit 處理，而其<a href="https://support.techsmith.com/hc/en-us/articles/115006435067-Snagit-Windows-Version-History">官網</a>也提到它有用到 LeadTools (17 October 2023: Snagit 2024.0.1 / Updates for IT Administrators)</li></ul> <p>所以，這是一個正常的 JPG 檔，回頭再看程式，這才發現錯誤所在，sample.jpg 的 MIME Type 我寫成了 "image/jpg"，雖然 .jpg、.jpeg 副檔名可以互動，但 JPEG 的 <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types">MIME Type 是 image/jpeg</a>，而 image/jpg 從來不是個有效值。修正後，彈出 ATT00001 的問題就排除了。</p> <p>而上面的這段程式，其實有更好的寫法：</p> <pre><code>    using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, MediaTypeNames.Text.Html);
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), MediaTypeNames.Image.Jpeg) { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), MediaTypeNames.Image.Png) { ContentId = "sample.png" });
+</code></pre> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.mime.mediatypenames.image?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">System.Net.Mime.MediaTypeNames.Image</a> 有定義好標準字串，既能免除記錯拼錯的風險，又能享受強型別的關聯性，不要自己敲。(筆記)</p> <p data-slug="jpg-mime-type" data-title-en="Incorrect .jpg MIME type issue when sending MailMessage" data-catg=".NET" data-fbimg="https://i.imgur.com/pi0kqzm.png#640#640">The blog post discusses an issue with sending HTML emails containing embedded images using C#. An error occurred due to using an incorrect MIME type for a JPEG image. The correct MIME type is image/jpeg, not image/jpg. The post also highlights the benefits of using predefined constants in System.Net.Mime.MediaTypeNames to avoid such errors.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png" medium="image"/>
+    <pubDate>Thu, 02 Jan 2025 15:45:20 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【茶包射手小記】無法生效的 .gitignore]]></title>
     <link>https://blog.darkthread.net/blog/gitignore-not-working/</link>
     <itunes:title><![CDATA[【茶包射手小記】無法生效的 .gitignore]]></itunes:title>
@@ -1025,146 +1130,5 @@ await memeMaker.MakeMeme(memeFolder,
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638688369719155760.png" medium="image"/>
     <pubDate>Tue, 03 Dec 2024 15:24:23 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Coding4Fun - .NET 串接 Whisper 麥克風語音識別整合 ChatGPT 即時翻譯]]></title>
-    <link>https://blog.darkthread.net/blog/whisper-realtime-translation/</link>
-    <itunes:title><![CDATA[Coding4Fun - .NET 串接 Whisper 麥克風語音識別整合 ChatGPT 即時翻譯]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
-<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
-<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
-<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
-<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
-<pre><code>using System.Text;
-using Microsoft.Extensions.Configuration;
-Console.OutputEncoding = Encoding.UTF8;
-Console.InputEncoding = Encoding.UTF8;
-var config = new ConfigurationBuilder()
-.SetBasePath(Directory.GetCurrentDirectory())
-.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-.AddEnvironmentVariables()
-.Build();
-Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
-var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
-using var httpClient = new HttpClient();
-using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
-response.EnsureSuccessStatusCode();
-Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
-using var stream = await response.Content.ReadAsStreamAsync();
-using var reader = new System.IO.StreamReader(stream);
-var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
-while (true)
-{
-var line = await reader.ReadLineAsync();
-if (line != null &amp;&amp; line.StartsWith("data: "))
-{
-var text = line.Substring("data: ".Length);
-// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
-Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine($"原文：{text}");
-var answer = await chatSvc.Complete(sysPrompt, text, true);
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine($"翻譯：{answer}");
-Console.ResetColor();
-}
-}
-</code></pre>
-<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
-<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
-<p>打完收工。</p>
-<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
-<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
-<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
-<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
-<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
-<pre><code>using System.Text;
-using Microsoft.Extensions.Configuration;
-Console.OutputEncoding = Encoding.UTF8;
-Console.InputEncoding = Encoding.UTF8;
-var config = new ConfigurationBuilder()
-.SetBasePath(Directory.GetCurrentDirectory())
-.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-.AddEnvironmentVariables()
-.Build();
-Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
-var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
-using var httpClient = new HttpClient();
-using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
-response.EnsureSuccessStatusCode();
-Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
-using var stream = await response.Content.ReadAsStreamAsync();
-using var reader = new System.IO.StreamReader(stream);
-var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
-while (true)
-{
-var line = await reader.ReadLineAsync();
-if (line != null &amp;&amp; line.StartsWith("data: "))
-{
-var text = line.Substring("data: ".Length);
-// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
-Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine($"原文：{text}");
-var answer = await chatSvc.Complete(sysPrompt, text, true);
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine($"翻譯：{answer}");
-Console.ResetColor();
-}
-}
-</code></pre>
-<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
-<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
-<p>打完收工。</p>
-<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>昨天提到<a href="/blog/whisper-microservice/">將 Whisper Mic 包成微服務</a>，走 Server-Sent Events (SSE) 串流提供即時語音識別結果，SSE 是 HTTP 標準，理論上不管你用什麼程式語言或平台，都能輕鬆串接。</p>
-<p>剛好有讀者問到語音識別加即時翻譯的問題，算是經典到不能再經典的應用。那還等什麼，就來寫幾行程式實測看看可行性。</p>
-<p>程式語言當然選我最擅長的 C#，呼叫 ChatGPT API 部分可參考<a href="/blog/aoai-dotnet-client-2/">先前文章</a>，範例中的 GptChatService 類別，完全不用修改可以直上。</p>
-<p>要用 HttpClient 讀取串流回應，GetAsync() 要傳入 HttpCompletionOption.ResponseHeadersRead，指定不要等待全部 Response 傳完，讀完 Header 就返回。接著從 response.Content.ReadAsStreamAsync() 取得 Stream 物件，後續則完全比照 FileStream、NetworkStream 讀資料的操作，沒什麼大學問。</p>
-<p>因此，若想即時翻譯語音識別結果，while 迴圈跑 StreamReader.ReadLine() 逐句接收 Whisper Mic 傳回的語音識別文字，呼叫 ChatGPT API 將其翻成英文，就這麼簡單。程式範例如下：</p>
-<pre><code>using System.Text;
-using Microsoft.Extensions.Configuration;
-Console.OutputEncoding = Encoding.UTF8;
-Console.InputEncoding = Encoding.UTF8;
-var config = new ConfigurationBuilder()
-.SetBasePath(Directory.GetCurrentDirectory())
-.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-.AddEnvironmentVariables()
-.Build();
-Func&lt;string, string&gt; readConfig = (key) =&gt; config[key] ?? throw new ArgumentNullException(key);
-var chatSvc = new GptChatService(readConfig("OpenAiUrl"), readConfig("OpenAiKey"), readConfig("OpenAiDepName"));
-using var httpClient = new HttpClient();
-using var response = await httpClient.GetAsync("http://localhost:5000/listen", HttpCompletionOption.ResponseHeadersRead);
-response.EnsureSuccessStatusCode();
-Console.WriteLine("開始接收語音辨識結果進行即時翻譯...");
-using var stream = await response.Content.ReadAsStreamAsync();
-using var reader = new System.IO.StreamReader(stream);
-var sysPrompt = "你是一個即時口語翻譯，負責將語音識別回傳的中文內容翻成英文";
-while (true)
-{
-var line = await reader.ReadLineAsync();
-if (line != null &amp;&amp; line.StartsWith("data: "))
-{
-var text = line.Substring("data: ".Length);
-// TODO: 可累積一定長度再送出，前後文參照愈完整翻譯準確度愈好，代價是會增加延遲
-Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine($"原文：{text}");
-var answer = await chatSvc.Complete(sysPrompt, text, true);
-Console.ForegroundColor = ConsoleColor.Cyan;
-Console.WriteLine($"翻譯：{answer}");
-Console.ResetColor();
-}
-}
-</code></pre>
-<p>實測結果一切如同預期，語音轉成的中文順利翻成英文，除非洞察說話者背景或完整語境才能正確識別的專業詞彙，如 .NET，不意外地猜錯了，而翻譯出來英文則維持 ChatGPT 一向的水準，沒太多可以挑剔之處。</p>
-<p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"></p>
-<p>打完收工。</p>
-<p data-slug="whisper-realtime-translation" data-title-en="Real-Time Speech Recognition and Translation Using Whisper Mic and ChatGPT API in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2014/12/02/03/04/christmas-cookies-553457_960_720.jpg#1280#720" "="">This article demonstrates combining Whisper Mic for speech recognition and ChatGPT API for real-time translation into English using C#. The process involves streaming recognized speech via SSE and translating it with ChatGPT. The provided C# code illustrates how to handle streaming responses and call the translation API. The practical implementation confirms successful translation with minor errors in technical terms.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638687361557810909.png" medium="image"/>
-    <pubDate>Mon, 02 Dec 2024 11:34:02 GMT</pubDate>
   </item></channel>
 </rss>
