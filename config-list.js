@@ -62,6 +62,10 @@ let feedList = [
       ItemFilters['common'].ItemFilterThumbnail,
     ],
   },
+
+  // 5
+  // =============================
+  
   { // <outline type="rss" text="梅問題．教學網++$0414-1925$" title="梅問題．教學網++$0414-1925$" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/$0414-1925$/http%3A%2F%2Ffeeds.feedburner.com%2Fminwt%2FLZgW" htmlUrl="https://www.minwt.com/"/>
     title: '梅問題．教學網',
     feedID: 'minwt',
@@ -127,6 +131,10 @@ let feedList = [
       selector: '#main-container'
     }
   },
+
+  // 10
+  // =============================
+  
   { // <outline type="rss" text="Linuxeden开源社区++$0413-0909$" title="Linuxeden开源社区++$0413-0909$" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/$0413-0909$,/http%3A%2F%2Fwww.linuxeden.com%2Ffeed" htmlUrl="http://www.linuxeden.com"/>
     title: 'Chrome Unboxed',
     feedID: 'chromeunboxed',
@@ -194,6 +202,10 @@ let feedList = [
       selector: '.article-body > .article-content > .article-content-inner'
     }
   },
+
+  // 15
+  // =============================
+  
   { // <outline type="rss" text="承風雅傳HSU 電腦工作室 BLOG :: 痞客邦 PIXNET ::" title="承風雅傳HSU 電腦工作室 BLOG :: 痞客邦 PIXNET ::" xmlUrl="http://feed.pixnet.net/blog/posts/rss/hsuanthony" htmlUrl="http://hsuanthony.pixnet.net/blog"/>
     title: '科技狗',
     feedID: '3cdogs',
@@ -261,6 +273,10 @@ let feedList = [
       proxy: true,
     }
   },
+  
+  // 20
+  // =============================
+  
   {
     title: '天瓏書局',
     feedID: 'tenlong',
@@ -314,9 +330,26 @@ let feedList = [
       selector: 'body main#main article .entry-content',
     }
   },
+
+  // 25
+  // =============================
+
+  {
+    title: 'TechMoon 科技月球',
+    feedID: 'techmoon-xyz-blog',
+    feedURL: 'https://techmoon.xyz/feed/',
+    itemFilters: [
+      ItemFilters['sites'].ItemFilterBlog,
+      ItemFilters['common'].ItemFilterImageEmbed,
+    ],
+    options: {
+      selector: 'body main#genesis-content article .entry-content',
+    }
+  },
+  
 ]
 
-// 23 / 30
+// 26 / 30
 
 // ----------------------------------------------------------------
 
