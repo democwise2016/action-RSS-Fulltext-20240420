@@ -302,6 +302,18 @@ let feedList = [
       selector: 'body main#main-content article .article-content',
     }
   },
+  {
+    title: '免費資源網路社群',
+    feedID: 'freegroup-org',
+    feedURL: 'http://www.freegroup.org/feed/',
+    itemFilters: [
+      ItemFilters['sites'].ItemFilterBlog,
+      ItemFilters['common'].ItemFilterImageEmbed,
+    ],
+    options: {
+      selector: 'body main#main article .entry-content',
+    }
+  },
 ]
 
 // 23 / 30
