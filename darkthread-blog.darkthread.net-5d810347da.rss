@@ -1,0 +1,1088 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[黑暗執行緒[RSS+]]]></title>
+    <link>undefined</link>
+    <image>
+      <url>https://blog.darkthread.net/img/icon512x512.png</url>
+      <title>黑暗執行緒[RSS+]</title>
+      <link>undefined</link>
+    </image>
+    <language>en-us</language>
+    <atom:link href="https://blog.darkthread.net/feed/rss/" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[黑暗執行緒[RSS+]]]></copyright>
+    <itunes:author><![CDATA[黑暗執行緒[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[黑暗執行緒[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
+<item>
+    <title><![CDATA[OpenAI API 傳送圖檔給 GPT-4o 分析]]></title>
+    <link>https://blog.darkthread.net/blog/send-imge-2-gpt-4o-api/</link>
+    <itunes:title><![CDATA[OpenAI API 傳送圖檔給 GPT-4o 分析]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>OpenAI 去年 5 月推出的 <a href="https://news.microsoft.com/zh-tw/features/gpt-4o-%E7%99%BB%E5%A0%B4%EF%BC%9Aopenai-%E5%85%A8%E6%96%B0%E6%97%97%E8%89%A6%E5%A4%9A%E6%A8%A1%E6%85%8B%E6%A8%A1%E5%9E%8B%E7%8F%BE%E5%B7%B2%E5%9C%A8-microsoft-azure-%E9%96%8B%E6%94%BE%E9%A0%90/?WT.mc_id=DOP-MVP-37580">GPT-4o 模型</a>，最大亮點是支援多模態，能同時處理文字跟影像。</p> <p>因此，我們可以在 ChatGPT 貼照片請它分析：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638722946208114921.jpg"></p> <p>或是拍照數學考卷讓 AI 解題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638722946210391749.png"></p> <p>我已經試過呼叫 OpenAI API 彙總文章、<a href="/blog/line-gpt-trans-bot/">翻譯印尼文</a>、<a href="/blog/chatgpt-function-call/">整合第三方服務</a>... 等各式雜耍，但還不會傳圖檔給 GPT 解讀，這篇來補上這塊拼圖。</p> <p>網路上有不少程式範例，但都是直接傳 REST。Azure OpenAI 服務聊天遊樂場有給 C# 範例，但卻是用組 JSON 走 HttpClient，而非我想用的 <a href="/blog/aoai-dotnet-client-2/">Azure OpenAI .NET 程式庫</a>寫法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638722946213610073.png"></p> <p>所以這個議題的挑戰在於東西太新、文件缺乏、討論太少，資訊頗難找。經過一番挖掘，總算找到解法。借用上回 <a href="/blog/aoai-dotnet-client-2/">Azure OpenAI .NET 程式庫範例</a>，我修改 Complete() 方法，新增一個 <code>(byte[] binary, string mimeType)[] images</code> 參數，可傳入圖片 byte[] 及 MIME Type，透過 <code>UserChatMessage.Content.Add(ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(binary), mimeType))</code> 將圖檔當成使用者訊息的一部分送出。</p> <pre><code>    public async Task&lt;string&gt; Complete(string msg, bool includeHistory = false, (byte[] binary, string mimeType)[] images = null!)
+{
+if (clearHistory)
+{
+history.Clear();
+clearHistory = false;
+}
+logger.Info("Ask: {0}", msg);
+// [1] System Prompt 及交談歷史紀錄
+var chatMessages = new List&lt;ChatMessage&gt;() {
+new SystemChatMessage(GenSystemPrompt()),
+};
+if (includeHistory) chatMessages.AddRange(history);
+var userChatMsg = new UserChatMessage(msg);
+if (images != null)
+{
+foreach (var (binary, mimeType) in images)
+{
+userChatMsg.Content.Add(ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(binary), mimeType));
+}
+}
+//... 省略 ...
+</code></pre> <p>呼叫端傳入照片，再輸入 Prompt "請解析這張照片"，我們的程式自此也具有了解讀圖片的能力，水啦~</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638722946215414445.png"></p> <p data-slug="send-imge-2-gpt-4o-api" data-title-en="Sending image file to GPT-4o API" data-catg=".NET" data-fbimg="https://i.imgur.com/5Mu1ukM.jpg#480#320">OpenAI’s GPT-4o model supports multi-modal inputs, processing both text and images. This post shows how to use .NET OpenAI client library to include image parameters for analysis via OpenAI API.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>OpenAI 去年 5 月推出的 <a href="https://news.microsoft.com/zh-tw/features/gpt-4o-%E7%99%BB%E5%A0%B4%EF%BC%9Aopenai-%E5%85%A8%E6%96%B0%E6%97%97%E8%89%A6%E5%A4%9A%E6%A8%A1%E6%85%8B%E6%A8%A1%E5%9E%8B%E7%8F%BE%E5%B7%B2%E5%9C%A8-microsoft-azure-%E9%96%8B%E6%94%BE%E9%A0%90/?WT.mc_id=DOP-MVP-37580">GPT-4o 模型</a>，最大亮點是支援多模態，能同時處理文字跟影像。</p> <p>因此，我們可以在 ChatGPT 貼照片請它分析：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638722946208114921.jpg"></p> <p>或是拍照數學考卷讓 AI 解題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638722946210391749.png"></p> <p>我已經試過呼叫 OpenAI API 彙總文章、<a href="/blog/line-gpt-trans-bot/">翻譯印尼文</a>、<a href="/blog/chatgpt-function-call/">整合第三方服務</a>... 等各式雜耍，但還不會傳圖檔給 GPT 解讀，這篇來補上這塊拼圖。</p> <p>網路上有不少程式範例，但都是直接傳 REST。Azure OpenAI 服務聊天遊樂場有給 C# 範例，但卻是用組 JSON 走 HttpClient，而非我想用的 <a href="/blog/aoai-dotnet-client-2/">Azure OpenAI .NET 程式庫</a>寫法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638722946213610073.png"></p> <p>所以這個議題的挑戰在於東西太新、文件缺乏、討論太少，資訊頗難找。經過一番挖掘，總算找到解法。借用上回 <a href="/blog/aoai-dotnet-client-2/">Azure OpenAI .NET 程式庫範例</a>，我修改 Complete() 方法，新增一個 <code>(byte[] binary, string mimeType)[] images</code> 參數，可傳入圖片 byte[] 及 MIME Type，透過 <code>UserChatMessage.Content.Add(ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(binary), mimeType))</code> 將圖檔當成使用者訊息的一部分送出。</p> <pre><code>    public async Task&lt;string&gt; Complete(string msg, bool includeHistory = false, (byte[] binary, string mimeType)[] images = null!)
+{
+if (clearHistory)
+{
+history.Clear();
+clearHistory = false;
+}
+logger.Info("Ask: {0}", msg);
+// [1] System Prompt 及交談歷史紀錄
+var chatMessages = new List&lt;ChatMessage&gt;() {
+new SystemChatMessage(GenSystemPrompt()),
+};
+if (includeHistory) chatMessages.AddRange(history);
+var userChatMsg = new UserChatMessage(msg);
+if (images != null)
+{
+foreach (var (binary, mimeType) in images)
+{
+userChatMsg.Content.Add(ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(binary), mimeType));
+}
+}
+//... 省略 ...
+</code></pre> <p>呼叫端傳入照片，再輸入 Prompt "請解析這張照片"，我們的程式自此也具有了解讀圖片的能力，水啦~</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638722946215414445.png"></p> <p data-slug="send-imge-2-gpt-4o-api" data-title-en="Sending image file to GPT-4o API" data-catg=".NET" data-fbimg="https://i.imgur.com/5Mu1ukM.jpg#480#320">OpenAI’s GPT-4o model supports multi-modal inputs, processing both text and images. This post shows how to use .NET OpenAI client library to include image parameters for analysis via OpenAI API.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>OpenAI 去年 5 月推出的 <a href="https://news.microsoft.com/zh-tw/features/gpt-4o-%E7%99%BB%E5%A0%B4%EF%BC%9Aopenai-%E5%85%A8%E6%96%B0%E6%97%97%E8%89%A6%E5%A4%9A%E6%A8%A1%E6%85%8B%E6%A8%A1%E5%9E%8B%E7%8F%BE%E5%B7%B2%E5%9C%A8-microsoft-azure-%E9%96%8B%E6%94%BE%E9%A0%90/?WT.mc_id=DOP-MVP-37580">GPT-4o 模型</a>，最大亮點是支援多模態，能同時處理文字跟影像。</p> <p>因此，我們可以在 ChatGPT 貼照片請它分析：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638722946208114921.jpg"></p> <p>或是拍照數學考卷讓 AI 解題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638722946210391749.png"></p> <p>我已經試過呼叫 OpenAI API 彙總文章、<a href="/blog/line-gpt-trans-bot/">翻譯印尼文</a>、<a href="/blog/chatgpt-function-call/">整合第三方服務</a>... 等各式雜耍，但還不會傳圖檔給 GPT 解讀，這篇來補上這塊拼圖。</p> <p>網路上有不少程式範例，但都是直接傳 REST。Azure OpenAI 服務聊天遊樂場有給 C# 範例，但卻是用組 JSON 走 HttpClient，而非我想用的 <a href="/blog/aoai-dotnet-client-2/">Azure OpenAI .NET 程式庫</a>寫法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638722946213610073.png"></p> <p>所以這個議題的挑戰在於東西太新、文件缺乏、討論太少，資訊頗難找。經過一番挖掘，總算找到解法。借用上回 <a href="/blog/aoai-dotnet-client-2/">Azure OpenAI .NET 程式庫範例</a>，我修改 Complete() 方法，新增一個 <code>(byte[] binary, string mimeType)[] images</code> 參數，可傳入圖片 byte[] 及 MIME Type，透過 <code>UserChatMessage.Content.Add(ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(binary), mimeType))</code> 將圖檔當成使用者訊息的一部分送出。</p> <pre><code>    public async Task&lt;string&gt; Complete(string msg, bool includeHistory = false, (byte[] binary, string mimeType)[] images = null!)
+{
+if (clearHistory)
+{
+history.Clear();
+clearHistory = false;
+}
+logger.Info("Ask: {0}", msg);
+// [1] System Prompt 及交談歷史紀錄
+var chatMessages = new List&lt;ChatMessage&gt;() {
+new SystemChatMessage(GenSystemPrompt()),
+};
+if (includeHistory) chatMessages.AddRange(history);
+var userChatMsg = new UserChatMessage(msg);
+if (images != null)
+{
+foreach (var (binary, mimeType) in images)
+{
+userChatMsg.Content.Add(ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(binary), mimeType));
+}
+}
+//... 省略 ...
+</code></pre> <p>呼叫端傳入照片，再輸入 Prompt "請解析這張照片"，我們的程式自此也具有了解讀圖片的能力，水啦~</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638722946215414445.png"></p> <p data-slug="send-imge-2-gpt-4o-api" data-title-en="Sending image file to GPT-4o API" data-catg=".NET" data-fbimg="https://i.imgur.com/5Mu1ukM.jpg#480#320">OpenAI’s GPT-4o model supports multi-modal inputs, processing both text and images. This post shows how to use .NET OpenAI client library to include image parameters for analysis via OpenAI API.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638722946208114921.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638722946208114921.jpg" medium="image"/>
+    <pubDate>Sun, 12 Jan 2025 16:00:01 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Python 小技巧 - Polyglot/Jupyter Notebook 引用 .py 修改後不會自動更新]]></title>
+    <link>https://blog.darkthread.net/blog/importlib-reload/</link>
+    <itunes:title><![CDATA[Python 小技巧 - Polyglot/Jupyter Notebook 引用 .py 修改後不會自動更新]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>下這張圖說明我使用 Polyglot Notebook/Jupyter Notebook 時的一個小困擾。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638722377743223462.png"></p> <p>在 Polyglot/Jupyter Notebook Cell 中我們可以使用 from util import XXX 引用寫在 util.py 裡的函式。例如，我在 util.py 寫了一個 say_hello() 函式，在 main.ipynb 可使用 <code>from util import say_hello</code> 或 <code>import util</code> <code>util.say_hello()</code> 呼叫它。</p> <pre><code>from util import say_hello
+say_hello()
+</code></pre> <p>但是在我們修改 util.py 後，Jupyter Notebook 不會自動更新，故會發生擷圖的狀況，在 util.py 裡已改成 Ver 2.0 了，呼叫時還是顯示舊版的 1.0。</p> <p>我以前用的笨方法是重新啟動 Kernel，一切重來，自然會改載入新版程式庫，代價是先前執行的內容、儲存的變數、物件全部都被清空，程式必須全部重跑，失去使用 Notebook 最大的優勢。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638722377744887629.png"></p> <p>但我還是鄉愿了一陣子，反正都是小實驗，重跑就重跑，也不過幾秒鐘的事。直到最近遇上模型跑一次要十來分鐘，老人的時間尤其珍貴，經不起這種笨方法消耗，逼得我認真找解。</p> <p>答案出奇簡單，Python 有個 importlib 程式庫，提供 <a href="https://docs.python.org/3/library/importlib.html#importlib.reload">importlib.reload()</a> 方法，可以強迫重新載入修改後的模組，所以程式只需稍微改一下：</p> <pre><code>import importlib
+import util
+importlib.reload(util)
+from util import say_hello
+say_hello()
+</code></pre> <p>或是</p> <pre><code>import importlib
+import util
+importlib.reload(util)
+util.say_hello()
+</code></pre> <p>如此，每次執行都會重新載入最新版本囉~</p> <p data-slug="importlib-reload" data-title-en="Force Jupyter notebook to reload modue from modified .py" data-catg="Python" data-fbimg="https://i.imgur.com/lXlrMc4.jpg#1280#854">When using Polyglot/Jupyter Notebook, modified modules don’t auto-update. Tips of using importlib.reload() to reload the module and ensure the latest version is used without restarting the kernel.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>下這張圖說明我使用 Polyglot Notebook/Jupyter Notebook 時的一個小困擾。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638722377743223462.png"></p> <p>在 Polyglot/Jupyter Notebook Cell 中我們可以使用 from util import XXX 引用寫在 util.py 裡的函式。例如，我在 util.py 寫了一個 say_hello() 函式，在 main.ipynb 可使用 <code>from util import say_hello</code> 或 <code>import util</code> <code>util.say_hello()</code> 呼叫它。</p> <pre><code>from util import say_hello
+say_hello()
+</code></pre> <p>但是在我們修改 util.py 後，Jupyter Notebook 不會自動更新，故會發生擷圖的狀況，在 util.py 裡已改成 Ver 2.0 了，呼叫時還是顯示舊版的 1.0。</p> <p>我以前用的笨方法是重新啟動 Kernel，一切重來，自然會改載入新版程式庫，代價是先前執行的內容、儲存的變數、物件全部都被清空，程式必須全部重跑，失去使用 Notebook 最大的優勢。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638722377744887629.png"></p> <p>但我還是鄉愿了一陣子，反正都是小實驗，重跑就重跑，也不過幾秒鐘的事。直到最近遇上模型跑一次要十來分鐘，老人的時間尤其珍貴，經不起這種笨方法消耗，逼得我認真找解。</p> <p>答案出奇簡單，Python 有個 importlib 程式庫，提供 <a href="https://docs.python.org/3/library/importlib.html#importlib.reload">importlib.reload()</a> 方法，可以強迫重新載入修改後的模組，所以程式只需稍微改一下：</p> <pre><code>import importlib
+import util
+importlib.reload(util)
+from util import say_hello
+say_hello()
+</code></pre> <p>或是</p> <pre><code>import importlib
+import util
+importlib.reload(util)
+util.say_hello()
+</code></pre> <p>如此，每次執行都會重新載入最新版本囉~</p> <p data-slug="importlib-reload" data-title-en="Force Jupyter notebook to reload modue from modified .py" data-catg="Python" data-fbimg="https://i.imgur.com/lXlrMc4.jpg#1280#854">When using Polyglot/Jupyter Notebook, modified modules don’t auto-update. Tips of using importlib.reload() to reload the module and ensure the latest version is used without restarting the kernel.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>下這張圖說明我使用 Polyglot Notebook/Jupyter Notebook 時的一個小困擾。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638722377743223462.png"></p> <p>在 Polyglot/Jupyter Notebook Cell 中我們可以使用 from util import XXX 引用寫在 util.py 裡的函式。例如，我在 util.py 寫了一個 say_hello() 函式，在 main.ipynb 可使用 <code>from util import say_hello</code> 或 <code>import util</code> <code>util.say_hello()</code> 呼叫它。</p> <pre><code>from util import say_hello
+say_hello()
+</code></pre> <p>但是在我們修改 util.py 後，Jupyter Notebook 不會自動更新，故會發生擷圖的狀況，在 util.py 裡已改成 Ver 2.0 了，呼叫時還是顯示舊版的 1.0。</p> <p>我以前用的笨方法是重新啟動 Kernel，一切重來，自然會改載入新版程式庫，代價是先前執行的內容、儲存的變數、物件全部都被清空，程式必須全部重跑，失去使用 Notebook 最大的優勢。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638722377744887629.png"></p> <p>但我還是鄉愿了一陣子，反正都是小實驗，重跑就重跑，也不過幾秒鐘的事。直到最近遇上模型跑一次要十來分鐘，老人的時間尤其珍貴，經不起這種笨方法消耗，逼得我認真找解。</p> <p>答案出奇簡單，Python 有個 importlib 程式庫，提供 <a href="https://docs.python.org/3/library/importlib.html#importlib.reload">importlib.reload()</a> 方法，可以強迫重新載入修改後的模組，所以程式只需稍微改一下：</p> <pre><code>import importlib
+import util
+importlib.reload(util)
+from util import say_hello
+say_hello()
+</code></pre> <p>或是</p> <pre><code>import importlib
+import util
+importlib.reload(util)
+util.say_hello()
+</code></pre> <p>如此，每次執行都會重新載入最新版本囉~</p> <p data-slug="importlib-reload" data-title-en="Force Jupyter notebook to reload modue from modified .py" data-catg="Python" data-fbimg="https://i.imgur.com/lXlrMc4.jpg#1280#854">When using Polyglot/Jupyter Notebook, modified modules don’t auto-update. Tips of using importlib.reload() to reload the module and ensure the latest version is used without restarting the kernel.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638722377743223462.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638722377743223462.png" medium="image"/>
+    <pubDate>Sun, 12 Jan 2025 00:11:53 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【古蹟維修日記】JSONP 呼叫無聲卡與 MIME Sniffing 資安漏洞]]></title>
+    <link>https://blog.darkthread.net/blog/jsonp-and-orb-issue/</link>
+    <itunes:title><![CDATA[【古蹟維修日記】JSONP 呼叫無聲卡與 MIME Sniffing 資安漏洞]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>記錄最近維護古蹟遇到的問題一枚。</p> <p>接到通報，老系統某個使用 JSONP 呼叫第三方網頁執行指定作業並接收回覆，不知何時開始失效了。</p> <p>客戶端程式類似這樣：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;JSONP Test&lt;/title&gt;
+&lt;script src="https://code.jquery.com/jquery-3.6.0.min.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;button id="btnTest"&gt;JSONP Test&lt;/button&gt;
+&lt;textarea id="txtResult" rows="4" cols="50" style="display:block; margin-top:6px;"&gt;
+&lt;/textarea&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function handleResponse(data) {
+console.log(data);
+}
+$('#btnTest').click(function() {
+$.ajax({
+url: 'http://172.23.160.1/aspnet/jsonp/api.aspx',
+data: { userId: 'Jeffrey' },
+dataType: 'jsonp',
+success: function(data) {
+$('#txtResult').val(JSON.stringify(data));
+}
+});
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>奇妙的是，使用 F12 監看 JSONP 呼叫，HTTP 狀態 200，但沒有回應內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638721851909710770.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638721851912763407.png"></p> <p>意思是 api.aspx程式有成功執行 (HTTP 200)也回傳了，但資料長度是 0 Byte？收到一張無聲卡？</p> <p>困惑了一陣子，同事改用 Chrome 測試才出現轉機。Chrome 執行相同網頁也是無回應，但有提供一則錯誤代碼 <code>ERR_BLOCKED_BY_ORB</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638721851914357258.png"></p> <p>ORB 是 Opaque Response Blocking 的縮寫，指瀏覽器可依要求，拒絕處理「不透明的回應」(Opaque Responses)，意指沒有明確標示的 MIME 類型，或者 MIME 類型與實際內容不匹配。而有個 Header <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options">X-Content-Type-Options: nosniff</a> 可要求瀏覽器嚴格遵守資源的 MIME 類型，禁止進行「MIME 類型嗅探」(<a href="https://en.wikipedia.org/wiki/Content_sniffing">MIME Type Sniffing</a>) 自動偵測並設定 MIME Type 以免形成資安漏洞。(延伸閱讀：<a href="https://medium.com/%E7%A8%8B%E5%BC%8F%E6%84%9B%E5%A5%BD%E8%80%85/%E9%97%9C%E6%96%BC%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84header-b3b7adcb0fca">資安議題 — Http Security Header by LSZ</a>)</p> <p>舉個例子，若網站允許使用者上傳 .jpg 檔。攻擊者寫了一段內含 JavaScript 的 HTML 假裝 .jpg 上傳，其他使用者瀏覽該圖片時若瀏覽器啟用 MIME Type Sniffing 自動識別校正成網頁呈現，攻擊者的惡意 JavaScript 便會被執行。</p> <p>回頭看這個重現情境中的 api.aspx，內容像以下這樣。有兩大重點，1) 有回傳 Header X-Content-Type-Options: nosniff 2) 未指定 MIME Type。</p> <pre><code>&lt;%@Page Language="C#"%&gt;
+&lt;script runat="server"&gt;
+protected void Page_Load(object sender, EventArgs e)
+{
+Response.Headers.Add("X-Content-Type-Options", "nosniff ");
+var callback = Request.QueryString["callback"];
+if (!string.IsNullOrEmpty(callback) &amp;&amp;
+System.Text.RegularExpressions.Regex.IsMatch(callback, "^[a-zA-Z0-9_]+$"))
+{
+Response.Write(callback + "({name:'Jeffrey', score:32767})");
+}
+else
+{
+Response.Write("Invalid callback");
+}
+}
+&lt;/script&gt;
+</code></pre> <p>搞懂這些，要解決就簡單了，加上 Response.ContentType = "application/javascript" 就好了。</p> <pre><code>&lt;%@Page Language="C#"%&gt;
+&lt;script runat="server"&gt;
+protected void Page_Load(object sender, EventArgs e)
+{
+Response.Headers.Add("X-Content-Type-Options", "nosniff ");
+var callback = Request.QueryString["callback"];
+if (!string.IsNullOrEmpty(callback) &amp;&amp;
+System.Text.RegularExpressions.Regex.IsMatch(callback, "^[a-zA-Z0-9_]+$"))
+{
+Response.ContentType = "application/javascript";
+Response.Write(callback + "({name:'Jeffrey', score:32767})");
+}
+else
+{
+Response.Write("Invalid callback");
+}
+}
+&lt;/script&gt;
+</code></pre> <p>搞定收工。</p> <p data-slug="jsonp-and-orb-issue" data-title-en="JSONP response blocked by ORB issue" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This post describes a JSONP callback issue in an old system. The problem, identified as ERR_BLOCKED_BY_ORB in Chrome, was due to missing MIME type specification. Solution: Adding Response.ContentType = "application/javascript" in the server-side code resolved the issue.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>記錄最近維護古蹟遇到的問題一枚。</p> <p>接到通報，老系統某個使用 JSONP 呼叫第三方網頁執行指定作業並接收回覆，不知何時開始失效了。</p> <p>客戶端程式類似這樣：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;JSONP Test&lt;/title&gt;
+&lt;script src="https://code.jquery.com/jquery-3.6.0.min.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;button id="btnTest"&gt;JSONP Test&lt;/button&gt;
+&lt;textarea id="txtResult" rows="4" cols="50" style="display:block; margin-top:6px;"&gt;
+&lt;/textarea&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function handleResponse(data) {
+console.log(data);
+}
+$('#btnTest').click(function() {
+$.ajax({
+url: 'http://172.23.160.1/aspnet/jsonp/api.aspx',
+data: { userId: 'Jeffrey' },
+dataType: 'jsonp',
+success: function(data) {
+$('#txtResult').val(JSON.stringify(data));
+}
+});
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>奇妙的是，使用 F12 監看 JSONP 呼叫，HTTP 狀態 200，但沒有回應內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638721851909710770.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638721851912763407.png"></p> <p>意思是 api.aspx程式有成功執行 (HTTP 200)也回傳了，但資料長度是 0 Byte？收到一張無聲卡？</p> <p>困惑了一陣子，同事改用 Chrome 測試才出現轉機。Chrome 執行相同網頁也是無回應，但有提供一則錯誤代碼 <code>ERR_BLOCKED_BY_ORB</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638721851914357258.png"></p> <p>ORB 是 Opaque Response Blocking 的縮寫，指瀏覽器可依要求，拒絕處理「不透明的回應」(Opaque Responses)，意指沒有明確標示的 MIME 類型，或者 MIME 類型與實際內容不匹配。而有個 Header <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options">X-Content-Type-Options: nosniff</a> 可要求瀏覽器嚴格遵守資源的 MIME 類型，禁止進行「MIME 類型嗅探」(<a href="https://en.wikipedia.org/wiki/Content_sniffing">MIME Type Sniffing</a>) 自動偵測並設定 MIME Type 以免形成資安漏洞。(延伸閱讀：<a href="https://medium.com/%E7%A8%8B%E5%BC%8F%E6%84%9B%E5%A5%BD%E8%80%85/%E9%97%9C%E6%96%BC%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84header-b3b7adcb0fca">資安議題 — Http Security Header by LSZ</a>)</p> <p>舉個例子，若網站允許使用者上傳 .jpg 檔。攻擊者寫了一段內含 JavaScript 的 HTML 假裝 .jpg 上傳，其他使用者瀏覽該圖片時若瀏覽器啟用 MIME Type Sniffing 自動識別校正成網頁呈現，攻擊者的惡意 JavaScript 便會被執行。</p> <p>回頭看這個重現情境中的 api.aspx，內容像以下這樣。有兩大重點，1) 有回傳 Header X-Content-Type-Options: nosniff 2) 未指定 MIME Type。</p> <pre><code>&lt;%@Page Language="C#"%&gt;
+&lt;script runat="server"&gt;
+protected void Page_Load(object sender, EventArgs e)
+{
+Response.Headers.Add("X-Content-Type-Options", "nosniff ");
+var callback = Request.QueryString["callback"];
+if (!string.IsNullOrEmpty(callback) &amp;&amp;
+System.Text.RegularExpressions.Regex.IsMatch(callback, "^[a-zA-Z0-9_]+$"))
+{
+Response.Write(callback + "({name:'Jeffrey', score:32767})");
+}
+else
+{
+Response.Write("Invalid callback");
+}
+}
+&lt;/script&gt;
+</code></pre> <p>搞懂這些，要解決就簡單了，加上 Response.ContentType = "application/javascript" 就好了。</p> <pre><code>&lt;%@Page Language="C#"%&gt;
+&lt;script runat="server"&gt;
+protected void Page_Load(object sender, EventArgs e)
+{
+Response.Headers.Add("X-Content-Type-Options", "nosniff ");
+var callback = Request.QueryString["callback"];
+if (!string.IsNullOrEmpty(callback) &amp;&amp;
+System.Text.RegularExpressions.Regex.IsMatch(callback, "^[a-zA-Z0-9_]+$"))
+{
+Response.ContentType = "application/javascript";
+Response.Write(callback + "({name:'Jeffrey', score:32767})");
+}
+else
+{
+Response.Write("Invalid callback");
+}
+}
+&lt;/script&gt;
+</code></pre> <p>搞定收工。</p> <p data-slug="jsonp-and-orb-issue" data-title-en="JSONP response blocked by ORB issue" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This post describes a JSONP callback issue in an old system. The problem, identified as ERR_BLOCKED_BY_ORB in Chrome, was due to missing MIME type specification. Solution: Adding Response.ContentType = "application/javascript" in the server-side code resolved the issue.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>記錄最近維護古蹟遇到的問題一枚。</p> <p>接到通報，老系統某個使用 JSONP 呼叫第三方網頁執行指定作業並接收回覆，不知何時開始失效了。</p> <p>客戶端程式類似這樣：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;JSONP Test&lt;/title&gt;
+&lt;script src="https://code.jquery.com/jquery-3.6.0.min.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;button id="btnTest"&gt;JSONP Test&lt;/button&gt;
+&lt;textarea id="txtResult" rows="4" cols="50" style="display:block; margin-top:6px;"&gt;
+&lt;/textarea&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function handleResponse(data) {
+console.log(data);
+}
+$('#btnTest').click(function() {
+$.ajax({
+url: 'http://172.23.160.1/aspnet/jsonp/api.aspx',
+data: { userId: 'Jeffrey' },
+dataType: 'jsonp',
+success: function(data) {
+$('#txtResult').val(JSON.stringify(data));
+}
+});
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>奇妙的是，使用 F12 監看 JSONP 呼叫，HTTP 狀態 200，但沒有回應內容：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638721851909710770.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638721851912763407.png"></p> <p>意思是 api.aspx程式有成功執行 (HTTP 200)也回傳了，但資料長度是 0 Byte？收到一張無聲卡？</p> <p>困惑了一陣子，同事改用 Chrome 測試才出現轉機。Chrome 執行相同網頁也是無回應，但有提供一則錯誤代碼 <code>ERR_BLOCKED_BY_ORB</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638721851914357258.png"></p> <p>ORB 是 Opaque Response Blocking 的縮寫，指瀏覽器可依要求，拒絕處理「不透明的回應」(Opaque Responses)，意指沒有明確標示的 MIME 類型，或者 MIME 類型與實際內容不匹配。而有個 Header <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options">X-Content-Type-Options: nosniff</a> 可要求瀏覽器嚴格遵守資源的 MIME 類型，禁止進行「MIME 類型嗅探」(<a href="https://en.wikipedia.org/wiki/Content_sniffing">MIME Type Sniffing</a>) 自動偵測並設定 MIME Type 以免形成資安漏洞。(延伸閱讀：<a href="https://medium.com/%E7%A8%8B%E5%BC%8F%E6%84%9B%E5%A5%BD%E8%80%85/%E9%97%9C%E6%96%BC%E5%AE%89%E5%85%A8%E6%80%A7%E7%9A%84header-b3b7adcb0fca">資安議題 — Http Security Header by LSZ</a>)</p> <p>舉個例子，若網站允許使用者上傳 .jpg 檔。攻擊者寫了一段內含 JavaScript 的 HTML 假裝 .jpg 上傳，其他使用者瀏覽該圖片時若瀏覽器啟用 MIME Type Sniffing 自動識別校正成網頁呈現，攻擊者的惡意 JavaScript 便會被執行。</p> <p>回頭看這個重現情境中的 api.aspx，內容像以下這樣。有兩大重點，1) 有回傳 Header X-Content-Type-Options: nosniff 2) 未指定 MIME Type。</p> <pre><code>&lt;%@Page Language="C#"%&gt;
+&lt;script runat="server"&gt;
+protected void Page_Load(object sender, EventArgs e)
+{
+Response.Headers.Add("X-Content-Type-Options", "nosniff ");
+var callback = Request.QueryString["callback"];
+if (!string.IsNullOrEmpty(callback) &amp;&amp;
+System.Text.RegularExpressions.Regex.IsMatch(callback, "^[a-zA-Z0-9_]+$"))
+{
+Response.Write(callback + "({name:'Jeffrey', score:32767})");
+}
+else
+{
+Response.Write("Invalid callback");
+}
+}
+&lt;/script&gt;
+</code></pre> <p>搞懂這些，要解決就簡單了，加上 Response.ContentType = "application/javascript" 就好了。</p> <pre><code>&lt;%@Page Language="C#"%&gt;
+&lt;script runat="server"&gt;
+protected void Page_Load(object sender, EventArgs e)
+{
+Response.Headers.Add("X-Content-Type-Options", "nosniff ");
+var callback = Request.QueryString["callback"];
+if (!string.IsNullOrEmpty(callback) &amp;&amp;
+System.Text.RegularExpressions.Regex.IsMatch(callback, "^[a-zA-Z0-9_]+$"))
+{
+Response.ContentType = "application/javascript";
+Response.Write(callback + "({name:'Jeffrey', score:32767})");
+}
+else
+{
+Response.Write("Invalid callback");
+}
+}
+&lt;/script&gt;
+</code></pre> <p>搞定收工。</p> <p data-slug="jsonp-and-orb-issue" data-title-en="JSONP response blocked by ORB issue" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/4388164/pexels-photo-4388164.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=650&amp;w=940#940#650">This post describes a JSONP callback issue in an old system. The problem, identified as ERR_BLOCKED_BY_ORB in Chrome, was due to missing MIME type specification. Solution: Adding Response.ContentType = "application/javascript" in the server-side code resolved the issue.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638721851909710770.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638721851909710770.png" medium="image"/>
+    <pubDate>Sat, 11 Jan 2025 09:35:29 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[教書教到 88 歲，這才是完美的人生呀~]]></title>
+    <link>https://blog.darkthread.net/blog/gilbert-strang/</link>
+    <itunes:title><![CDATA[教書教到 88 歲，這才是完美的人生呀~]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://zh.wikipedia.org/zh-tw/%E5%A8%81%E5%BB%89%C2%B7%E5%90%89%E7%88%BE%E4%BC%AF%E7%89%B9%C2%B7%E6%96%AF%E7%89%B9%E6%9C%97">Gilbert Strang</a> 是美國麻省理工學院(或該說是全世界)的傳奇教授，他在 2023 年五月 15 日上完最後一堂線性代數後，結束 <strong>61 年</strong>的教書生涯，年僅 <strong>88 歲</strong>便毅然決然退休(喂)。</p> <p>系主任課後致詞<a href="https://www.youtube.com/watch?v=lUUte2o2Sn8&amp;t=3748s">提到一件趣事</a>：每每有畢業多年的校友返校找他聊天，憶起當年數學系有一門很棒的代數課，老師好像叫... 呃，Gil Strang？不過他應該退休幾十年了吧。系主任得馬上指正：沒哦，他現在還在教! 今天起，他終於能說，對，Strang 教授已經退休。</p> <p>最後 <a href="https://youtu.be/lUUte2o2Sn8?t=3852">Strang 教授說</a>：哦，系主任認為我要退休了，那我再想想好了。</p> <p>何等夢幻的 88 歲!! 清晰的頭腦(還能教大學生)、硬朗的身體(這年紀光是能不撐拐杖站起來就很威了)、對學術知識仍有熊熊熱情且樂在其中，言談還不減幽默，這是我心中完美的人生!</p> <p><a href="https://www.youtube.com/watch?v=lUUte2o2Sn8">最後一堂課的錄影</a></p> <p data-slug="gilbert-strang" data-fbimg="https://i.ytimg.com/vi/lUUte2o2Sn8/maxresdefault.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://zh.wikipedia.org/zh-tw/%E5%A8%81%E5%BB%89%C2%B7%E5%90%89%E7%88%BE%E4%BC%AF%E7%89%B9%C2%B7%E6%96%AF%E7%89%B9%E6%9C%97">Gilbert Strang</a> 是美國麻省理工學院(或該說是全世界)的傳奇教授，他在 2023 年五月 15 日上完最後一堂線性代數後，結束 <strong>61 年</strong>的教書生涯，年僅 <strong>88 歲</strong>便毅然決然退休(喂)。</p> <p>系主任課後致詞<a href="https://www.youtube.com/watch?v=lUUte2o2Sn8&amp;t=3748s">提到一件趣事</a>：每每有畢業多年的校友返校找他聊天，憶起當年數學系有一門很棒的代數課，老師好像叫... 呃，Gil Strang？不過他應該退休幾十年了吧。系主任得馬上指正：沒哦，他現在還在教! 今天起，他終於能說，對，Strang 教授已經退休。</p> <p>最後 <a href="https://youtu.be/lUUte2o2Sn8?t=3852">Strang 教授說</a>：哦，系主任認為我要退休了，那我再想想好了。</p> <p>何等夢幻的 88 歲!! 清晰的頭腦(還能教大學生)、硬朗的身體(這年紀光是能不撐拐杖站起來就很威了)、對學術知識仍有熊熊熱情且樂在其中，言談還不減幽默，這是我心中完美的人生!</p> <p><a href="https://www.youtube.com/watch?v=lUUte2o2Sn8">最後一堂課的錄影</a></p> <p data-slug="gilbert-strang" data-fbimg="https://i.ytimg.com/vi/lUUte2o2Sn8/maxresdefault.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://zh.wikipedia.org/zh-tw/%E5%A8%81%E5%BB%89%C2%B7%E5%90%89%E7%88%BE%E4%BC%AF%E7%89%B9%C2%B7%E6%96%AF%E7%89%B9%E6%9C%97">Gilbert Strang</a> 是美國麻省理工學院(或該說是全世界)的傳奇教授，他在 2023 年五月 15 日上完最後一堂線性代數後，結束 <strong>61 年</strong>的教書生涯，年僅 <strong>88 歲</strong>便毅然決然退休(喂)。</p> <p>系主任課後致詞<a href="https://www.youtube.com/watch?v=lUUte2o2Sn8&amp;t=3748s">提到一件趣事</a>：每每有畢業多年的校友返校找他聊天，憶起當年數學系有一門很棒的代數課，老師好像叫... 呃，Gil Strang？不過他應該退休幾十年了吧。系主任得馬上指正：沒哦，他現在還在教! 今天起，他終於能說，對，Strang 教授已經退休。</p> <p>最後 <a href="https://youtu.be/lUUte2o2Sn8?t=3852">Strang 教授說</a>：哦，系主任認為我要退休了，那我再想想好了。</p> <p>何等夢幻的 88 歲!! 清晰的頭腦(還能教大學生)、硬朗的身體(這年紀光是能不撐拐杖站起來就很威了)、對學術知識仍有熊熊熱情且樂在其中，言談還不減幽默，這是我心中完美的人生!</p> <p><a href="https://www.youtube.com/watch?v=lUUte2o2Sn8">最後一堂課的錄影</a></p> <p data-slug="gilbert-strang" data-fbimg="https://i.ytimg.com/vi/lUUte2o2Sn8/maxresdefault.jpg#1280#720"> </p>]]></content:encoded>
+    
+    <pubDate>Sat, 04 Jan 2025 14:26:38 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[開發雜記 - JPG MIME Type、JFIF 格式與 LEADTOOLS]]></title>
+    <link>https://blog.darkthread.net/blog/jpg-mime-type/</link>
+    <itunes:title><![CDATA[開發雜記 - JPG MIME Type、JFIF 格式與 LEADTOOLS]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>2025 年第二天，來個低級錯誤連發。</p> <p>寫了如下程式發送圖文信。(參考：<a href="/blog/smtp-richtext-mail-with-csharp/">使用 C# 寄送圖文並茂郵件</a>)</p> <pre><code>public static void TestEmbImgMail()
+{
+var mailBody = """
+&lt;div&gt;
+&lt;div&gt;
+JPG: &lt;img src="cid:sample.jpg" /&gt;
+&lt;/div&gt;
+&lt;div&gt;
+PNG: &lt;img src="cid:sample.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+""";
+using var message = new MailMessage
+{
+Body = mailBody,
+IsBodyHtml = true
+};
+using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, "text/html");
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), "image/jpg") { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), "image/png") { ContentId = "sample.png" });
+message.AlternateViews.Add(avHtmlView);
+SendOutlookMail("admin@example.com", "JPG/PNG Embedded Image Test", message);
+}
+</code></pre> <p>Outlook 收信測試看起來沒啥問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png"></p> <p>接獲反映，雖然郵件可以順利檢視，但在某幾台 Outlook 會出現名為 ATT00001 的不明附件。且似乎與 Outlook 版本有關，只會某些人會遇到。</p> <p>我找到一個方法重現類似結果，是啟用「信任中心設定/電子郵件安全性/以純文字檔讀取所有標準郵件」選項，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638714298021979664.png"></p> <p>Outlook 純文模式下，會出現兩個附件檔：「未命名的附件 00104.dat」/「未命名的附件 00107.png」，而前者約略為 sample.jpg 的大小，意思是 sample.jpg 沒被正確解析。</p> <p>好奇瞄了 sample.jpg 看有什麼異常，看到 JFIF 跟 LEADTOOLS v22.0 等陌生字樣，而我腦海中的 JPEG 規格還停在 JPEG 2000...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638714298023715160.png"></p> <p>這個時代，遇到常識類問題，LLM 是最好的老師。</p> <p>把以上擷圖胋到 ChatGPT、Gemini、Claude，提問「如何解析這個 .jpg 檔的檔頭，從中可得到哪些資訊？」，三者都能給出答案。其中我最喜歡 Gemini 的回答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638714298027122838.png"></p> <p>除了 JFIF OCR 誤轉成 JEIF，Gemini 針對內容逐段解析，詳細說明，完整解答了我的疑惑。我得到以下結論：</p> <ol><li>由 FF D8 可確認這是一個 JPEG 檔案無誤</li> <li>FF E0 後方為 APP0 (Application Seciont 0，應用程式區段 0)，JFIF 字樣代表案使用 JFIF 規格</li> <li>FF FE 後方為 COM (Comment 註解區段)，註記檔案可能由 LEADTOOLS v22.0 處理過</li></ol> <p>進一步查了 JFIF 跟 LEADTOOLS，再搞懂兩個新名詞。</p> <ul><li>JFIF (JPEG File Interchange Format，JPEG 檔案交換格式)，是一種圖像檔案格式標準。早期的 JPEG 標準 (JIF) 只定義了圖像的壓縮方式，但沒有規範檔案的具體結構，這導致不同軟體或硬體產生的 JPEG 檔案可能無法互相相容。JFIF 在 JPEG 基礎上添加了一些必要的資訊，使得 JPEG 檔案能夠在不同的系統上正確顯示。</li> <li>JFIF 和 JPEG 常被混用，是因為二者關係非常密切。我們可以把 JFIF 看作是 JPEG 的一種具體實現方式，或是「標準化的 JPEG」。實際上，目前網路上大部分看到的 JPEG 檔案，都是採用 JFIF 標準。</li> <li>而 LEADTOOLS 是常見的的影像處理函式庫，提供影像處理、壓縮、轉換、OCR 等功能，JPEG 檔案的 COM (Comment) 區段的 "LEADTOOLS v22.0" 字串，應是使用 LEADTOOLS 程式庫留下了，我的圖檔使用 Snagit 處理，而其<a href="https://support.techsmith.com/hc/en-us/articles/115006435067-Snagit-Windows-Version-History">官網</a>也提到它有用到 LeadTools (17 October 2023: Snagit 2024.0.1 / Updates for IT Administrators)</li></ul> <p>所以，這是一個正常的 JPG 檔，回頭再看程式，這才發現錯誤所在，sample.jpg 的 MIME Type 我寫成了 "image/jpg"，雖然 .jpg、.jpeg 副檔名可以互動，但 JPEG 的 <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types">MIME Type 是 image/jpeg</a>，而 image/jpg 從來不是個有效值。修正後，彈出 ATT00001 的問題就排除了。</p> <p>而上面的這段程式，其實有更好的寫法：</p> <pre><code>    using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, MediaTypeNames.Text.Html);
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), MediaTypeNames.Image.Jpeg) { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), MediaTypeNames.Image.Png) { ContentId = "sample.png" });
+</code></pre> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.mime.mediatypenames.image?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">System.Net.Mime.MediaTypeNames.Image</a> 有定義好標準字串，既能免除記錯拼錯的風險，又能享受強型別的關聯性，不要自己敲。(筆記)</p> <p data-slug="jpg-mime-type" data-title-en="Incorrect .jpg MIME type issue when sending MailMessage" data-catg=".NET" data-fbimg="https://i.imgur.com/pi0kqzm.png#640#640">The blog post discusses an issue with sending HTML emails containing embedded images using C#. An error occurred due to using an incorrect MIME type for a JPEG image. The correct MIME type is image/jpeg, not image/jpg. The post also highlights the benefits of using predefined constants in System.Net.Mime.MediaTypeNames to avoid such errors.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>2025 年第二天，來個低級錯誤連發。</p> <p>寫了如下程式發送圖文信。(參考：<a href="/blog/smtp-richtext-mail-with-csharp/">使用 C# 寄送圖文並茂郵件</a>)</p> <pre><code>public static void TestEmbImgMail()
+{
+var mailBody = """
+&lt;div&gt;
+&lt;div&gt;
+JPG: &lt;img src="cid:sample.jpg" /&gt;
+&lt;/div&gt;
+&lt;div&gt;
+PNG: &lt;img src="cid:sample.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+""";
+using var message = new MailMessage
+{
+Body = mailBody,
+IsBodyHtml = true
+};
+using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, "text/html");
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), "image/jpg") { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), "image/png") { ContentId = "sample.png" });
+message.AlternateViews.Add(avHtmlView);
+SendOutlookMail("admin@example.com", "JPG/PNG Embedded Image Test", message);
+}
+</code></pre> <p>Outlook 收信測試看起來沒啥問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png"></p> <p>接獲反映，雖然郵件可以順利檢視，但在某幾台 Outlook 會出現名為 ATT00001 的不明附件。且似乎與 Outlook 版本有關，只會某些人會遇到。</p> <p>我找到一個方法重現類似結果，是啟用「信任中心設定/電子郵件安全性/以純文字檔讀取所有標準郵件」選項，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638714298021979664.png"></p> <p>Outlook 純文模式下，會出現兩個附件檔：「未命名的附件 00104.dat」/「未命名的附件 00107.png」，而前者約略為 sample.jpg 的大小，意思是 sample.jpg 沒被正確解析。</p> <p>好奇瞄了 sample.jpg 看有什麼異常，看到 JFIF 跟 LEADTOOLS v22.0 等陌生字樣，而我腦海中的 JPEG 規格還停在 JPEG 2000...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638714298023715160.png"></p> <p>這個時代，遇到常識類問題，LLM 是最好的老師。</p> <p>把以上擷圖胋到 ChatGPT、Gemini、Claude，提問「如何解析這個 .jpg 檔的檔頭，從中可得到哪些資訊？」，三者都能給出答案。其中我最喜歡 Gemini 的回答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638714298027122838.png"></p> <p>除了 JFIF OCR 誤轉成 JEIF，Gemini 針對內容逐段解析，詳細說明，完整解答了我的疑惑。我得到以下結論：</p> <ol><li>由 FF D8 可確認這是一個 JPEG 檔案無誤</li> <li>FF E0 後方為 APP0 (Application Seciont 0，應用程式區段 0)，JFIF 字樣代表案使用 JFIF 規格</li> <li>FF FE 後方為 COM (Comment 註解區段)，註記檔案可能由 LEADTOOLS v22.0 處理過</li></ol> <p>進一步查了 JFIF 跟 LEADTOOLS，再搞懂兩個新名詞。</p> <ul><li>JFIF (JPEG File Interchange Format，JPEG 檔案交換格式)，是一種圖像檔案格式標準。早期的 JPEG 標準 (JIF) 只定義了圖像的壓縮方式，但沒有規範檔案的具體結構，這導致不同軟體或硬體產生的 JPEG 檔案可能無法互相相容。JFIF 在 JPEG 基礎上添加了一些必要的資訊，使得 JPEG 檔案能夠在不同的系統上正確顯示。</li> <li>JFIF 和 JPEG 常被混用，是因為二者關係非常密切。我們可以把 JFIF 看作是 JPEG 的一種具體實現方式，或是「標準化的 JPEG」。實際上，目前網路上大部分看到的 JPEG 檔案，都是採用 JFIF 標準。</li> <li>而 LEADTOOLS 是常見的的影像處理函式庫，提供影像處理、壓縮、轉換、OCR 等功能，JPEG 檔案的 COM (Comment) 區段的 "LEADTOOLS v22.0" 字串，應是使用 LEADTOOLS 程式庫留下了，我的圖檔使用 Snagit 處理，而其<a href="https://support.techsmith.com/hc/en-us/articles/115006435067-Snagit-Windows-Version-History">官網</a>也提到它有用到 LeadTools (17 October 2023: Snagit 2024.0.1 / Updates for IT Administrators)</li></ul> <p>所以，這是一個正常的 JPG 檔，回頭再看程式，這才發現錯誤所在，sample.jpg 的 MIME Type 我寫成了 "image/jpg"，雖然 .jpg、.jpeg 副檔名可以互動，但 JPEG 的 <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types">MIME Type 是 image/jpeg</a>，而 image/jpg 從來不是個有效值。修正後，彈出 ATT00001 的問題就排除了。</p> <p>而上面的這段程式，其實有更好的寫法：</p> <pre><code>    using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, MediaTypeNames.Text.Html);
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), MediaTypeNames.Image.Jpeg) { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), MediaTypeNames.Image.Png) { ContentId = "sample.png" });
+</code></pre> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.mime.mediatypenames.image?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">System.Net.Mime.MediaTypeNames.Image</a> 有定義好標準字串，既能免除記錯拼錯的風險，又能享受強型別的關聯性，不要自己敲。(筆記)</p> <p data-slug="jpg-mime-type" data-title-en="Incorrect .jpg MIME type issue when sending MailMessage" data-catg=".NET" data-fbimg="https://i.imgur.com/pi0kqzm.png#640#640">The blog post discusses an issue with sending HTML emails containing embedded images using C#. An error occurred due to using an incorrect MIME type for a JPEG image. The correct MIME type is image/jpeg, not image/jpg. The post also highlights the benefits of using predefined constants in System.Net.Mime.MediaTypeNames to avoid such errors.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>2025 年第二天，來個低級錯誤連發。</p> <p>寫了如下程式發送圖文信。(參考：<a href="/blog/smtp-richtext-mail-with-csharp/">使用 C# 寄送圖文並茂郵件</a>)</p> <pre><code>public static void TestEmbImgMail()
+{
+var mailBody = """
+&lt;div&gt;
+&lt;div&gt;
+JPG: &lt;img src="cid:sample.jpg" /&gt;
+&lt;/div&gt;
+&lt;div&gt;
+PNG: &lt;img src="cid:sample.png" /&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+""";
+using var message = new MailMessage
+{
+Body = mailBody,
+IsBodyHtml = true
+};
+using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, "text/html");
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), "image/jpg") { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), "image/png") { ContentId = "sample.png" });
+message.AlternateViews.Add(avHtmlView);
+SendOutlookMail("admin@example.com", "JPG/PNG Embedded Image Test", message);
+}
+</code></pre> <p>Outlook 收信測試看起來沒啥問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png"></p> <p>接獲反映，雖然郵件可以順利檢視，但在某幾台 Outlook 會出現名為 ATT00001 的不明附件。且似乎與 Outlook 版本有關，只會某些人會遇到。</p> <p>我找到一個方法重現類似結果，是啟用「信任中心設定/電子郵件安全性/以純文字檔讀取所有標準郵件」選項，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638714298021979664.png"></p> <p>Outlook 純文模式下，會出現兩個附件檔：「未命名的附件 00104.dat」/「未命名的附件 00107.png」，而前者約略為 sample.jpg 的大小，意思是 sample.jpg 沒被正確解析。</p> <p>好奇瞄了 sample.jpg 看有什麼異常，看到 JFIF 跟 LEADTOOLS v22.0 等陌生字樣，而我腦海中的 JPEG 規格還停在 JPEG 2000...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638714298023715160.png"></p> <p>這個時代，遇到常識類問題，LLM 是最好的老師。</p> <p>把以上擷圖胋到 ChatGPT、Gemini、Claude，提問「如何解析這個 .jpg 檔的檔頭，從中可得到哪些資訊？」，三者都能給出答案。其中我最喜歡 Gemini 的回答：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638714298027122838.png"></p> <p>除了 JFIF OCR 誤轉成 JEIF，Gemini 針對內容逐段解析，詳細說明，完整解答了我的疑惑。我得到以下結論：</p> <ol><li>由 FF D8 可確認這是一個 JPEG 檔案無誤</li> <li>FF E0 後方為 APP0 (Application Seciont 0，應用程式區段 0)，JFIF 字樣代表案使用 JFIF 規格</li> <li>FF FE 後方為 COM (Comment 註解區段)，註記檔案可能由 LEADTOOLS v22.0 處理過</li></ol> <p>進一步查了 JFIF 跟 LEADTOOLS，再搞懂兩個新名詞。</p> <ul><li>JFIF (JPEG File Interchange Format，JPEG 檔案交換格式)，是一種圖像檔案格式標準。早期的 JPEG 標準 (JIF) 只定義了圖像的壓縮方式，但沒有規範檔案的具體結構，這導致不同軟體或硬體產生的 JPEG 檔案可能無法互相相容。JFIF 在 JPEG 基礎上添加了一些必要的資訊，使得 JPEG 檔案能夠在不同的系統上正確顯示。</li> <li>JFIF 和 JPEG 常被混用，是因為二者關係非常密切。我們可以把 JFIF 看作是 JPEG 的一種具體實現方式，或是「標準化的 JPEG」。實際上，目前網路上大部分看到的 JPEG 檔案，都是採用 JFIF 標準。</li> <li>而 LEADTOOLS 是常見的的影像處理函式庫，提供影像處理、壓縮、轉換、OCR 等功能，JPEG 檔案的 COM (Comment) 區段的 "LEADTOOLS v22.0" 字串，應是使用 LEADTOOLS 程式庫留下了，我的圖檔使用 Snagit 處理，而其<a href="https://support.techsmith.com/hc/en-us/articles/115006435067-Snagit-Windows-Version-History">官網</a>也提到它有用到 LeadTools (17 October 2023: Snagit 2024.0.1 / Updates for IT Administrators)</li></ul> <p>所以，這是一個正常的 JPG 檔，回頭再看程式，這才發現錯誤所在，sample.jpg 的 MIME Type 我寫成了 "image/jpg"，雖然 .jpg、.jpeg 副檔名可以互動，但 JPEG 的 <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/MIME_types/Common_types">MIME Type 是 image/jpeg</a>，而 image/jpg 從來不是個有效值。修正後，彈出 ATT00001 的問題就排除了。</p> <p>而上面的這段程式，其實有更好的寫法：</p> <pre><code>    using var avHtmlView = AlternateView.CreateAlternateViewFromString(mailBody, null, MediaTypeNames.Text.Html);
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.jpg")), MediaTypeNames.Image.Jpeg) { ContentId = "sample.jpg" });
+avHtmlView.LinkedResources.Add(new LinkedResource(
+new MemoryStream(ReadImgBytes("sample.png")), MediaTypeNames.Image.Png) { ContentId = "sample.png" });
+</code></pre> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.mime.mediatypenames.image?view=net-8.0&amp;WT.mc_id=DOP-MVP-37580">System.Net.Mime.MediaTypeNames.Image</a> 有定義好標準字串，既能免除記錯拼錯的風險，又能享受強型別的關聯性，不要自己敲。(筆記)</p> <p data-slug="jpg-mime-type" data-title-en="Incorrect .jpg MIME type issue when sending MailMessage" data-catg=".NET" data-fbimg="https://i.imgur.com/pi0kqzm.png#640#640">The blog post discusses an issue with sending HTML emails containing embedded images using C#. An error occurred due to using an incorrect MIME type for a JPEG image. The correct MIME type is image/jpeg, not image/jpg. The post also highlights the benefits of using predefined constants in System.Net.Mime.MediaTypeNames to avoid such errors.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638714298020272502.png" medium="image"/>
+    <pubDate>Thu, 02 Jan 2025 15:45:20 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【茶包射手小記】無法生效的 .gitignore]]></title>
+    <link>https://blog.darkthread.net/blog/gitignore-not-working/</link>
+    <itunes:title><![CDATA[【茶包射手小記】無法生效的 .gitignore]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>2025 開年第一天就踩雷，耗了快二十分鐘才找出問題，筆記留念。</p> <p>問題出在我明明在 .gitignore 寫了 .venv，Git 怎麼就是無視我的設定，硬要把 Python .venv 虛擬環境目錄包進版控。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png"></p> <p>起初以為會不會是檔名打錯字之類的低級問題，睜大眼睛看到眼眶都痛了都沒看出端倪。而在 VSCode 按 Add to .gitignore 也能正確加入項目，也證明檔名沒問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638713410383298588.png"></p> <p>試了很久，終於發現問題所在：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638713410385080392.png"></p> <p>我的這個 .gitignore 是在 VSCode PowerShell Terminal 用 <code>echo .venv &gt; .gitignore</code> 做出來的，這裡犯了一個錯，在 PowerShell 5.1 使用 &gt; 導向，預設會用 UTF-16LE (UCS-2 LE)，不是 UTF-8，這個雷之前踩過，且一不留神就會踩了又踩。 參考：<a href="/blog/ps-encoding/">PowerShell 輸出結果編碼問題</a></p> <p>PowerShell 6+ (pwsh) 起預設編碼已改成 UTF-8，預估比較不會再有類似問題。(如下例，對照 "echo HELLO &gt; d:\file-name.txt" 在 PowerShell 與 pwsh 執行結果大不同)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638713410386804748.png"></p> <p>總之，歷經這次刻骨銘心的經驗，我以後應該不會再忘記惹...</p> <p data-slug="gitignore-not-working" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>2025 開年第一天就踩雷，耗了快二十分鐘才找出問題，筆記留念。</p> <p>問題出在我明明在 .gitignore 寫了 .venv，Git 怎麼就是無視我的設定，硬要把 Python .venv 虛擬環境目錄包進版控。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png"></p> <p>起初以為會不會是檔名打錯字之類的低級問題，睜大眼睛看到眼眶都痛了都沒看出端倪。而在 VSCode 按 Add to .gitignore 也能正確加入項目，也證明檔名沒問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638713410383298588.png"></p> <p>試了很久，終於發現問題所在：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638713410385080392.png"></p> <p>我的這個 .gitignore 是在 VSCode PowerShell Terminal 用 <code>echo .venv &gt; .gitignore</code> 做出來的，這裡犯了一個錯，在 PowerShell 5.1 使用 &gt; 導向，預設會用 UTF-16LE (UCS-2 LE)，不是 UTF-8，這個雷之前踩過，且一不留神就會踩了又踩。 參考：<a href="/blog/ps-encoding/">PowerShell 輸出結果編碼問題</a></p> <p>PowerShell 6+ (pwsh) 起預設編碼已改成 UTF-8，預估比較不會再有類似問題。(如下例，對照 "echo HELLO &gt; d:\file-name.txt" 在 PowerShell 與 pwsh 執行結果大不同)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638713410386804748.png"></p> <p>總之，歷經這次刻骨銘心的經驗，我以後應該不會再忘記惹...</p> <p data-slug="gitignore-not-working" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>2025 開年第一天就踩雷，耗了快二十分鐘才找出問題，筆記留念。</p> <p>問題出在我明明在 .gitignore 寫了 .venv，Git 怎麼就是無視我的設定，硬要把 Python .venv 虛擬環境目錄包進版控。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png"></p> <p>起初以為會不會是檔名打錯字之類的低級問題，睜大眼睛看到眼眶都痛了都沒看出端倪。而在 VSCode 按 Add to .gitignore 也能正確加入項目，也證明檔名沒問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638713410383298588.png"></p> <p>試了很久，終於發現問題所在：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638713410385080392.png"></p> <p>我的這個 .gitignore 是在 VSCode PowerShell Terminal 用 <code>echo .venv &gt; .gitignore</code> 做出來的，這裡犯了一個錯，在 PowerShell 5.1 使用 &gt; 導向，預設會用 UTF-16LE (UCS-2 LE)，不是 UTF-8，這個雷之前踩過，且一不留神就會踩了又踩。 參考：<a href="/blog/ps-encoding/">PowerShell 輸出結果編碼問題</a></p> <p>PowerShell 6+ (pwsh) 起預設編碼已改成 UTF-8，預估比較不會再有類似問題。(如下例，對照 "echo HELLO &gt; d:\file-name.txt" 在 PowerShell 與 pwsh 執行結果大不同)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638713410386804748.png"></p> <p>總之，歷經這次刻骨銘心的經驗，我以後應該不會再忘記惹...</p> <p data-slug="gitignore-not-working" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638713410381498298.png" medium="image"/>
+    <pubDate>Wed, 01 Jan 2025 15:09:38 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[使用 LINE 聊天機器人回應圖片或檔案]]></title>
+    <link>https://blog.darkthread.net/blog/linebot-reply-images-or-files/</link>
+    <itunes:title><![CDATA[使用 LINE 聊天機器人回應圖片或檔案]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前陣子說完<a href="/blog/meme-picture-w-css-playwright/">用 CSS + Playwright 製作梗圖</a>，這篇來試試我過去沒玩過的新嘗試 - 用 LINE Bot 聊天機器人回傳圖片或檔案。</p> <p>之前寫的 LINE 聊天機器人，不管是投票人數統計、AI 聊天或是即時翻譯，都是接收使用者指令或談話內容，利用不計費的 <a href="https://developers.line.biz/en/reference/messaging-api/#send-reply-message">Reply API</a> 回傳文字提供服務，而 LINE 可回傳的訊息格式並不限於純文字，還可傳回應貼圖、圖片、影片、聲音檔、地理位置、可點擊圖片以，及確認對話框、選項按鈕、圖片輪播... 等各種彈性化互動介面 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/">參考</a>... 等。我平日開發 LINE 機器人主要靠 <a href="/blog/line-bot-sdk-notes/">.NET LineBotSDK 套件</a>，本身對這類訊息格式便有一定程度的支援。這篇就來試試在聊天室下指令叫 LINE 機器人動態生成梗圖，再分別用圖檔跟 PDF 格式傳給使用者。</p> <p>實做效果會像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"></p> <p>在 LINE 要回傳圖檔或 PDF，不是將檔案 byte[] 傳給 LINE API，而是要自己把檔案放上外界可存取的網站，再將下載網址提供給 LINE API。若不想費事，要串 LINK API 原本就有個對外的 Webhook 網站，把檔案放在上面給人下載是最簡單的解法。</p> <p>若是圖檔內容，在聊天室會直接以圖片方式呈現，使用者可用 LINE 內建的儲存、另存新檔、分享、傳送至 Keep 筆記... 等選單操作，而點擊圖片時則會開啟 LINE 內建的圖片檢視器。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638712511360359295.png"></p> <p>至於檔案下載，最無腦的簡單做法是用文字回傳 URL，LINE 會自動轉成超連結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638712511362057711.png"></p> <p>如果覺得這個做法太陽春，可考慮做成 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/#buttons-template">Buttons Template</a>，以圖片、標題、說明形式呈現，下方則可放上一到多個連結。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638712511364019856.png"></p> <p>點選下載連結會開啟你指定的網址，呈現形式可完全客製打造。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638712511367979132.png"></p> <p>回到如何用 LineBotSDK 實現以上需求。若要回傳圖片，可建立一個 ImageMessage 物件，提供圖片及預覽圖片網址，將用 ReplyMessage() 送出 ImageMessage：</p> <pre><code>var imgMsg = new ImageMessage(new Uri(imgUrl), new Uri(previewImgUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+</code></pre> <p>至於 ButtonsTemplate，Bot.ReplyMesssage() 沒有直接支援此一格式，我的解決方法是改用 isRock.LineBot.Utility.ReplyTemplateMessage()，程式寫法會像這樣：</p> <pre><code>var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, apiKey);
+</code></pre> <p>借用之前<a href="/blog/line-gpt-trans-bot/">大砲打小鳥之 ChatGPT 翻譯鳳梨酥 LINE Bot</a>範例為基礎，略加修改後即可實現上面擷圖所展示的效果。</p> <pre><code>// 使用快取暫存檔案，在 Webhook Web API 新增 GET 路由提供下載
+var fileCache = new MemoryCache(new MemoryCacheOptions());
+app.MapGet("/Files/{id}/{fileName}", (string id) =&gt;
+{
+if (fileCache.TryGetValue(id, out (string fileName, string contentType, byte[] content) file))
+{
+if (file.contentType.StartsWith("image") || // 圖片與 PDF 開放瀏覽器直接顯示
+file.contentType.StartsWith("application/pdf"))
+return Results.File(file.content, file.contentType);
+else
+// 其他檔案類型則提供檔名，下載後開啟
+return Results.File(file.content, file.contentType, file.fileName);
+}
+return Results.NotFound();
+});
+app.MapPost("/MsgCallback", async (context) =&gt;
+{
+var body = context.Request.Body;
+using var reader = new StreamReader(body);
+var json = await reader.ReadToEndAsync();
+var msg = Utility.Parsing(json);
+foreach (var evt in msg.events)
+{
+if (evt.type == "message")
+{
+if (evt.message.type == "text")
+{
+var text = evt.message.text;
+// 檢查是否為 #MEMEPNG 或 #MEMEPDF 指令
+var m = Regex.Match(text, @"(?ims)^#(?&lt;tag&gt;(MEMEPNG|MEMEPDF))\s*(?&lt;top&gt;.+?)\s*\|\s*(?&lt;bottom&gt;.+)");
+if (m.Success)
+{
+var baseUri = $"https://{context.Request.Host}{context.Request.PathBase}";
+var id = Guid.NewGuid().ToString();
+var tag = m.Groups["tag"].Value;
+var topWord = m.Groups["top"].Value;
+var bottomWord = m.Groups["bottom"].Value;
+if (tag == "MEMEPNG")
+{
+var imgBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.png";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "image/png", file: imgBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+ImageMessage imgMsg = new ImageMessage(new Uri(fileUrl), new Uri(fileUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+}
+else
+{
+var pdfBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord, true);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.pdf";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "application/pdf", file: pdfBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, lineBotKey);
+}
+continue;
+}
+}
+}
+}
+await context.Response.WriteAsync("OK");
+}
+</code></pre> <p>不過，美中不足的是 - LineBotSDK 的 ButtonsTemplate 不支援將預覽圖設定正方形，另外原本 API 規格預覽圖也可點擊，會連到我們指定的超連結，這塊目前 SDK 也沒有實做。所幸，有個 ReplyMessageWithJSON() 函式允許自行組裝 Message JSON 原始內容，故程式可小改如下：(不得不說，C# 加入的 <a href="/blog/csharp11-raw-string-literal/">Raw String Literal (用 """ 取代 @" )</a> 超好用，文字可縮排、用 $$"""...""" 在其中改用 {{ varName }} 插值，原本的 不用跳脫，都比 @"..." 方便)</p> <pre><code>var templMsgJson= $$"""
+[{
+"type": "template",
+"altText": "Download File",
+"template": {
+"type": "buttons",
+"thumbnailImageUrl": "https://www.svgrepo.com/show/33873/pdf.svg",
+"imageAspectRatio": "square",
+"imageSize": "cover",
+"imageBackgroundColor": "#FFFFFF",
+"title": "LINE Bot 回傳檔案展示",
+"text": "檔案僅保留5分鐘，請儘速下載",
+"defaultAction": {
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+},
+"actions": [
+{
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+}
+]
+}
+}]
+""";
+lineBot.ReplyMessageWithJSON(evt.replyToken, templMsgJson);
+</code></pre> <p>修改後的版本，可以使用正方形縮圖，滑鼠移到縮圖上會變手指，點下去可以下載檔案，感覺又更高級了。打完收工。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638712511369788317.png"></p> <p data-slug="linebot-reply-images-or-files" data-title-en="Replying images or files from LINE bot" data-catg=".NET" data-fbimg="https://i.imgur.com/mpmKFXh.jpg#1280#720">In this post, I explore how to make a LINE Bot return dynamically generated images or PDFs. The bot uses the .NET LineBotSDK to respond to user commands by creating memes and providing links to download the files. The article covers setting up the bot, generating the files, and sending them back to users using LINE’s messaging API.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前陣子說完<a href="/blog/meme-picture-w-css-playwright/">用 CSS + Playwright 製作梗圖</a>，這篇來試試我過去沒玩過的新嘗試 - 用 LINE Bot 聊天機器人回傳圖片或檔案。</p> <p>之前寫的 LINE 聊天機器人，不管是投票人數統計、AI 聊天或是即時翻譯，都是接收使用者指令或談話內容，利用不計費的 <a href="https://developers.line.biz/en/reference/messaging-api/#send-reply-message">Reply API</a> 回傳文字提供服務，而 LINE 可回傳的訊息格式並不限於純文字，還可傳回應貼圖、圖片、影片、聲音檔、地理位置、可點擊圖片以，及確認對話框、選項按鈕、圖片輪播... 等各種彈性化互動介面 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/">參考</a>... 等。我平日開發 LINE 機器人主要靠 <a href="/blog/line-bot-sdk-notes/">.NET LineBotSDK 套件</a>，本身對這類訊息格式便有一定程度的支援。這篇就來試試在聊天室下指令叫 LINE 機器人動態生成梗圖，再分別用圖檔跟 PDF 格式傳給使用者。</p> <p>實做效果會像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"></p> <p>在 LINE 要回傳圖檔或 PDF，不是將檔案 byte[] 傳給 LINE API，而是要自己把檔案放上外界可存取的網站，再將下載網址提供給 LINE API。若不想費事，要串 LINK API 原本就有個對外的 Webhook 網站，把檔案放在上面給人下載是最簡單的解法。</p> <p>若是圖檔內容，在聊天室會直接以圖片方式呈現，使用者可用 LINE 內建的儲存、另存新檔、分享、傳送至 Keep 筆記... 等選單操作，而點擊圖片時則會開啟 LINE 內建的圖片檢視器。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638712511360359295.png"></p> <p>至於檔案下載，最無腦的簡單做法是用文字回傳 URL，LINE 會自動轉成超連結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638712511362057711.png"></p> <p>如果覺得這個做法太陽春，可考慮做成 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/#buttons-template">Buttons Template</a>，以圖片、標題、說明形式呈現，下方則可放上一到多個連結。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638712511364019856.png"></p> <p>點選下載連結會開啟你指定的網址，呈現形式可完全客製打造。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638712511367979132.png"></p> <p>回到如何用 LineBotSDK 實現以上需求。若要回傳圖片，可建立一個 ImageMessage 物件，提供圖片及預覽圖片網址，將用 ReplyMessage() 送出 ImageMessage：</p> <pre><code>var imgMsg = new ImageMessage(new Uri(imgUrl), new Uri(previewImgUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+</code></pre> <p>至於 ButtonsTemplate，Bot.ReplyMesssage() 沒有直接支援此一格式，我的解決方法是改用 isRock.LineBot.Utility.ReplyTemplateMessage()，程式寫法會像這樣：</p> <pre><code>var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, apiKey);
+</code></pre> <p>借用之前<a href="/blog/line-gpt-trans-bot/">大砲打小鳥之 ChatGPT 翻譯鳳梨酥 LINE Bot</a>範例為基礎，略加修改後即可實現上面擷圖所展示的效果。</p> <pre><code>// 使用快取暫存檔案，在 Webhook Web API 新增 GET 路由提供下載
+var fileCache = new MemoryCache(new MemoryCacheOptions());
+app.MapGet("/Files/{id}/{fileName}", (string id) =&gt;
+{
+if (fileCache.TryGetValue(id, out (string fileName, string contentType, byte[] content) file))
+{
+if (file.contentType.StartsWith("image") || // 圖片與 PDF 開放瀏覽器直接顯示
+file.contentType.StartsWith("application/pdf"))
+return Results.File(file.content, file.contentType);
+else
+// 其他檔案類型則提供檔名，下載後開啟
+return Results.File(file.content, file.contentType, file.fileName);
+}
+return Results.NotFound();
+});
+app.MapPost("/MsgCallback", async (context) =&gt;
+{
+var body = context.Request.Body;
+using var reader = new StreamReader(body);
+var json = await reader.ReadToEndAsync();
+var msg = Utility.Parsing(json);
+foreach (var evt in msg.events)
+{
+if (evt.type == "message")
+{
+if (evt.message.type == "text")
+{
+var text = evt.message.text;
+// 檢查是否為 #MEMEPNG 或 #MEMEPDF 指令
+var m = Regex.Match(text, @"(?ims)^#(?&lt;tag&gt;(MEMEPNG|MEMEPDF))\s*(?&lt;top&gt;.+?)\s*\|\s*(?&lt;bottom&gt;.+)");
+if (m.Success)
+{
+var baseUri = $"https://{context.Request.Host}{context.Request.PathBase}";
+var id = Guid.NewGuid().ToString();
+var tag = m.Groups["tag"].Value;
+var topWord = m.Groups["top"].Value;
+var bottomWord = m.Groups["bottom"].Value;
+if (tag == "MEMEPNG")
+{
+var imgBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.png";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "image/png", file: imgBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+ImageMessage imgMsg = new ImageMessage(new Uri(fileUrl), new Uri(fileUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+}
+else
+{
+var pdfBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord, true);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.pdf";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "application/pdf", file: pdfBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, lineBotKey);
+}
+continue;
+}
+}
+}
+}
+await context.Response.WriteAsync("OK");
+}
+</code></pre> <p>不過，美中不足的是 - LineBotSDK 的 ButtonsTemplate 不支援將預覽圖設定正方形，另外原本 API 規格預覽圖也可點擊，會連到我們指定的超連結，這塊目前 SDK 也沒有實做。所幸，有個 ReplyMessageWithJSON() 函式允許自行組裝 Message JSON 原始內容，故程式可小改如下：(不得不說，C# 加入的 <a href="/blog/csharp11-raw-string-literal/">Raw String Literal (用 """ 取代 @" )</a> 超好用，文字可縮排、用 $$"""...""" 在其中改用 {{ varName }} 插值，原本的 不用跳脫，都比 @"..." 方便)</p> <pre><code>var templMsgJson= $$"""
+[{
+"type": "template",
+"altText": "Download File",
+"template": {
+"type": "buttons",
+"thumbnailImageUrl": "https://www.svgrepo.com/show/33873/pdf.svg",
+"imageAspectRatio": "square",
+"imageSize": "cover",
+"imageBackgroundColor": "#FFFFFF",
+"title": "LINE Bot 回傳檔案展示",
+"text": "檔案僅保留5分鐘，請儘速下載",
+"defaultAction": {
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+},
+"actions": [
+{
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+}
+]
+}
+}]
+""";
+lineBot.ReplyMessageWithJSON(evt.replyToken, templMsgJson);
+</code></pre> <p>修改後的版本，可以使用正方形縮圖，滑鼠移到縮圖上會變手指，點下去可以下載檔案，感覺又更高級了。打完收工。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638712511369788317.png"></p> <p data-slug="linebot-reply-images-or-files" data-title-en="Replying images or files from LINE bot" data-catg=".NET" data-fbimg="https://i.imgur.com/mpmKFXh.jpg#1280#720">In this post, I explore how to make a LINE Bot return dynamically generated images or PDFs. The bot uses the .NET LineBotSDK to respond to user commands by creating memes and providing links to download the files. The article covers setting up the bot, generating the files, and sending them back to users using LINE’s messaging API.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前陣子說完<a href="/blog/meme-picture-w-css-playwright/">用 CSS + Playwright 製作梗圖</a>，這篇來試試我過去沒玩過的新嘗試 - 用 LINE Bot 聊天機器人回傳圖片或檔案。</p> <p>之前寫的 LINE 聊天機器人，不管是投票人數統計、AI 聊天或是即時翻譯，都是接收使用者指令或談話內容，利用不計費的 <a href="https://developers.line.biz/en/reference/messaging-api/#send-reply-message">Reply API</a> 回傳文字提供服務，而 LINE 可回傳的訊息格式並不限於純文字，還可傳回應貼圖、圖片、影片、聲音檔、地理位置、可點擊圖片以，及確認對話框、選項按鈕、圖片輪播... 等各種彈性化互動介面 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/">參考</a>... 等。我平日開發 LINE 機器人主要靠 <a href="/blog/line-bot-sdk-notes/">.NET LineBotSDK 套件</a>，本身對這類訊息格式便有一定程度的支援。這篇就來試試在聊天室下指令叫 LINE 機器人動態生成梗圖，再分別用圖檔跟 PDF 格式傳給使用者。</p> <p>實做效果會像這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"></p> <p>在 LINE 要回傳圖檔或 PDF，不是將檔案 byte[] 傳給 LINE API，而是要自己把檔案放上外界可存取的網站，再將下載網址提供給 LINE API。若不想費事，要串 LINK API 原本就有個對外的 Webhook 網站，把檔案放在上面給人下載是最簡單的解法。</p> <p>若是圖檔內容，在聊天室會直接以圖片方式呈現，使用者可用 LINE 內建的儲存、另存新檔、分享、傳送至 Keep 筆記... 等選單操作，而點擊圖片時則會開啟 LINE 內建的圖片檢視器。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638712511360359295.png"></p> <p>至於檔案下載，最無腦的簡單做法是用文字回傳 URL，LINE 會自動轉成超連結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638712511362057711.png"></p> <p>如果覺得這個做法太陽春，可考慮做成 <a href="https://developers.line.biz/en/docs/messaging-api/message-types/#buttons-template">Buttons Template</a>，以圖片、標題、說明形式呈現，下方則可放上一到多個連結。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638712511364019856.png"></p> <p>點選下載連結會開啟你指定的網址，呈現形式可完全客製打造。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638712511367979132.png"></p> <p>回到如何用 LineBotSDK 實現以上需求。若要回傳圖片，可建立一個 ImageMessage 物件，提供圖片及預覽圖片網址，將用 ReplyMessage() 送出 ImageMessage：</p> <pre><code>var imgMsg = new ImageMessage(new Uri(imgUrl), new Uri(previewImgUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+</code></pre> <p>至於 ButtonsTemplate，Bot.ReplyMesssage() 沒有直接支援此一格式，我的解決方法是改用 isRock.LineBot.Utility.ReplyTemplateMessage()，程式寫法會像這樣：</p> <pre><code>var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, apiKey);
+</code></pre> <p>借用之前<a href="/blog/line-gpt-trans-bot/">大砲打小鳥之 ChatGPT 翻譯鳳梨酥 LINE Bot</a>範例為基礎，略加修改後即可實現上面擷圖所展示的效果。</p> <pre><code>// 使用快取暫存檔案，在 Webhook Web API 新增 GET 路由提供下載
+var fileCache = new MemoryCache(new MemoryCacheOptions());
+app.MapGet("/Files/{id}/{fileName}", (string id) =&gt;
+{
+if (fileCache.TryGetValue(id, out (string fileName, string contentType, byte[] content) file))
+{
+if (file.contentType.StartsWith("image") || // 圖片與 PDF 開放瀏覽器直接顯示
+file.contentType.StartsWith("application/pdf"))
+return Results.File(file.content, file.contentType);
+else
+// 其他檔案類型則提供檔名，下載後開啟
+return Results.File(file.content, file.contentType, file.fileName);
+}
+return Results.NotFound();
+});
+app.MapPost("/MsgCallback", async (context) =&gt;
+{
+var body = context.Request.Body;
+using var reader = new StreamReader(body);
+var json = await reader.ReadToEndAsync();
+var msg = Utility.Parsing(json);
+foreach (var evt in msg.events)
+{
+if (evt.type == "message")
+{
+if (evt.message.type == "text")
+{
+var text = evt.message.text;
+// 檢查是否為 #MEMEPNG 或 #MEMEPDF 指令
+var m = Regex.Match(text, @"(?ims)^#(?&lt;tag&gt;(MEMEPNG|MEMEPDF))\s*(?&lt;top&gt;.+?)\s*\|\s*(?&lt;bottom&gt;.+)");
+if (m.Success)
+{
+var baseUri = $"https://{context.Request.Host}{context.Request.PathBase}";
+var id = Guid.NewGuid().ToString();
+var tag = m.Groups["tag"].Value;
+var topWord = m.Groups["top"].Value;
+var bottomWord = m.Groups["bottom"].Value;
+if (tag == "MEMEPNG")
+{
+var imgBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.png";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "image/png", file: imgBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+ImageMessage imgMsg = new ImageMessage(new Uri(fileUrl), new Uri(fileUrl));
+lineBot.ReplyMessage(evt.replyToken, imgMsg);
+}
+else
+{
+var pdfBytes = await memeMaker.MakeMeme(memeFolder, topWord, bottomWord, true);
+var fileName = $"meme-{DateTime.Now.Ticks.ToString("x")}.pdf";
+var fileUrl = $"{baseUri}/Files/{id}/{Uri.EscapeDataString(fileName)}";
+fileCache.Set(id, (fileName: fileName, contentType: "application/pdf", file: pdfBytes),
+absoluteExpiration: DateTimeOffset.Now.AddMinutes(5));
+var tmplMsg = new ButtonsTemplate()
+{
+altText = "Download File",
+thumbnailImageUrl = new Uri("https://www.svgrepo.com/show/33873/pdf.svg"),
+title = "LINE Bot 回傳檔案展示",
+text = "檔案僅保留5分鐘，請儘速下載",
+actions = new List&lt;TemplateActionBase&gt;() {
+new UriAction() { label = "下載檔案", uri = new Uri(fileUrl) }
+}
+};
+isRock.LineBot.Utility.ReplyTemplateMessage(evt.replyToken, tmplMsg, lineBotKey);
+}
+continue;
+}
+}
+}
+}
+await context.Response.WriteAsync("OK");
+}
+</code></pre> <p>不過，美中不足的是 - LineBotSDK 的 ButtonsTemplate 不支援將預覽圖設定正方形，另外原本 API 規格預覽圖也可點擊，會連到我們指定的超連結，這塊目前 SDK 也沒有實做。所幸，有個 ReplyMessageWithJSON() 函式允許自行組裝 Message JSON 原始內容，故程式可小改如下：(不得不說，C# 加入的 <a href="/blog/csharp11-raw-string-literal/">Raw String Literal (用 """ 取代 @" )</a> 超好用，文字可縮排、用 $$"""...""" 在其中改用 {{ varName }} 插值，原本的 不用跳脫，都比 @"..." 方便)</p> <pre><code>var templMsgJson= $$"""
+[{
+"type": "template",
+"altText": "Download File",
+"template": {
+"type": "buttons",
+"thumbnailImageUrl": "https://www.svgrepo.com/show/33873/pdf.svg",
+"imageAspectRatio": "square",
+"imageSize": "cover",
+"imageBackgroundColor": "#FFFFFF",
+"title": "LINE Bot 回傳檔案展示",
+"text": "檔案僅保留5分鐘，請儘速下載",
+"defaultAction": {
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+},
+"actions": [
+{
+"type": "uri",
+"label": "下載檔案",
+"uri": "{{fileUrl}}"
+}
+]
+}
+}]
+""";
+lineBot.ReplyMessageWithJSON(evt.replyToken, templMsgJson);
+</code></pre> <p>修改後的版本，可以使用正方形縮圖，滑鼠移到縮圖上會變手指，點下去可以下載檔案，感覺又更高級了。打完收工。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig6_638712511369788317.png"></p> <p data-slug="linebot-reply-images-or-files" data-title-en="Replying images or files from LINE bot" data-catg=".NET" data-fbimg="https://i.imgur.com/mpmKFXh.jpg#1280#720">In this post, I explore how to make a LINE Bot return dynamically generated images or PDFs. The bot uses the .NET LineBotSDK to respond to user commands by creating memes and providing links to download the files. The article covers setting up the bot, generating the files, and sending them back to users using LINE’s messaging API.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png" medium="image"/>
+    <pubDate>Tue, 31 Dec 2024 14:11:58 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Git 小技巧 - 將 Commit 打包成檔案送到異地同步]]></title>
+    <link>https://blog.darkthread.net/blog/git-bundle/</link>
+    <itunes:title><![CDATA[Git 小技巧 - 將 Commit 打包成檔案送到異地同步]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
+# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
+git bundle create D:\repo.bundle master dev
+# 目的端
+git clone D:\reop.bundle MyProject # 指令資料夾
+</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
+# 只打包最近一次 Commit
+git bundle create D:\latest.bundle HEAD~..HEAD
+# 最近兩次
+git bundle create D:\recent.bundle HEAD~2..HEAD
+# 目的端
+git pull D:\latest.bundle
+</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
+# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
+git bundle create D:\repo.bundle master dev
+# 目的端
+git clone D:\reop.bundle MyProject # 指令資料夾
+</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
+# 只打包最近一次 Commit
+git bundle create D:\latest.bundle HEAD~..HEAD
+# 最近兩次
+git bundle create D:\recent.bundle HEAD~2..HEAD
+# 目的端
+git pull D:\latest.bundle
+</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
+# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
+git bundle create D:\repo.bundle master dev
+# 目的端
+git clone D:\reop.bundle MyProject # 指令資料夾
+</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
+# 只打包最近一次 Commit
+git bundle create D:\latest.bundle HEAD~..HEAD
+# 最近兩次
+git bundle create D:\recent.bundle HEAD~2..HEAD
+# 目的端
+git pull D:\latest.bundle
+</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png" medium="image"/>
+    <pubDate>Mon, 30 Dec 2024 23:45:28 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Python 新手筆記 4 - Dictionary、Tuple 與 Set]]></title>
+    <link>https://blog.darkthread.net/blog/python-beginner-notes-4/</link>
+    <itunes:title><![CDATA[Python 新手筆記 4 - Dictionary、Tuple 與 Set]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
+keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
+print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
+# 簡化寫法
+print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
+</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
+k, v = dcit_name.popitem()
+print(f"{k}: {v}")
+</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
+print("{k}: {v}")
+</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
+keys1 = big_dict.keys()
+keys2 = list(big_dict.keys())
+# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
+</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
+squars = { x: x**2 for i in nums }
+# zip 可將兩個 List 的元素一配一組成 Tuple
+fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
+</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
+keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
+print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
+# 簡化寫法
+print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
+</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
+k, v = dcit_name.popitem()
+print(f"{k}: {v}")
+</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
+print("{k}: {v}")
+</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
+keys1 = big_dict.keys()
+keys2 = list(big_dict.keys())
+# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
+</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
+squars = { x: x**2 for i in nums }
+# zip 可將兩個 List 的元素一配一組成 Tuple
+fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
+</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
+keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
+print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
+# 簡化寫法
+print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
+</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
+k, v = dcit_name.popitem()
+print(f"{k}: {v}")
+</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
+print("{k}: {v}")
+</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
+keys1 = big_dict.keys()
+keys2 = list(big_dict.keys())
+# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
+</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
+squars = { x: x**2 for i in nums }
+# zip 可將兩個 List 的元素一配一組成 Tuple
+fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
+</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg" medium="image"/>
+    <pubDate>Mon, 30 Dec 2024 13:14:59 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[架設 Docker Mailserver 進行 SMTP/POP3 內部測試]]></title>
+    <link>https://blog.darkthread.net/blog/docker-mailserver-for-internal-test/</link>
+    <itunes:title><![CDATA[架設 Docker Mailserver 進行 SMTP/POP3 內部測試]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>一開始我只是想省點事，真的。想說自己架台 SMTP/POP3 伺服器，要測 Outlook 接收內嵌圖檔信件的效果會方便許多。</p> <p>伺服器架在內網自己玩不對外，通訊協定用 SMTP/POP3 明碼通訊即可，不必搞煩人的帳號密碼登入、OAuth 認證、API Key，也不需要考慮垃圾信檢核，聚焦郵件內容呈現才是重點。郵件伺服器有 <a href="https://docker-mailserver.github.io/docker-mailserver/latest/">Docker Mailserver</a> 可用，花兩分鐘下載啟動容器，接著就有台標準 SMTP/POP3 能用 C# SmtpClient 發信、Outlook POP3 收信測個痛快，豈不美哉？</p> <p>如意算盤打得好，但代誌沒憨人想的哈尼甘單。由於缺少郵件服務專業，原以為幾分鐘的事，一路踩坑、爬文、踩坑、爬文，我足足花了兩個多小時才搞定，但欣慰的是過程有學到不少新知識。</p> <p>踩坑心得最後再講，以下是我測試成功的做法。</p> <p>Docker Mailserver 安裝方式我是參考這篇 - <a href="https://miyago9267.com/Tutorial/misc/exp-mailserver/">Docker MailServer 架設與踩坑紀錄 by DJ MYG</a>，但有些小更改：</p> <ol><li>從 Github 下載 docker-composer.yml，由於我打算走 POP3 110 協定，ports: 要多加 "110:110"，hostname 沿用預設的 mail.example.com 即可：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png"></li> <li>從 Github 下載 mailserver.env，這是這次學到的新技巧，docker-composer.yml 可用 env_file 將 environments 設定移到另外的設定檔集中管理。以下幾處跟預設值不同要調 <pre><code>OVERRIDE_HOSTNAME=mail.example.com
+ENABLE_POLICYD_SPF=0 # 停用 SPF
+ENABLE_OPENDMARC=0 # 停用 DMARC
+ENABLE_POP3=1 # 啟用 POP3
+</code></pre> </li> <li>使用指令 <code>docker-compose up -d</code> 安裝並執行容器<br> 註：也可以選擇 <code>docker-compose up</code> 即時監查伺服器 Log，但後續建立帳號操作要用 <a href="/blog/tmux/">tmux</a> 或開 Terminal 執行。</li> <li>建立 <code>admin@example.com</code> 帳號，密碼隨便給，另為 admin 帳號新增 postmaster 別名</li></ol> <p>完整指令碼整理如下：</p> <pre><code>S_GITHUB_URL="https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master"
+curl -LO "${DMS_GITHUB_URL}/compose.yaml" &amp;&amp; mv compose.yaml docker-compose.yaml
+# nano docker-compose.yml 增加 POP3 Port
+curl -LO "${DMS_GITHUB_URL}/mailserver.env"
+# nano mailserver.env，依上述說明修改
+# 把 Docker 跑起來
+docker-compose up
+# 用 tmux 或另外一個 Terminal 執行以下指令建立帳號
+# 建立 admin
+docker exec -it mailserver setup email add admin@example.com "password"
+# 將 postmaster 建立為 admin 的別名
+docker exec -it mailserver setup alias add postmaster@example.com admin@example.com
+</code></pre> <p>以上程序做完，在客戶端設定 <code>C:\Widows\System32\drivers\etc\hosts</code> 將 <code>mail.example.con</code> 指向該主機 IP，測試 <code>telent mail.example.com 25</code> 及 <code>telent mail.example.com 110</code> 有通(或者用更好用的 PowerShell <a href="/blog/ps-test-netconnection/">Test-NetConnection 指令</a>)，下一步是 Outlook 新增帳號用 POP3 收信。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638706752229747435.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638706752231335338.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638706752233162133.png"><br> (註：我實測用 25 Port 會出現伺服器不支援 Outlook 使用的安全認證方式，改設 465 Port，加密方式選自動才 OK。問題似乎跟 amavisd-new 垃圾信防護有關，但由於不影響 C# SmtpClient 測試，我沒再深入研究。)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638706752234759726.png"></p> <p>若一切順利，到這裡應該能用 Outlook 收信。(寄信會不會被退被擋是另一回事)</p> <p>接著說說我踩到的坑。</p> <p>Docker Mailserver 是個能用於正式環境，Production 等級的伺服器，因此常用的垃圾信防護及認證機制一樣沒少，我一口氣學會：DMARC、DKIM、SPF 三個名詞。(延伸閱讀：<a href="https://www.cloudflare.com/zh-tw/learning/email-security/dmarc-dkim-spf/">什麼是 DMARC、DKIM 和 SPF？ by Cloudflare</a>)</p> <ul><li>DKIM (DomainKeys Identified Mail) 是一種公鑰簽名驗證機制，以用證明郵件系出名門</li> <li>SPF (Sender Policy Framework) 是在 DNS 列舉授權該網域可發送郵件的有效伺服器 IP，方便收信方查證來源</li> <li>DMARC (Domain-based Message Authentication, Reporting &amp; Conformance) 是一種電子郵件驗證、報告和一致性協定，它基於 DKIM 及 SPF，用來決定未通過驗證郵件的處理方式(例：隔離或拒絕)</li></ul> <p>Docker Mailserver 預設啟用 SPF 及 DMARC 都是啟用的，故你就算 SMTP 從 <code>admin@example.com</code> 寄給 <code>admin@example.com</code> 都會可能被擋掉，出現以下訊息。</p> <pre><code>550 5.7.23 &lt;admin@example.com&gt;: Recipient address rejected: Message rejected due to: SPF fail - not authorized.
+550 5.7.1 rejected by DMARC policy for example.com
+</code></pre> <p>由於測試伺服器並不會用來收外部信，故省事做法是如前面所說的，修改 mailserver.env 將 SPF、DMARC 停用。</p> <p>另外，我用 .NET SmtpClient 走 25 Port 送信時收到另一個錯誤：<code>The server response was: 5.5.2 &lt;MY-PC-HOSTNAME&gt;: Helo command rejected: need fully-qualified hostname</code>，看起來是 POSIX SMTP 的要求，之前用 Exchange SMTP HELO/EHLO 只給機器名稱沒問題的。查了一下，.NET Framework 可以<a href="https://stackoverflow.com/a/37417017/288936">透過 .config <code>&lt;network clientDomain="mail.example.com" /&gt;</code></a> 設 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.configuration.smtpnetworkelement.clientdomain?view=netframework-4.8.1&amp;WT.mc_id=DOP-MVP-37580">clientDomain</a> 決定 HELO/EHLO 傳送的名稱，但這是 .NET 4.X 時代的事，我是用 .NET 8 啊啊啊啊~</p> <p>最後，參考網友的解法：<a href="https://umbracare.net/blog/resolving-syntactically-invalid-ehlo-argument-smtpexception-in-c/">Resolving Syntactically invalid EHLO argument SmtpException in C#</a>，我動用 Reflection 偷改私有 Field _clientDomain 結束這回合。</p> <pre><code>using (var client = new SmtpClient("mail.example.com", 25))
+{
+var clientDomainField = typeof(SmtpClient).GetField("_clientDomain", BindingFlags.Instance | BindingFlags.NonPublic);
+if (clientDomainField != null)
+{
+clientDomainField.SetValue(client, "client.example.com"); // 隨便給即可
+}
+client.UseDefaultCredentials = false;
+client.EnableSsl = false;
+client.Send(message);
+}
+</code></pre> <p>終於。</p> <p data-slug="docker-mailserver-for-internal-test" data-title-en="Setting up a local test SMTP/POP3 server with Docker Mailserver" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">This post details the author’s experience setting up a local SMTP/POP3 server with Docker Mailserver for testing embedded images in Outlook. Key issues included disabling DMARC and SPF checks and handling .NET SmtpClient’s fully-qualified hostname requirement with Reflection.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>一開始我只是想省點事，真的。想說自己架台 SMTP/POP3 伺服器，要測 Outlook 接收內嵌圖檔信件的效果會方便許多。</p> <p>伺服器架在內網自己玩不對外，通訊協定用 SMTP/POP3 明碼通訊即可，不必搞煩人的帳號密碼登入、OAuth 認證、API Key，也不需要考慮垃圾信檢核，聚焦郵件內容呈現才是重點。郵件伺服器有 <a href="https://docker-mailserver.github.io/docker-mailserver/latest/">Docker Mailserver</a> 可用，花兩分鐘下載啟動容器，接著就有台標準 SMTP/POP3 能用 C# SmtpClient 發信、Outlook POP3 收信測個痛快，豈不美哉？</p> <p>如意算盤打得好，但代誌沒憨人想的哈尼甘單。由於缺少郵件服務專業，原以為幾分鐘的事，一路踩坑、爬文、踩坑、爬文，我足足花了兩個多小時才搞定，但欣慰的是過程有學到不少新知識。</p> <p>踩坑心得最後再講，以下是我測試成功的做法。</p> <p>Docker Mailserver 安裝方式我是參考這篇 - <a href="https://miyago9267.com/Tutorial/misc/exp-mailserver/">Docker MailServer 架設與踩坑紀錄 by DJ MYG</a>，但有些小更改：</p> <ol><li>從 Github 下載 docker-composer.yml，由於我打算走 POP3 110 協定，ports: 要多加 "110:110"，hostname 沿用預設的 mail.example.com 即可：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png"></li> <li>從 Github 下載 mailserver.env，這是這次學到的新技巧，docker-composer.yml 可用 env_file 將 environments 設定移到另外的設定檔集中管理。以下幾處跟預設值不同要調 <pre><code>OVERRIDE_HOSTNAME=mail.example.com
+ENABLE_POLICYD_SPF=0 # 停用 SPF
+ENABLE_OPENDMARC=0 # 停用 DMARC
+ENABLE_POP3=1 # 啟用 POP3
+</code></pre> </li> <li>使用指令 <code>docker-compose up -d</code> 安裝並執行容器<br> 註：也可以選擇 <code>docker-compose up</code> 即時監查伺服器 Log，但後續建立帳號操作要用 <a href="/blog/tmux/">tmux</a> 或開 Terminal 執行。</li> <li>建立 <code>admin@example.com</code> 帳號，密碼隨便給，另為 admin 帳號新增 postmaster 別名</li></ol> <p>完整指令碼整理如下：</p> <pre><code>S_GITHUB_URL="https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master"
+curl -LO "${DMS_GITHUB_URL}/compose.yaml" &amp;&amp; mv compose.yaml docker-compose.yaml
+# nano docker-compose.yml 增加 POP3 Port
+curl -LO "${DMS_GITHUB_URL}/mailserver.env"
+# nano mailserver.env，依上述說明修改
+# 把 Docker 跑起來
+docker-compose up
+# 用 tmux 或另外一個 Terminal 執行以下指令建立帳號
+# 建立 admin
+docker exec -it mailserver setup email add admin@example.com "password"
+# 將 postmaster 建立為 admin 的別名
+docker exec -it mailserver setup alias add postmaster@example.com admin@example.com
+</code></pre> <p>以上程序做完，在客戶端設定 <code>C:\Widows\System32\drivers\etc\hosts</code> 將 <code>mail.example.con</code> 指向該主機 IP，測試 <code>telent mail.example.com 25</code> 及 <code>telent mail.example.com 110</code> 有通(或者用更好用的 PowerShell <a href="/blog/ps-test-netconnection/">Test-NetConnection 指令</a>)，下一步是 Outlook 新增帳號用 POP3 收信。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638706752229747435.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638706752231335338.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638706752233162133.png"><br> (註：我實測用 25 Port 會出現伺服器不支援 Outlook 使用的安全認證方式，改設 465 Port，加密方式選自動才 OK。問題似乎跟 amavisd-new 垃圾信防護有關，但由於不影響 C# SmtpClient 測試，我沒再深入研究。)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638706752234759726.png"></p> <p>若一切順利，到這裡應該能用 Outlook 收信。(寄信會不會被退被擋是另一回事)</p> <p>接著說說我踩到的坑。</p> <p>Docker Mailserver 是個能用於正式環境，Production 等級的伺服器，因此常用的垃圾信防護及認證機制一樣沒少，我一口氣學會：DMARC、DKIM、SPF 三個名詞。(延伸閱讀：<a href="https://www.cloudflare.com/zh-tw/learning/email-security/dmarc-dkim-spf/">什麼是 DMARC、DKIM 和 SPF？ by Cloudflare</a>)</p> <ul><li>DKIM (DomainKeys Identified Mail) 是一種公鑰簽名驗證機制，以用證明郵件系出名門</li> <li>SPF (Sender Policy Framework) 是在 DNS 列舉授權該網域可發送郵件的有效伺服器 IP，方便收信方查證來源</li> <li>DMARC (Domain-based Message Authentication, Reporting &amp; Conformance) 是一種電子郵件驗證、報告和一致性協定，它基於 DKIM 及 SPF，用來決定未通過驗證郵件的處理方式(例：隔離或拒絕)</li></ul> <p>Docker Mailserver 預設啟用 SPF 及 DMARC 都是啟用的，故你就算 SMTP 從 <code>admin@example.com</code> 寄給 <code>admin@example.com</code> 都會可能被擋掉，出現以下訊息。</p> <pre><code>550 5.7.23 &lt;admin@example.com&gt;: Recipient address rejected: Message rejected due to: SPF fail - not authorized.
+550 5.7.1 rejected by DMARC policy for example.com
+</code></pre> <p>由於測試伺服器並不會用來收外部信，故省事做法是如前面所說的，修改 mailserver.env 將 SPF、DMARC 停用。</p> <p>另外，我用 .NET SmtpClient 走 25 Port 送信時收到另一個錯誤：<code>The server response was: 5.5.2 &lt;MY-PC-HOSTNAME&gt;: Helo command rejected: need fully-qualified hostname</code>，看起來是 POSIX SMTP 的要求，之前用 Exchange SMTP HELO/EHLO 只給機器名稱沒問題的。查了一下，.NET Framework 可以<a href="https://stackoverflow.com/a/37417017/288936">透過 .config <code>&lt;network clientDomain="mail.example.com" /&gt;</code></a> 設 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.configuration.smtpnetworkelement.clientdomain?view=netframework-4.8.1&amp;WT.mc_id=DOP-MVP-37580">clientDomain</a> 決定 HELO/EHLO 傳送的名稱，但這是 .NET 4.X 時代的事，我是用 .NET 8 啊啊啊啊~</p> <p>最後，參考網友的解法：<a href="https://umbracare.net/blog/resolving-syntactically-invalid-ehlo-argument-smtpexception-in-c/">Resolving Syntactically invalid EHLO argument SmtpException in C#</a>，我動用 Reflection 偷改私有 Field _clientDomain 結束這回合。</p> <pre><code>using (var client = new SmtpClient("mail.example.com", 25))
+{
+var clientDomainField = typeof(SmtpClient).GetField("_clientDomain", BindingFlags.Instance | BindingFlags.NonPublic);
+if (clientDomainField != null)
+{
+clientDomainField.SetValue(client, "client.example.com"); // 隨便給即可
+}
+client.UseDefaultCredentials = false;
+client.EnableSsl = false;
+client.Send(message);
+}
+</code></pre> <p>終於。</p> <p data-slug="docker-mailserver-for-internal-test" data-title-en="Setting up a local test SMTP/POP3 server with Docker Mailserver" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">This post details the author’s experience setting up a local SMTP/POP3 server with Docker Mailserver for testing embedded images in Outlook. Key issues included disabling DMARC and SPF checks and handling .NET SmtpClient’s fully-qualified hostname requirement with Reflection.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>一開始我只是想省點事，真的。想說自己架台 SMTP/POP3 伺服器，要測 Outlook 接收內嵌圖檔信件的效果會方便許多。</p> <p>伺服器架在內網自己玩不對外，通訊協定用 SMTP/POP3 明碼通訊即可，不必搞煩人的帳號密碼登入、OAuth 認證、API Key，也不需要考慮垃圾信檢核，聚焦郵件內容呈現才是重點。郵件伺服器有 <a href="https://docker-mailserver.github.io/docker-mailserver/latest/">Docker Mailserver</a> 可用，花兩分鐘下載啟動容器，接著就有台標準 SMTP/POP3 能用 C# SmtpClient 發信、Outlook POP3 收信測個痛快，豈不美哉？</p> <p>如意算盤打得好，但代誌沒憨人想的哈尼甘單。由於缺少郵件服務專業，原以為幾分鐘的事，一路踩坑、爬文、踩坑、爬文，我足足花了兩個多小時才搞定，但欣慰的是過程有學到不少新知識。</p> <p>踩坑心得最後再講，以下是我測試成功的做法。</p> <p>Docker Mailserver 安裝方式我是參考這篇 - <a href="https://miyago9267.com/Tutorial/misc/exp-mailserver/">Docker MailServer 架設與踩坑紀錄 by DJ MYG</a>，但有些小更改：</p> <ol><li>從 Github 下載 docker-composer.yml，由於我打算走 POP3 110 協定，ports: 要多加 "110:110"，hostname 沿用預設的 mail.example.com 即可：<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png"></li> <li>從 Github 下載 mailserver.env，這是這次學到的新技巧，docker-composer.yml 可用 env_file 將 environments 設定移到另外的設定檔集中管理。以下幾處跟預設值不同要調 <pre><code>OVERRIDE_HOSTNAME=mail.example.com
+ENABLE_POLICYD_SPF=0 # 停用 SPF
+ENABLE_OPENDMARC=0 # 停用 DMARC
+ENABLE_POP3=1 # 啟用 POP3
+</code></pre> </li> <li>使用指令 <code>docker-compose up -d</code> 安裝並執行容器<br> 註：也可以選擇 <code>docker-compose up</code> 即時監查伺服器 Log，但後續建立帳號操作要用 <a href="/blog/tmux/">tmux</a> 或開 Terminal 執行。</li> <li>建立 <code>admin@example.com</code> 帳號，密碼隨便給，另為 admin 帳號新增 postmaster 別名</li></ol> <p>完整指令碼整理如下：</p> <pre><code>S_GITHUB_URL="https://raw.githubusercontent.com/docker-mailserver/docker-mailserver/master"
+curl -LO "${DMS_GITHUB_URL}/compose.yaml" &amp;&amp; mv compose.yaml docker-compose.yaml
+# nano docker-compose.yml 增加 POP3 Port
+curl -LO "${DMS_GITHUB_URL}/mailserver.env"
+# nano mailserver.env，依上述說明修改
+# 把 Docker 跑起來
+docker-compose up
+# 用 tmux 或另外一個 Terminal 執行以下指令建立帳號
+# 建立 admin
+docker exec -it mailserver setup email add admin@example.com "password"
+# 將 postmaster 建立為 admin 的別名
+docker exec -it mailserver setup alias add postmaster@example.com admin@example.com
+</code></pre> <p>以上程序做完，在客戶端設定 <code>C:\Widows\System32\drivers\etc\hosts</code> 將 <code>mail.example.con</code> 指向該主機 IP，測試 <code>telent mail.example.com 25</code> 及 <code>telent mail.example.com 110</code> 有通(或者用更好用的 PowerShell <a href="/blog/ps-test-netconnection/">Test-NetConnection 指令</a>)，下一步是 Outlook 新增帳號用 POP3 收信。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638706752229747435.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638706752231335338.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638706752233162133.png"><br> (註：我實測用 25 Port 會出現伺服器不支援 Outlook 使用的安全認證方式，改設 465 Port，加密方式選自動才 OK。問題似乎跟 amavisd-new 垃圾信防護有關，但由於不影響 C# SmtpClient 測試，我沒再深入研究。)</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638706752234759726.png"></p> <p>若一切順利，到這裡應該能用 Outlook 收信。(寄信會不會被退被擋是另一回事)</p> <p>接著說說我踩到的坑。</p> <p>Docker Mailserver 是個能用於正式環境，Production 等級的伺服器，因此常用的垃圾信防護及認證機制一樣沒少，我一口氣學會：DMARC、DKIM、SPF 三個名詞。(延伸閱讀：<a href="https://www.cloudflare.com/zh-tw/learning/email-security/dmarc-dkim-spf/">什麼是 DMARC、DKIM 和 SPF？ by Cloudflare</a>)</p> <ul><li>DKIM (DomainKeys Identified Mail) 是一種公鑰簽名驗證機制，以用證明郵件系出名門</li> <li>SPF (Sender Policy Framework) 是在 DNS 列舉授權該網域可發送郵件的有效伺服器 IP，方便收信方查證來源</li> <li>DMARC (Domain-based Message Authentication, Reporting &amp; Conformance) 是一種電子郵件驗證、報告和一致性協定，它基於 DKIM 及 SPF，用來決定未通過驗證郵件的處理方式(例：隔離或拒絕)</li></ul> <p>Docker Mailserver 預設啟用 SPF 及 DMARC 都是啟用的，故你就算 SMTP 從 <code>admin@example.com</code> 寄給 <code>admin@example.com</code> 都會可能被擋掉，出現以下訊息。</p> <pre><code>550 5.7.23 &lt;admin@example.com&gt;: Recipient address rejected: Message rejected due to: SPF fail - not authorized.
+550 5.7.1 rejected by DMARC policy for example.com
+</code></pre> <p>由於測試伺服器並不會用來收外部信，故省事做法是如前面所說的，修改 mailserver.env 將 SPF、DMARC 停用。</p> <p>另外，我用 .NET SmtpClient 走 25 Port 送信時收到另一個錯誤：<code>The server response was: 5.5.2 &lt;MY-PC-HOSTNAME&gt;: Helo command rejected: need fully-qualified hostname</code>，看起來是 POSIX SMTP 的要求，之前用 Exchange SMTP HELO/EHLO 只給機器名稱沒問題的。查了一下，.NET Framework 可以<a href="https://stackoverflow.com/a/37417017/288936">透過 .config <code>&lt;network clientDomain="mail.example.com" /&gt;</code></a> 設 <a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.net.configuration.smtpnetworkelement.clientdomain?view=netframework-4.8.1&amp;WT.mc_id=DOP-MVP-37580">clientDomain</a> 決定 HELO/EHLO 傳送的名稱，但這是 .NET 4.X 時代的事，我是用 .NET 8 啊啊啊啊~</p> <p>最後，參考網友的解法：<a href="https://umbracare.net/blog/resolving-syntactically-invalid-ehlo-argument-smtpexception-in-c/">Resolving Syntactically invalid EHLO argument SmtpException in C#</a>，我動用 Reflection 偷改私有 Field _clientDomain 結束這回合。</p> <pre><code>using (var client = new SmtpClient("mail.example.com", 25))
+{
+var clientDomainField = typeof(SmtpClient).GetField("_clientDomain", BindingFlags.Instance | BindingFlags.NonPublic);
+if (clientDomainField != null)
+{
+clientDomainField.SetValue(client, "client.example.com"); // 隨便給即可
+}
+client.UseDefaultCredentials = false;
+client.EnableSsl = false;
+client.Send(message);
+}
+</code></pre> <p>終於。</p> <p data-slug="docker-mailserver-for-internal-test" data-title-en="Setting up a local test SMTP/POP3 server with Docker Mailserver" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">This post details the author’s experience setting up a local SMTP/POP3 server with Docker Mailserver for testing embedded images in Outlook. Key issues included disabling DMARC and SPF checks and handling .NET SmtpClient’s fully-qualified hostname requirement with Reflection.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638706752228146516.png" medium="image"/>
+    <pubDate>Tue, 24 Dec 2024 21:59:35 GMT</pubDate>
+  </item></channel>
+</rss>
