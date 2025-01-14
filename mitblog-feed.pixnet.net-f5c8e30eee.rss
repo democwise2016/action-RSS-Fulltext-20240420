@@ -182,39 +182,12 @@
     <itunes:title><![CDATA[[VMware] VMware 三種虛擬網路連接 Host-Only、Bridged、NAT]]></itunes:title>
     <itunes:author><![CDATA[香腸炒章魚[RSS+]]]></itunes:author>
     <itunes:summary>
-      <![CDATA[<p><span>目錄</span></p>
-<ul>
+      <![CDATA[<p><span>目錄</span></p><ul>
 <li><span><strong>VMware</strong> 簡介</span></li>
 <li><span><strong>Host-Only</strong> (僅主機模式)</span></li>
 <li><span><strong>Bridged</strong> (橋接模式)</span></li>
 <li><span><strong>NAT</strong> 模式</span></li>
-</ul>
-<hr>
-<p><strong><span>VMware 簡介</span></strong></p>
-<p><span><strong>VMWare</strong> 虛擬機軟體是一個虛擬 <strong>PC</strong> 軟體，它使我們可以在一台機器上同時運行二個或更多 <strong>Windows、Linux</strong> 等系統。</span></p>
-<hr>
-<p><strong><span>Host-Only (僅主機模式)</span></strong></p>
-<p><span><strong>host-only</strong> 模式下不需要 <strong>host</strong>&nbsp;連網，下圖是 <strong>host-only</strong> 模式的基本結構，<strong>VMWare</strong> 會給 <strong>Host</strong> 產生了一個虛擬網卡，<strong>IP</strong> 為 <strong>192.168.142.1</strong> (不同的電腦產生的 <strong>IP</strong> 不一定相同)，同時為 <strong>Virtual Host</strong> (兩台虛擬機) 分別產生了虛擬網卡，虛擬機的 <strong>IP</strong> 可以自己增加。</span></p>
-<p><strong><span>host-only 模式下：</span></strong></p>
-<p><span><strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong>，所有 <strong>Virtual Host</strong>&nbsp;和 <strong>Host</strong>&nbsp;中的虛擬網卡，<strong>Host</strong> 的虛擬網卡和 <strong>Host</strong> 的真正 <strong>IP</strong> 都可以 <strong>ping</strong> 通。</span></p>
-<p><span>我們也可以設定兩個 <strong>host-only</strong> 網路，<strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong> 連接&nbsp;<strong>host-onlyA</strong> 網路，<strong>Virtual Host3</strong> 和 <strong>Virtual Host4</strong> 連接 <strong>host-onlyB</strong> 網路，這時 <strong>Virtual Host1</strong> 和&nbsp;<strong>Virtual Host2</strong> 可以 <strong>ping</strong> 通，但是 <strong>host-onlyA</strong> 網路上的 <strong>Virtual Host</strong>&nbsp;不能 <strong>ping</strong> 通 <strong>host-onlyB</strong> 網路上的 <strong>Virtual Host</strong>，如 <strong>Virtual Host1</strong> 不能 <strong>ping</strong> 通 <strong>Virtual Host3</strong>，通過這種方式我們可以將多個 <strong>Virtual Host</strong>&nbsp;分割在不同的網路下。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725861584-914977340-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 host-only 虛擬網路步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Host-only</strong> 模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856078-2106598317-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet1</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Host-only</strong>，勾選 <strong>Connect a host virtual...</strong> 與 <strong>Use local DHCP service...</strong>，設定 <strong>Subnet IP</strong> 位址，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856790-4177342988-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>6.</strong>&nbsp;開啟 <strong>Network Connections </strong>後就看到了 <strong>VMnet</strong> 預設產生的兩張虛擬網卡，<strong>VMnet1</strong> 是 <strong>Host-only</strong> 模式的虛擬網卡，<strong>VMnet8</strong> 用於 <strong>NAT</strong> 模式。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725857784-684834558-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>Host Windows 11：</strong></span></p>
-<p><span><strong>VMnet1 (host-only) </strong>虛擬網卡的<strong> IP</strong>。</span></p>
-<pre>C:\&gt;ipconfig /all
+</ul><hr><p><strong><span>VMware 簡介</span></strong></p><p><span><strong>VMWare</strong> 虛擬機軟體是一個虛擬 <strong>PC</strong> 軟體，它使我們可以在一台機器上同時運行二個或更多 <strong>Windows、Linux</strong> 等系統。</span></p><hr><p><strong><span>Host-Only (僅主機模式)</span></strong></p><p><span><strong>host-only</strong> 模式下不需要 <strong>host</strong>&nbsp;連網，下圖是 <strong>host-only</strong> 模式的基本結構，<strong>VMWare</strong> 會給 <strong>Host</strong> 產生了一個虛擬網卡，<strong>IP</strong> 為 <strong>192.168.142.1</strong> (不同的電腦產生的 <strong>IP</strong> 不一定相同)，同時為 <strong>Virtual Host</strong> (兩台虛擬機) 分別產生了虛擬網卡，虛擬機的 <strong>IP</strong> 可以自己增加。</span></p><p><strong><span>host-only 模式下：</span></strong></p><p><span><strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong>，所有 <strong>Virtual Host</strong>&nbsp;和 <strong>Host</strong>&nbsp;中的虛擬網卡，<strong>Host</strong> 的虛擬網卡和 <strong>Host</strong> 的真正 <strong>IP</strong> 都可以 <strong>ping</strong> 通。</span></p><p><span>我們也可以設定兩個 <strong>host-only</strong> 網路，<strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong> 連接&nbsp;<strong>host-onlyA</strong> 網路，<strong>Virtual Host3</strong> 和 <strong>Virtual Host4</strong> 連接 <strong>host-onlyB</strong> 網路，這時 <strong>Virtual Host1</strong> 和&nbsp;<strong>Virtual Host2</strong> 可以 <strong>ping</strong> 通，但是 <strong>host-onlyA</strong> 網路上的 <strong>Virtual Host</strong>&nbsp;不能 <strong>ping</strong> 通 <strong>host-onlyB</strong> 網路上的 <strong>Virtual Host</strong>，如 <strong>Virtual Host1</strong> 不能 <strong>ping</strong> 通 <strong>Virtual Host3</strong>，通過這種方式我們可以將多個 <strong>Virtual Host</strong>&nbsp;分割在不同的網路下。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725861584-914977340-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 host-only 虛擬網路步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Host-only</strong> 模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856078-2106598317-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet1</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Host-only</strong>，勾選 <strong>Connect a host virtual...</strong> 與 <strong>Use local DHCP service...</strong>，設定 <strong>Subnet IP</strong> 位址，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856790-4177342988-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>6.</strong>&nbsp;開啟 <strong>Network Connections </strong>後就看到了 <strong>VMnet</strong> 預設產生的兩張虛擬網卡，<strong>VMnet1</strong> 是 <strong>Host-only</strong> 模式的虛擬網卡，<strong>VMnet8</strong> 用於 <strong>NAT</strong> 模式。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725857784-684834558-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>Host Windows 11：</strong></span></p><p><span><strong>VMnet1 (host-only) </strong>虛擬網卡的<strong> IP</strong>。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Ethernet adapter VMware Network Adapter VMnet1:
 Connection-specific DNS Suffix  . :
@@ -229,9 +202,7 @@ Default Gateway . . . . . . . . . :
 DHCPv6 IAID . . . . . . . . . . . : 67129430
 DHCPv6 Client DUID. . . . . . . . : 00-02-00-03-22-AC-8B-3C-13-75-7C-7B-C3-AB
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span>實體網卡 <strong>IP</strong> 位址。</span></p>
-<pre>Wireless LAN adapter Wi-Fi:
+</pre><p><span>實體網卡 <strong>IP</strong> 位址。</span></p><pre>Wireless LAN adapter Wi-Fi:
 Connection-specific DNS Suffix  . :
 Description . . . . . . . . . . . : Intel(R) Wi-Fi 6 AX201 160MHz
 Physical Address. . . . . . . . . : 23-34-5C-12-B4-AA
@@ -248,60 +219,12 @@ DHCPv6 IAID . . . . . . . . . . . : 85230975
 DHCPv6 Client DUID. . . . . . . . : 11-10-00-10-34-FA-4B-2A-23-24-4C-48-A4-AA
 DNS Servers . . . . . . . . . . . : 168.95.1.1
 8.8.8.8
-NetBIOS over Tcpip. . . . . . . . : Enabled</pre>
-<p><strong><span>host-only 模式下：</span></strong></p>
-<ul>
+NetBIOS over Tcpip. . . . . . . . : Enabled</pre><p><strong><span>host-only 模式下：</span></strong></p><ul>
 <li><span><strong>192.168.43.9</strong> 與&nbsp;<strong>192.168.142.1 ~ 255</strong> 共享資料是可以互通 (<strong>ping</strong>)。</span></li>
 <li><span><strong>192.168.142.1 ~ 255&nbsp;</strong>共享資料是可以互通 (<strong>ping</strong>)。</span></li>
-</ul>
-<hr>
-<p><strong><span>Bridged (橋接模式)</span></strong></p>
-<p><span>橋接模式就是將主機網卡與虛擬機的虛擬網卡利用虛擬橋接進行通訊。在橋接的作用下，類似於把物理主機虛擬為一個交換機，虛擬機連接到這個交換機的一個介面上，物理主機也同樣插在這個交換機當中，所以所有橋接下的網卡與網卡都是交換模式的，虛擬機 <strong>IP</strong> 地址需要與主機在同一個網路段，相互可以訪問而不干擾。在橋接模式下，各個虛擬機、虛擬機和主機、虛擬機和同一網路環境下的其他設備都是可以相互訪問的。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725887374-1456622456-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 Bridged 虛擬網路步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Bridged</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725888087-1687875748-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet0</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Bridged</strong>，在 <strong>Bridged to: </strong>下拉選擇你的實體網卡，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725888302-1741102632-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><strong><span>Bridged 模式下：</span></strong></p>
-<ul>
+</ul><hr><p><strong><span>Bridged (橋接模式)</span></strong></p><p><span>橋接模式就是將主機網卡與虛擬機的虛擬網卡利用虛擬橋接進行通訊。在橋接的作用下，類似於把物理主機虛擬為一個交換機，虛擬機連接到這個交換機的一個介面上，物理主機也同樣插在這個交換機當中，所以所有橋接下的網卡與網卡都是交換模式的，虛擬機 <strong>IP</strong> 地址需要與主機在同一個網路段，相互可以訪問而不干擾。在橋接模式下，各個虛擬機、虛擬機和主機、虛擬機和同一網路環境下的其他設備都是可以相互訪問的。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725887374-1456622456-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 Bridged 虛擬網路步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Bridged</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725888087-1687875748-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet0</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Bridged</strong>，在 <strong>Bridged to: </strong>下拉選擇你的實體網卡，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725888302-1741102632-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><strong><span>Bridged 模式下：</span></strong></p><ul>
 <li><span>同網段，所有電腦都可以上網、共享資料、相互&nbsp;<strong>ping </strong>可以通。</span></li>
-</ul>
-<hr>
-<p><strong><span>NAT 模式</span></strong></p>
-<p><span>在介紹 <strong>VMWare</strong> 的 <strong>NAT</strong> 模式前，需要先簡單了解下 <strong>NAT</strong> (<strong>Network Address Translation</strong>，網路地址轉換)。我們都知道 <strong>IP4</strong> 中的 <strong>IP</strong> 地址是有限的，但是世界上的聯網設備卻有億萬台，每台設備分配一個公網 <strong>IP</strong> 是不現實的，那麼到底是怎麼分配 <strong>IP</strong> 讓億萬台設備都聯網呢？</span></p>
-<p><span>這就要用到&nbsp;<strong>NAT</strong> 閘道，大部分情況下電腦的 <strong>IP</strong> 都是私網 <strong>IP</strong>，如下圖某公司的 <strong>IP</strong>&nbsp;有<strong>192.168.5.10、192.168.5.20、192.168.5.30</strong>，這些都是私網 <strong>IP</strong>，現在通過 <strong>Host1</strong> 訪問 <strong>Google</strong>：首先 <strong>Host1</strong> 對 <strong>www.google.com</strong>&nbsp;進行 <strong>DNS</strong> 解析取得 <strong>Google Server</strong> 的 <strong>IP</strong> (<strong>172.217.160.68</strong>)，<strong>NAT</strong> 閘道記錄我們的私網 <strong>IP</strong>，然後通過公網 <strong>IP&nbsp;143.12.2.10</strong> 去訪問外網，找到 <strong>Google Server</strong>，取得資源後再通過 <strong>NAT</strong> 閘道找到請求資源的設備 <strong>IP</strong> (<strong>192.168.5.10</strong>)，將資源傳回給 <strong>Host1</strong>。<strong>Host1, Host2, Host3</strong> 都是通過 <strong>NAT</strong> 閘道使用同一個公網 <strong>IP</strong> (<strong>143.12.2.10</strong>) 請求外網資源的。現實中上述過程要複雜的多，這裡的重點不是介紹 <strong>NAT</strong> 原理，所以只做一個淺顯的介紹。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725946379-4102858674-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>現在來看一下 <strong>VMWare</strong> 的 <strong>NAT</strong>&nbsp;模式，示意圖如下，可以看到虛擬機和主機的連接有兩種方式：</span></p>
-<p><span><strong>1.</strong> 通過 <strong>VMNet8</strong> 虛擬網卡連接，這種連接主要是為了讓 <strong>Host</strong> 和虛擬機通訊。</span></p>
-<p><span><strong>2.</strong>&nbsp;通過虛擬閘道連接到 <strong>Host</strong>&nbsp;的真實網卡，這種連接主要是為了讓虛擬機能夠連接外網，所有的虛擬機連接外網都是通過 <strong>Host</strong> 進行的，這裡 <strong>Host</strong> 的 <strong>IP</strong> 對虛擬機來說就是<span>公網&nbsp;<strong>IP</strong></span>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725969695-1050713796-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 NAT&nbsp;步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>NAT</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725952119-2439244281-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet8</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>NAT</strong>，再按 <strong>NAT Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>6.</strong>&nbsp;按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725955763-2836331713-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>若有需要可以按 <strong>DHCP Settings&nbsp;</strong>做進一步設定。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>指定 <strong>IP</strong> 範圍。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725954779-4231211844-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>Host Windows 11：</strong></span></p>
-<p><span><strong>VMnet8&nbsp;</strong>虛擬網卡的<strong> IP</strong>。</span></p>
-<pre>C:\&gt;ipconfig /all
+</ul><hr><p><strong><span>NAT 模式</span></strong></p><p><span>在介紹 <strong>VMWare</strong> 的 <strong>NAT</strong> 模式前，需要先簡單了解下 <strong>NAT</strong> (<strong>Network Address Translation</strong>，網路地址轉換)。我們都知道 <strong>IP4</strong> 中的 <strong>IP</strong> 地址是有限的，但是世界上的聯網設備卻有億萬台，每台設備分配一個公網 <strong>IP</strong> 是不現實的，那麼到底是怎麼分配 <strong>IP</strong> 讓億萬台設備都聯網呢？</span></p><p><span>這就要用到&nbsp;<strong>NAT</strong> 閘道，大部分情況下電腦的 <strong>IP</strong> 都是私網 <strong>IP</strong>，如下圖某公司的 <strong>IP</strong>&nbsp;有<strong>192.168.5.10、192.168.5.20、192.168.5.30</strong>，這些都是私網 <strong>IP</strong>，現在通過 <strong>Host1</strong> 訪問 <strong>Google</strong>：首先 <strong>Host1</strong> 對 <strong>www.google.com</strong>&nbsp;進行 <strong>DNS</strong> 解析取得 <strong>Google Server</strong> 的 <strong>IP</strong> (<strong>172.217.160.68</strong>)，<strong>NAT</strong> 閘道記錄我們的私網 <strong>IP</strong>，然後通過公網 <strong>IP&nbsp;143.12.2.10</strong> 去訪問外網，找到 <strong>Google Server</strong>，取得資源後再通過 <strong>NAT</strong> 閘道找到請求資源的設備 <strong>IP</strong> (<strong>192.168.5.10</strong>)，將資源傳回給 <strong>Host1</strong>。<strong>Host1, Host2, Host3</strong> 都是通過 <strong>NAT</strong> 閘道使用同一個公網 <strong>IP</strong> (<strong>143.12.2.10</strong>) 請求外網資源的。現實中上述過程要複雜的多，這裡的重點不是介紹 <strong>NAT</strong> 原理，所以只做一個淺顯的介紹。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725946379-4102858674-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>現在來看一下 <strong>VMWare</strong> 的 <strong>NAT</strong>&nbsp;模式，示意圖如下，可以看到虛擬機和主機的連接有兩種方式：</span></p><p><span><strong>1.</strong> 通過 <strong>VMNet8</strong> 虛擬網卡連接，這種連接主要是為了讓 <strong>Host</strong> 和虛擬機通訊。</span></p><p><span><strong>2.</strong>&nbsp;通過虛擬閘道連接到 <strong>Host</strong>&nbsp;的真實網卡，這種連接主要是為了讓虛擬機能夠連接外網，所有的虛擬機連接外網都是通過 <strong>Host</strong> 進行的，這裡 <strong>Host</strong> 的 <strong>IP</strong> 對虛擬機來說就是<span>公網&nbsp;<strong>IP</strong></span>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725969695-1050713796-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 NAT&nbsp;步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>NAT</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725952119-2439244281-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet8</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>NAT</strong>，再按 <strong>NAT Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>6.</strong>&nbsp;按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725955763-2836331713-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>若有需要可以按 <strong>DHCP Settings&nbsp;</strong>做進一步設定。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>指定 <strong>IP</strong> 範圍。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725954779-4231211844-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>Host Windows 11：</strong></span></p><p><span><strong>VMnet8&nbsp;</strong>虛擬網卡的<strong> IP</strong>。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Host
 Primary Dns Suffix  . . . . . . . :
@@ -321,9 +244,7 @@ Default Gateway . . . . . . . . . :
 DHCPv6 IAID . . . . . . . . . . . : 905990230
 DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-28-EB-7A-2A-14-85-7F-79-C5-BB
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span>實體網卡 <strong>IP</strong> 位址。</span></p>
-<pre>C:\&gt;ipconfig /all
+</pre><p><span>實體網卡 <strong>IP</strong> 位址。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Host
 Primary Dns Suffix  . . . . . . . :
@@ -348,9 +269,7 @@ DHCPv6 Client DUID. . . . . . . . : 11-10-11-10-34-BF-4A-BA-25-73-8C-4A-B4-AA
 DNS Servers . . . . . . . . . . . : 168.95.1.1
 8.8.8.8
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span><strong>Virtual Host1 Windows 11： </strong></span></p>
-<pre>C:\&gt;ipconfig /all
+</pre><p><span><strong>Virtual Host1 Windows 11： </strong></span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Virtual Host1
 Primary Dns Suffix  . . . . . . . :
@@ -375,44 +294,15 @@ DHCPv6 IAID . . . . . . . . . . . : 100666409
 DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-2E-6F-01-46-00-0C-29-D3-42-08
 DNS Servers . . . . . . . . . . . : 192.168.136.2
 Primary WINS Server . . . . . . . : 192.168.136.2
-NetBIOS over Tcpip. . . . . . . . : Enabled</pre>
-<p><span>如果虛擬機不想 <strong>DHCP</strong> 分配 <strong>IP</strong> 位址，可以指定&nbsp;<strong>192.168.136.3&nbsp;~ 254</strong> 範圍內的&nbsp;<strong>IP</strong> 位址。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725956998-3960892708-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>]]>
+NetBIOS over Tcpip. . . . . . . . : Enabled</pre><p><span>如果虛擬機不想 <strong>DHCP</strong> 分配 <strong>IP</strong> 位址，可以指定&nbsp;<strong>192.168.136.3&nbsp;~ 254</strong> 範圍內的&nbsp;<strong>IP</strong> 位址。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725956998-3960892708-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>]]>
     </itunes:summary>
     <description>
-      <![CDATA[<p><span>目錄</span></p>
-<ul>
+      <![CDATA[<p><span>目錄</span></p><ul>
 <li><span><strong>VMware</strong> 簡介</span></li>
 <li><span><strong>Host-Only</strong> (僅主機模式)</span></li>
 <li><span><strong>Bridged</strong> (橋接模式)</span></li>
 <li><span><strong>NAT</strong> 模式</span></li>
-</ul>
-<hr>
-<p><strong><span>VMware 簡介</span></strong></p>
-<p><span><strong>VMWare</strong> 虛擬機軟體是一個虛擬 <strong>PC</strong> 軟體，它使我們可以在一台機器上同時運行二個或更多 <strong>Windows、Linux</strong> 等系統。</span></p>
-<hr>
-<p><strong><span>Host-Only (僅主機模式)</span></strong></p>
-<p><span><strong>host-only</strong> 模式下不需要 <strong>host</strong>&nbsp;連網，下圖是 <strong>host-only</strong> 模式的基本結構，<strong>VMWare</strong> 會給 <strong>Host</strong> 產生了一個虛擬網卡，<strong>IP</strong> 為 <strong>192.168.142.1</strong> (不同的電腦產生的 <strong>IP</strong> 不一定相同)，同時為 <strong>Virtual Host</strong> (兩台虛擬機) 分別產生了虛擬網卡，虛擬機的 <strong>IP</strong> 可以自己增加。</span></p>
-<p><strong><span>host-only 模式下：</span></strong></p>
-<p><span><strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong>，所有 <strong>Virtual Host</strong>&nbsp;和 <strong>Host</strong>&nbsp;中的虛擬網卡，<strong>Host</strong> 的虛擬網卡和 <strong>Host</strong> 的真正 <strong>IP</strong> 都可以 <strong>ping</strong> 通。</span></p>
-<p><span>我們也可以設定兩個 <strong>host-only</strong> 網路，<strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong> 連接&nbsp;<strong>host-onlyA</strong> 網路，<strong>Virtual Host3</strong> 和 <strong>Virtual Host4</strong> 連接 <strong>host-onlyB</strong> 網路，這時 <strong>Virtual Host1</strong> 和&nbsp;<strong>Virtual Host2</strong> 可以 <strong>ping</strong> 通，但是 <strong>host-onlyA</strong> 網路上的 <strong>Virtual Host</strong>&nbsp;不能 <strong>ping</strong> 通 <strong>host-onlyB</strong> 網路上的 <strong>Virtual Host</strong>，如 <strong>Virtual Host1</strong> 不能 <strong>ping</strong> 通 <strong>Virtual Host3</strong>，通過這種方式我們可以將多個 <strong>Virtual Host</strong>&nbsp;分割在不同的網路下。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725861584-914977340-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 host-only 虛擬網路步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Host-only</strong> 模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856078-2106598317-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet1</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Host-only</strong>，勾選 <strong>Connect a host virtual...</strong> 與 <strong>Use local DHCP service...</strong>，設定 <strong>Subnet IP</strong> 位址，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856790-4177342988-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>6.</strong>&nbsp;開啟 <strong>Network Connections </strong>後就看到了 <strong>VMnet</strong> 預設產生的兩張虛擬網卡，<strong>VMnet1</strong> 是 <strong>Host-only</strong> 模式的虛擬網卡，<strong>VMnet8</strong> 用於 <strong>NAT</strong> 模式。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725857784-684834558-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>Host Windows 11：</strong></span></p>
-<p><span><strong>VMnet1 (host-only) </strong>虛擬網卡的<strong> IP</strong>。</span></p>
-<pre>C:\&gt;ipconfig /all
+</ul><hr><p><strong><span>VMware 簡介</span></strong></p><p><span><strong>VMWare</strong> 虛擬機軟體是一個虛擬 <strong>PC</strong> 軟體，它使我們可以在一台機器上同時運行二個或更多 <strong>Windows、Linux</strong> 等系統。</span></p><hr><p><strong><span>Host-Only (僅主機模式)</span></strong></p><p><span><strong>host-only</strong> 模式下不需要 <strong>host</strong>&nbsp;連網，下圖是 <strong>host-only</strong> 模式的基本結構，<strong>VMWare</strong> 會給 <strong>Host</strong> 產生了一個虛擬網卡，<strong>IP</strong> 為 <strong>192.168.142.1</strong> (不同的電腦產生的 <strong>IP</strong> 不一定相同)，同時為 <strong>Virtual Host</strong> (兩台虛擬機) 分別產生了虛擬網卡，虛擬機的 <strong>IP</strong> 可以自己增加。</span></p><p><strong><span>host-only 模式下：</span></strong></p><p><span><strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong>，所有 <strong>Virtual Host</strong>&nbsp;和 <strong>Host</strong>&nbsp;中的虛擬網卡，<strong>Host</strong> 的虛擬網卡和 <strong>Host</strong> 的真正 <strong>IP</strong> 都可以 <strong>ping</strong> 通。</span></p><p><span>我們也可以設定兩個 <strong>host-only</strong> 網路，<strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong> 連接&nbsp;<strong>host-onlyA</strong> 網路，<strong>Virtual Host3</strong> 和 <strong>Virtual Host4</strong> 連接 <strong>host-onlyB</strong> 網路，這時 <strong>Virtual Host1</strong> 和&nbsp;<strong>Virtual Host2</strong> 可以 <strong>ping</strong> 通，但是 <strong>host-onlyA</strong> 網路上的 <strong>Virtual Host</strong>&nbsp;不能 <strong>ping</strong> 通 <strong>host-onlyB</strong> 網路上的 <strong>Virtual Host</strong>，如 <strong>Virtual Host1</strong> 不能 <strong>ping</strong> 通 <strong>Virtual Host3</strong>，通過這種方式我們可以將多個 <strong>Virtual Host</strong>&nbsp;分割在不同的網路下。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725861584-914977340-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 host-only 虛擬網路步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Host-only</strong> 模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856078-2106598317-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet1</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Host-only</strong>，勾選 <strong>Connect a host virtual...</strong> 與 <strong>Use local DHCP service...</strong>，設定 <strong>Subnet IP</strong> 位址，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856790-4177342988-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>6.</strong>&nbsp;開啟 <strong>Network Connections </strong>後就看到了 <strong>VMnet</strong> 預設產生的兩張虛擬網卡，<strong>VMnet1</strong> 是 <strong>Host-only</strong> 模式的虛擬網卡，<strong>VMnet8</strong> 用於 <strong>NAT</strong> 模式。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725857784-684834558-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>Host Windows 11：</strong></span></p><p><span><strong>VMnet1 (host-only) </strong>虛擬網卡的<strong> IP</strong>。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Ethernet adapter VMware Network Adapter VMnet1:
 Connection-specific DNS Suffix  . :
@@ -427,9 +317,7 @@ Default Gateway . . . . . . . . . :
 DHCPv6 IAID . . . . . . . . . . . : 67129430
 DHCPv6 Client DUID. . . . . . . . : 00-02-00-03-22-AC-8B-3C-13-75-7C-7B-C3-AB
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span>實體網卡 <strong>IP</strong> 位址。</span></p>
-<pre>Wireless LAN adapter Wi-Fi:
+</pre><p><span>實體網卡 <strong>IP</strong> 位址。</span></p><pre>Wireless LAN adapter Wi-Fi:
 Connection-specific DNS Suffix  . :
 Description . . . . . . . . . . . : Intel(R) Wi-Fi 6 AX201 160MHz
 Physical Address. . . . . . . . . : 23-34-5C-12-B4-AA
@@ -446,60 +334,12 @@ DHCPv6 IAID . . . . . . . . . . . : 85230975
 DHCPv6 Client DUID. . . . . . . . : 11-10-00-10-34-FA-4B-2A-23-24-4C-48-A4-AA
 DNS Servers . . . . . . . . . . . : 168.95.1.1
 8.8.8.8
-NetBIOS over Tcpip. . . . . . . . : Enabled</pre>
-<p><strong><span>host-only 模式下：</span></strong></p>
-<ul>
+NetBIOS over Tcpip. . . . . . . . : Enabled</pre><p><strong><span>host-only 模式下：</span></strong></p><ul>
 <li><span><strong>192.168.43.9</strong> 與&nbsp;<strong>192.168.142.1 ~ 255</strong> 共享資料是可以互通 (<strong>ping</strong>)。</span></li>
 <li><span><strong>192.168.142.1 ~ 255&nbsp;</strong>共享資料是可以互通 (<strong>ping</strong>)。</span></li>
-</ul>
-<hr>
-<p><strong><span>Bridged (橋接模式)</span></strong></p>
-<p><span>橋接模式就是將主機網卡與虛擬機的虛擬網卡利用虛擬橋接進行通訊。在橋接的作用下，類似於把物理主機虛擬為一個交換機，虛擬機連接到這個交換機的一個介面上，物理主機也同樣插在這個交換機當中，所以所有橋接下的網卡與網卡都是交換模式的，虛擬機 <strong>IP</strong> 地址需要與主機在同一個網路段，相互可以訪問而不干擾。在橋接模式下，各個虛擬機、虛擬機和主機、虛擬機和同一網路環境下的其他設備都是可以相互訪問的。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725887374-1456622456-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 Bridged 虛擬網路步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Bridged</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725888087-1687875748-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet0</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Bridged</strong>，在 <strong>Bridged to: </strong>下拉選擇你的實體網卡，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725888302-1741102632-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><strong><span>Bridged 模式下：</span></strong></p>
-<ul>
+</ul><hr><p><strong><span>Bridged (橋接模式)</span></strong></p><p><span>橋接模式就是將主機網卡與虛擬機的虛擬網卡利用虛擬橋接進行通訊。在橋接的作用下，類似於把物理主機虛擬為一個交換機，虛擬機連接到這個交換機的一個介面上，物理主機也同樣插在這個交換機當中，所以所有橋接下的網卡與網卡都是交換模式的，虛擬機 <strong>IP</strong> 地址需要與主機在同一個網路段，相互可以訪問而不干擾。在橋接模式下，各個虛擬機、虛擬機和主機、虛擬機和同一網路環境下的其他設備都是可以相互訪問的。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725887374-1456622456-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 Bridged 虛擬網路步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Bridged</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725888087-1687875748-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet0</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Bridged</strong>，在 <strong>Bridged to: </strong>下拉選擇你的實體網卡，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725888302-1741102632-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><strong><span>Bridged 模式下：</span></strong></p><ul>
 <li><span>同網段，所有電腦都可以上網、共享資料、相互&nbsp;<strong>ping </strong>可以通。</span></li>
-</ul>
-<hr>
-<p><strong><span>NAT 模式</span></strong></p>
-<p><span>在介紹 <strong>VMWare</strong> 的 <strong>NAT</strong> 模式前，需要先簡單了解下 <strong>NAT</strong> (<strong>Network Address Translation</strong>，網路地址轉換)。我們都知道 <strong>IP4</strong> 中的 <strong>IP</strong> 地址是有限的，但是世界上的聯網設備卻有億萬台，每台設備分配一個公網 <strong>IP</strong> 是不現實的，那麼到底是怎麼分配 <strong>IP</strong> 讓億萬台設備都聯網呢？</span></p>
-<p><span>這就要用到&nbsp;<strong>NAT</strong> 閘道，大部分情況下電腦的 <strong>IP</strong> 都是私網 <strong>IP</strong>，如下圖某公司的 <strong>IP</strong>&nbsp;有<strong>192.168.5.10、192.168.5.20、192.168.5.30</strong>，這些都是私網 <strong>IP</strong>，現在通過 <strong>Host1</strong> 訪問 <strong>Google</strong>：首先 <strong>Host1</strong> 對 <strong>www.google.com</strong>&nbsp;進行 <strong>DNS</strong> 解析取得 <strong>Google Server</strong> 的 <strong>IP</strong> (<strong>172.217.160.68</strong>)，<strong>NAT</strong> 閘道記錄我們的私網 <strong>IP</strong>，然後通過公網 <strong>IP&nbsp;143.12.2.10</strong> 去訪問外網，找到 <strong>Google Server</strong>，取得資源後再通過 <strong>NAT</strong> 閘道找到請求資源的設備 <strong>IP</strong> (<strong>192.168.5.10</strong>)，將資源傳回給 <strong>Host1</strong>。<strong>Host1, Host2, Host3</strong> 都是通過 <strong>NAT</strong> 閘道使用同一個公網 <strong>IP</strong> (<strong>143.12.2.10</strong>) 請求外網資源的。現實中上述過程要複雜的多，這裡的重點不是介紹 <strong>NAT</strong> 原理，所以只做一個淺顯的介紹。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725946379-4102858674-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>現在來看一下 <strong>VMWare</strong> 的 <strong>NAT</strong>&nbsp;模式，示意圖如下，可以看到虛擬機和主機的連接有兩種方式：</span></p>
-<p><span><strong>1.</strong> 通過 <strong>VMNet8</strong> 虛擬網卡連接，這種連接主要是為了讓 <strong>Host</strong> 和虛擬機通訊。</span></p>
-<p><span><strong>2.</strong>&nbsp;通過虛擬閘道連接到 <strong>Host</strong>&nbsp;的真實網卡，這種連接主要是為了讓虛擬機能夠連接外網，所有的虛擬機連接外網都是通過 <strong>Host</strong> 進行的，這裡 <strong>Host</strong> 的 <strong>IP</strong> 對虛擬機來說就是<span>公網&nbsp;<strong>IP</strong></span>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725969695-1050713796-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 NAT&nbsp;步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>NAT</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725952119-2439244281-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet8</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>NAT</strong>，再按 <strong>NAT Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>6.</strong>&nbsp;按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725955763-2836331713-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>若有需要可以按 <strong>DHCP Settings&nbsp;</strong>做進一步設定。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>指定 <strong>IP</strong> 範圍。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725954779-4231211844-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>Host Windows 11：</strong></span></p>
-<p><span><strong>VMnet8&nbsp;</strong>虛擬網卡的<strong> IP</strong>。</span></p>
-<pre>C:\&gt;ipconfig /all
+</ul><hr><p><strong><span>NAT 模式</span></strong></p><p><span>在介紹 <strong>VMWare</strong> 的 <strong>NAT</strong> 模式前，需要先簡單了解下 <strong>NAT</strong> (<strong>Network Address Translation</strong>，網路地址轉換)。我們都知道 <strong>IP4</strong> 中的 <strong>IP</strong> 地址是有限的，但是世界上的聯網設備卻有億萬台，每台設備分配一個公網 <strong>IP</strong> 是不現實的，那麼到底是怎麼分配 <strong>IP</strong> 讓億萬台設備都聯網呢？</span></p><p><span>這就要用到&nbsp;<strong>NAT</strong> 閘道，大部分情況下電腦的 <strong>IP</strong> 都是私網 <strong>IP</strong>，如下圖某公司的 <strong>IP</strong>&nbsp;有<strong>192.168.5.10、192.168.5.20、192.168.5.30</strong>，這些都是私網 <strong>IP</strong>，現在通過 <strong>Host1</strong> 訪問 <strong>Google</strong>：首先 <strong>Host1</strong> 對 <strong>www.google.com</strong>&nbsp;進行 <strong>DNS</strong> 解析取得 <strong>Google Server</strong> 的 <strong>IP</strong> (<strong>172.217.160.68</strong>)，<strong>NAT</strong> 閘道記錄我們的私網 <strong>IP</strong>，然後通過公網 <strong>IP&nbsp;143.12.2.10</strong> 去訪問外網，找到 <strong>Google Server</strong>，取得資源後再通過 <strong>NAT</strong> 閘道找到請求資源的設備 <strong>IP</strong> (<strong>192.168.5.10</strong>)，將資源傳回給 <strong>Host1</strong>。<strong>Host1, Host2, Host3</strong> 都是通過 <strong>NAT</strong> 閘道使用同一個公網 <strong>IP</strong> (<strong>143.12.2.10</strong>) 請求外網資源的。現實中上述過程要複雜的多，這裡的重點不是介紹 <strong>NAT</strong> 原理，所以只做一個淺顯的介紹。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725946379-4102858674-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>現在來看一下 <strong>VMWare</strong> 的 <strong>NAT</strong>&nbsp;模式，示意圖如下，可以看到虛擬機和主機的連接有兩種方式：</span></p><p><span><strong>1.</strong> 通過 <strong>VMNet8</strong> 虛擬網卡連接，這種連接主要是為了讓 <strong>Host</strong> 和虛擬機通訊。</span></p><p><span><strong>2.</strong>&nbsp;通過虛擬閘道連接到 <strong>Host</strong>&nbsp;的真實網卡，這種連接主要是為了讓虛擬機能夠連接外網，所有的虛擬機連接外網都是通過 <strong>Host</strong> 進行的，這裡 <strong>Host</strong> 的 <strong>IP</strong> 對虛擬機來說就是<span>公網&nbsp;<strong>IP</strong></span>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725969695-1050713796-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 NAT&nbsp;步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>NAT</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725952119-2439244281-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet8</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>NAT</strong>，再按 <strong>NAT Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>6.</strong>&nbsp;按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725955763-2836331713-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>若有需要可以按 <strong>DHCP Settings&nbsp;</strong>做進一步設定。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>指定 <strong>IP</strong> 範圍。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725954779-4231211844-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>Host Windows 11：</strong></span></p><p><span><strong>VMnet8&nbsp;</strong>虛擬網卡的<strong> IP</strong>。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Host
 Primary Dns Suffix  . . . . . . . :
@@ -519,9 +359,7 @@ Default Gateway . . . . . . . . . :
 DHCPv6 IAID . . . . . . . . . . . : 905990230
 DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-28-EB-7A-2A-14-85-7F-79-C5-BB
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span>實體網卡 <strong>IP</strong> 位址。</span></p>
-<pre>C:\&gt;ipconfig /all
+</pre><p><span>實體網卡 <strong>IP</strong> 位址。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Host
 Primary Dns Suffix  . . . . . . . :
@@ -546,9 +384,7 @@ DHCPv6 Client DUID. . . . . . . . : 11-10-11-10-34-BF-4A-BA-25-73-8C-4A-B4-AA
 DNS Servers . . . . . . . . . . . : 168.95.1.1
 8.8.8.8
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span><strong>Virtual Host1 Windows 11： </strong></span></p>
-<pre>C:\&gt;ipconfig /all
+</pre><p><span><strong>Virtual Host1 Windows 11： </strong></span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Virtual Host1
 Primary Dns Suffix  . . . . . . . :
@@ -573,43 +409,14 @@ DHCPv6 IAID . . . . . . . . . . . : 100666409
 DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-2E-6F-01-46-00-0C-29-D3-42-08
 DNS Servers . . . . . . . . . . . : 192.168.136.2
 Primary WINS Server . . . . . . . : 192.168.136.2
-NetBIOS over Tcpip. . . . . . . . : Enabled</pre>
-<p><span>如果虛擬機不想 <strong>DHCP</strong> 分配 <strong>IP</strong> 位址，可以指定&nbsp;<strong>192.168.136.3&nbsp;~ 254</strong> 範圍內的&nbsp;<strong>IP</strong> 位址。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725956998-3960892708-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>]]>
+NetBIOS over Tcpip. . . . . . . . : Enabled</pre><p><span>如果虛擬機不想 <strong>DHCP</strong> 分配 <strong>IP</strong> 位址，可以指定&nbsp;<strong>192.168.136.3&nbsp;~ 254</strong> 範圍內的&nbsp;<strong>IP</strong> 位址。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725956998-3960892708-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>]]>
     </description>
-    <content:encoded><![CDATA[<p><span>目錄</span></p>
-<ul>
+    <content:encoded><![CDATA[<p><span>目錄</span></p><ul>
 <li><span><strong>VMware</strong> 簡介</span></li>
 <li><span><strong>Host-Only</strong> (僅主機模式)</span></li>
 <li><span><strong>Bridged</strong> (橋接模式)</span></li>
 <li><span><strong>NAT</strong> 模式</span></li>
-</ul>
-<hr>
-<p><strong><span>VMware 簡介</span></strong></p>
-<p><span><strong>VMWare</strong> 虛擬機軟體是一個虛擬 <strong>PC</strong> 軟體，它使我們可以在一台機器上同時運行二個或更多 <strong>Windows、Linux</strong> 等系統。</span></p>
-<hr>
-<p><strong><span>Host-Only (僅主機模式)</span></strong></p>
-<p><span><strong>host-only</strong> 模式下不需要 <strong>host</strong>&nbsp;連網，下圖是 <strong>host-only</strong> 模式的基本結構，<strong>VMWare</strong> 會給 <strong>Host</strong> 產生了一個虛擬網卡，<strong>IP</strong> 為 <strong>192.168.142.1</strong> (不同的電腦產生的 <strong>IP</strong> 不一定相同)，同時為 <strong>Virtual Host</strong> (兩台虛擬機) 分別產生了虛擬網卡，虛擬機的 <strong>IP</strong> 可以自己增加。</span></p>
-<p><strong><span>host-only 模式下：</span></strong></p>
-<p><span><strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong>，所有 <strong>Virtual Host</strong>&nbsp;和 <strong>Host</strong>&nbsp;中的虛擬網卡，<strong>Host</strong> 的虛擬網卡和 <strong>Host</strong> 的真正 <strong>IP</strong> 都可以 <strong>ping</strong> 通。</span></p>
-<p><span>我們也可以設定兩個 <strong>host-only</strong> 網路，<strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong> 連接&nbsp;<strong>host-onlyA</strong> 網路，<strong>Virtual Host3</strong> 和 <strong>Virtual Host4</strong> 連接 <strong>host-onlyB</strong> 網路，這時 <strong>Virtual Host1</strong> 和&nbsp;<strong>Virtual Host2</strong> 可以 <strong>ping</strong> 通，但是 <strong>host-onlyA</strong> 網路上的 <strong>Virtual Host</strong>&nbsp;不能 <strong>ping</strong> 通 <strong>host-onlyB</strong> 網路上的 <strong>Virtual Host</strong>，如 <strong>Virtual Host1</strong> 不能 <strong>ping</strong> 通 <strong>Virtual Host3</strong>，通過這種方式我們可以將多個 <strong>Virtual Host</strong>&nbsp;分割在不同的網路下。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725861584-914977340-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 host-only 虛擬網路步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Host-only</strong> 模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856078-2106598317-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet1</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Host-only</strong>，勾選 <strong>Connect a host virtual...</strong> 與 <strong>Use local DHCP service...</strong>，設定 <strong>Subnet IP</strong> 位址，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856790-4177342988-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>6.</strong>&nbsp;開啟 <strong>Network Connections </strong>後就看到了 <strong>VMnet</strong> 預設產生的兩張虛擬網卡，<strong>VMnet1</strong> 是 <strong>Host-only</strong> 模式的虛擬網卡，<strong>VMnet8</strong> 用於 <strong>NAT</strong> 模式。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725857784-684834558-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>Host Windows 11：</strong></span></p>
-<p><span><strong>VMnet1 (host-only) </strong>虛擬網卡的<strong> IP</strong>。</span></p>
-<pre>C:\&gt;ipconfig /all
+</ul><hr><p><strong><span>VMware 簡介</span></strong></p><p><span><strong>VMWare</strong> 虛擬機軟體是一個虛擬 <strong>PC</strong> 軟體，它使我們可以在一台機器上同時運行二個或更多 <strong>Windows、Linux</strong> 等系統。</span></p><hr><p><strong><span>Host-Only (僅主機模式)</span></strong></p><p><span><strong>host-only</strong> 模式下不需要 <strong>host</strong>&nbsp;連網，下圖是 <strong>host-only</strong> 模式的基本結構，<strong>VMWare</strong> 會給 <strong>Host</strong> 產生了一個虛擬網卡，<strong>IP</strong> 為 <strong>192.168.142.1</strong> (不同的電腦產生的 <strong>IP</strong> 不一定相同)，同時為 <strong>Virtual Host</strong> (兩台虛擬機) 分別產生了虛擬網卡，虛擬機的 <strong>IP</strong> 可以自己增加。</span></p><p><strong><span>host-only 模式下：</span></strong></p><p><span><strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong>，所有 <strong>Virtual Host</strong>&nbsp;和 <strong>Host</strong>&nbsp;中的虛擬網卡，<strong>Host</strong> 的虛擬網卡和 <strong>Host</strong> 的真正 <strong>IP</strong> 都可以 <strong>ping</strong> 通。</span></p><p><span>我們也可以設定兩個 <strong>host-only</strong> 網路，<strong>Virtual Host1</strong> 和 <strong>Virtual Host2</strong> 連接&nbsp;<strong>host-onlyA</strong> 網路，<strong>Virtual Host3</strong> 和 <strong>Virtual Host4</strong> 連接 <strong>host-onlyB</strong> 網路，這時 <strong>Virtual Host1</strong> 和&nbsp;<strong>Virtual Host2</strong> 可以 <strong>ping</strong> 通，但是 <strong>host-onlyA</strong> 網路上的 <strong>Virtual Host</strong>&nbsp;不能 <strong>ping</strong> 通 <strong>host-onlyB</strong> 網路上的 <strong>Virtual Host</strong>，如 <strong>Virtual Host1</strong> 不能 <strong>ping</strong> 通 <strong>Virtual Host3</strong>，通過這種方式我們可以將多個 <strong>Virtual Host</strong>&nbsp;分割在不同的網路下。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725861584-914977340-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 host-only 虛擬網路步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Host-only</strong> 模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856078-2106598317-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet1</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Host-only</strong>，勾選 <strong>Connect a host virtual...</strong> 與 <strong>Use local DHCP service...</strong>，設定 <strong>Subnet IP</strong> 位址，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856790-4177342988-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>6.</strong>&nbsp;開啟 <strong>Network Connections </strong>後就看到了 <strong>VMnet</strong> 預設產生的兩張虛擬網卡，<strong>VMnet1</strong> 是 <strong>Host-only</strong> 模式的虛擬網卡，<strong>VMnet8</strong> 用於 <strong>NAT</strong> 模式。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725857784-684834558-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>Host Windows 11：</strong></span></p><p><span><strong>VMnet1 (host-only) </strong>虛擬網卡的<strong> IP</strong>。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Ethernet adapter VMware Network Adapter VMnet1:
 Connection-specific DNS Suffix  . :
@@ -624,9 +431,7 @@ Default Gateway . . . . . . . . . :
 DHCPv6 IAID . . . . . . . . . . . : 67129430
 DHCPv6 Client DUID. . . . . . . . : 00-02-00-03-22-AC-8B-3C-13-75-7C-7B-C3-AB
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span>實體網卡 <strong>IP</strong> 位址。</span></p>
-<pre>Wireless LAN adapter Wi-Fi:
+</pre><p><span>實體網卡 <strong>IP</strong> 位址。</span></p><pre>Wireless LAN adapter Wi-Fi:
 Connection-specific DNS Suffix  . :
 Description . . . . . . . . . . . : Intel(R) Wi-Fi 6 AX201 160MHz
 Physical Address. . . . . . . . . : 23-34-5C-12-B4-AA
@@ -643,60 +448,12 @@ DHCPv6 IAID . . . . . . . . . . . : 85230975
 DHCPv6 Client DUID. . . . . . . . : 11-10-00-10-34-FA-4B-2A-23-24-4C-48-A4-AA
 DNS Servers . . . . . . . . . . . : 168.95.1.1
 8.8.8.8
-NetBIOS over Tcpip. . . . . . . . : Enabled</pre>
-<p><strong><span>host-only 模式下：</span></strong></p>
-<ul>
+NetBIOS over Tcpip. . . . . . . . : Enabled</pre><p><strong><span>host-only 模式下：</span></strong></p><ul>
 <li><span><strong>192.168.43.9</strong> 與&nbsp;<strong>192.168.142.1 ~ 255</strong> 共享資料是可以互通 (<strong>ping</strong>)。</span></li>
 <li><span><strong>192.168.142.1 ~ 255&nbsp;</strong>共享資料是可以互通 (<strong>ping</strong>)。</span></li>
-</ul>
-<hr>
-<p><strong><span>Bridged (橋接模式)</span></strong></p>
-<p><span>橋接模式就是將主機網卡與虛擬機的虛擬網卡利用虛擬橋接進行通訊。在橋接的作用下，類似於把物理主機虛擬為一個交換機，虛擬機連接到這個交換機的一個介面上，物理主機也同樣插在這個交換機當中，所以所有橋接下的網卡與網卡都是交換模式的，虛擬機 <strong>IP</strong> 地址需要與主機在同一個網路段，相互可以訪問而不干擾。在橋接模式下，各個虛擬機、虛擬機和主機、虛擬機和同一網路環境下的其他設備都是可以相互訪問的。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725887374-1456622456-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 Bridged 虛擬網路步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Bridged</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725888087-1687875748-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet0</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Bridged</strong>，在 <strong>Bridged to: </strong>下拉選擇你的實體網卡，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725888302-1741102632-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><strong><span>Bridged 模式下：</span></strong></p>
-<ul>
+</ul><hr><p><strong><span>Bridged (橋接模式)</span></strong></p><p><span>橋接模式就是將主機網卡與虛擬機的虛擬網卡利用虛擬橋接進行通訊。在橋接的作用下，類似於把物理主機虛擬為一個交換機，虛擬機連接到這個交換機的一個介面上，物理主機也同樣插在這個交換機當中，所以所有橋接下的網卡與網卡都是交換模式的，虛擬機 <strong>IP</strong> 地址需要與主機在同一個網路段，相互可以訪問而不干擾。在橋接模式下，各個虛擬機、虛擬機和主機、虛擬機和同一網路環境下的其他設備都是可以相互訪問的。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725887374-1456622456-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 Bridged 虛擬網路步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>Bridged</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725888087-1687875748-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet0</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>Bridged</strong>，在 <strong>Bridged to: </strong>下拉選擇你的實體網卡，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725888302-1741102632-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><strong><span>Bridged 模式下：</span></strong></p><ul>
 <li><span>同網段，所有電腦都可以上網、共享資料、相互&nbsp;<strong>ping </strong>可以通。</span></li>
-</ul>
-<hr>
-<p><strong><span>NAT 模式</span></strong></p>
-<p><span>在介紹 <strong>VMWare</strong> 的 <strong>NAT</strong> 模式前，需要先簡單了解下 <strong>NAT</strong> (<strong>Network Address Translation</strong>，網路地址轉換)。我們都知道 <strong>IP4</strong> 中的 <strong>IP</strong> 地址是有限的，但是世界上的聯網設備卻有億萬台，每台設備分配一個公網 <strong>IP</strong> 是不現實的，那麼到底是怎麼分配 <strong>IP</strong> 讓億萬台設備都聯網呢？</span></p>
-<p><span>這就要用到&nbsp;<strong>NAT</strong> 閘道，大部分情況下電腦的 <strong>IP</strong> 都是私網 <strong>IP</strong>，如下圖某公司的 <strong>IP</strong>&nbsp;有<strong>192.168.5.10、192.168.5.20、192.168.5.30</strong>，這些都是私網 <strong>IP</strong>，現在通過 <strong>Host1</strong> 訪問 <strong>Google</strong>：首先 <strong>Host1</strong> 對 <strong>www.google.com</strong>&nbsp;進行 <strong>DNS</strong> 解析取得 <strong>Google Server</strong> 的 <strong>IP</strong> (<strong>172.217.160.68</strong>)，<strong>NAT</strong> 閘道記錄我們的私網 <strong>IP</strong>，然後通過公網 <strong>IP&nbsp;143.12.2.10</strong> 去訪問外網，找到 <strong>Google Server</strong>，取得資源後再通過 <strong>NAT</strong> 閘道找到請求資源的設備 <strong>IP</strong> (<strong>192.168.5.10</strong>)，將資源傳回給 <strong>Host1</strong>。<strong>Host1, Host2, Host3</strong> 都是通過 <strong>NAT</strong> 閘道使用同一個公網 <strong>IP</strong> (<strong>143.12.2.10</strong>) 請求外網資源的。現實中上述過程要複雜的多，這裡的重點不是介紹 <strong>NAT</strong> 原理，所以只做一個淺顯的介紹。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725946379-4102858674-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>現在來看一下 <strong>VMWare</strong> 的 <strong>NAT</strong>&nbsp;模式，示意圖如下，可以看到虛擬機和主機的連接有兩種方式：</span></p>
-<p><span><strong>1.</strong> 通過 <strong>VMNet8</strong> 虛擬網卡連接，這種連接主要是為了讓 <strong>Host</strong> 和虛擬機通訊。</span></p>
-<p><span><strong>2.</strong>&nbsp;通過虛擬閘道連接到 <strong>Host</strong>&nbsp;的真實網卡，這種連接主要是為了讓虛擬機能夠連接外網，所有的虛擬機連接外網都是通過 <strong>Host</strong> 進行的，這裡 <strong>Host</strong> 的 <strong>IP</strong> 對虛擬機來說就是<span>公網&nbsp;<strong>IP</strong></span>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725969695-1050713796-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>設定 NAT&nbsp;步驟：</strong></span></p>
-<p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>NAT</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725952119-2439244281-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet8</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>NAT</strong>，再按 <strong>NAT Settings</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>6.</strong>&nbsp;按 <strong>OK</strong>。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725955763-2836331713-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>若有需要可以按 <strong>DHCP Settings&nbsp;</strong>做進一步設定。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span>指定 <strong>IP</strong> 範圍。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725954779-4231211844-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>
-<p><span><strong>Host Windows 11：</strong></span></p>
-<p><span><strong>VMnet8&nbsp;</strong>虛擬網卡的<strong> IP</strong>。</span></p>
-<pre>C:\&gt;ipconfig /all
+</ul><hr><p><strong><span>NAT 模式</span></strong></p><p><span>在介紹 <strong>VMWare</strong> 的 <strong>NAT</strong> 模式前，需要先簡單了解下 <strong>NAT</strong> (<strong>Network Address Translation</strong>，網路地址轉換)。我們都知道 <strong>IP4</strong> 中的 <strong>IP</strong> 地址是有限的，但是世界上的聯網設備卻有億萬台，每台設備分配一個公網 <strong>IP</strong> 是不現實的，那麼到底是怎麼分配 <strong>IP</strong> 讓億萬台設備都聯網呢？</span></p><p><span>這就要用到&nbsp;<strong>NAT</strong> 閘道，大部分情況下電腦的 <strong>IP</strong> 都是私網 <strong>IP</strong>，如下圖某公司的 <strong>IP</strong>&nbsp;有<strong>192.168.5.10、192.168.5.20、192.168.5.30</strong>，這些都是私網 <strong>IP</strong>，現在通過 <strong>Host1</strong> 訪問 <strong>Google</strong>：首先 <strong>Host1</strong> 對 <strong>www.google.com</strong>&nbsp;進行 <strong>DNS</strong> 解析取得 <strong>Google Server</strong> 的 <strong>IP</strong> (<strong>172.217.160.68</strong>)，<strong>NAT</strong> 閘道記錄我們的私網 <strong>IP</strong>，然後通過公網 <strong>IP&nbsp;143.12.2.10</strong> 去訪問外網，找到 <strong>Google Server</strong>，取得資源後再通過 <strong>NAT</strong> 閘道找到請求資源的設備 <strong>IP</strong> (<strong>192.168.5.10</strong>)，將資源傳回給 <strong>Host1</strong>。<strong>Host1, Host2, Host3</strong> 都是通過 <strong>NAT</strong> 閘道使用同一個公網 <strong>IP</strong> (<strong>143.12.2.10</strong>) 請求外網資源的。現實中上述過程要複雜的多，這裡的重點不是介紹 <strong>NAT</strong> 原理，所以只做一個淺顯的介紹。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725946379-4102858674-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>現在來看一下 <strong>VMWare</strong> 的 <strong>NAT</strong>&nbsp;模式，示意圖如下，可以看到虛擬機和主機的連接有兩種方式：</span></p><p><span><strong>1.</strong> 通過 <strong>VMNet8</strong> 虛擬網卡連接，這種連接主要是為了讓 <strong>Host</strong> 和虛擬機通訊。</span></p><p><span><strong>2.</strong>&nbsp;通過虛擬閘道連接到 <strong>Host</strong>&nbsp;的真實網卡，這種連接主要是為了讓虛擬機能夠連接外網，所有的虛擬機連接外網都是通過 <strong>Host</strong> 進行的，這裡 <strong>Host</strong> 的 <strong>IP</strong> 對虛擬機來說就是<span>公網&nbsp;<strong>IP</strong></span>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725969695-1050713796-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>設定 NAT&nbsp;步驟：</strong></span></p><p><span><strong>1.</strong>&nbsp;在要設定的虛擬機，滑鼠右鍵按&nbsp;<strong>Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725855933-105904751-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>2.</strong>&nbsp;切換到&nbsp;<strong>Hardware</strong>，找到 <strong>Network Adapter</strong>&nbsp;裝置，在 <strong>Network connection</strong> 內點選 <strong>NAT</strong>&nbsp;模式，按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725952119-2439244281-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>3.</strong>&nbsp;選取要設定的虛擬機，下拉&nbsp;<strong>Edit</strong> → 按 <strong>Virtual Network Editor</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856443-3820141425-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>4.</strong>&nbsp;按 <strong>Change Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725856700-3269335958-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>5.</strong>&nbsp;選取 <strong>VMnet8</strong>，在 <strong>WMnet Information</strong> 內點選 <strong>NAT</strong>，再按 <strong>NAT Settings</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>6.</strong>&nbsp;按 <strong>OK</strong>。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725955763-2836331713-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>若有需要可以按 <strong>DHCP Settings&nbsp;</strong>做進一步設定。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725953743-486689870-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span>指定 <strong>IP</strong> 範圍。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725954779-4231211844-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p><p><span><strong>Host Windows 11：</strong></span></p><p><span><strong>VMnet8&nbsp;</strong>虛擬網卡的<strong> IP</strong>。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Host
 Primary Dns Suffix  . . . . . . . :
@@ -716,9 +473,7 @@ Default Gateway . . . . . . . . . :
 DHCPv6 IAID . . . . . . . . . . . : 905990230
 DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-28-EB-7A-2A-14-85-7F-79-C5-BB
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span>實體網卡 <strong>IP</strong> 位址。</span></p>
-<pre>C:\&gt;ipconfig /all
+</pre><p><span>實體網卡 <strong>IP</strong> 位址。</span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Host
 Primary Dns Suffix  . . . . . . . :
@@ -743,9 +498,7 @@ DHCPv6 Client DUID. . . . . . . . : 11-10-11-10-34-BF-4A-BA-25-73-8C-4A-B4-AA
 DNS Servers . . . . . . . . . . . : 168.95.1.1
 8.8.8.8
 NetBIOS over Tcpip. . . . . . . . : Enabled
-</pre>
-<p><span><strong>Virtual Host1 Windows 11： </strong></span></p>
-<pre>C:\&gt;ipconfig /all
+</pre><p><span><strong>Virtual Host1 Windows 11： </strong></span></p><pre>C:\&gt;ipconfig /all
 Windows IP Configuration
 Host Name . . . . . . . . . . . . : Virtual Host1
 Primary Dns Suffix  . . . . . . . :
@@ -770,11 +523,9 @@ DHCPv6 IAID . . . . . . . . . . . : 100666409
 DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-2E-6F-01-46-00-0C-29-D3-42-08
 DNS Servers . . . . . . . . . . . : 192.168.136.2
 Primary WINS Server . . . . . . . : 192.168.136.2
-NetBIOS over Tcpip. . . . . . . . : Enabled</pre>
-<p><span>如果虛擬機不想 <strong>DHCP</strong> 分配 <strong>IP</strong> 位址，可以指定&nbsp;<strong>192.168.136.3&nbsp;~ 254</strong> 範圍內的&nbsp;<strong>IP</strong> 位址。</span></p>
-<p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://pic.pimg.tw/mitblog/1725956998-3960892708-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>]]></content:encoded>
-    <itunes:image href="https://pic.pimg.tw/mitblog/1725861584-914977340-g.png"/>
-          <media:content url="https://pic.pimg.tw/mitblog/1725861584-914977340-g.png" medium="image"/>
+NetBIOS over Tcpip. . . . . . . . : Enabled</pre><p><span>如果虛擬機不想 <strong>DHCP</strong> 分配 <strong>IP</strong> 位址，可以指定&nbsp;<strong>192.168.136.3&nbsp;~ 254</strong> 範圍內的&nbsp;<strong>IP</strong> 位址。</span></p><p><img alt="[VMware] VMware 三種虛擬網路連接 Host-" src="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725956998-3960892708-g.png" title="[VMware] VMware 三種虛擬網路連接 Host-"></p>]]></content:encoded>
+    <itunes:image href="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725861584-914977340-g.png"/>
+          <media:content url="https://imageproxy.pixnet.cc/imgproxy?url=https://pic.pimg.tw/mitblog/1725861584-914977340-g.png" medium="image"/>
     <pubDate>Sat, 07 Sep 2024 20:30:33 +0800</pubDate>
   </item><item>
     <title><![CDATA[[Windows 11] 切換 Microsoft 帳戶或本機帳戶]]></title>
