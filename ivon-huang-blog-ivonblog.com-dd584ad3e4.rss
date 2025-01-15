@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/1009/800/800.jpg?hmac=6agHPUNd4kEtbplZXB1Q62K0mvXy20pK281FOhCsiq8</url>
+      <url>https://fastly.picsum.photos/id/63/800/800.jpg?hmac=nEkniJtSqrZ1OpeoVSVE66j7RYMByglE2SQxs9QQWA8</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,95 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/1009/800/800.jpg?hmac=6agHPUNd4kEtbplZXB1Q62K0mvXy20pK281FOhCsiq8"/>
+    <itunes:image href="https://fastly.picsum.photos/id/63/800/800.jpg?hmac=nEkniJtSqrZ1OpeoVSVE66j7RYMByglE2SQxs9QQWA8"/>
 <item>
+    <title><![CDATA[Ubuntu維持中文界面，將家目錄下的資料夾改成英文 (xdg-user-dirs-update用法)]]></title>
+    <link>https://ivonblog.com/posts/linux-xdg-user-dirs/</link>
+    <itunes:title><![CDATA[Ubuntu維持中文界面，將家目錄下的資料夾改成英文 (xdg-user-dirs-update用法)]]></itunes:title>
+    <itunes:author><![CDATA[Ivon的部落格[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-xdg-user-dirs/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-616cae9046.webp"></a></p>
+<p>像Ubuntu這類對用戶友善的Linux發行版，會在安裝的時候幫你搞定語言的問題。當你選中文安裝，家目錄下的常用資料夾也會變成中文的，如圖所示。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-213f811668.webp"><p>不過對於需要常常使用終端機打指令的用戶，肯定會不太方便。切換目錄的時候還切換輸入法（如<code>cd ~/下載</code>肯定不如<code>cd ~/Downloads</code>要快速），很是麻煩。甚至有人因為這樣，索性只裝英文版的系統，然後再設定中文語言套件，可是這樣就讓Linux不好用的了說！</p><p>其實這個問題可以用一個小技巧解決，讓你能夠使用中文的Ubuntu界面，資料夾卻是英文的。</p><p>你要知道的是，你想要英文的家目錄資料夾，絕對不是把中文的「下載」資料夾重新命名成英文「Downloads」就能解決的事情！如果這樣做，有些程式還是不會認你的「Downloads」資料夾，而是將檔案放到原本的「下載」資料夾。</p><p>我們要先從XDG User Dirs解決起。</p><h2>1. 理解XDG User Dirs<span><a href="#1-%E7%90%86%E8%A7%A3xdg-user-dirs" aria-label="定位點">#</a></span></h2><p>Linux各大桌面環境，包含GNOME、KDE Plasma、XFCE、Cinammon都是遵守XDG User Dirs標準的。</p><p>它定義了：DESKTOP、DOWNLOAD、TEMPLATES、PUBLICSHARE、DOCUMENTS、MUSIC、PICTURES、VIDEOS等常用的使用者資料夾。</p><p><code>xdg-user-dirs-update</code>指令就是用來生成上述資料夾的。</p><p>第一次登入桌面的時候，應該會自動執行<code>xdg-user-dirs-update</code>，依照使用者的語言自動生成XDG User Dirs資料夾。這就是為何你會看到「下載」而非「Downloads」資料夾的緣故。</p><p>然後，<code>xdg-user-dirs-update</code>會將實際指向的資料夾設定檔，寫在<code>~/.config/user-dirs.dirs</code>和<code>~/.config/user-dirs.locale</code>。裡面的XDG環境變數記載了真正的下載資料夾路徑在哪裡。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ef8707bd2b.webp"><p>如果程式在存取使用者家目錄的時候，是依照XDG的環境變數去存取，而非寫死絕對路徑，那麼它就能知道使用者真正的「下載」資料夾在哪裡。這樣程式能夠依照使用者目前語言的設定，找到使用者目前使用中的「下載」資料夾。</p><p>當我們要把XDG User Dirs改回英文的時候，就得注意以上問題。</p><h2>2. 將家目錄資料夾改成英文<span><a href="#2-%E5%B0%87%E5%AE%B6%E7%9B%AE%E9%8C%84%E8%B3%87%E6%96%99%E5%A4%BE%E6%94%B9%E6%88%90%E8%8B%B1%E6%96%87" aria-label="定位點">#</a></span></h2><ol><li>執行以下指令，將環境變數暫時設定為英文，強制生成英文資料夾</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>LC_ALL</span><span>=</span>C.UTF-8 xdg-user-dirs-update --force
+</span></span></code></pre></div><ol start="2"><li><p>開啟檔案管理器，可看到生成了英文版的XDG User Dirs資料夾。不過原本資料夾不會刪除，檔案要手動搬移。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-239391123d.webp"></li><li><p>檢視<code>~/.config/user-dirs.dirs</code>內容，可看到真正的下載資料夾路徑也變了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f330f98a56.webp"></li><li><p><code>~/.config/user-dirs.dirs</code>裡面的環境變數是允許自訂的，像是你可以把<code>XDG_DOWNLOAD_DIR="$HOME/Downloads</code>改為<code>XDG_DOWNLOAD_DIR="$HOME/Download</code>，日後就會直接生效，不用再執行<code>xdg-user-dirs-update</code>指令。</p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/XDG_user_directories" target="_blank">XDG user directories - Arch Wiki</a></li><li><a href="https://www.freedesktop.org/wiki/Software/xdg-user-dirs/" target="_blank">xdg-user-dirs - FreeDesktop.org</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/linux-xdg-user-dirs/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-616cae9046.webp"></a></p>
+<p>像Ubuntu這類對用戶友善的Linux發行版，會在安裝的時候幫你搞定語言的問題。當你選中文安裝，家目錄下的常用資料夾也會變成中文的，如圖所示。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-213f811668.webp"><p>不過對於需要常常使用終端機打指令的用戶，肯定會不太方便。切換目錄的時候還切換輸入法（如<code>cd ~/下載</code>肯定不如<code>cd ~/Downloads</code>要快速），很是麻煩。甚至有人因為這樣，索性只裝英文版的系統，然後再設定中文語言套件，可是這樣就讓Linux不好用的了說！</p><p>其實這個問題可以用一個小技巧解決，讓你能夠使用中文的Ubuntu界面，資料夾卻是英文的。</p><p>你要知道的是，你想要英文的家目錄資料夾，絕對不是把中文的「下載」資料夾重新命名成英文「Downloads」就能解決的事情！如果這樣做，有些程式還是不會認你的「Downloads」資料夾，而是將檔案放到原本的「下載」資料夾。</p><p>我們要先從XDG User Dirs解決起。</p><h2>1. 理解XDG User Dirs<span><a href="#1-%E7%90%86%E8%A7%A3xdg-user-dirs" aria-label="定位點">#</a></span></h2><p>Linux各大桌面環境，包含GNOME、KDE Plasma、XFCE、Cinammon都是遵守XDG User Dirs標準的。</p><p>它定義了：DESKTOP、DOWNLOAD、TEMPLATES、PUBLICSHARE、DOCUMENTS、MUSIC、PICTURES、VIDEOS等常用的使用者資料夾。</p><p><code>xdg-user-dirs-update</code>指令就是用來生成上述資料夾的。</p><p>第一次登入桌面的時候，應該會自動執行<code>xdg-user-dirs-update</code>，依照使用者的語言自動生成XDG User Dirs資料夾。這就是為何你會看到「下載」而非「Downloads」資料夾的緣故。</p><p>然後，<code>xdg-user-dirs-update</code>會將實際指向的資料夾設定檔，寫在<code>~/.config/user-dirs.dirs</code>和<code>~/.config/user-dirs.locale</code>。裡面的XDG環境變數記載了真正的下載資料夾路徑在哪裡。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ef8707bd2b.webp"><p>如果程式在存取使用者家目錄的時候，是依照XDG的環境變數去存取，而非寫死絕對路徑，那麼它就能知道使用者真正的「下載」資料夾在哪裡。這樣程式能夠依照使用者目前語言的設定，找到使用者目前使用中的「下載」資料夾。</p><p>當我們要把XDG User Dirs改回英文的時候，就得注意以上問題。</p><h2>2. 將家目錄資料夾改成英文<span><a href="#2-%E5%B0%87%E5%AE%B6%E7%9B%AE%E9%8C%84%E8%B3%87%E6%96%99%E5%A4%BE%E6%94%B9%E6%88%90%E8%8B%B1%E6%96%87" aria-label="定位點">#</a></span></h2><ol><li>執行以下指令，將環境變數暫時設定為英文，強制生成英文資料夾</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>LC_ALL</span><span>=</span>C.UTF-8 xdg-user-dirs-update --force
+</span></span></code></pre></div><ol start="2"><li><p>開啟檔案管理器，可看到生成了英文版的XDG User Dirs資料夾。不過原本資料夾不會刪除，檔案要手動搬移。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-239391123d.webp"></li><li><p>檢視<code>~/.config/user-dirs.dirs</code>內容，可看到真正的下載資料夾路徑也變了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f330f98a56.webp"></li><li><p><code>~/.config/user-dirs.dirs</code>裡面的環境變數是允許自訂的，像是你可以把<code>XDG_DOWNLOAD_DIR="$HOME/Downloads</code>改為<code>XDG_DOWNLOAD_DIR="$HOME/Download</code>，日後就會直接生效，不用再執行<code>xdg-user-dirs-update</code>指令。</p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/XDG_user_directories" target="_blank">XDG user directories - Arch Wiki</a></li><li><a href="https://www.freedesktop.org/wiki/Software/xdg-user-dirs/" target="_blank">xdg-user-dirs - FreeDesktop.org</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/linux-xdg-user-dirs/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-616cae9046.webp"></a></p>
+<p>像Ubuntu這類對用戶友善的Linux發行版，會在安裝的時候幫你搞定語言的問題。當你選中文安裝，家目錄下的常用資料夾也會變成中文的，如圖所示。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-213f811668.webp"><p>不過對於需要常常使用終端機打指令的用戶，肯定會不太方便。切換目錄的時候還切換輸入法（如<code>cd ~/下載</code>肯定不如<code>cd ~/Downloads</code>要快速），很是麻煩。甚至有人因為這樣，索性只裝英文版的系統，然後再設定中文語言套件，可是這樣就讓Linux不好用的了說！</p><p>其實這個問題可以用一個小技巧解決，讓你能夠使用中文的Ubuntu界面，資料夾卻是英文的。</p><p>你要知道的是，你想要英文的家目錄資料夾，絕對不是把中文的「下載」資料夾重新命名成英文「Downloads」就能解決的事情！如果這樣做，有些程式還是不會認你的「Downloads」資料夾，而是將檔案放到原本的「下載」資料夾。</p><p>我們要先從XDG User Dirs解決起。</p><h2>1. 理解XDG User Dirs<span><a href="#1-%E7%90%86%E8%A7%A3xdg-user-dirs" aria-label="定位點">#</a></span></h2><p>Linux各大桌面環境，包含GNOME、KDE Plasma、XFCE、Cinammon都是遵守XDG User Dirs標準的。</p><p>它定義了：DESKTOP、DOWNLOAD、TEMPLATES、PUBLICSHARE、DOCUMENTS、MUSIC、PICTURES、VIDEOS等常用的使用者資料夾。</p><p><code>xdg-user-dirs-update</code>指令就是用來生成上述資料夾的。</p><p>第一次登入桌面的時候，應該會自動執行<code>xdg-user-dirs-update</code>，依照使用者的語言自動生成XDG User Dirs資料夾。這就是為何你會看到「下載」而非「Downloads」資料夾的緣故。</p><p>然後，<code>xdg-user-dirs-update</code>會將實際指向的資料夾設定檔，寫在<code>~/.config/user-dirs.dirs</code>和<code>~/.config/user-dirs.locale</code>。裡面的XDG環境變數記載了真正的下載資料夾路徑在哪裡。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ef8707bd2b.webp"><p>如果程式在存取使用者家目錄的時候，是依照XDG的環境變數去存取，而非寫死絕對路徑，那麼它就能知道使用者真正的「下載」資料夾在哪裡。這樣程式能夠依照使用者目前語言的設定，找到使用者目前使用中的「下載」資料夾。</p><p>當我們要把XDG User Dirs改回英文的時候，就得注意以上問題。</p><h2>2. 將家目錄資料夾改成英文<span><a href="#2-%E5%B0%87%E5%AE%B6%E7%9B%AE%E9%8C%84%E8%B3%87%E6%96%99%E5%A4%BE%E6%94%B9%E6%88%90%E8%8B%B1%E6%96%87" aria-label="定位點">#</a></span></h2><ol><li>執行以下指令，將環境變數暫時設定為英文，強制生成英文資料夾</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>LC_ALL</span><span>=</span>C.UTF-8 xdg-user-dirs-update --force
+</span></span></code></pre></div><ol start="2"><li><p>開啟檔案管理器，可看到生成了英文版的XDG User Dirs資料夾。不過原本資料夾不會刪除，檔案要手動搬移。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-239391123d.webp"></li><li><p>檢視<code>~/.config/user-dirs.dirs</code>內容，可看到真正的下載資料夾路徑也變了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f330f98a56.webp"></li><li><p><code>~/.config/user-dirs.dirs</code>裡面的環境變數是允許自訂的，像是你可以把<code>XDG_DOWNLOAD_DIR="$HOME/Downloads</code>改為<code>XDG_DOWNLOAD_DIR="$HOME/Download</code>，日後就會直接生效，不用再執行<code>xdg-user-dirs-update</code>指令。</p></li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/XDG_user_directories" target="_blank">XDG user directories - Arch Wiki</a></li><li><a href="https://www.freedesktop.org/wiki/Software/xdg-user-dirs/" target="_blank">xdg-user-dirs - FreeDesktop.org</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-616cae9046.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-616cae9046.webp" medium="image"/>
+    <pubDate>Wed, 15 Jan 2025 20:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[Ubuntu繁體中文輸入法？改用Fcitx5來輸入中文吧！]]></title>
+    <link>https://ivonblog.com/posts/ubuntu-fcitx5/</link>
+    <itunes:title><![CDATA[Ubuntu繁體中文輸入法？改用Fcitx5來輸入中文吧！]]></itunes:title>
+    <itunes:author><![CDATA[Ivon的部落格[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ubuntu-fcitx5/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-56dd19a1f9.webp"></a></p>
+<p><strong>適用系統: Ubuntu 24.04以上</strong></p><p>說到Linux推薦的注音輸入法，目前有Fcitx5 ＋ 新酷音。</p><p>Fcitx5是一款開源的輸入法框架，支援注音、漢語拼音、倉頡、嘸蝦米、大易、行列等常見的中文輸入法方案，能夠在輸入時繁轉簡。還額外支援輸入粵文、日文、韓文、越南文。</p><p>此外，Fcitx5能夠解決Flatpak應用程式無法輸入中文的問題，對Wayland支援度較佳。</p><p>Fcitx5支援多個Linux發行版，包含Ubuntu、Fedora、Arch Linux、openSUSE、Gentoo等。本文Ivon介紹如何在Ubuntu設定Fcitx5，並安裝台灣國內較普遍的注音輸入法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7666ffa855.webp"><h2>1. 安裝Fcitx5套件<span><a href="#1-%E5%AE%89%E8%A3%9Dfcitx5%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>Fcitx5是輸入法框架，我們要有一個負責輸入注音的程式，那就是<a href="https://chewing.im/" target="_blank">新酷音輸入法</a>。新酷音之外的選擇，還有<a href="https://rime.im/" target="_blank">RIME注音</a>以及<a href="https://github.com/openvanilla/fcitx5-mcbopomofo" target="_blank">小麥注音輸入法</a>。但是前者設定太複雜，後者則是Ubuntu套件庫尚未收錄，需要手動編譯。所以我們就用新酷音吧。</p><p>目前Ubuntu 24.04內建的中文輸入法應該是iBus + 新酷音。iBus是比Fcitx5還老的框架，這些套件可以保留，不過若有裝舊版Fcitx4需先將其移除。</p><ol><li>開啟終端機，移除舊版fcitx套件。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge fcitx*
+</span></span></code></pre></div><ol start="2"><li><p>開啟Ubuntu系統設定 → 鍵盤 → 輸入來源，點三點，移除中文(新酷音)輸入法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a366ab280d.webp"></li><li><p>安裝Fcitx5相關套件：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span><span># 安裝全部Fcitx5支援的輸入法</span>
+</span></span><span><span>sudo apt install fcitx5 fcitx5-*
+</span></span><span><span>
+</span></span><span><span><span># 或是只安裝Fcitx5與新酷音注音輸入法</span>
+</span></span><span><span>sudo apt install fcitx5 fcitx5-chinese-addons fcitx5-chewing
+</span></span></code></pre></div><ol start="4"><li><p>開啟終端機，輸入<code>im-config</code>指令。</p></li><li><p>點選確定</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14366d5b2a.webp"></li><li><p>輸入法框架選取Fcitx5，確認後關閉視窗，然後重開機。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4bcc6466ed.webp"></li></ol><h2>2. 設定Fcitx5 + 新酷音<span><a href="#2-%E8%A8%AD%E5%AE%9Afcitx5--%E6%96%B0%E9%85%B7%E9%9F%B3" aria-label="定位點">#</a></span></h2><ol><li><p>在應用程式列表找到Fcitx5設定</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fedeca2536.webp"></li><li><p>開啟後新酷音注音輸入法應該已經啟用。若無則從右邊面板底部找到新酷音，將其加入到左邊的面板。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a58b89656.webp"></li><li><p>設定好Fcitx5後，桌面右上角會顯示目前的輸入法，還有切換簡繁輸入的按鈕。（如果你看不到此面板，請安裝<a href="https://extensions.gnome.org/extension/261/kimpanel/" target="_blank">Input Method Panel擴充套件</a>）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cf1e87769c.webp"></li></ol><h2>3. Fcitx5新酷音的操作方式<span><a href="#3-fcitx5%E6%96%B0%E9%85%B7%E9%9F%B3%E7%9A%84%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>有些功能是Fcitx5全域提供的，有些則是僅限「新酷音」輸入的時候才能使用。</p><p>Fcitx5預設的快捷鍵：</p><table><thead><tr><th>按鍵</th><th>用途</th></tr></thead><tbody><tr><td>注音鍵</td><td>輸入注音開始打字。新酷音必須要打出完整的聲母和韻母才能選字。輸入注音之後按空白鍵，使用方向鍵選字。</td></tr><tr><td>CTRL + 空白鍵</td><td>切換不同語言的Fcitx5輸入法，例如從注音切換到拼音。</td></tr><tr><td>SHIFT</td><td>切換Fcitx5中英輸入。</td></tr><tr><td>CTRL + SHIFT + F</td><td>切換Fcitx5簡繁輸入。</td></tr><tr><td>CTRL + ;</td><td>開啟Fcitx5的剪貼簿</td></tr><tr><td>SHIFT + 空白鍵</td><td>切換新酷音的全形與半形。</td></tr><tr><td>SHIFT + 鍵盤的標點符號</td><td>輸入新酷音的全形字元，例如按<code>SHIFT + ,</code>輸出逗號<code>，</code>；按<code>SHIFT + .</code>輸出句號<code>。</code>；按<code>SHIFT + -</code>或<code>SHIFT + \</code>可以打箭頭符號；按<code>[</code>輸出引號<code>「</code>。</td></tr><tr><td>~</td><td>開啟新酷音提供的特殊符號、數學符號、希臘字母面板。</td></tr></tbody></table><p>你可以在Fcitx5的輸入法設定自定義快捷鍵。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48fc9a1b11.webp"><p>目前Fcitx5只有漢語拼音輸入法能透過快捷鍵輸入Emoji，新酷音得安裝<a href="https://github.com/GaZaTu/im-emoji-picker" target="_blank">im-emoji-picker</a>，手動選取Emoji。</p><p>在文字編輯器選取字元，再按CTRL + SHIFT + ALT + U可查看其Unicode編碼。在空白處按下前述的組合鍵則能用Unicode編碼打字。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-806f236549.webp"><p>Fcitx5的全域設定可以設定常用片語，這樣按Windows鍵+「`」便能快速輸入常用字彙。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2e2dc5a680.webp"><h2>4. Fcitx5新酷音自訂詞庫<span><a href="#4-fcitx5%E6%96%B0%E9%85%B7%E9%9F%B3%E8%87%AA%E8%A8%82%E8%A9%9E%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>常用詞彙總是選到錯誤的字？使用自訂詞庫吧，讓新酷音記得你常用的詞彙。</p><p>目前Fcitx5的詞庫套件大部份是為漢語拼音輸入法設計的，線上拼音服務也是只有漢語拼音能用。</p><p>新酷音使用者需要自行匯入詞庫。</p><ol><li>安裝新酷音專用的Chewing Editor編輯器：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install chewing-editor
+</span></span></code></pre></div><ol start="2"><li><p>開啟後即可編輯新酷音的詞庫，只要新增詞彙和注音（中間要有空格），就能讓新酷音記住這個新詞。下次打字應該就會一次選對了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2a8c0065f7.webp"></li><li><p>新酷音自訂的詞庫會儲存到<code>~/chewing/chewing.sqlite3</code>。不過若要分享詞庫，你應該使用Chewing Edior匯出.json格式的檔案。</p></li></ol><h2>5. 設定Fcitx5繁簡轉換規則<span><a href="#5-%E8%A8%AD%E5%AE%9Afcitx5%E7%B9%81%E7%B0%A1%E8%BD%89%E6%8F%9B%E8%A6%8F%E5%89%87" aria-label="定位點">#</a></span></h2><p>Fcitx5允許你用注音鍵盤打簡體字，反之也可以用漢語拼音打繁體字。</p><p>按下CTRL + SHIFT + F切換繁簡輸入，Fcitx5預設只會把繁體字轉簡體字。你可以設定OpenCC套件，在打簡體字的時候，將台灣用語也一併轉換成為中國用語，例如「影片」 → 「视频」。</p><ol><li>安裝OpenCC套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install opencc
+</span></span></code></pre></div><ol start="2"><li><p>開啟Fcixt5輸入法設定面板，找到「簡繁轉換」選項。Native就是只轉換繁簡，請切換為OpenCC。</p></li><li><p>參考<a href="https://github.com/BYVoid/OpenCC?tab=readme-ov-file#configurations-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6" target="_blank">OpenCC官方文件</a>的說明，選取適合的設定檔。</p></li></ol><p>因為新酷音預設打出的是繁體字，我設定「簡轉繁」在切換為簡體輸入的模式下，採用OpenCC的<code>s2twp.json</code>，將台灣用語轉成中國用語。</p><p>「繁轉簡」設定在繁體輸入模式下，採用<code>tw2sp.json</code>，自動將中國用語轉換成台灣用語。但請注意這個選項只對簡體字輸入法有用，因為拼音輸入法預設打出的是簡體字，才能轉換為繁體。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b449d51963.webp"><ol start="4"><li>Ubuntu的OpenCC設定檔位於<code>/usr/share/opencc</code>，如果你要使用自訂的繁簡轉換txt檔，就是把檔案放到這裡。</li></ol><h2>6. 排除Fcitx5無法打字問題<span><a href="#6-%E6%8E%92%E9%99%A4fcitx5%E7%84%A1%E6%B3%95%E6%89%93%E5%AD%97%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>如果安裝後無法叫出Fcitx5輸入法，試著執行指令：<code>sudo vim /etc/environment</code>，加入以下環境變數後重開機。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>GTK_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>QT_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>XMODIFIERS</span><span>=</span>@im<span>=</span>fcitx
+</span></span><span><span><span>SDL_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>GLFW_IM_MODULE</span><span>=</span>ibus
+</span></span></code></pre></div><p>如果部份按鍵打出錯誤的字，試著調整Fcitx5輸入法的「鍵盤佈局」。</p><p>如果是特定應用程式打不出中文，則執行Fcitx5診斷。診斷無果再到<a href="https://github.com/fcitx/fcitx5" target="_blank">Github</a>回報問題。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>fcitx5-diagnose
+</span></span></code></pre></div><h2>延伸閱讀<span><a href="#%E5%BB%B6%E4%BC%B8%E9%96%B1%E8%AE%80" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinuxcn.org/zh/Fcitx5" target="_blank">Fcitx5 - Arch Linux中文Wiki</a></li><li><a href="https://github.com/fcitx/fcitx5" target="_blank">Fcitx5的Gitub儲存庫</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ubuntu-fcitx5/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-56dd19a1f9.webp"></a></p>
+<p><strong>適用系統: Ubuntu 24.04以上</strong></p><p>說到Linux推薦的注音輸入法，目前有Fcitx5 ＋ 新酷音。</p><p>Fcitx5是一款開源的輸入法框架，支援注音、漢語拼音、倉頡、嘸蝦米、大易、行列等常見的中文輸入法方案，能夠在輸入時繁轉簡。還額外支援輸入粵文、日文、韓文、越南文。</p><p>此外，Fcitx5能夠解決Flatpak應用程式無法輸入中文的問題，對Wayland支援度較佳。</p><p>Fcitx5支援多個Linux發行版，包含Ubuntu、Fedora、Arch Linux、openSUSE、Gentoo等。本文Ivon介紹如何在Ubuntu設定Fcitx5，並安裝台灣國內較普遍的注音輸入法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7666ffa855.webp"><h2>1. 安裝Fcitx5套件<span><a href="#1-%E5%AE%89%E8%A3%9Dfcitx5%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>Fcitx5是輸入法框架，我們要有一個負責輸入注音的程式，那就是<a href="https://chewing.im/" target="_blank">新酷音輸入法</a>。新酷音之外的選擇，還有<a href="https://rime.im/" target="_blank">RIME注音</a>以及<a href="https://github.com/openvanilla/fcitx5-mcbopomofo" target="_blank">小麥注音輸入法</a>。但是前者設定太複雜，後者則是Ubuntu套件庫尚未收錄，需要手動編譯。所以我們就用新酷音吧。</p><p>目前Ubuntu 24.04內建的中文輸入法應該是iBus + 新酷音。iBus是比Fcitx5還老的框架，這些套件可以保留，不過若有裝舊版Fcitx4需先將其移除。</p><ol><li>開啟終端機，移除舊版fcitx套件。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge fcitx*
+</span></span></code></pre></div><ol start="2"><li><p>開啟Ubuntu系統設定 → 鍵盤 → 輸入來源，點三點，移除中文(新酷音)輸入法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a366ab280d.webp"></li><li><p>安裝Fcitx5相關套件：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span><span># 安裝全部Fcitx5支援的輸入法</span>
+</span></span><span><span>sudo apt install fcitx5 fcitx5-*
+</span></span><span><span>
+</span></span><span><span><span># 或是只安裝Fcitx5與新酷音注音輸入法</span>
+</span></span><span><span>sudo apt install fcitx5 fcitx5-chinese-addons fcitx5-chewing
+</span></span></code></pre></div><ol start="4"><li><p>開啟終端機，輸入<code>im-config</code>指令。</p></li><li><p>點選確定</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14366d5b2a.webp"></li><li><p>輸入法框架選取Fcitx5，確認後關閉視窗，然後重開機。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4bcc6466ed.webp"></li></ol><h2>2. 設定Fcitx5 + 新酷音<span><a href="#2-%E8%A8%AD%E5%AE%9Afcitx5--%E6%96%B0%E9%85%B7%E9%9F%B3" aria-label="定位點">#</a></span></h2><ol><li><p>在應用程式列表找到Fcitx5設定</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fedeca2536.webp"></li><li><p>開啟後新酷音注音輸入法應該已經啟用。若無則從右邊面板底部找到新酷音，將其加入到左邊的面板。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a58b89656.webp"></li><li><p>設定好Fcitx5後，桌面右上角會顯示目前的輸入法，還有切換簡繁輸入的按鈕。（如果你看不到此面板，請安裝<a href="https://extensions.gnome.org/extension/261/kimpanel/" target="_blank">Input Method Panel擴充套件</a>）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cf1e87769c.webp"></li></ol><h2>3. Fcitx5新酷音的操作方式<span><a href="#3-fcitx5%E6%96%B0%E9%85%B7%E9%9F%B3%E7%9A%84%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>有些功能是Fcitx5全域提供的，有些則是僅限「新酷音」輸入的時候才能使用。</p><p>Fcitx5預設的快捷鍵：</p><table><thead><tr><th>按鍵</th><th>用途</th></tr></thead><tbody><tr><td>注音鍵</td><td>輸入注音開始打字。新酷音必須要打出完整的聲母和韻母才能選字。輸入注音之後按空白鍵，使用方向鍵選字。</td></tr><tr><td>CTRL + 空白鍵</td><td>切換不同語言的Fcitx5輸入法，例如從注音切換到拼音。</td></tr><tr><td>SHIFT</td><td>切換Fcitx5中英輸入。</td></tr><tr><td>CTRL + SHIFT + F</td><td>切換Fcitx5簡繁輸入。</td></tr><tr><td>CTRL + ;</td><td>開啟Fcitx5的剪貼簿</td></tr><tr><td>SHIFT + 空白鍵</td><td>切換新酷音的全形與半形。</td></tr><tr><td>SHIFT + 鍵盤的標點符號</td><td>輸入新酷音的全形字元，例如按<code>SHIFT + ,</code>輸出逗號<code>，</code>；按<code>SHIFT + .</code>輸出句號<code>。</code>；按<code>SHIFT + -</code>或<code>SHIFT + \</code>可以打箭頭符號；按<code>[</code>輸出引號<code>「</code>。</td></tr><tr><td>~</td><td>開啟新酷音提供的特殊符號、數學符號、希臘字母面板。</td></tr></tbody></table><p>你可以在Fcitx5的輸入法設定自定義快捷鍵。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48fc9a1b11.webp"><p>目前Fcitx5只有漢語拼音輸入法能透過快捷鍵輸入Emoji，新酷音得安裝<a href="https://github.com/GaZaTu/im-emoji-picker" target="_blank">im-emoji-picker</a>，手動選取Emoji。</p><p>在文字編輯器選取字元，再按CTRL + SHIFT + ALT + U可查看其Unicode編碼。在空白處按下前述的組合鍵則能用Unicode編碼打字。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-806f236549.webp"><p>Fcitx5的全域設定可以設定常用片語，這樣按Windows鍵+「`」便能快速輸入常用字彙。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2e2dc5a680.webp"><h2>4. Fcitx5新酷音自訂詞庫<span><a href="#4-fcitx5%E6%96%B0%E9%85%B7%E9%9F%B3%E8%87%AA%E8%A8%82%E8%A9%9E%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>常用詞彙總是選到錯誤的字？使用自訂詞庫吧，讓新酷音記得你常用的詞彙。</p><p>目前Fcitx5的詞庫套件大部份是為漢語拼音輸入法設計的，線上拼音服務也是只有漢語拼音能用。</p><p>新酷音使用者需要自行匯入詞庫。</p><ol><li>安裝新酷音專用的Chewing Editor編輯器：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install chewing-editor
+</span></span></code></pre></div><ol start="2"><li><p>開啟後即可編輯新酷音的詞庫，只要新增詞彙和注音（中間要有空格），就能讓新酷音記住這個新詞。下次打字應該就會一次選對了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2a8c0065f7.webp"></li><li><p>新酷音自訂的詞庫會儲存到<code>~/chewing/chewing.sqlite3</code>。不過若要分享詞庫，你應該使用Chewing Edior匯出.json格式的檔案。</p></li></ol><h2>5. 設定Fcitx5繁簡轉換規則<span><a href="#5-%E8%A8%AD%E5%AE%9Afcitx5%E7%B9%81%E7%B0%A1%E8%BD%89%E6%8F%9B%E8%A6%8F%E5%89%87" aria-label="定位點">#</a></span></h2><p>Fcitx5允許你用注音鍵盤打簡體字，反之也可以用漢語拼音打繁體字。</p><p>按下CTRL + SHIFT + F切換繁簡輸入，Fcitx5預設只會把繁體字轉簡體字。你可以設定OpenCC套件，在打簡體字的時候，將台灣用語也一併轉換成為中國用語，例如「影片」 → 「视频」。</p><ol><li>安裝OpenCC套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install opencc
+</span></span></code></pre></div><ol start="2"><li><p>開啟Fcixt5輸入法設定面板，找到「簡繁轉換」選項。Native就是只轉換繁簡，請切換為OpenCC。</p></li><li><p>參考<a href="https://github.com/BYVoid/OpenCC?tab=readme-ov-file#configurations-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6" target="_blank">OpenCC官方文件</a>的說明，選取適合的設定檔。</p></li></ol><p>因為新酷音預設打出的是繁體字，我設定「簡轉繁」在切換為簡體輸入的模式下，採用OpenCC的<code>s2twp.json</code>，將台灣用語轉成中國用語。</p><p>「繁轉簡」設定在繁體輸入模式下，採用<code>tw2sp.json</code>，自動將中國用語轉換成台灣用語。但請注意這個選項只對簡體字輸入法有用，因為拼音輸入法預設打出的是簡體字，才能轉換為繁體。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b449d51963.webp"><ol start="4"><li>Ubuntu的OpenCC設定檔位於<code>/usr/share/opencc</code>，如果你要使用自訂的繁簡轉換txt檔，就是把檔案放到這裡。</li></ol><h2>6. 排除Fcitx5無法打字問題<span><a href="#6-%E6%8E%92%E9%99%A4fcitx5%E7%84%A1%E6%B3%95%E6%89%93%E5%AD%97%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>如果安裝後無法叫出Fcitx5輸入法，試著執行指令：<code>sudo vim /etc/environment</code>，加入以下環境變數後重開機。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>GTK_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>QT_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>XMODIFIERS</span><span>=</span>@im<span>=</span>fcitx
+</span></span><span><span><span>SDL_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>GLFW_IM_MODULE</span><span>=</span>ibus
+</span></span></code></pre></div><p>如果部份按鍵打出錯誤的字，試著調整Fcitx5輸入法的「鍵盤佈局」。</p><p>如果是特定應用程式打不出中文，則執行Fcitx5診斷。診斷無果再到<a href="https://github.com/fcitx/fcitx5" target="_blank">Github</a>回報問題。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>fcitx5-diagnose
+</span></span></code></pre></div><h2>延伸閱讀<span><a href="#%E5%BB%B6%E4%BC%B8%E9%96%B1%E8%AE%80" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinuxcn.org/zh/Fcitx5" target="_blank">Fcitx5 - Arch Linux中文Wiki</a></li><li><a href="https://github.com/fcitx/fcitx5" target="_blank">Fcitx5的Gitub儲存庫</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ubuntu-fcitx5/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-56dd19a1f9.webp"></a></p>
+<p><strong>適用系統: Ubuntu 24.04以上</strong></p><p>說到Linux推薦的注音輸入法，目前有Fcitx5 ＋ 新酷音。</p><p>Fcitx5是一款開源的輸入法框架，支援注音、漢語拼音、倉頡、嘸蝦米、大易、行列等常見的中文輸入法方案，能夠在輸入時繁轉簡。還額外支援輸入粵文、日文、韓文、越南文。</p><p>此外，Fcitx5能夠解決Flatpak應用程式無法輸入中文的問題，對Wayland支援度較佳。</p><p>Fcitx5支援多個Linux發行版，包含Ubuntu、Fedora、Arch Linux、openSUSE、Gentoo等。本文Ivon介紹如何在Ubuntu設定Fcitx5，並安裝台灣國內較普遍的注音輸入法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7666ffa855.webp"><h2>1. 安裝Fcitx5套件<span><a href="#1-%E5%AE%89%E8%A3%9Dfcitx5%E5%A5%97%E4%BB%B6" aria-label="定位點">#</a></span></h2><p>Fcitx5是輸入法框架，我們要有一個負責輸入注音的程式，那就是<a href="https://chewing.im/" target="_blank">新酷音輸入法</a>。新酷音之外的選擇，還有<a href="https://rime.im/" target="_blank">RIME注音</a>以及<a href="https://github.com/openvanilla/fcitx5-mcbopomofo" target="_blank">小麥注音輸入法</a>。但是前者設定太複雜，後者則是Ubuntu套件庫尚未收錄，需要手動編譯。所以我們就用新酷音吧。</p><p>目前Ubuntu 24.04內建的中文輸入法應該是iBus + 新酷音。iBus是比Fcitx5還老的框架，這些套件可以保留，不過若有裝舊版Fcitx4需先將其移除。</p><ol><li>開啟終端機，移除舊版fcitx套件。</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt purge fcitx*
+</span></span></code></pre></div><ol start="2"><li><p>開啟Ubuntu系統設定 → 鍵盤 → 輸入來源，點三點，移除中文(新酷音)輸入法。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a366ab280d.webp"></li><li><p>安裝Fcitx5相關套件：</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt update
+</span></span><span><span>
+</span></span><span><span><span># 安裝全部Fcitx5支援的輸入法</span>
+</span></span><span><span>sudo apt install fcitx5 fcitx5-*
+</span></span><span><span>
+</span></span><span><span><span># 或是只安裝Fcitx5與新酷音注音輸入法</span>
+</span></span><span><span>sudo apt install fcitx5 fcitx5-chinese-addons fcitx5-chewing
+</span></span></code></pre></div><ol start="4"><li><p>開啟終端機，輸入<code>im-config</code>指令。</p></li><li><p>點選確定</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14366d5b2a.webp"></li><li><p>輸入法框架選取Fcitx5，確認後關閉視窗，然後重開機。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4bcc6466ed.webp"></li></ol><h2>2. 設定Fcitx5 + 新酷音<span><a href="#2-%E8%A8%AD%E5%AE%9Afcitx5--%E6%96%B0%E9%85%B7%E9%9F%B3" aria-label="定位點">#</a></span></h2><ol><li><p>在應用程式列表找到Fcitx5設定</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fedeca2536.webp"></li><li><p>開啟後新酷音注音輸入法應該已經啟用。若無則從右邊面板底部找到新酷音，將其加入到左邊的面板。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9a58b89656.webp"></li><li><p>設定好Fcitx5後，桌面右上角會顯示目前的輸入法，還有切換簡繁輸入的按鈕。（如果你看不到此面板，請安裝<a href="https://extensions.gnome.org/extension/261/kimpanel/" target="_blank">Input Method Panel擴充套件</a>）</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cf1e87769c.webp"></li></ol><h2>3. Fcitx5新酷音的操作方式<span><a href="#3-fcitx5%E6%96%B0%E9%85%B7%E9%9F%B3%E7%9A%84%E6%93%8D%E4%BD%9C%E6%96%B9%E5%BC%8F" aria-label="定位點">#</a></span></h2><p>有些功能是Fcitx5全域提供的，有些則是僅限「新酷音」輸入的時候才能使用。</p><p>Fcitx5預設的快捷鍵：</p><table><thead><tr><th>按鍵</th><th>用途</th></tr></thead><tbody><tr><td>注音鍵</td><td>輸入注音開始打字。新酷音必須要打出完整的聲母和韻母才能選字。輸入注音之後按空白鍵，使用方向鍵選字。</td></tr><tr><td>CTRL + 空白鍵</td><td>切換不同語言的Fcitx5輸入法，例如從注音切換到拼音。</td></tr><tr><td>SHIFT</td><td>切換Fcitx5中英輸入。</td></tr><tr><td>CTRL + SHIFT + F</td><td>切換Fcitx5簡繁輸入。</td></tr><tr><td>CTRL + ;</td><td>開啟Fcitx5的剪貼簿</td></tr><tr><td>SHIFT + 空白鍵</td><td>切換新酷音的全形與半形。</td></tr><tr><td>SHIFT + 鍵盤的標點符號</td><td>輸入新酷音的全形字元，例如按<code>SHIFT + ,</code>輸出逗號<code>，</code>；按<code>SHIFT + .</code>輸出句號<code>。</code>；按<code>SHIFT + -</code>或<code>SHIFT + \</code>可以打箭頭符號；按<code>[</code>輸出引號<code>「</code>。</td></tr><tr><td>~</td><td>開啟新酷音提供的特殊符號、數學符號、希臘字母面板。</td></tr></tbody></table><p>你可以在Fcitx5的輸入法設定自定義快捷鍵。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48fc9a1b11.webp"><p>目前Fcitx5只有漢語拼音輸入法能透過快捷鍵輸入Emoji，新酷音得安裝<a href="https://github.com/GaZaTu/im-emoji-picker" target="_blank">im-emoji-picker</a>，手動選取Emoji。</p><p>在文字編輯器選取字元，再按CTRL + SHIFT + ALT + U可查看其Unicode編碼。在空白處按下前述的組合鍵則能用Unicode編碼打字。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-806f236549.webp"><p>Fcitx5的全域設定可以設定常用片語，這樣按Windows鍵+「`」便能快速輸入常用字彙。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2e2dc5a680.webp"><h2>4. Fcitx5新酷音自訂詞庫<span><a href="#4-fcitx5%E6%96%B0%E9%85%B7%E9%9F%B3%E8%87%AA%E8%A8%82%E8%A9%9E%E5%BA%AB" aria-label="定位點">#</a></span></h2><p>常用詞彙總是選到錯誤的字？使用自訂詞庫吧，讓新酷音記得你常用的詞彙。</p><p>目前Fcitx5的詞庫套件大部份是為漢語拼音輸入法設計的，線上拼音服務也是只有漢語拼音能用。</p><p>新酷音使用者需要自行匯入詞庫。</p><ol><li>安裝新酷音專用的Chewing Editor編輯器：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install chewing-editor
+</span></span></code></pre></div><ol start="2"><li><p>開啟後即可編輯新酷音的詞庫，只要新增詞彙和注音（中間要有空格），就能讓新酷音記住這個新詞。下次打字應該就會一次選對了。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2a8c0065f7.webp"></li><li><p>新酷音自訂的詞庫會儲存到<code>~/chewing/chewing.sqlite3</code>。不過若要分享詞庫，你應該使用Chewing Edior匯出.json格式的檔案。</p></li></ol><h2>5. 設定Fcitx5繁簡轉換規則<span><a href="#5-%E8%A8%AD%E5%AE%9Afcitx5%E7%B9%81%E7%B0%A1%E8%BD%89%E6%8F%9B%E8%A6%8F%E5%89%87" aria-label="定位點">#</a></span></h2><p>Fcitx5允許你用注音鍵盤打簡體字，反之也可以用漢語拼音打繁體字。</p><p>按下CTRL + SHIFT + F切換繁簡輸入，Fcitx5預設只會把繁體字轉簡體字。你可以設定OpenCC套件，在打簡體字的時候，將台灣用語也一併轉換成為中國用語，例如「影片」 → 「视频」。</p><ol><li>安裝OpenCC套件</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install opencc
+</span></span></code></pre></div><ol start="2"><li><p>開啟Fcixt5輸入法設定面板，找到「簡繁轉換」選項。Native就是只轉換繁簡，請切換為OpenCC。</p></li><li><p>參考<a href="https://github.com/BYVoid/OpenCC?tab=readme-ov-file#configurations-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6" target="_blank">OpenCC官方文件</a>的說明，選取適合的設定檔。</p></li></ol><p>因為新酷音預設打出的是繁體字，我設定「簡轉繁」在切換為簡體輸入的模式下，採用OpenCC的<code>s2twp.json</code>，將台灣用語轉成中國用語。</p><p>「繁轉簡」設定在繁體輸入模式下，採用<code>tw2sp.json</code>，自動將中國用語轉換成台灣用語。但請注意這個選項只對簡體字輸入法有用，因為拼音輸入法預設打出的是簡體字，才能轉換為繁體。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b449d51963.webp"><ol start="4"><li>Ubuntu的OpenCC設定檔位於<code>/usr/share/opencc</code>，如果你要使用自訂的繁簡轉換txt檔，就是把檔案放到這裡。</li></ol><h2>6. 排除Fcitx5無法打字問題<span><a href="#6-%E6%8E%92%E9%99%A4fcitx5%E7%84%A1%E6%B3%95%E6%89%93%E5%AD%97%E5%95%8F%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>如果安裝後無法叫出Fcitx5輸入法，試著執行指令：<code>sudo vim /etc/environment</code>，加入以下環境變數後重開機。</p><div><pre tabindex="0"><code data-lang="bash"><span><span><span>GTK_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>QT_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>XMODIFIERS</span><span>=</span>@im<span>=</span>fcitx
+</span></span><span><span><span>SDL_IM_MODULE</span><span>=</span>fcitx
+</span></span><span><span><span>GLFW_IM_MODULE</span><span>=</span>ibus
+</span></span></code></pre></div><p>如果部份按鍵打出錯誤的字，試著調整Fcitx5輸入法的「鍵盤佈局」。</p><p>如果是特定應用程式打不出中文，則執行Fcitx5診斷。診斷無果再到<a href="https://github.com/fcitx/fcitx5" target="_blank">Github</a>回報問題。</p><div><pre tabindex="0"><code data-lang="bash"><span><span>fcitx5-diagnose
+</span></span></code></pre></div><h2>延伸閱讀<span><a href="#%E5%BB%B6%E4%BC%B8%E9%96%B1%E8%AE%80" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinuxcn.org/zh/Fcitx5" target="_blank">Fcitx5 - Arch Linux中文Wiki</a></li><li><a href="https://github.com/fcitx/fcitx5" target="_blank">Fcitx5的Gitub儲存庫</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-56dd19a1f9.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-56dd19a1f9.webp" medium="image"/>
+    <pubDate>Wed, 15 Jan 2025 16:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Linux安裝應用程式超方便～應用商店前端介紹]]></title>
     <link>https://ivonblog.com/posts/linux-app-store/</link>
     <itunes:title><![CDATA[Linux安裝應用程式超方便～應用商店前端介紹]]></itunes:title>
@@ -980,274 +1067,5 @@ Hugo Image Processing</a></p><p>我分享一個自己的作法：針對那些不
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6a6b36a979.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6a6b36a979.webp" medium="image"/>
     <pubDate>Fri, 20 Dec 2024 19:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[如何使用Hugo架設多語系網站 (multilingual mode)]]></title>
-    <link>https://ivonblog.com/posts/hugo-multilingual-mode/</link>
-    <itunes:title><![CDATA[如何使用Hugo架設多語系網站 (multilingual mode)]]></itunes:title>
-    <itunes:author><![CDATA[Ivon的部落格[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>討論如何給Hugo靜態網站加入多國語言支援。</p><p>因為Ivon偶爾會在Reddit發技術文，加上有寫過一些還算認真下去研究的essay，所以想讓自己網站有個地方可以收錄英文版文章，而非流落於Medium、Github Gists等各大平台。</p><p>Hugo預設對多語系網站(multilingual mode)有不錯的支援，它能夠依照不同語言分類文章，顯示「切換語言」的按鈕，方便使用者檢視不同語言的同一個網頁。</p><p>在瀏覽本網站首頁的時候，應該會在網站右上角看到切換語言的按鈕。目前這個網站有中文內容(<code>https://ivonblog.com/</code>)，還有英文內容(<code>https://ivonblog.com/en-us/</code>)，就是透過Hugo的多語系支援實現的。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03cf22b50a.webp"><p>絕對不是套個Google翻譯的JavaScript元件就打發掉的喔～Hugo能讓你真正的架設多語系網站。</p><p>這裡Ivon分享我是怎麼設定多語系Hugo網站的。</p><h2>1. 多語系網站架構<span><a href="#1-%E5%A4%9A%E8%AA%9E%E7%B3%BB%E7%B6%B2%E7%AB%99%E6%9E%B6%E6%A7%8B" aria-label="定位點">#</a></span></h2><p>沒有一定答案，取決於兩個因素，一個是Hugo官方文件的設定，還有你用的Hugo主題怎麼實現多語系支援的。</p><p>請先閱讀<a href="https://gohugo.io/content-management/multilingual/" target="_blank">
-Hugo Multilingual mode</a>，了解基本概念。撰文當下我使用的Hugo主題是<a href="https://blowfish.page/" target="_blank">
-Blowfish</a>，作者提供了簡單的方式來設定多語系內容。不過其他主題的觀念是相通的。</p><p>Hugo的設計是讓你可以用每個語言一個資料夾，或者一個語言一個檔案對應來實現多語系。</p><ol><li>假設今天要做中文和英文的雙語版網站，那麼在Hugo網站根目錄的結構可以長這樣：</li></ol><pre tabindex="0"><code>.
-├── content.en-us
-│&nbsp;&nbsp; └── posts
-│       └── post1.md
-├── content.zh-tw
-│&nbsp;&nbsp; └── posts
-│       └── post1.md
-</code></pre><ol start="2"><li><p>如果對Hugo的內容管理有些概念，那麼應該知道<code>content</code>目錄下存放的就是網站的各種頁面了，例如文章、關於、分類、標籤等等頁面。</p></li><li><p>在這裡，<code>contnet.en-us</code>是英文網站，<code>content.zh-tw</code>則是中文網站。這二個目錄下有兩個一樣檔名的文章<code>post1.md</code>，Hugo知道這兩篇文章是互為翻譯的對應關係，所以在生成網頁之後，便會在該個頁面顯示語言切換按鈕。</p></li><li><p>以上內容也可以改寫成這樣：不分成兩個目錄，而是將不同語言的Markdown檔案放在同一個目錄下，這樣Hugo也會把他們當成互為翻譯的文章，不過我覺得這樣不好整理檔案，所以不會這樣做。</p></li></ol><pre tabindex="0"><code>.
-├── content
-│&nbsp;&nbsp; └── posts
-│       ├── post1.en-us.md
-│       └── post1.zh-tw.md
-</code></pre><ol start="5"><li>以此類推，如果我們用同樣的邏輯下去設計，很容易就能做出雙語版網站，讓每個中文版頁面都有英文版的對應頁面。</li></ol><pre tabindex="0"><code>.
-├── content.en-us
-│&nbsp;&nbsp; ├── about
-│&nbsp;&nbsp; ├── categories
-│&nbsp;&nbsp; ├── tags
-│&nbsp;&nbsp; └── posts
-├── content.zh-tw
-│&nbsp;&nbsp; ├── about
-│&nbsp;&nbsp; ├── categories
-│&nbsp;&nbsp; ├── tags
-│&nbsp;&nbsp; └── posts
-</code></pre><ol start="5"><li><p>這樣Hugo網站正式上線後，中文的內容會位於<code>https://example.com/</code>，英文內容是位於<code>https://example.com/en-us/</code>。嗯，為什麼只有英文內容有語系代碼？這個下面會討論。</p></li><li><p>這裡要提醒一點的是，不是每個網頁都一定要有對應的多語系網頁。像我很多篇中文文章都沒有英文版，那麼瀏覽該頁面的時候就不會顯示語系切換按鈕。</p></li></ol><p>你可能會好奇我是怎麼處理雙語文章的，還真沒其他辦法，就是手寫！有時候我不會一字一句將中文翻譯成英文，而是即興創作一下，修改用詞增添在地化趣味，反之亦同。</p><p>當然你要像<a href="https://learn.microsoft.com/zh-tw/training/modules/become-learn-contributor/" target="_blank">
-Microsoft Learn</a>的程式碼參考文件那樣，套用正式規範下去處理多語言內容那也可以，要做Wiki類的多人協作網站就需要詳細標準。</p><h2>2. 調整Hugo的設定檔，新增多語系<span><a href="#2-%E8%AA%BF%E6%95%B4hugo%E7%9A%84%E8%A8%AD%E5%AE%9A%E6%AA%94%E6%96%B0%E5%A2%9E%E5%A4%9A%E8%AA%9E%E7%B3%BB" aria-label="定位點">#</a></span></h2><p>Hugo的config裡面可以設定各個語言網站的要素。Hugo允許你將各個語言的定義都寫在一個檔案，或是拆開來寫。</p><p>根據<a href="https://blowfish.page/" target="_blank">
-Blowfish主題文件</a>，作者採取的是將各個設定檔拆開撰寫的作法，它的設定檔位於<code>Hugo網站根目錄/config/_default/</code></p><ol><li>最重要的得從<code>config.toml</code>開始。這個檔案要定義Hugo網站預設的語言。<code>defaultContentLanguage</code>設定為zh-tw，正體中文。</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>defaultContentLanguage</span> <span>=</span> <span>"zh-tw"</span>
-</span></span><span><span><span>defaultContentLanguageInSubdir</span> <span>=</span> <span>false</span>
-</span></span></code></pre></div><ol start="2"><li><p>有趣的事情來了，如果加上<code>defaultContentLanguageInSubdir = true</code>，網站預設語言的路徑也會加上語系代碼。也就是說，中文內容會從<code>https://example.com/</code>變成<code>https://example.com/zh-tw/</code>。這個看你如何抉擇，我是因為以前就習慣中文內容都在域名之下，所以懶得改了。維持中文內容在<code>https://example.com/</code>，英文內容在<code>https://example.com/en-us/</code>的模式。</p></li><li><p>再來要針對每個語系新增設定檔，我目前有這些檔案，命名規則一目了然，所有設定檔後面加上語系代碼。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>.
-</span></span><span><span>├── config.toml
-</span></span><span><span>├── languages.en-us.toml
-</span></span><span><span>├── languages.zh-tw.toml
-</span></span><span><span>├── menus.en-us.toml
-</span></span><span><span>├── menus.zh-tw.toml
-</span></span><span><span>├── params.en-us.toml
-</span></span><span><span>└── params.zh-tw.toml
-</span></span></code></pre></div><ol start="4"><li><code>languages.*.toml</code>是關於該語系的設定檔，包括在地化內容，例如<code>languages.zh-tw.toml</code>我是這樣寫的，languageCode和isoCode在Hugo官網都查得到。</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>languageCode</span> <span>=</span> <span>"zh-TW"</span>
-</span></span><span><span><span>languageName</span> <span>=</span> <span>"正體中文"</span> <span># 顯示的字串可以自訂</span>
-</span></span><span><span><span>weight</span> <span>=</span> <span>1</span>
-</span></span><span><span><span>title</span> <span>=</span> <span>"Ivon的部落格"</span>
-</span></span><span><span><span>contentDir</span> <span>=</span> <span>"content.zh-tw"</span> <span># 指定正體中文的文章所在目錄</span>
-</span></span><span><span><span>hasCJKLanguage</span> <span>=</span> <span>true</span>
-</span></span><span><span>
-</span></span><span><span><span>[</span><span>params</span><span>]</span>
-</span></span><span><span>  <span>displayName</span> <span>=</span> <span>"中文"</span> <span># 顯示的字串可以自訂</span>
-</span></span><span><span>  <span>isoCode</span> <span>=</span> <span>"zh-TW"</span>
-</span></span><span><span>  <span>rtl</span> <span>=</span> <span>false</span>
-</span></span><span><span>  <span>dateFormat</span> <span>=</span> <span>"2006年1月2日"</span> <span># 指定正體中文的時間表示方法</span>
-</span></span><span><span>  <span>description</span> <span>=</span> <span>"歡迎來到Ivon的部落格"</span>
-</span></span><span><span>  <span>copyright</span> <span>=</span> <span>"歡迎分享Ivon的部落格(ivonblog.com)的文章"</span>
-</span></span></code></pre></div><ol start="5"><li>對比英文版<code>languages.en-us.toml</code>：</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>languageCode</span> <span>=</span> <span>"en"</span>
-</span></span><span><span><span>languageName</span> <span>=</span> <span>"English (US)"</span>
-</span></span><span><span><span>weight</span> <span>=</span> <span>1</span>
-</span></span><span><span><span>title</span> <span>=</span> <span>"Ivon's Blog"</span>
-</span></span><span><span><span>contentDir</span> <span>=</span> <span>"content.en-us"</span>  <span># 指定英文文章所在目錄</span>
-</span></span><span><span>
-</span></span><span><span><span>[</span><span>params</span><span>]</span>
-</span></span><span><span>  <span>displayName</span> <span>=</span> <span>"English"</span>
-</span></span><span><span>  <span>isoCode</span> <span>=</span> <span>"en"</span>
-</span></span><span><span>  <span>rtl</span> <span>=</span> <span>false</span>
-</span></span><span><span>  <span>dateFormat</span> <span>=</span> <span>"2006-01-02"</span>
-</span></span><span><span>  <span>description</span> <span>=</span> <span>"Welcome to Ivon's blog"</span>
-</span></span><span><span>  <span>copyright</span> <span>=</span> <span>"You are welcome to share articles of Ivon's Blog (ivonblog.com)."</span>
-</span></span></code></pre></div><ol start="6"><li>上面我的範例是每個語系都有自己的設定，方便詳細自定義不同語系網頁顯示的內容。不過有些設定是可以所有語系共享（或者講繼承），那就不需要分成多個語系的檔案撰寫。以Blowfish主題的設計來說，<code>params.*.toml</code>調整的是網站顏色相關的設定，沒有任何在地化內容，那麼其實沒有必要分成兩個檔案。</li></ol><h2>3. 用i18n翻譯多語系網站的字串<span><a href="#3-%E7%94%A8i18n%E7%BF%BB%E8%AD%AF%E5%A4%9A%E8%AA%9E%E7%B3%BB%E7%B6%B2%E7%AB%99%E7%9A%84%E5%AD%97%E4%B8%B2" aria-label="定位點">#</a></span></h2><p>Hugo提供i18n的機制，讓使用者能將網頁的選單和按鈕，翻譯成對應語言的字串。</p><ol><li><p>通常Hugo的主題開發者不會將選單的字串硬編碼為英文，而是透過<code>i18n</code>目錄下的字串翻譯。</p></li><li><p>例如，Blowfish主題<code>layouts/404.html</code>的404網頁，有放一個i18n的區塊：</p></li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>    i18n "error.404_error" | emojify
-</span></span><span><span>    i18n "error.404_description" | emojify
-</span></span></code></pre></div><ol start="3"><li>它就會去讀取<code>i18n</code>目錄下的<code>zh-TW.yaml</code>所寫的鍵值，依照不同語言顯示不同的字串。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>error</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>404_title</span><span>:</span><span> </span><span>"404找不網頁"</span><span>
-</span></span></span><span><span><span>  </span><span>404_error</span><span>:</span><span> </span><span>"網頁不見了。"</span><span>
-</span></span></span><span><span><span>  </span><span>404_description</span><span>:</span><span> </span><span>"返回首頁"</span><span>
-</span></span></span></code></pre></div><ol start="4"><li>由此可知，<code>i18n</code>目錄之下，不同檔案都有自己的翻譯鍵值：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>.
-</span></span><span><span>├── en-US.yaml
-</span></span><span><span>├── zh-TW.yaml
-</span></span></code></pre></div><ol start="5"><li>順便分享一下我是怎麼把語言按鈕做成國旗的，Blowfish的主題會去讀取i18n的翻譯，那麼我就把language的鍵值設定為Emoji就好了：</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>global</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>language</span><span>:</span><span> </span><span>"🇹🇼"</span><span>
-</span></span></span></code></pre></div><ol start="6"><li>你可以到<code>themes/主題目錄/i18n</code>，將裡面的檔案複製到<code>Hugo網站根目錄/i18n</code>，按照喜好調整字串的翻譯內容。在設計partial和shortcode的時候，別忘了善用i18n的功能，讓你的HTML元件支援多語言。</li></ol><h2>4. 修正提交給Google的sitemap<span><a href="#4-%E4%BF%AE%E6%AD%A3%E6%8F%90%E4%BA%A4%E7%B5%A6google%E7%9A%84sitemap" aria-label="定位點">#</a></span></h2><p>Google Search Console是提高網站搜尋曝光率之用。</p><p>Hugo生成多語言網站後，會改在該語言的目錄中生成sitemap，所以應該改提交：<code>https://example.com/zh-tw/sitemap.xml</code>和<code>https://example.com/en-us/sitemap.xml</code>。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>討論如何給Hugo靜態網站加入多國語言支援。</p><p>因為Ivon偶爾會在Reddit發技術文，加上有寫過一些還算認真下去研究的essay，所以想讓自己網站有個地方可以收錄英文版文章，而非流落於Medium、Github Gists等各大平台。</p><p>Hugo預設對多語系網站(multilingual mode)有不錯的支援，它能夠依照不同語言分類文章，顯示「切換語言」的按鈕，方便使用者檢視不同語言的同一個網頁。</p><p>在瀏覽本網站首頁的時候，應該會在網站右上角看到切換語言的按鈕。目前這個網站有中文內容(<code>https://ivonblog.com/</code>)，還有英文內容(<code>https://ivonblog.com/en-us/</code>)，就是透過Hugo的多語系支援實現的。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03cf22b50a.webp"><p>絕對不是套個Google翻譯的JavaScript元件就打發掉的喔～Hugo能讓你真正的架設多語系網站。</p><p>這裡Ivon分享我是怎麼設定多語系Hugo網站的。</p><h2>1. 多語系網站架構<span><a href="#1-%E5%A4%9A%E8%AA%9E%E7%B3%BB%E7%B6%B2%E7%AB%99%E6%9E%B6%E6%A7%8B" aria-label="定位點">#</a></span></h2><p>沒有一定答案，取決於兩個因素，一個是Hugo官方文件的設定，還有你用的Hugo主題怎麼實現多語系支援的。</p><p>請先閱讀<a href="https://gohugo.io/content-management/multilingual/" target="_blank">
-Hugo Multilingual mode</a>，了解基本概念。撰文當下我使用的Hugo主題是<a href="https://blowfish.page/" target="_blank">
-Blowfish</a>，作者提供了簡單的方式來設定多語系內容。不過其他主題的觀念是相通的。</p><p>Hugo的設計是讓你可以用每個語言一個資料夾，或者一個語言一個檔案對應來實現多語系。</p><ol><li>假設今天要做中文和英文的雙語版網站，那麼在Hugo網站根目錄的結構可以長這樣：</li></ol><pre tabindex="0"><code>.
-├── content.en-us
-│&nbsp;&nbsp; └── posts
-│       └── post1.md
-├── content.zh-tw
-│&nbsp;&nbsp; └── posts
-│       └── post1.md
-</code></pre><ol start="2"><li><p>如果對Hugo的內容管理有些概念，那麼應該知道<code>content</code>目錄下存放的就是網站的各種頁面了，例如文章、關於、分類、標籤等等頁面。</p></li><li><p>在這裡，<code>contnet.en-us</code>是英文網站，<code>content.zh-tw</code>則是中文網站。這二個目錄下有兩個一樣檔名的文章<code>post1.md</code>，Hugo知道這兩篇文章是互為翻譯的對應關係，所以在生成網頁之後，便會在該個頁面顯示語言切換按鈕。</p></li><li><p>以上內容也可以改寫成這樣：不分成兩個目錄，而是將不同語言的Markdown檔案放在同一個目錄下，這樣Hugo也會把他們當成互為翻譯的文章，不過我覺得這樣不好整理檔案，所以不會這樣做。</p></li></ol><pre tabindex="0"><code>.
-├── content
-│&nbsp;&nbsp; └── posts
-│       ├── post1.en-us.md
-│       └── post1.zh-tw.md
-</code></pre><ol start="5"><li>以此類推，如果我們用同樣的邏輯下去設計，很容易就能做出雙語版網站，讓每個中文版頁面都有英文版的對應頁面。</li></ol><pre tabindex="0"><code>.
-├── content.en-us
-│&nbsp;&nbsp; ├── about
-│&nbsp;&nbsp; ├── categories
-│&nbsp;&nbsp; ├── tags
-│&nbsp;&nbsp; └── posts
-├── content.zh-tw
-│&nbsp;&nbsp; ├── about
-│&nbsp;&nbsp; ├── categories
-│&nbsp;&nbsp; ├── tags
-│&nbsp;&nbsp; └── posts
-</code></pre><ol start="5"><li><p>這樣Hugo網站正式上線後，中文的內容會位於<code>https://example.com/</code>，英文內容是位於<code>https://example.com/en-us/</code>。嗯，為什麼只有英文內容有語系代碼？這個下面會討論。</p></li><li><p>這裡要提醒一點的是，不是每個網頁都一定要有對應的多語系網頁。像我很多篇中文文章都沒有英文版，那麼瀏覽該頁面的時候就不會顯示語系切換按鈕。</p></li></ol><p>你可能會好奇我是怎麼處理雙語文章的，還真沒其他辦法，就是手寫！有時候我不會一字一句將中文翻譯成英文，而是即興創作一下，修改用詞增添在地化趣味，反之亦同。</p><p>當然你要像<a href="https://learn.microsoft.com/zh-tw/training/modules/become-learn-contributor/" target="_blank">
-Microsoft Learn</a>的程式碼參考文件那樣，套用正式規範下去處理多語言內容那也可以，要做Wiki類的多人協作網站就需要詳細標準。</p><h2>2. 調整Hugo的設定檔，新增多語系<span><a href="#2-%E8%AA%BF%E6%95%B4hugo%E7%9A%84%E8%A8%AD%E5%AE%9A%E6%AA%94%E6%96%B0%E5%A2%9E%E5%A4%9A%E8%AA%9E%E7%B3%BB" aria-label="定位點">#</a></span></h2><p>Hugo的config裡面可以設定各個語言網站的要素。Hugo允許你將各個語言的定義都寫在一個檔案，或是拆開來寫。</p><p>根據<a href="https://blowfish.page/" target="_blank">
-Blowfish主題文件</a>，作者採取的是將各個設定檔拆開撰寫的作法，它的設定檔位於<code>Hugo網站根目錄/config/_default/</code></p><ol><li>最重要的得從<code>config.toml</code>開始。這個檔案要定義Hugo網站預設的語言。<code>defaultContentLanguage</code>設定為zh-tw，正體中文。</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>defaultContentLanguage</span> <span>=</span> <span>"zh-tw"</span>
-</span></span><span><span><span>defaultContentLanguageInSubdir</span> <span>=</span> <span>false</span>
-</span></span></code></pre></div><ol start="2"><li><p>有趣的事情來了，如果加上<code>defaultContentLanguageInSubdir = true</code>，網站預設語言的路徑也會加上語系代碼。也就是說，中文內容會從<code>https://example.com/</code>變成<code>https://example.com/zh-tw/</code>。這個看你如何抉擇，我是因為以前就習慣中文內容都在域名之下，所以懶得改了。維持中文內容在<code>https://example.com/</code>，英文內容在<code>https://example.com/en-us/</code>的模式。</p></li><li><p>再來要針對每個語系新增設定檔，我目前有這些檔案，命名規則一目了然，所有設定檔後面加上語系代碼。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>.
-</span></span><span><span>├── config.toml
-</span></span><span><span>├── languages.en-us.toml
-</span></span><span><span>├── languages.zh-tw.toml
-</span></span><span><span>├── menus.en-us.toml
-</span></span><span><span>├── menus.zh-tw.toml
-</span></span><span><span>├── params.en-us.toml
-</span></span><span><span>└── params.zh-tw.toml
-</span></span></code></pre></div><ol start="4"><li><code>languages.*.toml</code>是關於該語系的設定檔，包括在地化內容，例如<code>languages.zh-tw.toml</code>我是這樣寫的，languageCode和isoCode在Hugo官網都查得到。</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>languageCode</span> <span>=</span> <span>"zh-TW"</span>
-</span></span><span><span><span>languageName</span> <span>=</span> <span>"正體中文"</span> <span># 顯示的字串可以自訂</span>
-</span></span><span><span><span>weight</span> <span>=</span> <span>1</span>
-</span></span><span><span><span>title</span> <span>=</span> <span>"Ivon的部落格"</span>
-</span></span><span><span><span>contentDir</span> <span>=</span> <span>"content.zh-tw"</span> <span># 指定正體中文的文章所在目錄</span>
-</span></span><span><span><span>hasCJKLanguage</span> <span>=</span> <span>true</span>
-</span></span><span><span>
-</span></span><span><span><span>[</span><span>params</span><span>]</span>
-</span></span><span><span>  <span>displayName</span> <span>=</span> <span>"中文"</span> <span># 顯示的字串可以自訂</span>
-</span></span><span><span>  <span>isoCode</span> <span>=</span> <span>"zh-TW"</span>
-</span></span><span><span>  <span>rtl</span> <span>=</span> <span>false</span>
-</span></span><span><span>  <span>dateFormat</span> <span>=</span> <span>"2006年1月2日"</span> <span># 指定正體中文的時間表示方法</span>
-</span></span><span><span>  <span>description</span> <span>=</span> <span>"歡迎來到Ivon的部落格"</span>
-</span></span><span><span>  <span>copyright</span> <span>=</span> <span>"歡迎分享Ivon的部落格(ivonblog.com)的文章"</span>
-</span></span></code></pre></div><ol start="5"><li>對比英文版<code>languages.en-us.toml</code>：</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>languageCode</span> <span>=</span> <span>"en"</span>
-</span></span><span><span><span>languageName</span> <span>=</span> <span>"English (US)"</span>
-</span></span><span><span><span>weight</span> <span>=</span> <span>1</span>
-</span></span><span><span><span>title</span> <span>=</span> <span>"Ivon's Blog"</span>
-</span></span><span><span><span>contentDir</span> <span>=</span> <span>"content.en-us"</span>  <span># 指定英文文章所在目錄</span>
-</span></span><span><span>
-</span></span><span><span><span>[</span><span>params</span><span>]</span>
-</span></span><span><span>  <span>displayName</span> <span>=</span> <span>"English"</span>
-</span></span><span><span>  <span>isoCode</span> <span>=</span> <span>"en"</span>
-</span></span><span><span>  <span>rtl</span> <span>=</span> <span>false</span>
-</span></span><span><span>  <span>dateFormat</span> <span>=</span> <span>"2006-01-02"</span>
-</span></span><span><span>  <span>description</span> <span>=</span> <span>"Welcome to Ivon's blog"</span>
-</span></span><span><span>  <span>copyright</span> <span>=</span> <span>"You are welcome to share articles of Ivon's Blog (ivonblog.com)."</span>
-</span></span></code></pre></div><ol start="6"><li>上面我的範例是每個語系都有自己的設定，方便詳細自定義不同語系網頁顯示的內容。不過有些設定是可以所有語系共享（或者講繼承），那就不需要分成多個語系的檔案撰寫。以Blowfish主題的設計來說，<code>params.*.toml</code>調整的是網站顏色相關的設定，沒有任何在地化內容，那麼其實沒有必要分成兩個檔案。</li></ol><h2>3. 用i18n翻譯多語系網站的字串<span><a href="#3-%E7%94%A8i18n%E7%BF%BB%E8%AD%AF%E5%A4%9A%E8%AA%9E%E7%B3%BB%E7%B6%B2%E7%AB%99%E7%9A%84%E5%AD%97%E4%B8%B2" aria-label="定位點">#</a></span></h2><p>Hugo提供i18n的機制，讓使用者能將網頁的選單和按鈕，翻譯成對應語言的字串。</p><ol><li><p>通常Hugo的主題開發者不會將選單的字串硬編碼為英文，而是透過<code>i18n</code>目錄下的字串翻譯。</p></li><li><p>例如，Blowfish主題<code>layouts/404.html</code>的404網頁，有放一個i18n的區塊：</p></li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>    i18n "error.404_error" | emojify
-</span></span><span><span>    i18n "error.404_description" | emojify
-</span></span></code></pre></div><ol start="3"><li>它就會去讀取<code>i18n</code>目錄下的<code>zh-TW.yaml</code>所寫的鍵值，依照不同語言顯示不同的字串。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>error</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>404_title</span><span>:</span><span> </span><span>"404找不網頁"</span><span>
-</span></span></span><span><span><span>  </span><span>404_error</span><span>:</span><span> </span><span>"網頁不見了。"</span><span>
-</span></span></span><span><span><span>  </span><span>404_description</span><span>:</span><span> </span><span>"返回首頁"</span><span>
-</span></span></span></code></pre></div><ol start="4"><li>由此可知，<code>i18n</code>目錄之下，不同檔案都有自己的翻譯鍵值：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>.
-</span></span><span><span>├── en-US.yaml
-</span></span><span><span>├── zh-TW.yaml
-</span></span></code></pre></div><ol start="5"><li>順便分享一下我是怎麼把語言按鈕做成國旗的，Blowfish的主題會去讀取i18n的翻譯，那麼我就把language的鍵值設定為Emoji就好了：</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>global</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>language</span><span>:</span><span> </span><span>"🇹🇼"</span><span>
-</span></span></span></code></pre></div><ol start="6"><li>你可以到<code>themes/主題目錄/i18n</code>，將裡面的檔案複製到<code>Hugo網站根目錄/i18n</code>，按照喜好調整字串的翻譯內容。在設計partial和shortcode的時候，別忘了善用i18n的功能，讓你的HTML元件支援多語言。</li></ol><h2>4. 修正提交給Google的sitemap<span><a href="#4-%E4%BF%AE%E6%AD%A3%E6%8F%90%E4%BA%A4%E7%B5%A6google%E7%9A%84sitemap" aria-label="定位點">#</a></span></h2><p>Google Search Console是提高網站搜尋曝光率之用。</p><p>Hugo生成多語言網站後，會改在該語言的目錄中生成sitemap，所以應該改提交：<code>https://example.com/zh-tw/sitemap.xml</code>和<code>https://example.com/en-us/sitemap.xml</code>。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>討論如何給Hugo靜態網站加入多國語言支援。</p><p>因為Ivon偶爾會在Reddit發技術文，加上有寫過一些還算認真下去研究的essay，所以想讓自己網站有個地方可以收錄英文版文章，而非流落於Medium、Github Gists等各大平台。</p><p>Hugo預設對多語系網站(multilingual mode)有不錯的支援，它能夠依照不同語言分類文章，顯示「切換語言」的按鈕，方便使用者檢視不同語言的同一個網頁。</p><p>在瀏覽本網站首頁的時候，應該會在網站右上角看到切換語言的按鈕。目前這個網站有中文內容(<code>https://ivonblog.com/</code>)，還有英文內容(<code>https://ivonblog.com/en-us/</code>)，就是透過Hugo的多語系支援實現的。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03cf22b50a.webp"><p>絕對不是套個Google翻譯的JavaScript元件就打發掉的喔～Hugo能讓你真正的架設多語系網站。</p><p>這裡Ivon分享我是怎麼設定多語系Hugo網站的。</p><h2>1. 多語系網站架構<span><a href="#1-%E5%A4%9A%E8%AA%9E%E7%B3%BB%E7%B6%B2%E7%AB%99%E6%9E%B6%E6%A7%8B" aria-label="定位點">#</a></span></h2><p>沒有一定答案，取決於兩個因素，一個是Hugo官方文件的設定，還有你用的Hugo主題怎麼實現多語系支援的。</p><p>請先閱讀<a href="https://gohugo.io/content-management/multilingual/" target="_blank">
-Hugo Multilingual mode</a>，了解基本概念。撰文當下我使用的Hugo主題是<a href="https://blowfish.page/" target="_blank">
-Blowfish</a>，作者提供了簡單的方式來設定多語系內容。不過其他主題的觀念是相通的。</p><p>Hugo的設計是讓你可以用每個語言一個資料夾，或者一個語言一個檔案對應來實現多語系。</p><ol><li>假設今天要做中文和英文的雙語版網站，那麼在Hugo網站根目錄的結構可以長這樣：</li></ol><pre tabindex="0"><code>.
-├── content.en-us
-│&nbsp;&nbsp; └── posts
-│       └── post1.md
-├── content.zh-tw
-│&nbsp;&nbsp; └── posts
-│       └── post1.md
-</code></pre><ol start="2"><li><p>如果對Hugo的內容管理有些概念，那麼應該知道<code>content</code>目錄下存放的就是網站的各種頁面了，例如文章、關於、分類、標籤等等頁面。</p></li><li><p>在這裡，<code>contnet.en-us</code>是英文網站，<code>content.zh-tw</code>則是中文網站。這二個目錄下有兩個一樣檔名的文章<code>post1.md</code>，Hugo知道這兩篇文章是互為翻譯的對應關係，所以在生成網頁之後，便會在該個頁面顯示語言切換按鈕。</p></li><li><p>以上內容也可以改寫成這樣：不分成兩個目錄，而是將不同語言的Markdown檔案放在同一個目錄下，這樣Hugo也會把他們當成互為翻譯的文章，不過我覺得這樣不好整理檔案，所以不會這樣做。</p></li></ol><pre tabindex="0"><code>.
-├── content
-│&nbsp;&nbsp; └── posts
-│       ├── post1.en-us.md
-│       └── post1.zh-tw.md
-</code></pre><ol start="5"><li>以此類推，如果我們用同樣的邏輯下去設計，很容易就能做出雙語版網站，讓每個中文版頁面都有英文版的對應頁面。</li></ol><pre tabindex="0"><code>.
-├── content.en-us
-│&nbsp;&nbsp; ├── about
-│&nbsp;&nbsp; ├── categories
-│&nbsp;&nbsp; ├── tags
-│&nbsp;&nbsp; └── posts
-├── content.zh-tw
-│&nbsp;&nbsp; ├── about
-│&nbsp;&nbsp; ├── categories
-│&nbsp;&nbsp; ├── tags
-│&nbsp;&nbsp; └── posts
-</code></pre><ol start="5"><li><p>這樣Hugo網站正式上線後，中文的內容會位於<code>https://example.com/</code>，英文內容是位於<code>https://example.com/en-us/</code>。嗯，為什麼只有英文內容有語系代碼？這個下面會討論。</p></li><li><p>這裡要提醒一點的是，不是每個網頁都一定要有對應的多語系網頁。像我很多篇中文文章都沒有英文版，那麼瀏覽該頁面的時候就不會顯示語系切換按鈕。</p></li></ol><p>你可能會好奇我是怎麼處理雙語文章的，還真沒其他辦法，就是手寫！有時候我不會一字一句將中文翻譯成英文，而是即興創作一下，修改用詞增添在地化趣味，反之亦同。</p><p>當然你要像<a href="https://learn.microsoft.com/zh-tw/training/modules/become-learn-contributor/" target="_blank">
-Microsoft Learn</a>的程式碼參考文件那樣，套用正式規範下去處理多語言內容那也可以，要做Wiki類的多人協作網站就需要詳細標準。</p><h2>2. 調整Hugo的設定檔，新增多語系<span><a href="#2-%E8%AA%BF%E6%95%B4hugo%E7%9A%84%E8%A8%AD%E5%AE%9A%E6%AA%94%E6%96%B0%E5%A2%9E%E5%A4%9A%E8%AA%9E%E7%B3%BB" aria-label="定位點">#</a></span></h2><p>Hugo的config裡面可以設定各個語言網站的要素。Hugo允許你將各個語言的定義都寫在一個檔案，或是拆開來寫。</p><p>根據<a href="https://blowfish.page/" target="_blank">
-Blowfish主題文件</a>，作者採取的是將各個設定檔拆開撰寫的作法，它的設定檔位於<code>Hugo網站根目錄/config/_default/</code></p><ol><li>最重要的得從<code>config.toml</code>開始。這個檔案要定義Hugo網站預設的語言。<code>defaultContentLanguage</code>設定為zh-tw，正體中文。</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>defaultContentLanguage</span> <span>=</span> <span>"zh-tw"</span>
-</span></span><span><span><span>defaultContentLanguageInSubdir</span> <span>=</span> <span>false</span>
-</span></span></code></pre></div><ol start="2"><li><p>有趣的事情來了，如果加上<code>defaultContentLanguageInSubdir = true</code>，網站預設語言的路徑也會加上語系代碼。也就是說，中文內容會從<code>https://example.com/</code>變成<code>https://example.com/zh-tw/</code>。這個看你如何抉擇，我是因為以前就習慣中文內容都在域名之下，所以懶得改了。維持中文內容在<code>https://example.com/</code>，英文內容在<code>https://example.com/en-us/</code>的模式。</p></li><li><p>再來要針對每個語系新增設定檔，我目前有這些檔案，命名規則一目了然，所有設定檔後面加上語系代碼。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>.
-</span></span><span><span>├── config.toml
-</span></span><span><span>├── languages.en-us.toml
-</span></span><span><span>├── languages.zh-tw.toml
-</span></span><span><span>├── menus.en-us.toml
-</span></span><span><span>├── menus.zh-tw.toml
-</span></span><span><span>├── params.en-us.toml
-</span></span><span><span>└── params.zh-tw.toml
-</span></span></code></pre></div><ol start="4"><li><code>languages.*.toml</code>是關於該語系的設定檔，包括在地化內容，例如<code>languages.zh-tw.toml</code>我是這樣寫的，languageCode和isoCode在Hugo官網都查得到。</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>languageCode</span> <span>=</span> <span>"zh-TW"</span>
-</span></span><span><span><span>languageName</span> <span>=</span> <span>"正體中文"</span> <span># 顯示的字串可以自訂</span>
-</span></span><span><span><span>weight</span> <span>=</span> <span>1</span>
-</span></span><span><span><span>title</span> <span>=</span> <span>"Ivon的部落格"</span>
-</span></span><span><span><span>contentDir</span> <span>=</span> <span>"content.zh-tw"</span> <span># 指定正體中文的文章所在目錄</span>
-</span></span><span><span><span>hasCJKLanguage</span> <span>=</span> <span>true</span>
-</span></span><span><span>
-</span></span><span><span><span>[</span><span>params</span><span>]</span>
-</span></span><span><span>  <span>displayName</span> <span>=</span> <span>"中文"</span> <span># 顯示的字串可以自訂</span>
-</span></span><span><span>  <span>isoCode</span> <span>=</span> <span>"zh-TW"</span>
-</span></span><span><span>  <span>rtl</span> <span>=</span> <span>false</span>
-</span></span><span><span>  <span>dateFormat</span> <span>=</span> <span>"2006年1月2日"</span> <span># 指定正體中文的時間表示方法</span>
-</span></span><span><span>  <span>description</span> <span>=</span> <span>"歡迎來到Ivon的部落格"</span>
-</span></span><span><span>  <span>copyright</span> <span>=</span> <span>"歡迎分享Ivon的部落格(ivonblog.com)的文章"</span>
-</span></span></code></pre></div><ol start="5"><li>對比英文版<code>languages.en-us.toml</code>：</li></ol><div><pre tabindex="0"><code data-lang="toml"><span><span><span>languageCode</span> <span>=</span> <span>"en"</span>
-</span></span><span><span><span>languageName</span> <span>=</span> <span>"English (US)"</span>
-</span></span><span><span><span>weight</span> <span>=</span> <span>1</span>
-</span></span><span><span><span>title</span> <span>=</span> <span>"Ivon's Blog"</span>
-</span></span><span><span><span>contentDir</span> <span>=</span> <span>"content.en-us"</span>  <span># 指定英文文章所在目錄</span>
-</span></span><span><span>
-</span></span><span><span><span>[</span><span>params</span><span>]</span>
-</span></span><span><span>  <span>displayName</span> <span>=</span> <span>"English"</span>
-</span></span><span><span>  <span>isoCode</span> <span>=</span> <span>"en"</span>
-</span></span><span><span>  <span>rtl</span> <span>=</span> <span>false</span>
-</span></span><span><span>  <span>dateFormat</span> <span>=</span> <span>"2006-01-02"</span>
-</span></span><span><span>  <span>description</span> <span>=</span> <span>"Welcome to Ivon's blog"</span>
-</span></span><span><span>  <span>copyright</span> <span>=</span> <span>"You are welcome to share articles of Ivon's Blog (ivonblog.com)."</span>
-</span></span></code></pre></div><ol start="6"><li>上面我的範例是每個語系都有自己的設定，方便詳細自定義不同語系網頁顯示的內容。不過有些設定是可以所有語系共享（或者講繼承），那就不需要分成多個語系的檔案撰寫。以Blowfish主題的設計來說，<code>params.*.toml</code>調整的是網站顏色相關的設定，沒有任何在地化內容，那麼其實沒有必要分成兩個檔案。</li></ol><h2>3. 用i18n翻譯多語系網站的字串<span><a href="#3-%E7%94%A8i18n%E7%BF%BB%E8%AD%AF%E5%A4%9A%E8%AA%9E%E7%B3%BB%E7%B6%B2%E7%AB%99%E7%9A%84%E5%AD%97%E4%B8%B2" aria-label="定位點">#</a></span></h2><p>Hugo提供i18n的機制，讓使用者能將網頁的選單和按鈕，翻譯成對應語言的字串。</p><ol><li><p>通常Hugo的主題開發者不會將選單的字串硬編碼為英文，而是透過<code>i18n</code>目錄下的字串翻譯。</p></li><li><p>例如，Blowfish主題<code>layouts/404.html</code>的404網頁，有放一個i18n的區塊：</p></li></ol><div><pre tabindex="0"><code data-lang="html"><span><span>    i18n "error.404_error" | emojify
-</span></span><span><span>    i18n "error.404_description" | emojify
-</span></span></code></pre></div><ol start="3"><li>它就會去讀取<code>i18n</code>目錄下的<code>zh-TW.yaml</code>所寫的鍵值，依照不同語言顯示不同的字串。</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>error</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>404_title</span><span>:</span><span> </span><span>"404找不網頁"</span><span>
-</span></span></span><span><span><span>  </span><span>404_error</span><span>:</span><span> </span><span>"網頁不見了。"</span><span>
-</span></span></span><span><span><span>  </span><span>404_description</span><span>:</span><span> </span><span>"返回首頁"</span><span>
-</span></span></span></code></pre></div><ol start="4"><li>由此可知，<code>i18n</code>目錄之下，不同檔案都有自己的翻譯鍵值：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>.
-</span></span><span><span>├── en-US.yaml
-</span></span><span><span>├── zh-TW.yaml
-</span></span></code></pre></div><ol start="5"><li>順便分享一下我是怎麼把語言按鈕做成國旗的，Blowfish的主題會去讀取i18n的翻譯，那麼我就把language的鍵值設定為Emoji就好了：</li></ol><div><pre tabindex="0"><code data-lang="yaml"><span><span><span>global</span><span>:</span><span>
-</span></span></span><span><span><span>  </span><span>language</span><span>:</span><span> </span><span>"🇹🇼"</span><span>
-</span></span></span></code></pre></div><ol start="6"><li>你可以到<code>themes/主題目錄/i18n</code>，將裡面的檔案複製到<code>Hugo網站根目錄/i18n</code>，按照喜好調整字串的翻譯內容。在設計partial和shortcode的時候，別忘了善用i18n的功能，讓你的HTML元件支援多語言。</li></ol><h2>4. 修正提交給Google的sitemap<span><a href="#4-%E4%BF%AE%E6%AD%A3%E6%8F%90%E4%BA%A4%E7%B5%A6google%E7%9A%84sitemap" aria-label="定位點">#</a></span></h2><p>Google Search Console是提高網站搜尋曝光率之用。</p><p>Hugo生成多語言網站後，會改在該語言的目錄中生成sitemap，所以應該改提交：<code>https://example.com/zh-tw/sitemap.xml</code>和<code>https://example.com/en-us/sitemap.xml</code>。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03cf22b50a.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03cf22b50a.webp" medium="image"/>
-    <pubDate>Fri, 20 Dec 2024 01:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Hugo主題透過git submodule更新到最新版]]></title>
-    <link>https://ivonblog.com/posts/update-hugo-themes/</link>
-    <itunes:title><![CDATA[Hugo主題透過git submodule更新到最新版]]></itunes:title>
-    <itunes:author><![CDATA[Ivon的部落格[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>長期維護Hugo網站，有二個事情要考量</p><p>一個是Hugo主程式的版本</p><p>一個是主題的版本，或者準確的說，使用的主題是第幾個git commit版本</p><p>Hugo主程式常常有在更新，語法偶爾會變化，故更新之後要改寫你的主題。若是使用別人做的主題，也要定期追蹤上游變更，否則會建置失敗。</p><p>有常常在更新的Hugo主題，多半會指定Hugo主程式版本，Hugo版本太舊或太新都會建置失敗。</p><p>故，如何更新Hugo主題便成為一個問題。若是直接套用主題還好，git pull覆蓋即可，但如果你又額外在主題上做了一些layout override，就得手動合併變更。</p><h2>1. 不更新Hugo的做法<span><a href="#1-%E4%B8%8D%E6%9B%B4%E6%96%B0hugo%E7%9A%84%E5%81%9A%E6%B3%95" aria-label="定位點">#</a></span></h2><p>是的你可以選擇不要更新，讓Hugo版本停留在固定版本。畢竟Hugo主程式只是一個二進位檔，取得舊版本很容易。雲端部署的時候也能夠指定Hugo版本。</p><p>如果Linux是透過套件管理器安裝Hugo的，可以用一些手段防止它自動更新（如<code>apt mark</code>），再不濟還有直接下載特定版本二進位檔的做法。</p><p>至於Hugo主題，通常可以用git commit去鎖定版本。在git submodule add時候，它就會自動記住那個版本。日後git clone的時候會自動下載那個commit的主題。</p><h2>2. 使用git submodule更新主題<span><a href="#2-%E4%BD%BF%E7%94%A8git-submodule%E6%9B%B4%E6%96%B0%E4%B8%BB%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>以我用的<a href="https://blowfish.page/" target="_blank">
-Blowfish主題</a>為例，我是透過git submodule安裝的。</p><p>更新主題前，請先git push所有變更到遠端儲存庫。</p><p>為了不影響到主幹，做一個新branch</p><div><pre tabindex="0"><code data-lang="bash"><span><span>git branch dev
-</span></span><span><span>git checkout dev
-</span></span></code></pre></div><p>由於我不會直接改主題原始碼，而是用<a href="https://ivonblog.com/posts/customize-and-override-hugo-themes/" target="_blank">
-layout override</a>的方式去覆寫，所以能夠安心的直接拉取最新版。</p><p>更新git submodule，拉取遠端最新commit</p><div><pre tabindex="0"><code data-lang="bash"><span><span>git submodule update --remote --merge
-</span></span></code></pre></div><h2>3. 查看上游變更<span><a href="#3-%E6%9F%A5%E7%9C%8B%E4%B8%8A%E6%B8%B8%E8%AE%8A%E6%9B%B4" aria-label="定位點">#</a></span></h2><p>接著開git diff，比對程式碼。</p><p>Visual Studio Code是個不錯的工具。</p><p>手動比對修改過的檔案，再更新到最新版。</p><p>確認可以了之後再<code>git branch -m</code>回master。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>長期維護Hugo網站，有二個事情要考量</p><p>一個是Hugo主程式的版本</p><p>一個是主題的版本，或者準確的說，使用的主題是第幾個git commit版本</p><p>Hugo主程式常常有在更新，語法偶爾會變化，故更新之後要改寫你的主題。若是使用別人做的主題，也要定期追蹤上游變更，否則會建置失敗。</p><p>有常常在更新的Hugo主題，多半會指定Hugo主程式版本，Hugo版本太舊或太新都會建置失敗。</p><p>故，如何更新Hugo主題便成為一個問題。若是直接套用主題還好，git pull覆蓋即可，但如果你又額外在主題上做了一些layout override，就得手動合併變更。</p><h2>1. 不更新Hugo的做法<span><a href="#1-%E4%B8%8D%E6%9B%B4%E6%96%B0hugo%E7%9A%84%E5%81%9A%E6%B3%95" aria-label="定位點">#</a></span></h2><p>是的你可以選擇不要更新，讓Hugo版本停留在固定版本。畢竟Hugo主程式只是一個二進位檔，取得舊版本很容易。雲端部署的時候也能夠指定Hugo版本。</p><p>如果Linux是透過套件管理器安裝Hugo的，可以用一些手段防止它自動更新（如<code>apt mark</code>），再不濟還有直接下載特定版本二進位檔的做法。</p><p>至於Hugo主題，通常可以用git commit去鎖定版本。在git submodule add時候，它就會自動記住那個版本。日後git clone的時候會自動下載那個commit的主題。</p><h2>2. 使用git submodule更新主題<span><a href="#2-%E4%BD%BF%E7%94%A8git-submodule%E6%9B%B4%E6%96%B0%E4%B8%BB%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>以我用的<a href="https://blowfish.page/" target="_blank">
-Blowfish主題</a>為例，我是透過git submodule安裝的。</p><p>更新主題前，請先git push所有變更到遠端儲存庫。</p><p>為了不影響到主幹，做一個新branch</p><div><pre tabindex="0"><code data-lang="bash"><span><span>git branch dev
-</span></span><span><span>git checkout dev
-</span></span></code></pre></div><p>由於我不會直接改主題原始碼，而是用<a href="https://ivonblog.com/posts/customize-and-override-hugo-themes/" target="_blank">
-layout override</a>的方式去覆寫，所以能夠安心的直接拉取最新版。</p><p>更新git submodule，拉取遠端最新commit</p><div><pre tabindex="0"><code data-lang="bash"><span><span>git submodule update --remote --merge
-</span></span></code></pre></div><h2>3. 查看上游變更<span><a href="#3-%E6%9F%A5%E7%9C%8B%E4%B8%8A%E6%B8%B8%E8%AE%8A%E6%9B%B4" aria-label="定位點">#</a></span></h2><p>接著開git diff，比對程式碼。</p><p>Visual Studio Code是個不錯的工具。</p><p>手動比對修改過的檔案，再更新到最新版。</p><p>確認可以了之後再<code>git branch -m</code>回master。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>長期維護Hugo網站，有二個事情要考量</p><p>一個是Hugo主程式的版本</p><p>一個是主題的版本，或者準確的說，使用的主題是第幾個git commit版本</p><p>Hugo主程式常常有在更新，語法偶爾會變化，故更新之後要改寫你的主題。若是使用別人做的主題，也要定期追蹤上游變更，否則會建置失敗。</p><p>有常常在更新的Hugo主題，多半會指定Hugo主程式版本，Hugo版本太舊或太新都會建置失敗。</p><p>故，如何更新Hugo主題便成為一個問題。若是直接套用主題還好，git pull覆蓋即可，但如果你又額外在主題上做了一些layout override，就得手動合併變更。</p><h2>1. 不更新Hugo的做法<span><a href="#1-%E4%B8%8D%E6%9B%B4%E6%96%B0hugo%E7%9A%84%E5%81%9A%E6%B3%95" aria-label="定位點">#</a></span></h2><p>是的你可以選擇不要更新，讓Hugo版本停留在固定版本。畢竟Hugo主程式只是一個二進位檔，取得舊版本很容易。雲端部署的時候也能夠指定Hugo版本。</p><p>如果Linux是透過套件管理器安裝Hugo的，可以用一些手段防止它自動更新（如<code>apt mark</code>），再不濟還有直接下載特定版本二進位檔的做法。</p><p>至於Hugo主題，通常可以用git commit去鎖定版本。在git submodule add時候，它就會自動記住那個版本。日後git clone的時候會自動下載那個commit的主題。</p><h2>2. 使用git submodule更新主題<span><a href="#2-%E4%BD%BF%E7%94%A8git-submodule%E6%9B%B4%E6%96%B0%E4%B8%BB%E9%A1%8C" aria-label="定位點">#</a></span></h2><p>以我用的<a href="https://blowfish.page/" target="_blank">
-Blowfish主題</a>為例，我是透過git submodule安裝的。</p><p>更新主題前，請先git push所有變更到遠端儲存庫。</p><p>為了不影響到主幹，做一個新branch</p><div><pre tabindex="0"><code data-lang="bash"><span><span>git branch dev
-</span></span><span><span>git checkout dev
-</span></span></code></pre></div><p>由於我不會直接改主題原始碼，而是用<a href="https://ivonblog.com/posts/customize-and-override-hugo-themes/" target="_blank">
-layout override</a>的方式去覆寫，所以能夠安心的直接拉取最新版。</p><p>更新git submodule，拉取遠端最新commit</p><div><pre tabindex="0"><code data-lang="bash"><span><span>git submodule update --remote --merge
-</span></span></code></pre></div><h2>3. 查看上游變更<span><a href="#3-%E6%9F%A5%E7%9C%8B%E4%B8%8A%E6%B8%B8%E8%AE%8A%E6%9B%B4" aria-label="定位點">#</a></span></h2><p>接著開git diff，比對程式碼。</p><p>Visual Studio Code是個不錯的工具。</p><p>手動比對修改過的檔案，再更新到最新版。</p><p>確認可以了之後再<code>git branch -m</code>回master。</p>]]></content:encoded>
-    
-    <pubDate>Wed, 18 Dec 2024 21:00:00 +0800</pubDate>
   </item></channel>
 </rss>
