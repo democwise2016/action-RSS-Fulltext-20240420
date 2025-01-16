@@ -30,6 +30,93 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[byte[] 之 36 進位表示法 - 使用 JavaScript 與 C#]]></title>
+    <link>https://blog.darkthread.net/blog/base36/</link>
+    <itunes:title><![CDATA[byte[] 之 36 進位表示法 - 使用 JavaScript 與 C#]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>講到用文字表示二進位資料，一般不外乎會用 16 進位數字串或 Base64 編碼。</p> <p>以長度 60 的 byte[] <code>[0xe5,0xa6,0x82,0xe6,0x9e,0x9c,0xe6,0x98,0xaf,0xe5,0x8b,0x87,0xe8,0x80,0x85,0xe6,0xac,0xa3,0xe6,0xa2,0x85,0xe7,0x88,0xbe,0xe7,0x9a,0x84,0xe8,0xa9,0xb1,0xef,0xbc,0x8c,0xe4,0xbb,0x96,0xe4,0xb8,0x80,0xe5,0xae,0x9a,0xe4,0xb9,0x9f,0xe6,0x9c,0x83,0xe9,0x80,0x99,0xe9,0xba,0xbc,0xe5,0x81,0x9a,0xe7,0x9a,0x84]</code> 為例。</p> <p>轉成 16 進位數字串會是 <code>E5A682E69E9CE698AFE58B87E88085E6ACA3E6A285E788BEE79A84E8A9B1EFBC8CE4BB96E4B880E5AE9AE4B99FE69C83E98099E9BABCE5819AE79A84</code>(長度 60 x 2 = 120)。</p> <p>Base64 編碼則是 <code>5aaC5p6c5piv5YuH6ICF5qyj5qKF54i+55qE6Kmx77yM5LuW5LiA5a6a5Lmf5pyD6YCZ6bq85YGa55E</code>(長度 60 / 3 x 4 = 80)。</p> <p>Base64 壓縮效果不錯(只有 byte[] 長度的 1.33 倍)，且運算速度快(64 是 2 的次方，可用 CPU 擅長的 Bit 位移取代除法)，相容性高(只用英文大小寫、數字跟兩個符號，純英文環境嘛 A 通)，加上各語言、平台幾乎都內建 API，算得上是十分完美的解決方案，硬要說缺點，大概只有必須區分大小寫這點要求，若用在不分大小寫的資料庫欄位或 Windows 檔名，會有誤判相等及意外覆寫困擾。</p> <p>最近手邊有個應用想用檔案內容的 SHA256 當成檔名，用 16 進位數字表示需 64 碼 (如：A8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF)，Base64 後為 <code>qKnDiFNFZhS+ZGwetlmhl9H9Pn9bQw2WV5reQa4DTv8=</code> 45 碼，但當成 Windows 檔名需考慮大小寫問題及避開符號「+」，於是我想起多年前用過的 36 進位表示法。 (補充：想走正規一點的做法，則可考慮 <a href="/blog/shorter-guid/">Base32 編碼 / RFC 4648</a>)</p> <p>現代瀏覽器都有內建 <a href="https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Reference/Global_Objects/BigInt">BigInt</a> 別，它類似 <a href="/blog/biginteger/">C# 的 BigInteger</a>，可執行無限位數整數的基本數學運算(只要你有夠大的記憶體)，而 BigInt.toString() 有個特異功能，<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString#radix">toString(radix)</a> 內建支援 2 到 36 進位表示法。</p> <pre><code>var bi = BigInt('0xA8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF')
+console.log(bi.toString(16));
+console.log(bi.toString(36));
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638726335413241578.png"></p> <p>於是，這下連金魚也能輕鬆轉出 36 進位囉~</p> <p>將場景搬到 .NET，C# BigInteger 沒有內建 36 進位轉換，但要自己寫倒也不難。</p> <pre><code>using System.Numerics;
+using System;
+// 注意：Parse 時前方記得加 0 確保 BigInteger.Parse() 解析成正值
+var bi = BigInteger.Parse(
+"0" + "A8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF",
+System.Globalization.NumberStyles.HexNumber);
+var b36 = BigIntegerToBase36(bi);
+Console.WriteLine(b36);
+Console.WriteLine(b36.ToLower());
+static string BigIntegerToBase36(BigInteger value)
+{
+const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char[] data = new char[(int)Math.Ceiling(BigInteger.Log(value, 36))];
+int i = data.Length - 1;
+while (value &gt; 0)
+{
+data[i--] = chars[(int)(value % 36)];
+value /= 36;
+}
+return new string(data);
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638726335416541096.png"></p> <p>薑薑薑講~~~~ 得到跟 JavaScript 相同的結果。</p> <p>不過要提醒，不管 JavaScript 或 C# 都是靠 BigInt / BigInteger 運算，執行效能無法跟 Base64 相比，不適合重度大量應用情境。</p> <p data-slug="base36" data-title-en="Base36 expression in JavaScript and C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/09/21/14/40/film-1684891_960_720.jpg#1280#720">Converting binary data is typically done using hexadecimal strings or Base64 encoding. This blog introduces converting to base 36 in JavaScript and C# wigh BigInt/BigInteger.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>講到用文字表示二進位資料，一般不外乎會用 16 進位數字串或 Base64 編碼。</p> <p>以長度 60 的 byte[] <code>[0xe5,0xa6,0x82,0xe6,0x9e,0x9c,0xe6,0x98,0xaf,0xe5,0x8b,0x87,0xe8,0x80,0x85,0xe6,0xac,0xa3,0xe6,0xa2,0x85,0xe7,0x88,0xbe,0xe7,0x9a,0x84,0xe8,0xa9,0xb1,0xef,0xbc,0x8c,0xe4,0xbb,0x96,0xe4,0xb8,0x80,0xe5,0xae,0x9a,0xe4,0xb9,0x9f,0xe6,0x9c,0x83,0xe9,0x80,0x99,0xe9,0xba,0xbc,0xe5,0x81,0x9a,0xe7,0x9a,0x84]</code> 為例。</p> <p>轉成 16 進位數字串會是 <code>E5A682E69E9CE698AFE58B87E88085E6ACA3E6A285E788BEE79A84E8A9B1EFBC8CE4BB96E4B880E5AE9AE4B99FE69C83E98099E9BABCE5819AE79A84</code>(長度 60 x 2 = 120)。</p> <p>Base64 編碼則是 <code>5aaC5p6c5piv5YuH6ICF5qyj5qKF54i+55qE6Kmx77yM5LuW5LiA5a6a5Lmf5pyD6YCZ6bq85YGa55E</code>(長度 60 / 3 x 4 = 80)。</p> <p>Base64 壓縮效果不錯(只有 byte[] 長度的 1.33 倍)，且運算速度快(64 是 2 的次方，可用 CPU 擅長的 Bit 位移取代除法)，相容性高(只用英文大小寫、數字跟兩個符號，純英文環境嘛 A 通)，加上各語言、平台幾乎都內建 API，算得上是十分完美的解決方案，硬要說缺點，大概只有必須區分大小寫這點要求，若用在不分大小寫的資料庫欄位或 Windows 檔名，會有誤判相等及意外覆寫困擾。</p> <p>最近手邊有個應用想用檔案內容的 SHA256 當成檔名，用 16 進位數字表示需 64 碼 (如：A8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF)，Base64 後為 <code>qKnDiFNFZhS+ZGwetlmhl9H9Pn9bQw2WV5reQa4DTv8=</code> 45 碼，但當成 Windows 檔名需考慮大小寫問題及避開符號「+」，於是我想起多年前用過的 36 進位表示法。 (補充：想走正規一點的做法，則可考慮 <a href="/blog/shorter-guid/">Base32 編碼 / RFC 4648</a>)</p> <p>現代瀏覽器都有內建 <a href="https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Reference/Global_Objects/BigInt">BigInt</a> 別，它類似 <a href="/blog/biginteger/">C# 的 BigInteger</a>，可執行無限位數整數的基本數學運算(只要你有夠大的記憶體)，而 BigInt.toString() 有個特異功能，<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString#radix">toString(radix)</a> 內建支援 2 到 36 進位表示法。</p> <pre><code>var bi = BigInt('0xA8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF')
+console.log(bi.toString(16));
+console.log(bi.toString(36));
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638726335413241578.png"></p> <p>於是，這下連金魚也能輕鬆轉出 36 進位囉~</p> <p>將場景搬到 .NET，C# BigInteger 沒有內建 36 進位轉換，但要自己寫倒也不難。</p> <pre><code>using System.Numerics;
+using System;
+// 注意：Parse 時前方記得加 0 確保 BigInteger.Parse() 解析成正值
+var bi = BigInteger.Parse(
+"0" + "A8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF",
+System.Globalization.NumberStyles.HexNumber);
+var b36 = BigIntegerToBase36(bi);
+Console.WriteLine(b36);
+Console.WriteLine(b36.ToLower());
+static string BigIntegerToBase36(BigInteger value)
+{
+const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char[] data = new char[(int)Math.Ceiling(BigInteger.Log(value, 36))];
+int i = data.Length - 1;
+while (value &gt; 0)
+{
+data[i--] = chars[(int)(value % 36)];
+value /= 36;
+}
+return new string(data);
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638726335416541096.png"></p> <p>薑薑薑講~~~~ 得到跟 JavaScript 相同的結果。</p> <p>不過要提醒，不管 JavaScript 或 C# 都是靠 BigInt / BigInteger 運算，執行效能無法跟 Base64 相比，不適合重度大量應用情境。</p> <p data-slug="base36" data-title-en="Base36 expression in JavaScript and C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/09/21/14/40/film-1684891_960_720.jpg#1280#720">Converting binary data is typically done using hexadecimal strings or Base64 encoding. This blog introduces converting to base 36 in JavaScript and C# wigh BigInt/BigInteger.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>講到用文字表示二進位資料，一般不外乎會用 16 進位數字串或 Base64 編碼。</p> <p>以長度 60 的 byte[] <code>[0xe5,0xa6,0x82,0xe6,0x9e,0x9c,0xe6,0x98,0xaf,0xe5,0x8b,0x87,0xe8,0x80,0x85,0xe6,0xac,0xa3,0xe6,0xa2,0x85,0xe7,0x88,0xbe,0xe7,0x9a,0x84,0xe8,0xa9,0xb1,0xef,0xbc,0x8c,0xe4,0xbb,0x96,0xe4,0xb8,0x80,0xe5,0xae,0x9a,0xe4,0xb9,0x9f,0xe6,0x9c,0x83,0xe9,0x80,0x99,0xe9,0xba,0xbc,0xe5,0x81,0x9a,0xe7,0x9a,0x84]</code> 為例。</p> <p>轉成 16 進位數字串會是 <code>E5A682E69E9CE698AFE58B87E88085E6ACA3E6A285E788BEE79A84E8A9B1EFBC8CE4BB96E4B880E5AE9AE4B99FE69C83E98099E9BABCE5819AE79A84</code>(長度 60 x 2 = 120)。</p> <p>Base64 編碼則是 <code>5aaC5p6c5piv5YuH6ICF5qyj5qKF54i+55qE6Kmx77yM5LuW5LiA5a6a5Lmf5pyD6YCZ6bq85YGa55E</code>(長度 60 / 3 x 4 = 80)。</p> <p>Base64 壓縮效果不錯(只有 byte[] 長度的 1.33 倍)，且運算速度快(64 是 2 的次方，可用 CPU 擅長的 Bit 位移取代除法)，相容性高(只用英文大小寫、數字跟兩個符號，純英文環境嘛 A 通)，加上各語言、平台幾乎都內建 API，算得上是十分完美的解決方案，硬要說缺點，大概只有必須區分大小寫這點要求，若用在不分大小寫的資料庫欄位或 Windows 檔名，會有誤判相等及意外覆寫困擾。</p> <p>最近手邊有個應用想用檔案內容的 SHA256 當成檔名，用 16 進位數字表示需 64 碼 (如：A8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF)，Base64 後為 <code>qKnDiFNFZhS+ZGwetlmhl9H9Pn9bQw2WV5reQa4DTv8=</code> 45 碼，但當成 Windows 檔名需考慮大小寫問題及避開符號「+」，於是我想起多年前用過的 36 進位表示法。 (補充：想走正規一點的做法，則可考慮 <a href="/blog/shorter-guid/">Base32 編碼 / RFC 4648</a>)</p> <p>現代瀏覽器都有內建 <a href="https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Reference/Global_Objects/BigInt">BigInt</a> 別，它類似 <a href="/blog/biginteger/">C# 的 BigInteger</a>，可執行無限位數整數的基本數學運算(只要你有夠大的記憶體)，而 BigInt.toString() 有個特異功能，<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString#radix">toString(radix)</a> 內建支援 2 到 36 進位表示法。</p> <pre><code>var bi = BigInt('0xA8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF')
+console.log(bi.toString(16));
+console.log(bi.toString(36));
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638726335413241578.png"></p> <p>於是，這下連金魚也能輕鬆轉出 36 進位囉~</p> <p>將場景搬到 .NET，C# BigInteger 沒有內建 36 進位轉換，但要自己寫倒也不難。</p> <pre><code>using System.Numerics;
+using System;
+// 注意：Parse 時前方記得加 0 確保 BigInteger.Parse() 解析成正值
+var bi = BigInteger.Parse(
+"0" + "A8A9C38853456614BE646C1EB659A197D1FD3E7F5B430D96579ADE41AE034EFF",
+System.Globalization.NumberStyles.HexNumber);
+var b36 = BigIntegerToBase36(bi);
+Console.WriteLine(b36);
+Console.WriteLine(b36.ToLower());
+static string BigIntegerToBase36(BigInteger value)
+{
+const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char[] data = new char[(int)Math.Ceiling(BigInteger.Log(value, 36))];
+int i = data.Length - 1;
+while (value &gt; 0)
+{
+data[i--] = chars[(int)(value % 36)];
+value /= 36;
+}
+return new string(data);
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638726335416541096.png"></p> <p>薑薑薑講~~~~ 得到跟 JavaScript 相同的結果。</p> <p>不過要提醒，不管 JavaScript 或 C# 都是靠 BigInt / BigInteger 運算，執行效能無法跟 Base64 相比，不適合重度大量應用情境。</p> <p data-slug="base36" data-title-en="Base36 expression in JavaScript and C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/09/21/14/40/film-1684891_960_720.jpg#1280#720">Converting binary data is typically done using hexadecimal strings or Base64 encoding. This blog introduces converting to base 36 in JavaScript and C# wigh BigInt/BigInteger.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638726335413241578.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638726335413241578.png" medium="image"/>
+    <pubDate>Thu, 16 Jan 2025 14:11:38 GMT</pubDate>
+  </item><item>
     <title><![CDATA[隨筆 - Nvidia Project DIGITS、Linux 與 Windows WSL2]]></title>
     <link>https://blog.darkthread.net/blog/project-digits-and-wsl2/</link>
     <itunes:title><![CDATA[隨筆 - Nvidia Project DIGITS、Linux 與 Windows WSL2]]></itunes:title>
@@ -928,74 +1015,5 @@ git pull D:\latest.bundle
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png" medium="image"/>
     <pubDate>Mon, 30 Dec 2024 23:45:28 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Python 新手筆記 4 - Dictionary、Tuple 與 Set]]></title>
-    <link>https://blog.darkthread.net/blog/python-beginner-notes-4/</link>
-    <itunes:title><![CDATA[Python 新手筆記 4 - Dictionary、Tuple 與 Set]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
-keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
-print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
-# 簡化寫法
-print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
-</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
-k, v = dcit_name.popitem()
-print(f"{k}: {v}")
-</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
-print("{k}: {v}")
-</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
-keys1 = big_dict.keys()
-keys2 = list(big_dict.keys())
-# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
-</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
-squars = { x: x**2 for i in nums }
-# zip 可將兩個 List 的元素一配一組成 Tuple
-fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
-</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
-keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
-print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
-# 簡化寫法
-print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
-</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
-k, v = dcit_name.popitem()
-print(f"{k}: {v}")
-</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
-print("{k}: {v}")
-</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
-keys1 = big_dict.keys()
-keys2 = list(big_dict.keys())
-# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
-</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
-squars = { x: x**2 for i in nums }
-# zip 可將兩個 List 的元素一配一組成 Tuple
-fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
-</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>AI 興起後，「學習新程式語言」這件事變得微妙。</p> <p>以前我很願意為了寫好程式靜下心花點時間啃書把程式語言的基礎打好，因為依據經驗，練好基本功對開發效率及品質的投資報酬率很好。現在不一樣了，即使對語言一無所知，把需求餵給 Copilot、Cursor、ChatGPT、Claude (咦？全部都是 C 開頭)，天上就會掉程式碼，而 AI 對 Python 格外精通，正確率特別高。換言之，當不下苦功也能寫出 Python，何苦認真從頭學？加上「學程式無用論」、「程序員即將失業」說法四起，內憂外患之際，每每想發奮，小惡魔便在耳邊「學這幹嘛？學這幹嘛？」、「用不到用不到用不到」... 過去寫過 Knockout、Angular 的新手筆記，從沒像 Python 如此艱難，哈。</p> <p>前陣子收到龍哥的大作，紙本書加作者簽名，是創造學習儀式感的聖物啊，輟學危機暫時解除... 拖了快兩個月，Python 新手筆記 4 終於來了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"></p> <p>這篇整理 Dictionary、Tuple 跟 Set 的重點。(電子書連結: <a href="https://pythonbook.cc/">為你自己學 PYTHON</a>)</p> <h3>Dictionary (字典)</h3> <p>Dictionary 是處理歸納、統計邏輯很常用的資料結構，在 Python 當然不會缺席。Dictionary 在 Python 的表示方法跟 JavaScript 很像：<code>{ 'name': 'Jeffrey', 'score': 32767, 'skills': ['C#', 'JavaScript', 'Python?'] }</code>。以下用 Cheatsheet 的方式整理重點：</p> <ul><li>用 dict() 建立：<code>dict(name='Jeffrey', score=32767, skills=['C#', 'JavaScript', 'Python?'])</code></li> <li>用 List 建立：<code>dict([['name', 'Jeffrey'], ['score', 32767]])</code></li> <li>用 Tuple 建立：<code>dict((('name', 'Jeffrey'), ('score', 32767)))</code></li> <li>用鍵值清單建立：<code>dict.fromkeys(['name', 'score'])</code> 會建立值為 None 的 Dictionary <code>{'name': None, 'score': None}</code></li> <li><code>dict_name[key]</code> 可取值，但鍵值不存在會 KeyError；若要允許鍵值不存在可改用 <code>dict_name.get(key)</code>、<code>dict_name.get(key, default_value)</code>；<code>dict_name.setdefault(key, default_value)</code> 嘗試取值，若不存在就設成指定值</li> <li>Python 風格寫法 <code>key in dict_name</code></li> <li>Python 3.6+，Dictionary 會保留鍵值加入順序 <pre><code>dict_name = { 'k1': 1, 'k3': 3, 'k4': 4, 'k2': 2 }
-keys = [*dict_name.keys()] # 補充：.values() 可取值，.items() 取
-print(keys, sep=", ") # ['k1', 'k3', 'k4', 'k2']
-# 簡化寫法
-print([*dict_name]) # ['k1', 'k3', 'k4', 'k2']
-</code></pre> </li> <li>計算個數 <code>len(dict_name)</code>、清空內容 <code>dict_name.clear()</code>、刪值 <code>del dict_name[key]</code></li> <li>讀取並移除值 <code>dict_name.pop(key)</code>、<code>dict_name.pop(key, default_value)</code> (取不到時給預設值)<br> <code>dict_name.popitem()</code> 可取出 <code>(key, value)</code> Tuple <pre><code>while dict_name: # 有東西時為 True
-k, v = dcit_name.popitem()
-print(f"{k}: {v}")
-</code></pre> </li> <li>合併 <code>merged = { **dict1, **dict2 }</code>、<code>merged = dict1 | dict2</code> (Python 3.9+)、<code>dict1 |= dict2</code> (用 dict2 內容新增或覆寫到 dict1)</li> <li>複製 <code>copied = dict_name.copy()</code>、<code>copied = { **dict_name }</code>、<code>copied = dict(dict_name)</code> 屬淺 Copy；深層複製：<code>copied = dict_name.deepcopy()</code></li> <li>取得所有 Key / Value：<code>dict_name.keys()</code>、<code>dict_name.values()</code>，跑迴圈取 Key/Value： <pre><code>for k, v in dict_names.items():
-print("{k}: {v}")
-</code></pre> </li> <li>注意：keys()、values()、items() 傳回的並不是 List，而是 dict_keys、dict_values、dict_items 型別，是一種 Generator (產生器)，類似 C# 的 IEnumerable，避免一次將所有內容載入記憶體。以下實驗可窺一二： <pre><code>big_dict = { i: i for i in range(1000000) }
-keys1 = big_dict.keys()
-keys2 = list(big_dict.keys())
-# getsizeof(keys1) -&gt; 40，getsizeof(keys1) -&gt; 8000056
-</code></pre> </li> <li>字典也可以用推導式快速轉換資料，例如： <pre><code>nums = [1, 2, 3, 4]
-squars = { x: x**2 for i in nums }
-# zip 可將兩個 List 的元素一配一組成 Tuple
-fruit_price = { fruit: price for fruit, price in zip(['Apple','Banana'], [10, 20]) }
-</code></pre> </li> <li>字典的 key 必須是可雜湊的型別(如：數字、字串、位元組)，否則會得到 unhashable type: 'list' 之類的訊息，List/Dictionary/Set 不行，Tuple 的話，看裡面元素的型別</li></ul> <h3>Tuple</h3> <p>Python 的 Tuple 是不可變(Immutable)資料結構，宣告後不能更改，這也呼應前節最後一點，Tuple 能計算雜湊，可以當成 Dictionary 的 Key，但寫法跟用法很彈性，對來我說，有點太彈性。小記如下：</p> <ul><li>Tuple 符號是 ( ) (List 用 <input disabled="" type="checkbox">、Dictionary 用 )，中間要放什麼都成，例如：<code>( 'Jeffrey', 32767, [ 1, 2, 3] )</code>，如果要更懶一點，連 ( ) 都可以省了，寫成 <code>t = 'Jeffrey', 32767, [ 1, 2, 3]</code></li> <li>若 Tuple 只有一個元素，要加上逗號 <code>( 'str', )</code>，不然會被視為字串外加了括號</li> <li><code>tuple(串列或字串)</code> 可將元素展開，例如：<code>tuple('Hello') = ('H', 'e', 'l', 'l', 'o')</code></li> <li>Tuple 存取元素跟 List 有點像，可以用 t[0]、t[1]、t[-1]，也可 t1 += more_elements 串接增加元素</li> <li>len()/count()/index() 可用，但因 Tuple 不可變，不支援 insert()、remove()</li> <li>由於內容不可變，Tuple 的效能比 List 好一點 (1000 萬次，57ms vs 312ms，記憶體用量也略少)，但一般會更著重它唯讀的特性</li> <li>複製 Tuple 的方法：<code>tuple(orig_tuple)</code>、<code>copy.copy(orig_tuple)</code>、<code>orig_tuple[:] #切片</code>，但由於 Tuple 不可變，實際上會指向同一份內容<br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711613815492432.png"></li> <li>何時用 Tuple 而非 List？ 1) 強調資料不可變 2) 混雜異質性資料(例如：有數字有字串有字典)</li></ul> <h3>Set</h3> <p>Set 類似 C# 的 <a href="https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1?view=net-9.0&amp;WT.mc_id=DOP-MVP-37580"><code>HashSet&lt;T&gt;</code></a>，在 ChatGPT/Copilot 給的程式範例中常用來找不重複值。</p> <ul><li>Set 符號是用大括號 <code>{ 1, 2, 3, 4 }</code>。<code>{ }</code> 是空字典，沒有元素的 Set 可寫成 <code>set()</code></li> <li>用 List、Tuple 轉成 Set 可得到不重複值，例如：<code>set([ 1, 2, 3, 2, 3])</code><br> <img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711613817322048.png"></li> <li>Set 的元素是沒有順序性，在不同機器上產生結果可能不同</li> <li>支援 .add() / .remove() 增刪元素，新增重複元素沒變化，但刪除不存在元素會產生 KeyError，可用 <code>'to-find' in set_var</code> 測試是否存在，或是改用 .discard() 找不到就算了，另有 clear() 可清空</li> <li>Set 自帶 .copy() 方法，但不能切片</li> <li>交集： s1.intersection(s2) 或 s1 &amp; s2</li> <li>聯集： s1.union(s2) 或 s1 | s2</li> <li>差集 s1.difference(s2) 或 s1 - s2 (找出 s1 有但 s2 沒有的元素)</li> <li>超集合：s1.issuperset(s2)</li> <li>子集合：s1.issubset(s2)、s1 ⇐ s2 (子集合或是相等)、s1 &lt; s2 (嚴格子集合，只能是子集合，不可相等)</li> <li>若 Set 含 nan，由於 nan 不等於任何東西 (nan 也不等於 nan)，無法用 .remove()/.discard() 移除。解法：<code>{ item for item in s1 if item == item }</code></li> <li><code>forzenset([ 9, 5, 2, 7])</code>，不可 .add()/.remove()/.clear()</li></ul> <p data-slug="python-beginner-notes-4" data-title-en="Python beginner notes 4" data-catg="Python" data-fbimg="https://i.imgur.com/wiGLwug.jpg#1280#720">This post discusses this shift and provides a detailed Python tutorial on dictionaries, tuples, and sets, emphasizing their usage, key features, and practical examples.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638711613813818922.jpg" medium="image"/>
-    <pubDate>Mon, 30 Dec 2024 13:14:59 GMT</pubDate>
   </item></channel>
 </rss>
