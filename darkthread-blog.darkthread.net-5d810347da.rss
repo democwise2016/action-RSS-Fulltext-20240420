@@ -30,6 +30,174 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[資安小常識 - 為什麼不建議在網址用 QueryString (?a=...) 傳資料？]]></title>
+    <link>https://blog.darkthread.net/blog/dont-pass-data-in-querystring/</link>
+    <itunes:title><![CDATA[資安小常識 - 為什麼不建議在網址用 QueryString (?a=...) 傳資料？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>幫忙 Review 前端網頁程式，發現某網頁用了以下寫法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638728936699427044.png"></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Query String Risk Demo&lt;/title&gt;
+&lt;style&gt;
+table {
+border-collapse: collapse;
+width: 300px;
+font-family: 微軟正黑體, Arial, sans-serif;
+td {
+padding: 6px;
+border: 1px solid #ddd;
+}
+}
+.hdr {
+background-color: #eee;
+text-align: right;
+width: 100px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;h2&gt;申請資料已送出&lt;/h2&gt;
+&lt;div&gt;
+&lt;p&gt;
+親愛的客戶，我們已收到你的資料，我們將會盡快與您聯絡。
+&lt;/p&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class="hdr"&gt;姓名&lt;/td&gt;
+&lt;td id="name"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class="hdr"&gt;車號&lt;/td&gt;
+&lt;td id="carNo"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const urlParams = new URLSearchParams(window.location.search);
+const name = urlParams.get('name');
+const carNo = urlParams.get('carNo');
+document.getElementById('name').innerText = name;
+document.getElementById('carNo').innerText = carNo;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>身為老鳥，腦中頓時警鈴大作，母湯啊母湯~~ 年輕同學不知當中兇險，於是我便分享了不建議這麼做的理由，以及其可能帶來的問題。</p> <p>想到可能有其他同學也不知道這種做法的問題所在，索性整理成一篇，方便未來再遇到時，能快速提供完整資訊。</p> <p>要串接前端多個網頁，使用 Query String (?a=...&amp;b=...) 是十分簡單直覺的做法，但用來傳送產品代號、文章序號、檢視模式... 控制顯示內容或狀態還行，若傳送的內容包含個人資料或是會直接顯示在網頁的資訊，就必須留意個資外流、網頁被偽造操控，甚至被 XSS (Cross Site Scripting) 的風險。</p> <p>以下是我想到的一些風險：</p> <ol><li>Query String 被視為網址的一部分，會在許多地方留下記錄(有些你可能想都沒想過)，例如瀏覽器的歷程記錄：(所以借用別人的電腦一律開無痕是好習慣 😄)<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638728936702650365.png"><br> 防火牆、網站 Log 檔：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638728936704284566.png"><br> 一旦你在 Query String 加上姓名、Email、電話等隱私，甚至身分證號或信用卡資料，等同一次把個資灑得到處都是，簡直在幫駭客助攻。</li> <li>URL 參數直接轉成網頁內容，永遠存在被竄改冒用的風險。<br> 當惡意攻擊者發現你的網頁會將 URL 參數轉成網頁內容，便可以精心設計 URL 引誘不知情使用者點擊，好在你的頁面塞入詐騙內容，例如搞個縮網址 <code>https://reurl.cc/04yb06</code>，點選後在你的網頁塞入任意內容：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638728936705934890.png"></li> <li>最糟糕的一種情況是 - 你還同時犯了低級錯誤 - 將 Query String 參數當成 HTML 內容，形成可插入惡意 Script 攻擊的大漏洞。延伸閱讀：<a href="https://www.explainthis.io/zh-hant/swe/what-is-xss">什麼是 XSS 攻擊？如何防範？</a><br> 例如，若網頁寫成 <code>document.getElementById('carNo').innerHTML = carNo;</code> (警告：這是不安全的寫法，勿使用)，駭客便能參數塞入 JavaScript 在你的網頁執行：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638728942789053994.png"><br> 如此一來，能玩的花樣就多了，偷 Cookie、偷 localStorage、導向詐騙網頁... 能搞出什麼招式端看駭客的<a href="https://www.facebook.com/darkthread.net/posts/pfbid02sSgvyThD22cRkDoC9cGJtRxzrFfB2sg9HH93A6DpS3uBZzTJnvTGS3YW24cFPqH9l">想像力與創意</a>。</li></ol> <p>透過以上說明與展示，大家應該已經知道用 Query String 傳遞資料的風險，那該怎麼修改呢？跨網頁傳遞參數的方法不少，URL 由於完全外露且易被修改濫用，能免則免，但還有不少安全的做法，以下列舉幾種：</p> <ol><li>將資料本體存入伺服器端(快取、資料庫、Redis...)，隨機產生對映資料的 Token 字串(例如 GUID)，用 Query String 傳送 Token，新網頁再用 Token 向伺服器提取資料顯示。</li> <li>若來源與目的網頁位於同一網站(同一來源 Same Origin)，則彼此可以透過 JavaScript 呼叫對方的函式、存取 DOM 物件，或者共用 Cookie、Local Storage (若屬機敏資料或個資，則也不建議存在客戶端)，都比用 URL 傳送安全。</li> <li>若來源與目的網頁分屬不同網站，可考慮使用 postMessage API。(延伸閱讀：<a href="/blog/window-postmessage/">前端單兵基本教練 - 使用 postMessage 與 IFrame 跨網站網頁互動</a>)</li></ol> <p>以上大概是我這些年累積的經驗分享，如有缺漏謬誤，歡迎大家指正補充。</p> <p data-slug="dont-pass-data-in-querystring" data-title-en="Why you should not pass data in query string" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/17/01/people-2566684_960_720.jpg#960#720">Using Query Strings to pass sensitive data in URLs can expose personal information to various risks, including URL logging and potential XSS attacks. This blog highlights these dangers and suggests safer alternatives such as server-side storage with tokens, same-origin JavaScript interactions, and cross-origin messaging with postMessage API.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>幫忙 Review 前端網頁程式，發現某網頁用了以下寫法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638728936699427044.png"></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Query String Risk Demo&lt;/title&gt;
+&lt;style&gt;
+table {
+border-collapse: collapse;
+width: 300px;
+font-family: 微軟正黑體, Arial, sans-serif;
+td {
+padding: 6px;
+border: 1px solid #ddd;
+}
+}
+.hdr {
+background-color: #eee;
+text-align: right;
+width: 100px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;h2&gt;申請資料已送出&lt;/h2&gt;
+&lt;div&gt;
+&lt;p&gt;
+親愛的客戶，我們已收到你的資料，我們將會盡快與您聯絡。
+&lt;/p&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class="hdr"&gt;姓名&lt;/td&gt;
+&lt;td id="name"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class="hdr"&gt;車號&lt;/td&gt;
+&lt;td id="carNo"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const urlParams = new URLSearchParams(window.location.search);
+const name = urlParams.get('name');
+const carNo = urlParams.get('carNo');
+document.getElementById('name').innerText = name;
+document.getElementById('carNo').innerText = carNo;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>身為老鳥，腦中頓時警鈴大作，母湯啊母湯~~ 年輕同學不知當中兇險，於是我便分享了不建議這麼做的理由，以及其可能帶來的問題。</p> <p>想到可能有其他同學也不知道這種做法的問題所在，索性整理成一篇，方便未來再遇到時，能快速提供完整資訊。</p> <p>要串接前端多個網頁，使用 Query String (?a=...&amp;b=...) 是十分簡單直覺的做法，但用來傳送產品代號、文章序號、檢視模式... 控制顯示內容或狀態還行，若傳送的內容包含個人資料或是會直接顯示在網頁的資訊，就必須留意個資外流、網頁被偽造操控，甚至被 XSS (Cross Site Scripting) 的風險。</p> <p>以下是我想到的一些風險：</p> <ol><li>Query String 被視為網址的一部分，會在許多地方留下記錄(有些你可能想都沒想過)，例如瀏覽器的歷程記錄：(所以借用別人的電腦一律開無痕是好習慣 😄)<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638728936702650365.png"><br> 防火牆、網站 Log 檔：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638728936704284566.png"><br> 一旦你在 Query String 加上姓名、Email、電話等隱私，甚至身分證號或信用卡資料，等同一次把個資灑得到處都是，簡直在幫駭客助攻。</li> <li>URL 參數直接轉成網頁內容，永遠存在被竄改冒用的風險。<br> 當惡意攻擊者發現你的網頁會將 URL 參數轉成網頁內容，便可以精心設計 URL 引誘不知情使用者點擊，好在你的頁面塞入詐騙內容，例如搞個縮網址 <code>https://reurl.cc/04yb06</code>，點選後在你的網頁塞入任意內容：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638728936705934890.png"></li> <li>最糟糕的一種情況是 - 你還同時犯了低級錯誤 - 將 Query String 參數當成 HTML 內容，形成可插入惡意 Script 攻擊的大漏洞。延伸閱讀：<a href="https://www.explainthis.io/zh-hant/swe/what-is-xss">什麼是 XSS 攻擊？如何防範？</a><br> 例如，若網頁寫成 <code>document.getElementById('carNo').innerHTML = carNo;</code> (警告：這是不安全的寫法，勿使用)，駭客便能參數塞入 JavaScript 在你的網頁執行：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638728942789053994.png"><br> 如此一來，能玩的花樣就多了，偷 Cookie、偷 localStorage、導向詐騙網頁... 能搞出什麼招式端看駭客的<a href="https://www.facebook.com/darkthread.net/posts/pfbid02sSgvyThD22cRkDoC9cGJtRxzrFfB2sg9HH93A6DpS3uBZzTJnvTGS3YW24cFPqH9l">想像力與創意</a>。</li></ol> <p>透過以上說明與展示，大家應該已經知道用 Query String 傳遞資料的風險，那該怎麼修改呢？跨網頁傳遞參數的方法不少，URL 由於完全外露且易被修改濫用，能免則免，但還有不少安全的做法，以下列舉幾種：</p> <ol><li>將資料本體存入伺服器端(快取、資料庫、Redis...)，隨機產生對映資料的 Token 字串(例如 GUID)，用 Query String 傳送 Token，新網頁再用 Token 向伺服器提取資料顯示。</li> <li>若來源與目的網頁位於同一網站(同一來源 Same Origin)，則彼此可以透過 JavaScript 呼叫對方的函式、存取 DOM 物件，或者共用 Cookie、Local Storage (若屬機敏資料或個資，則也不建議存在客戶端)，都比用 URL 傳送安全。</li> <li>若來源與目的網頁分屬不同網站，可考慮使用 postMessage API。(延伸閱讀：<a href="/blog/window-postmessage/">前端單兵基本教練 - 使用 postMessage 與 IFrame 跨網站網頁互動</a>)</li></ol> <p>以上大概是我這些年累積的經驗分享，如有缺漏謬誤，歡迎大家指正補充。</p> <p data-slug="dont-pass-data-in-querystring" data-title-en="Why you should not pass data in query string" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/17/01/people-2566684_960_720.jpg#960#720">Using Query Strings to pass sensitive data in URLs can expose personal information to various risks, including URL logging and potential XSS attacks. This blog highlights these dangers and suggests safer alternatives such as server-side storage with tokens, same-origin JavaScript interactions, and cross-origin messaging with postMessage API.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>幫忙 Review 前端網頁程式，發現某網頁用了以下寫法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638728936699427044.png"></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Query String Risk Demo&lt;/title&gt;
+&lt;style&gt;
+table {
+border-collapse: collapse;
+width: 300px;
+font-family: 微軟正黑體, Arial, sans-serif;
+td {
+padding: 6px;
+border: 1px solid #ddd;
+}
+}
+.hdr {
+background-color: #eee;
+text-align: right;
+width: 100px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;
+&lt;h2&gt;申請資料已送出&lt;/h2&gt;
+&lt;div&gt;
+&lt;p&gt;
+親愛的客戶，我們已收到你的資料，我們將會盡快與您聯絡。
+&lt;/p&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class="hdr"&gt;姓名&lt;/td&gt;
+&lt;td id="name"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td class="hdr"&gt;車號&lt;/td&gt;
+&lt;td id="carNo"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const urlParams = new URLSearchParams(window.location.search);
+const name = urlParams.get('name');
+const carNo = urlParams.get('carNo');
+document.getElementById('name').innerText = name;
+document.getElementById('carNo').innerText = carNo;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>身為老鳥，腦中頓時警鈴大作，母湯啊母湯~~ 年輕同學不知當中兇險，於是我便分享了不建議這麼做的理由，以及其可能帶來的問題。</p> <p>想到可能有其他同學也不知道這種做法的問題所在，索性整理成一篇，方便未來再遇到時，能快速提供完整資訊。</p> <p>要串接前端多個網頁，使用 Query String (?a=...&amp;b=...) 是十分簡單直覺的做法，但用來傳送產品代號、文章序號、檢視模式... 控制顯示內容或狀態還行，若傳送的內容包含個人資料或是會直接顯示在網頁的資訊，就必須留意個資外流、網頁被偽造操控，甚至被 XSS (Cross Site Scripting) 的風險。</p> <p>以下是我想到的一些風險：</p> <ol><li>Query String 被視為網址的一部分，會在許多地方留下記錄(有些你可能想都沒想過)，例如瀏覽器的歷程記錄：(所以借用別人的電腦一律開無痕是好習慣 😄)<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638728936702650365.png"><br> 防火牆、網站 Log 檔：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638728936704284566.png"><br> 一旦你在 Query String 加上姓名、Email、電話等隱私，甚至身分證號或信用卡資料，等同一次把個資灑得到處都是，簡直在幫駭客助攻。</li> <li>URL 參數直接轉成網頁內容，永遠存在被竄改冒用的風險。<br> 當惡意攻擊者發現你的網頁會將 URL 參數轉成網頁內容，便可以精心設計 URL 引誘不知情使用者點擊，好在你的頁面塞入詐騙內容，例如搞個縮網址 <code>https://reurl.cc/04yb06</code>，點選後在你的網頁塞入任意內容：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638728936705934890.png"></li> <li>最糟糕的一種情況是 - 你還同時犯了低級錯誤 - 將 Query String 參數當成 HTML 內容，形成可插入惡意 Script 攻擊的大漏洞。延伸閱讀：<a href="https://www.explainthis.io/zh-hant/swe/what-is-xss">什麼是 XSS 攻擊？如何防範？</a><br> 例如，若網頁寫成 <code>document.getElementById('carNo').innerHTML = carNo;</code> (警告：這是不安全的寫法，勿使用)，駭客便能參數塞入 JavaScript 在你的網頁執行：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638728942789053994.png"><br> 如此一來，能玩的花樣就多了，偷 Cookie、偷 localStorage、導向詐騙網頁... 能搞出什麼招式端看駭客的<a href="https://www.facebook.com/darkthread.net/posts/pfbid02sSgvyThD22cRkDoC9cGJtRxzrFfB2sg9HH93A6DpS3uBZzTJnvTGS3YW24cFPqH9l">想像力與創意</a>。</li></ol> <p>透過以上說明與展示，大家應該已經知道用 Query String 傳遞資料的風險，那該怎麼修改呢？跨網頁傳遞參數的方法不少，URL 由於完全外露且易被修改濫用，能免則免，但還有不少安全的做法，以下列舉幾種：</p> <ol><li>將資料本體存入伺服器端(快取、資料庫、Redis...)，隨機產生對映資料的 Token 字串(例如 GUID)，用 Query String 傳送 Token，新網頁再用 Token 向伺服器提取資料顯示。</li> <li>若來源與目的網頁位於同一網站(同一來源 Same Origin)，則彼此可以透過 JavaScript 呼叫對方的函式、存取 DOM 物件，或者共用 Cookie、Local Storage (若屬機敏資料或個資，則也不建議存在客戶端)，都比用 URL 傳送安全。</li> <li>若來源與目的網頁分屬不同網站，可考慮使用 postMessage API。(延伸閱讀：<a href="/blog/window-postmessage/">前端單兵基本教練 - 使用 postMessage 與 IFrame 跨網站網頁互動</a>)</li></ol> <p>以上大概是我這些年累積的經驗分享，如有缺漏謬誤，歡迎大家指正補充。</p> <p data-slug="dont-pass-data-in-querystring" data-title-en="Why you should not pass data in query string" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/17/01/people-2566684_960_720.jpg#960#720">Using Query Strings to pass sensitive data in URLs can expose personal information to various risks, including URL logging and potential XSS attacks. This blog highlights these dangers and suggests safer alternatives such as server-side storage with tokens, same-origin JavaScript interactions, and cross-origin messaging with postMessage API.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638728936699427044.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638728936699427044.png" medium="image"/>
+    <pubDate>Sun, 19 Jan 2025 14:30:15 GMT</pubDate>
+  </item><item>
     <title><![CDATA[byte[] 之 36 進位表示法 - 使用 JavaScript 與 C#]]></title>
     <link>https://blog.darkthread.net/blog/base36/</link>
     <itunes:title><![CDATA[byte[] 之 36 進位表示法 - 使用 JavaScript 與 C#]]></itunes:title>
@@ -964,56 +1132,5 @@ lineBot.ReplyMessageWithJSON(evt.replyToken, templMsgJson);
     <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638712511356547369.png" medium="image"/>
     <pubDate>Tue, 31 Dec 2024 14:11:58 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Git 小技巧 - 將 Commit 打包成檔案送到異地同步]]></title>
-    <link>https://blog.darkthread.net/blog/git-bundle/</link>
-    <itunes:title><![CDATA[Git 小技巧 - 將 Commit 打包成檔案送到異地同步]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
-# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
-git bundle create D:\repo.bundle master dev
-# 目的端
-git clone D:\reop.bundle MyProject # 指令資料夾
-</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
-# 只打包最近一次 Commit
-git bundle create D:\latest.bundle HEAD~..HEAD
-# 最近兩次
-git bundle create D:\recent.bundle HEAD~2..HEAD
-# 目的端
-git pull D:\latest.bundle
-</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
-# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
-git bundle create D:\repo.bundle master dev
-# 目的端
-git clone D:\reop.bundle MyProject # 指令資料夾
-</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
-# 只打包最近一次 Commit
-git bundle create D:\latest.bundle HEAD~..HEAD
-# 最近兩次
-git bundle create D:\recent.bundle HEAD~2..HEAD
-# 目的端
-git pull D:\latest.bundle
-</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>多台開發主機間要同步程式修改進度，最簡單的方法是將專案放上 Github、TFS/Azure DevOps Server、<a href="/blog/gitea/">自架的 Gitea 私服</a>，甚至用<a href="/blog/shared-folder-as-gi-server/">網路分享資料夾</a>也成。在 A 主機 Commit 異動的程式 Push 到伺服器，B 主機一個 Pull 就能同步到最新版本，簡單又方便。</p> <p>但如果是目標主機在隔離環境無法直接連網，只能透過 Email、SFTP 或 USB 行動碟輾轉取得檔案要怎麼將最新的 Commit 拉回 Repostory？</p> <p>最近學到一個新技巧：<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E6%89%93%E5%8C%85">git bundle</a></p> <p>簡單說，git bundle 命令可將整個 Repository 或指定範圍的一個或多個 Commit 打包成專屬二進位檔(副檔名為 .bundle)，要更新的一方，可使用 <code>git clone</code> 或 <code>git pull</code> 取得最新內容。</p> <p>以下是列舉兩個最常見的應用情境：</p> <h3>情境一</h3> <p>將整個 Repository 的兩個 Branch (master + dev) 打包，在另一台主機還原</p> <pre><code># 來源端
-# 若只打包 master，給 master 即可，或是寫 HEAD 代表目前 Branch 及位置
-git bundle create D:\repo.bundle master dev
-# 目的端
-git clone D:\reop.bundle MyProject # 指令資料夾
-</code></pre> <p>來源共兩個 Branch，4 個 Commit：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"></p> <p>在目的主機原汁原味重現：</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig2_638711993998538737.png"></p> <h3>情境二</h3> <p>打包最近一次或多次的 Commit 傳過去同步。</p> <pre><code># 來源端
-# 只打包最近一次 Commit
-git bundle create D:\latest.bundle HEAD~..HEAD
-# 最近兩次
-git bundle create D:\recent.bundle HEAD~2..HEAD
-# 目的端
-git pull D:\latest.bundle
-</code></pre> <p>如此就可以只包最後的 Commit 送給對方同步。</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig3_638711994000610249.png"></p> <p>但要注意差異式打包要涵蓋對方缺少的所有 Commit 才行，例如下面的例子，ComputerA 已經做到 Commit 6，而 ComputerB 只在 Commit 4，用 <code>HEAD~..HEAD</code> 只會打包 Commit 6，ComputerB pull 時會出現錯誤，抱怨缺少 Commit 5 8e87e0d...</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig4_638711994002374636.png"></p> <p>改成打包 <code>HEAD~2..HEAD</code> 就 OK 囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2024/Fig5_638711994004114725.png"></p> <p data-slug="git-bundle" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692">Synchronizing code changes between development machines is easy with GitHub, TFS, or a self-hosted Gitea server. However, for isolated environments, git bundle is a powerful tool. It packages commits into a binary file, which can be transferred via email, SFTP, or USB. This post details how to create and use git bundles to sync repositories in different scenarios.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2024/Fig1_638711993996818509.png" medium="image"/>
-    <pubDate>Mon, 30 Dec 2024 23:45:28 GMT</pubDate>
   </item></channel>
 </rss>
