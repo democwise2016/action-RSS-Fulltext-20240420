@@ -1,0 +1,956 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[黑暗執行緒[RSS+]]]></title>
+    <link>undefined</link>
+    <image>
+      <url>https://blog.darkthread.net/img/icon512x512.png</url>
+      <title>黑暗執行緒[RSS+]</title>
+      <link>undefined</link>
+    </image>
+    <language>en-us</language>
+    <atom:link href="https://blog.darkthread.net/feed/rss/" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[黑暗執行緒[RSS+]]]></copyright>
+    <itunes:author><![CDATA[黑暗執行緒[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[黑暗執行緒[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
+<item>
+    <title><![CDATA[HTTP/HTTPS 傳輸分析偵錯神器 - mitmproxy]]></title>
+    <link>https://blog.darkthread.net/blog/mitmproxy/</link>
+    <itunes:title><![CDATA[HTTP/HTTPS 傳輸分析偵錯神器 - mitmproxy]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>從 Huli 這篇 <a href="https://blog.huli.tw/2025/04/23/everyone-need-a-http-proxy-to-debug/">人人都需要一個 HTTP proxy 來 debug</a> 學到好用工具 - <a href="https://mitmproxy.org/">mitmproxy</a>，頗有相見恨晚之感，特撰文分享。</p> <p>在我多年射茶包的經驗中，瀏覽網頁出現疑難雜症，用 Chrome 或 Edge 的 F12 偵錯工具已幾可解決大半；但若為應用程式呼叫 WebAPI、網頁爬蟲工具，或是 Windows 整合驗證 (Kerberos/NTLM) 方面問題，就得靠 HTTP Proxy 類型偵錯工具上場救援。</p> <p>HTTP Proxy 偵錯的原理是由工具軟體扮演網站代理伺理器，設定瀏覽器或應用程式將所有 HTTP/HTTPS 請求交給它轉發並允許偵錯工具攔截內容，達到分析傳輸資料甚至修改內容的目的。這類工具很早之前就有了，我過去主要是用 Fiddler，一劍在手，大小問題迎刃而解。例如：<a href="/blog/401s-in-windows-authentication/">觀察整合式驗證先兩次 401 再 200 的過程</a>、<a href="/blog/ie-ocsp-checking-issue/">查 IE 爆慢 Chrome 正常的怪事</a>、<a href="/blog/webclient-headers-will-changes/">WebClient.UploadString() 第二送 Header 會變的鬼問題</a>... <a href="https://cse.google.com/cse?cx=002179666918670624530%3Afd5jjcvj7bc&amp;q=Fiddler&amp;oq=Fiddler">更多</a>)。而 Fiddler HTTP Proxy 及可修改 Request 及回應的特性，也被我拿來<a href="/blog/fiddler-remote-debug-mac-safari/">偵錯 Mac Safari</a>、<a href="/blog/fiddler-autoresponder/">偷改網頁內容方便測試</a>，搞過一些花式應用。對如何善用 HTTP Proxy 偵錯工具解決問題，我也算小有心得。</p> <p>Fiddler 的歷史悠久，最早是 2003 年微軟 IE 研發經理 Eric Lawrence 的個人 Side Project，其後被 Telerik 收購，歷經二十多年改版演化(我也用了快 20 年)，目前分為 <a href="https://www.telerik.com/fiddler/fiddler-classic">Fiddler Classic</a> (免費版) 及 Fiddler Everywhere (商業版)。依官方說法 Fiddler Classic 將不再積極開發，也不提供修補更新或技術技援 (Fiddler Classic is not in active development and offers no commitments for releases, patches or tech support.)，即使今年 3 月仍有更新，但長遠來看，免費 HTTP Proxy 偵錯工具這個位置遲早要找到接班人。</p> <p>Burp Suite 在資安領域名聲響亮，但免費版 Community Edition 僅限個人學習、研究或非商業目的，若跟工作沾上邊需改用付費版 Professional Edition。</p> <p>相形之下，採用 MIT License 的 mitmproxy，100% 符合免費可商用的條件。即便風格偏向 CLI，對一般人來說不如 Burp Suite 的純 GUI 友善，但軟體攻城獅可不是一般人，像我就覺得敲指令比滑滑鼠更有 Fu。至於若要大量檢視比對內容的場合，mitmproxy 也有 mitmweb 提供網頁操作介面。</p> <p>而 mitmproxy 開源專案非常活躍，去年 11 月推出 11.0 版，中間歷經 5 次小改版，4 月底就又推出 12.0，不用擔心跟不上 HTTP/2、TLS 規格演進。另外，mitmproxy 也逐步<a href="https://mitmproxy.org/posts/releases/mitmproxy-12/">改用 Rust 開發 Contentview、Syntax highlighting 等模組</a>，讓人對其效能及可靠性充滿期待。(延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">YT 筆記 - Rust 程式語言在 JavaScript 生態圈的角色</a>)。</p> <p>總之，我是愈看愈滿意，小試了一下，果真好用。</p> <p>我的主力平台是 Windows，這篇會以在 Winodws 環境使用為主。除了下載執行 Windows Installer，也可以用 Chocolatey 安裝：(延伸閱讀：指令式軟體安裝服務比較：Chocolatey、Scoop 與 winget](/blog/chocolatey-scoop-winget/)、<a href="/blog/choco-install-notes-for-new-windows/">我的 Windows 新裝機 Chocolatey 安裝清單</a>)<br> 註：mitmproxy 也支援用 Docker 執行，若要偵查手機 App 傳輸，用 Docker 架設更方便</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png"></p> <p>mitmproxy 主要有四種運作模式：<a href="https://docs.mitmproxy.org/stable/concepts/modes/">參考</a></p> <ul><li>HTTP/HTTPS Proxy<br> 在 OS 或程式指定 Proxy (預設：<code>http://localhost:8080</code>) 改透過 mitmproxy 存取網站，這是最傳統做法。缺點是要設定 Proxy，不同應用程式的設定方式不盡相同。</li> <li>Local Capture<br> 從 OS 層攔截 HTTP/HTTPS 傳輸，不用設 Proxy，甚至可以指定只攔截特定程序，是我覺得最方便的做法。</li> <li>WireGuard<br> mitmproxy 會扮演一台 <a href="https://www.wireguard.com/">WireGuard VPN</a> Server，客戶端安裝執行 WireGuard VPN Client，之後所有流量都會經過</li> <li>Reverse Proxy<br> 擔任指定網站的 Reverse Proxy，從中攔截傳輸內容</li></ul> <p>安裝好第一次使用前需先安裝 mitmproxy 的中間人 CA 根憑證，憑證會安裝後動態產生，每台機器不同，以降低被惡意使用的風險。安裝方法是開 CMD 跑 <code>mitmproxy --mode local</code> (建議將 C:\Program Files\mitmproxy\bin\ 加入 PATH) 後開瀏覽器連上 <a href="http://mitm.it/%EF%BC%8C%E4%BE%9D%E8%AA%AA%E6%98%8E%E5%AE%89%E8%A3%9D%E3%80%82">http://mitm.it/，依說明安裝。</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638818772211685967.png"></p> <p>【資安提醒】安裝並信任 CA 憑證代表特定軟體可以檢視 HTTPS 加密傳輸內容，此一動作影響重大，請確認憑證來源可靠並知道背後可能的風險再繼續。</p> <p>接著來幾個簡單練習。</p> <ol><li>攔截對特定網站的存取 <pre><code>mitmproxy --mode local --allow-hosts ip-api.com
+</code></pre> 啟動後分別用 curl 及 PowerShell 存取 <code>curl http://ip-api.com/json/8.8.8.8</code>，可觀察到兩次 GET 存取：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638818772214671426.png"><br> 打開每一筆 GET 可檢視 Request/Response 詳細內容<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638818772216603096.png"></li> <li>HTTPS 憑證信任問題<br> 在 Windows 信任 mitmproxy 的自訂 CA 根憑證，Windows 體系的應用程式便會自動信任 mitmproxy ，但如 curl、Java 則需另外信任憑證。 設定方式可參考<a href="https://docs.mitmproxy.org/stable/concepts/certificates/#the-mitmproxy-certificate-authority">官方說明</a>。<br> 測試 curl 時遇到一個眉角，一般來說使用 <code>curl --cacert C:\Users\&lt;userName&gt;\.mitmproxy\mitmproxy-ca-cert.pem https://www.github.com</code> 即可讓 curl 信任 mitmproxy，但 <a href="/blog/win-builtin-curl/">Windows 內建的 curl</a> 使用 Schannel 處理 TLS 而非 openssl，若已在 Windows 信任過 mitmproxy CA 憑證，便不需特別指定。但實測會遇到 <code>CertGetCertificateChain trust error CERT_TRUST_REVOCATION_STATUS_UNKNOWN</code> 錯誤，究其原理是 Schannel 會要求檢查憑證撤銷資訊，mitmproxy 預設不支援。解法有二：1) curl 加上 --ssl-no-revoke 參數、2) 為 mitmproxy 設定憑證撤銷檢查。<a href="https://www.perplexity.ai/search/simple-example-for-using-curl-t.jEx52ZRtyVG.vPwsWlkw">參考</a></li> <li>攔截特定程序的 HTTP/HTTPS 傳輸 <pre><code>mitmproxy --mode local:curl
+</code></pre> 用以上指令，只會攔截 curl 程式的傳輸，如下圖所示，我分別試了 curl、PowerShell 及瀏覽器連網站，只有 curl 的請求被捕追到，瀏覽器檢視憑證也是未更換狀態，代表 mitmproxy 未插手。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638818772218562340.png"><br> 另外執行 <code>mitmproxy --mode local:chrome</code> 對照，HTTPS 傳輸若經過 mitmproxy 時，憑證的發行者將變成 mitmproxy。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638818772222615579.png"></li> <li>若你想用 GUI 介面檢視傳輸內容，將以上操作中的 mitmproxy 換成 mitmweb 即可，例如：<code>mitmweb --mode local:chrome</code>：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig7_638818772226853420.png"></li> <li>依理來說，Local Capture 模式可以捕捉連到 localhost/127.0.0.1 的流量，但我在 Windows 上實測不成功，替代方案是跑 <code>mitmweb --mode reverse:http://locahost:80</code>，之後連上 <code>http://localhost:8080</code> 會被導向本機 80 Port，過程也將被側錄。<br> 剛好利用這些機會玩玩 Reverse Proxy 模式，小試 Windows 整合登入 IIS，成功抓到經典的兩個前置 401：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig8_638818772230350256.png"></li></ol> <p>以上差不多已涵蓋日常 HTTP/HTTPS 偵錯的基本技巧，熟悉後便足以提著 mitmproxy 上場挑戰疑難雜症。至於 mitmproxy 更強大的程式化資料分析及修改功能，未來會再專門做一集跟大家講解。(老高上身)</p> <p data-slug="mitmproxy" data-title-en="mitmproxy, the powerful HTTP/HTTPS debugger" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/10/03/20/01/mri-2813899_1280.jpg#1280#720">Learn how mitmproxy, a free and open-source HTTP proxy tool, aids debugging by intercepting HTTP/HTTPS traffic, offering CLI and web interfaces for detailed analysis. Ideal for developers preferring command-line operations over GUI.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>從 Huli 這篇 <a href="https://blog.huli.tw/2025/04/23/everyone-need-a-http-proxy-to-debug/">人人都需要一個 HTTP proxy 來 debug</a> 學到好用工具 - <a href="https://mitmproxy.org/">mitmproxy</a>，頗有相見恨晚之感，特撰文分享。</p> <p>在我多年射茶包的經驗中，瀏覽網頁出現疑難雜症，用 Chrome 或 Edge 的 F12 偵錯工具已幾可解決大半；但若為應用程式呼叫 WebAPI、網頁爬蟲工具，或是 Windows 整合驗證 (Kerberos/NTLM) 方面問題，就得靠 HTTP Proxy 類型偵錯工具上場救援。</p> <p>HTTP Proxy 偵錯的原理是由工具軟體扮演網站代理伺理器，設定瀏覽器或應用程式將所有 HTTP/HTTPS 請求交給它轉發並允許偵錯工具攔截內容，達到分析傳輸資料甚至修改內容的目的。這類工具很早之前就有了，我過去主要是用 Fiddler，一劍在手，大小問題迎刃而解。例如：<a href="/blog/401s-in-windows-authentication/">觀察整合式驗證先兩次 401 再 200 的過程</a>、<a href="/blog/ie-ocsp-checking-issue/">查 IE 爆慢 Chrome 正常的怪事</a>、<a href="/blog/webclient-headers-will-changes/">WebClient.UploadString() 第二送 Header 會變的鬼問題</a>... <a href="https://cse.google.com/cse?cx=002179666918670624530%3Afd5jjcvj7bc&amp;q=Fiddler&amp;oq=Fiddler">更多</a>)。而 Fiddler HTTP Proxy 及可修改 Request 及回應的特性，也被我拿來<a href="/blog/fiddler-remote-debug-mac-safari/">偵錯 Mac Safari</a>、<a href="/blog/fiddler-autoresponder/">偷改網頁內容方便測試</a>，搞過一些花式應用。對如何善用 HTTP Proxy 偵錯工具解決問題，我也算小有心得。</p> <p>Fiddler 的歷史悠久，最早是 2003 年微軟 IE 研發經理 Eric Lawrence 的個人 Side Project，其後被 Telerik 收購，歷經二十多年改版演化(我也用了快 20 年)，目前分為 <a href="https://www.telerik.com/fiddler/fiddler-classic">Fiddler Classic</a> (免費版) 及 Fiddler Everywhere (商業版)。依官方說法 Fiddler Classic 將不再積極開發，也不提供修補更新或技術技援 (Fiddler Classic is not in active development and offers no commitments for releases, patches or tech support.)，即使今年 3 月仍有更新，但長遠來看，免費 HTTP Proxy 偵錯工具這個位置遲早要找到接班人。</p> <p>Burp Suite 在資安領域名聲響亮，但免費版 Community Edition 僅限個人學習、研究或非商業目的，若跟工作沾上邊需改用付費版 Professional Edition。</p> <p>相形之下，採用 MIT License 的 mitmproxy，100% 符合免費可商用的條件。即便風格偏向 CLI，對一般人來說不如 Burp Suite 的純 GUI 友善，但軟體攻城獅可不是一般人，像我就覺得敲指令比滑滑鼠更有 Fu。至於若要大量檢視比對內容的場合，mitmproxy 也有 mitmweb 提供網頁操作介面。</p> <p>而 mitmproxy 開源專案非常活躍，去年 11 月推出 11.0 版，中間歷經 5 次小改版，4 月底就又推出 12.0，不用擔心跟不上 HTTP/2、TLS 規格演進。另外，mitmproxy 也逐步<a href="https://mitmproxy.org/posts/releases/mitmproxy-12/">改用 Rust 開發 Contentview、Syntax highlighting 等模組</a>，讓人對其效能及可靠性充滿期待。(延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">YT 筆記 - Rust 程式語言在 JavaScript 生態圈的角色</a>)。</p> <p>總之，我是愈看愈滿意，小試了一下，果真好用。</p> <p>我的主力平台是 Windows，這篇會以在 Winodws 環境使用為主。除了下載執行 Windows Installer，也可以用 Chocolatey 安裝：(延伸閱讀：指令式軟體安裝服務比較：Chocolatey、Scoop 與 winget](/blog/chocolatey-scoop-winget/)、<a href="/blog/choco-install-notes-for-new-windows/">我的 Windows 新裝機 Chocolatey 安裝清單</a>)<br> 註：mitmproxy 也支援用 Docker 執行，若要偵查手機 App 傳輸，用 Docker 架設更方便</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png"></p> <p>mitmproxy 主要有四種運作模式：<a href="https://docs.mitmproxy.org/stable/concepts/modes/">參考</a></p> <ul><li>HTTP/HTTPS Proxy<br> 在 OS 或程式指定 Proxy (預設：<code>http://localhost:8080</code>) 改透過 mitmproxy 存取網站，這是最傳統做法。缺點是要設定 Proxy，不同應用程式的設定方式不盡相同。</li> <li>Local Capture<br> 從 OS 層攔截 HTTP/HTTPS 傳輸，不用設 Proxy，甚至可以指定只攔截特定程序，是我覺得最方便的做法。</li> <li>WireGuard<br> mitmproxy 會扮演一台 <a href="https://www.wireguard.com/">WireGuard VPN</a> Server，客戶端安裝執行 WireGuard VPN Client，之後所有流量都會經過</li> <li>Reverse Proxy<br> 擔任指定網站的 Reverse Proxy，從中攔截傳輸內容</li></ul> <p>安裝好第一次使用前需先安裝 mitmproxy 的中間人 CA 根憑證，憑證會安裝後動態產生，每台機器不同，以降低被惡意使用的風險。安裝方法是開 CMD 跑 <code>mitmproxy --mode local</code> (建議將 C:\Program Files\mitmproxy\bin\ 加入 PATH) 後開瀏覽器連上 <a href="http://mitm.it/%EF%BC%8C%E4%BE%9D%E8%AA%AA%E6%98%8E%E5%AE%89%E8%A3%9D%E3%80%82">http://mitm.it/，依說明安裝。</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638818772211685967.png"></p> <p>【資安提醒】安裝並信任 CA 憑證代表特定軟體可以檢視 HTTPS 加密傳輸內容，此一動作影響重大，請確認憑證來源可靠並知道背後可能的風險再繼續。</p> <p>接著來幾個簡單練習。</p> <ol><li>攔截對特定網站的存取 <pre><code>mitmproxy --mode local --allow-hosts ip-api.com
+</code></pre> 啟動後分別用 curl 及 PowerShell 存取 <code>curl http://ip-api.com/json/8.8.8.8</code>，可觀察到兩次 GET 存取：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638818772214671426.png"><br> 打開每一筆 GET 可檢視 Request/Response 詳細內容<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638818772216603096.png"></li> <li>HTTPS 憑證信任問題<br> 在 Windows 信任 mitmproxy 的自訂 CA 根憑證，Windows 體系的應用程式便會自動信任 mitmproxy ，但如 curl、Java 則需另外信任憑證。 設定方式可參考<a href="https://docs.mitmproxy.org/stable/concepts/certificates/#the-mitmproxy-certificate-authority">官方說明</a>。<br> 測試 curl 時遇到一個眉角，一般來說使用 <code>curl --cacert C:\Users\&lt;userName&gt;\.mitmproxy\mitmproxy-ca-cert.pem https://www.github.com</code> 即可讓 curl 信任 mitmproxy，但 <a href="/blog/win-builtin-curl/">Windows 內建的 curl</a> 使用 Schannel 處理 TLS 而非 openssl，若已在 Windows 信任過 mitmproxy CA 憑證，便不需特別指定。但實測會遇到 <code>CertGetCertificateChain trust error CERT_TRUST_REVOCATION_STATUS_UNKNOWN</code> 錯誤，究其原理是 Schannel 會要求檢查憑證撤銷資訊，mitmproxy 預設不支援。解法有二：1) curl 加上 --ssl-no-revoke 參數、2) 為 mitmproxy 設定憑證撤銷檢查。<a href="https://www.perplexity.ai/search/simple-example-for-using-curl-t.jEx52ZRtyVG.vPwsWlkw">參考</a></li> <li>攔截特定程序的 HTTP/HTTPS 傳輸 <pre><code>mitmproxy --mode local:curl
+</code></pre> 用以上指令，只會攔截 curl 程式的傳輸，如下圖所示，我分別試了 curl、PowerShell 及瀏覽器連網站，只有 curl 的請求被捕追到，瀏覽器檢視憑證也是未更換狀態，代表 mitmproxy 未插手。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638818772218562340.png"><br> 另外執行 <code>mitmproxy --mode local:chrome</code> 對照，HTTPS 傳輸若經過 mitmproxy 時，憑證的發行者將變成 mitmproxy。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638818772222615579.png"></li> <li>若你想用 GUI 介面檢視傳輸內容，將以上操作中的 mitmproxy 換成 mitmweb 即可，例如：<code>mitmweb --mode local:chrome</code>：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig7_638818772226853420.png"></li> <li>依理來說，Local Capture 模式可以捕捉連到 localhost/127.0.0.1 的流量，但我在 Windows 上實測不成功，替代方案是跑 <code>mitmweb --mode reverse:http://locahost:80</code>，之後連上 <code>http://localhost:8080</code> 會被導向本機 80 Port，過程也將被側錄。<br> 剛好利用這些機會玩玩 Reverse Proxy 模式，小試 Windows 整合登入 IIS，成功抓到經典的兩個前置 401：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig8_638818772230350256.png"></li></ol> <p>以上差不多已涵蓋日常 HTTP/HTTPS 偵錯的基本技巧，熟悉後便足以提著 mitmproxy 上場挑戰疑難雜症。至於 mitmproxy 更強大的程式化資料分析及修改功能，未來會再專門做一集跟大家講解。(老高上身)</p> <p data-slug="mitmproxy" data-title-en="mitmproxy, the powerful HTTP/HTTPS debugger" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/10/03/20/01/mri-2813899_1280.jpg#1280#720">Learn how mitmproxy, a free and open-source HTTP proxy tool, aids debugging by intercepting HTTP/HTTPS traffic, offering CLI and web interfaces for detailed analysis. Ideal for developers preferring command-line operations over GUI.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>從 Huli 這篇 <a href="https://blog.huli.tw/2025/04/23/everyone-need-a-http-proxy-to-debug/">人人都需要一個 HTTP proxy 來 debug</a> 學到好用工具 - <a href="https://mitmproxy.org/">mitmproxy</a>，頗有相見恨晚之感，特撰文分享。</p> <p>在我多年射茶包的經驗中，瀏覽網頁出現疑難雜症，用 Chrome 或 Edge 的 F12 偵錯工具已幾可解決大半；但若為應用程式呼叫 WebAPI、網頁爬蟲工具，或是 Windows 整合驗證 (Kerberos/NTLM) 方面問題，就得靠 HTTP Proxy 類型偵錯工具上場救援。</p> <p>HTTP Proxy 偵錯的原理是由工具軟體扮演網站代理伺理器，設定瀏覽器或應用程式將所有 HTTP/HTTPS 請求交給它轉發並允許偵錯工具攔截內容，達到分析傳輸資料甚至修改內容的目的。這類工具很早之前就有了，我過去主要是用 Fiddler，一劍在手，大小問題迎刃而解。例如：<a href="/blog/401s-in-windows-authentication/">觀察整合式驗證先兩次 401 再 200 的過程</a>、<a href="/blog/ie-ocsp-checking-issue/">查 IE 爆慢 Chrome 正常的怪事</a>、<a href="/blog/webclient-headers-will-changes/">WebClient.UploadString() 第二送 Header 會變的鬼問題</a>... <a href="https://cse.google.com/cse?cx=002179666918670624530%3Afd5jjcvj7bc&amp;q=Fiddler&amp;oq=Fiddler">更多</a>)。而 Fiddler HTTP Proxy 及可修改 Request 及回應的特性，也被我拿來<a href="/blog/fiddler-remote-debug-mac-safari/">偵錯 Mac Safari</a>、<a href="/blog/fiddler-autoresponder/">偷改網頁內容方便測試</a>，搞過一些花式應用。對如何善用 HTTP Proxy 偵錯工具解決問題，我也算小有心得。</p> <p>Fiddler 的歷史悠久，最早是 2003 年微軟 IE 研發經理 Eric Lawrence 的個人 Side Project，其後被 Telerik 收購，歷經二十多年改版演化(我也用了快 20 年)，目前分為 <a href="https://www.telerik.com/fiddler/fiddler-classic">Fiddler Classic</a> (免費版) 及 Fiddler Everywhere (商業版)。依官方說法 Fiddler Classic 將不再積極開發，也不提供修補更新或技術技援 (Fiddler Classic is not in active development and offers no commitments for releases, patches or tech support.)，即使今年 3 月仍有更新，但長遠來看，免費 HTTP Proxy 偵錯工具這個位置遲早要找到接班人。</p> <p>Burp Suite 在資安領域名聲響亮，但免費版 Community Edition 僅限個人學習、研究或非商業目的，若跟工作沾上邊需改用付費版 Professional Edition。</p> <p>相形之下，採用 MIT License 的 mitmproxy，100% 符合免費可商用的條件。即便風格偏向 CLI，對一般人來說不如 Burp Suite 的純 GUI 友善，但軟體攻城獅可不是一般人，像我就覺得敲指令比滑滑鼠更有 Fu。至於若要大量檢視比對內容的場合，mitmproxy 也有 mitmweb 提供網頁操作介面。</p> <p>而 mitmproxy 開源專案非常活躍，去年 11 月推出 11.0 版，中間歷經 5 次小改版，4 月底就又推出 12.0，不用擔心跟不上 HTTP/2、TLS 規格演進。另外，mitmproxy 也逐步<a href="https://mitmproxy.org/posts/releases/mitmproxy-12/">改用 Rust 開發 Contentview、Syntax highlighting 等模組</a>，讓人對其效能及可靠性充滿期待。(延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">YT 筆記 - Rust 程式語言在 JavaScript 生態圈的角色</a>)。</p> <p>總之，我是愈看愈滿意，小試了一下，果真好用。</p> <p>我的主力平台是 Windows，這篇會以在 Winodws 環境使用為主。除了下載執行 Windows Installer，也可以用 Chocolatey 安裝：(延伸閱讀：指令式軟體安裝服務比較：Chocolatey、Scoop 與 winget](/blog/chocolatey-scoop-winget/)、<a href="/blog/choco-install-notes-for-new-windows/">我的 Windows 新裝機 Chocolatey 安裝清單</a>)<br> 註：mitmproxy 也支援用 Docker 執行，若要偵查手機 App 傳輸，用 Docker 架設更方便</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png"></p> <p>mitmproxy 主要有四種運作模式：<a href="https://docs.mitmproxy.org/stable/concepts/modes/">參考</a></p> <ul><li>HTTP/HTTPS Proxy<br> 在 OS 或程式指定 Proxy (預設：<code>http://localhost:8080</code>) 改透過 mitmproxy 存取網站，這是最傳統做法。缺點是要設定 Proxy，不同應用程式的設定方式不盡相同。</li> <li>Local Capture<br> 從 OS 層攔截 HTTP/HTTPS 傳輸，不用設 Proxy，甚至可以指定只攔截特定程序，是我覺得最方便的做法。</li> <li>WireGuard<br> mitmproxy 會扮演一台 <a href="https://www.wireguard.com/">WireGuard VPN</a> Server，客戶端安裝執行 WireGuard VPN Client，之後所有流量都會經過</li> <li>Reverse Proxy<br> 擔任指定網站的 Reverse Proxy，從中攔截傳輸內容</li></ul> <p>安裝好第一次使用前需先安裝 mitmproxy 的中間人 CA 根憑證，憑證會安裝後動態產生，每台機器不同，以降低被惡意使用的風險。安裝方法是開 CMD 跑 <code>mitmproxy --mode local</code> (建議將 C:\Program Files\mitmproxy\bin\ 加入 PATH) 後開瀏覽器連上 <a href="http://mitm.it/%EF%BC%8C%E4%BE%9D%E8%AA%AA%E6%98%8E%E5%AE%89%E8%A3%9D%E3%80%82">http://mitm.it/，依說明安裝。</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638818772211685967.png"></p> <p>【資安提醒】安裝並信任 CA 憑證代表特定軟體可以檢視 HTTPS 加密傳輸內容，此一動作影響重大，請確認憑證來源可靠並知道背後可能的風險再繼續。</p> <p>接著來幾個簡單練習。</p> <ol><li>攔截對特定網站的存取 <pre><code>mitmproxy --mode local --allow-hosts ip-api.com
+</code></pre> 啟動後分別用 curl 及 PowerShell 存取 <code>curl http://ip-api.com/json/8.8.8.8</code>，可觀察到兩次 GET 存取：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638818772214671426.png"><br> 打開每一筆 GET 可檢視 Request/Response 詳細內容<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638818772216603096.png"></li> <li>HTTPS 憑證信任問題<br> 在 Windows 信任 mitmproxy 的自訂 CA 根憑證，Windows 體系的應用程式便會自動信任 mitmproxy ，但如 curl、Java 則需另外信任憑證。 設定方式可參考<a href="https://docs.mitmproxy.org/stable/concepts/certificates/#the-mitmproxy-certificate-authority">官方說明</a>。<br> 測試 curl 時遇到一個眉角，一般來說使用 <code>curl --cacert C:\Users\&lt;userName&gt;\.mitmproxy\mitmproxy-ca-cert.pem https://www.github.com</code> 即可讓 curl 信任 mitmproxy，但 <a href="/blog/win-builtin-curl/">Windows 內建的 curl</a> 使用 Schannel 處理 TLS 而非 openssl，若已在 Windows 信任過 mitmproxy CA 憑證，便不需特別指定。但實測會遇到 <code>CertGetCertificateChain trust error CERT_TRUST_REVOCATION_STATUS_UNKNOWN</code> 錯誤，究其原理是 Schannel 會要求檢查憑證撤銷資訊，mitmproxy 預設不支援。解法有二：1) curl 加上 --ssl-no-revoke 參數、2) 為 mitmproxy 設定憑證撤銷檢查。<a href="https://www.perplexity.ai/search/simple-example-for-using-curl-t.jEx52ZRtyVG.vPwsWlkw">參考</a></li> <li>攔截特定程序的 HTTP/HTTPS 傳輸 <pre><code>mitmproxy --mode local:curl
+</code></pre> 用以上指令，只會攔截 curl 程式的傳輸，如下圖所示，我分別試了 curl、PowerShell 及瀏覽器連網站，只有 curl 的請求被捕追到，瀏覽器檢視憑證也是未更換狀態，代表 mitmproxy 未插手。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638818772218562340.png"><br> 另外執行 <code>mitmproxy --mode local:chrome</code> 對照，HTTPS 傳輸若經過 mitmproxy 時，憑證的發行者將變成 mitmproxy。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638818772222615579.png"></li> <li>若你想用 GUI 介面檢視傳輸內容，將以上操作中的 mitmproxy 換成 mitmweb 即可，例如：<code>mitmweb --mode local:chrome</code>：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig7_638818772226853420.png"></li> <li>依理來說，Local Capture 模式可以捕捉連到 localhost/127.0.0.1 的流量，但我在 Windows 上實測不成功，替代方案是跑 <code>mitmweb --mode reverse:http://locahost:80</code>，之後連上 <code>http://localhost:8080</code> 會被導向本機 80 Port，過程也將被側錄。<br> 剛好利用這些機會玩玩 Reverse Proxy 模式，小試 Windows 整合登入 IIS，成功抓到經典的兩個前置 401：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig8_638818772230350256.png"></li></ol> <p>以上差不多已涵蓋日常 HTTP/HTTPS 偵錯的基本技巧，熟悉後便足以提著 mitmproxy 上場挑戰疑難雜症。至於 mitmproxy 更強大的程式化資料分析及修改功能，未來會再專門做一集跟大家講解。(老高上身)</p> <p data-slug="mitmproxy" data-title-en="mitmproxy, the powerful HTTP/HTTPS debugger" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/10/03/20/01/mri-2813899_1280.jpg#1280#720">Learn how mitmproxy, a free and open-source HTTP proxy tool, aids debugging by intercepting HTTP/HTTPS traffic, offering CLI and web interfaces for detailed analysis. Ideal for developers preferring command-line operations over GUI.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png" medium="image"/>
+    <pubDate>Sat, 03 May 2025 13:53:44 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[小技巧 - 使用 PowerShell 修改 Web.config]]></title>
+    <link>https://blog.darkthread.net/blog/patch-webconf-w-ps/</link>
+    <itunes:title><![CDATA[小技巧 - 使用 PowerShell 修改 Web.config]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>多年前學會<a href="/blog/powershell-admin-iis/">用 PowerShell 設定 IIS 網站</a>，便逐步捨棄人工，把原本要開管理介面點滑鼠的部署修改操作都寫成 PowerShell 指令檔，需要部署或修改網站時，執行 .ps1，數十上百個步驟瞬間完成，一次要處理十幾台機器也不是問題，也不必擔心操作人員疲勞駕駛，眼花手滑出錯。體驗過 CLI 的美妙，就很難回頭開 GUI 操作過茹毛飲血的生活。</p> <p>實務作業中部分 Web.config 採個別修改調整而非整檔覆寫，是我手邊少數仍依賴人工開 Notepad 操作的環節，今天就來征服它，拓大 PowerShell 的版圖。</p> <p>之前玩過<a href="/blog/ps-xml/">用 PowerShell 處理 XML</a>，知道 PowerShell 可以直接用 $doc.nodeName.nodeName 存取節點也支援 XPath，寫起來蠻簡潔也夠彈性。這篇則偏應用實務，著重增刪改 Web.config 內容的小技巧。</p> <p>以下將用這個 Web.config 簡單示範如何新增、修改、刪除 appSetting，以及透過 DOM 及 XPath 更改 bindingRedirect。</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;
+&lt;add key="webpages:Version" value="3.0.0.0" /&gt;
+&lt;add key="webpages:Enabled" value="false" /&gt;
+&lt;add key="ClientValidationEnabled" value="true" /&gt;
+&lt;add key="UnobtrusiveJavaScriptEnabled" value="true" /&gt;
+&lt;/appSettings&gt;
+&lt;system.web&gt;
+&lt;compilation debug="true" targetFramework="4.7.2" /&gt;
+&lt;httpRuntime targetFramework="4.7.2" /&gt;
+&lt;/system.web&gt;
+&lt;runtime&gt;
+&lt;assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"&gt;
+&lt;dependentAssembly&gt;
+&lt;assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" /&gt;
+&lt;bindingRedirect oldVersion="0.0.0.0-8.0.0.0" newVersion="8.0.0.0" /&gt;
+&lt;/dependentAssembly&gt;
+&lt;/assemblyBinding&gt;
+&lt;/runtime&gt;
+&lt;/configuration&gt;
+</code></pre> <p>不囉嗦，直接看 Code。</p> <pre><code>param (
+[Parameter(Mandatory = $false)]
+[string]$webConfigPath = "Web.config"
+)
+$ErrorActionPreference = "Stop"
+# 讀入 XML
+[xml]$xml = Get-Content -Path $webConfigPath
+# 透過 DOM 存取
+$node = $xml.configuration.appSettings
+$check = $node.add | Where-Object { $_.key -eq "ClientValidationEnabled" }
+Write-Host "[DOM] ClientValidationEnabled: $($check.value)"
+# 修改值
+$check.value = "false"
+$xml.Save("Rev1.xml")
+# 新增 appSetting
+$newSetting = $xml.CreateElement("add")
+$newSetting.SetAttribute("key", "EnableSSO")
+$newSetting.SetAttribute("value", "true")
+$xml.configuration.appSettings.AppendChild($newSetting) | Out-Null
+$xml.Save("Rev2.xml")
+# 透過 XPath 讀取
+$check = $xml.SelectSingleNode("configuration/appSettings/add[@key='EnableSSO']")
+Write-Host "[XPath] EnableSSO: $($check.value)"
+# 刪除 appSetting
+$node = $xml.configuration.appSettings.add | Where-Object { $_.key -eq "EnableSSO" }
+if ($node) {
+$node.ParentNode.RemoveChild($node) | Out-Null
+}
+$xml.Save("Rev3.xml")
+# DOM 存取 assemblyBinding 改 bindingRedirect 版本
+$node = $xml.configuration.runtime.assemblyBinding
+$depAsm = $node.dependentAssembly | Where-Object { $_.assemblyIdentity.name -eq "Newtonsoft.Json" }
+if ($depAsm) {
+$depAsm.bindingRedirect.oldVersion = "0.0.0.0-12.0.0.0"
+$depAsm.bindingRedirect.newVersion = "12.0.0.0"
+}
+$xml.Save("Rev4.xml")
+# XPath 存取 assemblyBinding 需注意命名空間
+$nsMgr = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+$nsMgr.AddNamespace("asm", "urn:schemas-microsoft-com:asm.v1")
+$node = $xml.SelectSingleNode("configuration/runtime/asm:assemblyBinding/asm:dependentAssembly/asm:assemblyIdentity[@name='Newtonsoft.Json']", $nsMgr)
+if ($node) {
+$bindingRedirect = $node.ParentNode.bindingRedirect
+$bindingRedirect.oldVersion = "0.0.0.0-13.0.0.0"
+$bindingRedirect.newVersion = "13.0.0.0"
+}
+$xml.Save("Rev5.xml")
+# 新增 ODP.NET BindingRedirect
+$asmBind = $xml.configuration.runtime.assemblyBinding
+$nsMgr = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+$nsMgr.AddNamespace("asm", "urn:schemas-microsoft-com:asm.v1")
+$ns = $nsMgr.LookupNamespace("asm")
+$depAsm = $xml.CreateElement("dependentAssembly", $ns)
+$asmId = $xml.CreateElement("assemblyIdentity", $ns)
+$asmId.SetAttribute("name", "Oracle.DataAccess")
+$asmId.SetAttribute("publicKeyToken", "89b483f429c47342")
+$asmId.SetAttribute("culture", "neutral")
+$bindingRedirect = $xml.CreateElement("bindingRedirect", $ns)
+$bindingRedirect.SetAttribute("oldVersion", "0.0.0.0-12.1.0.0")
+$bindingRedirect.SetAttribute("newVersion", "12.1.0.0")
+$depAsm.AppendChild($asmId) | Out-Null
+$depAsm.AppendChild($bindingRedirect) | Out-Null
+$asmBind.AppendChild($depAsm) | Out-Null
+$xml.Save("Rev6.xml")
+Write-Host "修改 ClientValidationEnabled" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Web.config Rev1.xml
+Write-Host "新增 EnableSSO" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev1.xml Rev2.xml
+Write-Host "刪除 EnableSSO" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev2.xml Rev3.xml
+Write-Host "修改 Newtonsoft.Json 版本 12.0.0.0" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev3.xml Rev4.xml
+Write-Host "修改 Newtonsoft.Json 版本 13.0.0.0" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev4.xml Rev5.xml
+Write-Host "新增 Oracle.DataAccess 版本導向" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev5.xml Rev6.xml
+</code></pre> <p>程式不複雜，唯一的眉角是 <code>&lt;assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"&gt;</code> 有自己的 XML Namespace，XPath 查詢跟 CreateElement 時要額外指定。這一刻，老人想起了當年被 XML 支配的恐懼。(補聲幹)</p> <p>為驗證修改結果，每次更改都會存檔，再借用 git diff 顯示修改前後的差異( git 真的好好用)，實測結如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638811907403552922.png"></p> <p>掌握這些技巧，未來要用 PowerShell 修改 Web.config 應該都是小菜一碟囉~</p> <p data-slug="patch-webconf-w-ps" data-title-en="Modifying Web.config with PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/07/25/17/39/computer-5437373_1280.jpg#1280#720">Using PowerShell to automate IIS website configuration and Web.config modifications enhances efficiency by replacing manual GUI actions with scripted commands. This blog explores XML manipulation using PowerShell, including adding, modifying, and deleting nodes in Web.config, and handling XML namespaces for XPath queries.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>多年前學會<a href="/blog/powershell-admin-iis/">用 PowerShell 設定 IIS 網站</a>，便逐步捨棄人工，把原本要開管理介面點滑鼠的部署修改操作都寫成 PowerShell 指令檔，需要部署或修改網站時，執行 .ps1，數十上百個步驟瞬間完成，一次要處理十幾台機器也不是問題，也不必擔心操作人員疲勞駕駛，眼花手滑出錯。體驗過 CLI 的美妙，就很難回頭開 GUI 操作過茹毛飲血的生活。</p> <p>實務作業中部分 Web.config 採個別修改調整而非整檔覆寫，是我手邊少數仍依賴人工開 Notepad 操作的環節，今天就來征服它，拓大 PowerShell 的版圖。</p> <p>之前玩過<a href="/blog/ps-xml/">用 PowerShell 處理 XML</a>，知道 PowerShell 可以直接用 $doc.nodeName.nodeName 存取節點也支援 XPath，寫起來蠻簡潔也夠彈性。這篇則偏應用實務，著重增刪改 Web.config 內容的小技巧。</p> <p>以下將用這個 Web.config 簡單示範如何新增、修改、刪除 appSetting，以及透過 DOM 及 XPath 更改 bindingRedirect。</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;
+&lt;add key="webpages:Version" value="3.0.0.0" /&gt;
+&lt;add key="webpages:Enabled" value="false" /&gt;
+&lt;add key="ClientValidationEnabled" value="true" /&gt;
+&lt;add key="UnobtrusiveJavaScriptEnabled" value="true" /&gt;
+&lt;/appSettings&gt;
+&lt;system.web&gt;
+&lt;compilation debug="true" targetFramework="4.7.2" /&gt;
+&lt;httpRuntime targetFramework="4.7.2" /&gt;
+&lt;/system.web&gt;
+&lt;runtime&gt;
+&lt;assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"&gt;
+&lt;dependentAssembly&gt;
+&lt;assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" /&gt;
+&lt;bindingRedirect oldVersion="0.0.0.0-8.0.0.0" newVersion="8.0.0.0" /&gt;
+&lt;/dependentAssembly&gt;
+&lt;/assemblyBinding&gt;
+&lt;/runtime&gt;
+&lt;/configuration&gt;
+</code></pre> <p>不囉嗦，直接看 Code。</p> <pre><code>param (
+[Parameter(Mandatory = $false)]
+[string]$webConfigPath = "Web.config"
+)
+$ErrorActionPreference = "Stop"
+# 讀入 XML
+[xml]$xml = Get-Content -Path $webConfigPath
+# 透過 DOM 存取
+$node = $xml.configuration.appSettings
+$check = $node.add | Where-Object { $_.key -eq "ClientValidationEnabled" }
+Write-Host "[DOM] ClientValidationEnabled: $($check.value)"
+# 修改值
+$check.value = "false"
+$xml.Save("Rev1.xml")
+# 新增 appSetting
+$newSetting = $xml.CreateElement("add")
+$newSetting.SetAttribute("key", "EnableSSO")
+$newSetting.SetAttribute("value", "true")
+$xml.configuration.appSettings.AppendChild($newSetting) | Out-Null
+$xml.Save("Rev2.xml")
+# 透過 XPath 讀取
+$check = $xml.SelectSingleNode("configuration/appSettings/add[@key='EnableSSO']")
+Write-Host "[XPath] EnableSSO: $($check.value)"
+# 刪除 appSetting
+$node = $xml.configuration.appSettings.add | Where-Object { $_.key -eq "EnableSSO" }
+if ($node) {
+$node.ParentNode.RemoveChild($node) | Out-Null
+}
+$xml.Save("Rev3.xml")
+# DOM 存取 assemblyBinding 改 bindingRedirect 版本
+$node = $xml.configuration.runtime.assemblyBinding
+$depAsm = $node.dependentAssembly | Where-Object { $_.assemblyIdentity.name -eq "Newtonsoft.Json" }
+if ($depAsm) {
+$depAsm.bindingRedirect.oldVersion = "0.0.0.0-12.0.0.0"
+$depAsm.bindingRedirect.newVersion = "12.0.0.0"
+}
+$xml.Save("Rev4.xml")
+# XPath 存取 assemblyBinding 需注意命名空間
+$nsMgr = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+$nsMgr.AddNamespace("asm", "urn:schemas-microsoft-com:asm.v1")
+$node = $xml.SelectSingleNode("configuration/runtime/asm:assemblyBinding/asm:dependentAssembly/asm:assemblyIdentity[@name='Newtonsoft.Json']", $nsMgr)
+if ($node) {
+$bindingRedirect = $node.ParentNode.bindingRedirect
+$bindingRedirect.oldVersion = "0.0.0.0-13.0.0.0"
+$bindingRedirect.newVersion = "13.0.0.0"
+}
+$xml.Save("Rev5.xml")
+# 新增 ODP.NET BindingRedirect
+$asmBind = $xml.configuration.runtime.assemblyBinding
+$nsMgr = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+$nsMgr.AddNamespace("asm", "urn:schemas-microsoft-com:asm.v1")
+$ns = $nsMgr.LookupNamespace("asm")
+$depAsm = $xml.CreateElement("dependentAssembly", $ns)
+$asmId = $xml.CreateElement("assemblyIdentity", $ns)
+$asmId.SetAttribute("name", "Oracle.DataAccess")
+$asmId.SetAttribute("publicKeyToken", "89b483f429c47342")
+$asmId.SetAttribute("culture", "neutral")
+$bindingRedirect = $xml.CreateElement("bindingRedirect", $ns)
+$bindingRedirect.SetAttribute("oldVersion", "0.0.0.0-12.1.0.0")
+$bindingRedirect.SetAttribute("newVersion", "12.1.0.0")
+$depAsm.AppendChild($asmId) | Out-Null
+$depAsm.AppendChild($bindingRedirect) | Out-Null
+$asmBind.AppendChild($depAsm) | Out-Null
+$xml.Save("Rev6.xml")
+Write-Host "修改 ClientValidationEnabled" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Web.config Rev1.xml
+Write-Host "新增 EnableSSO" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev1.xml Rev2.xml
+Write-Host "刪除 EnableSSO" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev2.xml Rev3.xml
+Write-Host "修改 Newtonsoft.Json 版本 12.0.0.0" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev3.xml Rev4.xml
+Write-Host "修改 Newtonsoft.Json 版本 13.0.0.0" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev4.xml Rev5.xml
+Write-Host "新增 Oracle.DataAccess 版本導向" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev5.xml Rev6.xml
+</code></pre> <p>程式不複雜，唯一的眉角是 <code>&lt;assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"&gt;</code> 有自己的 XML Namespace，XPath 查詢跟 CreateElement 時要額外指定。這一刻，老人想起了當年被 XML 支配的恐懼。(補聲幹)</p> <p>為驗證修改結果，每次更改都會存檔，再借用 git diff 顯示修改前後的差異( git 真的好好用)，實測結如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638811907403552922.png"></p> <p>掌握這些技巧，未來要用 PowerShell 修改 Web.config 應該都是小菜一碟囉~</p> <p data-slug="patch-webconf-w-ps" data-title-en="Modifying Web.config with PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/07/25/17/39/computer-5437373_1280.jpg#1280#720">Using PowerShell to automate IIS website configuration and Web.config modifications enhances efficiency by replacing manual GUI actions with scripted commands. This blog explores XML manipulation using PowerShell, including adding, modifying, and deleting nodes in Web.config, and handling XML namespaces for XPath queries.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>多年前學會<a href="/blog/powershell-admin-iis/">用 PowerShell 設定 IIS 網站</a>，便逐步捨棄人工，把原本要開管理介面點滑鼠的部署修改操作都寫成 PowerShell 指令檔，需要部署或修改網站時，執行 .ps1，數十上百個步驟瞬間完成，一次要處理十幾台機器也不是問題，也不必擔心操作人員疲勞駕駛，眼花手滑出錯。體驗過 CLI 的美妙，就很難回頭開 GUI 操作過茹毛飲血的生活。</p> <p>實務作業中部分 Web.config 採個別修改調整而非整檔覆寫，是我手邊少數仍依賴人工開 Notepad 操作的環節，今天就來征服它，拓大 PowerShell 的版圖。</p> <p>之前玩過<a href="/blog/ps-xml/">用 PowerShell 處理 XML</a>，知道 PowerShell 可以直接用 $doc.nodeName.nodeName 存取節點也支援 XPath，寫起來蠻簡潔也夠彈性。這篇則偏應用實務，著重增刪改 Web.config 內容的小技巧。</p> <p>以下將用這個 Web.config 簡單示範如何新增、修改、刪除 appSetting，以及透過 DOM 及 XPath 更改 bindingRedirect。</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;
+&lt;add key="webpages:Version" value="3.0.0.0" /&gt;
+&lt;add key="webpages:Enabled" value="false" /&gt;
+&lt;add key="ClientValidationEnabled" value="true" /&gt;
+&lt;add key="UnobtrusiveJavaScriptEnabled" value="true" /&gt;
+&lt;/appSettings&gt;
+&lt;system.web&gt;
+&lt;compilation debug="true" targetFramework="4.7.2" /&gt;
+&lt;httpRuntime targetFramework="4.7.2" /&gt;
+&lt;/system.web&gt;
+&lt;runtime&gt;
+&lt;assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"&gt;
+&lt;dependentAssembly&gt;
+&lt;assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" /&gt;
+&lt;bindingRedirect oldVersion="0.0.0.0-8.0.0.0" newVersion="8.0.0.0" /&gt;
+&lt;/dependentAssembly&gt;
+&lt;/assemblyBinding&gt;
+&lt;/runtime&gt;
+&lt;/configuration&gt;
+</code></pre> <p>不囉嗦，直接看 Code。</p> <pre><code>param (
+[Parameter(Mandatory = $false)]
+[string]$webConfigPath = "Web.config"
+)
+$ErrorActionPreference = "Stop"
+# 讀入 XML
+[xml]$xml = Get-Content -Path $webConfigPath
+# 透過 DOM 存取
+$node = $xml.configuration.appSettings
+$check = $node.add | Where-Object { $_.key -eq "ClientValidationEnabled" }
+Write-Host "[DOM] ClientValidationEnabled: $($check.value)"
+# 修改值
+$check.value = "false"
+$xml.Save("Rev1.xml")
+# 新增 appSetting
+$newSetting = $xml.CreateElement("add")
+$newSetting.SetAttribute("key", "EnableSSO")
+$newSetting.SetAttribute("value", "true")
+$xml.configuration.appSettings.AppendChild($newSetting) | Out-Null
+$xml.Save("Rev2.xml")
+# 透過 XPath 讀取
+$check = $xml.SelectSingleNode("configuration/appSettings/add[@key='EnableSSO']")
+Write-Host "[XPath] EnableSSO: $($check.value)"
+# 刪除 appSetting
+$node = $xml.configuration.appSettings.add | Where-Object { $_.key -eq "EnableSSO" }
+if ($node) {
+$node.ParentNode.RemoveChild($node) | Out-Null
+}
+$xml.Save("Rev3.xml")
+# DOM 存取 assemblyBinding 改 bindingRedirect 版本
+$node = $xml.configuration.runtime.assemblyBinding
+$depAsm = $node.dependentAssembly | Where-Object { $_.assemblyIdentity.name -eq "Newtonsoft.Json" }
+if ($depAsm) {
+$depAsm.bindingRedirect.oldVersion = "0.0.0.0-12.0.0.0"
+$depAsm.bindingRedirect.newVersion = "12.0.0.0"
+}
+$xml.Save("Rev4.xml")
+# XPath 存取 assemblyBinding 需注意命名空間
+$nsMgr = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+$nsMgr.AddNamespace("asm", "urn:schemas-microsoft-com:asm.v1")
+$node = $xml.SelectSingleNode("configuration/runtime/asm:assemblyBinding/asm:dependentAssembly/asm:assemblyIdentity[@name='Newtonsoft.Json']", $nsMgr)
+if ($node) {
+$bindingRedirect = $node.ParentNode.bindingRedirect
+$bindingRedirect.oldVersion = "0.0.0.0-13.0.0.0"
+$bindingRedirect.newVersion = "13.0.0.0"
+}
+$xml.Save("Rev5.xml")
+# 新增 ODP.NET BindingRedirect
+$asmBind = $xml.configuration.runtime.assemblyBinding
+$nsMgr = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+$nsMgr.AddNamespace("asm", "urn:schemas-microsoft-com:asm.v1")
+$ns = $nsMgr.LookupNamespace("asm")
+$depAsm = $xml.CreateElement("dependentAssembly", $ns)
+$asmId = $xml.CreateElement("assemblyIdentity", $ns)
+$asmId.SetAttribute("name", "Oracle.DataAccess")
+$asmId.SetAttribute("publicKeyToken", "89b483f429c47342")
+$asmId.SetAttribute("culture", "neutral")
+$bindingRedirect = $xml.CreateElement("bindingRedirect", $ns)
+$bindingRedirect.SetAttribute("oldVersion", "0.0.0.0-12.1.0.0")
+$bindingRedirect.SetAttribute("newVersion", "12.1.0.0")
+$depAsm.AppendChild($asmId) | Out-Null
+$depAsm.AppendChild($bindingRedirect) | Out-Null
+$asmBind.AppendChild($depAsm) | Out-Null
+$xml.Save("Rev6.xml")
+Write-Host "修改 ClientValidationEnabled" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Web.config Rev1.xml
+Write-Host "新增 EnableSSO" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev1.xml Rev2.xml
+Write-Host "刪除 EnableSSO" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev2.xml Rev3.xml
+Write-Host "修改 Newtonsoft.Json 版本 12.0.0.0" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev3.xml Rev4.xml
+Write-Host "修改 Newtonsoft.Json 版本 13.0.0.0" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev4.xml Rev5.xml
+Write-Host "新增 Oracle.DataAccess 版本導向" -ForegroundColor Yellow
+git.exe diff --no-index -U1 Rev5.xml Rev6.xml
+</code></pre> <p>程式不複雜，唯一的眉角是 <code>&lt;assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"&gt;</code> 有自己的 XML Namespace，XPath 查詢跟 CreateElement 時要額外指定。這一刻，老人想起了當年被 XML 支配的恐懼。(補聲幹)</p> <p>為驗證修改結果，每次更改都會存檔，再借用 git diff 顯示修改前後的差異( git 真的好好用)，實測結如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638811907403552922.png"></p> <p>掌握這些技巧，未來要用 PowerShell 修改 Web.config 應該都是小菜一碟囉~</p> <p data-slug="patch-webconf-w-ps" data-title-en="Modifying Web.config with PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/07/25/17/39/computer-5437373_1280.jpg#1280#720">Using PowerShell to automate IIS website configuration and Web.config modifications enhances efficiency by replacing manual GUI actions with scripted commands. This blog explores XML manipulation using PowerShell, including adding, modifying, and deleting nodes in Web.config, and handling XML namespaces for XPath queries.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638811907403552922.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638811907403552922.png" medium="image"/>
+    <pubDate>Fri, 25 Apr 2025 15:11:47 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【茶包射手日記】PowerShell 命令列一按 $ 就噴錯]]></title>
+    <link>https://blog.darkthread.net/blog/powershll-shell-error-on-dollar-sign/</link>
+    <itunes:title><![CDATA[【茶包射手日記】PowerShell 命令列一按 $ 就噴錯]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在 VSCode Terminal 執行 PowerShell 遇到奇怪問題。 <code>[xml]$xml = Get-Content -Path sample.xml</code> 將 XML 讀入 $xml 變數打算操作 $xml 解析內容，才按了 $ 就噴錯結束：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638811039305022668.png"></p> <pre><code>An error occurred while running the REPL loop:
+System.IndexOutOfRangeException: Index was outside the bounds of the array.
+at System.Text.StringBuilder.get_Chars(Int32 index)
+at Microsoft.PowerShell.PSConsoleReadLine.ConvertOffsetToPoint(Int32 offset)
+at Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)
+at Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+at Microsoft.PowerShell.PSConsoleReadLine.Render()
+at Microsoft.PowerShell.PSConsoleReadLine.Insert(String s)
+at Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken, Nullable`1 lastRunStatus)
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Console.PsrlReadLine.InvokePSReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Console\PsrlReadLine.cs:line 48
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousDelegateTask`1.Run(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousDelegateTask.cs:line 63
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.ExecuteSynchronously(CancellationToken executorCancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 92
+--- End of stack trace from previous location ---
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.get_Result() in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 58
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.ExecuteAndGetResult(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 108
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.InvokeDelegate[TResult](String representation, ExecutionOptions executionOptions, Func`2 func, CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 526
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Console.PsrlReadLine.ReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Console\PsrlReadLine.cs:line 35
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.InvokeReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 1064
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.DoOneRepl(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 963
+</code></pre> <p>推測爆炸點在 PowerShell 的指令自動完成功能，按 $ 帶出先前輸入過的 <code>$t = ....</code> 內容，上回用 $t 裝了超長文字(大約一萬個字元)，超出 REPL 某段程式長度上限，導致程式爆炸。</p> <p>理論上將這筆超長指令從歷史清除就可了事，但 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/get-history?view=powershell-7.5&amp;WT.mc_id=DOP-MVP-37580">Clear-History</a> 只會清除當前工作階段的歷史，爬文查到用 <code>(Get-PSReadLineOption).HistorySavePath</code> 可檢視指令歷史記錄檔路徑在 <code>%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\Visual Studio Code Host_history.txt</code>，果然在檔案找到該筆記錄。<br> 註1：留意輸入指令時會覆寫檔案 註2：不同 PowerShell 執行環境有自己的存檔，VSCode 的 PowerShell Extension 在 <code>Visual Studio Code Host_history.txt</code>，一般指令視窗在 <code>ConsoleHost_history.txt</code></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638811039306876288.png"></p> <p>刪掉過長文字指令再重啟 PowerShell Shell，總算排除一按 $ 就出錯的鬼問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638811039308583503.png"></p> <p data-slug="powershll-shell-error-on-dollar-sign" data-title-en="Powershell crash after dollar sign pressed" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">In VSCode’s PowerShell terminal, encountering an error when using long input history can crash due to autocompletion. Deleting the problematic entry from the history file located in %APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\Visual Studio Code Host_history.txt resolves the issue.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在 VSCode Terminal 執行 PowerShell 遇到奇怪問題。 <code>[xml]$xml = Get-Content -Path sample.xml</code> 將 XML 讀入 $xml 變數打算操作 $xml 解析內容，才按了 $ 就噴錯結束：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638811039305022668.png"></p> <pre><code>An error occurred while running the REPL loop:
+System.IndexOutOfRangeException: Index was outside the bounds of the array.
+at System.Text.StringBuilder.get_Chars(Int32 index)
+at Microsoft.PowerShell.PSConsoleReadLine.ConvertOffsetToPoint(Int32 offset)
+at Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)
+at Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+at Microsoft.PowerShell.PSConsoleReadLine.Render()
+at Microsoft.PowerShell.PSConsoleReadLine.Insert(String s)
+at Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken, Nullable`1 lastRunStatus)
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Console.PsrlReadLine.InvokePSReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Console\PsrlReadLine.cs:line 48
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousDelegateTask`1.Run(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousDelegateTask.cs:line 63
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.ExecuteSynchronously(CancellationToken executorCancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 92
+--- End of stack trace from previous location ---
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.get_Result() in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 58
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.ExecuteAndGetResult(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 108
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.InvokeDelegate[TResult](String representation, ExecutionOptions executionOptions, Func`2 func, CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 526
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Console.PsrlReadLine.ReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Console\PsrlReadLine.cs:line 35
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.InvokeReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 1064
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.DoOneRepl(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 963
+</code></pre> <p>推測爆炸點在 PowerShell 的指令自動完成功能，按 $ 帶出先前輸入過的 <code>$t = ....</code> 內容，上回用 $t 裝了超長文字(大約一萬個字元)，超出 REPL 某段程式長度上限，導致程式爆炸。</p> <p>理論上將這筆超長指令從歷史清除就可了事，但 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/get-history?view=powershell-7.5&amp;WT.mc_id=DOP-MVP-37580">Clear-History</a> 只會清除當前工作階段的歷史，爬文查到用 <code>(Get-PSReadLineOption).HistorySavePath</code> 可檢視指令歷史記錄檔路徑在 <code>%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\Visual Studio Code Host_history.txt</code>，果然在檔案找到該筆記錄。<br> 註1：留意輸入指令時會覆寫檔案 註2：不同 PowerShell 執行環境有自己的存檔，VSCode 的 PowerShell Extension 在 <code>Visual Studio Code Host_history.txt</code>，一般指令視窗在 <code>ConsoleHost_history.txt</code></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638811039306876288.png"></p> <p>刪掉過長文字指令再重啟 PowerShell Shell，總算排除一按 $ 就出錯的鬼問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638811039308583503.png"></p> <p data-slug="powershll-shell-error-on-dollar-sign" data-title-en="Powershell crash after dollar sign pressed" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">In VSCode’s PowerShell terminal, encountering an error when using long input history can crash due to autocompletion. Deleting the problematic entry from the history file located in %APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\Visual Studio Code Host_history.txt resolves the issue.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在 VSCode Terminal 執行 PowerShell 遇到奇怪問題。 <code>[xml]$xml = Get-Content -Path sample.xml</code> 將 XML 讀入 $xml 變數打算操作 $xml 解析內容，才按了 $ 就噴錯結束：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638811039305022668.png"></p> <pre><code>An error occurred while running the REPL loop:
+System.IndexOutOfRangeException: Index was outside the bounds of the array.
+at System.Text.StringBuilder.get_Chars(Int32 index)
+at Microsoft.PowerShell.PSConsoleReadLine.ConvertOffsetToPoint(Int32 offset)
+at Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(RenderData renderData, String defaultColor)
+at Microsoft.PowerShell.PSConsoleReadLine.ForceRender()
+at Microsoft.PowerShell.PSConsoleReadLine.Render()
+at Microsoft.PowerShell.PSConsoleReadLine.Insert(String s)
+at Microsoft.PowerShell.PSConsoleReadLine.ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken, Nullable`1 lastRunStatus)
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Console.PsrlReadLine.InvokePSReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Console\PsrlReadLine.cs:line 48
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousDelegateTask`1.Run(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousDelegateTask.cs:line 63
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.ExecuteSynchronously(CancellationToken executorCancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 92
+--- End of stack trace from previous location ---
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.get_Result() in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 58
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Execution.SynchronousTask`1.ExecuteAndGetResult(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Execution\SynchronousTask.cs:line 108
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.InvokeDelegate[TResult](String representation, ExecutionOptions executionOptions, Func`2 func, CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 526
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Console.PsrlReadLine.ReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Console\PsrlReadLine.cs:line 35
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.InvokeReadLine(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 1064
+at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost.DoOneRepl(CancellationToken cancellationToken) in C:\__w\1\s\src\PowerShellEditorServices\Services\PowerShell\Host\PsesInternalHost.cs:line 963
+</code></pre> <p>推測爆炸點在 PowerShell 的指令自動完成功能，按 $ 帶出先前輸入過的 <code>$t = ....</code> 內容，上回用 $t 裝了超長文字(大約一萬個字元)，超出 REPL 某段程式長度上限，導致程式爆炸。</p> <p>理論上將這筆超長指令從歷史清除就可了事，但 <a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/get-history?view=powershell-7.5&amp;WT.mc_id=DOP-MVP-37580">Clear-History</a> 只會清除當前工作階段的歷史，爬文查到用 <code>(Get-PSReadLineOption).HistorySavePath</code> 可檢視指令歷史記錄檔路徑在 <code>%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\Visual Studio Code Host_history.txt</code>，果然在檔案找到該筆記錄。<br> 註1：留意輸入指令時會覆寫檔案 註2：不同 PowerShell 執行環境有自己的存檔，VSCode 的 PowerShell Extension 在 <code>Visual Studio Code Host_history.txt</code>，一般指令視窗在 <code>ConsoleHost_history.txt</code></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638811039306876288.png"></p> <p>刪掉過長文字指令再重啟 PowerShell Shell，總算排除一按 $ 就出錯的鬼問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638811039308583503.png"></p> <p data-slug="powershll-shell-error-on-dollar-sign" data-title-en="Powershell crash after dollar sign pressed" data-catg=".NET" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750">In VSCode’s PowerShell terminal, encountering an error when using long input history can crash due to autocompletion. Deleting the problematic entry from the history file located in %APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\Visual Studio Code Host_history.txt resolves the issue.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638811039305022668.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638811039305022668.png" medium="image"/>
+    <pubDate>Thu, 24 Apr 2025 15:03:20 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[閒聊 - 當 AI 用一秒超車你的一萬小時，程式老鳥的生存之道]]></title>
+    <link>https://blog.darkthread.net/blog/10k-hours-vs-ai/</link>
+    <itunes:title><![CDATA[閒聊 - 當 AI 用一秒超車你的一萬小時，程式老鳥的生存之道]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前天在 FB <a href="https://www.facebook.com/share/p/1AEE5g21VQ/">聊到</a> OpenAI 前陣子推出"隨心所欲客製生圖"功能，帶給我的震憾不亞於當年 ChatGPT 聊天機器人橫空出世，讓我感嘆繼程式開發人員之後，插畫家跟電繪師也可以大家一起手牽手一起去睡橋下惹。</p> <p>身為在程式開發這行打滾近三十年的老人，面對這波 AI 浪潮特別有感。</p> <p>瑞典心理學家安德斯·艾瑞克森（Anders Ericsson）在 1993年 做過一項研究，得到這樣的結論：要成為頂尖專家的關鍵不在於天賦，而在於刻意練習的時數。根據他的研究，頂尖的演奏家或運動員每天刻意練習約 4 小時，每週 5 天，持續 10 年，累積約一萬小時，是其成就超群的關鍵。雖然後續有許多研究指出，除了練習時數，天賦、環境及練習品質也很重要。<a href="https://www.perplexity.ai/search/you-zhong-shuo-fa-shi-ruo-ni-x-OqT8S3h8QEW436CxPvfXHg#0">參考</a> 但在我們無法重新投胎的前題下，投入大量時間辛勤苦練，仍是讓自己升級，達到嚮往成就最可行的手段。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg" alt="thumbnail"></p> <p>我超愛寫程式，上班寫、回家也寫，一天到晚想點子找題材，寫程式找樂子兼滿足日常生活需求。有時下班覺得累，還會「開 Side Project 寫幾行程式放鬆一下」(笑)。我從五專開始學 BASIC，TURBO PASCAL，後來二技跟研究所主要用 Delphi，開始工作後陰錯陽差改走 VB (對這段有興趣的朋友，可看這篇<a href="/blog/tetris-dos-game/">講古</a>)，後來 .NET 出來後轉到 C#，也接觸了前端 HTML/CSS/JavaScript，順便連資料庫跟中台也一手包辦，就這麼搞全端開發超過 20 年。粗估在寫程式這件事上，說有投入四、五萬小時也不為過吧! 我喜歡邏輯推導算是有點天賦，再加上大量時間的刻意練習，成為親友同事口中電腦(程式)超厲害的那個人，也算實至名歸吧!</p> <p>靠著大量的開發經驗，面對各種程式需求，我總能很快想到解法，用簡潔有效率的方法搞定。畢竟有幾十年實戰經驗，跟剛上戰場的菜鳥完全不同，面對疑難也絲毫不慌，總能談笑用兵手到擒來，這份從容就是 A 級獵人跟 E 級的差距呀~ (笑)</p> <p>隨著時間推移，對於自己程式能力的自信與自豪也持續累積... 直到兩年多前殺出個 ChatGPT!</p> <p>不管是什麼程式語言，何等刁鑽問題，只要世上有人會解，ChatGPT/Claude/Github Copilot 這類 AI 工具，一秒便能生出程式碼。花惹發？沒摸過程式的學生現在也能 ChatGPT 產生程式解決複雜問題，我日夜寫程式練了二十年，最終練了個心酸？</p> <p>體會到這點挺震憾的，像是跑馬拉松一路咬牙保持配速，把一群新手跑者遠遠甩在後面，猛一回頭，發現他們正騎著腳踏車追上來，幹!</p> <p>怎麼辦？大會都宣布馬拉松現在改自行車賽了，當然是跨上公路車繼續跟他們拼啊~ </p> <p>我很認命，不認為這波 AI 趨勢可以被阻擋或逆轉。</p> <p>18 世紀蒸汽機發明後，機器開始大量取代人工，原本開個小店打鐵、織布、編籃子即可圖個溫飽，當工廠量產一天能做出手工一年的產量，效率與成本壓縮手工製造的存在價值。就業人口被迫學習新技能，尋找新的謀生方式，但人們的生活品質也提升到另一個層次，完成一次人類文明進化。晚了兩百年，我們面對類似的事，差別在於上一次是機器取代手工作業，現在則是機器取代腦力活動，若沒有意外，其餘劇本應該大同小異：AI 普及後取代大量人工，大家學習跟 AI 共處，磨合出新的就業市場與經濟模式，人們生活品質上升，人類文明進化...</p> <p>幾十年或上百年才會發生一次的產業革命，既然遇上了(所幸已到這把年紀，我再 Hold 住幾年職場競爭力就夠了，年輕同學們加油)，就來想如何因應吧。我的策略大概會是這樣：</p> <p>首先是建立正確心態，省下抱怨跟擔憂的時間，面對它、接受它、處理它，極積學著怎麼因應時代轉變，在新浪潮中拉緊褲子不被潮水帶走。</p> <p>而此刻的當務之急，是確保自己運用 AI 工具的熟練度不要輸給年輕人。AI 讓沒基礎的人也能使用從未學過的程式語言或技術，對菜鳥是如此，對老鳥也是如此，一視同仁。回想這兩年，我也沒花多少功夫便能用 Python、Go 這兩個新語言寫出自己要用的程式，也都歸功於 Github Copilot/ChatGPT，看在 Python/Go 老手眼裡，豈不也要氣噗噗說我憑什麼? 大家先站上同樣的基礎線，再來仍要拼競爭力。</p> <p>至於怎麼創造競爭力？仔細想想，同樣是用 AI 工具輔助寫程式，多點經驗多點見識還是有優勢。除非 AI 能 100% 輸出無錯可直接執行的程式碼，即便正確率高達 99% (我認為實際上的比例不會這麼高，就先退一百步吧)，遇到那 1% 需要人下去看程式調架構解決問題的案例，不(想)懂程式的一群人將直接滅團，剩下有意願且有能力搞懂程式修正問題的人能存活，此時便會回歸到原本的競爭情境。就算陌生程式語言沒摸過的平台，有相關技能與知識的人能觸類旁通，肯定比全無背景的人更快上手(就像從跑步換成騎自行車，技巧跟使用肌群有別，但心肺能力與核心肌群的優勢仍在)。而處理類似問題的經驗，也能培養敏銳直覺，在第一時間做出正確判斷。而在這 1% 情境，便是長期苦練發揮效果及拉高差距，決定成功或失敗的決勝關鍵。</p> <p>為了 1% 的機率苦練一萬小時，投資報酬率難道不會太低？我覺得可以分兩方面來看：第一，這 1% 情況將把只會用 AI 寫程式卻沒能力修正除錯的人全部淘汰出局，則為了少數情境花時間是確保成功的必要投資。第二，AI 輔助程式開發工具成熟後，上手新程式語言的門檻大幅降低，學習效率也提升很多。現在也許只需要幾百小時就能達到過去一萬小時累積的效果，投入時間精力無可避免，但成本不會像過去那麼高。</p> <p>從這些角度，程式老人在 AI 時其實不用太悲觀，成天感嘆多年來努力拉開的領先差距一夕消失(事實真是如此沒錯，但感嘆有個屁用？)，善用 AI 工具不要放棄學習，抓準 AI 輔助開發工具，活用經驗知識快速學習(如果還學得動的話，阿彌陀佛...)，抓準 AI 搞不定而菜鳥新手麻瓜全倒的時刻殺出重圍，具備這樣的能力，應該還能在就業市場保有一席之地繼續混口飯吃，共勉之。</p> <p data-slug="10k-hours-vs-ai" data-fbimg="https://i.imgur.com/18a19xP.png#1024#576"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前天在 FB <a href="https://www.facebook.com/share/p/1AEE5g21VQ/">聊到</a> OpenAI 前陣子推出"隨心所欲客製生圖"功能，帶給我的震憾不亞於當年 ChatGPT 聊天機器人橫空出世，讓我感嘆繼程式開發人員之後，插畫家跟電繪師也可以大家一起手牽手一起去睡橋下惹。</p> <p>身為在程式開發這行打滾近三十年的老人，面對這波 AI 浪潮特別有感。</p> <p>瑞典心理學家安德斯·艾瑞克森（Anders Ericsson）在 1993年 做過一項研究，得到這樣的結論：要成為頂尖專家的關鍵不在於天賦，而在於刻意練習的時數。根據他的研究，頂尖的演奏家或運動員每天刻意練習約 4 小時，每週 5 天，持續 10 年，累積約一萬小時，是其成就超群的關鍵。雖然後續有許多研究指出，除了練習時數，天賦、環境及練習品質也很重要。<a href="https://www.perplexity.ai/search/you-zhong-shuo-fa-shi-ruo-ni-x-OqT8S3h8QEW436CxPvfXHg#0">參考</a> 但在我們無法重新投胎的前題下，投入大量時間辛勤苦練，仍是讓自己升級，達到嚮往成就最可行的手段。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg" alt="thumbnail"></p> <p>我超愛寫程式，上班寫、回家也寫，一天到晚想點子找題材，寫程式找樂子兼滿足日常生活需求。有時下班覺得累，還會「開 Side Project 寫幾行程式放鬆一下」(笑)。我從五專開始學 BASIC，TURBO PASCAL，後來二技跟研究所主要用 Delphi，開始工作後陰錯陽差改走 VB (對這段有興趣的朋友，可看這篇<a href="/blog/tetris-dos-game/">講古</a>)，後來 .NET 出來後轉到 C#，也接觸了前端 HTML/CSS/JavaScript，順便連資料庫跟中台也一手包辦，就這麼搞全端開發超過 20 年。粗估在寫程式這件事上，說有投入四、五萬小時也不為過吧! 我喜歡邏輯推導算是有點天賦，再加上大量時間的刻意練習，成為親友同事口中電腦(程式)超厲害的那個人，也算實至名歸吧!</p> <p>靠著大量的開發經驗，面對各種程式需求，我總能很快想到解法，用簡潔有效率的方法搞定。畢竟有幾十年實戰經驗，跟剛上戰場的菜鳥完全不同，面對疑難也絲毫不慌，總能談笑用兵手到擒來，這份從容就是 A 級獵人跟 E 級的差距呀~ (笑)</p> <p>隨著時間推移，對於自己程式能力的自信與自豪也持續累積... 直到兩年多前殺出個 ChatGPT!</p> <p>不管是什麼程式語言，何等刁鑽問題，只要世上有人會解，ChatGPT/Claude/Github Copilot 這類 AI 工具，一秒便能生出程式碼。花惹發？沒摸過程式的學生現在也能 ChatGPT 產生程式解決複雜問題，我日夜寫程式練了二十年，最終練了個心酸？</p> <p>體會到這點挺震憾的，像是跑馬拉松一路咬牙保持配速，把一群新手跑者遠遠甩在後面，猛一回頭，發現他們正騎著腳踏車追上來，幹!</p> <p>怎麼辦？大會都宣布馬拉松現在改自行車賽了，當然是跨上公路車繼續跟他們拼啊~ </p> <p>我很認命，不認為這波 AI 趨勢可以被阻擋或逆轉。</p> <p>18 世紀蒸汽機發明後，機器開始大量取代人工，原本開個小店打鐵、織布、編籃子即可圖個溫飽，當工廠量產一天能做出手工一年的產量，效率與成本壓縮手工製造的存在價值。就業人口被迫學習新技能，尋找新的謀生方式，但人們的生活品質也提升到另一個層次，完成一次人類文明進化。晚了兩百年，我們面對類似的事，差別在於上一次是機器取代手工作業，現在則是機器取代腦力活動，若沒有意外，其餘劇本應該大同小異：AI 普及後取代大量人工，大家學習跟 AI 共處，磨合出新的就業市場與經濟模式，人們生活品質上升，人類文明進化...</p> <p>幾十年或上百年才會發生一次的產業革命，既然遇上了(所幸已到這把年紀，我再 Hold 住幾年職場競爭力就夠了，年輕同學們加油)，就來想如何因應吧。我的策略大概會是這樣：</p> <p>首先是建立正確心態，省下抱怨跟擔憂的時間，面對它、接受它、處理它，極積學著怎麼因應時代轉變，在新浪潮中拉緊褲子不被潮水帶走。</p> <p>而此刻的當務之急，是確保自己運用 AI 工具的熟練度不要輸給年輕人。AI 讓沒基礎的人也能使用從未學過的程式語言或技術，對菜鳥是如此，對老鳥也是如此，一視同仁。回想這兩年，我也沒花多少功夫便能用 Python、Go 這兩個新語言寫出自己要用的程式，也都歸功於 Github Copilot/ChatGPT，看在 Python/Go 老手眼裡，豈不也要氣噗噗說我憑什麼? 大家先站上同樣的基礎線，再來仍要拼競爭力。</p> <p>至於怎麼創造競爭力？仔細想想，同樣是用 AI 工具輔助寫程式，多點經驗多點見識還是有優勢。除非 AI 能 100% 輸出無錯可直接執行的程式碼，即便正確率高達 99% (我認為實際上的比例不會這麼高，就先退一百步吧)，遇到那 1% 需要人下去看程式調架構解決問題的案例，不(想)懂程式的一群人將直接滅團，剩下有意願且有能力搞懂程式修正問題的人能存活，此時便會回歸到原本的競爭情境。就算陌生程式語言沒摸過的平台，有相關技能與知識的人能觸類旁通，肯定比全無背景的人更快上手(就像從跑步換成騎自行車，技巧跟使用肌群有別，但心肺能力與核心肌群的優勢仍在)。而處理類似問題的經驗，也能培養敏銳直覺，在第一時間做出正確判斷。而在這 1% 情境，便是長期苦練發揮效果及拉高差距，決定成功或失敗的決勝關鍵。</p> <p>為了 1% 的機率苦練一萬小時，投資報酬率難道不會太低？我覺得可以分兩方面來看：第一，這 1% 情況將把只會用 AI 寫程式卻沒能力修正除錯的人全部淘汰出局，則為了少數情境花時間是確保成功的必要投資。第二，AI 輔助程式開發工具成熟後，上手新程式語言的門檻大幅降低，學習效率也提升很多。現在也許只需要幾百小時就能達到過去一萬小時累積的效果，投入時間精力無可避免，但成本不會像過去那麼高。</p> <p>從這些角度，程式老人在 AI 時其實不用太悲觀，成天感嘆多年來努力拉開的領先差距一夕消失(事實真是如此沒錯，但感嘆有個屁用？)，善用 AI 工具不要放棄學習，抓準 AI 輔助開發工具，活用經驗知識快速學習(如果還學得動的話，阿彌陀佛...)，抓準 AI 搞不定而菜鳥新手麻瓜全倒的時刻殺出重圍，具備這樣的能力，應該還能在就業市場保有一席之地繼續混口飯吃，共勉之。</p> <p data-slug="10k-hours-vs-ai" data-fbimg="https://i.imgur.com/18a19xP.png#1024#576"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前天在 FB <a href="https://www.facebook.com/share/p/1AEE5g21VQ/">聊到</a> OpenAI 前陣子推出"隨心所欲客製生圖"功能，帶給我的震憾不亞於當年 ChatGPT 聊天機器人橫空出世，讓我感嘆繼程式開發人員之後，插畫家跟電繪師也可以大家一起手牽手一起去睡橋下惹。</p> <p>身為在程式開發這行打滾近三十年的老人，面對這波 AI 浪潮特別有感。</p> <p>瑞典心理學家安德斯·艾瑞克森（Anders Ericsson）在 1993年 做過一項研究，得到這樣的結論：要成為頂尖專家的關鍵不在於天賦，而在於刻意練習的時數。根據他的研究，頂尖的演奏家或運動員每天刻意練習約 4 小時，每週 5 天，持續 10 年，累積約一萬小時，是其成就超群的關鍵。雖然後續有許多研究指出，除了練習時數，天賦、環境及練習品質也很重要。<a href="https://www.perplexity.ai/search/you-zhong-shuo-fa-shi-ruo-ni-x-OqT8S3h8QEW436CxPvfXHg#0">參考</a> 但在我們無法重新投胎的前題下，投入大量時間辛勤苦練，仍是讓自己升級，達到嚮往成就最可行的手段。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg" alt="thumbnail"></p> <p>我超愛寫程式，上班寫、回家也寫，一天到晚想點子找題材，寫程式找樂子兼滿足日常生活需求。有時下班覺得累，還會「開 Side Project 寫幾行程式放鬆一下」(笑)。我從五專開始學 BASIC，TURBO PASCAL，後來二技跟研究所主要用 Delphi，開始工作後陰錯陽差改走 VB (對這段有興趣的朋友，可看這篇<a href="/blog/tetris-dos-game/">講古</a>)，後來 .NET 出來後轉到 C#，也接觸了前端 HTML/CSS/JavaScript，順便連資料庫跟中台也一手包辦，就這麼搞全端開發超過 20 年。粗估在寫程式這件事上，說有投入四、五萬小時也不為過吧! 我喜歡邏輯推導算是有點天賦，再加上大量時間的刻意練習，成為親友同事口中電腦(程式)超厲害的那個人，也算實至名歸吧!</p> <p>靠著大量的開發經驗，面對各種程式需求，我總能很快想到解法，用簡潔有效率的方法搞定。畢竟有幾十年實戰經驗，跟剛上戰場的菜鳥完全不同，面對疑難也絲毫不慌，總能談笑用兵手到擒來，這份從容就是 A 級獵人跟 E 級的差距呀~ (笑)</p> <p>隨著時間推移，對於自己程式能力的自信與自豪也持續累積... 直到兩年多前殺出個 ChatGPT!</p> <p>不管是什麼程式語言，何等刁鑽問題，只要世上有人會解，ChatGPT/Claude/Github Copilot 這類 AI 工具，一秒便能生出程式碼。花惹發？沒摸過程式的學生現在也能 ChatGPT 產生程式解決複雜問題，我日夜寫程式練了二十年，最終練了個心酸？</p> <p>體會到這點挺震憾的，像是跑馬拉松一路咬牙保持配速，把一群新手跑者遠遠甩在後面，猛一回頭，發現他們正騎著腳踏車追上來，幹!</p> <p>怎麼辦？大會都宣布馬拉松現在改自行車賽了，當然是跨上公路車繼續跟他們拼啊~ </p> <p>我很認命，不認為這波 AI 趨勢可以被阻擋或逆轉。</p> <p>18 世紀蒸汽機發明後，機器開始大量取代人工，原本開個小店打鐵、織布、編籃子即可圖個溫飽，當工廠量產一天能做出手工一年的產量，效率與成本壓縮手工製造的存在價值。就業人口被迫學習新技能，尋找新的謀生方式，但人們的生活品質也提升到另一個層次，完成一次人類文明進化。晚了兩百年，我們面對類似的事，差別在於上一次是機器取代手工作業，現在則是機器取代腦力活動，若沒有意外，其餘劇本應該大同小異：AI 普及後取代大量人工，大家學習跟 AI 共處，磨合出新的就業市場與經濟模式，人們生活品質上升，人類文明進化...</p> <p>幾十年或上百年才會發生一次的產業革命，既然遇上了(所幸已到這把年紀，我再 Hold 住幾年職場競爭力就夠了，年輕同學們加油)，就來想如何因應吧。我的策略大概會是這樣：</p> <p>首先是建立正確心態，省下抱怨跟擔憂的時間，面對它、接受它、處理它，極積學著怎麼因應時代轉變，在新浪潮中拉緊褲子不被潮水帶走。</p> <p>而此刻的當務之急，是確保自己運用 AI 工具的熟練度不要輸給年輕人。AI 讓沒基礎的人也能使用從未學過的程式語言或技術，對菜鳥是如此，對老鳥也是如此，一視同仁。回想這兩年，我也沒花多少功夫便能用 Python、Go 這兩個新語言寫出自己要用的程式，也都歸功於 Github Copilot/ChatGPT，看在 Python/Go 老手眼裡，豈不也要氣噗噗說我憑什麼? 大家先站上同樣的基礎線，再來仍要拼競爭力。</p> <p>至於怎麼創造競爭力？仔細想想，同樣是用 AI 工具輔助寫程式，多點經驗多點見識還是有優勢。除非 AI 能 100% 輸出無錯可直接執行的程式碼，即便正確率高達 99% (我認為實際上的比例不會這麼高，就先退一百步吧)，遇到那 1% 需要人下去看程式調架構解決問題的案例，不(想)懂程式的一群人將直接滅團，剩下有意願且有能力搞懂程式修正問題的人能存活，此時便會回歸到原本的競爭情境。就算陌生程式語言沒摸過的平台，有相關技能與知識的人能觸類旁通，肯定比全無背景的人更快上手(就像從跑步換成騎自行車，技巧跟使用肌群有別，但心肺能力與核心肌群的優勢仍在)。而處理類似問題的經驗，也能培養敏銳直覺，在第一時間做出正確判斷。而在這 1% 情境，便是長期苦練發揮效果及拉高差距，決定成功或失敗的決勝關鍵。</p> <p>為了 1% 的機率苦練一萬小時，投資報酬率難道不會太低？我覺得可以分兩方面來看：第一，這 1% 情況將把只會用 AI 寫程式卻沒能力修正除錯的人全部淘汰出局，則為了少數情境花時間是確保成功的必要投資。第二，AI 輔助程式開發工具成熟後，上手新程式語言的門檻大幅降低，學習效率也提升很多。現在也許只需要幾百小時就能達到過去一萬小時累積的效果，投入時間精力無可避免，但成本不會像過去那麼高。</p> <p>從這些角度，程式老人在 AI 時其實不用太悲觀，成天感嘆多年來努力拉開的領先差距一夕消失(事實真是如此沒錯，但感嘆有個屁用？)，善用 AI 工具不要放棄學習，抓準 AI 輔助開發工具，活用經驗知識快速學習(如果還學得動的話，阿彌陀佛...)，抓準 AI 搞不定而菜鳥新手麻瓜全倒的時刻殺出重圍，具備這樣的能力，應該還能在就業市場保有一席之地繼續混口飯吃，共勉之。</p> <p data-slug="10k-hours-vs-ai" data-fbimg="https://i.imgur.com/18a19xP.png#1024#576"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg" medium="image"/>
+    <pubDate>Mon, 31 Mar 2025 15:08:45 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[馬桶漏水檢查 - 水位法及醬油法實測]]></title>
+    <link>https://blog.darkthread.net/blog/toilet-flapper-leaking/</link>
+    <itunes:title><![CDATA[馬桶漏水檢查 - 水位法及醬油法實測]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>照片裡貌似星艦企業號的東西是傳統馬桶水箱的<a href="/blog/fix-toilet-leaking/">止水皮</a>，這塊蓋緣已呈波浪狀的變形止水皮十足陰險，以肉眼難以察覺的速度漏水，兩個月默默流掉 300 塊(含下水道使用費)，要收到水費單才會發現。最後自來水公司工程師傳授了一招醬油測試大法，妖孽這才現形。(鬼故事在<a href="https://www.facebook.com/share/p/16FTfAWEEp/">這裡</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638785994777189369.jpg" alt="thumbnail"></p> <p>經歷了上回的鬼故事，讓我想到，家裡馬桶該不會也正在默默漏財？經過檢測，答案是「有漏，但不多」。</p> <p>面對這類微漏水，有兩種簡單的測試方法。</p> <p>第一種是提水桶沖水，控制力道跟出水量，靠慣性使水面維持正常高度以下，再觀察水位是否會自己緩緩上升。以我家這次的案例，出水速度頗慢，半小時才上升一公分多。我是為了拍片才計時，居家測試不用這麼麻煩，晚上睡前沖水控制在最低水位，隔天早上再看。若回到正常水位，那就是有漏。</p> <p>第二招則是自來水公司工程師傳授的醬油測試法。在水箱倒入有色液體，觀察顏色會不會從底下滲出來。染色劑不一定要用醬油，墨汁、水彩或優碘應該都行，用醬油的好處居家必備隨手可得，而且有機可分解較不會污染。本案例漏水量很小，很仔細看才能看到有咖啡色緩緩滲出來，顏色極淡，測下來沒啥成就感(笑)。</p> <p>我把測試過程錄成影片，順便練習剪接，為成為百萬 YouTuber 做準備(謀摳鈴)。</p> <p><a href="https://www.youtube.com/watch?v=g_UICdz4j-4">馬桶微漏水檢測</a></p> <p>至於這次微漏水的止水皮長這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638785994784528309.jpg" alt="thumbnail"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638785994790632666.jpg" alt="thumbnail"></p> <p>跟之前的<a href="/blog/fix-toilet-leaking/">案例</a>相比，變形狀況非常輕微。但這款不知是什麼材質，貌似由多層組成，中間一層還捲出了蕾絲邊。</p> <p>既然有漏，不囉嗦，換新就對了。換完重測，用水位法等了一小時確定水位沒上升，確認新品功能正常，收工。</p> <p data-slug="toilet-flapper-leaking" data-fbimg="https://cdn.pixabay.com/photo/2020/02/28/14/50/water-4887647_960_720.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>照片裡貌似星艦企業號的東西是傳統馬桶水箱的<a href="/blog/fix-toilet-leaking/">止水皮</a>，這塊蓋緣已呈波浪狀的變形止水皮十足陰險，以肉眼難以察覺的速度漏水，兩個月默默流掉 300 塊(含下水道使用費)，要收到水費單才會發現。最後自來水公司工程師傳授了一招醬油測試大法，妖孽這才現形。(鬼故事在<a href="https://www.facebook.com/share/p/16FTfAWEEp/">這裡</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638785994777189369.jpg" alt="thumbnail"></p> <p>經歷了上回的鬼故事，讓我想到，家裡馬桶該不會也正在默默漏財？經過檢測，答案是「有漏，但不多」。</p> <p>面對這類微漏水，有兩種簡單的測試方法。</p> <p>第一種是提水桶沖水，控制力道跟出水量，靠慣性使水面維持正常高度以下，再觀察水位是否會自己緩緩上升。以我家這次的案例，出水速度頗慢，半小時才上升一公分多。我是為了拍片才計時，居家測試不用這麼麻煩，晚上睡前沖水控制在最低水位，隔天早上再看。若回到正常水位，那就是有漏。</p> <p>第二招則是自來水公司工程師傳授的醬油測試法。在水箱倒入有色液體，觀察顏色會不會從底下滲出來。染色劑不一定要用醬油，墨汁、水彩或優碘應該都行，用醬油的好處居家必備隨手可得，而且有機可分解較不會污染。本案例漏水量很小，很仔細看才能看到有咖啡色緩緩滲出來，顏色極淡，測下來沒啥成就感(笑)。</p> <p>我把測試過程錄成影片，順便練習剪接，為成為百萬 YouTuber 做準備(謀摳鈴)。</p> <p><a href="https://www.youtube.com/watch?v=g_UICdz4j-4">馬桶微漏水檢測</a></p> <p>至於這次微漏水的止水皮長這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638785994784528309.jpg" alt="thumbnail"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638785994790632666.jpg" alt="thumbnail"></p> <p>跟之前的<a href="/blog/fix-toilet-leaking/">案例</a>相比，變形狀況非常輕微。但這款不知是什麼材質，貌似由多層組成，中間一層還捲出了蕾絲邊。</p> <p>既然有漏，不囉嗦，換新就對了。換完重測，用水位法等了一小時確定水位沒上升，確認新品功能正常，收工。</p> <p data-slug="toilet-flapper-leaking" data-fbimg="https://cdn.pixabay.com/photo/2020/02/28/14/50/water-4887647_960_720.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>照片裡貌似星艦企業號的東西是傳統馬桶水箱的<a href="/blog/fix-toilet-leaking/">止水皮</a>，這塊蓋緣已呈波浪狀的變形止水皮十足陰險，以肉眼難以察覺的速度漏水，兩個月默默流掉 300 塊(含下水道使用費)，要收到水費單才會發現。最後自來水公司工程師傳授了一招醬油測試大法，妖孽這才現形。(鬼故事在<a href="https://www.facebook.com/share/p/16FTfAWEEp/">這裡</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638785994777189369.jpg" alt="thumbnail"></p> <p>經歷了上回的鬼故事，讓我想到，家裡馬桶該不會也正在默默漏財？經過檢測，答案是「有漏，但不多」。</p> <p>面對這類微漏水，有兩種簡單的測試方法。</p> <p>第一種是提水桶沖水，控制力道跟出水量，靠慣性使水面維持正常高度以下，再觀察水位是否會自己緩緩上升。以我家這次的案例，出水速度頗慢，半小時才上升一公分多。我是為了拍片才計時，居家測試不用這麼麻煩，晚上睡前沖水控制在最低水位，隔天早上再看。若回到正常水位，那就是有漏。</p> <p>第二招則是自來水公司工程師傳授的醬油測試法。在水箱倒入有色液體，觀察顏色會不會從底下滲出來。染色劑不一定要用醬油，墨汁、水彩或優碘應該都行，用醬油的好處居家必備隨手可得，而且有機可分解較不會污染。本案例漏水量很小，很仔細看才能看到有咖啡色緩緩滲出來，顏色極淡，測下來沒啥成就感(笑)。</p> <p>我把測試過程錄成影片，順便練習剪接，為成為百萬 YouTuber 做準備(謀摳鈴)。</p> <p><a href="https://www.youtube.com/watch?v=g_UICdz4j-4">馬桶微漏水檢測</a></p> <p>至於這次微漏水的止水皮長這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638785994784528309.jpg" alt="thumbnail"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638785994790632666.jpg" alt="thumbnail"></p> <p>跟之前的<a href="/blog/fix-toilet-leaking/">案例</a>相比，變形狀況非常輕微。但這款不知是什麼材質，貌似由多層組成，中間一層還捲出了蕾絲邊。</p> <p>既然有漏，不囉嗦，換新就對了。換完重測，用水位法等了一小時確定水位沒上升，確認新品功能正常，收工。</p> <p data-slug="toilet-flapper-leaking" data-fbimg="https://cdn.pixabay.com/photo/2020/02/28/14/50/water-4887647_960_720.jpg#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638785994777189369.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638785994777189369.jpg" medium="image"/>
+    <pubDate>Wed, 26 Mar 2025 15:23:14 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[PQC 筆記 3 - NIST PQC 加密及簽章標準現況 2025 Q1]]></title>
+    <link>https://blog.darkthread.net/blog/nist-pqc-std-updates/</link>
+    <itunes:title><![CDATA[PQC 筆記 3 - NIST PQC 加密及簽章標準現況 2025 Q1]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>對文章標題感到困惑的朋友，推薦以下先導文章及 <a href="/blog/category/pqc">PQC 系列文章</a>：</p> <ul><li><a href="/blog/q-day/">閒聊 - Y2Q 倒數與 Q-Day，當代資訊安全防線即將崩潰</a></li> <li><a href="/blog/pqc-notes-1-threat/">PQC 筆記 1 - 靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/pqc-notes2-algorithms/">PQC 筆記 2 - 簡單認識後量子時代密碼學演算法</a></li></ul> <p>話說，距 2016 NIST 公開徵選 PQC 演算法，目前已將邁入第 9 年，官方版標準也已陸續出爐。先回顧 NIST PQC 標準化時間軸：</p> <ol><li><p>前期準備階段 (2015-2016)</p> <p>2015年4月：NIST 舉辦「後量子世界網路安全研討會」<br> 2016年4月：NIST 發布《Report on Post-Quantum Cryptography》(NISTIR 8105) 報告<br> 2016年12月：NIST 正式向全球徵求 PQC 演算法提案</p> </li> <li><p>第一輪評估 (2017-2018)</p> <p>2017年11月：提案提交截止，共收到來自 25 個國家 82 份提案<br> 2017年12月：NIST 公布第一輪預選演算法，有 69 個提案被認定「完整且適當」<br> 2018年4月：第一屆 PQC 標準化會議，提交者演講發表</p> </li> <li><p>第二輪評估 (2019)</p> <p>2019年1月：NIST 公布第二輪預選演算法，縮減至 26 個候選演算法<br> 2019年8月：第二屆 PQC 標準化會議</p> </li> <li><p>第三輪評估 (2020-2021)</p> <p>2020年7月：NIST 宣布第三輪候選算法，包括 7 個決賽入圍者和 8 個替代演算法<br> 2021年6月：第三屆 PQC 標準化會議</p> </li> <li><p>最終評選與標準化 (2022-2024)</p> <p>2022年7月：NIST 確定四種優勝算法：CRYSTALS-Kyber、CRYSTALS-Dilithium、FALCON 和 SPHINCS+<br> 2022年11月：第四屆PQC標準化會議（線上形式）<br> 2023年8月：NIST 發布三份標準草案 RFC<br> 2024年4月：第五屆 PQC 標準化會議<br> 2024年8月13日：NIST 正式發布首批三項 PQC 標準</p> </li></ol> <p>目前已正式發布的標準有三項：</p> <ol><li><p>FIPS 203 (ML-KEM) 用於通用的加密應用，源自 CRYSTALS-Kyber，重新命名為 ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism)<br> 其特點為加密密鑰相對較小，方便交換且執行速度快，可普遍應用於保護在公共網路上交換的資訊</p> </li> <li><p>FIPS 204 (ML-DSA)<br> 數位簽章主要標準，源自 CRYSTALS-Dilithium，重新命名為 ML-DSA (Module-Lattice-Based Digital Signature Algorithm)，主要用於身分認證和保護數位簽章</p> </li> <li><p>FIPS 205 (SLH-DSA) 數位簽章備用標準，源自 SPHINCS+，重新命名為 SLH-DSA (Stateless Hash-Based Digital Signature Algorithm)，綜合評量不如 ML-DSA，但因其採用的數學方法與 ML-DSA 不同，可做為萬一 ML-DSA 被驗證存在漏洞時的備用方案。</p> </li> <li><p>FIPS 206 (FN-DSA) 數位簽章標準，源自 FALCON，預計命名為 FN-DSA (Fast-Fourier Transform-based NTRU lattice Digital Signature Algorithm)，原本預定 2024 年底發布，目前延遲。</p> </li></ol> <p>另外，NIST 也於 2024-11-12 發布了《Transition to Post-Quantum Cryptography Standards》草案，概述從傳統密碼學過渡到 PQC 的路線圖與時間表，預計於 2030 年淘汰（棄用）112 位元及以下安全強度的密碼演算法，於 2035 年完全禁用傳統密碼學演算法，全面 PQC 化。</p> <p>用白話來說，我們現在用的加密跟電子簽章演算法(RSA/EdDSA/ECDSA)將於 2035 年禁用(2048 bit RSA 則是 2030 年就禁用)，全面換成 PQC 演算法。<a href="https://www.perplexity.ai/search/summary-security-strength-of-r-mgHJw8vvQrukT8BShT_q1g#0">參考</a></p> <table><thead><tr><th>Algorithm</th><th>Key Parameters</th><th>Security Strength (bits)</th><th>NIST Status</th><th>Quantum Resistance</th></tr></thead><tbody><tr><td><strong>RSA</strong></td><td>2048-bit</td><td>112</td><td>Deprecated after 2030</td><td>Vulnerable</td></tr><tr><td></td><td>3072-bit</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>7680-bit</td><td>192</td><td>Not standardized</td><td>Vulnerable</td></tr><tr><td><strong>ECDSA</strong></td><td>256-bit (P-256)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>384-bit (P-384)</td><td>192</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>EdDSA</strong></td><td>25519 (Ed25519)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>448-bit (Ed448)</td><td>224</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>PQC</strong></td><td>ML-KEM-512</td><td>128</td><td>NIST Standard (FIPS 203-205)</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-44</td><td>128</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-KEM-768</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-65</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>SLH-DSA-128s/192s</td><td>128/192</td><td>NIST Standard</td><td>Resistant</td></tr></tbody></table> <p>由於 PQC 演算法尚未經過足夠多的考驗，可能存在未被發現的漏洞，故 NIST 建議在過渡初期應採混合應用策略，同時使用傳統和後量子進行加密及簽章。例如：用 RSA 加密完再用 ML-KEM 加密一次、同時產生並檢查 EdDSA 及 ML-DSA 電子簽章，如此 在其中一種被破解時仍能保有安全性。</p> <p>結論就是，若按照 NIST 的規劃，我們現在在用的 RSA/ECDSA 演算法將於十年後被禁用。不過，開發者不用擔心忘記時程，就像 TLS 1.0/1.1 一樣，到時保證會有人<a href="/blog/disable-tls-1-0-issues/">逼著你升級</a> XD，先心裡有數就好。</p> <p data-slug="nist-pqc-std-updates" data-fbimg="https://cdn.pixabay.com/photo/2019/02/22/21/53/pizza-4014501_1280.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>對文章標題感到困惑的朋友，推薦以下先導文章及 <a href="/blog/category/pqc">PQC 系列文章</a>：</p> <ul><li><a href="/blog/q-day/">閒聊 - Y2Q 倒數與 Q-Day，當代資訊安全防線即將崩潰</a></li> <li><a href="/blog/pqc-notes-1-threat/">PQC 筆記 1 - 靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/pqc-notes2-algorithms/">PQC 筆記 2 - 簡單認識後量子時代密碼學演算法</a></li></ul> <p>話說，距 2016 NIST 公開徵選 PQC 演算法，目前已將邁入第 9 年，官方版標準也已陸續出爐。先回顧 NIST PQC 標準化時間軸：</p> <ol><li><p>前期準備階段 (2015-2016)</p> <p>2015年4月：NIST 舉辦「後量子世界網路安全研討會」<br> 2016年4月：NIST 發布《Report on Post-Quantum Cryptography》(NISTIR 8105) 報告<br> 2016年12月：NIST 正式向全球徵求 PQC 演算法提案</p> </li> <li><p>第一輪評估 (2017-2018)</p> <p>2017年11月：提案提交截止，共收到來自 25 個國家 82 份提案<br> 2017年12月：NIST 公布第一輪預選演算法，有 69 個提案被認定「完整且適當」<br> 2018年4月：第一屆 PQC 標準化會議，提交者演講發表</p> </li> <li><p>第二輪評估 (2019)</p> <p>2019年1月：NIST 公布第二輪預選演算法，縮減至 26 個候選演算法<br> 2019年8月：第二屆 PQC 標準化會議</p> </li> <li><p>第三輪評估 (2020-2021)</p> <p>2020年7月：NIST 宣布第三輪候選算法，包括 7 個決賽入圍者和 8 個替代演算法<br> 2021年6月：第三屆 PQC 標準化會議</p> </li> <li><p>最終評選與標準化 (2022-2024)</p> <p>2022年7月：NIST 確定四種優勝算法：CRYSTALS-Kyber、CRYSTALS-Dilithium、FALCON 和 SPHINCS+<br> 2022年11月：第四屆PQC標準化會議（線上形式）<br> 2023年8月：NIST 發布三份標準草案 RFC<br> 2024年4月：第五屆 PQC 標準化會議<br> 2024年8月13日：NIST 正式發布首批三項 PQC 標準</p> </li></ol> <p>目前已正式發布的標準有三項：</p> <ol><li><p>FIPS 203 (ML-KEM) 用於通用的加密應用，源自 CRYSTALS-Kyber，重新命名為 ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism)<br> 其特點為加密密鑰相對較小，方便交換且執行速度快，可普遍應用於保護在公共網路上交換的資訊</p> </li> <li><p>FIPS 204 (ML-DSA)<br> 數位簽章主要標準，源自 CRYSTALS-Dilithium，重新命名為 ML-DSA (Module-Lattice-Based Digital Signature Algorithm)，主要用於身分認證和保護數位簽章</p> </li> <li><p>FIPS 205 (SLH-DSA) 數位簽章備用標準，源自 SPHINCS+，重新命名為 SLH-DSA (Stateless Hash-Based Digital Signature Algorithm)，綜合評量不如 ML-DSA，但因其採用的數學方法與 ML-DSA 不同，可做為萬一 ML-DSA 被驗證存在漏洞時的備用方案。</p> </li> <li><p>FIPS 206 (FN-DSA) 數位簽章標準，源自 FALCON，預計命名為 FN-DSA (Fast-Fourier Transform-based NTRU lattice Digital Signature Algorithm)，原本預定 2024 年底發布，目前延遲。</p> </li></ol> <p>另外，NIST 也於 2024-11-12 發布了《Transition to Post-Quantum Cryptography Standards》草案，概述從傳統密碼學過渡到 PQC 的路線圖與時間表，預計於 2030 年淘汰（棄用）112 位元及以下安全強度的密碼演算法，於 2035 年完全禁用傳統密碼學演算法，全面 PQC 化。</p> <p>用白話來說，我們現在用的加密跟電子簽章演算法(RSA/EdDSA/ECDSA)將於 2035 年禁用(2048 bit RSA 則是 2030 年就禁用)，全面換成 PQC 演算法。<a href="https://www.perplexity.ai/search/summary-security-strength-of-r-mgHJw8vvQrukT8BShT_q1g#0">參考</a></p> <table><thead><tr><th>Algorithm</th><th>Key Parameters</th><th>Security Strength (bits)</th><th>NIST Status</th><th>Quantum Resistance</th></tr></thead><tbody><tr><td><strong>RSA</strong></td><td>2048-bit</td><td>112</td><td>Deprecated after 2030</td><td>Vulnerable</td></tr><tr><td></td><td>3072-bit</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>7680-bit</td><td>192</td><td>Not standardized</td><td>Vulnerable</td></tr><tr><td><strong>ECDSA</strong></td><td>256-bit (P-256)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>384-bit (P-384)</td><td>192</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>EdDSA</strong></td><td>25519 (Ed25519)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>448-bit (Ed448)</td><td>224</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>PQC</strong></td><td>ML-KEM-512</td><td>128</td><td>NIST Standard (FIPS 203-205)</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-44</td><td>128</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-KEM-768</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-65</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>SLH-DSA-128s/192s</td><td>128/192</td><td>NIST Standard</td><td>Resistant</td></tr></tbody></table> <p>由於 PQC 演算法尚未經過足夠多的考驗，可能存在未被發現的漏洞，故 NIST 建議在過渡初期應採混合應用策略，同時使用傳統和後量子進行加密及簽章。例如：用 RSA 加密完再用 ML-KEM 加密一次、同時產生並檢查 EdDSA 及 ML-DSA 電子簽章，如此 在其中一種被破解時仍能保有安全性。</p> <p>結論就是，若按照 NIST 的規劃，我們現在在用的 RSA/ECDSA 演算法將於十年後被禁用。不過，開發者不用擔心忘記時程，就像 TLS 1.0/1.1 一樣，到時保證會有人<a href="/blog/disable-tls-1-0-issues/">逼著你升級</a> XD，先心裡有數就好。</p> <p data-slug="nist-pqc-std-updates" data-fbimg="https://cdn.pixabay.com/photo/2019/02/22/21/53/pizza-4014501_1280.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>對文章標題感到困惑的朋友，推薦以下先導文章及 <a href="/blog/category/pqc">PQC 系列文章</a>：</p> <ul><li><a href="/blog/q-day/">閒聊 - Y2Q 倒數與 Q-Day，當代資訊安全防線即將崩潰</a></li> <li><a href="/blog/pqc-notes-1-threat/">PQC 筆記 1 - 靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/pqc-notes2-algorithms/">PQC 筆記 2 - 簡單認識後量子時代密碼學演算法</a></li></ul> <p>話說，距 2016 NIST 公開徵選 PQC 演算法，目前已將邁入第 9 年，官方版標準也已陸續出爐。先回顧 NIST PQC 標準化時間軸：</p> <ol><li><p>前期準備階段 (2015-2016)</p> <p>2015年4月：NIST 舉辦「後量子世界網路安全研討會」<br> 2016年4月：NIST 發布《Report on Post-Quantum Cryptography》(NISTIR 8105) 報告<br> 2016年12月：NIST 正式向全球徵求 PQC 演算法提案</p> </li> <li><p>第一輪評估 (2017-2018)</p> <p>2017年11月：提案提交截止，共收到來自 25 個國家 82 份提案<br> 2017年12月：NIST 公布第一輪預選演算法，有 69 個提案被認定「完整且適當」<br> 2018年4月：第一屆 PQC 標準化會議，提交者演講發表</p> </li> <li><p>第二輪評估 (2019)</p> <p>2019年1月：NIST 公布第二輪預選演算法，縮減至 26 個候選演算法<br> 2019年8月：第二屆 PQC 標準化會議</p> </li> <li><p>第三輪評估 (2020-2021)</p> <p>2020年7月：NIST 宣布第三輪候選算法，包括 7 個決賽入圍者和 8 個替代演算法<br> 2021年6月：第三屆 PQC 標準化會議</p> </li> <li><p>最終評選與標準化 (2022-2024)</p> <p>2022年7月：NIST 確定四種優勝算法：CRYSTALS-Kyber、CRYSTALS-Dilithium、FALCON 和 SPHINCS+<br> 2022年11月：第四屆PQC標準化會議（線上形式）<br> 2023年8月：NIST 發布三份標準草案 RFC<br> 2024年4月：第五屆 PQC 標準化會議<br> 2024年8月13日：NIST 正式發布首批三項 PQC 標準</p> </li></ol> <p>目前已正式發布的標準有三項：</p> <ol><li><p>FIPS 203 (ML-KEM) 用於通用的加密應用，源自 CRYSTALS-Kyber，重新命名為 ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism)<br> 其特點為加密密鑰相對較小，方便交換且執行速度快，可普遍應用於保護在公共網路上交換的資訊</p> </li> <li><p>FIPS 204 (ML-DSA)<br> 數位簽章主要標準，源自 CRYSTALS-Dilithium，重新命名為 ML-DSA (Module-Lattice-Based Digital Signature Algorithm)，主要用於身分認證和保護數位簽章</p> </li> <li><p>FIPS 205 (SLH-DSA) 數位簽章備用標準，源自 SPHINCS+，重新命名為 SLH-DSA (Stateless Hash-Based Digital Signature Algorithm)，綜合評量不如 ML-DSA，但因其採用的數學方法與 ML-DSA 不同，可做為萬一 ML-DSA 被驗證存在漏洞時的備用方案。</p> </li> <li><p>FIPS 206 (FN-DSA) 數位簽章標準，源自 FALCON，預計命名為 FN-DSA (Fast-Fourier Transform-based NTRU lattice Digital Signature Algorithm)，原本預定 2024 年底發布，目前延遲。</p> </li></ol> <p>另外，NIST 也於 2024-11-12 發布了《Transition to Post-Quantum Cryptography Standards》草案，概述從傳統密碼學過渡到 PQC 的路線圖與時間表，預計於 2030 年淘汰（棄用）112 位元及以下安全強度的密碼演算法，於 2035 年完全禁用傳統密碼學演算法，全面 PQC 化。</p> <p>用白話來說，我們現在用的加密跟電子簽章演算法(RSA/EdDSA/ECDSA)將於 2035 年禁用(2048 bit RSA 則是 2030 年就禁用)，全面換成 PQC 演算法。<a href="https://www.perplexity.ai/search/summary-security-strength-of-r-mgHJw8vvQrukT8BShT_q1g#0">參考</a></p> <table><thead><tr><th>Algorithm</th><th>Key Parameters</th><th>Security Strength (bits)</th><th>NIST Status</th><th>Quantum Resistance</th></tr></thead><tbody><tr><td><strong>RSA</strong></td><td>2048-bit</td><td>112</td><td>Deprecated after 2030</td><td>Vulnerable</td></tr><tr><td></td><td>3072-bit</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>7680-bit</td><td>192</td><td>Not standardized</td><td>Vulnerable</td></tr><tr><td><strong>ECDSA</strong></td><td>256-bit (P-256)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>384-bit (P-384)</td><td>192</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>EdDSA</strong></td><td>25519 (Ed25519)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>448-bit (Ed448)</td><td>224</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>PQC</strong></td><td>ML-KEM-512</td><td>128</td><td>NIST Standard (FIPS 203-205)</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-44</td><td>128</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-KEM-768</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-65</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>SLH-DSA-128s/192s</td><td>128/192</td><td>NIST Standard</td><td>Resistant</td></tr></tbody></table> <p>由於 PQC 演算法尚未經過足夠多的考驗，可能存在未被發現的漏洞，故 NIST 建議在過渡初期應採混合應用策略，同時使用傳統和後量子進行加密及簽章。例如：用 RSA 加密完再用 ML-KEM 加密一次、同時產生並檢查 EdDSA 及 ML-DSA 電子簽章，如此 在其中一種被破解時仍能保有安全性。</p> <p>結論就是，若按照 NIST 的規劃，我們現在在用的 RSA/ECDSA 演算法將於十年後被禁用。不過，開發者不用擔心忘記時程，就像 TLS 1.0/1.1 一樣，到時保證會有人<a href="/blog/disable-tls-1-0-issues/">逼著你升級</a> XD，先心裡有數就好。</p> <p data-slug="nist-pqc-std-updates" data-fbimg="https://cdn.pixabay.com/photo/2019/02/22/21/53/pizza-4014501_1280.jpg#1280#720"> </p>]]></content:encoded>
+    
+    <pubDate>Sun, 23 Mar 2025 04:38:41 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Go 小工具 - CLI 版 Token 計數器]]></title>
+    <link>https://blog.darkthread.net/blog/tikcount-go/</link>
+    <itunes:title><![CDATA[Go 小工具 - CLI 版 Token 計數器]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>陸續寫了不少用 PowerShell 整合 Azure OpenAI API 的小工具，現在想<a href="/blog/call-chatgpt-api-in-ps/">叫 GPT 工具人翻譯文章整理摘要</a>，或是用 <a href="/blog/azure-whisper-api-transcribe/">Whisper 轉逐字稿</a>都方便許多，但還缺了一項功能 - 計算 Token 數。</p> <p>掌握 Token 數對長文字分段處理很重要，LLM 的提示與回應長度都有上限，以 <a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models?tabs=global-standard%2Cstandard-chat-completions&amp;WT.mc_id=DOP-MVP-37580#gpt-4-and-gpt-4-turbo-models">GPT-4 為例</a>，輸入的 Prompt 不可超過 128K，輸出最多 16K，沒掌握好有時內容被去尾都不自知。(早期 gpt-4o 輸出只有 4K，我有踩過雷)</p> <p>計算 Token 數的方法很多，OpenAI 有 tiktoken 程式庫，Python/C#/Java/JS/PHP 版本都有，我<a href="/blog/conv-gpt-token/">玩過 .NET 版 SharpToken</a>，後來還有一些速度更快的<a href="https://github.com/tryAGI/Tiktoken">實作版本</a>。不過這回我不想用 .NET 做，前陣子剛<a href="/blog/ms-go-tutorial/">復習過 Go 入門教學</a>，加上幾天前傳來 <a href="https://www.facebook.com/share/p/1XMWNM8FUk/">TypeScript 用 Go 改寫編譯器速度快十倍的消息</a>，讓我決定打鐵趁熱，就用 Go 寫個計算 Token 數的 CLI 小工具當成實戰練習。</p> <p>Go 已算一線程式語言，相關資源豐富，計算 Token 開源程式庫有很多套，如：pkoukk/tiktoken-go、shapor/tiktoken-go、tiktoken-go/tokenizer。評估後我選擇 <a href="https://github.com/tiktoken-go/tokenizer">tiktoken-go/tokenizer</a>，理由是它將字典直接轉成了 Go 的 Dictionary 型別，省去下載字典及載入的功夫，雖然程式變大 4MB 左右，但我覺得值得。</p> <p>以下是我的開發過程記錄，有興趣的同學可以照著玩一遍。</p> <ol><li>建立 tikcount 目錄 <code>mkdir tikcount</code></li> <li>撰寫主程式 main.go (CLI 參數有內建 flag 套件支援，寫起來挺簡潔好讀) <pre><code>package main
+import (
+"flag"
+"fmt"
+"io"
+"os"
+"github.com/tiktoken-go/tokenizer"
+)
+func main() {
+// Define command-line flags for flexibility
+help := flag.Bool("h", false, "Help")
+filePath := flag.String("f", "", "Path to the input file (optional)")
+encoding := flag.String("e", "o200k_base", "Select encoding (default: o200k_base)")
+verbose := flag.Bool("v", false, "Print detailed token information")
+flag.Parse()
+if *help {
+fmt.Println("Usage: CountToken [-f filepath] [-e encoding] [-v]")
+fmt.Println("  -h            Help")
+fmt.Println("  -f filepath   Path to the input file (optional)")
+fmt.Println("  -e encoding   Select encoding (default: o200k_base)")
+fmt.Println("  -v            Print detailed token information")
+return
+}
+var input string
+if *filePath != "" {
+// Read input from the specified file
+bytes, err := os.ReadFile(*filePath)
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error reading from file: %v
+", err)
+os.Exit(1)
+}
+input = string(bytes)
+} else {
+// Read all input from stdin
+bytes, err := io.ReadAll(os.Stdin)
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error reading from stdin: %v
+", err)
+os.Exit(1)
+}
+input = string(bytes)
+}
+// Get the selected encoding
+enc, err := tokenizer.Get(tokenizer.Encoding(*encoding))
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error getting encoding: %v
+", err)
+os.Exit(1)
+}
+// Encode the input text and count tokens
+tokens, _, _ := enc.Encode(input)
+// Output the token count
+if *verbose {
+fmt.Printf("Text length: %d characters
+", len(input))
+fmt.Printf("Token count: %d tokens
+", len(tokens))
+} else {
+fmt.Println(len(tokens))
+}
+}
+</code></pre> </li> <li>建立 go.mod 並設定程式庫 <pre><code>go mod init github.com/darkthread/tikcount
+go mod tidy # 自動掃描 main.go 加入所需程式庫，移除不用的程式庫
+</code></pre> `go mod tidy' 調整完的 go.mod 內容如下： <pre><code>module github.com/darkthread/tikcount
+go 1.24.1
+require github.com/tiktoken-go/tokenizer v0.6.0
+require github.com/dlclark/regexp2 v1.11.5 // indirect
+</code></pre> </li> <li>編譯執行檔 <code>go build -o tikcount.exe main.go</code></li></ol> <p>實測使用 Pipeline 串接、使用 cl100k_base 分詞(GPT 3.5/4 適用)、直接讀取檔案都得到正確結果，大成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638778154430901130.png"></p> <p>與<a href="https://platform.openai.com/tokenizer">網頁版 Tokenizer</a> 驗證二者結果相同。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638778154434000196.png"></p> <p>執行檔大小約 14MB，不需 Runtime 或 DLL，一檔搞定，跟 PowerShell 整合也沒有任何問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638778154435674943.png"></p> <p>註：以上在 PowerShell 7.X 可直接跑，若是 PowerShell 5.1 記得要先執行 <code>$OutputEncoding = New-Object System.Text.UTF8Encoding $false</code> 設定輸出無 BOM 的 UTF-8 內容結果才會正確。參考：<a href="https://devblogs.microsoft.com/powershell/outputencoding-to-the-rescue/?WT.mc_id=DOP-MVP-37580">$OutputEncoding to the rescue</a></p> <p>就醬，我的小工具開發語言再添生力軍。</p> <p data-slug="tikcount-go" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>陸續寫了不少用 PowerShell 整合 Azure OpenAI API 的小工具，現在想<a href="/blog/call-chatgpt-api-in-ps/">叫 GPT 工具人翻譯文章整理摘要</a>，或是用 <a href="/blog/azure-whisper-api-transcribe/">Whisper 轉逐字稿</a>都方便許多，但還缺了一項功能 - 計算 Token 數。</p> <p>掌握 Token 數對長文字分段處理很重要，LLM 的提示與回應長度都有上限，以 <a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models?tabs=global-standard%2Cstandard-chat-completions&amp;WT.mc_id=DOP-MVP-37580#gpt-4-and-gpt-4-turbo-models">GPT-4 為例</a>，輸入的 Prompt 不可超過 128K，輸出最多 16K，沒掌握好有時內容被去尾都不自知。(早期 gpt-4o 輸出只有 4K，我有踩過雷)</p> <p>計算 Token 數的方法很多，OpenAI 有 tiktoken 程式庫，Python/C#/Java/JS/PHP 版本都有，我<a href="/blog/conv-gpt-token/">玩過 .NET 版 SharpToken</a>，後來還有一些速度更快的<a href="https://github.com/tryAGI/Tiktoken">實作版本</a>。不過這回我不想用 .NET 做，前陣子剛<a href="/blog/ms-go-tutorial/">復習過 Go 入門教學</a>，加上幾天前傳來 <a href="https://www.facebook.com/share/p/1XMWNM8FUk/">TypeScript 用 Go 改寫編譯器速度快十倍的消息</a>，讓我決定打鐵趁熱，就用 Go 寫個計算 Token 數的 CLI 小工具當成實戰練習。</p> <p>Go 已算一線程式語言，相關資源豐富，計算 Token 開源程式庫有很多套，如：pkoukk/tiktoken-go、shapor/tiktoken-go、tiktoken-go/tokenizer。評估後我選擇 <a href="https://github.com/tiktoken-go/tokenizer">tiktoken-go/tokenizer</a>，理由是它將字典直接轉成了 Go 的 Dictionary 型別，省去下載字典及載入的功夫，雖然程式變大 4MB 左右，但我覺得值得。</p> <p>以下是我的開發過程記錄，有興趣的同學可以照著玩一遍。</p> <ol><li>建立 tikcount 目錄 <code>mkdir tikcount</code></li> <li>撰寫主程式 main.go (CLI 參數有內建 flag 套件支援，寫起來挺簡潔好讀) <pre><code>package main
+import (
+"flag"
+"fmt"
+"io"
+"os"
+"github.com/tiktoken-go/tokenizer"
+)
+func main() {
+// Define command-line flags for flexibility
+help := flag.Bool("h", false, "Help")
+filePath := flag.String("f", "", "Path to the input file (optional)")
+encoding := flag.String("e", "o200k_base", "Select encoding (default: o200k_base)")
+verbose := flag.Bool("v", false, "Print detailed token information")
+flag.Parse()
+if *help {
+fmt.Println("Usage: CountToken [-f filepath] [-e encoding] [-v]")
+fmt.Println("  -h            Help")
+fmt.Println("  -f filepath   Path to the input file (optional)")
+fmt.Println("  -e encoding   Select encoding (default: o200k_base)")
+fmt.Println("  -v            Print detailed token information")
+return
+}
+var input string
+if *filePath != "" {
+// Read input from the specified file
+bytes, err := os.ReadFile(*filePath)
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error reading from file: %v
+", err)
+os.Exit(1)
+}
+input = string(bytes)
+} else {
+// Read all input from stdin
+bytes, err := io.ReadAll(os.Stdin)
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error reading from stdin: %v
+", err)
+os.Exit(1)
+}
+input = string(bytes)
+}
+// Get the selected encoding
+enc, err := tokenizer.Get(tokenizer.Encoding(*encoding))
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error getting encoding: %v
+", err)
+os.Exit(1)
+}
+// Encode the input text and count tokens
+tokens, _, _ := enc.Encode(input)
+// Output the token count
+if *verbose {
+fmt.Printf("Text length: %d characters
+", len(input))
+fmt.Printf("Token count: %d tokens
+", len(tokens))
+} else {
+fmt.Println(len(tokens))
+}
+}
+</code></pre> </li> <li>建立 go.mod 並設定程式庫 <pre><code>go mod init github.com/darkthread/tikcount
+go mod tidy # 自動掃描 main.go 加入所需程式庫，移除不用的程式庫
+</code></pre> `go mod tidy' 調整完的 go.mod 內容如下： <pre><code>module github.com/darkthread/tikcount
+go 1.24.1
+require github.com/tiktoken-go/tokenizer v0.6.0
+require github.com/dlclark/regexp2 v1.11.5 // indirect
+</code></pre> </li> <li>編譯執行檔 <code>go build -o tikcount.exe main.go</code></li></ol> <p>實測使用 Pipeline 串接、使用 cl100k_base 分詞(GPT 3.5/4 適用)、直接讀取檔案都得到正確結果，大成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638778154430901130.png"></p> <p>與<a href="https://platform.openai.com/tokenizer">網頁版 Tokenizer</a> 驗證二者結果相同。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638778154434000196.png"></p> <p>執行檔大小約 14MB，不需 Runtime 或 DLL，一檔搞定，跟 PowerShell 整合也沒有任何問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638778154435674943.png"></p> <p>註：以上在 PowerShell 7.X 可直接跑，若是 PowerShell 5.1 記得要先執行 <code>$OutputEncoding = New-Object System.Text.UTF8Encoding $false</code> 設定輸出無 BOM 的 UTF-8 內容結果才會正確。參考：<a href="https://devblogs.microsoft.com/powershell/outputencoding-to-the-rescue/?WT.mc_id=DOP-MVP-37580">$OutputEncoding to the rescue</a></p> <p>就醬，我的小工具開發語言再添生力軍。</p> <p data-slug="tikcount-go" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>陸續寫了不少用 PowerShell 整合 Azure OpenAI API 的小工具，現在想<a href="/blog/call-chatgpt-api-in-ps/">叫 GPT 工具人翻譯文章整理摘要</a>，或是用 <a href="/blog/azure-whisper-api-transcribe/">Whisper 轉逐字稿</a>都方便許多，但還缺了一項功能 - 計算 Token 數。</p> <p>掌握 Token 數對長文字分段處理很重要，LLM 的提示與回應長度都有上限，以 <a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models?tabs=global-standard%2Cstandard-chat-completions&amp;WT.mc_id=DOP-MVP-37580#gpt-4-and-gpt-4-turbo-models">GPT-4 為例</a>，輸入的 Prompt 不可超過 128K，輸出最多 16K，沒掌握好有時內容被去尾都不自知。(早期 gpt-4o 輸出只有 4K，我有踩過雷)</p> <p>計算 Token 數的方法很多，OpenAI 有 tiktoken 程式庫，Python/C#/Java/JS/PHP 版本都有，我<a href="/blog/conv-gpt-token/">玩過 .NET 版 SharpToken</a>，後來還有一些速度更快的<a href="https://github.com/tryAGI/Tiktoken">實作版本</a>。不過這回我不想用 .NET 做，前陣子剛<a href="/blog/ms-go-tutorial/">復習過 Go 入門教學</a>，加上幾天前傳來 <a href="https://www.facebook.com/share/p/1XMWNM8FUk/">TypeScript 用 Go 改寫編譯器速度快十倍的消息</a>，讓我決定打鐵趁熱，就用 Go 寫個計算 Token 數的 CLI 小工具當成實戰練習。</p> <p>Go 已算一線程式語言，相關資源豐富，計算 Token 開源程式庫有很多套，如：pkoukk/tiktoken-go、shapor/tiktoken-go、tiktoken-go/tokenizer。評估後我選擇 <a href="https://github.com/tiktoken-go/tokenizer">tiktoken-go/tokenizer</a>，理由是它將字典直接轉成了 Go 的 Dictionary 型別，省去下載字典及載入的功夫，雖然程式變大 4MB 左右，但我覺得值得。</p> <p>以下是我的開發過程記錄，有興趣的同學可以照著玩一遍。</p> <ol><li>建立 tikcount 目錄 <code>mkdir tikcount</code></li> <li>撰寫主程式 main.go (CLI 參數有內建 flag 套件支援，寫起來挺簡潔好讀) <pre><code>package main
+import (
+"flag"
+"fmt"
+"io"
+"os"
+"github.com/tiktoken-go/tokenizer"
+)
+func main() {
+// Define command-line flags for flexibility
+help := flag.Bool("h", false, "Help")
+filePath := flag.String("f", "", "Path to the input file (optional)")
+encoding := flag.String("e", "o200k_base", "Select encoding (default: o200k_base)")
+verbose := flag.Bool("v", false, "Print detailed token information")
+flag.Parse()
+if *help {
+fmt.Println("Usage: CountToken [-f filepath] [-e encoding] [-v]")
+fmt.Println("  -h            Help")
+fmt.Println("  -f filepath   Path to the input file (optional)")
+fmt.Println("  -e encoding   Select encoding (default: o200k_base)")
+fmt.Println("  -v            Print detailed token information")
+return
+}
+var input string
+if *filePath != "" {
+// Read input from the specified file
+bytes, err := os.ReadFile(*filePath)
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error reading from file: %v
+", err)
+os.Exit(1)
+}
+input = string(bytes)
+} else {
+// Read all input from stdin
+bytes, err := io.ReadAll(os.Stdin)
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error reading from stdin: %v
+", err)
+os.Exit(1)
+}
+input = string(bytes)
+}
+// Get the selected encoding
+enc, err := tokenizer.Get(tokenizer.Encoding(*encoding))
+if err != nil {
+fmt.Fprintf(os.Stderr, "Error getting encoding: %v
+", err)
+os.Exit(1)
+}
+// Encode the input text and count tokens
+tokens, _, _ := enc.Encode(input)
+// Output the token count
+if *verbose {
+fmt.Printf("Text length: %d characters
+", len(input))
+fmt.Printf("Token count: %d tokens
+", len(tokens))
+} else {
+fmt.Println(len(tokens))
+}
+}
+</code></pre> </li> <li>建立 go.mod 並設定程式庫 <pre><code>go mod init github.com/darkthread/tikcount
+go mod tidy # 自動掃描 main.go 加入所需程式庫，移除不用的程式庫
+</code></pre> `go mod tidy' 調整完的 go.mod 內容如下： <pre><code>module github.com/darkthread/tikcount
+go 1.24.1
+require github.com/tiktoken-go/tokenizer v0.6.0
+require github.com/dlclark/regexp2 v1.11.5 // indirect
+</code></pre> </li> <li>編譯執行檔 <code>go build -o tikcount.exe main.go</code></li></ol> <p>實測使用 Pipeline 串接、使用 cl100k_base 分詞(GPT 3.5/4 適用)、直接讀取檔案都得到正確結果，大成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638778154430901130.png"></p> <p>與<a href="https://platform.openai.com/tokenizer">網頁版 Tokenizer</a> 驗證二者結果相同。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638778154434000196.png"></p> <p>執行檔大小約 14MB，不需 Runtime 或 DLL，一檔搞定，跟 PowerShell 整合也沒有任何問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638778154435674943.png"></p> <p>註：以上在 PowerShell 7.X 可直接跑，若是 PowerShell 5.1 記得要先執行 <code>$OutputEncoding = New-Object System.Text.UTF8Encoding $false</code> 設定輸出無 BOM 的 UTF-8 內容結果才會正確。參考：<a href="https://devblogs.microsoft.com/powershell/outputencoding-to-the-rescue/?WT.mc_id=DOP-MVP-37580">$OutputEncoding to the rescue</a></p> <p>就醬，我的小工具開發語言再添生力軍。</p> <p data-slug="tikcount-go" data-fbimg="https://images.pexels.com/photos/296357/pexels-photo-296357.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig2_638778154430901130.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig2_638778154430901130.png" medium="image"/>
+    <pubDate>Mon, 17 Mar 2025 13:34:53 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[影音檔 Whisper 轉逐字稿之檔案批次處理工具]]></title>
+    <link>https://blog.darkthread.net/blog/mp4-mp3-merge-split-utils/</link>
+    <itunes:title><![CDATA[影音檔 Whisper 轉逐字稿之檔案批次處理工具]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前陣子介紹了用 <a href="/blog/azure-whisper-api-transcribe/">Whisper API 將 MP3 轉逐字稿</a>，不需準備高檔顯卡，用一顆茶葉蛋的錢，一小時 MP3 轉逐字稿大約兩分鐘可完成，速度跟品質都頗令人滿意。</p> <p>實測過幾次，發現免不了需要一些轉檔、併檔、拆檔，基本上靠萬能的 ffmpeg 都能解決，但每次遇到要查指令敲指令很沒效率，是時侯寫成共用腳本檔或程式庫了。這篇會用 PowerShell 示範，但關鍵在 ffmpeg 參數，大家可視需要改寫成自己慣用的語言。</p> <p>整理我常用的檔案批次作業：</p> <ol><li>錄影或錄音檔有多個，想合併成一個</li> <li>來源為 .mp4，想轉成 .mp3</li> <li>Whisper 有單檔 25MB 限制，以 20 分鐘為單位將 .mp3 拆成多個檔案</li> <li>將長時間 .mp3 自動拆檔 Whisper 轉換再組裝成單一 .mp3 (檔案間加上分隔註記方便整理校正)</li></ol> <p>為此，我寫了三個函式：Az-MergeMp4s、Az-ConvertMp4ToMp3、Az-SplitMp3、Az-TranscibeLongMp3，程式邏輯不難，說穿了就是組裝好參數，召喚 ffmpeg 登場大顯神威罷了。只有幾個小地方值得一提：</p> <ul><li>合併檔案需將動態產生檔案清單文字檔，合併完成後刪除</li> <li>PowerShell 內建的 Resolve-Path 無法解析不存在路徑，要取得絕對路徑需<a href="/blog/ps-resolve-non-existing-path/">額外處理</a></li> <li>ffmpeg 的 -hide_banner 參數可隱藏又臭又長的版本、版權聲明及支援格式資訊 -v warning 只顯示警告等級以上訊息 -stats 顯示進及流計資訊</li> <li>拆分檔案時，用 -ss 指定開始秒數或 mm:ss 時間值、-t 指定長度(我習慣加 60 秒與下段重疊)</li></ul> <pre><code>function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+function Az-MergeMp4s(
+[Parameter(Mandatory=$true)][string[]]$mp4Paths,
+[Parameter(Mandatory=$true)][string]$outPath) {
+# 寫入檔案清單暫存檔
+$tmpListPath = [IO.Path]::GetTempFileName() + '.txt'
+$mp4Paths | ForEach-Object { "file '$(Resolve-Path $_)'" } | Set-Content -Path $tmpListPath
+# 將路徑解析成絕對路徑 https://blog.darkthread.net/blog/ps-resolve-non-existing-path/
+$outPath = Resolve-AbsPath $outPath
+&amp; ffmpeg -f concat -safe 0 -i $tmpListPath -c copy  -hide_banner -stats -v warning $outPath
+Remove-Item -Path $tmpListPath
+Write-Host "$outPath created." -ForegroundColor Green
+}
+function Az-ConvertMp4ToMp3($mp4Path, $outDir = '.') {
+$mp4Path = Resolve-Path $mp4Path
+$outDir = Resolve-AbsPath $outDir
+[IO.Directory]::CreateDirectory($outDir) | Out-Null
+$mp3Path = [System.IO.Path]::ChangeExtension($mp4Path, '.mp3')
+&amp; ffmpeg -i $mp4Path -hide_banner -stats -v warning $mp3Path
+Write-Host "$mp3Path created." -ForegroundColor Green
+}
+function Az-SplitMp3($mp3Path, $outDir = '.', $sliceLen = 1200, $overlap = 60)
+{
+$mp3Path = Resolve-Path $mp3Path
+[int]$duration = &amp; ffprobe -i $mp3Path -show_entries "format=duration" -v quiet -of "csv=p=0"
+$count = [math]::Ceiling($duration / $sliceLen)
+for ($i = 0; $i -lt $count; $i++) {
+$start = $i * $sliceLen
+$timeSpan = [TimeSpan]::FromSeconds($start)
+$outFile = [System.IO.Path]::Combine($outDir, [System.IO.Path]::GetFileNameWithoutExtension($mp3Path) + "-$($i+1).mp3")
+&amp; ffmpeg -i $mp3Path -ss $start -t ($sliceLen + $overlap) -hide_banner -stats -v warning -c copy $outFile
+Write-Host "Split $timeSpan to $outFile" -ForegroundColor Cyan
+}
+}
+function Az-TranscibeLongMp3(
+[Parameter(Mandatory=$true)]$mp3Path,
+[Parameter(Mandatory=$true)]$prompt,
+$outDir = '.\temp', $sliceLen = 1200,
+$whisperDelpoy = $whisperDeployName,
+$gptDeploy = $gptDeployName
+)
+{
+$outDir = Resolve-AbsPath $outDir
+[IO.Directory]::CreateDirectory($outDir) | Out-Null
+$mp3Path = Resolve-Path $mp3Path
+Az-SplitMp3 $mp3Path $outDir $sliceLen
+$files = Get-ChildItem -Path $outDir -Filter '*.mp3'
+$transcripts = @()
+$toRemove = @()
+foreach ($file in $files) {
+$transcripts += "==== $($file.Name) ===="
+$transcript = Az-WhisperTranscribe $file.FullName -language 'zh' -prompt $prompt -deployName $whisperDelpoy
+$transcriptPath = [System.IO.Path]::ChangeExtension($file.FullName, '.txt')
+$transcript | Out-File -Path $transcriptPath -Encoding utf8 # backup
+$transcripts += $transcript
+$toRemove += $file.FullName
+$toRemove += $transcriptPath
+}
+$txtPath = [System.IO.Path]::ChangeExtension($mp3Path, '.txt')
+$transcripts | Out-File -Path $txtPath -Encoding utf8
+$toRemove | ForEach-Object { Remove-Item -Path $_ -Force }
+Write-Host "Transcript saved. [$txtPath]" -ForegroundColor Green
+}
+</code></pre> <p>假設我有一堂課程錄影，分為四個檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png"></p> <p>分別執行併檔、MP4 轉 MP3、一小時 44 分的 MP3 以 20 分鐘為單位拆成六個檔：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638777692818685317.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638777396131867720.png"></p> <p>比較檔案大小時，發現一處可疑，.mp4 長度為 1:41:59，但轉換成 .mp3 後長度為 1:44:36。但檢查 part2.mp3 的起始時間確實有對上 .mp4 的 20:00 整。故推測是 Windows 跟 ffmpeg MP3 解碼器的差異造成，不影響結果。</p> <p>而自動長 .mp3 拆檔呼叫 Whisper 再組裝回單一 .txt 的簡易實測如下，轉 20 分鐘大約要 1'10"：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638777396136503557.png"></p> <p>有了以上工具，轉換長檔就簡單多了。</p> <p data-slug="mp4-mp3-merge-split-utils" data-fbimg="https://cdn.pixabay.com/photo/2022/02/26/18/24/pasta-dough-7036158_960_720.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前陣子介紹了用 <a href="/blog/azure-whisper-api-transcribe/">Whisper API 將 MP3 轉逐字稿</a>，不需準備高檔顯卡，用一顆茶葉蛋的錢，一小時 MP3 轉逐字稿大約兩分鐘可完成，速度跟品質都頗令人滿意。</p> <p>實測過幾次，發現免不了需要一些轉檔、併檔、拆檔，基本上靠萬能的 ffmpeg 都能解決，但每次遇到要查指令敲指令很沒效率，是時侯寫成共用腳本檔或程式庫了。這篇會用 PowerShell 示範，但關鍵在 ffmpeg 參數，大家可視需要改寫成自己慣用的語言。</p> <p>整理我常用的檔案批次作業：</p> <ol><li>錄影或錄音檔有多個，想合併成一個</li> <li>來源為 .mp4，想轉成 .mp3</li> <li>Whisper 有單檔 25MB 限制，以 20 分鐘為單位將 .mp3 拆成多個檔案</li> <li>將長時間 .mp3 自動拆檔 Whisper 轉換再組裝成單一 .mp3 (檔案間加上分隔註記方便整理校正)</li></ol> <p>為此，我寫了三個函式：Az-MergeMp4s、Az-ConvertMp4ToMp3、Az-SplitMp3、Az-TranscibeLongMp3，程式邏輯不難，說穿了就是組裝好參數，召喚 ffmpeg 登場大顯神威罷了。只有幾個小地方值得一提：</p> <ul><li>合併檔案需將動態產生檔案清單文字檔，合併完成後刪除</li> <li>PowerShell 內建的 Resolve-Path 無法解析不存在路徑，要取得絕對路徑需<a href="/blog/ps-resolve-non-existing-path/">額外處理</a></li> <li>ffmpeg 的 -hide_banner 參數可隱藏又臭又長的版本、版權聲明及支援格式資訊 -v warning 只顯示警告等級以上訊息 -stats 顯示進及流計資訊</li> <li>拆分檔案時，用 -ss 指定開始秒數或 mm:ss 時間值、-t 指定長度(我習慣加 60 秒與下段重疊)</li></ul> <pre><code>function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+function Az-MergeMp4s(
+[Parameter(Mandatory=$true)][string[]]$mp4Paths,
+[Parameter(Mandatory=$true)][string]$outPath) {
+# 寫入檔案清單暫存檔
+$tmpListPath = [IO.Path]::GetTempFileName() + '.txt'
+$mp4Paths | ForEach-Object { "file '$(Resolve-Path $_)'" } | Set-Content -Path $tmpListPath
+# 將路徑解析成絕對路徑 https://blog.darkthread.net/blog/ps-resolve-non-existing-path/
+$outPath = Resolve-AbsPath $outPath
+&amp; ffmpeg -f concat -safe 0 -i $tmpListPath -c copy  -hide_banner -stats -v warning $outPath
+Remove-Item -Path $tmpListPath
+Write-Host "$outPath created." -ForegroundColor Green
+}
+function Az-ConvertMp4ToMp3($mp4Path, $outDir = '.') {
+$mp4Path = Resolve-Path $mp4Path
+$outDir = Resolve-AbsPath $outDir
+[IO.Directory]::CreateDirectory($outDir) | Out-Null
+$mp3Path = [System.IO.Path]::ChangeExtension($mp4Path, '.mp3')
+&amp; ffmpeg -i $mp4Path -hide_banner -stats -v warning $mp3Path
+Write-Host "$mp3Path created." -ForegroundColor Green
+}
+function Az-SplitMp3($mp3Path, $outDir = '.', $sliceLen = 1200, $overlap = 60)
+{
+$mp3Path = Resolve-Path $mp3Path
+[int]$duration = &amp; ffprobe -i $mp3Path -show_entries "format=duration" -v quiet -of "csv=p=0"
+$count = [math]::Ceiling($duration / $sliceLen)
+for ($i = 0; $i -lt $count; $i++) {
+$start = $i * $sliceLen
+$timeSpan = [TimeSpan]::FromSeconds($start)
+$outFile = [System.IO.Path]::Combine($outDir, [System.IO.Path]::GetFileNameWithoutExtension($mp3Path) + "-$($i+1).mp3")
+&amp; ffmpeg -i $mp3Path -ss $start -t ($sliceLen + $overlap) -hide_banner -stats -v warning -c copy $outFile
+Write-Host "Split $timeSpan to $outFile" -ForegroundColor Cyan
+}
+}
+function Az-TranscibeLongMp3(
+[Parameter(Mandatory=$true)]$mp3Path,
+[Parameter(Mandatory=$true)]$prompt,
+$outDir = '.\temp', $sliceLen = 1200,
+$whisperDelpoy = $whisperDeployName,
+$gptDeploy = $gptDeployName
+)
+{
+$outDir = Resolve-AbsPath $outDir
+[IO.Directory]::CreateDirectory($outDir) | Out-Null
+$mp3Path = Resolve-Path $mp3Path
+Az-SplitMp3 $mp3Path $outDir $sliceLen
+$files = Get-ChildItem -Path $outDir -Filter '*.mp3'
+$transcripts = @()
+$toRemove = @()
+foreach ($file in $files) {
+$transcripts += "==== $($file.Name) ===="
+$transcript = Az-WhisperTranscribe $file.FullName -language 'zh' -prompt $prompt -deployName $whisperDelpoy
+$transcriptPath = [System.IO.Path]::ChangeExtension($file.FullName, '.txt')
+$transcript | Out-File -Path $transcriptPath -Encoding utf8 # backup
+$transcripts += $transcript
+$toRemove += $file.FullName
+$toRemove += $transcriptPath
+}
+$txtPath = [System.IO.Path]::ChangeExtension($mp3Path, '.txt')
+$transcripts | Out-File -Path $txtPath -Encoding utf8
+$toRemove | ForEach-Object { Remove-Item -Path $_ -Force }
+Write-Host "Transcript saved. [$txtPath]" -ForegroundColor Green
+}
+</code></pre> <p>假設我有一堂課程錄影，分為四個檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png"></p> <p>分別執行併檔、MP4 轉 MP3、一小時 44 分的 MP3 以 20 分鐘為單位拆成六個檔：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638777692818685317.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638777396131867720.png"></p> <p>比較檔案大小時，發現一處可疑，.mp4 長度為 1:41:59，但轉換成 .mp3 後長度為 1:44:36。但檢查 part2.mp3 的起始時間確實有對上 .mp4 的 20:00 整。故推測是 Windows 跟 ffmpeg MP3 解碼器的差異造成，不影響結果。</p> <p>而自動長 .mp3 拆檔呼叫 Whisper 再組裝回單一 .txt 的簡易實測如下，轉 20 分鐘大約要 1'10"：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638777396136503557.png"></p> <p>有了以上工具，轉換長檔就簡單多了。</p> <p data-slug="mp4-mp3-merge-split-utils" data-fbimg="https://cdn.pixabay.com/photo/2022/02/26/18/24/pasta-dough-7036158_960_720.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前陣子介紹了用 <a href="/blog/azure-whisper-api-transcribe/">Whisper API 將 MP3 轉逐字稿</a>，不需準備高檔顯卡，用一顆茶葉蛋的錢，一小時 MP3 轉逐字稿大約兩分鐘可完成，速度跟品質都頗令人滿意。</p> <p>實測過幾次，發現免不了需要一些轉檔、併檔、拆檔，基本上靠萬能的 ffmpeg 都能解決，但每次遇到要查指令敲指令很沒效率，是時侯寫成共用腳本檔或程式庫了。這篇會用 PowerShell 示範，但關鍵在 ffmpeg 參數，大家可視需要改寫成自己慣用的語言。</p> <p>整理我常用的檔案批次作業：</p> <ol><li>錄影或錄音檔有多個，想合併成一個</li> <li>來源為 .mp4，想轉成 .mp3</li> <li>Whisper 有單檔 25MB 限制，以 20 分鐘為單位將 .mp3 拆成多個檔案</li> <li>將長時間 .mp3 自動拆檔 Whisper 轉換再組裝成單一 .mp3 (檔案間加上分隔註記方便整理校正)</li></ol> <p>為此，我寫了三個函式：Az-MergeMp4s、Az-ConvertMp4ToMp3、Az-SplitMp3、Az-TranscibeLongMp3，程式邏輯不難，說穿了就是組裝好參數，召喚 ffmpeg 登場大顯神威罷了。只有幾個小地方值得一提：</p> <ul><li>合併檔案需將動態產生檔案清單文字檔，合併完成後刪除</li> <li>PowerShell 內建的 Resolve-Path 無法解析不存在路徑，要取得絕對路徑需<a href="/blog/ps-resolve-non-existing-path/">額外處理</a></li> <li>ffmpeg 的 -hide_banner 參數可隱藏又臭又長的版本、版權聲明及支援格式資訊 -v warning 只顯示警告等級以上訊息 -stats 顯示進及流計資訊</li> <li>拆分檔案時，用 -ss 指定開始秒數或 mm:ss 時間值、-t 指定長度(我習慣加 60 秒與下段重疊)</li></ul> <pre><code>function Resolve-AbsPath($relPath) {
+return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
+}
+function Az-MergeMp4s(
+[Parameter(Mandatory=$true)][string[]]$mp4Paths,
+[Parameter(Mandatory=$true)][string]$outPath) {
+# 寫入檔案清單暫存檔
+$tmpListPath = [IO.Path]::GetTempFileName() + '.txt'
+$mp4Paths | ForEach-Object { "file '$(Resolve-Path $_)'" } | Set-Content -Path $tmpListPath
+# 將路徑解析成絕對路徑 https://blog.darkthread.net/blog/ps-resolve-non-existing-path/
+$outPath = Resolve-AbsPath $outPath
+&amp; ffmpeg -f concat -safe 0 -i $tmpListPath -c copy  -hide_banner -stats -v warning $outPath
+Remove-Item -Path $tmpListPath
+Write-Host "$outPath created." -ForegroundColor Green
+}
+function Az-ConvertMp4ToMp3($mp4Path, $outDir = '.') {
+$mp4Path = Resolve-Path $mp4Path
+$outDir = Resolve-AbsPath $outDir
+[IO.Directory]::CreateDirectory($outDir) | Out-Null
+$mp3Path = [System.IO.Path]::ChangeExtension($mp4Path, '.mp3')
+&amp; ffmpeg -i $mp4Path -hide_banner -stats -v warning $mp3Path
+Write-Host "$mp3Path created." -ForegroundColor Green
+}
+function Az-SplitMp3($mp3Path, $outDir = '.', $sliceLen = 1200, $overlap = 60)
+{
+$mp3Path = Resolve-Path $mp3Path
+[int]$duration = &amp; ffprobe -i $mp3Path -show_entries "format=duration" -v quiet -of "csv=p=0"
+$count = [math]::Ceiling($duration / $sliceLen)
+for ($i = 0; $i -lt $count; $i++) {
+$start = $i * $sliceLen
+$timeSpan = [TimeSpan]::FromSeconds($start)
+$outFile = [System.IO.Path]::Combine($outDir, [System.IO.Path]::GetFileNameWithoutExtension($mp3Path) + "-$($i+1).mp3")
+&amp; ffmpeg -i $mp3Path -ss $start -t ($sliceLen + $overlap) -hide_banner -stats -v warning -c copy $outFile
+Write-Host "Split $timeSpan to $outFile" -ForegroundColor Cyan
+}
+}
+function Az-TranscibeLongMp3(
+[Parameter(Mandatory=$true)]$mp3Path,
+[Parameter(Mandatory=$true)]$prompt,
+$outDir = '.\temp', $sliceLen = 1200,
+$whisperDelpoy = $whisperDeployName,
+$gptDeploy = $gptDeployName
+)
+{
+$outDir = Resolve-AbsPath $outDir
+[IO.Directory]::CreateDirectory($outDir) | Out-Null
+$mp3Path = Resolve-Path $mp3Path
+Az-SplitMp3 $mp3Path $outDir $sliceLen
+$files = Get-ChildItem -Path $outDir -Filter '*.mp3'
+$transcripts = @()
+$toRemove = @()
+foreach ($file in $files) {
+$transcripts += "==== $($file.Name) ===="
+$transcript = Az-WhisperTranscribe $file.FullName -language 'zh' -prompt $prompt -deployName $whisperDelpoy
+$transcriptPath = [System.IO.Path]::ChangeExtension($file.FullName, '.txt')
+$transcript | Out-File -Path $transcriptPath -Encoding utf8 # backup
+$transcripts += $transcript
+$toRemove += $file.FullName
+$toRemove += $transcriptPath
+}
+$txtPath = [System.IO.Path]::ChangeExtension($mp3Path, '.txt')
+$transcripts | Out-File -Path $txtPath -Encoding utf8
+$toRemove | ForEach-Object { Remove-Item -Path $_ -Force }
+Write-Host "Transcript saved. [$txtPath]" -ForegroundColor Green
+}
+</code></pre> <p>假設我有一堂課程錄影，分為四個檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png"></p> <p>分別執行併檔、MP4 轉 MP3、一小時 44 分的 MP3 以 20 分鐘為單位拆成六個檔：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638777692818685317.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638777396131867720.png"></p> <p>比較檔案大小時，發現一處可疑，.mp4 長度為 1:41:59，但轉換成 .mp3 後長度為 1:44:36。但檢查 part2.mp3 的起始時間確實有對上 .mp4 的 20:00 整。故推測是 Windows 跟 ffmpeg MP3 解碼器的差異造成，不影響結果。</p> <p>而自動長 .mp3 拆檔呼叫 Whisper 再組裝回單一 .txt 的簡易實測如下，轉 20 分鐘大約要 1'10"：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638777396136503557.png"></p> <p>有了以上工具，轉換長檔就簡單多了。</p> <p data-slug="mp4-mp3-merge-split-utils" data-fbimg="https://cdn.pixabay.com/photo/2022/02/26/18/24/pasta-dough-7036158_960_720.jpg#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png" medium="image"/>
+    <pubDate>Sun, 16 Mar 2025 16:25:03 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【茶包射手日常】不是眼見為憑，誰都別信]]></title>
+    <link>https://blog.darkthread.net/blog/autoformat-in-reg/</link>
+    <itunes:title><![CDATA[【茶包射手日常】不是眼見為憑，誰都別信]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>解決了一個蒜皮小茶包，問題本身沒什麼營養，但辦案過程有點意思。</p> <p>狀況為在 Windows 11 24H2 新電腦上安裝 SharePoint Designer 2013，安裝過程無錯，啟動時彈出以授權對話框：(示意圖如下，First things first 中文翻譯為「首要任務」，實際案例還包含三個下載安裝更新選項)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638775999717136560.png"></p> <p>按下【Accept】同意授權合約，禮成，程式就關掉了關掉了關掉了...</p> <p>先用關鍵字找到一則<a href="https://techcommunity.microsoft.com/discussions/sharepointdev/sharepoint-designer-2013-crashing-at-first-things-first-screen/3297281?WT.mc_id=DOP-MVP-37580">討論</a>，2022 起便有相似問題通報，有網友提供解藥一劑，參考 InfoPath 2013 類似問題解法，修改三個 Registry 可藥到病除，該解方經兩位網友留言證實有效。</p> <p>當事人跟 Windows 交手多年，老經驗的他，想到一招免開 regedit 找機碼的做法 - 新增文字檔貼上三條設定加上標頭另存 .reg，再按右鍵選安裝可瞬間設定完成。</p> <pre><code>Windows Registry Editor Version 5.00
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Office\15.0\Registration]
+“AcceptAllEulas”=dword:00000001
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Office\15.0\firstrun]
+“BootedRTM”=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\15.0\Common\General]
+"ShownFirstRunOptin"=dword:00000001
+</code></pre> <p>不料，設完 Registry 還是繼續跑出授權同意對話框，唯一差別是三個下載安裝更新消失，但按【Accept】後程式仍會終止。</p> <p>試過重開機無效，當事人的初步結論是文章時間早在 2022，本案可能狀況不同，需另覓解方。</p> <p>接獲案件通報，老射手眉頭一皺，直覺藥方應該是對的，理由是：第一，問題主機的 Office 版本同樣是 2019+，與網路文章的狀況吻合；二是若原因不同，Registry 有一條吻合不合理？</p> <p>依據<a href="https://en.wikipedia.org/wiki/Hanlon%27s_razor">Hanlon's Razor 漢隆剃刀原理</a> - 事情若有簡單解釋，先別把它想複雜了。我優先想的：該不會是 Registry 沒設好或設錯？</p> <p>苦主覺得不可能：他就是怕打錯字，設定直接從網頁複製貼上的，不應該有錯。但依我的習慣，沒有不在場證明前，誰都別想走。Registry 有沒有設好，實際檢查便知，眼見為憑最準。</p> <p>開啟 regedit 檢查後答案揭曉，三條設定果真只有 ShownFirstRunOptin 設成功，其餘兩個只開了 Registration 跟 firstrun，沒新增 DWORD 值，如此為何下載安裝更新消失但問題依舊便有了合理解釋。</p> <p>至於為什麼三條只有一條生效，問題就在 .reg 檔，逐字比對用力檢查，很快找到兇手 - AcceptAllEulas 及 BootedRTM 的雙引號被換成 「“」、「”」，推測是 <a href="/blog/word-autoformat-issue/">Outlook/Word 智慧引號</a>幹的好事(強烈建議大家關掉它)，而在網頁上由於字體的關係，“ 跟 " 頗像，不仔細看很容易忽略。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638775999718808717.png"></p> <p>把文字貼到<a href="/blog/cea-release/">中文編碼解析工具</a>，妖孽頓時現形。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638775999720525945.png"></p> <p>將引號校正為「"」後重新執行，問題排除。至於為什麼文章的寫法有誤，網友們卻能成功，猜想大家都用 regedit 手動找位置新增值，故不受引號影響。</p> <p>全案偵結。</p> <p>心得整理：</p> <ol><li>沒取得不在場證明前，每個都是嫌犯，隨便放人，你可能一輩子破不了案。</li> <li>射茶包時謹記「剃刀原理」：先朝「耍笨」方向查，常有驚喜。(上回有此感慨是<a href="https://www.facebook.com/share/1B7SMzaf2q/">九年前</a>)</li> <li>沒看到證據都不算數，什麼都有可能，誰都不能相信。(我辦案有句機車名言：你願意用生命擔保問題不是出在這裡面？XD)</li> <li>別人成功你失敗，有可能是用的方法不同 (開 regedit vs 跑 .reg)，留意此一差異將左右偵辦方向。</li> <li>智慧引號真的很雷，請大家<a href="/blog/word-autoformat-issue/">關掉它</a>。</li></ol> <p data-slug="autoformat-in-reg" data-fbimg="https://cdn.pixabay.com/photo/2017/09/10/21/37/child-2737078_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>解決了一個蒜皮小茶包，問題本身沒什麼營養，但辦案過程有點意思。</p> <p>狀況為在 Windows 11 24H2 新電腦上安裝 SharePoint Designer 2013，安裝過程無錯，啟動時彈出以授權對話框：(示意圖如下，First things first 中文翻譯為「首要任務」，實際案例還包含三個下載安裝更新選項)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638775999717136560.png"></p> <p>按下【Accept】同意授權合約，禮成，程式就關掉了關掉了關掉了...</p> <p>先用關鍵字找到一則<a href="https://techcommunity.microsoft.com/discussions/sharepointdev/sharepoint-designer-2013-crashing-at-first-things-first-screen/3297281?WT.mc_id=DOP-MVP-37580">討論</a>，2022 起便有相似問題通報，有網友提供解藥一劑，參考 InfoPath 2013 類似問題解法，修改三個 Registry 可藥到病除，該解方經兩位網友留言證實有效。</p> <p>當事人跟 Windows 交手多年，老經驗的他，想到一招免開 regedit 找機碼的做法 - 新增文字檔貼上三條設定加上標頭另存 .reg，再按右鍵選安裝可瞬間設定完成。</p> <pre><code>Windows Registry Editor Version 5.00
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Office\15.0\Registration]
+“AcceptAllEulas”=dword:00000001
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Office\15.0\firstrun]
+“BootedRTM”=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\15.0\Common\General]
+"ShownFirstRunOptin"=dword:00000001
+</code></pre> <p>不料，設完 Registry 還是繼續跑出授權同意對話框，唯一差別是三個下載安裝更新消失，但按【Accept】後程式仍會終止。</p> <p>試過重開機無效，當事人的初步結論是文章時間早在 2022，本案可能狀況不同，需另覓解方。</p> <p>接獲案件通報，老射手眉頭一皺，直覺藥方應該是對的，理由是：第一，問題主機的 Office 版本同樣是 2019+，與網路文章的狀況吻合；二是若原因不同，Registry 有一條吻合不合理？</p> <p>依據<a href="https://en.wikipedia.org/wiki/Hanlon%27s_razor">Hanlon's Razor 漢隆剃刀原理</a> - 事情若有簡單解釋，先別把它想複雜了。我優先想的：該不會是 Registry 沒設好或設錯？</p> <p>苦主覺得不可能：他就是怕打錯字，設定直接從網頁複製貼上的，不應該有錯。但依我的習慣，沒有不在場證明前，誰都別想走。Registry 有沒有設好，實際檢查便知，眼見為憑最準。</p> <p>開啟 regedit 檢查後答案揭曉，三條設定果真只有 ShownFirstRunOptin 設成功，其餘兩個只開了 Registration 跟 firstrun，沒新增 DWORD 值，如此為何下載安裝更新消失但問題依舊便有了合理解釋。</p> <p>至於為什麼三條只有一條生效，問題就在 .reg 檔，逐字比對用力檢查，很快找到兇手 - AcceptAllEulas 及 BootedRTM 的雙引號被換成 「“」、「”」，推測是 <a href="/blog/word-autoformat-issue/">Outlook/Word 智慧引號</a>幹的好事(強烈建議大家關掉它)，而在網頁上由於字體的關係，“ 跟 " 頗像，不仔細看很容易忽略。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638775999718808717.png"></p> <p>把文字貼到<a href="/blog/cea-release/">中文編碼解析工具</a>，妖孽頓時現形。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638775999720525945.png"></p> <p>將引號校正為「"」後重新執行，問題排除。至於為什麼文章的寫法有誤，網友們卻能成功，猜想大家都用 regedit 手動找位置新增值，故不受引號影響。</p> <p>全案偵結。</p> <p>心得整理：</p> <ol><li>沒取得不在場證明前，每個都是嫌犯，隨便放人，你可能一輩子破不了案。</li> <li>射茶包時謹記「剃刀原理」：先朝「耍笨」方向查，常有驚喜。(上回有此感慨是<a href="https://www.facebook.com/share/1B7SMzaf2q/">九年前</a>)</li> <li>沒看到證據都不算數，什麼都有可能，誰都不能相信。(我辦案有句機車名言：你願意用生命擔保問題不是出在這裡面？XD)</li> <li>別人成功你失敗，有可能是用的方法不同 (開 regedit vs 跑 .reg)，留意此一差異將左右偵辦方向。</li> <li>智慧引號真的很雷，請大家<a href="/blog/word-autoformat-issue/">關掉它</a>。</li></ol> <p data-slug="autoformat-in-reg" data-fbimg="https://cdn.pixabay.com/photo/2017/09/10/21/37/child-2737078_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>解決了一個蒜皮小茶包，問題本身沒什麼營養，但辦案過程有點意思。</p> <p>狀況為在 Windows 11 24H2 新電腦上安裝 SharePoint Designer 2013，安裝過程無錯，啟動時彈出以授權對話框：(示意圖如下，First things first 中文翻譯為「首要任務」，實際案例還包含三個下載安裝更新選項)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638775999717136560.png"></p> <p>按下【Accept】同意授權合約，禮成，程式就關掉了關掉了關掉了...</p> <p>先用關鍵字找到一則<a href="https://techcommunity.microsoft.com/discussions/sharepointdev/sharepoint-designer-2013-crashing-at-first-things-first-screen/3297281?WT.mc_id=DOP-MVP-37580">討論</a>，2022 起便有相似問題通報，有網友提供解藥一劑，參考 InfoPath 2013 類似問題解法，修改三個 Registry 可藥到病除，該解方經兩位網友留言證實有效。</p> <p>當事人跟 Windows 交手多年，老經驗的他，想到一招免開 regedit 找機碼的做法 - 新增文字檔貼上三條設定加上標頭另存 .reg，再按右鍵選安裝可瞬間設定完成。</p> <pre><code>Windows Registry Editor Version 5.00
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Office\15.0\Registration]
+“AcceptAllEulas”=dword:00000001
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Office\15.0\firstrun]
+“BootedRTM”=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\15.0\Common\General]
+"ShownFirstRunOptin"=dword:00000001
+</code></pre> <p>不料，設完 Registry 還是繼續跑出授權同意對話框，唯一差別是三個下載安裝更新消失，但按【Accept】後程式仍會終止。</p> <p>試過重開機無效，當事人的初步結論是文章時間早在 2022，本案可能狀況不同，需另覓解方。</p> <p>接獲案件通報，老射手眉頭一皺，直覺藥方應該是對的，理由是：第一，問題主機的 Office 版本同樣是 2019+，與網路文章的狀況吻合；二是若原因不同，Registry 有一條吻合不合理？</p> <p>依據<a href="https://en.wikipedia.org/wiki/Hanlon%27s_razor">Hanlon's Razor 漢隆剃刀原理</a> - 事情若有簡單解釋，先別把它想複雜了。我優先想的：該不會是 Registry 沒設好或設錯？</p> <p>苦主覺得不可能：他就是怕打錯字，設定直接從網頁複製貼上的，不應該有錯。但依我的習慣，沒有不在場證明前，誰都別想走。Registry 有沒有設好，實際檢查便知，眼見為憑最準。</p> <p>開啟 regedit 檢查後答案揭曉，三條設定果真只有 ShownFirstRunOptin 設成功，其餘兩個只開了 Registration 跟 firstrun，沒新增 DWORD 值，如此為何下載安裝更新消失但問題依舊便有了合理解釋。</p> <p>至於為什麼三條只有一條生效，問題就在 .reg 檔，逐字比對用力檢查，很快找到兇手 - AcceptAllEulas 及 BootedRTM 的雙引號被換成 「“」、「”」，推測是 <a href="/blog/word-autoformat-issue/">Outlook/Word 智慧引號</a>幹的好事(強烈建議大家關掉它)，而在網頁上由於字體的關係，“ 跟 " 頗像，不仔細看很容易忽略。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638775999718808717.png"></p> <p>把文字貼到<a href="/blog/cea-release/">中文編碼解析工具</a>，妖孽頓時現形。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638775999720525945.png"></p> <p>將引號校正為「"」後重新執行，問題排除。至於為什麼文章的寫法有誤，網友們卻能成功，猜想大家都用 regedit 手動找位置新增值，故不受引號影響。</p> <p>全案偵結。</p> <p>心得整理：</p> <ol><li>沒取得不在場證明前，每個都是嫌犯，隨便放人，你可能一輩子破不了案。</li> <li>射茶包時謹記「剃刀原理」：先朝「耍笨」方向查，常有驚喜。(上回有此感慨是<a href="https://www.facebook.com/share/1B7SMzaf2q/">九年前</a>)</li> <li>沒看到證據都不算數，什麼都有可能，誰都不能相信。(我辦案有句機車名言：你願意用生命擔保問題不是出在這裡面？XD)</li> <li>別人成功你失敗，有可能是用的方法不同 (開 regedit vs 跑 .reg)，留意此一差異將左右偵辦方向。</li> <li>智慧引號真的很雷，請大家<a href="/blog/word-autoformat-issue/">關掉它</a>。</li></ol> <p data-slug="autoformat-in-reg" data-fbimg="https://cdn.pixabay.com/photo/2017/09/10/21/37/child-2737078_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638775999717136560.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638775999717136560.png" medium="image"/>
+    <pubDate>Sat, 15 Mar 2025 01:45:54 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[演算法中的玄學 - NP 問題]]></title>
+    <link>https://blog.darkthread.net/blog/np-problem/</link>
+    <itunes:title><![CDATA[演算法中的玄學 - NP 問題]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>科學的盡頭是玄學，而演算法的盡頭，肯定就是 NP 問題了。</p> <p>寫了幾十年程式的非科班老程序員這陣子<a href="/blog/avl-tree-playground/">回頭讀演算法</a>，花了點時間搞懂(自以為?)演算法中的玄學 - NP 問題。</p> <p>許多演算法複雜度討論，最後都指向一個終極議題 - NP 問題，甚至還會升級到哲學層次，主張「P=NP 是否成立」將決定我們所處世界的真相：</p> <p>If P = NP, then the world would be a profoundly different place than we usually assume it to be. There would be no special value in "creative leaps," no fundamental gap between solving a problem and recognizing the solution once it's found. Everyone who could appreciate a symphony would be Mozart; everyone who could follow a step-by-step argument would be Gauss; everyone who could recognize a good investment strategy would be Warren Buffett.</p> <p>如果 P = NP，那麼世界將會與我們以為的截然不同。「跳躍式創意」將不再有什麼了不起，解決問題與鑑別解答間將不存在根本差異。 能欣賞交響樂的人都能成為莫札特；理解逐步論證的人都能像高斯；每個看得懂投資策略的人都是股神巴菲特。</p> <p>以上是複雜度理論專家 <a href="https://en.wikipedia.org/wiki/Scott_Aaronson">Scott Aaronson</a> 為 NP 問題所下的註腳。</p> <p>前陣子研究 NP 問題，費了不少心思終於理解 Scott Aaronson 的那段<del>鬼</del>話是什麼意思，得到小小成就感。</p> <p>NP 問題不像排序、配對... 等具體可想像的演算法題目，它涉及數學推導及抽象概念，無法透過程式碼實際驗證，故理解很需要想像力。學習過程我產生了無數疑問，靠參考資料消化整理，一一找出說服自己的解釋，總算是梳理出一套邏輯通順的說法(至少能讓我買單)，為記錄這段艱辛歷程，這篇將用 QA 方式整理我的理解與心得，希望對也在努力搞懂 NP 問題的同學有所幫助。</p> <p>以下會假設大家對演算法的時間複雜度、圖靈機已有粗淺認識，從這個基礎出發。下面是我這次主要參考的文章，推薦大家可先讀完再回頭看我的整理。</p> <ul><li><a href="https://sprout.tw/algo2023/ppt_pdf/week02/hc-complexity_inclass.pdf">資訊之芽算法班 Complexity 投影片</a></li> <li><a href="https://lkm543.medium.com/%E6%BC%94%E7%AE%97%E6%B3%95%E4%B8%AD%E7%9A%84-np-%E5%95%8F%E9%A1%8C-db976e55b60b">為什麼要區分演算法的 NP 問題 by 李耕銘</a></li> <li><a href="https://ycc.idv.tw/algorithm-complexity-theory.html">輕鬆談演算法的複雜度分界：什麼是P, NP, NP-Complete, NP-Hard問題 by YC</a></li></ul> <ol><li><p>P 問題的 P 是什麼？</p> <p>P 問題的 P 代表 Polynominal，指多項式時間。</p> <p>演算法有快有慢，有些不論資料筆數多寡都能很快算出答案，有些則是資料筆數一多便要算到地老天荒，海枯石爛都等不到答案。資訊科學習慣「用大 O 符號」表示運算時間或耗用記憶體與資料筆數關係，計算時間與資料筆數的關係則稱為時間複雜度：</p> <ul><li>O(1) - 運算時間固定，不受資料筆數影響</li> <li>O(n) - 運算時間與資料筆數 n 成正比</li> <li>O(log n) - 運算時間與 log n 成正比</li> <li>O(n<sup>2</sup>) - 運算時間與 n 平方成正比</li> <li>O(2<sup>n</sup>) - 運算時間與 2 的 n 次方成正比</li> <li>O(n!) - 運算時間與 n 階乘成正比</li></ul> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638774770500883673.png"><br> 圖表來源：<a href="https://medium.com/appworks-school/%E5%88%9D%E5%AD%B8%E8%80%85%E5%AD%B8%E6%BC%94%E7%AE%97%E6%B3%95-%E8%AB%87%E4%BB%80%E9%BA%BC%E6%98%AF%E6%BC%94%E7%AE%97%E6%B3%95%E5%92%8C%E6%99%82%E9%96%93%E8%A4%87%E9%9B%9C%E5%BA%A6-b1f6908e4b80">初學者學演算法｜談什麼是演算法和時間複雜度 by 胡程維</a></p> <p>超過 n 的多次方，時間便會呈指數性成長，一般被認定無法求解。當時間呈現指數性成長，n 也不用大，隨便抓個 n = 100，2<sup>100</sup> 這個數字可能大到超乎你想像，地球上所有原子的總數也不過 2 的 50 次方，2 的 100 次方到地球毀滅都算不完。</p> <p>若時間複雜度可用 a * n<sup>k</sup> + b * n<sup>k-1</sup> + ... 這種多項式表示，一般被認定能在可接受的時間內算出答案的，小於等於多項式時間複雜度的問題，稱為 P 問題，被視為可解的問題。</p> <p>因此 O(1)、O(n)、O(log n)、O(n<sup>2</sup>) 屬於 P 問題，O(2<sup>n</sup>) 及 O(n!) 不屬於 P 問題。</p> </li> <li><p>那麼，所以 NP 問題 NP 是指 Non-Polynominal 嗎？</p> <p>錯! NP 問題是 Non-deterministic Poloynominal 的縮寫，至於什麼是 Non-Deterministic 得先了解圖靈機，NP 源自 Non-Deterministic Turing Machine，非確定性圖靈機(NTM)，以下就來說說 NTM 是啥。</p> </li> <li><p>Non-Deterministic Turing Machine 非確定性圖靈機 (NTM) 是什麼鬼？</p> <p><a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E6%9C%BA">圖靈機</a>由英國數學家艾倫·圖靈在 1936 年提出，一部可將人類計算行為抽象化的數理邏輯機，心是一台能實現任何有限邏輯數學計算的終極邏輯機器。(圖靈就是電影<a href="https://www.storm.mg/article/287620">模仿遊戲</a>裡的天才數學家，當今資訊科學界的諾貝爾獎 - <a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E5%A5%96">圖靈獎</a> 也是以他命名)</p> <p>圖靈機的概念是有個讀寫頭(HEAD)在無限長的紙帶(TAPE)上移動，可讀取、抹除及寫入符號(SYMBOL)，並可儲存狀態(STATE)，至於移動方向、是否抹除或寫入符號則是由一套指令規則(TABLE)依狀態決定。這個架構如同當今電腦的縮影，有輸入輸出，有記憶體記錄狀態，程式邏輯即指令規則表，能實現各種複雜邏輯。同理，這個抽象的圖靈機，理論上可實現人類想得出來的所有演算法。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638774770502677196.png"><br> 圖靈機想像圖(來源：<a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E6%9C%BA">維基百科</a>)</p> <p>一般來說，圖靈機的規則在特定狀態的下一步行為是確定的，例如：狀態為 0 時往左移、為 1 時往右移，我們用的電腦即是用這種方式運作，稱之為確定性圖靈機(Deterministic Turing Mahcine，DTM)。假設還有另一種更厲害的圖靈機，當前狀態的下一步動作可以是不確定的，狀態 0 時讀寫頭可以向左也可以向右移動，像在每個分叉點不斷分裂出平行宇宙，靠著「無限並行」的計算能力，能在多條計算路徑中同時尋找正確的解答，這種神奇的圖靈機稱之為非確定性圖靈機(Non-Deterministic Turing Machine, NTM)。</p> <p>NTM 可以被想像是一台神奇機器，我們用的電腦即便能平行運算也苦哈哈跑過所有的路徑找答案；NTM 就不同了，其神奇之處在於它能一次猜中正確路徑得到結果，只要沒有無窮迴圈，再複雜演算法也可以很快得到答案。因此，只要我們有能力驗證結果是否正確，再複雜的演算法都可用 NTM 求解。想當然爾，NTM 在真實世界並不存在，至少現在還沒出現。</p> </li> <li><p>所以求解跟驗證的時間複雜度會不一樣？</p> <p>是的，有許多問題的特色是求解困難，但驗證很快。經典例子像是數獨，要花很多力氣推敲每個格子該填什麼數字，但填的數字對不對卻很好檢查。又像是拼圖，拼完一萬片拼圖要花可觀的時間，但有沒拼錯看一眼就知道了：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638774770505956890.png"></p> </li> <li><p>扯了這麼多，NP 問題到底是什麼？</p> <p>我們知道有很多問題很難求解但驗證很快，比如求解演算法時間複雜度是 O(2<sup>n</sup>)，但驗證可在多項式時間內完成，這類問題在現實世界原則上是算不出來的(需要指數時間)。但假設我們手上有神奇的 NTM 非確定型圖靈機，當求解過程遇到可以走 A 流程也可以走 B 流程，NTM 一律用猜的且總能幸運猜對跑對流程算出結果，加上能多項式時間內驗證答案正確，如此就一定可以解出答案。</p> <p>這種<strong>不一定能在多項式時間求解</strong>，但<strong>一定可以在多項式時間內驗證答案</strong>的問題，若有 Non-deterministic Turing Machine 在手就一定能在多項式時間內解出答案，符合此條件的問題就是所謂的 NP 問題。(Non-deterministic Polynominal Problem)</p> </li> <li><p>若不論運算時間長短，所有問題都是有解的嗎？</p> <p>圖靈機理論中的問題可區分為 Recognizable(可識別) 跟 Decidable(可判定) 兩種，Recognizable 問題是指圖靈機在提供輸入開始運算後，可能算完停機得到結果，也可能陷入無窮迴圈永遠停不下來。而 Decidable 問題則是一定會算到停機得到結果。對於 Recognizable 問題，就算用 NTM 也不保證能算出答案。而 Decidable 問題則一定能得到結果，只在時間長短。</p> </li> <li><p>演算法中的 Reduction 歸約是什麼？</p> <p>應用演算法解問題時， Reduction 歸約是很好用的技巧，其概念是「將 B 問題當成 A 問題的一種特例，直接使用 A 問題的演算法求解」。想像在解數學題時發現某道題目很難但跟之前做過的某種題目很像，便可將題目轉換成那道會解的題目求解。例如我們已學會除法求餘數，之後遇到判斷偶數時，將其轉換成除以 2 檢查餘數是否為零。這種「把未知難題轉換成已知問題」的技巧，在電腦科學中即所謂 Reduction（歸約）。</p> <p>若問題 B 可轉成問題 A 求解(B ≤ A)，問題 C 也可以轉成問題 A 求解(C ≤ A)，意味問題 A 的演算法必須要涵蓋 B、C 兩種案例，故其複雜度一定比 B、C 問題為高。我們會說 A 問題會比 B、C 問題難，若有能力解掉 A 問題，就一定也能解掉 B、C 問題。</p> <p>以電腦邏輯電路為例，所有的邏輯都可以用 AND、OR、NOT 閘表示，故所有運算邏輯都可以 Reduce (歸約)成 AND/OR/NOT 閘的組合，故先解決用 AND/OR/NOT 邏輯閘實現運算這個難題，便能解決任何邏輯線路問題。</p> </li> <li><p>NP-Hard、NP-Complete 問題又是什麼？</p> <p>搞懂 Reduction，就可以解釋 NP-Complete 跟 NP-Hard。<br> 前面說到，若一堆問題都可歸約成某個最難的問題，那我們只要找出這個最難問題的解法，就可一次解掉一堆問題。一堆 NP 問題歸約到的最難問題，就稱為 NP-Complete 問題。</p> <p>Cook 在 1971 年證明出第一個 NP-Complete 問題 - SAT 問題，而 1972 年 Karp 則再證明了 21 個令人聞風喪膽的組合數學與圖論問題也是 NP-Complete 問題。<a href="https://zh.wikipedia.org/zh-tw/%E5%8D%A1%E6%99%AE%E7%9A%84%E4%BA%8C%E5%8D%81%E4%B8%80%E5%80%8BNP-%E5%AE%8C%E5%85%A8%E5%95%8F%E9%A1%8C">參考</a></p> <p>由於所有 NP-complete 問題最終都可以在多項式時間內被轉換成 SAT 問題(就像再複雜的邏輯運算都能轉成 AND/OR/NOT 組合)，這就意味著，只要我們能在多項式時間內解決一個 NP-Complete 問題，就代表所有 NP-Complete 問題都能在多項式時間解決。</p> <p>除了 NP 問題，世界上還存在一些非 NP 問題(無法在多項式時間內驗證)，所有 NP 問題與非 NP 問題能在多項式時間內歸約的最難問題，我們稱之為 NP-Hard 問題。</p> </li> <li><p>所有談 NP 問題的文章都出現一張像籃球禁區的圖，它在說啥？</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638774770507639245.png"><br> 有了前述的知識，我們終於能看懂這張圖了。先看左邊的圖來個自我測驗，該圖是全世界所有問題的分類及關聯，各區域的定義分別為：</p> <ul><li>[1] P 問題 - 能在多項式時間求解的問題</li> <li>[2] NP 問題 - 不一定能多項式時間內求解，但可在多項式時間內驗證，用 NTM 非確定型圖靈機一定能解</li> <li>[3] NP-Complete 問題(NPC) - NP 問題可在多項式時間歸約成的最難問題，若能在多項式時間內解掉任一個，代表所有 NPC 問題都能在多項式時間內求解</li> <li>[4] NP-Hard 問題(NPH) - NP 或非 NP 問題可在多項式時間歸約成的最難問題</li> <li>[5] 非 NP 問題 - 無法在多項式時間內驗證的問題</li></ul> <p>所有的 P 問題一定是 NP 問題，NP-Hard 與 NP 的交集是 NP-Complete 問題。而右邊的圖則關乎你我是否能成為莫札特、高斯跟股神巴菲特(大部人應該只在乎最後一個 XD)，就是所謂 P = NP 猜想。</p> </li> <li><p>P = NP 還是 P ≠ NP 為什麼這麼重要？</p> <p>整理前面提到的幾項重點：</p> <ul><li>所有 NP 問題可以歸約成 NP-Complete (NPC) 問題</li> <li>所有 NPC 問題又可以歸約成任一個 NPC 問題</li> <li>歸約對象的問題解法可以求解原問題</li></ul> <p>由此推論：只要任一個 NPC 問題證明能在多項式時間內解開，代表所有 NPC 問題都能歸約成它也在多項式時間內解開；若 NPC 問題都能在多項式時間內解開，則全天下的 NP 問題便能歸約成這些 NPC 問題在多項式時間內解開；一旦 NP 問題能在多項式時間內解開，NP 問題就變成了 P 問題，P = NP，世上所有 NP 問題都能在多項式時間內解開。</p> <p>換句話說，若 NPC 問題有解，代表 P = NP，我們對這個世界的理解就改觀了。只要有能力(在多項式時間內)鑑別答案正確與否，確認它是 NP 問題，就一定靠著歸約成 NPC 問題在多項式時間內得到解答。這就是文章開頭 Scott Aaronson 那段話的意涵，聽得懂交響樂就是莫札特，看得出投資策略好壞就能成為巴菲特。</p> </li> <li><p>那麼，P = NP 嗎？</p> <p>這個問題目前還沒有定論，找出答案的人可以得到 100 萬美金。</p> <p>P = NP 是 2000 年美國克雷數學研究所懸賞的<a href="https://zh.wikipedia.org/zh-tw/%E5%8D%83%E7%A6%A7%E5%B9%B4%E5%A4%A7%E7%8D%8E%E9%9B%A3%E9%A1%8C">千禧年七大數學難題</a>之一，解開任何一題可獲得 100 萬美金的獎金。 前面說過 NPC 問題可歸約成其他 NPC 問題，所以只要能證明已知的 NPC 問題中的任一題可在多項式時間內解開，就等同證明 P = NP，百萬獎金入袋。(註：七大難題目前僅有龐加莱猜想被解開，但作者帥氣地拒絕領獎) 不過，由於也沒人能證明 P ≠ NP，故目前人類還不知道這個問題的答案。</p> <p>2002 年起，William Gasarch 就 P = NP 問題對研究人員進行了三次民意調查。相信 P ≠ NP 的人由 2012 83% 增加到 2019 的 88%，而 99% 的專家認為 P ≠ NP。<a href="https://en.wikipedia.org/wiki/P_versus_NP_problem">參考</a></p> </li> <li><p>假如有一天被證明 P = NP，會發生什麼事？</p> <p>如前面所提，當 P = NP，代表我們以為的 NP 問題其實都可以被解出來，人類將有能力找出生產排程、投資組合、財務預測等難題的絕對最佳解，世界經濟將會被改寫。<br> 但先別高興得太早，在 P = NP 帶來的危機面前，這些效益不值一提。</p> <p>最顯而易見的危機是現代所有的資安防護機制將會瓦解，有史以來密碼學的加密、簽章之所以無法破解，都基於破解演算法為 NP 問題的假設。一旦 P = NP，代表所有密碼學演算法都能在多項式時間內被破解，則沒有任何加密是安全的，數位簽名都可以被偽造，資訊安全瞬間歸零。感覺 P = NP 會導致世界末日啊! 不過，目前 99% 專家都相信 P ≠ NP，我們凡人倒也不用杞人憂天啦。</p> </li></ol> <p data-slug="np-problem" data-fbimg="https://i.imgur.com/6ldQDHg.png#600#337"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>科學的盡頭是玄學，而演算法的盡頭，肯定就是 NP 問題了。</p> <p>寫了幾十年程式的非科班老程序員這陣子<a href="/blog/avl-tree-playground/">回頭讀演算法</a>，花了點時間搞懂(自以為?)演算法中的玄學 - NP 問題。</p> <p>許多演算法複雜度討論，最後都指向一個終極議題 - NP 問題，甚至還會升級到哲學層次，主張「P=NP 是否成立」將決定我們所處世界的真相：</p> <p>If P = NP, then the world would be a profoundly different place than we usually assume it to be. There would be no special value in "creative leaps," no fundamental gap between solving a problem and recognizing the solution once it's found. Everyone who could appreciate a symphony would be Mozart; everyone who could follow a step-by-step argument would be Gauss; everyone who could recognize a good investment strategy would be Warren Buffett.</p> <p>如果 P = NP，那麼世界將會與我們以為的截然不同。「跳躍式創意」將不再有什麼了不起，解決問題與鑑別解答間將不存在根本差異。 能欣賞交響樂的人都能成為莫札特；理解逐步論證的人都能像高斯；每個看得懂投資策略的人都是股神巴菲特。</p> <p>以上是複雜度理論專家 <a href="https://en.wikipedia.org/wiki/Scott_Aaronson">Scott Aaronson</a> 為 NP 問題所下的註腳。</p> <p>前陣子研究 NP 問題，費了不少心思終於理解 Scott Aaronson 的那段<del>鬼</del>話是什麼意思，得到小小成就感。</p> <p>NP 問題不像排序、配對... 等具體可想像的演算法題目，它涉及數學推導及抽象概念，無法透過程式碼實際驗證，故理解很需要想像力。學習過程我產生了無數疑問，靠參考資料消化整理，一一找出說服自己的解釋，總算是梳理出一套邏輯通順的說法(至少能讓我買單)，為記錄這段艱辛歷程，這篇將用 QA 方式整理我的理解與心得，希望對也在努力搞懂 NP 問題的同學有所幫助。</p> <p>以下會假設大家對演算法的時間複雜度、圖靈機已有粗淺認識，從這個基礎出發。下面是我這次主要參考的文章，推薦大家可先讀完再回頭看我的整理。</p> <ul><li><a href="https://sprout.tw/algo2023/ppt_pdf/week02/hc-complexity_inclass.pdf">資訊之芽算法班 Complexity 投影片</a></li> <li><a href="https://lkm543.medium.com/%E6%BC%94%E7%AE%97%E6%B3%95%E4%B8%AD%E7%9A%84-np-%E5%95%8F%E9%A1%8C-db976e55b60b">為什麼要區分演算法的 NP 問題 by 李耕銘</a></li> <li><a href="https://ycc.idv.tw/algorithm-complexity-theory.html">輕鬆談演算法的複雜度分界：什麼是P, NP, NP-Complete, NP-Hard問題 by YC</a></li></ul> <ol><li><p>P 問題的 P 是什麼？</p> <p>P 問題的 P 代表 Polynominal，指多項式時間。</p> <p>演算法有快有慢，有些不論資料筆數多寡都能很快算出答案，有些則是資料筆數一多便要算到地老天荒，海枯石爛都等不到答案。資訊科學習慣「用大 O 符號」表示運算時間或耗用記憶體與資料筆數關係，計算時間與資料筆數的關係則稱為時間複雜度：</p> <ul><li>O(1) - 運算時間固定，不受資料筆數影響</li> <li>O(n) - 運算時間與資料筆數 n 成正比</li> <li>O(log n) - 運算時間與 log n 成正比</li> <li>O(n<sup>2</sup>) - 運算時間與 n 平方成正比</li> <li>O(2<sup>n</sup>) - 運算時間與 2 的 n 次方成正比</li> <li>O(n!) - 運算時間與 n 階乘成正比</li></ul> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638774770500883673.png"><br> 圖表來源：<a href="https://medium.com/appworks-school/%E5%88%9D%E5%AD%B8%E8%80%85%E5%AD%B8%E6%BC%94%E7%AE%97%E6%B3%95-%E8%AB%87%E4%BB%80%E9%BA%BC%E6%98%AF%E6%BC%94%E7%AE%97%E6%B3%95%E5%92%8C%E6%99%82%E9%96%93%E8%A4%87%E9%9B%9C%E5%BA%A6-b1f6908e4b80">初學者學演算法｜談什麼是演算法和時間複雜度 by 胡程維</a></p> <p>超過 n 的多次方，時間便會呈指數性成長，一般被認定無法求解。當時間呈現指數性成長，n 也不用大，隨便抓個 n = 100，2<sup>100</sup> 這個數字可能大到超乎你想像，地球上所有原子的總數也不過 2 的 50 次方，2 的 100 次方到地球毀滅都算不完。</p> <p>若時間複雜度可用 a * n<sup>k</sup> + b * n<sup>k-1</sup> + ... 這種多項式表示，一般被認定能在可接受的時間內算出答案的，小於等於多項式時間複雜度的問題，稱為 P 問題，被視為可解的問題。</p> <p>因此 O(1)、O(n)、O(log n)、O(n<sup>2</sup>) 屬於 P 問題，O(2<sup>n</sup>) 及 O(n!) 不屬於 P 問題。</p> </li> <li><p>那麼，所以 NP 問題 NP 是指 Non-Polynominal 嗎？</p> <p>錯! NP 問題是 Non-deterministic Poloynominal 的縮寫，至於什麼是 Non-Deterministic 得先了解圖靈機，NP 源自 Non-Deterministic Turing Machine，非確定性圖靈機(NTM)，以下就來說說 NTM 是啥。</p> </li> <li><p>Non-Deterministic Turing Machine 非確定性圖靈機 (NTM) 是什麼鬼？</p> <p><a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E6%9C%BA">圖靈機</a>由英國數學家艾倫·圖靈在 1936 年提出，一部可將人類計算行為抽象化的數理邏輯機，心是一台能實現任何有限邏輯數學計算的終極邏輯機器。(圖靈就是電影<a href="https://www.storm.mg/article/287620">模仿遊戲</a>裡的天才數學家，當今資訊科學界的諾貝爾獎 - <a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E5%A5%96">圖靈獎</a> 也是以他命名)</p> <p>圖靈機的概念是有個讀寫頭(HEAD)在無限長的紙帶(TAPE)上移動，可讀取、抹除及寫入符號(SYMBOL)，並可儲存狀態(STATE)，至於移動方向、是否抹除或寫入符號則是由一套指令規則(TABLE)依狀態決定。這個架構如同當今電腦的縮影，有輸入輸出，有記憶體記錄狀態，程式邏輯即指令規則表，能實現各種複雜邏輯。同理，這個抽象的圖靈機，理論上可實現人類想得出來的所有演算法。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638774770502677196.png"><br> 圖靈機想像圖(來源：<a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E6%9C%BA">維基百科</a>)</p> <p>一般來說，圖靈機的規則在特定狀態的下一步行為是確定的，例如：狀態為 0 時往左移、為 1 時往右移，我們用的電腦即是用這種方式運作，稱之為確定性圖靈機(Deterministic Turing Mahcine，DTM)。假設還有另一種更厲害的圖靈機，當前狀態的下一步動作可以是不確定的，狀態 0 時讀寫頭可以向左也可以向右移動，像在每個分叉點不斷分裂出平行宇宙，靠著「無限並行」的計算能力，能在多條計算路徑中同時尋找正確的解答，這種神奇的圖靈機稱之為非確定性圖靈機(Non-Deterministic Turing Machine, NTM)。</p> <p>NTM 可以被想像是一台神奇機器，我們用的電腦即便能平行運算也苦哈哈跑過所有的路徑找答案；NTM 就不同了，其神奇之處在於它能一次猜中正確路徑得到結果，只要沒有無窮迴圈，再複雜演算法也可以很快得到答案。因此，只要我們有能力驗證結果是否正確，再複雜的演算法都可用 NTM 求解。想當然爾，NTM 在真實世界並不存在，至少現在還沒出現。</p> </li> <li><p>所以求解跟驗證的時間複雜度會不一樣？</p> <p>是的，有許多問題的特色是求解困難，但驗證很快。經典例子像是數獨，要花很多力氣推敲每個格子該填什麼數字，但填的數字對不對卻很好檢查。又像是拼圖，拼完一萬片拼圖要花可觀的時間，但有沒拼錯看一眼就知道了：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638774770505956890.png"></p> </li> <li><p>扯了這麼多，NP 問題到底是什麼？</p> <p>我們知道有很多問題很難求解但驗證很快，比如求解演算法時間複雜度是 O(2<sup>n</sup>)，但驗證可在多項式時間內完成，這類問題在現實世界原則上是算不出來的(需要指數時間)。但假設我們手上有神奇的 NTM 非確定型圖靈機，當求解過程遇到可以走 A 流程也可以走 B 流程，NTM 一律用猜的且總能幸運猜對跑對流程算出結果，加上能多項式時間內驗證答案正確，如此就一定可以解出答案。</p> <p>這種<strong>不一定能在多項式時間求解</strong>，但<strong>一定可以在多項式時間內驗證答案</strong>的問題，若有 Non-deterministic Turing Machine 在手就一定能在多項式時間內解出答案，符合此條件的問題就是所謂的 NP 問題。(Non-deterministic Polynominal Problem)</p> </li> <li><p>若不論運算時間長短，所有問題都是有解的嗎？</p> <p>圖靈機理論中的問題可區分為 Recognizable(可識別) 跟 Decidable(可判定) 兩種，Recognizable 問題是指圖靈機在提供輸入開始運算後，可能算完停機得到結果，也可能陷入無窮迴圈永遠停不下來。而 Decidable 問題則是一定會算到停機得到結果。對於 Recognizable 問題，就算用 NTM 也不保證能算出答案。而 Decidable 問題則一定能得到結果，只在時間長短。</p> </li> <li><p>演算法中的 Reduction 歸約是什麼？</p> <p>應用演算法解問題時， Reduction 歸約是很好用的技巧，其概念是「將 B 問題當成 A 問題的一種特例，直接使用 A 問題的演算法求解」。想像在解數學題時發現某道題目很難但跟之前做過的某種題目很像，便可將題目轉換成那道會解的題目求解。例如我們已學會除法求餘數，之後遇到判斷偶數時，將其轉換成除以 2 檢查餘數是否為零。這種「把未知難題轉換成已知問題」的技巧，在電腦科學中即所謂 Reduction（歸約）。</p> <p>若問題 B 可轉成問題 A 求解(B ≤ A)，問題 C 也可以轉成問題 A 求解(C ≤ A)，意味問題 A 的演算法必須要涵蓋 B、C 兩種案例，故其複雜度一定比 B、C 問題為高。我們會說 A 問題會比 B、C 問題難，若有能力解掉 A 問題，就一定也能解掉 B、C 問題。</p> <p>以電腦邏輯電路為例，所有的邏輯都可以用 AND、OR、NOT 閘表示，故所有運算邏輯都可以 Reduce (歸約)成 AND/OR/NOT 閘的組合，故先解決用 AND/OR/NOT 邏輯閘實現運算這個難題，便能解決任何邏輯線路問題。</p> </li> <li><p>NP-Hard、NP-Complete 問題又是什麼？</p> <p>搞懂 Reduction，就可以解釋 NP-Complete 跟 NP-Hard。<br> 前面說到，若一堆問題都可歸約成某個最難的問題，那我們只要找出這個最難問題的解法，就可一次解掉一堆問題。一堆 NP 問題歸約到的最難問題，就稱為 NP-Complete 問題。</p> <p>Cook 在 1971 年證明出第一個 NP-Complete 問題 - SAT 問題，而 1972 年 Karp 則再證明了 21 個令人聞風喪膽的組合數學與圖論問題也是 NP-Complete 問題。<a href="https://zh.wikipedia.org/zh-tw/%E5%8D%A1%E6%99%AE%E7%9A%84%E4%BA%8C%E5%8D%81%E4%B8%80%E5%80%8BNP-%E5%AE%8C%E5%85%A8%E5%95%8F%E9%A1%8C">參考</a></p> <p>由於所有 NP-complete 問題最終都可以在多項式時間內被轉換成 SAT 問題(就像再複雜的邏輯運算都能轉成 AND/OR/NOT 組合)，這就意味著，只要我們能在多項式時間內解決一個 NP-Complete 問題，就代表所有 NP-Complete 問題都能在多項式時間解決。</p> <p>除了 NP 問題，世界上還存在一些非 NP 問題(無法在多項式時間內驗證)，所有 NP 問題與非 NP 問題能在多項式時間內歸約的最難問題，我們稱之為 NP-Hard 問題。</p> </li> <li><p>所有談 NP 問題的文章都出現一張像籃球禁區的圖，它在說啥？</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638774770507639245.png"><br> 有了前述的知識，我們終於能看懂這張圖了。先看左邊的圖來個自我測驗，該圖是全世界所有問題的分類及關聯，各區域的定義分別為：</p> <ul><li>[1] P 問題 - 能在多項式時間求解的問題</li> <li>[2] NP 問題 - 不一定能多項式時間內求解，但可在多項式時間內驗證，用 NTM 非確定型圖靈機一定能解</li> <li>[3] NP-Complete 問題(NPC) - NP 問題可在多項式時間歸約成的最難問題，若能在多項式時間內解掉任一個，代表所有 NPC 問題都能在多項式時間內求解</li> <li>[4] NP-Hard 問題(NPH) - NP 或非 NP 問題可在多項式時間歸約成的最難問題</li> <li>[5] 非 NP 問題 - 無法在多項式時間內驗證的問題</li></ul> <p>所有的 P 問題一定是 NP 問題，NP-Hard 與 NP 的交集是 NP-Complete 問題。而右邊的圖則關乎你我是否能成為莫札特、高斯跟股神巴菲特(大部人應該只在乎最後一個 XD)，就是所謂 P = NP 猜想。</p> </li> <li><p>P = NP 還是 P ≠ NP 為什麼這麼重要？</p> <p>整理前面提到的幾項重點：</p> <ul><li>所有 NP 問題可以歸約成 NP-Complete (NPC) 問題</li> <li>所有 NPC 問題又可以歸約成任一個 NPC 問題</li> <li>歸約對象的問題解法可以求解原問題</li></ul> <p>由此推論：只要任一個 NPC 問題證明能在多項式時間內解開，代表所有 NPC 問題都能歸約成它也在多項式時間內解開；若 NPC 問題都能在多項式時間內解開，則全天下的 NP 問題便能歸約成這些 NPC 問題在多項式時間內解開；一旦 NP 問題能在多項式時間內解開，NP 問題就變成了 P 問題，P = NP，世上所有 NP 問題都能在多項式時間內解開。</p> <p>換句話說，若 NPC 問題有解，代表 P = NP，我們對這個世界的理解就改觀了。只要有能力(在多項式時間內)鑑別答案正確與否，確認它是 NP 問題，就一定靠著歸約成 NPC 問題在多項式時間內得到解答。這就是文章開頭 Scott Aaronson 那段話的意涵，聽得懂交響樂就是莫札特，看得出投資策略好壞就能成為巴菲特。</p> </li> <li><p>那麼，P = NP 嗎？</p> <p>這個問題目前還沒有定論，找出答案的人可以得到 100 萬美金。</p> <p>P = NP 是 2000 年美國克雷數學研究所懸賞的<a href="https://zh.wikipedia.org/zh-tw/%E5%8D%83%E7%A6%A7%E5%B9%B4%E5%A4%A7%E7%8D%8E%E9%9B%A3%E9%A1%8C">千禧年七大數學難題</a>之一，解開任何一題可獲得 100 萬美金的獎金。 前面說過 NPC 問題可歸約成其他 NPC 問題，所以只要能證明已知的 NPC 問題中的任一題可在多項式時間內解開，就等同證明 P = NP，百萬獎金入袋。(註：七大難題目前僅有龐加莱猜想被解開，但作者帥氣地拒絕領獎) 不過，由於也沒人能證明 P ≠ NP，故目前人類還不知道這個問題的答案。</p> <p>2002 年起，William Gasarch 就 P = NP 問題對研究人員進行了三次民意調查。相信 P ≠ NP 的人由 2012 83% 增加到 2019 的 88%，而 99% 的專家認為 P ≠ NP。<a href="https://en.wikipedia.org/wiki/P_versus_NP_problem">參考</a></p> </li> <li><p>假如有一天被證明 P = NP，會發生什麼事？</p> <p>如前面所提，當 P = NP，代表我們以為的 NP 問題其實都可以被解出來，人類將有能力找出生產排程、投資組合、財務預測等難題的絕對最佳解，世界經濟將會被改寫。<br> 但先別高興得太早，在 P = NP 帶來的危機面前，這些效益不值一提。</p> <p>最顯而易見的危機是現代所有的資安防護機制將會瓦解，有史以來密碼學的加密、簽章之所以無法破解，都基於破解演算法為 NP 問題的假設。一旦 P = NP，代表所有密碼學演算法都能在多項式時間內被破解，則沒有任何加密是安全的，數位簽名都可以被偽造，資訊安全瞬間歸零。感覺 P = NP 會導致世界末日啊! 不過，目前 99% 專家都相信 P ≠ NP，我們凡人倒也不用杞人憂天啦。</p> </li></ol> <p data-slug="np-problem" data-fbimg="https://i.imgur.com/6ldQDHg.png#600#337"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>科學的盡頭是玄學，而演算法的盡頭，肯定就是 NP 問題了。</p> <p>寫了幾十年程式的非科班老程序員這陣子<a href="/blog/avl-tree-playground/">回頭讀演算法</a>，花了點時間搞懂(自以為?)演算法中的玄學 - NP 問題。</p> <p>許多演算法複雜度討論，最後都指向一個終極議題 - NP 問題，甚至還會升級到哲學層次，主張「P=NP 是否成立」將決定我們所處世界的真相：</p> <p>If P = NP, then the world would be a profoundly different place than we usually assume it to be. There would be no special value in "creative leaps," no fundamental gap between solving a problem and recognizing the solution once it's found. Everyone who could appreciate a symphony would be Mozart; everyone who could follow a step-by-step argument would be Gauss; everyone who could recognize a good investment strategy would be Warren Buffett.</p> <p>如果 P = NP，那麼世界將會與我們以為的截然不同。「跳躍式創意」將不再有什麼了不起，解決問題與鑑別解答間將不存在根本差異。 能欣賞交響樂的人都能成為莫札特；理解逐步論證的人都能像高斯；每個看得懂投資策略的人都是股神巴菲特。</p> <p>以上是複雜度理論專家 <a href="https://en.wikipedia.org/wiki/Scott_Aaronson">Scott Aaronson</a> 為 NP 問題所下的註腳。</p> <p>前陣子研究 NP 問題，費了不少心思終於理解 Scott Aaronson 的那段<del>鬼</del>話是什麼意思，得到小小成就感。</p> <p>NP 問題不像排序、配對... 等具體可想像的演算法題目，它涉及數學推導及抽象概念，無法透過程式碼實際驗證，故理解很需要想像力。學習過程我產生了無數疑問，靠參考資料消化整理，一一找出說服自己的解釋，總算是梳理出一套邏輯通順的說法(至少能讓我買單)，為記錄這段艱辛歷程，這篇將用 QA 方式整理我的理解與心得，希望對也在努力搞懂 NP 問題的同學有所幫助。</p> <p>以下會假設大家對演算法的時間複雜度、圖靈機已有粗淺認識，從這個基礎出發。下面是我這次主要參考的文章，推薦大家可先讀完再回頭看我的整理。</p> <ul><li><a href="https://sprout.tw/algo2023/ppt_pdf/week02/hc-complexity_inclass.pdf">資訊之芽算法班 Complexity 投影片</a></li> <li><a href="https://lkm543.medium.com/%E6%BC%94%E7%AE%97%E6%B3%95%E4%B8%AD%E7%9A%84-np-%E5%95%8F%E9%A1%8C-db976e55b60b">為什麼要區分演算法的 NP 問題 by 李耕銘</a></li> <li><a href="https://ycc.idv.tw/algorithm-complexity-theory.html">輕鬆談演算法的複雜度分界：什麼是P, NP, NP-Complete, NP-Hard問題 by YC</a></li></ul> <ol><li><p>P 問題的 P 是什麼？</p> <p>P 問題的 P 代表 Polynominal，指多項式時間。</p> <p>演算法有快有慢，有些不論資料筆數多寡都能很快算出答案，有些則是資料筆數一多便要算到地老天荒，海枯石爛都等不到答案。資訊科學習慣「用大 O 符號」表示運算時間或耗用記憶體與資料筆數關係，計算時間與資料筆數的關係則稱為時間複雜度：</p> <ul><li>O(1) - 運算時間固定，不受資料筆數影響</li> <li>O(n) - 運算時間與資料筆數 n 成正比</li> <li>O(log n) - 運算時間與 log n 成正比</li> <li>O(n<sup>2</sup>) - 運算時間與 n 平方成正比</li> <li>O(2<sup>n</sup>) - 運算時間與 2 的 n 次方成正比</li> <li>O(n!) - 運算時間與 n 階乘成正比</li></ul> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638774770500883673.png"><br> 圖表來源：<a href="https://medium.com/appworks-school/%E5%88%9D%E5%AD%B8%E8%80%85%E5%AD%B8%E6%BC%94%E7%AE%97%E6%B3%95-%E8%AB%87%E4%BB%80%E9%BA%BC%E6%98%AF%E6%BC%94%E7%AE%97%E6%B3%95%E5%92%8C%E6%99%82%E9%96%93%E8%A4%87%E9%9B%9C%E5%BA%A6-b1f6908e4b80">初學者學演算法｜談什麼是演算法和時間複雜度 by 胡程維</a></p> <p>超過 n 的多次方，時間便會呈指數性成長，一般被認定無法求解。當時間呈現指數性成長，n 也不用大，隨便抓個 n = 100，2<sup>100</sup> 這個數字可能大到超乎你想像，地球上所有原子的總數也不過 2 的 50 次方，2 的 100 次方到地球毀滅都算不完。</p> <p>若時間複雜度可用 a * n<sup>k</sup> + b * n<sup>k-1</sup> + ... 這種多項式表示，一般被認定能在可接受的時間內算出答案的，小於等於多項式時間複雜度的問題，稱為 P 問題，被視為可解的問題。</p> <p>因此 O(1)、O(n)、O(log n)、O(n<sup>2</sup>) 屬於 P 問題，O(2<sup>n</sup>) 及 O(n!) 不屬於 P 問題。</p> </li> <li><p>那麼，所以 NP 問題 NP 是指 Non-Polynominal 嗎？</p> <p>錯! NP 問題是 Non-deterministic Poloynominal 的縮寫，至於什麼是 Non-Deterministic 得先了解圖靈機，NP 源自 Non-Deterministic Turing Machine，非確定性圖靈機(NTM)，以下就來說說 NTM 是啥。</p> </li> <li><p>Non-Deterministic Turing Machine 非確定性圖靈機 (NTM) 是什麼鬼？</p> <p><a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E6%9C%BA">圖靈機</a>由英國數學家艾倫·圖靈在 1936 年提出，一部可將人類計算行為抽象化的數理邏輯機，心是一台能實現任何有限邏輯數學計算的終極邏輯機器。(圖靈就是電影<a href="https://www.storm.mg/article/287620">模仿遊戲</a>裡的天才數學家，當今資訊科學界的諾貝爾獎 - <a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E5%A5%96">圖靈獎</a> 也是以他命名)</p> <p>圖靈機的概念是有個讀寫頭(HEAD)在無限長的紙帶(TAPE)上移動，可讀取、抹除及寫入符號(SYMBOL)，並可儲存狀態(STATE)，至於移動方向、是否抹除或寫入符號則是由一套指令規則(TABLE)依狀態決定。這個架構如同當今電腦的縮影，有輸入輸出，有記憶體記錄狀態，程式邏輯即指令規則表，能實現各種複雜邏輯。同理，這個抽象的圖靈機，理論上可實現人類想得出來的所有演算法。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638774770502677196.png"><br> 圖靈機想像圖(來源：<a href="https://zh.wikipedia.org/zh-tw/%E5%9B%BE%E7%81%B5%E6%9C%BA">維基百科</a>)</p> <p>一般來說，圖靈機的規則在特定狀態的下一步行為是確定的，例如：狀態為 0 時往左移、為 1 時往右移，我們用的電腦即是用這種方式運作，稱之為確定性圖靈機(Deterministic Turing Mahcine，DTM)。假設還有另一種更厲害的圖靈機，當前狀態的下一步動作可以是不確定的，狀態 0 時讀寫頭可以向左也可以向右移動，像在每個分叉點不斷分裂出平行宇宙，靠著「無限並行」的計算能力，能在多條計算路徑中同時尋找正確的解答，這種神奇的圖靈機稱之為非確定性圖靈機(Non-Deterministic Turing Machine, NTM)。</p> <p>NTM 可以被想像是一台神奇機器，我們用的電腦即便能平行運算也苦哈哈跑過所有的路徑找答案；NTM 就不同了，其神奇之處在於它能一次猜中正確路徑得到結果，只要沒有無窮迴圈，再複雜演算法也可以很快得到答案。因此，只要我們有能力驗證結果是否正確，再複雜的演算法都可用 NTM 求解。想當然爾，NTM 在真實世界並不存在，至少現在還沒出現。</p> </li> <li><p>所以求解跟驗證的時間複雜度會不一樣？</p> <p>是的，有許多問題的特色是求解困難，但驗證很快。經典例子像是數獨，要花很多力氣推敲每個格子該填什麼數字，但填的數字對不對卻很好檢查。又像是拼圖，拼完一萬片拼圖要花可觀的時間，但有沒拼錯看一眼就知道了：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638774770505956890.png"></p> </li> <li><p>扯了這麼多，NP 問題到底是什麼？</p> <p>我們知道有很多問題很難求解但驗證很快，比如求解演算法時間複雜度是 O(2<sup>n</sup>)，但驗證可在多項式時間內完成，這類問題在現實世界原則上是算不出來的(需要指數時間)。但假設我們手上有神奇的 NTM 非確定型圖靈機，當求解過程遇到可以走 A 流程也可以走 B 流程，NTM 一律用猜的且總能幸運猜對跑對流程算出結果，加上能多項式時間內驗證答案正確，如此就一定可以解出答案。</p> <p>這種<strong>不一定能在多項式時間求解</strong>，但<strong>一定可以在多項式時間內驗證答案</strong>的問題，若有 Non-deterministic Turing Machine 在手就一定能在多項式時間內解出答案，符合此條件的問題就是所謂的 NP 問題。(Non-deterministic Polynominal Problem)</p> </li> <li><p>若不論運算時間長短，所有問題都是有解的嗎？</p> <p>圖靈機理論中的問題可區分為 Recognizable(可識別) 跟 Decidable(可判定) 兩種，Recognizable 問題是指圖靈機在提供輸入開始運算後，可能算完停機得到結果，也可能陷入無窮迴圈永遠停不下來。而 Decidable 問題則是一定會算到停機得到結果。對於 Recognizable 問題，就算用 NTM 也不保證能算出答案。而 Decidable 問題則一定能得到結果，只在時間長短。</p> </li> <li><p>演算法中的 Reduction 歸約是什麼？</p> <p>應用演算法解問題時， Reduction 歸約是很好用的技巧，其概念是「將 B 問題當成 A 問題的一種特例，直接使用 A 問題的演算法求解」。想像在解數學題時發現某道題目很難但跟之前做過的某種題目很像，便可將題目轉換成那道會解的題目求解。例如我們已學會除法求餘數，之後遇到判斷偶數時，將其轉換成除以 2 檢查餘數是否為零。這種「把未知難題轉換成已知問題」的技巧，在電腦科學中即所謂 Reduction（歸約）。</p> <p>若問題 B 可轉成問題 A 求解(B ≤ A)，問題 C 也可以轉成問題 A 求解(C ≤ A)，意味問題 A 的演算法必須要涵蓋 B、C 兩種案例，故其複雜度一定比 B、C 問題為高。我們會說 A 問題會比 B、C 問題難，若有能力解掉 A 問題，就一定也能解掉 B、C 問題。</p> <p>以電腦邏輯電路為例，所有的邏輯都可以用 AND、OR、NOT 閘表示，故所有運算邏輯都可以 Reduce (歸約)成 AND/OR/NOT 閘的組合，故先解決用 AND/OR/NOT 邏輯閘實現運算這個難題，便能解決任何邏輯線路問題。</p> </li> <li><p>NP-Hard、NP-Complete 問題又是什麼？</p> <p>搞懂 Reduction，就可以解釋 NP-Complete 跟 NP-Hard。<br> 前面說到，若一堆問題都可歸約成某個最難的問題，那我們只要找出這個最難問題的解法，就可一次解掉一堆問題。一堆 NP 問題歸約到的最難問題，就稱為 NP-Complete 問題。</p> <p>Cook 在 1971 年證明出第一個 NP-Complete 問題 - SAT 問題，而 1972 年 Karp 則再證明了 21 個令人聞風喪膽的組合數學與圖論問題也是 NP-Complete 問題。<a href="https://zh.wikipedia.org/zh-tw/%E5%8D%A1%E6%99%AE%E7%9A%84%E4%BA%8C%E5%8D%81%E4%B8%80%E5%80%8BNP-%E5%AE%8C%E5%85%A8%E5%95%8F%E9%A1%8C">參考</a></p> <p>由於所有 NP-complete 問題最終都可以在多項式時間內被轉換成 SAT 問題(就像再複雜的邏輯運算都能轉成 AND/OR/NOT 組合)，這就意味著，只要我們能在多項式時間內解決一個 NP-Complete 問題，就代表所有 NP-Complete 問題都能在多項式時間解決。</p> <p>除了 NP 問題，世界上還存在一些非 NP 問題(無法在多項式時間內驗證)，所有 NP 問題與非 NP 問題能在多項式時間內歸約的最難問題，我們稱之為 NP-Hard 問題。</p> </li> <li><p>所有談 NP 問題的文章都出現一張像籃球禁區的圖，它在說啥？</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638774770507639245.png"><br> 有了前述的知識，我們終於能看懂這張圖了。先看左邊的圖來個自我測驗，該圖是全世界所有問題的分類及關聯，各區域的定義分別為：</p> <ul><li>[1] P 問題 - 能在多項式時間求解的問題</li> <li>[2] NP 問題 - 不一定能多項式時間內求解，但可在多項式時間內驗證，用 NTM 非確定型圖靈機一定能解</li> <li>[3] NP-Complete 問題(NPC) - NP 問題可在多項式時間歸約成的最難問題，若能在多項式時間內解掉任一個，代表所有 NPC 問題都能在多項式時間內求解</li> <li>[4] NP-Hard 問題(NPH) - NP 或非 NP 問題可在多項式時間歸約成的最難問題</li> <li>[5] 非 NP 問題 - 無法在多項式時間內驗證的問題</li></ul> <p>所有的 P 問題一定是 NP 問題，NP-Hard 與 NP 的交集是 NP-Complete 問題。而右邊的圖則關乎你我是否能成為莫札特、高斯跟股神巴菲特(大部人應該只在乎最後一個 XD)，就是所謂 P = NP 猜想。</p> </li> <li><p>P = NP 還是 P ≠ NP 為什麼這麼重要？</p> <p>整理前面提到的幾項重點：</p> <ul><li>所有 NP 問題可以歸約成 NP-Complete (NPC) 問題</li> <li>所有 NPC 問題又可以歸約成任一個 NPC 問題</li> <li>歸約對象的問題解法可以求解原問題</li></ul> <p>由此推論：只要任一個 NPC 問題證明能在多項式時間內解開，代表所有 NPC 問題都能歸約成它也在多項式時間內解開；若 NPC 問題都能在多項式時間內解開，則全天下的 NP 問題便能歸約成這些 NPC 問題在多項式時間內解開；一旦 NP 問題能在多項式時間內解開，NP 問題就變成了 P 問題，P = NP，世上所有 NP 問題都能在多項式時間內解開。</p> <p>換句話說，若 NPC 問題有解，代表 P = NP，我們對這個世界的理解就改觀了。只要有能力(在多項式時間內)鑑別答案正確與否，確認它是 NP 問題，就一定靠著歸約成 NPC 問題在多項式時間內得到解答。這就是文章開頭 Scott Aaronson 那段話的意涵，聽得懂交響樂就是莫札特，看得出投資策略好壞就能成為巴菲特。</p> </li> <li><p>那麼，P = NP 嗎？</p> <p>這個問題目前還沒有定論，找出答案的人可以得到 100 萬美金。</p> <p>P = NP 是 2000 年美國克雷數學研究所懸賞的<a href="https://zh.wikipedia.org/zh-tw/%E5%8D%83%E7%A6%A7%E5%B9%B4%E5%A4%A7%E7%8D%8E%E9%9B%A3%E9%A1%8C">千禧年七大數學難題</a>之一，解開任何一題可獲得 100 萬美金的獎金。 前面說過 NPC 問題可歸約成其他 NPC 問題，所以只要能證明已知的 NPC 問題中的任一題可在多項式時間內解開，就等同證明 P = NP，百萬獎金入袋。(註：七大難題目前僅有龐加莱猜想被解開，但作者帥氣地拒絕領獎) 不過，由於也沒人能證明 P ≠ NP，故目前人類還不知道這個問題的答案。</p> <p>2002 年起，William Gasarch 就 P = NP 問題對研究人員進行了三次民意調查。相信 P ≠ NP 的人由 2012 83% 增加到 2019 的 88%，而 99% 的專家認為 P ≠ NP。<a href="https://en.wikipedia.org/wiki/P_versus_NP_problem">參考</a></p> </li> <li><p>假如有一天被證明 P = NP，會發生什麼事？</p> <p>如前面所提，當 P = NP，代表我們以為的 NP 問題其實都可以被解出來，人類將有能力找出生產排程、投資組合、財務預測等難題的絕對最佳解，世界經濟將會被改寫。<br> 但先別高興得太早，在 P = NP 帶來的危機面前，這些效益不值一提。</p> <p>最顯而易見的危機是現代所有的資安防護機制將會瓦解，有史以來密碼學的加密、簽章之所以無法破解，都基於破解演算法為 NP 問題的假設。一旦 P = NP，代表所有密碼學演算法都能在多項式時間內被破解，則沒有任何加密是安全的，數位簽名都可以被偽造，資訊安全瞬間歸零。感覺 P = NP 會導致世界末日啊! 不過，目前 99% 專家都相信 P ≠ NP，我們凡人倒也不用杞人憂天啦。</p> </li></ol> <p data-slug="np-problem" data-fbimg="https://i.imgur.com/6ldQDHg.png#600#337"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638774770500883673.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638774770500883673.png" medium="image"/>
+    <pubDate>Thu, 13 Mar 2025 15:37:34 GMT</pubDate>
+  </item></channel>
+</rss>
