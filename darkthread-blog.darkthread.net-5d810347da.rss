@@ -30,6 +30,21 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手日記】CMD.exe 正常開啟，視窗卻不見蹤影]]></title>
+    <link>https://blog.darkthread.net/blog/off-screen-cmd/</link>
+    <itunes:title><![CDATA[【茶包射手日記】CMD.exe 正常開啟，視窗卻不見蹤影]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>遇到鳥問題。在 Windows 10 輸入 CMD 開啟命令列提示視窗，下方工作列有出現 CMD 項目，但視窗本體不見蹤影。</p> <p>身為資深 Windows 使用者，馬上想到可能是系統有記憶上次視窗開啟的桌面座標及大小，下次開啟時顯示在同一位置。我前陣子有調過螢幕，第二螢幕由右邊搬到左邊，有可能它記憶的座標在「右邊的第二螢幕」超出了可視範圍。</p> <p>定神一看，點擊工作列 CMD 項目切換焦點時有塊由小到大的黑影向右方一閃而過，把第二螢幕切到右邊，果然 CMD 視窗出現在第二螢幕，證實了我的猜測。</p> <p>爬文找到 CMD 存視窗座標及大小的 Registry 位置，在 HKCU:\Console 下，cmd.exe、Git Bash、Git CMD 各有自己的設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png"></p> <p>WinowPostion 0x01cf07f6, 相當於 X=0x7f6(2038)，Y=0x1cf(463)、WindowSize 0x00170078 則代表視窗大小為寬 120 字元高 33 字元。我的螢幕寬 1920，視窗左上角設成 2038 超出最右側，落在不可視範圍。嚴格說起是 CMD 的 Bug，遇到座標超出範圍自動拉回可視區域才是友善做法。</p> <p>知道原因，修正不難，把 WinowPostion 砍掉即可。順便練習怎麼用 PowerShell 操作：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638823149764650519.png"></p> <p>註：有讀者提到可以按 Win + 左/右 將視窗移回可視桌面範圍，但當時試過未成功，找機會再來驗證一次。</p> <p data-slug="off-screen-cmd" data-fbimg="https://i.imgur.com/frud5p3.jpeg#1280#720">A misplaced CMD window issue on Windows was resolved by adjusting Registry settings for window position and size, correcting its off-screen coordinates.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>遇到鳥問題。在 Windows 10 輸入 CMD 開啟命令列提示視窗，下方工作列有出現 CMD 項目，但視窗本體不見蹤影。</p> <p>身為資深 Windows 使用者，馬上想到可能是系統有記憶上次視窗開啟的桌面座標及大小，下次開啟時顯示在同一位置。我前陣子有調過螢幕，第二螢幕由右邊搬到左邊，有可能它記憶的座標在「右邊的第二螢幕」超出了可視範圍。</p> <p>定神一看，點擊工作列 CMD 項目切換焦點時有塊由小到大的黑影向右方一閃而過，把第二螢幕切到右邊，果然 CMD 視窗出現在第二螢幕，證實了我的猜測。</p> <p>爬文找到 CMD 存視窗座標及大小的 Registry 位置，在 HKCU:\Console 下，cmd.exe、Git Bash、Git CMD 各有自己的設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png"></p> <p>WinowPostion 0x01cf07f6, 相當於 X=0x7f6(2038)，Y=0x1cf(463)、WindowSize 0x00170078 則代表視窗大小為寬 120 字元高 33 字元。我的螢幕寬 1920，視窗左上角設成 2038 超出最右側，落在不可視範圍。嚴格說起是 CMD 的 Bug，遇到座標超出範圍自動拉回可視區域才是友善做法。</p> <p>知道原因，修正不難，把 WinowPostion 砍掉即可。順便練習怎麼用 PowerShell 操作：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638823149764650519.png"></p> <p>註：有讀者提到可以按 Win + 左/右 將視窗移回可視桌面範圍，但當時試過未成功，找機會再來驗證一次。</p> <p data-slug="off-screen-cmd" data-fbimg="https://i.imgur.com/frud5p3.jpeg#1280#720">A misplaced CMD window issue on Windows was resolved by adjusting Registry settings for window position and size, correcting its off-screen coordinates.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>遇到鳥問題。在 Windows 10 輸入 CMD 開啟命令列提示視窗，下方工作列有出現 CMD 項目，但視窗本體不見蹤影。</p> <p>身為資深 Windows 使用者，馬上想到可能是系統有記憶上次視窗開啟的桌面座標及大小，下次開啟時顯示在同一位置。我前陣子有調過螢幕，第二螢幕由右邊搬到左邊，有可能它記憶的座標在「右邊的第二螢幕」超出了可視範圍。</p> <p>定神一看，點擊工作列 CMD 項目切換焦點時有塊由小到大的黑影向右方一閃而過，把第二螢幕切到右邊，果然 CMD 視窗出現在第二螢幕，證實了我的猜測。</p> <p>爬文找到 CMD 存視窗座標及大小的 Registry 位置，在 HKCU:\Console 下，cmd.exe、Git Bash、Git CMD 各有自己的設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png"></p> <p>WinowPostion 0x01cf07f6, 相當於 X=0x7f6(2038)，Y=0x1cf(463)、WindowSize 0x00170078 則代表視窗大小為寬 120 字元高 33 字元。我的螢幕寬 1920，視窗左上角設成 2038 超出最右側，落在不可視範圍。嚴格說起是 CMD 的 Bug，遇到座標超出範圍自動拉回可視區域才是友善做法。</p> <p>知道原因，修正不難，把 WinowPostion 砍掉即可。順便練習怎麼用 PowerShell 操作：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638823149764650519.png"></p> <p>註：有讀者提到可以按 Win + 左/右 將視窗移回可視桌面範圍，但當時試過未成功，找機會再來驗證一次。</p> <p data-slug="off-screen-cmd" data-fbimg="https://i.imgur.com/frud5p3.jpeg#1280#720">A misplaced CMD window issue on Windows was resolved by adjusting Registry settings for window position and size, correcting its off-screen coordinates.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png" medium="image"/>
+    <pubDate>Thu, 08 May 2025 15:01:35 GMT</pubDate>
+  </item><item>
     <title><![CDATA[YT 筆記 - Linux 的 Rust 與 C 之爭，Rust 小組成員大破防]]></title>
     <link>https://blog.darkthread.net/blog/rust-argument-in-linux/</link>
     <itunes:title><![CDATA[YT 筆記 - Linux 的 Rust 與 C 之爭，Rust 小組成員大破防]]></itunes:title>
@@ -721,215 +736,5 @@ require github.com/dlclark/regexp2 v1.11.5 // indirect
     <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig2_638778154430901130.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig2_638778154430901130.png" medium="image"/>
     <pubDate>Mon, 17 Mar 2025 13:34:53 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[影音檔 Whisper 轉逐字稿之檔案批次處理工具]]></title>
-    <link>https://blog.darkthread.net/blog/mp4-mp3-merge-split-utils/</link>
-    <itunes:title><![CDATA[影音檔 Whisper 轉逐字稿之檔案批次處理工具]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>前陣子介紹了用 <a href="/blog/azure-whisper-api-transcribe/">Whisper API 將 MP3 轉逐字稿</a>，不需準備高檔顯卡，用一顆茶葉蛋的錢，一小時 MP3 轉逐字稿大約兩分鐘可完成，速度跟品質都頗令人滿意。</p> <p>實測過幾次，發現免不了需要一些轉檔、併檔、拆檔，基本上靠萬能的 ffmpeg 都能解決，但每次遇到要查指令敲指令很沒效率，是時侯寫成共用腳本檔或程式庫了。這篇會用 PowerShell 示範，但關鍵在 ffmpeg 參數，大家可視需要改寫成自己慣用的語言。</p> <p>整理我常用的檔案批次作業：</p> <ol><li>錄影或錄音檔有多個，想合併成一個</li> <li>來源為 .mp4，想轉成 .mp3</li> <li>Whisper 有單檔 25MB 限制，以 20 分鐘為單位將 .mp3 拆成多個檔案</li> <li>將長時間 .mp3 自動拆檔 Whisper 轉換再組裝成單一 .mp3 (檔案間加上分隔註記方便整理校正)</li></ol> <p>為此，我寫了三個函式：Az-MergeMp4s、Az-ConvertMp4ToMp3、Az-SplitMp3、Az-TranscibeLongMp3，程式邏輯不難，說穿了就是組裝好參數，召喚 ffmpeg 登場大顯神威罷了。只有幾個小地方值得一提：</p> <ul><li>合併檔案需將動態產生檔案清單文字檔，合併完成後刪除</li> <li>PowerShell 內建的 Resolve-Path 無法解析不存在路徑，要取得絕對路徑需<a href="/blog/ps-resolve-non-existing-path/">額外處理</a></li> <li>ffmpeg 的 -hide_banner 參數可隱藏又臭又長的版本、版權聲明及支援格式資訊 -v warning 只顯示警告等級以上訊息 -stats 顯示進及流計資訊</li> <li>拆分檔案時，用 -ss 指定開始秒數或 mm:ss 時間值、-t 指定長度(我習慣加 60 秒與下段重疊)</li></ul> <pre><code>function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-function Az-MergeMp4s(
-[Parameter(Mandatory=$true)][string[]]$mp4Paths,
-[Parameter(Mandatory=$true)][string]$outPath) {
-# 寫入檔案清單暫存檔
-$tmpListPath = [IO.Path]::GetTempFileName() + '.txt'
-$mp4Paths | ForEach-Object { "file '$(Resolve-Path $_)'" } | Set-Content -Path $tmpListPath
-# 將路徑解析成絕對路徑 https://blog.darkthread.net/blog/ps-resolve-non-existing-path/
-$outPath = Resolve-AbsPath $outPath
-&amp; ffmpeg -f concat -safe 0 -i $tmpListPath -c copy  -hide_banner -stats -v warning $outPath
-Remove-Item -Path $tmpListPath
-Write-Host "$outPath created." -ForegroundColor Green
-}
-function Az-ConvertMp4ToMp3($mp4Path, $outDir = '.') {
-$mp4Path = Resolve-Path $mp4Path
-$outDir = Resolve-AbsPath $outDir
-[IO.Directory]::CreateDirectory($outDir) | Out-Null
-$mp3Path = [System.IO.Path]::ChangeExtension($mp4Path, '.mp3')
-&amp; ffmpeg -i $mp4Path -hide_banner -stats -v warning $mp3Path
-Write-Host "$mp3Path created." -ForegroundColor Green
-}
-function Az-SplitMp3($mp3Path, $outDir = '.', $sliceLen = 1200, $overlap = 60)
-{
-$mp3Path = Resolve-Path $mp3Path
-[int]$duration = &amp; ffprobe -i $mp3Path -show_entries "format=duration" -v quiet -of "csv=p=0"
-$count = [math]::Ceiling($duration / $sliceLen)
-for ($i = 0; $i -lt $count; $i++) {
-$start = $i * $sliceLen
-$timeSpan = [TimeSpan]::FromSeconds($start)
-$outFile = [System.IO.Path]::Combine($outDir, [System.IO.Path]::GetFileNameWithoutExtension($mp3Path) + "-$($i+1).mp3")
-&amp; ffmpeg -i $mp3Path -ss $start -t ($sliceLen + $overlap) -hide_banner -stats -v warning -c copy $outFile
-Write-Host "Split $timeSpan to $outFile" -ForegroundColor Cyan
-}
-}
-function Az-TranscibeLongMp3(
-[Parameter(Mandatory=$true)]$mp3Path,
-[Parameter(Mandatory=$true)]$prompt,
-$outDir = '.\temp', $sliceLen = 1200,
-$whisperDelpoy = $whisperDeployName,
-$gptDeploy = $gptDeployName
-)
-{
-$outDir = Resolve-AbsPath $outDir
-[IO.Directory]::CreateDirectory($outDir) | Out-Null
-$mp3Path = Resolve-Path $mp3Path
-Az-SplitMp3 $mp3Path $outDir $sliceLen
-$files = Get-ChildItem -Path $outDir -Filter '*.mp3'
-$transcripts = @()
-$toRemove = @()
-foreach ($file in $files) {
-$transcripts += "==== $($file.Name) ===="
-$transcript = Az-WhisperTranscribe $file.FullName -language 'zh' -prompt $prompt -deployName $whisperDelpoy
-$transcriptPath = [System.IO.Path]::ChangeExtension($file.FullName, '.txt')
-$transcript | Out-File -Path $transcriptPath -Encoding utf8 # backup
-$transcripts += $transcript
-$toRemove += $file.FullName
-$toRemove += $transcriptPath
-}
-$txtPath = [System.IO.Path]::ChangeExtension($mp3Path, '.txt')
-$transcripts | Out-File -Path $txtPath -Encoding utf8
-$toRemove | ForEach-Object { Remove-Item -Path $_ -Force }
-Write-Host "Transcript saved. [$txtPath]" -ForegroundColor Green
-}
-</code></pre> <p>假設我有一堂課程錄影，分為四個檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png"></p> <p>分別執行併檔、MP4 轉 MP3、一小時 44 分的 MP3 以 20 分鐘為單位拆成六個檔：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638777692818685317.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638777396131867720.png"></p> <p>比較檔案大小時，發現一處可疑，.mp4 長度為 1:41:59，但轉換成 .mp3 後長度為 1:44:36。但檢查 part2.mp3 的起始時間確實有對上 .mp4 的 20:00 整。故推測是 Windows 跟 ffmpeg MP3 解碼器的差異造成，不影響結果。</p> <p>而自動長 .mp3 拆檔呼叫 Whisper 再組裝回單一 .txt 的簡易實測如下，轉 20 分鐘大約要 1'10"：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638777396136503557.png"></p> <p>有了以上工具，轉換長檔就簡單多了。</p> <p data-slug="mp4-mp3-merge-split-utils" data-fbimg="https://cdn.pixabay.com/photo/2022/02/26/18/24/pasta-dough-7036158_960_720.jpg#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>前陣子介紹了用 <a href="/blog/azure-whisper-api-transcribe/">Whisper API 將 MP3 轉逐字稿</a>，不需準備高檔顯卡，用一顆茶葉蛋的錢，一小時 MP3 轉逐字稿大約兩分鐘可完成，速度跟品質都頗令人滿意。</p> <p>實測過幾次，發現免不了需要一些轉檔、併檔、拆檔，基本上靠萬能的 ffmpeg 都能解決，但每次遇到要查指令敲指令很沒效率，是時侯寫成共用腳本檔或程式庫了。這篇會用 PowerShell 示範，但關鍵在 ffmpeg 參數，大家可視需要改寫成自己慣用的語言。</p> <p>整理我常用的檔案批次作業：</p> <ol><li>錄影或錄音檔有多個，想合併成一個</li> <li>來源為 .mp4，想轉成 .mp3</li> <li>Whisper 有單檔 25MB 限制，以 20 分鐘為單位將 .mp3 拆成多個檔案</li> <li>將長時間 .mp3 自動拆檔 Whisper 轉換再組裝成單一 .mp3 (檔案間加上分隔註記方便整理校正)</li></ol> <p>為此，我寫了三個函式：Az-MergeMp4s、Az-ConvertMp4ToMp3、Az-SplitMp3、Az-TranscibeLongMp3，程式邏輯不難，說穿了就是組裝好參數，召喚 ffmpeg 登場大顯神威罷了。只有幾個小地方值得一提：</p> <ul><li>合併檔案需將動態產生檔案清單文字檔，合併完成後刪除</li> <li>PowerShell 內建的 Resolve-Path 無法解析不存在路徑，要取得絕對路徑需<a href="/blog/ps-resolve-non-existing-path/">額外處理</a></li> <li>ffmpeg 的 -hide_banner 參數可隱藏又臭又長的版本、版權聲明及支援格式資訊 -v warning 只顯示警告等級以上訊息 -stats 顯示進及流計資訊</li> <li>拆分檔案時，用 -ss 指定開始秒數或 mm:ss 時間值、-t 指定長度(我習慣加 60 秒與下段重疊)</li></ul> <pre><code>function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-function Az-MergeMp4s(
-[Parameter(Mandatory=$true)][string[]]$mp4Paths,
-[Parameter(Mandatory=$true)][string]$outPath) {
-# 寫入檔案清單暫存檔
-$tmpListPath = [IO.Path]::GetTempFileName() + '.txt'
-$mp4Paths | ForEach-Object { "file '$(Resolve-Path $_)'" } | Set-Content -Path $tmpListPath
-# 將路徑解析成絕對路徑 https://blog.darkthread.net/blog/ps-resolve-non-existing-path/
-$outPath = Resolve-AbsPath $outPath
-&amp; ffmpeg -f concat -safe 0 -i $tmpListPath -c copy  -hide_banner -stats -v warning $outPath
-Remove-Item -Path $tmpListPath
-Write-Host "$outPath created." -ForegroundColor Green
-}
-function Az-ConvertMp4ToMp3($mp4Path, $outDir = '.') {
-$mp4Path = Resolve-Path $mp4Path
-$outDir = Resolve-AbsPath $outDir
-[IO.Directory]::CreateDirectory($outDir) | Out-Null
-$mp3Path = [System.IO.Path]::ChangeExtension($mp4Path, '.mp3')
-&amp; ffmpeg -i $mp4Path -hide_banner -stats -v warning $mp3Path
-Write-Host "$mp3Path created." -ForegroundColor Green
-}
-function Az-SplitMp3($mp3Path, $outDir = '.', $sliceLen = 1200, $overlap = 60)
-{
-$mp3Path = Resolve-Path $mp3Path
-[int]$duration = &amp; ffprobe -i $mp3Path -show_entries "format=duration" -v quiet -of "csv=p=0"
-$count = [math]::Ceiling($duration / $sliceLen)
-for ($i = 0; $i -lt $count; $i++) {
-$start = $i * $sliceLen
-$timeSpan = [TimeSpan]::FromSeconds($start)
-$outFile = [System.IO.Path]::Combine($outDir, [System.IO.Path]::GetFileNameWithoutExtension($mp3Path) + "-$($i+1).mp3")
-&amp; ffmpeg -i $mp3Path -ss $start -t ($sliceLen + $overlap) -hide_banner -stats -v warning -c copy $outFile
-Write-Host "Split $timeSpan to $outFile" -ForegroundColor Cyan
-}
-}
-function Az-TranscibeLongMp3(
-[Parameter(Mandatory=$true)]$mp3Path,
-[Parameter(Mandatory=$true)]$prompt,
-$outDir = '.\temp', $sliceLen = 1200,
-$whisperDelpoy = $whisperDeployName,
-$gptDeploy = $gptDeployName
-)
-{
-$outDir = Resolve-AbsPath $outDir
-[IO.Directory]::CreateDirectory($outDir) | Out-Null
-$mp3Path = Resolve-Path $mp3Path
-Az-SplitMp3 $mp3Path $outDir $sliceLen
-$files = Get-ChildItem -Path $outDir -Filter '*.mp3'
-$transcripts = @()
-$toRemove = @()
-foreach ($file in $files) {
-$transcripts += "==== $($file.Name) ===="
-$transcript = Az-WhisperTranscribe $file.FullName -language 'zh' -prompt $prompt -deployName $whisperDelpoy
-$transcriptPath = [System.IO.Path]::ChangeExtension($file.FullName, '.txt')
-$transcript | Out-File -Path $transcriptPath -Encoding utf8 # backup
-$transcripts += $transcript
-$toRemove += $file.FullName
-$toRemove += $transcriptPath
-}
-$txtPath = [System.IO.Path]::ChangeExtension($mp3Path, '.txt')
-$transcripts | Out-File -Path $txtPath -Encoding utf8
-$toRemove | ForEach-Object { Remove-Item -Path $_ -Force }
-Write-Host "Transcript saved. [$txtPath]" -ForegroundColor Green
-}
-</code></pre> <p>假設我有一堂課程錄影，分為四個檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png"></p> <p>分別執行併檔、MP4 轉 MP3、一小時 44 分的 MP3 以 20 分鐘為單位拆成六個檔：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638777692818685317.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638777396131867720.png"></p> <p>比較檔案大小時，發現一處可疑，.mp4 長度為 1:41:59，但轉換成 .mp3 後長度為 1:44:36。但檢查 part2.mp3 的起始時間確實有對上 .mp4 的 20:00 整。故推測是 Windows 跟 ffmpeg MP3 解碼器的差異造成，不影響結果。</p> <p>而自動長 .mp3 拆檔呼叫 Whisper 再組裝回單一 .txt 的簡易實測如下，轉 20 分鐘大約要 1'10"：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638777396136503557.png"></p> <p>有了以上工具，轉換長檔就簡單多了。</p> <p data-slug="mp4-mp3-merge-split-utils" data-fbimg="https://cdn.pixabay.com/photo/2022/02/26/18/24/pasta-dough-7036158_960_720.jpg#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>前陣子介紹了用 <a href="/blog/azure-whisper-api-transcribe/">Whisper API 將 MP3 轉逐字稿</a>，不需準備高檔顯卡，用一顆茶葉蛋的錢，一小時 MP3 轉逐字稿大約兩分鐘可完成，速度跟品質都頗令人滿意。</p> <p>實測過幾次，發現免不了需要一些轉檔、併檔、拆檔，基本上靠萬能的 ffmpeg 都能解決，但每次遇到要查指令敲指令很沒效率，是時侯寫成共用腳本檔或程式庫了。這篇會用 PowerShell 示範，但關鍵在 ffmpeg 參數，大家可視需要改寫成自己慣用的語言。</p> <p>整理我常用的檔案批次作業：</p> <ol><li>錄影或錄音檔有多個，想合併成一個</li> <li>來源為 .mp4，想轉成 .mp3</li> <li>Whisper 有單檔 25MB 限制，以 20 分鐘為單位將 .mp3 拆成多個檔案</li> <li>將長時間 .mp3 自動拆檔 Whisper 轉換再組裝成單一 .mp3 (檔案間加上分隔註記方便整理校正)</li></ol> <p>為此，我寫了三個函式：Az-MergeMp4s、Az-ConvertMp4ToMp3、Az-SplitMp3、Az-TranscibeLongMp3，程式邏輯不難，說穿了就是組裝好參數，召喚 ffmpeg 登場大顯神威罷了。只有幾個小地方值得一提：</p> <ul><li>合併檔案需將動態產生檔案清單文字檔，合併完成後刪除</li> <li>PowerShell 內建的 Resolve-Path 無法解析不存在路徑，要取得絕對路徑需<a href="/blog/ps-resolve-non-existing-path/">額外處理</a></li> <li>ffmpeg 的 -hide_banner 參數可隱藏又臭又長的版本、版權聲明及支援格式資訊 -v warning 只顯示警告等級以上訊息 -stats 顯示進及流計資訊</li> <li>拆分檔案時，用 -ss 指定開始秒數或 mm:ss 時間值、-t 指定長度(我習慣加 60 秒與下段重疊)</li></ul> <pre><code>function Resolve-AbsPath($relPath) {
-return $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($relPath)
-}
-function Az-MergeMp4s(
-[Parameter(Mandatory=$true)][string[]]$mp4Paths,
-[Parameter(Mandatory=$true)][string]$outPath) {
-# 寫入檔案清單暫存檔
-$tmpListPath = [IO.Path]::GetTempFileName() + '.txt'
-$mp4Paths | ForEach-Object { "file '$(Resolve-Path $_)'" } | Set-Content -Path $tmpListPath
-# 將路徑解析成絕對路徑 https://blog.darkthread.net/blog/ps-resolve-non-existing-path/
-$outPath = Resolve-AbsPath $outPath
-&amp; ffmpeg -f concat -safe 0 -i $tmpListPath -c copy  -hide_banner -stats -v warning $outPath
-Remove-Item -Path $tmpListPath
-Write-Host "$outPath created." -ForegroundColor Green
-}
-function Az-ConvertMp4ToMp3($mp4Path, $outDir = '.') {
-$mp4Path = Resolve-Path $mp4Path
-$outDir = Resolve-AbsPath $outDir
-[IO.Directory]::CreateDirectory($outDir) | Out-Null
-$mp3Path = [System.IO.Path]::ChangeExtension($mp4Path, '.mp3')
-&amp; ffmpeg -i $mp4Path -hide_banner -stats -v warning $mp3Path
-Write-Host "$mp3Path created." -ForegroundColor Green
-}
-function Az-SplitMp3($mp3Path, $outDir = '.', $sliceLen = 1200, $overlap = 60)
-{
-$mp3Path = Resolve-Path $mp3Path
-[int]$duration = &amp; ffprobe -i $mp3Path -show_entries "format=duration" -v quiet -of "csv=p=0"
-$count = [math]::Ceiling($duration / $sliceLen)
-for ($i = 0; $i -lt $count; $i++) {
-$start = $i * $sliceLen
-$timeSpan = [TimeSpan]::FromSeconds($start)
-$outFile = [System.IO.Path]::Combine($outDir, [System.IO.Path]::GetFileNameWithoutExtension($mp3Path) + "-$($i+1).mp3")
-&amp; ffmpeg -i $mp3Path -ss $start -t ($sliceLen + $overlap) -hide_banner -stats -v warning -c copy $outFile
-Write-Host "Split $timeSpan to $outFile" -ForegroundColor Cyan
-}
-}
-function Az-TranscibeLongMp3(
-[Parameter(Mandatory=$true)]$mp3Path,
-[Parameter(Mandatory=$true)]$prompt,
-$outDir = '.\temp', $sliceLen = 1200,
-$whisperDelpoy = $whisperDeployName,
-$gptDeploy = $gptDeployName
-)
-{
-$outDir = Resolve-AbsPath $outDir
-[IO.Directory]::CreateDirectory($outDir) | Out-Null
-$mp3Path = Resolve-Path $mp3Path
-Az-SplitMp3 $mp3Path $outDir $sliceLen
-$files = Get-ChildItem -Path $outDir -Filter '*.mp3'
-$transcripts = @()
-$toRemove = @()
-foreach ($file in $files) {
-$transcripts += "==== $($file.Name) ===="
-$transcript = Az-WhisperTranscribe $file.FullName -language 'zh' -prompt $prompt -deployName $whisperDelpoy
-$transcriptPath = [System.IO.Path]::ChangeExtension($file.FullName, '.txt')
-$transcript | Out-File -Path $transcriptPath -Encoding utf8 # backup
-$transcripts += $transcript
-$toRemove += $file.FullName
-$toRemove += $transcriptPath
-}
-$txtPath = [System.IO.Path]::ChangeExtension($mp3Path, '.txt')
-$transcripts | Out-File -Path $txtPath -Encoding utf8
-$toRemove | ForEach-Object { Remove-Item -Path $_ -Force }
-Write-Host "Transcript saved. [$txtPath]" -ForegroundColor Green
-}
-</code></pre> <p>假設我有一堂課程錄影，分為四個檔案：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png"></p> <p>分別執行併檔、MP4 轉 MP3、一小時 44 分的 MP3 以 20 分鐘為單位拆成六個檔：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638777692818685317.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638777396131867720.png"></p> <p>比較檔案大小時，發現一處可疑，.mp4 長度為 1:41:59，但轉換成 .mp3 後長度為 1:44:36。但檢查 part2.mp3 的起始時間確實有對上 .mp4 的 20:00 整。故推測是 Windows 跟 ffmpeg MP3 解碼器的差異造成，不影響結果。</p> <p>而自動長 .mp3 拆檔呼叫 Whisper 再組裝回單一 .txt 的簡易實測如下，轉 20 分鐘大約要 1'10"：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638777396136503557.png"></p> <p>有了以上工具，轉換長檔就簡單多了。</p> <p data-slug="mp4-mp3-merge-split-utils" data-fbimg="https://cdn.pixabay.com/photo/2022/02/26/18/24/pasta-dough-7036158_960_720.jpg#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638777396128786404.png" medium="image"/>
-    <pubDate>Sun, 16 Mar 2025 16:25:03 GMT</pubDate>
   </item></channel>
 </rss>
