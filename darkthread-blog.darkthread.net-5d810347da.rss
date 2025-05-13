@@ -30,6 +30,663 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[前端小技 - 單一網頁模擬多頁切換(支援回上頁)]]></title>
+    <link>https://blog.darkthread.net/blog/multipage-nav-in-single-html/</link>
+    <itunes:title><![CDATA[前端小技 - 單一網頁模擬多頁切換(支援回上頁)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>被問到如何在單一 HTML 網頁做出多頁切換效果。</p> <p>情境是一個只有兩三頁的超迷你網站，一切從簡，想改用單一 HTML 檔打死，但要有點選導覽頁籤切換不同頁面的效果，還必須能用瀏覽器的上一頁下一頁鈕跳轉。</p> <p>這個需求技術難度不高，只用上古時代的 HTML/JavaScript 規格也能搞定。(查了一下，我真的在十幾年前<a href="/blog/ajax-goback/">玩過</a>，不過真要落實 IE 相容得動用 jQuery，2025 年 IE 都滅絕了，還是別為難自己，就用現代 JavaScript 來寫比較輕鬆自在)</p> <p>點頁籤切換頁面好辦，網頁放多個 div 裝不同頁面內容，用 display: none / block 控制一次只顯示一個。至於回上頁，則可借用 URL 的「#標籤」實作，切換頁面時在 URL 加上 #about、#services、#contact 指定要顯示的頁面，掛載 hashchange 事件在「#標籤」異動時進行切換。瀏覽器歷程記錄會包含 # 變化，如此按上一頁便可回到前一個「#標籤」顯示前一頁面。</p> <p>我做了一個簡單範例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638827363522376421.gif"></p> <p>程式碼如下，大約 100 行搞定。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;單一 HTML 模擬多頁切換&lt;/title&gt;
+&lt;style&gt;
+body {
+margin: 0;
+font-family: 微軟正黑體, Arial, sans-serif;
+}
+header, footer {
+background: #49487a;
+color: #fff;
+padding: 1em 2em;
+}
+header {
+position: relative;
+.logo {
+font-size: 1.5em;
+font-weight: bold;
+}
+nav {
+position: absolute;
+right: 0;
+bottom: 1em;
+a {
+color: #fff;
+text-decoration: none;
+margin-right: 1.5em;
+font-weight: bold;
+}
+}
+}
+main {
+padding: 2em;
+min-height: 200px;
+}
+footer {
+text-align: center;
+font-size: 0.95em;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+&lt;span class="logo"&gt;
+&lt;strong&gt;關洛鷹技術顧問公司&lt;/strong&gt;
+&lt;/span&gt;
+&lt;nav&gt;
+&lt;a href="#about"&gt;關於我們&lt;/a&gt;
+&lt;a href="#services"&gt;服務項目&lt;/a&gt;
+&lt;a href="#contact"&gt;連絡方式&lt;/a&gt;
+&lt;/nav&gt;
+&lt;/header&gt;
+&lt;main&gt;
+&lt;section id="about"&gt;
+&lt;h2&gt;關於我們&lt;/h2&gt;
+&lt;p&gt;我們是一群資深茶包射手組成的技術團隊，您甚至不需開口，我們就知道問題所在，提供您最優質的資訊顧問與系統整合服務。&lt;/p&gt;
+&lt;/section&gt;
+&lt;section id="services" style="display:none;"&gt;
+&lt;h2&gt;服務項目&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;疑難雜症診斷&lt;/li&gt;
+&lt;li&gt;系統故障排除&lt;/li&gt;
+&lt;li&gt;資訊技術諮詢&lt;/li&gt;
+&lt;li&gt;系統架構建議&lt;/li&gt;
+&lt;li&gt;系統整合開發&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/section&gt;
+&lt;section id="contact" style="display:none;"&gt;
+&lt;h2&gt;連絡方式&lt;/h2&gt;
+&lt;p&gt;Email: info@company.com&lt;br&gt;
+電話: (123) 456-7890&lt;/p&gt;
+&lt;/section&gt;
+&lt;/main&gt;
+&lt;footer&gt;
+&amp;copy; 2025 Example Corp. All rights reserved.
+&lt;/footer&gt;
+&lt;script&gt;
+// 取得所有切換頁 section id 清單
+const pageIds = [...document.querySelectorAll('main &gt; section')].map(section =&gt; section.id);
+function switchPage() {
+// 由 hash 值決定顯示頁面
+const hash = location.hash.replace('#', '') || 'about';
+if (pageIds.includes(hash)) {
+// 切換 section，顯示 is 與 hash 相同者，其餘隱藏
+document.querySelectorAll('main &gt; section').forEach(section =&gt; {
+section.style.display = section.id === hash ? 'block' : 'none';
+});
+}
+}
+window.addEventListener('hashchange', switchPage);
+switchPage();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>除了用香草 JavaScript 自己從頭刻，Bootstrap 的<a href="https://bootstrap5.hexschool.com/docs/5.0/components/navs-tabs/">導覽與頁籤</a>也能實現類似的頁面切換，但缺少「#標籤」歷程記錄回上頁的功能，我們可以比照上面的寫法加上。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;單一 HTML 模擬多頁切換 (Bootstrap 版)&lt;/title&gt;
+&lt;link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"&gt;
+&lt;style&gt;
+body {
+margin: 0;
+font-family: 微軟正黑體, Arial, sans-serif;
+}
+header,
+footer {
+background: #49487a;
+color: #fff;
+padding: 1em 2em;
+}
+header {
+position: relative;
+.logo {
+font-size: 1.5em;
+font-weight: bold;
+}
+.nav {
+position: absolute;
+right: 0;
+bottom: 0.5em;
+button {
+color: white;
+&amp;:hover {
+color: yellow;
+}
+}
+}
+}
+main {
+padding: 2em;
+min-height: 250px;
+h2 {
+font-size: 1.4em;
+margin-bottom: 0.5em;
+}
+}
+footer {
+text-align: center;
+font-size: 0.95em;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+&lt;span class="logo"&gt;
+&lt;strong&gt;關洛鷹技術顧問公司&lt;/strong&gt;
+&lt;/span&gt;
+&lt;ul class="nav" id="myTab" role="tablist"&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link active" id="about-tab" data-bs-toggle="tab" data-bs-target="#about"
+type="button"&gt;關於我們&lt;/button&gt;
+&lt;/li&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button"
+&gt;服務項目&lt;/button&gt;
+&lt;/li&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button"
+&gt;連絡方式&lt;/button&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/header&gt;
+&lt;main&gt;
+&lt;div class="tab-content" id="myTabContent"&gt;
+&lt;div class="tab-pane fade show active" id="about"&gt;
+&lt;h2&gt;關於我們&lt;/h2&gt;
+&lt;p&gt;我們是一群資深茶包射手組成的技術團隊，您甚至不需開口，我們就知道問題所在，提供您最優質的資訊顧問與系統整合服務。&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="tab-pane fade" id="services"&gt;
+&lt;h2&gt;服務項目&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;疑難雜症診斷&lt;/li&gt;
+&lt;li&gt;系統故障排除&lt;/li&gt;
+&lt;li&gt;資訊技術諮詢&lt;/li&gt;
+&lt;li&gt;系統架構建議&lt;/li&gt;
+&lt;li&gt;系統整合開發&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="tab-pane fade" id="contact"&gt;
+&lt;h2&gt;連絡方式&lt;/h2&gt;
+&lt;p&gt;Email: info@company.com&lt;br&gt;
+電話: (123) 456-7890&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/main&gt;
+&lt;footer&gt;
+&amp;copy; 2025 Example Corp. All rights reserved.
+&lt;/footer&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+const tabIds = [...document.querySelectorAll('main &gt; .tab-content &gt; .tab-pane')].map(tab =&gt; tab.id);
+document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(btn =&gt; {
+btn.addEventListener('shown.bs.tab', function (e) {
+location.hash = '#' + e.target.getAttribute('data-bs-target').replace('#', '');
+});
+});
+function activateTabFromHash() {
+const hash = location.hash.replace('#', '') || 'about';
+if (!tabIds.includes(hash)) return;
+const tabBtn = document.querySelector(`button[data-bs-target="#${hash}"]`);
+if (tabBtn &amp;&amp; !tabBtn.classList.contains('active')) {
+new bootstrap.Tab(tabBtn).show();
+}
+}
+window.addEventListener('hashchange', activateTabFromHash);
+activateTabFromHash();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>實測效果如下，大家可隨喜選用。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638827363528208458.gif"></p> <p data-slug="multipage-nav-in-single-html" data-title-en="Create multi-page navigation within a single HTML" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2016/11/28/10/48/child-1864718_960_720.jpg#960#720">Create multi-page navigation within a single HTML using div elements with display: none/block for page visibility and URL hash for browser navigation. Bootstrap tabs can also achieve this with additional hash support for history navigation.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>被問到如何在單一 HTML 網頁做出多頁切換效果。</p> <p>情境是一個只有兩三頁的超迷你網站，一切從簡，想改用單一 HTML 檔打死，但要有點選導覽頁籤切換不同頁面的效果，還必須能用瀏覽器的上一頁下一頁鈕跳轉。</p> <p>這個需求技術難度不高，只用上古時代的 HTML/JavaScript 規格也能搞定。(查了一下，我真的在十幾年前<a href="/blog/ajax-goback/">玩過</a>，不過真要落實 IE 相容得動用 jQuery，2025 年 IE 都滅絕了，還是別為難自己，就用現代 JavaScript 來寫比較輕鬆自在)</p> <p>點頁籤切換頁面好辦，網頁放多個 div 裝不同頁面內容，用 display: none / block 控制一次只顯示一個。至於回上頁，則可借用 URL 的「#標籤」實作，切換頁面時在 URL 加上 #about、#services、#contact 指定要顯示的頁面，掛載 hashchange 事件在「#標籤」異動時進行切換。瀏覽器歷程記錄會包含 # 變化，如此按上一頁便可回到前一個「#標籤」顯示前一頁面。</p> <p>我做了一個簡單範例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638827363522376421.gif"></p> <p>程式碼如下，大約 100 行搞定。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;單一 HTML 模擬多頁切換&lt;/title&gt;
+&lt;style&gt;
+body {
+margin: 0;
+font-family: 微軟正黑體, Arial, sans-serif;
+}
+header, footer {
+background: #49487a;
+color: #fff;
+padding: 1em 2em;
+}
+header {
+position: relative;
+.logo {
+font-size: 1.5em;
+font-weight: bold;
+}
+nav {
+position: absolute;
+right: 0;
+bottom: 1em;
+a {
+color: #fff;
+text-decoration: none;
+margin-right: 1.5em;
+font-weight: bold;
+}
+}
+}
+main {
+padding: 2em;
+min-height: 200px;
+}
+footer {
+text-align: center;
+font-size: 0.95em;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+&lt;span class="logo"&gt;
+&lt;strong&gt;關洛鷹技術顧問公司&lt;/strong&gt;
+&lt;/span&gt;
+&lt;nav&gt;
+&lt;a href="#about"&gt;關於我們&lt;/a&gt;
+&lt;a href="#services"&gt;服務項目&lt;/a&gt;
+&lt;a href="#contact"&gt;連絡方式&lt;/a&gt;
+&lt;/nav&gt;
+&lt;/header&gt;
+&lt;main&gt;
+&lt;section id="about"&gt;
+&lt;h2&gt;關於我們&lt;/h2&gt;
+&lt;p&gt;我們是一群資深茶包射手組成的技術團隊，您甚至不需開口，我們就知道問題所在，提供您最優質的資訊顧問與系統整合服務。&lt;/p&gt;
+&lt;/section&gt;
+&lt;section id="services" style="display:none;"&gt;
+&lt;h2&gt;服務項目&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;疑難雜症診斷&lt;/li&gt;
+&lt;li&gt;系統故障排除&lt;/li&gt;
+&lt;li&gt;資訊技術諮詢&lt;/li&gt;
+&lt;li&gt;系統架構建議&lt;/li&gt;
+&lt;li&gt;系統整合開發&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/section&gt;
+&lt;section id="contact" style="display:none;"&gt;
+&lt;h2&gt;連絡方式&lt;/h2&gt;
+&lt;p&gt;Email: info@company.com&lt;br&gt;
+電話: (123) 456-7890&lt;/p&gt;
+&lt;/section&gt;
+&lt;/main&gt;
+&lt;footer&gt;
+&amp;copy; 2025 Example Corp. All rights reserved.
+&lt;/footer&gt;
+&lt;script&gt;
+// 取得所有切換頁 section id 清單
+const pageIds = [...document.querySelectorAll('main &gt; section')].map(section =&gt; section.id);
+function switchPage() {
+// 由 hash 值決定顯示頁面
+const hash = location.hash.replace('#', '') || 'about';
+if (pageIds.includes(hash)) {
+// 切換 section，顯示 is 與 hash 相同者，其餘隱藏
+document.querySelectorAll('main &gt; section').forEach(section =&gt; {
+section.style.display = section.id === hash ? 'block' : 'none';
+});
+}
+}
+window.addEventListener('hashchange', switchPage);
+switchPage();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>除了用香草 JavaScript 自己從頭刻，Bootstrap 的<a href="https://bootstrap5.hexschool.com/docs/5.0/components/navs-tabs/">導覽與頁籤</a>也能實現類似的頁面切換，但缺少「#標籤」歷程記錄回上頁的功能，我們可以比照上面的寫法加上。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;單一 HTML 模擬多頁切換 (Bootstrap 版)&lt;/title&gt;
+&lt;link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"&gt;
+&lt;style&gt;
+body {
+margin: 0;
+font-family: 微軟正黑體, Arial, sans-serif;
+}
+header,
+footer {
+background: #49487a;
+color: #fff;
+padding: 1em 2em;
+}
+header {
+position: relative;
+.logo {
+font-size: 1.5em;
+font-weight: bold;
+}
+.nav {
+position: absolute;
+right: 0;
+bottom: 0.5em;
+button {
+color: white;
+&amp;:hover {
+color: yellow;
+}
+}
+}
+}
+main {
+padding: 2em;
+min-height: 250px;
+h2 {
+font-size: 1.4em;
+margin-bottom: 0.5em;
+}
+}
+footer {
+text-align: center;
+font-size: 0.95em;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+&lt;span class="logo"&gt;
+&lt;strong&gt;關洛鷹技術顧問公司&lt;/strong&gt;
+&lt;/span&gt;
+&lt;ul class="nav" id="myTab" role="tablist"&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link active" id="about-tab" data-bs-toggle="tab" data-bs-target="#about"
+type="button"&gt;關於我們&lt;/button&gt;
+&lt;/li&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button"
+&gt;服務項目&lt;/button&gt;
+&lt;/li&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button"
+&gt;連絡方式&lt;/button&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/header&gt;
+&lt;main&gt;
+&lt;div class="tab-content" id="myTabContent"&gt;
+&lt;div class="tab-pane fade show active" id="about"&gt;
+&lt;h2&gt;關於我們&lt;/h2&gt;
+&lt;p&gt;我們是一群資深茶包射手組成的技術團隊，您甚至不需開口，我們就知道問題所在，提供您最優質的資訊顧問與系統整合服務。&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="tab-pane fade" id="services"&gt;
+&lt;h2&gt;服務項目&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;疑難雜症診斷&lt;/li&gt;
+&lt;li&gt;系統故障排除&lt;/li&gt;
+&lt;li&gt;資訊技術諮詢&lt;/li&gt;
+&lt;li&gt;系統架構建議&lt;/li&gt;
+&lt;li&gt;系統整合開發&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="tab-pane fade" id="contact"&gt;
+&lt;h2&gt;連絡方式&lt;/h2&gt;
+&lt;p&gt;Email: info@company.com&lt;br&gt;
+電話: (123) 456-7890&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/main&gt;
+&lt;footer&gt;
+&amp;copy; 2025 Example Corp. All rights reserved.
+&lt;/footer&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+const tabIds = [...document.querySelectorAll('main &gt; .tab-content &gt; .tab-pane')].map(tab =&gt; tab.id);
+document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(btn =&gt; {
+btn.addEventListener('shown.bs.tab', function (e) {
+location.hash = '#' + e.target.getAttribute('data-bs-target').replace('#', '');
+});
+});
+function activateTabFromHash() {
+const hash = location.hash.replace('#', '') || 'about';
+if (!tabIds.includes(hash)) return;
+const tabBtn = document.querySelector(`button[data-bs-target="#${hash}"]`);
+if (tabBtn &amp;&amp; !tabBtn.classList.contains('active')) {
+new bootstrap.Tab(tabBtn).show();
+}
+}
+window.addEventListener('hashchange', activateTabFromHash);
+activateTabFromHash();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>實測效果如下，大家可隨喜選用。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638827363528208458.gif"></p> <p data-slug="multipage-nav-in-single-html" data-title-en="Create multi-page navigation within a single HTML" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2016/11/28/10/48/child-1864718_960_720.jpg#960#720">Create multi-page navigation within a single HTML using div elements with display: none/block for page visibility and URL hash for browser navigation. Bootstrap tabs can also achieve this with additional hash support for history navigation.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>被問到如何在單一 HTML 網頁做出多頁切換效果。</p> <p>情境是一個只有兩三頁的超迷你網站，一切從簡，想改用單一 HTML 檔打死，但要有點選導覽頁籤切換不同頁面的效果，還必須能用瀏覽器的上一頁下一頁鈕跳轉。</p> <p>這個需求技術難度不高，只用上古時代的 HTML/JavaScript 規格也能搞定。(查了一下，我真的在十幾年前<a href="/blog/ajax-goback/">玩過</a>，不過真要落實 IE 相容得動用 jQuery，2025 年 IE 都滅絕了，還是別為難自己，就用現代 JavaScript 來寫比較輕鬆自在)</p> <p>點頁籤切換頁面好辦，網頁放多個 div 裝不同頁面內容，用 display: none / block 控制一次只顯示一個。至於回上頁，則可借用 URL 的「#標籤」實作，切換頁面時在 URL 加上 #about、#services、#contact 指定要顯示的頁面，掛載 hashchange 事件在「#標籤」異動時進行切換。瀏覽器歷程記錄會包含 # 變化，如此按上一頁便可回到前一個「#標籤」顯示前一頁面。</p> <p>我做了一個簡單範例：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638827363522376421.gif"></p> <p>程式碼如下，大約 100 行搞定。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;單一 HTML 模擬多頁切換&lt;/title&gt;
+&lt;style&gt;
+body {
+margin: 0;
+font-family: 微軟正黑體, Arial, sans-serif;
+}
+header, footer {
+background: #49487a;
+color: #fff;
+padding: 1em 2em;
+}
+header {
+position: relative;
+.logo {
+font-size: 1.5em;
+font-weight: bold;
+}
+nav {
+position: absolute;
+right: 0;
+bottom: 1em;
+a {
+color: #fff;
+text-decoration: none;
+margin-right: 1.5em;
+font-weight: bold;
+}
+}
+}
+main {
+padding: 2em;
+min-height: 200px;
+}
+footer {
+text-align: center;
+font-size: 0.95em;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+&lt;span class="logo"&gt;
+&lt;strong&gt;關洛鷹技術顧問公司&lt;/strong&gt;
+&lt;/span&gt;
+&lt;nav&gt;
+&lt;a href="#about"&gt;關於我們&lt;/a&gt;
+&lt;a href="#services"&gt;服務項目&lt;/a&gt;
+&lt;a href="#contact"&gt;連絡方式&lt;/a&gt;
+&lt;/nav&gt;
+&lt;/header&gt;
+&lt;main&gt;
+&lt;section id="about"&gt;
+&lt;h2&gt;關於我們&lt;/h2&gt;
+&lt;p&gt;我們是一群資深茶包射手組成的技術團隊，您甚至不需開口，我們就知道問題所在，提供您最優質的資訊顧問與系統整合服務。&lt;/p&gt;
+&lt;/section&gt;
+&lt;section id="services" style="display:none;"&gt;
+&lt;h2&gt;服務項目&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;疑難雜症診斷&lt;/li&gt;
+&lt;li&gt;系統故障排除&lt;/li&gt;
+&lt;li&gt;資訊技術諮詢&lt;/li&gt;
+&lt;li&gt;系統架構建議&lt;/li&gt;
+&lt;li&gt;系統整合開發&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/section&gt;
+&lt;section id="contact" style="display:none;"&gt;
+&lt;h2&gt;連絡方式&lt;/h2&gt;
+&lt;p&gt;Email: info@company.com&lt;br&gt;
+電話: (123) 456-7890&lt;/p&gt;
+&lt;/section&gt;
+&lt;/main&gt;
+&lt;footer&gt;
+&amp;copy; 2025 Example Corp. All rights reserved.
+&lt;/footer&gt;
+&lt;script&gt;
+// 取得所有切換頁 section id 清單
+const pageIds = [...document.querySelectorAll('main &gt; section')].map(section =&gt; section.id);
+function switchPage() {
+// 由 hash 值決定顯示頁面
+const hash = location.hash.replace('#', '') || 'about';
+if (pageIds.includes(hash)) {
+// 切換 section，顯示 is 與 hash 相同者，其餘隱藏
+document.querySelectorAll('main &gt; section').forEach(section =&gt; {
+section.style.display = section.id === hash ? 'block' : 'none';
+});
+}
+}
+window.addEventListener('hashchange', switchPage);
+switchPage();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>除了用香草 JavaScript 自己從頭刻，Bootstrap 的<a href="https://bootstrap5.hexschool.com/docs/5.0/components/navs-tabs/">導覽與頁籤</a>也能實現類似的頁面切換，但缺少「#標籤」歷程記錄回上頁的功能，我們可以比照上面的寫法加上。</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;單一 HTML 模擬多頁切換 (Bootstrap 版)&lt;/title&gt;
+&lt;link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"&gt;
+&lt;style&gt;
+body {
+margin: 0;
+font-family: 微軟正黑體, Arial, sans-serif;
+}
+header,
+footer {
+background: #49487a;
+color: #fff;
+padding: 1em 2em;
+}
+header {
+position: relative;
+.logo {
+font-size: 1.5em;
+font-weight: bold;
+}
+.nav {
+position: absolute;
+right: 0;
+bottom: 0.5em;
+button {
+color: white;
+&amp;:hover {
+color: yellow;
+}
+}
+}
+}
+main {
+padding: 2em;
+min-height: 250px;
+h2 {
+font-size: 1.4em;
+margin-bottom: 0.5em;
+}
+}
+footer {
+text-align: center;
+font-size: 0.95em;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+&lt;span class="logo"&gt;
+&lt;strong&gt;關洛鷹技術顧問公司&lt;/strong&gt;
+&lt;/span&gt;
+&lt;ul class="nav" id="myTab" role="tablist"&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link active" id="about-tab" data-bs-toggle="tab" data-bs-target="#about"
+type="button"&gt;關於我們&lt;/button&gt;
+&lt;/li&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button"
+&gt;服務項目&lt;/button&gt;
+&lt;/li&gt;
+&lt;li class="nav-item" role="presentation"&gt;
+&lt;button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button"
+&gt;連絡方式&lt;/button&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/header&gt;
+&lt;main&gt;
+&lt;div class="tab-content" id="myTabContent"&gt;
+&lt;div class="tab-pane fade show active" id="about"&gt;
+&lt;h2&gt;關於我們&lt;/h2&gt;
+&lt;p&gt;我們是一群資深茶包射手組成的技術團隊，您甚至不需開口，我們就知道問題所在，提供您最優質的資訊顧問與系統整合服務。&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="tab-pane fade" id="services"&gt;
+&lt;h2&gt;服務項目&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;疑難雜症診斷&lt;/li&gt;
+&lt;li&gt;系統故障排除&lt;/li&gt;
+&lt;li&gt;資訊技術諮詢&lt;/li&gt;
+&lt;li&gt;系統架構建議&lt;/li&gt;
+&lt;li&gt;系統整合開發&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="tab-pane fade" id="contact"&gt;
+&lt;h2&gt;連絡方式&lt;/h2&gt;
+&lt;p&gt;Email: info@company.com&lt;br&gt;
+電話: (123) 456-7890&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/main&gt;
+&lt;footer&gt;
+&amp;copy; 2025 Example Corp. All rights reserved.
+&lt;/footer&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+const tabIds = [...document.querySelectorAll('main &gt; .tab-content &gt; .tab-pane')].map(tab =&gt; tab.id);
+document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(btn =&gt; {
+btn.addEventListener('shown.bs.tab', function (e) {
+location.hash = '#' + e.target.getAttribute('data-bs-target').replace('#', '');
+});
+});
+function activateTabFromHash() {
+const hash = location.hash.replace('#', '') || 'about';
+if (!tabIds.includes(hash)) return;
+const tabBtn = document.querySelector(`button[data-bs-target="#${hash}"]`);
+if (tabBtn &amp;&amp; !tabBtn.classList.contains('active')) {
+new bootstrap.Tab(tabBtn).show();
+}
+}
+window.addEventListener('hashchange', activateTabFromHash);
+activateTabFromHash();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>實測效果如下，大家可隨喜選用。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638827363528208458.gif"></p> <p data-slug="multipage-nav-in-single-html" data-title-en="Create multi-page navigation within a single HTML" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2016/11/28/10/48/child-1864718_960_720.jpg#960#720">Create multi-page navigation within a single HTML using div elements with display: none/block for page visibility and URL hash for browser navigation. Bootstrap tabs can also achieve this with additional hash support for history navigation.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638827363522376421.gif"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638827363522376421.gif" medium="image"/>
+    <pubDate>Tue, 13 May 2025 12:31:45 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Ubuntu 22.04 安裝新版 Golang / Node.js]]></title>
     <link>https://blog.darkthread.net/blog/ubuntu2204-apt-go-nodejs-version/</link>
     <itunes:title><![CDATA[Ubuntu 22.04 安裝新版 Golang / Node.js]]></itunes:title>
@@ -542,19 +1199,5 @@ at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost
     <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638785994777189369.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638785994777189369.jpg" medium="image"/>
     <pubDate>Wed, 26 Mar 2025 15:23:14 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[PQC 筆記 3 - NIST PQC 加密及簽章標準現況 2025 Q1]]></title>
-    <link>https://blog.darkthread.net/blog/nist-pqc-std-updates/</link>
-    <itunes:title><![CDATA[PQC 筆記 3 - NIST PQC 加密及簽章標準現況 2025 Q1]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>對文章標題感到困惑的朋友，推薦以下先導文章及 <a href="/blog/category/pqc">PQC 系列文章</a>：</p> <ul><li><a href="/blog/q-day/">閒聊 - Y2Q 倒數與 Q-Day，當代資訊安全防線即將崩潰</a></li> <li><a href="/blog/pqc-notes-1-threat/">PQC 筆記 1 - 靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/pqc-notes2-algorithms/">PQC 筆記 2 - 簡單認識後量子時代密碼學演算法</a></li></ul> <p>話說，距 2016 NIST 公開徵選 PQC 演算法，目前已將邁入第 9 年，官方版標準也已陸續出爐。先回顧 NIST PQC 標準化時間軸：</p> <ol><li><p>前期準備階段 (2015-2016)</p> <p>2015年4月：NIST 舉辦「後量子世界網路安全研討會」<br> 2016年4月：NIST 發布《Report on Post-Quantum Cryptography》(NISTIR 8105) 報告<br> 2016年12月：NIST 正式向全球徵求 PQC 演算法提案</p> </li> <li><p>第一輪評估 (2017-2018)</p> <p>2017年11月：提案提交截止，共收到來自 25 個國家 82 份提案<br> 2017年12月：NIST 公布第一輪預選演算法，有 69 個提案被認定「完整且適當」<br> 2018年4月：第一屆 PQC 標準化會議，提交者演講發表</p> </li> <li><p>第二輪評估 (2019)</p> <p>2019年1月：NIST 公布第二輪預選演算法，縮減至 26 個候選演算法<br> 2019年8月：第二屆 PQC 標準化會議</p> </li> <li><p>第三輪評估 (2020-2021)</p> <p>2020年7月：NIST 宣布第三輪候選算法，包括 7 個決賽入圍者和 8 個替代演算法<br> 2021年6月：第三屆 PQC 標準化會議</p> </li> <li><p>最終評選與標準化 (2022-2024)</p> <p>2022年7月：NIST 確定四種優勝算法：CRYSTALS-Kyber、CRYSTALS-Dilithium、FALCON 和 SPHINCS+<br> 2022年11月：第四屆PQC標準化會議（線上形式）<br> 2023年8月：NIST 發布三份標準草案 RFC<br> 2024年4月：第五屆 PQC 標準化會議<br> 2024年8月13日：NIST 正式發布首批三項 PQC 標準</p> </li></ol> <p>目前已正式發布的標準有三項：</p> <ol><li><p>FIPS 203 (ML-KEM) 用於通用的加密應用，源自 CRYSTALS-Kyber，重新命名為 ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism)<br> 其特點為加密密鑰相對較小，方便交換且執行速度快，可普遍應用於保護在公共網路上交換的資訊</p> </li> <li><p>FIPS 204 (ML-DSA)<br> 數位簽章主要標準，源自 CRYSTALS-Dilithium，重新命名為 ML-DSA (Module-Lattice-Based Digital Signature Algorithm)，主要用於身分認證和保護數位簽章</p> </li> <li><p>FIPS 205 (SLH-DSA) 數位簽章備用標準，源自 SPHINCS+，重新命名為 SLH-DSA (Stateless Hash-Based Digital Signature Algorithm)，綜合評量不如 ML-DSA，但因其採用的數學方法與 ML-DSA 不同，可做為萬一 ML-DSA 被驗證存在漏洞時的備用方案。</p> </li> <li><p>FIPS 206 (FN-DSA) 數位簽章標準，源自 FALCON，預計命名為 FN-DSA (Fast-Fourier Transform-based NTRU lattice Digital Signature Algorithm)，原本預定 2024 年底發布，目前延遲。</p> </li></ol> <p>另外，NIST 也於 2024-11-12 發布了《Transition to Post-Quantum Cryptography Standards》草案，概述從傳統密碼學過渡到 PQC 的路線圖與時間表，預計於 2030 年淘汰（棄用）112 位元及以下安全強度的密碼演算法，於 2035 年完全禁用傳統密碼學演算法，全面 PQC 化。</p> <p>用白話來說，我們現在用的加密跟電子簽章演算法(RSA/EdDSA/ECDSA)將於 2035 年禁用(2048 bit RSA 則是 2030 年就禁用)，全面換成 PQC 演算法。<a href="https://www.perplexity.ai/search/summary-security-strength-of-r-mgHJw8vvQrukT8BShT_q1g#0">參考</a></p> <table><thead><tr><th>Algorithm</th><th>Key Parameters</th><th>Security Strength (bits)</th><th>NIST Status</th><th>Quantum Resistance</th></tr></thead><tbody><tr><td><strong>RSA</strong></td><td>2048-bit</td><td>112</td><td>Deprecated after 2030</td><td>Vulnerable</td></tr><tr><td></td><td>3072-bit</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>7680-bit</td><td>192</td><td>Not standardized</td><td>Vulnerable</td></tr><tr><td><strong>ECDSA</strong></td><td>256-bit (P-256)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>384-bit (P-384)</td><td>192</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>EdDSA</strong></td><td>25519 (Ed25519)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>448-bit (Ed448)</td><td>224</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>PQC</strong></td><td>ML-KEM-512</td><td>128</td><td>NIST Standard (FIPS 203-205)</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-44</td><td>128</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-KEM-768</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-65</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>SLH-DSA-128s/192s</td><td>128/192</td><td>NIST Standard</td><td>Resistant</td></tr></tbody></table> <p>由於 PQC 演算法尚未經過足夠多的考驗，可能存在未被發現的漏洞，故 NIST 建議在過渡初期應採混合應用策略，同時使用傳統和後量子進行加密及簽章。例如：用 RSA 加密完再用 ML-KEM 加密一次、同時產生並檢查 EdDSA 及 ML-DSA 電子簽章，如此 在其中一種被破解時仍能保有安全性。</p> <p>結論就是，若按照 NIST 的規劃，我們現在在用的 RSA/ECDSA 演算法將於十年後被禁用。不過，開發者不用擔心忘記時程，就像 TLS 1.0/1.1 一樣，到時保證會有人<a href="/blog/disable-tls-1-0-issues/">逼著你升級</a> XD，先心裡有數就好。</p> <p data-slug="nist-pqc-std-updates" data-fbimg="https://cdn.pixabay.com/photo/2019/02/22/21/53/pizza-4014501_1280.jpg#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>對文章標題感到困惑的朋友，推薦以下先導文章及 <a href="/blog/category/pqc">PQC 系列文章</a>：</p> <ul><li><a href="/blog/q-day/">閒聊 - Y2Q 倒數與 Q-Day，當代資訊安全防線即將崩潰</a></li> <li><a href="/blog/pqc-notes-1-threat/">PQC 筆記 1 - 靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/pqc-notes2-algorithms/">PQC 筆記 2 - 簡單認識後量子時代密碼學演算法</a></li></ul> <p>話說，距 2016 NIST 公開徵選 PQC 演算法，目前已將邁入第 9 年，官方版標準也已陸續出爐。先回顧 NIST PQC 標準化時間軸：</p> <ol><li><p>前期準備階段 (2015-2016)</p> <p>2015年4月：NIST 舉辦「後量子世界網路安全研討會」<br> 2016年4月：NIST 發布《Report on Post-Quantum Cryptography》(NISTIR 8105) 報告<br> 2016年12月：NIST 正式向全球徵求 PQC 演算法提案</p> </li> <li><p>第一輪評估 (2017-2018)</p> <p>2017年11月：提案提交截止，共收到來自 25 個國家 82 份提案<br> 2017年12月：NIST 公布第一輪預選演算法，有 69 個提案被認定「完整且適當」<br> 2018年4月：第一屆 PQC 標準化會議，提交者演講發表</p> </li> <li><p>第二輪評估 (2019)</p> <p>2019年1月：NIST 公布第二輪預選演算法，縮減至 26 個候選演算法<br> 2019年8月：第二屆 PQC 標準化會議</p> </li> <li><p>第三輪評估 (2020-2021)</p> <p>2020年7月：NIST 宣布第三輪候選算法，包括 7 個決賽入圍者和 8 個替代演算法<br> 2021年6月：第三屆 PQC 標準化會議</p> </li> <li><p>最終評選與標準化 (2022-2024)</p> <p>2022年7月：NIST 確定四種優勝算法：CRYSTALS-Kyber、CRYSTALS-Dilithium、FALCON 和 SPHINCS+<br> 2022年11月：第四屆PQC標準化會議（線上形式）<br> 2023年8月：NIST 發布三份標準草案 RFC<br> 2024年4月：第五屆 PQC 標準化會議<br> 2024年8月13日：NIST 正式發布首批三項 PQC 標準</p> </li></ol> <p>目前已正式發布的標準有三項：</p> <ol><li><p>FIPS 203 (ML-KEM) 用於通用的加密應用，源自 CRYSTALS-Kyber，重新命名為 ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism)<br> 其特點為加密密鑰相對較小，方便交換且執行速度快，可普遍應用於保護在公共網路上交換的資訊</p> </li> <li><p>FIPS 204 (ML-DSA)<br> 數位簽章主要標準，源自 CRYSTALS-Dilithium，重新命名為 ML-DSA (Module-Lattice-Based Digital Signature Algorithm)，主要用於身分認證和保護數位簽章</p> </li> <li><p>FIPS 205 (SLH-DSA) 數位簽章備用標準，源自 SPHINCS+，重新命名為 SLH-DSA (Stateless Hash-Based Digital Signature Algorithm)，綜合評量不如 ML-DSA，但因其採用的數學方法與 ML-DSA 不同，可做為萬一 ML-DSA 被驗證存在漏洞時的備用方案。</p> </li> <li><p>FIPS 206 (FN-DSA) 數位簽章標準，源自 FALCON，預計命名為 FN-DSA (Fast-Fourier Transform-based NTRU lattice Digital Signature Algorithm)，原本預定 2024 年底發布，目前延遲。</p> </li></ol> <p>另外，NIST 也於 2024-11-12 發布了《Transition to Post-Quantum Cryptography Standards》草案，概述從傳統密碼學過渡到 PQC 的路線圖與時間表，預計於 2030 年淘汰（棄用）112 位元及以下安全強度的密碼演算法，於 2035 年完全禁用傳統密碼學演算法，全面 PQC 化。</p> <p>用白話來說，我們現在用的加密跟電子簽章演算法(RSA/EdDSA/ECDSA)將於 2035 年禁用(2048 bit RSA 則是 2030 年就禁用)，全面換成 PQC 演算法。<a href="https://www.perplexity.ai/search/summary-security-strength-of-r-mgHJw8vvQrukT8BShT_q1g#0">參考</a></p> <table><thead><tr><th>Algorithm</th><th>Key Parameters</th><th>Security Strength (bits)</th><th>NIST Status</th><th>Quantum Resistance</th></tr></thead><tbody><tr><td><strong>RSA</strong></td><td>2048-bit</td><td>112</td><td>Deprecated after 2030</td><td>Vulnerable</td></tr><tr><td></td><td>3072-bit</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>7680-bit</td><td>192</td><td>Not standardized</td><td>Vulnerable</td></tr><tr><td><strong>ECDSA</strong></td><td>256-bit (P-256)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>384-bit (P-384)</td><td>192</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>EdDSA</strong></td><td>25519 (Ed25519)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>448-bit (Ed448)</td><td>224</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>PQC</strong></td><td>ML-KEM-512</td><td>128</td><td>NIST Standard (FIPS 203-205)</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-44</td><td>128</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-KEM-768</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-65</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>SLH-DSA-128s/192s</td><td>128/192</td><td>NIST Standard</td><td>Resistant</td></tr></tbody></table> <p>由於 PQC 演算法尚未經過足夠多的考驗，可能存在未被發現的漏洞，故 NIST 建議在過渡初期應採混合應用策略，同時使用傳統和後量子進行加密及簽章。例如：用 RSA 加密完再用 ML-KEM 加密一次、同時產生並檢查 EdDSA 及 ML-DSA 電子簽章，如此 在其中一種被破解時仍能保有安全性。</p> <p>結論就是，若按照 NIST 的規劃，我們現在在用的 RSA/ECDSA 演算法將於十年後被禁用。不過，開發者不用擔心忘記時程，就像 TLS 1.0/1.1 一樣，到時保證會有人<a href="/blog/disable-tls-1-0-issues/">逼著你升級</a> XD，先心裡有數就好。</p> <p data-slug="nist-pqc-std-updates" data-fbimg="https://cdn.pixabay.com/photo/2019/02/22/21/53/pizza-4014501_1280.jpg#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>對文章標題感到困惑的朋友，推薦以下先導文章及 <a href="/blog/category/pqc">PQC 系列文章</a>：</p> <ul><li><a href="/blog/q-day/">閒聊 - Y2Q 倒數與 Q-Day，當代資訊安全防線即將崩潰</a></li> <li><a href="/blog/pqc-notes-1-threat/">PQC 筆記 1 - 靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/pqc-notes2-algorithms/">PQC 筆記 2 - 簡單認識後量子時代密碼學演算法</a></li></ul> <p>話說，距 2016 NIST 公開徵選 PQC 演算法，目前已將邁入第 9 年，官方版標準也已陸續出爐。先回顧 NIST PQC 標準化時間軸：</p> <ol><li><p>前期準備階段 (2015-2016)</p> <p>2015年4月：NIST 舉辦「後量子世界網路安全研討會」<br> 2016年4月：NIST 發布《Report on Post-Quantum Cryptography》(NISTIR 8105) 報告<br> 2016年12月：NIST 正式向全球徵求 PQC 演算法提案</p> </li> <li><p>第一輪評估 (2017-2018)</p> <p>2017年11月：提案提交截止，共收到來自 25 個國家 82 份提案<br> 2017年12月：NIST 公布第一輪預選演算法，有 69 個提案被認定「完整且適當」<br> 2018年4月：第一屆 PQC 標準化會議，提交者演講發表</p> </li> <li><p>第二輪評估 (2019)</p> <p>2019年1月：NIST 公布第二輪預選演算法，縮減至 26 個候選演算法<br> 2019年8月：第二屆 PQC 標準化會議</p> </li> <li><p>第三輪評估 (2020-2021)</p> <p>2020年7月：NIST 宣布第三輪候選算法，包括 7 個決賽入圍者和 8 個替代演算法<br> 2021年6月：第三屆 PQC 標準化會議</p> </li> <li><p>最終評選與標準化 (2022-2024)</p> <p>2022年7月：NIST 確定四種優勝算法：CRYSTALS-Kyber、CRYSTALS-Dilithium、FALCON 和 SPHINCS+<br> 2022年11月：第四屆PQC標準化會議（線上形式）<br> 2023年8月：NIST 發布三份標準草案 RFC<br> 2024年4月：第五屆 PQC 標準化會議<br> 2024年8月13日：NIST 正式發布首批三項 PQC 標準</p> </li></ol> <p>目前已正式發布的標準有三項：</p> <ol><li><p>FIPS 203 (ML-KEM) 用於通用的加密應用，源自 CRYSTALS-Kyber，重新命名為 ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism)<br> 其特點為加密密鑰相對較小，方便交換且執行速度快，可普遍應用於保護在公共網路上交換的資訊</p> </li> <li><p>FIPS 204 (ML-DSA)<br> 數位簽章主要標準，源自 CRYSTALS-Dilithium，重新命名為 ML-DSA (Module-Lattice-Based Digital Signature Algorithm)，主要用於身分認證和保護數位簽章</p> </li> <li><p>FIPS 205 (SLH-DSA) 數位簽章備用標準，源自 SPHINCS+，重新命名為 SLH-DSA (Stateless Hash-Based Digital Signature Algorithm)，綜合評量不如 ML-DSA，但因其採用的數學方法與 ML-DSA 不同，可做為萬一 ML-DSA 被驗證存在漏洞時的備用方案。</p> </li> <li><p>FIPS 206 (FN-DSA) 數位簽章標準，源自 FALCON，預計命名為 FN-DSA (Fast-Fourier Transform-based NTRU lattice Digital Signature Algorithm)，原本預定 2024 年底發布，目前延遲。</p> </li></ol> <p>另外，NIST 也於 2024-11-12 發布了《Transition to Post-Quantum Cryptography Standards》草案，概述從傳統密碼學過渡到 PQC 的路線圖與時間表，預計於 2030 年淘汰（棄用）112 位元及以下安全強度的密碼演算法，於 2035 年完全禁用傳統密碼學演算法，全面 PQC 化。</p> <p>用白話來說，我們現在用的加密跟電子簽章演算法(RSA/EdDSA/ECDSA)將於 2035 年禁用(2048 bit RSA 則是 2030 年就禁用)，全面換成 PQC 演算法。<a href="https://www.perplexity.ai/search/summary-security-strength-of-r-mgHJw8vvQrukT8BShT_q1g#0">參考</a></p> <table><thead><tr><th>Algorithm</th><th>Key Parameters</th><th>Security Strength (bits)</th><th>NIST Status</th><th>Quantum Resistance</th></tr></thead><tbody><tr><td><strong>RSA</strong></td><td>2048-bit</td><td>112</td><td>Deprecated after 2030</td><td>Vulnerable</td></tr><tr><td></td><td>3072-bit</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>7680-bit</td><td>192</td><td>Not standardized</td><td>Vulnerable</td></tr><tr><td><strong>ECDSA</strong></td><td>256-bit (P-256)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>384-bit (P-384)</td><td>192</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>EdDSA</strong></td><td>25519 (Ed25519)</td><td>128</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td></td><td>448-bit (Ed448)</td><td>224</td><td>Disallowed after 2035</td><td>Vulnerable</td></tr><tr><td><strong>PQC</strong></td><td>ML-KEM-512</td><td>128</td><td>NIST Standard (FIPS 203-205)</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-44</td><td>128</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-KEM-768</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>ML-DSA-65</td><td>192</td><td>NIST Standard</td><td>Resistant</td></tr><tr><td></td><td>SLH-DSA-128s/192s</td><td>128/192</td><td>NIST Standard</td><td>Resistant</td></tr></tbody></table> <p>由於 PQC 演算法尚未經過足夠多的考驗，可能存在未被發現的漏洞，故 NIST 建議在過渡初期應採混合應用策略，同時使用傳統和後量子進行加密及簽章。例如：用 RSA 加密完再用 ML-KEM 加密一次、同時產生並檢查 EdDSA 及 ML-DSA 電子簽章，如此 在其中一種被破解時仍能保有安全性。</p> <p>結論就是，若按照 NIST 的規劃，我們現在在用的 RSA/ECDSA 演算法將於十年後被禁用。不過，開發者不用擔心忘記時程，就像 TLS 1.0/1.1 一樣，到時保證會有人<a href="/blog/disable-tls-1-0-issues/">逼著你升級</a> XD，先心裡有數就好。</p> <p data-slug="nist-pqc-std-updates" data-fbimg="https://cdn.pixabay.com/photo/2019/02/22/21/53/pizza-4014501_1280.jpg#1280#720"> </p>]]></content:encoded>
-    
-    <pubDate>Sun, 23 Mar 2025 04:38:41 GMT</pubDate>
   </item></channel>
 </rss>
