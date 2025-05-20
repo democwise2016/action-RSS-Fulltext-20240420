@@ -30,6 +30,186 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[淺談 Exchange 退信通知處理自動化]]></title>
+    <link>https://blog.darkthread.net/blog/exchange-ndr-parse-summary/</link>
+    <itunes:title><![CDATA[淺談 Exchange 退信通知處理自動化]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>用 Exchange 或任何郵件伺服器寄信，當信件因種種原因無法送達，Outlook 會收到一封來自 Mail Delivery Subsystem &lt;MAILER-DAEMON&gt; 的退信通知，NDR 格式及內容沒有統一規範，依伺服器版本而異，但都會包含有問題的 Email 地址及無法送達原因，</p> <p>這封退信通知有個專業術語叫 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxomsg/b76d85db-de6f-4a01-8ae5-ff5b59c86a31?WT.mc_id=DOP-MVP-37580">NDR Non-Delivery Report</a>，Exchange 的 NDR 類似這樣：</p> <pre><code>傳遞至下列收件者或群組失敗:
+user1@gmail.com
+因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。
+user2@hotmail.com
+收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。
+user3@yahoo.com.tw
+收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。
+下列組織已拒絕您的郵件: gmail-smtp-in.l.google.com
+系統管理員的診斷資訊:
+產生的伺服器: smtp.example.com
+... 下方附帶一堆偵錯資訊 ...
+</code></pre> <p>基本上，NDR 有 Email 地址及退信原因可供我們判斷該地址是錯誤、失效還是信箱爆了，再決定處置方式。要如何從一堆 NDR 中提取關鍵資訊，讓整理工作更有效率？這篇來分享我的做法。</p> <p>假設你手上累積了一堆 NDR，第一步可先用 Outlook 篩選寄件者 MAILER-DAEMON 將它們搬到特定資料夾方便用程式批次處理。<br> 註：NDR 在 Exchange 是一種特別型別(REPORT.IPM.Note.NDR)，非一般標準郵件，雖然能用郵件規則設定寄件者條件搬檔，但郵件規在收到 NDR 時不會生效。 <a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/setting-up-a-rule-to-forward-undeliverable-reports/ef7e2f9c-85d5-4bd4-84dc-edaf27c9baac?WT.mc_id=DOP-MVP-37580">參考</a>)</p> <p>我寫了一段 PowerShell Script 可從指定資料夾擷取每一封 NDR 中的 Email 及退信原因，彙整成一份 CSV：(註：程式會用到 .NET Framework API 操作 Outlook COM+，需以 PowerShell 5.1 執行，不支援 pwsh 7+ 跑)</p> <pre><code>$ErrorActionPreference = 'STOP'
+$outlook = [System.Runtime.InteropServices.Marshal]::GetActiveObject('Outlook.Application')
+$ns = $outlook.GetNamespace('MAPI')
+# $inbox = $ns.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
+$mailbox = $ns.Folders | Where-Object { $_.Name -eq 'amdin@example.com' }
+# $ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq '刪除的郵件' }
+$ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq 'NDR資料夾' }
+$header = '傳遞至下列收件者或群組失敗:'
+$headerLen = $header.Length
+$reportTime = $null
+$list = @()
+$ndrFolder.Items | ForEach-Object {
+$item = $_
+if ($item -is [Microsoft.Office.Interop.Outlook.ReportItem]) {
+$reportTime = "　" + $item.CreationTime.ToString('yyyy-MM-dd HH:mm:ss')
+$body = $item.Body
+$end = $body.IndexOf('系統管理員的診斷資訊:')
+if ($end -gt 0) {
+$body = $body.Substring($headerLen, $end - $headerLen)
+}
+$lines = $body.Replace("`r", '').Split("`n")
+$email = ''
+$lines | ForEach-Object {
+$line = $_.Trim()
+if ($email) {
+$list += [PSCustomObject]@{
+Email = $email
+Time = $reportTime
+Reason = $line
+}
+$email = ''
+}
+else {
+$match = [regex]::Match($line, '^(?&lt;m&gt;[\w-\.]+@([\w-]+\.)+[\w-]{2,4})')
+if ($match.Success) {
+$email = $match.Groups['m'].Value
+}
+}
+}
+}
+}
+$tmpCsvPath = [IO.Path]::GetTempFileName() + ".csv"
+$list | Sort-Object Email, Time | ConvertTo-Csv -NoTypeInformation | Out-File $tmpCsvPath -Encoding utf8
+Start-Process excel.exe $tmpCsvPath
+</code></pre> <p>程式原理不難，先找到信箱，找出放 NDR 的資料夾，逐一檢查資料夾裡的項目是否為 Microsoft.Office.Interop.Outlook.ReportItem，若是則取出內容進行解析，依據 Exchage NDR 格式擷取出 Email 及無法寄達原因，最後匯出 CSV 呼叫 Excel 開啟。</p> <p>產生的 CSV 如下，同一 Email 的多次退信記錄列在一起，方便快速 Email 是一時信箱滿了還是地址有錯，亦或為亂填的髒資料，再決定要如何處置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"></p> <p>就醬，用不到 50 行 PowerShell 可省下大量的人工處理時間。</p> <p>雖然要自己寫程式，與這幾年興起的 Low Code/No Code/RPA 主流背道而馳(延伸閱讀：<a href="/blog/my-opinion-on-rpa/">關於 RPA (機器人流程自動化)，我說的其實是...</a>)，但這仍是熱愛 Coding 的我最偏好的作業自動化實踐方式。</p> <p>最後，順手整理常見退信原因以備不時之需：</p> <ol><li>因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。</li> <li>收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送此郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的電子郵件地址不正確。請檢查電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>伺服器嘗試傳遞此郵件但不成功，已停止嘗試。收件者的郵件伺服器可能暫時離線或暫時無法接收郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>找不到您輸入的電子郵件地址。請檢查收件者的電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>無法傳遞您的郵件。請稍後再嘗試重新傳送。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件至此電子郵件地址時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li></ol> <p data-slug="exchange-ndr-parse-summary" data-title-en="Automating NDR Processing in Outlook" data-catg=".NET" data-fbimg="https://i.postimg.cc/MHnYkQjT/image.png#1280#720">This blog discusses using PowerShell to automate processing Non-Delivery Reports (NDR) in Outlook, extracting email addresses and failure reasons into a CSV for efficient handling.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>用 Exchange 或任何郵件伺服器寄信，當信件因種種原因無法送達，Outlook 會收到一封來自 Mail Delivery Subsystem &lt;MAILER-DAEMON&gt; 的退信通知，NDR 格式及內容沒有統一規範，依伺服器版本而異，但都會包含有問題的 Email 地址及無法送達原因，</p> <p>這封退信通知有個專業術語叫 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxomsg/b76d85db-de6f-4a01-8ae5-ff5b59c86a31?WT.mc_id=DOP-MVP-37580">NDR Non-Delivery Report</a>，Exchange 的 NDR 類似這樣：</p> <pre><code>傳遞至下列收件者或群組失敗:
+user1@gmail.com
+因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。
+user2@hotmail.com
+收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。
+user3@yahoo.com.tw
+收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。
+下列組織已拒絕您的郵件: gmail-smtp-in.l.google.com
+系統管理員的診斷資訊:
+產生的伺服器: smtp.example.com
+... 下方附帶一堆偵錯資訊 ...
+</code></pre> <p>基本上，NDR 有 Email 地址及退信原因可供我們判斷該地址是錯誤、失效還是信箱爆了，再決定處置方式。要如何從一堆 NDR 中提取關鍵資訊，讓整理工作更有效率？這篇來分享我的做法。</p> <p>假設你手上累積了一堆 NDR，第一步可先用 Outlook 篩選寄件者 MAILER-DAEMON 將它們搬到特定資料夾方便用程式批次處理。<br> 註：NDR 在 Exchange 是一種特別型別(REPORT.IPM.Note.NDR)，非一般標準郵件，雖然能用郵件規則設定寄件者條件搬檔，但郵件規在收到 NDR 時不會生效。 <a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/setting-up-a-rule-to-forward-undeliverable-reports/ef7e2f9c-85d5-4bd4-84dc-edaf27c9baac?WT.mc_id=DOP-MVP-37580">參考</a>)</p> <p>我寫了一段 PowerShell Script 可從指定資料夾擷取每一封 NDR 中的 Email 及退信原因，彙整成一份 CSV：(註：程式會用到 .NET Framework API 操作 Outlook COM+，需以 PowerShell 5.1 執行，不支援 pwsh 7+ 跑)</p> <pre><code>$ErrorActionPreference = 'STOP'
+$outlook = [System.Runtime.InteropServices.Marshal]::GetActiveObject('Outlook.Application')
+$ns = $outlook.GetNamespace('MAPI')
+# $inbox = $ns.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
+$mailbox = $ns.Folders | Where-Object { $_.Name -eq 'amdin@example.com' }
+# $ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq '刪除的郵件' }
+$ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq 'NDR資料夾' }
+$header = '傳遞至下列收件者或群組失敗:'
+$headerLen = $header.Length
+$reportTime = $null
+$list = @()
+$ndrFolder.Items | ForEach-Object {
+$item = $_
+if ($item -is [Microsoft.Office.Interop.Outlook.ReportItem]) {
+$reportTime = "　" + $item.CreationTime.ToString('yyyy-MM-dd HH:mm:ss')
+$body = $item.Body
+$end = $body.IndexOf('系統管理員的診斷資訊:')
+if ($end -gt 0) {
+$body = $body.Substring($headerLen, $end - $headerLen)
+}
+$lines = $body.Replace("`r", '').Split("`n")
+$email = ''
+$lines | ForEach-Object {
+$line = $_.Trim()
+if ($email) {
+$list += [PSCustomObject]@{
+Email = $email
+Time = $reportTime
+Reason = $line
+}
+$email = ''
+}
+else {
+$match = [regex]::Match($line, '^(?&lt;m&gt;[\w-\.]+@([\w-]+\.)+[\w-]{2,4})')
+if ($match.Success) {
+$email = $match.Groups['m'].Value
+}
+}
+}
+}
+}
+$tmpCsvPath = [IO.Path]::GetTempFileName() + ".csv"
+$list | Sort-Object Email, Time | ConvertTo-Csv -NoTypeInformation | Out-File $tmpCsvPath -Encoding utf8
+Start-Process excel.exe $tmpCsvPath
+</code></pre> <p>程式原理不難，先找到信箱，找出放 NDR 的資料夾，逐一檢查資料夾裡的項目是否為 Microsoft.Office.Interop.Outlook.ReportItem，若是則取出內容進行解析，依據 Exchage NDR 格式擷取出 Email 及無法寄達原因，最後匯出 CSV 呼叫 Excel 開啟。</p> <p>產生的 CSV 如下，同一 Email 的多次退信記錄列在一起，方便快速 Email 是一時信箱滿了還是地址有錯，亦或為亂填的髒資料，再決定要如何處置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"></p> <p>就醬，用不到 50 行 PowerShell 可省下大量的人工處理時間。</p> <p>雖然要自己寫程式，與這幾年興起的 Low Code/No Code/RPA 主流背道而馳(延伸閱讀：<a href="/blog/my-opinion-on-rpa/">關於 RPA (機器人流程自動化)，我說的其實是...</a>)，但這仍是熱愛 Coding 的我最偏好的作業自動化實踐方式。</p> <p>最後，順手整理常見退信原因以備不時之需：</p> <ol><li>因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。</li> <li>收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送此郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的電子郵件地址不正確。請檢查電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>伺服器嘗試傳遞此郵件但不成功，已停止嘗試。收件者的郵件伺服器可能暫時離線或暫時無法接收郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>找不到您輸入的電子郵件地址。請檢查收件者的電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>無法傳遞您的郵件。請稍後再嘗試重新傳送。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件至此電子郵件地址時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li></ol> <p data-slug="exchange-ndr-parse-summary" data-title-en="Automating NDR Processing in Outlook" data-catg=".NET" data-fbimg="https://i.postimg.cc/MHnYkQjT/image.png#1280#720">This blog discusses using PowerShell to automate processing Non-Delivery Reports (NDR) in Outlook, extracting email addresses and failure reasons into a CSV for efficient handling.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>用 Exchange 或任何郵件伺服器寄信，當信件因種種原因無法送達，Outlook 會收到一封來自 Mail Delivery Subsystem &lt;MAILER-DAEMON&gt; 的退信通知，NDR 格式及內容沒有統一規範，依伺服器版本而異，但都會包含有問題的 Email 地址及無法送達原因，</p> <p>這封退信通知有個專業術語叫 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxomsg/b76d85db-de6f-4a01-8ae5-ff5b59c86a31?WT.mc_id=DOP-MVP-37580">NDR Non-Delivery Report</a>，Exchange 的 NDR 類似這樣：</p> <pre><code>傳遞至下列收件者或群組失敗:
+user1@gmail.com
+因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。
+user2@hotmail.com
+收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。
+user3@yahoo.com.tw
+收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。
+下列組織已拒絕您的郵件: gmail-smtp-in.l.google.com
+系統管理員的診斷資訊:
+產生的伺服器: smtp.example.com
+... 下方附帶一堆偵錯資訊 ...
+</code></pre> <p>基本上，NDR 有 Email 地址及退信原因可供我們判斷該地址是錯誤、失效還是信箱爆了，再決定處置方式。要如何從一堆 NDR 中提取關鍵資訊，讓整理工作更有效率？這篇來分享我的做法。</p> <p>假設你手上累積了一堆 NDR，第一步可先用 Outlook 篩選寄件者 MAILER-DAEMON 將它們搬到特定資料夾方便用程式批次處理。<br> 註：NDR 在 Exchange 是一種特別型別(REPORT.IPM.Note.NDR)，非一般標準郵件，雖然能用郵件規則設定寄件者條件搬檔，但郵件規在收到 NDR 時不會生效。 <a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/setting-up-a-rule-to-forward-undeliverable-reports/ef7e2f9c-85d5-4bd4-84dc-edaf27c9baac?WT.mc_id=DOP-MVP-37580">參考</a>)</p> <p>我寫了一段 PowerShell Script 可從指定資料夾擷取每一封 NDR 中的 Email 及退信原因，彙整成一份 CSV：(註：程式會用到 .NET Framework API 操作 Outlook COM+，需以 PowerShell 5.1 執行，不支援 pwsh 7+ 跑)</p> <pre><code>$ErrorActionPreference = 'STOP'
+$outlook = [System.Runtime.InteropServices.Marshal]::GetActiveObject('Outlook.Application')
+$ns = $outlook.GetNamespace('MAPI')
+# $inbox = $ns.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
+$mailbox = $ns.Folders | Where-Object { $_.Name -eq 'amdin@example.com' }
+# $ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq '刪除的郵件' }
+$ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq 'NDR資料夾' }
+$header = '傳遞至下列收件者或群組失敗:'
+$headerLen = $header.Length
+$reportTime = $null
+$list = @()
+$ndrFolder.Items | ForEach-Object {
+$item = $_
+if ($item -is [Microsoft.Office.Interop.Outlook.ReportItem]) {
+$reportTime = "　" + $item.CreationTime.ToString('yyyy-MM-dd HH:mm:ss')
+$body = $item.Body
+$end = $body.IndexOf('系統管理員的診斷資訊:')
+if ($end -gt 0) {
+$body = $body.Substring($headerLen, $end - $headerLen)
+}
+$lines = $body.Replace("`r", '').Split("`n")
+$email = ''
+$lines | ForEach-Object {
+$line = $_.Trim()
+if ($email) {
+$list += [PSCustomObject]@{
+Email = $email
+Time = $reportTime
+Reason = $line
+}
+$email = ''
+}
+else {
+$match = [regex]::Match($line, '^(?&lt;m&gt;[\w-\.]+@([\w-]+\.)+[\w-]{2,4})')
+if ($match.Success) {
+$email = $match.Groups['m'].Value
+}
+}
+}
+}
+}
+$tmpCsvPath = [IO.Path]::GetTempFileName() + ".csv"
+$list | Sort-Object Email, Time | ConvertTo-Csv -NoTypeInformation | Out-File $tmpCsvPath -Encoding utf8
+Start-Process excel.exe $tmpCsvPath
+</code></pre> <p>程式原理不難，先找到信箱，找出放 NDR 的資料夾，逐一檢查資料夾裡的項目是否為 Microsoft.Office.Interop.Outlook.ReportItem，若是則取出內容進行解析，依據 Exchage NDR 格式擷取出 Email 及無法寄達原因，最後匯出 CSV 呼叫 Excel 開啟。</p> <p>產生的 CSV 如下，同一 Email 的多次退信記錄列在一起，方便快速 Email 是一時信箱滿了還是地址有錯，亦或為亂填的髒資料，再決定要如何處置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"></p> <p>就醬，用不到 50 行 PowerShell 可省下大量的人工處理時間。</p> <p>雖然要自己寫程式，與這幾年興起的 Low Code/No Code/RPA 主流背道而馳(延伸閱讀：<a href="/blog/my-opinion-on-rpa/">關於 RPA (機器人流程自動化)，我說的其實是...</a>)，但這仍是熱愛 Coding 的我最偏好的作業自動化實踐方式。</p> <p>最後，順手整理常見退信原因以備不時之需：</p> <ol><li>因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。</li> <li>收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送此郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的電子郵件地址不正確。請檢查電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>伺服器嘗試傳遞此郵件但不成功，已停止嘗試。收件者的郵件伺服器可能暫時離線或暫時無法接收郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>找不到您輸入的電子郵件地址。請檢查收件者的電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>無法傳遞您的郵件。請稍後再嘗試重新傳送。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件至此電子郵件地址時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li></ol> <p data-slug="exchange-ndr-parse-summary" data-title-en="Automating NDR Processing in Outlook" data-catg=".NET" data-fbimg="https://i.postimg.cc/MHnYkQjT/image.png#1280#720">This blog discusses using PowerShell to automate processing Non-Delivery Reports (NDR) in Outlook, extracting email addresses and failure reasons into a CSV for efficient handling.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png" medium="image"/>
+    <pubDate>Tue, 20 May 2025 14:12:14 GMT</pubDate>
+  </item><item>
     <title><![CDATA[收釣魚信學冷知識 - 在 SMTP 郵件假冒寄件人]]></title>
     <link>https://blog.darkthread.net/blog/fake-sender-email/</link>
     <itunes:title><![CDATA[收釣魚信學冷知識 - 在 SMTP 郵件假冒寄件人]]></itunes:title>
@@ -1268,20 +1448,5 @@ at Microsoft.PowerShell.EditorServices.Services.PowerShell.Host.PsesInternalHost
     <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638811039305022668.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638811039305022668.png" medium="image"/>
     <pubDate>Thu, 24 Apr 2025 15:03:20 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[閒聊 - 當 AI 用一秒超車你的一萬小時，程式老鳥的生存之道]]></title>
-    <link>https://blog.darkthread.net/blog/10k-hours-vs-ai/</link>
-    <itunes:title><![CDATA[閒聊 - 當 AI 用一秒超車你的一萬小時，程式老鳥的生存之道]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>前天在 FB <a href="https://www.facebook.com/share/p/1AEE5g21VQ/">聊到</a> OpenAI 前陣子推出"隨心所欲客製生圖"功能，帶給我的震憾不亞於當年 ChatGPT 聊天機器人橫空出世，讓我感嘆繼程式開發人員之後，插畫家跟電繪師也可以大家一起手牽手一起去睡橋下惹。</p> <p>身為在程式開發這行打滾近三十年的老人，面對這波 AI 浪潮特別有感。</p> <p>瑞典心理學家安德斯·艾瑞克森（Anders Ericsson）在 1993年 做過一項研究，得到這樣的結論：要成為頂尖專家的關鍵不在於天賦，而在於刻意練習的時數。根據他的研究，頂尖的演奏家或運動員每天刻意練習約 4 小時，每週 5 天，持續 10 年，累積約一萬小時，是其成就超群的關鍵。雖然後續有許多研究指出，除了練習時數，天賦、環境及練習品質也很重要。<a href="https://www.perplexity.ai/search/you-zhong-shuo-fa-shi-ruo-ni-x-OqT8S3h8QEW436CxPvfXHg#0">參考</a> 但在我們無法重新投胎的前題下，投入大量時間辛勤苦練，仍是讓自己升級，達到嚮往成就最可行的手段。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg" alt="thumbnail"></p> <p>我超愛寫程式，上班寫、回家也寫，一天到晚想點子找題材，寫程式找樂子兼滿足日常生活需求。有時下班覺得累，還會「開 Side Project 寫幾行程式放鬆一下」(笑)。我從五專開始學 BASIC，TURBO PASCAL，後來二技跟研究所主要用 Delphi，開始工作後陰錯陽差改走 VB (對這段有興趣的朋友，可看這篇<a href="/blog/tetris-dos-game/">講古</a>)，後來 .NET 出來後轉到 C#，也接觸了前端 HTML/CSS/JavaScript，順便連資料庫跟中台也一手包辦，就這麼搞全端開發超過 20 年。粗估在寫程式這件事上，說有投入四、五萬小時也不為過吧! 我喜歡邏輯推導算是有點天賦，再加上大量時間的刻意練習，成為親友同事口中電腦(程式)超厲害的那個人，也算實至名歸吧!</p> <p>靠著大量的開發經驗，面對各種程式需求，我總能很快想到解法，用簡潔有效率的方法搞定。畢竟有幾十年實戰經驗，跟剛上戰場的菜鳥完全不同，面對疑難也絲毫不慌，總能談笑用兵手到擒來，這份從容就是 A 級獵人跟 E 級的差距呀~ (笑)</p> <p>隨著時間推移，對於自己程式能力的自信與自豪也持續累積... 直到兩年多前殺出個 ChatGPT!</p> <p>不管是什麼程式語言，何等刁鑽問題，只要世上有人會解，ChatGPT/Claude/Github Copilot 這類 AI 工具，一秒便能生出程式碼。花惹發？沒摸過程式的學生現在也能 ChatGPT 產生程式解決複雜問題，我日夜寫程式練了二十年，最終練了個心酸？</p> <p>體會到這點挺震憾的，像是跑馬拉松一路咬牙保持配速，把一群新手跑者遠遠甩在後面，猛一回頭，發現他們正騎著腳踏車追上來，幹!</p> <p>怎麼辦？大會都宣布馬拉松現在改自行車賽了，當然是跨上公路車繼續跟他們拼啊~ </p> <p>我很認命，不認為這波 AI 趨勢可以被阻擋或逆轉。</p> <p>18 世紀蒸汽機發明後，機器開始大量取代人工，原本開個小店打鐵、織布、編籃子即可圖個溫飽，當工廠量產一天能做出手工一年的產量，效率與成本壓縮手工製造的存在價值。就業人口被迫學習新技能，尋找新的謀生方式，但人們的生活品質也提升到另一個層次，完成一次人類文明進化。晚了兩百年，我們面對類似的事，差別在於上一次是機器取代手工作業，現在則是機器取代腦力活動，若沒有意外，其餘劇本應該大同小異：AI 普及後取代大量人工，大家學習跟 AI 共處，磨合出新的就業市場與經濟模式，人們生活品質上升，人類文明進化...</p> <p>幾十年或上百年才會發生一次的產業革命，既然遇上了(所幸已到這把年紀，我再 Hold 住幾年職場競爭力就夠了，年輕同學們加油)，就來想如何因應吧。我的策略大概會是這樣：</p> <p>首先是建立正確心態，省下抱怨跟擔憂的時間，面對它、接受它、處理它，極積學著怎麼因應時代轉變，在新浪潮中拉緊褲子不被潮水帶走。</p> <p>而此刻的當務之急，是確保自己運用 AI 工具的熟練度不要輸給年輕人。AI 讓沒基礎的人也能使用從未學過的程式語言或技術，對菜鳥是如此，對老鳥也是如此，一視同仁。回想這兩年，我也沒花多少功夫便能用 Python、Go 這兩個新語言寫出自己要用的程式，也都歸功於 Github Copilot/ChatGPT，看在 Python/Go 老手眼裡，豈不也要氣噗噗說我憑什麼? 大家先站上同樣的基礎線，再來仍要拼競爭力。</p> <p>至於怎麼創造競爭力？仔細想想，同樣是用 AI 工具輔助寫程式，多點經驗多點見識還是有優勢。除非 AI 能 100% 輸出無錯可直接執行的程式碼，即便正確率高達 99% (我認為實際上的比例不會這麼高，就先退一百步吧)，遇到那 1% 需要人下去看程式調架構解決問題的案例，不(想)懂程式的一群人將直接滅團，剩下有意願且有能力搞懂程式修正問題的人能存活，此時便會回歸到原本的競爭情境。就算陌生程式語言沒摸過的平台，有相關技能與知識的人能觸類旁通，肯定比全無背景的人更快上手(就像從跑步換成騎自行車，技巧跟使用肌群有別，但心肺能力與核心肌群的優勢仍在)。而處理類似問題的經驗，也能培養敏銳直覺，在第一時間做出正確判斷。而在這 1% 情境，便是長期苦練發揮效果及拉高差距，決定成功或失敗的決勝關鍵。</p> <p>為了 1% 的機率苦練一萬小時，投資報酬率難道不會太低？我覺得可以分兩方面來看：第一，這 1% 情況將把只會用 AI 寫程式卻沒能力修正除錯的人全部淘汰出局，則為了少數情境花時間是確保成功的必要投資。第二，AI 輔助程式開發工具成熟後，上手新程式語言的門檻大幅降低，學習效率也提升很多。現在也許只需要幾百小時就能達到過去一萬小時累積的效果，投入時間精力無可避免，但成本不會像過去那麼高。</p> <p>從這些角度，程式老人在 AI 時其實不用太悲觀，成天感嘆多年來努力拉開的領先差距一夕消失(事實真是如此沒錯，但感嘆有個屁用？)，善用 AI 工具不要放棄學習，抓準 AI 輔助開發工具，活用經驗知識快速學習(如果還學得動的話，阿彌陀佛...)，抓準 AI 搞不定而菜鳥新手麻瓜全倒的時刻殺出重圍，具備這樣的能力，應該還能在就業市場保有一席之地繼續混口飯吃，共勉之。</p> <p data-slug="10k-hours-vs-ai" data-fbimg="https://i.imgur.com/18a19xP.png#1024#576"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>前天在 FB <a href="https://www.facebook.com/share/p/1AEE5g21VQ/">聊到</a> OpenAI 前陣子推出"隨心所欲客製生圖"功能，帶給我的震憾不亞於當年 ChatGPT 聊天機器人橫空出世，讓我感嘆繼程式開發人員之後，插畫家跟電繪師也可以大家一起手牽手一起去睡橋下惹。</p> <p>身為在程式開發這行打滾近三十年的老人，面對這波 AI 浪潮特別有感。</p> <p>瑞典心理學家安德斯·艾瑞克森（Anders Ericsson）在 1993年 做過一項研究，得到這樣的結論：要成為頂尖專家的關鍵不在於天賦，而在於刻意練習的時數。根據他的研究，頂尖的演奏家或運動員每天刻意練習約 4 小時，每週 5 天，持續 10 年，累積約一萬小時，是其成就超群的關鍵。雖然後續有許多研究指出，除了練習時數，天賦、環境及練習品質也很重要。<a href="https://www.perplexity.ai/search/you-zhong-shuo-fa-shi-ruo-ni-x-OqT8S3h8QEW436CxPvfXHg#0">參考</a> 但在我們無法重新投胎的前題下，投入大量時間辛勤苦練，仍是讓自己升級，達到嚮往成就最可行的手段。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg" alt="thumbnail"></p> <p>我超愛寫程式，上班寫、回家也寫，一天到晚想點子找題材，寫程式找樂子兼滿足日常生活需求。有時下班覺得累，還會「開 Side Project 寫幾行程式放鬆一下」(笑)。我從五專開始學 BASIC，TURBO PASCAL，後來二技跟研究所主要用 Delphi，開始工作後陰錯陽差改走 VB (對這段有興趣的朋友，可看這篇<a href="/blog/tetris-dos-game/">講古</a>)，後來 .NET 出來後轉到 C#，也接觸了前端 HTML/CSS/JavaScript，順便連資料庫跟中台也一手包辦，就這麼搞全端開發超過 20 年。粗估在寫程式這件事上，說有投入四、五萬小時也不為過吧! 我喜歡邏輯推導算是有點天賦，再加上大量時間的刻意練習，成為親友同事口中電腦(程式)超厲害的那個人，也算實至名歸吧!</p> <p>靠著大量的開發經驗，面對各種程式需求，我總能很快想到解法，用簡潔有效率的方法搞定。畢竟有幾十年實戰經驗，跟剛上戰場的菜鳥完全不同，面對疑難也絲毫不慌，總能談笑用兵手到擒來，這份從容就是 A 級獵人跟 E 級的差距呀~ (笑)</p> <p>隨著時間推移，對於自己程式能力的自信與自豪也持續累積... 直到兩年多前殺出個 ChatGPT!</p> <p>不管是什麼程式語言，何等刁鑽問題，只要世上有人會解，ChatGPT/Claude/Github Copilot 這類 AI 工具，一秒便能生出程式碼。花惹發？沒摸過程式的學生現在也能 ChatGPT 產生程式解決複雜問題，我日夜寫程式練了二十年，最終練了個心酸？</p> <p>體會到這點挺震憾的，像是跑馬拉松一路咬牙保持配速，把一群新手跑者遠遠甩在後面，猛一回頭，發現他們正騎著腳踏車追上來，幹!</p> <p>怎麼辦？大會都宣布馬拉松現在改自行車賽了，當然是跨上公路車繼續跟他們拼啊~ </p> <p>我很認命，不認為這波 AI 趨勢可以被阻擋或逆轉。</p> <p>18 世紀蒸汽機發明後，機器開始大量取代人工，原本開個小店打鐵、織布、編籃子即可圖個溫飽，當工廠量產一天能做出手工一年的產量，效率與成本壓縮手工製造的存在價值。就業人口被迫學習新技能，尋找新的謀生方式，但人們的生活品質也提升到另一個層次，完成一次人類文明進化。晚了兩百年，我們面對類似的事，差別在於上一次是機器取代手工作業，現在則是機器取代腦力活動，若沒有意外，其餘劇本應該大同小異：AI 普及後取代大量人工，大家學習跟 AI 共處，磨合出新的就業市場與經濟模式，人們生活品質上升，人類文明進化...</p> <p>幾十年或上百年才會發生一次的產業革命，既然遇上了(所幸已到這把年紀，我再 Hold 住幾年職場競爭力就夠了，年輕同學們加油)，就來想如何因應吧。我的策略大概會是這樣：</p> <p>首先是建立正確心態，省下抱怨跟擔憂的時間，面對它、接受它、處理它，極積學著怎麼因應時代轉變，在新浪潮中拉緊褲子不被潮水帶走。</p> <p>而此刻的當務之急，是確保自己運用 AI 工具的熟練度不要輸給年輕人。AI 讓沒基礎的人也能使用從未學過的程式語言或技術，對菜鳥是如此，對老鳥也是如此，一視同仁。回想這兩年，我也沒花多少功夫便能用 Python、Go 這兩個新語言寫出自己要用的程式，也都歸功於 Github Copilot/ChatGPT，看在 Python/Go 老手眼裡，豈不也要氣噗噗說我憑什麼? 大家先站上同樣的基礎線，再來仍要拼競爭力。</p> <p>至於怎麼創造競爭力？仔細想想，同樣是用 AI 工具輔助寫程式，多點經驗多點見識還是有優勢。除非 AI 能 100% 輸出無錯可直接執行的程式碼，即便正確率高達 99% (我認為實際上的比例不會這麼高，就先退一百步吧)，遇到那 1% 需要人下去看程式調架構解決問題的案例，不(想)懂程式的一群人將直接滅團，剩下有意願且有能力搞懂程式修正問題的人能存活，此時便會回歸到原本的競爭情境。就算陌生程式語言沒摸過的平台，有相關技能與知識的人能觸類旁通，肯定比全無背景的人更快上手(就像從跑步換成騎自行車，技巧跟使用肌群有別，但心肺能力與核心肌群的優勢仍在)。而處理類似問題的經驗，也能培養敏銳直覺，在第一時間做出正確判斷。而在這 1% 情境，便是長期苦練發揮效果及拉高差距，決定成功或失敗的決勝關鍵。</p> <p>為了 1% 的機率苦練一萬小時，投資報酬率難道不會太低？我覺得可以分兩方面來看：第一，這 1% 情況將把只會用 AI 寫程式卻沒能力修正除錯的人全部淘汰出局，則為了少數情境花時間是確保成功的必要投資。第二，AI 輔助程式開發工具成熟後，上手新程式語言的門檻大幅降低，學習效率也提升很多。現在也許只需要幾百小時就能達到過去一萬小時累積的效果，投入時間精力無可避免，但成本不會像過去那麼高。</p> <p>從這些角度，程式老人在 AI 時其實不用太悲觀，成天感嘆多年來努力拉開的領先差距一夕消失(事實真是如此沒錯，但感嘆有個屁用？)，善用 AI 工具不要放棄學習，抓準 AI 輔助開發工具，活用經驗知識快速學習(如果還學得動的話，阿彌陀佛...)，抓準 AI 搞不定而菜鳥新手麻瓜全倒的時刻殺出重圍，具備這樣的能力，應該還能在就業市場保有一席之地繼續混口飯吃，共勉之。</p> <p data-slug="10k-hours-vs-ai" data-fbimg="https://i.imgur.com/18a19xP.png#1024#576"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>前天在 FB <a href="https://www.facebook.com/share/p/1AEE5g21VQ/">聊到</a> OpenAI 前陣子推出"隨心所欲客製生圖"功能，帶給我的震憾不亞於當年 ChatGPT 聊天機器人橫空出世，讓我感嘆繼程式開發人員之後，插畫家跟電繪師也可以大家一起手牽手一起去睡橋下惹。</p> <p>身為在程式開發這行打滾近三十年的老人，面對這波 AI 浪潮特別有感。</p> <p>瑞典心理學家安德斯·艾瑞克森（Anders Ericsson）在 1993年 做過一項研究，得到這樣的結論：要成為頂尖專家的關鍵不在於天賦，而在於刻意練習的時數。根據他的研究，頂尖的演奏家或運動員每天刻意練習約 4 小時，每週 5 天，持續 10 年，累積約一萬小時，是其成就超群的關鍵。雖然後續有許多研究指出，除了練習時數，天賦、環境及練習品質也很重要。<a href="https://www.perplexity.ai/search/you-zhong-shuo-fa-shi-ruo-ni-x-OqT8S3h8QEW436CxPvfXHg#0">參考</a> 但在我們無法重新投胎的前題下，投入大量時間辛勤苦練，仍是讓自己升級，達到嚮往成就最可行的手段。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg" alt="thumbnail"></p> <p>我超愛寫程式，上班寫、回家也寫，一天到晚想點子找題材，寫程式找樂子兼滿足日常生活需求。有時下班覺得累，還會「開 Side Project 寫幾行程式放鬆一下」(笑)。我從五專開始學 BASIC，TURBO PASCAL，後來二技跟研究所主要用 Delphi，開始工作後陰錯陽差改走 VB (對這段有興趣的朋友，可看這篇<a href="/blog/tetris-dos-game/">講古</a>)，後來 .NET 出來後轉到 C#，也接觸了前端 HTML/CSS/JavaScript，順便連資料庫跟中台也一手包辦，就這麼搞全端開發超過 20 年。粗估在寫程式這件事上，說有投入四、五萬小時也不為過吧! 我喜歡邏輯推導算是有點天賦，再加上大量時間的刻意練習，成為親友同事口中電腦(程式)超厲害的那個人，也算實至名歸吧!</p> <p>靠著大量的開發經驗，面對各種程式需求，我總能很快想到解法，用簡潔有效率的方法搞定。畢竟有幾十年實戰經驗，跟剛上戰場的菜鳥完全不同，面對疑難也絲毫不慌，總能談笑用兵手到擒來，這份從容就是 A 級獵人跟 E 級的差距呀~ (笑)</p> <p>隨著時間推移，對於自己程式能力的自信與自豪也持續累積... 直到兩年多前殺出個 ChatGPT!</p> <p>不管是什麼程式語言，何等刁鑽問題，只要世上有人會解，ChatGPT/Claude/Github Copilot 這類 AI 工具，一秒便能生出程式碼。花惹發？沒摸過程式的學生現在也能 ChatGPT 產生程式解決複雜問題，我日夜寫程式練了二十年，最終練了個心酸？</p> <p>體會到這點挺震憾的，像是跑馬拉松一路咬牙保持配速，把一群新手跑者遠遠甩在後面，猛一回頭，發現他們正騎著腳踏車追上來，幹!</p> <p>怎麼辦？大會都宣布馬拉松現在改自行車賽了，當然是跨上公路車繼續跟他們拼啊~ </p> <p>我很認命，不認為這波 AI 趨勢可以被阻擋或逆轉。</p> <p>18 世紀蒸汽機發明後，機器開始大量取代人工，原本開個小店打鐵、織布、編籃子即可圖個溫飽，當工廠量產一天能做出手工一年的產量，效率與成本壓縮手工製造的存在價值。就業人口被迫學習新技能，尋找新的謀生方式，但人們的生活品質也提升到另一個層次，完成一次人類文明進化。晚了兩百年，我們面對類似的事，差別在於上一次是機器取代手工作業，現在則是機器取代腦力活動，若沒有意外，其餘劇本應該大同小異：AI 普及後取代大量人工，大家學習跟 AI 共處，磨合出新的就業市場與經濟模式，人們生活品質上升，人類文明進化...</p> <p>幾十年或上百年才會發生一次的產業革命，既然遇上了(所幸已到這把年紀，我再 Hold 住幾年職場競爭力就夠了，年輕同學們加油)，就來想如何因應吧。我的策略大概會是這樣：</p> <p>首先是建立正確心態，省下抱怨跟擔憂的時間，面對它、接受它、處理它，極積學著怎麼因應時代轉變，在新浪潮中拉緊褲子不被潮水帶走。</p> <p>而此刻的當務之急，是確保自己運用 AI 工具的熟練度不要輸給年輕人。AI 讓沒基礎的人也能使用從未學過的程式語言或技術，對菜鳥是如此，對老鳥也是如此，一視同仁。回想這兩年，我也沒花多少功夫便能用 Python、Go 這兩個新語言寫出自己要用的程式，也都歸功於 Github Copilot/ChatGPT，看在 Python/Go 老手眼裡，豈不也要氣噗噗說我憑什麼? 大家先站上同樣的基礎線，再來仍要拼競爭力。</p> <p>至於怎麼創造競爭力？仔細想想，同樣是用 AI 工具輔助寫程式，多點經驗多點見識還是有優勢。除非 AI 能 100% 輸出無錯可直接執行的程式碼，即便正確率高達 99% (我認為實際上的比例不會這麼高，就先退一百步吧)，遇到那 1% 需要人下去看程式調架構解決問題的案例，不(想)懂程式的一群人將直接滅團，剩下有意願且有能力搞懂程式修正問題的人能存活，此時便會回歸到原本的競爭情境。就算陌生程式語言沒摸過的平台，有相關技能與知識的人能觸類旁通，肯定比全無背景的人更快上手(就像從跑步換成騎自行車，技巧跟使用肌群有別，但心肺能力與核心肌群的優勢仍在)。而處理類似問題的經驗，也能培養敏銳直覺，在第一時間做出正確判斷。而在這 1% 情境，便是長期苦練發揮效果及拉高差距，決定成功或失敗的決勝關鍵。</p> <p>為了 1% 的機率苦練一萬小時，投資報酬率難道不會太低？我覺得可以分兩方面來看：第一，這 1% 情況將把只會用 AI 寫程式卻沒能力修正除錯的人全部淘汰出局，則為了少數情境花時間是確保成功的必要投資。第二，AI 輔助程式開發工具成熟後，上手新程式語言的門檻大幅降低，學習效率也提升很多。現在也許只需要幾百小時就能達到過去一萬小時累積的效果，投入時間精力無可避免，但成本不會像過去那麼高。</p> <p>從這些角度，程式老人在 AI 時其實不用太悲觀，成天感嘆多年來努力拉開的領先差距一夕消失(事實真是如此沒錯，但感嘆有個屁用？)，善用 AI 工具不要放棄學習，抓準 AI 輔助開發工具，活用經驗知識快速學習(如果還學得動的話，阿彌陀佛...)，抓準 AI 搞不定而菜鳥新手麻瓜全倒的時刻殺出重圍，具備這樣的能力，應該還能在就業市場保有一席之地繼續混口飯吃，共勉之。</p> <p data-slug="10k-hours-vs-ai" data-fbimg="https://i.imgur.com/18a19xP.png#1024#576"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638790298869428621.jpg" medium="image"/>
-    <pubDate>Mon, 31 Mar 2025 15:08:45 GMT</pubDate>
   </item></channel>
 </rss>
