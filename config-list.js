@@ -379,6 +379,19 @@ let feedList = [
       ItemFilters['sites'].ItemFilterIThome,
     ],
   },
+  {
+    title: '巴哈姆特 GNN 新聞網',
+    feedID: 'gnn-news',
+    feedURL: 'https://gnn.gamer.com.tw/rss.xml',
+    itemFilters: [
+      ItemFilters['sites'].ItemFilterBlog,
+      // ItemFilters['common'].ItemFilterImageEmbed,
+    ],
+    options: {
+      selector: '.GN-lbox3B',
+      // coverSelector: '.post-container .post-img .img-holder'
+    }
+  },
 ]
 
 // 29 / 30
