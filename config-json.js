@@ -27,7 +27,7 @@ let CONFIG = {
   debug: false
 }
 
-// let test = '0135'
+// let test = '0136'
 
 // CONFIG.publicURL = `https://dangerous-lizard-99.telebit.io/`
 // CONFIG.titleAppend = '[RSS+] 20230827-' + test,

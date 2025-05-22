@@ -364,10 +364,11 @@ let feedList = [
     feedURL: 'http://feeds.feedburner.com/techbang/mf',
     itemFilters: [
       ItemFilters['sites'].ItemFilterBlog,
-      ItemFilters['common'].ItemFilterImageEmbed,
+      // ItemFilters['common'].ItemFilterImageEmbed,
     ],
     options: {
       selector: '.post-container .post-content',
+      coverSelector: '.post-container .post-img .img-holder'
     }
   },
   {
@@ -375,12 +376,8 @@ let feedList = [
     feedID: 'ithome-tech',
     feedURL: 'https://ithome.com.tw/rss',
     itemFilters: [
-      ItemFilters['sites'].ItemFilterBlog,
-      ItemFilters['common'].ItemFilterImageEmbed,
+      ItemFilters['sites'].ItemFilterIThome,
     ],
-    options: {
-      selector: '.field-items > .field-item',
-    }
   },
 ]
 
