@@ -346,10 +346,45 @@ let feedList = [
       selector: 'body main#genesis-content article .entry-content',
     }
   },
-  
+  {
+    title: '俏媽咪玩 3C',
+    feedID: 'sinshi-blog',
+    feedURL: 'http://feed.pixnet.net/blog/posts/rss/sinshi',
+    itemFilters: [
+      ItemFilters['sites'].ItemFilterBlog,
+      ItemFilters['common'].ItemFilterImageEmbed,
+    ],
+    options: {
+      selector: '#article-content-inner',
+    }
+  },
+  {
+    title: 'manfashion 時尚小物',
+    feedID: 'manfashion',
+    feedURL: 'http://feeds.feedburner.com/techbang/mf',
+    itemFilters: [
+      ItemFilters['sites'].ItemFilterBlog,
+      ItemFilters['common'].ItemFilterImageEmbed,
+    ],
+    options: {
+      selector: '.post-container .post-content',
+    }
+  },
+  {
+    title: 'iThome 3C新聞',
+    feedID: 'ithome-tech',
+    feedURL: 'https://ithome.com.tw/rss',
+    itemFilters: [
+      ItemFilters['sites'].ItemFilterBlog,
+      ItemFilters['common'].ItemFilterImageEmbed,
+    ],
+    options: {
+      selector: '.field-items > .field-item',
+    }
+  },
 ]
 
-// 26 / 30
+// 29 / 30
 
 // ----------------------------------------------------------------
 
