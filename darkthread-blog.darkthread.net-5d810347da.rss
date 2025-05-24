@@ -30,6 +30,558 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[JavaScript 互動圖表程式庫 - D3.js 長條圖練習]]></title>
+    <link>https://blog.darkthread.net/blog/d3js-barchart/</link>
+    <itunes:title><![CDATA[JavaScript 互動圖表程式庫 - D3.js 長條圖練習]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>繪製圖表是常見的程式需求，過去我寫過不少相關文章：</p> <ul><li><a href="/blog/python-pivot-table/">Python 練習：CSV 繪製樞鈕分析圖表</a></li> <li><a href="/blog/python-stats-cahrt/">分析Log 計算平均、標準差、95 百分位數並繪製圖表- 從C# 到Python</a></li> <li><a href="/blog/data-visualization-charts/">讀書筆記 - 資料視覺化常用圖表整理</a></li> <li><a href="/blog/scottplot/">C# 開源圖表程式庫 - ScottPlot</a></li></ul> <p>就語言生態系及程式庫成熟度來說，Python 應是首選，但在某些特殊情境，有些解決方案更能展現威力。今天就來介紹在網頁產生圖表的開源利器 - <a href="https://d3js.org/">D3.js</a>。</p> <p>D3.js 的命名源自 Data-Driven Documents，它是專為網頁開發設計的 JavaScript 資料視覺化函式庫，能利用 SVG、HTML5 和 CSS 動態生成互動式圖表、地圖等資料視覺化元件。</p> <p>D3.js 核心精神是將資料繫結到 SVG 元素，根據資料自動產生、更新或移除圖形。它的 API 用起來有點像 jQuery，用 select()/selectAll() 選元素，attr() 設屬性，並透過串接完成動作。例如：<code>d3.select("body").append("p").text("Hello World!");</code>，對於有 jQuery 經驗的人應格外有親切感。</p> <p>而除了提供<a href="https://observablehq.com/@d3/gallery">各式現成圖表範例</a>，D3.js 的 API 能充分支持開發特規圖表或加入高度客製的互動操作，換句話說，你的 HTML/CSS/JavaScript 技能水準決定 D3.js 的能力極限。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638836999337933123.jpg"></p> <p>總之，如果想為網頁加上可互動操作的資料圖表，D3.js 這個 ISC 授權(相當於 BSD/MIT，可免費商用)的開源程式庫將是好選擇。既是前端攻城利器，焉有不學的道理？</p> <p>於是，我試著用 D3.js 做了簡單的網頁長條圖當成練習，顯示由亂數產生的 5、10 或 20 筆資料；網頁並支援簡單互動操作，滑鼠滑過長條時右側表格的對應項目會變色；反之，當滑鼠滑過表格數字，對應的長條也會變色。</p> <p>這個 D3.js 圖表練習成果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638836999341859308.gif"></p> <p>必須說，D3.js 雖然看起來像 jQuery，但必須學會一些 D3.js 獨有的觀念才能運用自如。當然，如果你不想弄懂，打算全部丟給 AI 生，那就是選擇了另一條路線，也就不必繼續往下讀，我們下回再見! (揮手下降)</p> <p>(揮手上升) 嘿，沒想到還有這麼多同學留下來。想必大家應該是有興趣看懂程式或自己動手寫的勇者，那在此簡單交待這張長條圖的做法。</p> <p>D3.js 的基本教學多如牛毛，就算不想花時間讀，請 Copilot 給範例再要他解釋到飽，也能學到會。AI 造就了學寫程式的夢幻環境，也讓許多人慶幸未來再也不用寫程式，想寫程式跟不想寫程式的人都開心，也算皆大歡喜，噗。</p> <p>以下是我本次學到的重點：(為學習 D3.js 運作原理，這裡不用現成長條圖套件，從頭自己刻一次)</p> <ul><li>長條圖的 X 軸需要一個 Band Scaler，將離散資料（如類別、索引）平均分配計算其對應的長條位置，考慮間距後決定寬度。例如：總寬度 400，間距 0.25，則每個區塊寬度為 (400 - 40 - 30) / 9 = 40。</li> <li>長條圖的 Y 軸則是使用 Linear Scaler，提供極大值決定區間(有個 nice() 可將 97 調校為 100 等適合人類閱讀的刻度數字)，以使將資料數值換算成 Y 座標。</li> <li>縮製長條的方法是在 <code>svg.selectAll('rect').data(data).join()</code> 為每筆資料建立 rect 元素，接著 <code>.attr("x", (d, i) =&gt; x(i)).attr("y", d =&gt; y(d.c)).attr("height", d =&gt; y(0) - y(d.c)).attr("width", x.bandwidth())</code> 決定 rect 的 X, Y 座標及寬、高。</li> <li>rect 是標準 HTML 元素，故用 :hover CSS 設定滑鼠移過時的樣式，也可掛上 mouseover/mouseout 事件加上互動邏輯。</li> <li>產生 X 軸刻度的做法是產生一個 g 群組元素，<code>.attr("transform", `translate(0,${height - margin.bottom})`)</code> 決定位置，<code>.call(d3.axisBottom(x).tickFormat((i) =&gt; data[i]?.n ?? ""))</code> 將 g 傳給 axisBottom()，用 X Band Scaler 設定 X 軸刻度位置。</li> <li>產生 Y 軸刻度也是產生 g 元素，但改呼叫 <code>.call(d3.axisLeft(y).ticks(5));</code>，將 g 傳給 axisLeft()，用 Y Linear Scaler 設定 Y 軸刻度，並指定分成五份，產生五個刻度。</li> <li>產生隨機資料、用 <code>&lt;table&gt;</code> 列出資料的部分我用 Vue.js MVVM 寫，至於要跟 D3.js 元素互動，呼叫 d3.select() 再用類似 jQuery 的寫法即可 <code>d3.select(`rect[data-n='${n}']`).classed('active', true);</code>。</li></ul> <p>程式碼如下，全部不到 200 行搞定，也有<a href="https://darkthread.github.io/d3js-lab/d3-barplot.html">線上版</a>可以試玩：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;D3.js Bar Plot Example&lt;/title&gt;
+&lt;script src="https://d3js.org/d3.v7.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+.bar {
+fill: steelblue;
+}
+.bar:hover, .bar.active {
+fill: orange;
+}
+.axis-label {
+font-size: 12px;
+}
+.op {
+label {
+cursor: pointer;
+}
+button {
+margin-left: 8px;
+}
+}
+.view {
+display: flex;
+flex-direction: row;
+align-items: center;
+.table {
+display: flex;
+flex-direction: row;
+}
+table {
+margin-left: 10px;
+border-collapse: collapse;
+width: 100px;
+td {
+border: 1px solid #ccc;
+text-align: center;
+}
+tr.focus {
+background-color: yellow;
+}
+}
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div class="op"&gt;
+&lt;label v-for="count in dataCounts" :key="count"&gt;
+&lt;input type="radio" v-model="dataCount" :value="count" /&gt;
+{{ count }}
+&lt;/label&gt;
+&lt;button @click="genData(dataCount)"&gt;Generate&lt;/button&gt;
+&lt;button @click="sortData()"&gt;Sort&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="view"&gt;
+&lt;svg width="400" height="260"&gt;&lt;/svg&gt;
+&lt;div class="table"&gt;
+&lt;table&gt;
+&lt;tbody&gt;
+&lt;tr v-for="(item, index) in data.slice(0, 10)" :class="{ 'focus': focusIdx === item.n }"
+@mouseover="focusBar(item.n)" @mouseout="unfocusBar(item.n)"&gt;
+&lt;td&gt;{{ item.n }}&lt;/td&gt;
+&lt;td&gt;{{ item.c }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;table v-if="data.length &gt; 10"&gt;
+&lt;tbody&gt;
+&lt;tr v-for="(item, index) in data.slice(10)" :class="{ 'focus': focusIdx === item.n }"
+@mouseover="focusBar(item.n)" @mouseout="unfocusBar(item.n)"&gt;
+&lt;td&gt;{{ item.n }}&lt;/td&gt;
+&lt;td&gt;{{ item.c }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function showData(data) {
+const svg = d3.select("svg"),
+width = +svg.attr("width"),
+height = +svg.attr("height"),
+margin = { top: 20, right: 30, bottom: 30, left: 40 };
+svg.selectAll("*").remove();
+// 建立 X 軸 Band Scaler (帶狀比例尺)函數
+// 將離散資料（如類別、索引）平均分配到一段連續像素範圍，並自動處理每個區塊的寬度與間距
+// 例如：總寬度 400，間距 0.25，則每個區塊寬度為 (400 - 40 - 30) / 9 = 40
+const x = d3.scaleBand()
+// 使用元素索引作為 x 軸
+.domain(data.map((d, i) =&gt; i))
+.range([margin.left, width - margin.right])
+// 設定間距
+.padding(0.25);
+// 建立 Y 軸 Linear Scaler (線性比例尺)函數
+const y = d3.scaleLinear()
+// .nice() 會自動調整成易讀刻度，例如： 97 調成 100
+.domain([0, d3.max(data, d =&gt; d.c)]).nice()
+.range([height - margin.bottom, margin.top]);
+// 建立長條圖
+svg.append("g") // 在 SVG 中新增一個群組元素 g
+.attr("fill", "steelblue")
+.selectAll("rect") // 選擇所有 rect 元素，一開始是空集合
+.data(data) // 綁定資料，d3.js 決定產生多少個 rect
+.join("rect") // 依據資料新增或移除對應數量的 rect
+.attr("class", "bar")
+.attr("data-n", (d, i) =&gt; d.n)
+.attr("x", (d, i) =&gt; x(i)) // 用 Band Scaler 函數算出索引對應的 X 軸位置
+.attr("y", d =&gt; y(d.c))   // 用 Linear Scaler 函數算出筆數對應的 Y 軸的位置
+.attr("height", d =&gt; y(0) - y(d.c)) // 長條圖的高度
+.attr("width", x.bandwidth()) // 長條寬度 (考量 padding)
+// 互動事件
+.on('mouseover', function (event, d) {
+vm.focusIdx = d.n;
+})
+.on('mouseout', function (event, d) {
+vm.focusIdx = -1;
+});
+// 加入 X 軸
+svg.append("g")
+.attr("transform", `translate(0,${height - margin.bottom})`)
+// 將 g 傳給 axisBottom()，用 X Band Scaler 設定 X 軸刻度位置
+.call(d3.axisBottom(x).tickFormat((i) =&gt; data[i]?.n ?? ""))
+.selectAll("text")
+.attr("class", "axis-label")
+.attr("transform", "rotate(-0)")
+.style("text-anchor", "middle");
+// 加入 Y 軸
+svg.append("g")
+.attr("transform", `translate(${margin.left},0)`)
+// 將 g 傳給 axisLeft()，用 Y Linear Scaler 設定 Y 軸標記
+// .ticks(n) 可指定 Y 軸分成 n 等份
+.call(d3.axisLeft(y).ticks(5));
+}
+&lt;/script&gt;
+&lt;script&gt;
+const app = Vue.createApp({
+data() {
+return {
+data: [],
+dataCount: 10,
+dataCounts: [5, 10, 20],
+focusIdx: -1,
+}
+},
+methods: {
+sortData() {
+const sorted = this.data.slice().sort((a, b) =&gt; b.c - a.c);
+showData(sorted);
+},
+genData(range) {
+this.data = Array.from({ length: range }, (_, i) =&gt; ({
+n: i + 1,
+c: Math.floor(Math.random() * 512)
+}));
+if (this.sort) {
+this.sortData();
+}
+showData(this.data);
+},
+focusBar(n) {
+this.focusIdx = n;
+d3.select(`rect[data-n='${n}']`).classed('active', true);
+},
+unfocusBar(n) {
+this.focusIdx = -1;
+d3.select(`rect[data-n='${n}']`).classed('active', false);
+}
+}
+});
+const vm = app.mount('#app');
+vm.genData(vm.dataCount);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>就醬，正式將 D3.js 收入我的前端工具箱。</p> <p data-slug="d3js-barchart" data-title-en="Using D3.js to draw bar chart" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/23/08/17/data-4570804_1280.jpg#1280#720">This blog introduces D3.js for web-based interactive data visualization. It highlights essential concepts and provides a simple bar chart example with JavaScript and Vue.js integration.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>繪製圖表是常見的程式需求，過去我寫過不少相關文章：</p> <ul><li><a href="/blog/python-pivot-table/">Python 練習：CSV 繪製樞鈕分析圖表</a></li> <li><a href="/blog/python-stats-cahrt/">分析Log 計算平均、標準差、95 百分位數並繪製圖表- 從C# 到Python</a></li> <li><a href="/blog/data-visualization-charts/">讀書筆記 - 資料視覺化常用圖表整理</a></li> <li><a href="/blog/scottplot/">C# 開源圖表程式庫 - ScottPlot</a></li></ul> <p>就語言生態系及程式庫成熟度來說，Python 應是首選，但在某些特殊情境，有些解決方案更能展現威力。今天就來介紹在網頁產生圖表的開源利器 - <a href="https://d3js.org/">D3.js</a>。</p> <p>D3.js 的命名源自 Data-Driven Documents，它是專為網頁開發設計的 JavaScript 資料視覺化函式庫，能利用 SVG、HTML5 和 CSS 動態生成互動式圖表、地圖等資料視覺化元件。</p> <p>D3.js 核心精神是將資料繫結到 SVG 元素，根據資料自動產生、更新或移除圖形。它的 API 用起來有點像 jQuery，用 select()/selectAll() 選元素，attr() 設屬性，並透過串接完成動作。例如：<code>d3.select("body").append("p").text("Hello World!");</code>，對於有 jQuery 經驗的人應格外有親切感。</p> <p>而除了提供<a href="https://observablehq.com/@d3/gallery">各式現成圖表範例</a>，D3.js 的 API 能充分支持開發特規圖表或加入高度客製的互動操作，換句話說，你的 HTML/CSS/JavaScript 技能水準決定 D3.js 的能力極限。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638836999337933123.jpg"></p> <p>總之，如果想為網頁加上可互動操作的資料圖表，D3.js 這個 ISC 授權(相當於 BSD/MIT，可免費商用)的開源程式庫將是好選擇。既是前端攻城利器，焉有不學的道理？</p> <p>於是，我試著用 D3.js 做了簡單的網頁長條圖當成練習，顯示由亂數產生的 5、10 或 20 筆資料；網頁並支援簡單互動操作，滑鼠滑過長條時右側表格的對應項目會變色；反之，當滑鼠滑過表格數字，對應的長條也會變色。</p> <p>這個 D3.js 圖表練習成果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638836999341859308.gif"></p> <p>必須說，D3.js 雖然看起來像 jQuery，但必須學會一些 D3.js 獨有的觀念才能運用自如。當然，如果你不想弄懂，打算全部丟給 AI 生，那就是選擇了另一條路線，也就不必繼續往下讀，我們下回再見! (揮手下降)</p> <p>(揮手上升) 嘿，沒想到還有這麼多同學留下來。想必大家應該是有興趣看懂程式或自己動手寫的勇者，那在此簡單交待這張長條圖的做法。</p> <p>D3.js 的基本教學多如牛毛，就算不想花時間讀，請 Copilot 給範例再要他解釋到飽，也能學到會。AI 造就了學寫程式的夢幻環境，也讓許多人慶幸未來再也不用寫程式，想寫程式跟不想寫程式的人都開心，也算皆大歡喜，噗。</p> <p>以下是我本次學到的重點：(為學習 D3.js 運作原理，這裡不用現成長條圖套件，從頭自己刻一次)</p> <ul><li>長條圖的 X 軸需要一個 Band Scaler，將離散資料（如類別、索引）平均分配計算其對應的長條位置，考慮間距後決定寬度。例如：總寬度 400，間距 0.25，則每個區塊寬度為 (400 - 40 - 30) / 9 = 40。</li> <li>長條圖的 Y 軸則是使用 Linear Scaler，提供極大值決定區間(有個 nice() 可將 97 調校為 100 等適合人類閱讀的刻度數字)，以使將資料數值換算成 Y 座標。</li> <li>縮製長條的方法是在 <code>svg.selectAll('rect').data(data).join()</code> 為每筆資料建立 rect 元素，接著 <code>.attr("x", (d, i) =&gt; x(i)).attr("y", d =&gt; y(d.c)).attr("height", d =&gt; y(0) - y(d.c)).attr("width", x.bandwidth())</code> 決定 rect 的 X, Y 座標及寬、高。</li> <li>rect 是標準 HTML 元素，故用 :hover CSS 設定滑鼠移過時的樣式，也可掛上 mouseover/mouseout 事件加上互動邏輯。</li> <li>產生 X 軸刻度的做法是產生一個 g 群組元素，<code>.attr("transform", `translate(0,${height - margin.bottom})`)</code> 決定位置，<code>.call(d3.axisBottom(x).tickFormat((i) =&gt; data[i]?.n ?? ""))</code> 將 g 傳給 axisBottom()，用 X Band Scaler 設定 X 軸刻度位置。</li> <li>產生 Y 軸刻度也是產生 g 元素，但改呼叫 <code>.call(d3.axisLeft(y).ticks(5));</code>，將 g 傳給 axisLeft()，用 Y Linear Scaler 設定 Y 軸刻度，並指定分成五份，產生五個刻度。</li> <li>產生隨機資料、用 <code>&lt;table&gt;</code> 列出資料的部分我用 Vue.js MVVM 寫，至於要跟 D3.js 元素互動，呼叫 d3.select() 再用類似 jQuery 的寫法即可 <code>d3.select(`rect[data-n='${n}']`).classed('active', true);</code>。</li></ul> <p>程式碼如下，全部不到 200 行搞定，也有<a href="https://darkthread.github.io/d3js-lab/d3-barplot.html">線上版</a>可以試玩：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;D3.js Bar Plot Example&lt;/title&gt;
+&lt;script src="https://d3js.org/d3.v7.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+.bar {
+fill: steelblue;
+}
+.bar:hover, .bar.active {
+fill: orange;
+}
+.axis-label {
+font-size: 12px;
+}
+.op {
+label {
+cursor: pointer;
+}
+button {
+margin-left: 8px;
+}
+}
+.view {
+display: flex;
+flex-direction: row;
+align-items: center;
+.table {
+display: flex;
+flex-direction: row;
+}
+table {
+margin-left: 10px;
+border-collapse: collapse;
+width: 100px;
+td {
+border: 1px solid #ccc;
+text-align: center;
+}
+tr.focus {
+background-color: yellow;
+}
+}
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div class="op"&gt;
+&lt;label v-for="count in dataCounts" :key="count"&gt;
+&lt;input type="radio" v-model="dataCount" :value="count" /&gt;
+{{ count }}
+&lt;/label&gt;
+&lt;button @click="genData(dataCount)"&gt;Generate&lt;/button&gt;
+&lt;button @click="sortData()"&gt;Sort&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="view"&gt;
+&lt;svg width="400" height="260"&gt;&lt;/svg&gt;
+&lt;div class="table"&gt;
+&lt;table&gt;
+&lt;tbody&gt;
+&lt;tr v-for="(item, index) in data.slice(0, 10)" :class="{ 'focus': focusIdx === item.n }"
+@mouseover="focusBar(item.n)" @mouseout="unfocusBar(item.n)"&gt;
+&lt;td&gt;{{ item.n }}&lt;/td&gt;
+&lt;td&gt;{{ item.c }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;table v-if="data.length &gt; 10"&gt;
+&lt;tbody&gt;
+&lt;tr v-for="(item, index) in data.slice(10)" :class="{ 'focus': focusIdx === item.n }"
+@mouseover="focusBar(item.n)" @mouseout="unfocusBar(item.n)"&gt;
+&lt;td&gt;{{ item.n }}&lt;/td&gt;
+&lt;td&gt;{{ item.c }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function showData(data) {
+const svg = d3.select("svg"),
+width = +svg.attr("width"),
+height = +svg.attr("height"),
+margin = { top: 20, right: 30, bottom: 30, left: 40 };
+svg.selectAll("*").remove();
+// 建立 X 軸 Band Scaler (帶狀比例尺)函數
+// 將離散資料（如類別、索引）平均分配到一段連續像素範圍，並自動處理每個區塊的寬度與間距
+// 例如：總寬度 400，間距 0.25，則每個區塊寬度為 (400 - 40 - 30) / 9 = 40
+const x = d3.scaleBand()
+// 使用元素索引作為 x 軸
+.domain(data.map((d, i) =&gt; i))
+.range([margin.left, width - margin.right])
+// 設定間距
+.padding(0.25);
+// 建立 Y 軸 Linear Scaler (線性比例尺)函數
+const y = d3.scaleLinear()
+// .nice() 會自動調整成易讀刻度，例如： 97 調成 100
+.domain([0, d3.max(data, d =&gt; d.c)]).nice()
+.range([height - margin.bottom, margin.top]);
+// 建立長條圖
+svg.append("g") // 在 SVG 中新增一個群組元素 g
+.attr("fill", "steelblue")
+.selectAll("rect") // 選擇所有 rect 元素，一開始是空集合
+.data(data) // 綁定資料，d3.js 決定產生多少個 rect
+.join("rect") // 依據資料新增或移除對應數量的 rect
+.attr("class", "bar")
+.attr("data-n", (d, i) =&gt; d.n)
+.attr("x", (d, i) =&gt; x(i)) // 用 Band Scaler 函數算出索引對應的 X 軸位置
+.attr("y", d =&gt; y(d.c))   // 用 Linear Scaler 函數算出筆數對應的 Y 軸的位置
+.attr("height", d =&gt; y(0) - y(d.c)) // 長條圖的高度
+.attr("width", x.bandwidth()) // 長條寬度 (考量 padding)
+// 互動事件
+.on('mouseover', function (event, d) {
+vm.focusIdx = d.n;
+})
+.on('mouseout', function (event, d) {
+vm.focusIdx = -1;
+});
+// 加入 X 軸
+svg.append("g")
+.attr("transform", `translate(0,${height - margin.bottom})`)
+// 將 g 傳給 axisBottom()，用 X Band Scaler 設定 X 軸刻度位置
+.call(d3.axisBottom(x).tickFormat((i) =&gt; data[i]?.n ?? ""))
+.selectAll("text")
+.attr("class", "axis-label")
+.attr("transform", "rotate(-0)")
+.style("text-anchor", "middle");
+// 加入 Y 軸
+svg.append("g")
+.attr("transform", `translate(${margin.left},0)`)
+// 將 g 傳給 axisLeft()，用 Y Linear Scaler 設定 Y 軸標記
+// .ticks(n) 可指定 Y 軸分成 n 等份
+.call(d3.axisLeft(y).ticks(5));
+}
+&lt;/script&gt;
+&lt;script&gt;
+const app = Vue.createApp({
+data() {
+return {
+data: [],
+dataCount: 10,
+dataCounts: [5, 10, 20],
+focusIdx: -1,
+}
+},
+methods: {
+sortData() {
+const sorted = this.data.slice().sort((a, b) =&gt; b.c - a.c);
+showData(sorted);
+},
+genData(range) {
+this.data = Array.from({ length: range }, (_, i) =&gt; ({
+n: i + 1,
+c: Math.floor(Math.random() * 512)
+}));
+if (this.sort) {
+this.sortData();
+}
+showData(this.data);
+},
+focusBar(n) {
+this.focusIdx = n;
+d3.select(`rect[data-n='${n}']`).classed('active', true);
+},
+unfocusBar(n) {
+this.focusIdx = -1;
+d3.select(`rect[data-n='${n}']`).classed('active', false);
+}
+}
+});
+const vm = app.mount('#app');
+vm.genData(vm.dataCount);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>就醬，正式將 D3.js 收入我的前端工具箱。</p> <p data-slug="d3js-barchart" data-title-en="Using D3.js to draw bar chart" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/23/08/17/data-4570804_1280.jpg#1280#720">This blog introduces D3.js for web-based interactive data visualization. It highlights essential concepts and provides a simple bar chart example with JavaScript and Vue.js integration.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>繪製圖表是常見的程式需求，過去我寫過不少相關文章：</p> <ul><li><a href="/blog/python-pivot-table/">Python 練習：CSV 繪製樞鈕分析圖表</a></li> <li><a href="/blog/python-stats-cahrt/">分析Log 計算平均、標準差、95 百分位數並繪製圖表- 從C# 到Python</a></li> <li><a href="/blog/data-visualization-charts/">讀書筆記 - 資料視覺化常用圖表整理</a></li> <li><a href="/blog/scottplot/">C# 開源圖表程式庫 - ScottPlot</a></li></ul> <p>就語言生態系及程式庫成熟度來說，Python 應是首選，但在某些特殊情境，有些解決方案更能展現威力。今天就來介紹在網頁產生圖表的開源利器 - <a href="https://d3js.org/">D3.js</a>。</p> <p>D3.js 的命名源自 Data-Driven Documents，它是專為網頁開發設計的 JavaScript 資料視覺化函式庫，能利用 SVG、HTML5 和 CSS 動態生成互動式圖表、地圖等資料視覺化元件。</p> <p>D3.js 核心精神是將資料繫結到 SVG 元素，根據資料自動產生、更新或移除圖形。它的 API 用起來有點像 jQuery，用 select()/selectAll() 選元素，attr() 設屬性，並透過串接完成動作。例如：<code>d3.select("body").append("p").text("Hello World!");</code>，對於有 jQuery 經驗的人應格外有親切感。</p> <p>而除了提供<a href="https://observablehq.com/@d3/gallery">各式現成圖表範例</a>，D3.js 的 API 能充分支持開發特規圖表或加入高度客製的互動操作，換句話說，你的 HTML/CSS/JavaScript 技能水準決定 D3.js 的能力極限。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638836999337933123.jpg"></p> <p>總之，如果想為網頁加上可互動操作的資料圖表，D3.js 這個 ISC 授權(相當於 BSD/MIT，可免費商用)的開源程式庫將是好選擇。既是前端攻城利器，焉有不學的道理？</p> <p>於是，我試著用 D3.js 做了簡單的網頁長條圖當成練習，顯示由亂數產生的 5、10 或 20 筆資料；網頁並支援簡單互動操作，滑鼠滑過長條時右側表格的對應項目會變色；反之，當滑鼠滑過表格數字，對應的長條也會變色。</p> <p>這個 D3.js 圖表練習成果如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638836999341859308.gif"></p> <p>必須說，D3.js 雖然看起來像 jQuery，但必須學會一些 D3.js 獨有的觀念才能運用自如。當然，如果你不想弄懂，打算全部丟給 AI 生，那就是選擇了另一條路線，也就不必繼續往下讀，我們下回再見! (揮手下降)</p> <p>(揮手上升) 嘿，沒想到還有這麼多同學留下來。想必大家應該是有興趣看懂程式或自己動手寫的勇者，那在此簡單交待這張長條圖的做法。</p> <p>D3.js 的基本教學多如牛毛，就算不想花時間讀，請 Copilot 給範例再要他解釋到飽，也能學到會。AI 造就了學寫程式的夢幻環境，也讓許多人慶幸未來再也不用寫程式，想寫程式跟不想寫程式的人都開心，也算皆大歡喜，噗。</p> <p>以下是我本次學到的重點：(為學習 D3.js 運作原理，這裡不用現成長條圖套件，從頭自己刻一次)</p> <ul><li>長條圖的 X 軸需要一個 Band Scaler，將離散資料（如類別、索引）平均分配計算其對應的長條位置，考慮間距後決定寬度。例如：總寬度 400，間距 0.25，則每個區塊寬度為 (400 - 40 - 30) / 9 = 40。</li> <li>長條圖的 Y 軸則是使用 Linear Scaler，提供極大值決定區間(有個 nice() 可將 97 調校為 100 等適合人類閱讀的刻度數字)，以使將資料數值換算成 Y 座標。</li> <li>縮製長條的方法是在 <code>svg.selectAll('rect').data(data).join()</code> 為每筆資料建立 rect 元素，接著 <code>.attr("x", (d, i) =&gt; x(i)).attr("y", d =&gt; y(d.c)).attr("height", d =&gt; y(0) - y(d.c)).attr("width", x.bandwidth())</code> 決定 rect 的 X, Y 座標及寬、高。</li> <li>rect 是標準 HTML 元素，故用 :hover CSS 設定滑鼠移過時的樣式，也可掛上 mouseover/mouseout 事件加上互動邏輯。</li> <li>產生 X 軸刻度的做法是產生一個 g 群組元素，<code>.attr("transform", `translate(0,${height - margin.bottom})`)</code> 決定位置，<code>.call(d3.axisBottom(x).tickFormat((i) =&gt; data[i]?.n ?? ""))</code> 將 g 傳給 axisBottom()，用 X Band Scaler 設定 X 軸刻度位置。</li> <li>產生 Y 軸刻度也是產生 g 元素，但改呼叫 <code>.call(d3.axisLeft(y).ticks(5));</code>，將 g 傳給 axisLeft()，用 Y Linear Scaler 設定 Y 軸刻度，並指定分成五份，產生五個刻度。</li> <li>產生隨機資料、用 <code>&lt;table&gt;</code> 列出資料的部分我用 Vue.js MVVM 寫，至於要跟 D3.js 元素互動，呼叫 d3.select() 再用類似 jQuery 的寫法即可 <code>d3.select(`rect[data-n='${n}']`).classed('active', true);</code>。</li></ul> <p>程式碼如下，全部不到 200 行搞定，也有<a href="https://darkthread.github.io/d3js-lab/d3-barplot.html">線上版</a>可以試玩：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;D3.js Bar Plot Example&lt;/title&gt;
+&lt;script src="https://d3js.org/d3.v7.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+.bar {
+fill: steelblue;
+}
+.bar:hover, .bar.active {
+fill: orange;
+}
+.axis-label {
+font-size: 12px;
+}
+.op {
+label {
+cursor: pointer;
+}
+button {
+margin-left: 8px;
+}
+}
+.view {
+display: flex;
+flex-direction: row;
+align-items: center;
+.table {
+display: flex;
+flex-direction: row;
+}
+table {
+margin-left: 10px;
+border-collapse: collapse;
+width: 100px;
+td {
+border: 1px solid #ccc;
+text-align: center;
+}
+tr.focus {
+background-color: yellow;
+}
+}
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="app"&gt;
+&lt;div class="op"&gt;
+&lt;label v-for="count in dataCounts" :key="count"&gt;
+&lt;input type="radio" v-model="dataCount" :value="count" /&gt;
+{{ count }}
+&lt;/label&gt;
+&lt;button @click="genData(dataCount)"&gt;Generate&lt;/button&gt;
+&lt;button @click="sortData()"&gt;Sort&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="view"&gt;
+&lt;svg width="400" height="260"&gt;&lt;/svg&gt;
+&lt;div class="table"&gt;
+&lt;table&gt;
+&lt;tbody&gt;
+&lt;tr v-for="(item, index) in data.slice(0, 10)" :class="{ 'focus': focusIdx === item.n }"
+@mouseover="focusBar(item.n)" @mouseout="unfocusBar(item.n)"&gt;
+&lt;td&gt;{{ item.n }}&lt;/td&gt;
+&lt;td&gt;{{ item.c }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;table v-if="data.length &gt; 10"&gt;
+&lt;tbody&gt;
+&lt;tr v-for="(item, index) in data.slice(10)" :class="{ 'focus': focusIdx === item.n }"
+@mouseover="focusBar(item.n)" @mouseout="unfocusBar(item.n)"&gt;
+&lt;td&gt;{{ item.n }}&lt;/td&gt;
+&lt;td&gt;{{ item.c }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+function showData(data) {
+const svg = d3.select("svg"),
+width = +svg.attr("width"),
+height = +svg.attr("height"),
+margin = { top: 20, right: 30, bottom: 30, left: 40 };
+svg.selectAll("*").remove();
+// 建立 X 軸 Band Scaler (帶狀比例尺)函數
+// 將離散資料（如類別、索引）平均分配到一段連續像素範圍，並自動處理每個區塊的寬度與間距
+// 例如：總寬度 400，間距 0.25，則每個區塊寬度為 (400 - 40 - 30) / 9 = 40
+const x = d3.scaleBand()
+// 使用元素索引作為 x 軸
+.domain(data.map((d, i) =&gt; i))
+.range([margin.left, width - margin.right])
+// 設定間距
+.padding(0.25);
+// 建立 Y 軸 Linear Scaler (線性比例尺)函數
+const y = d3.scaleLinear()
+// .nice() 會自動調整成易讀刻度，例如： 97 調成 100
+.domain([0, d3.max(data, d =&gt; d.c)]).nice()
+.range([height - margin.bottom, margin.top]);
+// 建立長條圖
+svg.append("g") // 在 SVG 中新增一個群組元素 g
+.attr("fill", "steelblue")
+.selectAll("rect") // 選擇所有 rect 元素，一開始是空集合
+.data(data) // 綁定資料，d3.js 決定產生多少個 rect
+.join("rect") // 依據資料新增或移除對應數量的 rect
+.attr("class", "bar")
+.attr("data-n", (d, i) =&gt; d.n)
+.attr("x", (d, i) =&gt; x(i)) // 用 Band Scaler 函數算出索引對應的 X 軸位置
+.attr("y", d =&gt; y(d.c))   // 用 Linear Scaler 函數算出筆數對應的 Y 軸的位置
+.attr("height", d =&gt; y(0) - y(d.c)) // 長條圖的高度
+.attr("width", x.bandwidth()) // 長條寬度 (考量 padding)
+// 互動事件
+.on('mouseover', function (event, d) {
+vm.focusIdx = d.n;
+})
+.on('mouseout', function (event, d) {
+vm.focusIdx = -1;
+});
+// 加入 X 軸
+svg.append("g")
+.attr("transform", `translate(0,${height - margin.bottom})`)
+// 將 g 傳給 axisBottom()，用 X Band Scaler 設定 X 軸刻度位置
+.call(d3.axisBottom(x).tickFormat((i) =&gt; data[i]?.n ?? ""))
+.selectAll("text")
+.attr("class", "axis-label")
+.attr("transform", "rotate(-0)")
+.style("text-anchor", "middle");
+// 加入 Y 軸
+svg.append("g")
+.attr("transform", `translate(${margin.left},0)`)
+// 將 g 傳給 axisLeft()，用 Y Linear Scaler 設定 Y 軸標記
+// .ticks(n) 可指定 Y 軸分成 n 等份
+.call(d3.axisLeft(y).ticks(5));
+}
+&lt;/script&gt;
+&lt;script&gt;
+const app = Vue.createApp({
+data() {
+return {
+data: [],
+dataCount: 10,
+dataCounts: [5, 10, 20],
+focusIdx: -1,
+}
+},
+methods: {
+sortData() {
+const sorted = this.data.slice().sort((a, b) =&gt; b.c - a.c);
+showData(sorted);
+},
+genData(range) {
+this.data = Array.from({ length: range }, (_, i) =&gt; ({
+n: i + 1,
+c: Math.floor(Math.random() * 512)
+}));
+if (this.sort) {
+this.sortData();
+}
+showData(this.data);
+},
+focusBar(n) {
+this.focusIdx = n;
+d3.select(`rect[data-n='${n}']`).classed('active', true);
+},
+unfocusBar(n) {
+this.focusIdx = -1;
+d3.select(`rect[data-n='${n}']`).classed('active', false);
+}
+}
+});
+const vm = app.mount('#app');
+vm.genData(vm.dataCount);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>就醬，正式將 D3.js 收入我的前端工具箱。</p> <p data-slug="d3js-barchart" data-title-en="Using D3.js to draw bar chart" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/10/23/08/17/data-4570804_1280.jpg#1280#720">This blog introduces D3.js for web-based interactive data visualization. It highlights essential concepts and provides a simple bar chart example with JavaScript and Vue.js integration.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638836999337933123.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638836999337933123.jpg" medium="image"/>
+    <pubDate>Sat, 24 May 2025 15:56:03 GMT</pubDate>
+  </item><item>
     <title><![CDATA[好消息，Obsidian 免費開放商業使用]]></title>
     <link>https://blog.darkthread.net/blog/obsidian-free-for-work/</link>
     <itunes:title><![CDATA[好消息，Obsidian 免費開放商業使用]]></itunes:title>
@@ -1079,26 +1631,5 @@ nvm use --lts
     <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638821348054398121.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638821348054398121.png" medium="image"/>
     <pubDate>Tue, 06 May 2025 13:23:41 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[HTTP/HTTPS 傳輸分析偵錯神器 - mitmproxy]]></title>
-    <link>https://blog.darkthread.net/blog/mitmproxy/</link>
-    <itunes:title><![CDATA[HTTP/HTTPS 傳輸分析偵錯神器 - mitmproxy]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>從 Huli 這篇 <a href="https://blog.huli.tw/2025/04/23/everyone-need-a-http-proxy-to-debug/">人人都需要一個 HTTP proxy 來 debug</a> 學到好用工具 - <a href="https://mitmproxy.org/">mitmproxy</a>，頗有相見恨晚之感，特撰文分享。</p> <p>在我多年射茶包的經驗中，瀏覽網頁出現疑難雜症，用 Chrome 或 Edge 的 F12 偵錯工具已幾可解決大半；但若為應用程式呼叫 WebAPI、網頁爬蟲工具，或是 Windows 整合驗證 (Kerberos/NTLM) 方面問題，就得靠 HTTP Proxy 類型偵錯工具上場救援。</p> <p>HTTP Proxy 偵錯的原理是由工具軟體扮演網站代理伺理器，設定瀏覽器或應用程式將所有 HTTP/HTTPS 請求交給它轉發並允許偵錯工具攔截內容，達到分析傳輸資料甚至修改內容的目的。這類工具很早之前就有了，我過去主要是用 Fiddler，一劍在手，大小問題迎刃而解。例如：<a href="/blog/401s-in-windows-authentication/">觀察整合式驗證先兩次 401 再 200 的過程</a>、<a href="/blog/ie-ocsp-checking-issue/">查 IE 爆慢 Chrome 正常的怪事</a>、<a href="/blog/webclient-headers-will-changes/">WebClient.UploadString() 第二送 Header 會變的鬼問題</a>... <a href="https://cse.google.com/cse?cx=002179666918670624530%3Afd5jjcvj7bc&amp;q=Fiddler&amp;oq=Fiddler">更多</a>)。而 Fiddler HTTP Proxy 及可修改 Request 及回應的特性，也被我拿來<a href="/blog/fiddler-remote-debug-mac-safari/">偵錯 Mac Safari</a>、<a href="/blog/fiddler-autoresponder/">偷改網頁內容方便測試</a>，搞過一些花式應用。對如何善用 HTTP Proxy 偵錯工具解決問題，我也算小有心得。</p> <p>Fiddler 的歷史悠久，最早是 2003 年微軟 IE 研發經理 Eric Lawrence 的個人 Side Project，其後被 Telerik 收購，歷經二十多年改版演化(我也用了快 20 年)，目前分為 <a href="https://www.telerik.com/fiddler/fiddler-classic">Fiddler Classic</a> (免費版) 及 Fiddler Everywhere (商業版)。依官方說法 Fiddler Classic 將不再積極開發，也不提供修補更新或技術技援 (Fiddler Classic is not in active development and offers no commitments for releases, patches or tech support.)，即使今年 3 月仍有更新，但長遠來看，免費 HTTP Proxy 偵錯工具這個位置遲早要找到接班人。</p> <p>Burp Suite 在資安領域名聲響亮，免費版 Community Edition 允許個人學習、研究或及企業內部商業使用(Internal Business Purpose，包含「以商業顧問身份為客戶提供客製化諮詢服務」)，但拿掉了儲存功能及自動化測試 <a href="https://www.perplexity.ai/search/can-burp-suite-community-used-JqQ2fmu9QICQDpGscQqmVw">參考</a>，要付費版 Professional Edition 才能火力全開。</p> <p>相形之下，採用 MIT License 的 mitmproxy，100% 符合免費可商用的條件。即便風格偏向 CLI，對一般人來說不如 Burp Suite 的純 GUI 友善，但軟體攻城獅可不是一般人，像我就覺得敲指令比滑滑鼠更有 Fu。至於若要大量檢視比對內容的場合，mitmproxy 也有 mitmweb 提供網頁操作介面。</p> <p>而 mitmproxy 開源專案非常活躍，去年 11 月推出 11.0 版，中間歷經 5 次小改版，4 月底就又推出 12.0，不用擔心跟不上 HTTP/2、TLS 規格演進。另外，mitmproxy 也逐步<a href="https://mitmproxy.org/posts/releases/mitmproxy-12/">改用 Rust 開發 Contentview、Syntax highlighting 等模組</a>，讓人對其效能及可靠性充滿期待。(延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">YT 筆記 - Rust 程式語言在 JavaScript 生態圈的角色</a>)。</p> <p>總之，我是愈看愈滿意，小試了一下，果真好用。</p> <p>我的主力平台是 Windows，這篇會以在 Winodws 環境使用為主。除了下載執行 Windows Installer，也可以用 Chocolatey 安裝：(延伸閱讀：指令式軟體安裝服務比較：Chocolatey、Scoop 與 winget](/blog/chocolatey-scoop-winget/)、<a href="/blog/choco-install-notes-for-new-windows/">我的 Windows 新裝機 Chocolatey 安裝清單</a>)<br> 註：mitmproxy 也支援用 Docker 執行，若要偵查手機 App 傳輸，用 Docker 架設更方便</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png"></p> <p>mitmproxy 主要有四種運作模式：<a href="https://docs.mitmproxy.org/stable/concepts/modes/">參考</a></p> <ul><li>HTTP/HTTPS Proxy<br> 在 OS 或程式指定 Proxy (預設：<code>http://localhost:8080</code>) 改透過 mitmproxy 存取網站，這是最傳統做法。缺點是要設定 Proxy，不同應用程式的設定方式不盡相同。</li> <li>Local Capture<br> 從 OS 層攔截 HTTP/HTTPS 傳輸，不用設 Proxy，甚至可以指定只攔截特定程序，是我覺得最方便的做法。</li> <li>WireGuard<br> mitmproxy 會扮演一台 <a href="https://www.wireguard.com/">WireGuard VPN</a> Server，客戶端安裝執行 WireGuard VPN Client，之後所有流量會經過 mitmproxy，App 與 API 間的互動不再是祕密。</li> <li>Reverse Proxy<br> 擔任指定網站的 Reverse Proxy，從中攔截傳輸內容</li></ul> <p>安裝好第一次使用前需先安裝 mitmproxy 的中間人 CA 根憑證，憑證會安裝後動態產生，每台機器不同，以降低被惡意使用的風險。安裝方法是開 CMD 跑 <code>mitmproxy --mode local</code> (建議將 C:\Program Files\mitmproxy\bin\ 加入 PATH) 後開瀏覽器連上 <a href="http://mitm.it/%EF%BC%8C%E4%BE%9D%E8%AA%AA%E6%98%8E%E5%AE%89%E8%A3%9D%E3%80%82">http://mitm.it/，依說明安裝。</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638818772211685967.png"></p> <p>【資安提醒】安裝並信任 CA 憑證代表特定軟體可以檢視 HTTPS 加密傳輸內容，此一動作影響重大，請確認憑證來源可靠並知道背後可能的風險再繼續。</p> <p>接著來幾個簡單練習。</p> <ol><li>攔截對特定網站的存取 <pre><code>mitmproxy --mode local --allow-hosts ip-api.com
-</code></pre> 啟動後分別用 curl 及 PowerShell 存取 <code>curl http://ip-api.com/json/8.8.8.8</code>，可觀察到兩次 GET 存取：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638818772214671426.png"><br> 打開每一筆 GET 可檢視 Request/Response 詳細內容<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638818772216603096.png"></li> <li>HTTPS 憑證信任問題<br> 在 Windows 信任 mitmproxy 的自訂 CA 根憑證，Windows 體系的應用程式便會自動信任 mitmproxy ，但如 curl、Java 則需另外信任憑證。 設定方式可參考<a href="https://docs.mitmproxy.org/stable/concepts/certificates/#the-mitmproxy-certificate-authority">官方說明</a>。<br> 測試 curl 時遇到一個眉角，一般來說使用 <code>curl --cacert C:\Users\&lt;userName&gt;\.mitmproxy\mitmproxy-ca-cert.pem https://www.github.com</code> 即可讓 curl 信任 mitmproxy，但 <a href="/blog/win-builtin-curl/">Windows 內建的 curl</a> 使用 Schannel 處理 TLS 而非 openssl，若已在 Windows 信任過 mitmproxy CA 憑證，便不需特別指定。但實測會遇到 <code>CertGetCertificateChain trust error CERT_TRUST_REVOCATION_STATUS_UNKNOWN</code> 錯誤，究其原理是 Schannel 會要求檢查憑證撤銷資訊，mitmproxy 預設不支援。解法有二：1) curl 加上 --ssl-no-revoke 參數、2) 為 mitmproxy 設定憑證撤銷檢查。<a href="https://www.perplexity.ai/search/simple-example-for-using-curl-t.jEx52ZRtyVG.vPwsWlkw">參考</a></li> <li>攔截特定程序的 HTTP/HTTPS 傳輸 <pre><code>mitmproxy --mode local:curl
-</code></pre> 用以上指令，只會攔截 curl 程式的傳輸，如下圖所示，我分別試了 curl、PowerShell 及瀏覽器連網站，只有 curl 的請求被捕追到，瀏覽器檢視憑證也是未更換狀態，代表 mitmproxy 未插手。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638818772218562340.png"><br> 另外執行 <code>mitmproxy --mode local:chrome</code> 對照，HTTPS 傳輸若經過 mitmproxy 時，憑證的發行者將變成 mitmproxy。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638818772222615579.png"></li> <li>若你想用 GUI 介面檢視傳輸內容，將以上操作中的 mitmproxy 換成 mitmweb 即可，例如：<code>mitmweb --mode local:chrome</code>：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig7_638818772226853420.png"></li> <li>依理來說，Local Capture 模式可以捕捉連到 localhost/127.0.0.1 的流量，但我在 Windows 上實測不成功，替代方案是跑 <code>mitmweb --mode reverse:http://locahost:80</code>，之後連上 <code>http://localhost:8080</code> 會被導向本機 80 Port，過程也將被側錄。<br> 剛好利用這些機會玩玩 Reverse Proxy 模式，小試 Windows 整合登入 IIS，成功抓到經典的兩個前置 401：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig8_638818772230350256.png"></li></ol> <p>以上差不多已涵蓋日常 HTTP/HTTPS 偵錯的基本技巧，熟悉後便足以提著 mitmproxy 上場挑戰疑難雜症。至於 mitmproxy 更強大的程式化資料分析及修改功能，未來會再專門做一集跟大家講解。(老高上身)</p> <p>【2025-05-05 補充】</p> <p>mitmproxy Windows 版依賴開源程式套件 <a href="https://reqrypt.org/windivert.html">WinDivert, Windows Packet Divert</a> 補捉封包，該元件被廣泛應用於 Windows 平台的網路分析偵錯及資安工具，但由於功能強大能被拿來做壞事，故被少數防毒或資安軟體視為惡意程式，在 VirusTotal 分析報告中，72 項檢測中有 4 項將其判定有害：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig10_638820331058760573.png"></p> <p>上述結果可能導致實務使用時觸發防毒或資安告警。我的解讀是工具本身是中性的，可以救人也可以拿來害人，無奈「可能作惡就禁用」是常見的資安策略，只能習慣...</p> <p data-slug="mitmproxy" data-title-en="mitmproxy, the powerful HTTP/HTTPS debugger" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/10/03/20/01/mri-2813899_1280.jpg#1280#720">Learn how mitmproxy, a free and open-source HTTP proxy tool, aids debugging by intercepting HTTP/HTTPS traffic, offering CLI and web interfaces for detailed analysis. Ideal for developers preferring command-line operations over GUI.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>從 Huli 這篇 <a href="https://blog.huli.tw/2025/04/23/everyone-need-a-http-proxy-to-debug/">人人都需要一個 HTTP proxy 來 debug</a> 學到好用工具 - <a href="https://mitmproxy.org/">mitmproxy</a>，頗有相見恨晚之感，特撰文分享。</p> <p>在我多年射茶包的經驗中，瀏覽網頁出現疑難雜症，用 Chrome 或 Edge 的 F12 偵錯工具已幾可解決大半；但若為應用程式呼叫 WebAPI、網頁爬蟲工具，或是 Windows 整合驗證 (Kerberos/NTLM) 方面問題，就得靠 HTTP Proxy 類型偵錯工具上場救援。</p> <p>HTTP Proxy 偵錯的原理是由工具軟體扮演網站代理伺理器，設定瀏覽器或應用程式將所有 HTTP/HTTPS 請求交給它轉發並允許偵錯工具攔截內容，達到分析傳輸資料甚至修改內容的目的。這類工具很早之前就有了，我過去主要是用 Fiddler，一劍在手，大小問題迎刃而解。例如：<a href="/blog/401s-in-windows-authentication/">觀察整合式驗證先兩次 401 再 200 的過程</a>、<a href="/blog/ie-ocsp-checking-issue/">查 IE 爆慢 Chrome 正常的怪事</a>、<a href="/blog/webclient-headers-will-changes/">WebClient.UploadString() 第二送 Header 會變的鬼問題</a>... <a href="https://cse.google.com/cse?cx=002179666918670624530%3Afd5jjcvj7bc&amp;q=Fiddler&amp;oq=Fiddler">更多</a>)。而 Fiddler HTTP Proxy 及可修改 Request 及回應的特性，也被我拿來<a href="/blog/fiddler-remote-debug-mac-safari/">偵錯 Mac Safari</a>、<a href="/blog/fiddler-autoresponder/">偷改網頁內容方便測試</a>，搞過一些花式應用。對如何善用 HTTP Proxy 偵錯工具解決問題，我也算小有心得。</p> <p>Fiddler 的歷史悠久，最早是 2003 年微軟 IE 研發經理 Eric Lawrence 的個人 Side Project，其後被 Telerik 收購，歷經二十多年改版演化(我也用了快 20 年)，目前分為 <a href="https://www.telerik.com/fiddler/fiddler-classic">Fiddler Classic</a> (免費版) 及 Fiddler Everywhere (商業版)。依官方說法 Fiddler Classic 將不再積極開發，也不提供修補更新或技術技援 (Fiddler Classic is not in active development and offers no commitments for releases, patches or tech support.)，即使今年 3 月仍有更新，但長遠來看，免費 HTTP Proxy 偵錯工具這個位置遲早要找到接班人。</p> <p>Burp Suite 在資安領域名聲響亮，免費版 Community Edition 允許個人學習、研究或及企業內部商業使用(Internal Business Purpose，包含「以商業顧問身份為客戶提供客製化諮詢服務」)，但拿掉了儲存功能及自動化測試 <a href="https://www.perplexity.ai/search/can-burp-suite-community-used-JqQ2fmu9QICQDpGscQqmVw">參考</a>，要付費版 Professional Edition 才能火力全開。</p> <p>相形之下，採用 MIT License 的 mitmproxy，100% 符合免費可商用的條件。即便風格偏向 CLI，對一般人來說不如 Burp Suite 的純 GUI 友善，但軟體攻城獅可不是一般人，像我就覺得敲指令比滑滑鼠更有 Fu。至於若要大量檢視比對內容的場合，mitmproxy 也有 mitmweb 提供網頁操作介面。</p> <p>而 mitmproxy 開源專案非常活躍，去年 11 月推出 11.0 版，中間歷經 5 次小改版，4 月底就又推出 12.0，不用擔心跟不上 HTTP/2、TLS 規格演進。另外，mitmproxy 也逐步<a href="https://mitmproxy.org/posts/releases/mitmproxy-12/">改用 Rust 開發 Contentview、Syntax highlighting 等模組</a>，讓人對其效能及可靠性充滿期待。(延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">YT 筆記 - Rust 程式語言在 JavaScript 生態圈的角色</a>)。</p> <p>總之，我是愈看愈滿意，小試了一下，果真好用。</p> <p>我的主力平台是 Windows，這篇會以在 Winodws 環境使用為主。除了下載執行 Windows Installer，也可以用 Chocolatey 安裝：(延伸閱讀：指令式軟體安裝服務比較：Chocolatey、Scoop 與 winget](/blog/chocolatey-scoop-winget/)、<a href="/blog/choco-install-notes-for-new-windows/">我的 Windows 新裝機 Chocolatey 安裝清單</a>)<br> 註：mitmproxy 也支援用 Docker 執行，若要偵查手機 App 傳輸，用 Docker 架設更方便</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png"></p> <p>mitmproxy 主要有四種運作模式：<a href="https://docs.mitmproxy.org/stable/concepts/modes/">參考</a></p> <ul><li>HTTP/HTTPS Proxy<br> 在 OS 或程式指定 Proxy (預設：<code>http://localhost:8080</code>) 改透過 mitmproxy 存取網站，這是最傳統做法。缺點是要設定 Proxy，不同應用程式的設定方式不盡相同。</li> <li>Local Capture<br> 從 OS 層攔截 HTTP/HTTPS 傳輸，不用設 Proxy，甚至可以指定只攔截特定程序，是我覺得最方便的做法。</li> <li>WireGuard<br> mitmproxy 會扮演一台 <a href="https://www.wireguard.com/">WireGuard VPN</a> Server，客戶端安裝執行 WireGuard VPN Client，之後所有流量會經過 mitmproxy，App 與 API 間的互動不再是祕密。</li> <li>Reverse Proxy<br> 擔任指定網站的 Reverse Proxy，從中攔截傳輸內容</li></ul> <p>安裝好第一次使用前需先安裝 mitmproxy 的中間人 CA 根憑證，憑證會安裝後動態產生，每台機器不同，以降低被惡意使用的風險。安裝方法是開 CMD 跑 <code>mitmproxy --mode local</code> (建議將 C:\Program Files\mitmproxy\bin\ 加入 PATH) 後開瀏覽器連上 <a href="http://mitm.it/%EF%BC%8C%E4%BE%9D%E8%AA%AA%E6%98%8E%E5%AE%89%E8%A3%9D%E3%80%82">http://mitm.it/，依說明安裝。</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638818772211685967.png"></p> <p>【資安提醒】安裝並信任 CA 憑證代表特定軟體可以檢視 HTTPS 加密傳輸內容，此一動作影響重大，請確認憑證來源可靠並知道背後可能的風險再繼續。</p> <p>接著來幾個簡單練習。</p> <ol><li>攔截對特定網站的存取 <pre><code>mitmproxy --mode local --allow-hosts ip-api.com
-</code></pre> 啟動後分別用 curl 及 PowerShell 存取 <code>curl http://ip-api.com/json/8.8.8.8</code>，可觀察到兩次 GET 存取：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638818772214671426.png"><br> 打開每一筆 GET 可檢視 Request/Response 詳細內容<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638818772216603096.png"></li> <li>HTTPS 憑證信任問題<br> 在 Windows 信任 mitmproxy 的自訂 CA 根憑證，Windows 體系的應用程式便會自動信任 mitmproxy ，但如 curl、Java 則需另外信任憑證。 設定方式可參考<a href="https://docs.mitmproxy.org/stable/concepts/certificates/#the-mitmproxy-certificate-authority">官方說明</a>。<br> 測試 curl 時遇到一個眉角，一般來說使用 <code>curl --cacert C:\Users\&lt;userName&gt;\.mitmproxy\mitmproxy-ca-cert.pem https://www.github.com</code> 即可讓 curl 信任 mitmproxy，但 <a href="/blog/win-builtin-curl/">Windows 內建的 curl</a> 使用 Schannel 處理 TLS 而非 openssl，若已在 Windows 信任過 mitmproxy CA 憑證，便不需特別指定。但實測會遇到 <code>CertGetCertificateChain trust error CERT_TRUST_REVOCATION_STATUS_UNKNOWN</code> 錯誤，究其原理是 Schannel 會要求檢查憑證撤銷資訊，mitmproxy 預設不支援。解法有二：1) curl 加上 --ssl-no-revoke 參數、2) 為 mitmproxy 設定憑證撤銷檢查。<a href="https://www.perplexity.ai/search/simple-example-for-using-curl-t.jEx52ZRtyVG.vPwsWlkw">參考</a></li> <li>攔截特定程序的 HTTP/HTTPS 傳輸 <pre><code>mitmproxy --mode local:curl
-</code></pre> 用以上指令，只會攔截 curl 程式的傳輸，如下圖所示，我分別試了 curl、PowerShell 及瀏覽器連網站，只有 curl 的請求被捕追到，瀏覽器檢視憑證也是未更換狀態，代表 mitmproxy 未插手。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638818772218562340.png"><br> 另外執行 <code>mitmproxy --mode local:chrome</code> 對照，HTTPS 傳輸若經過 mitmproxy 時，憑證的發行者將變成 mitmproxy。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638818772222615579.png"></li> <li>若你想用 GUI 介面檢視傳輸內容，將以上操作中的 mitmproxy 換成 mitmweb 即可，例如：<code>mitmweb --mode local:chrome</code>：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig7_638818772226853420.png"></li> <li>依理來說，Local Capture 模式可以捕捉連到 localhost/127.0.0.1 的流量，但我在 Windows 上實測不成功，替代方案是跑 <code>mitmweb --mode reverse:http://locahost:80</code>，之後連上 <code>http://localhost:8080</code> 會被導向本機 80 Port，過程也將被側錄。<br> 剛好利用這些機會玩玩 Reverse Proxy 模式，小試 Windows 整合登入 IIS，成功抓到經典的兩個前置 401：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig8_638818772230350256.png"></li></ol> <p>以上差不多已涵蓋日常 HTTP/HTTPS 偵錯的基本技巧，熟悉後便足以提著 mitmproxy 上場挑戰疑難雜症。至於 mitmproxy 更強大的程式化資料分析及修改功能，未來會再專門做一集跟大家講解。(老高上身)</p> <p>【2025-05-05 補充】</p> <p>mitmproxy Windows 版依賴開源程式套件 <a href="https://reqrypt.org/windivert.html">WinDivert, Windows Packet Divert</a> 補捉封包，該元件被廣泛應用於 Windows 平台的網路分析偵錯及資安工具，但由於功能強大能被拿來做壞事，故被少數防毒或資安軟體視為惡意程式，在 VirusTotal 分析報告中，72 項檢測中有 4 項將其判定有害：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig10_638820331058760573.png"></p> <p>上述結果可能導致實務使用時觸發防毒或資安告警。我的解讀是工具本身是中性的，可以救人也可以拿來害人，無奈「可能作惡就禁用」是常見的資安策略，只能習慣...</p> <p data-slug="mitmproxy" data-title-en="mitmproxy, the powerful HTTP/HTTPS debugger" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/10/03/20/01/mri-2813899_1280.jpg#1280#720">Learn how mitmproxy, a free and open-source HTTP proxy tool, aids debugging by intercepting HTTP/HTTPS traffic, offering CLI and web interfaces for detailed analysis. Ideal for developers preferring command-line operations over GUI.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>從 Huli 這篇 <a href="https://blog.huli.tw/2025/04/23/everyone-need-a-http-proxy-to-debug/">人人都需要一個 HTTP proxy 來 debug</a> 學到好用工具 - <a href="https://mitmproxy.org/">mitmproxy</a>，頗有相見恨晚之感，特撰文分享。</p> <p>在我多年射茶包的經驗中，瀏覽網頁出現疑難雜症，用 Chrome 或 Edge 的 F12 偵錯工具已幾可解決大半；但若為應用程式呼叫 WebAPI、網頁爬蟲工具，或是 Windows 整合驗證 (Kerberos/NTLM) 方面問題，就得靠 HTTP Proxy 類型偵錯工具上場救援。</p> <p>HTTP Proxy 偵錯的原理是由工具軟體扮演網站代理伺理器，設定瀏覽器或應用程式將所有 HTTP/HTTPS 請求交給它轉發並允許偵錯工具攔截內容，達到分析傳輸資料甚至修改內容的目的。這類工具很早之前就有了，我過去主要是用 Fiddler，一劍在手，大小問題迎刃而解。例如：<a href="/blog/401s-in-windows-authentication/">觀察整合式驗證先兩次 401 再 200 的過程</a>、<a href="/blog/ie-ocsp-checking-issue/">查 IE 爆慢 Chrome 正常的怪事</a>、<a href="/blog/webclient-headers-will-changes/">WebClient.UploadString() 第二送 Header 會變的鬼問題</a>... <a href="https://cse.google.com/cse?cx=002179666918670624530%3Afd5jjcvj7bc&amp;q=Fiddler&amp;oq=Fiddler">更多</a>)。而 Fiddler HTTP Proxy 及可修改 Request 及回應的特性，也被我拿來<a href="/blog/fiddler-remote-debug-mac-safari/">偵錯 Mac Safari</a>、<a href="/blog/fiddler-autoresponder/">偷改網頁內容方便測試</a>，搞過一些花式應用。對如何善用 HTTP Proxy 偵錯工具解決問題，我也算小有心得。</p> <p>Fiddler 的歷史悠久，最早是 2003 年微軟 IE 研發經理 Eric Lawrence 的個人 Side Project，其後被 Telerik 收購，歷經二十多年改版演化(我也用了快 20 年)，目前分為 <a href="https://www.telerik.com/fiddler/fiddler-classic">Fiddler Classic</a> (免費版) 及 Fiddler Everywhere (商業版)。依官方說法 Fiddler Classic 將不再積極開發，也不提供修補更新或技術技援 (Fiddler Classic is not in active development and offers no commitments for releases, patches or tech support.)，即使今年 3 月仍有更新，但長遠來看，免費 HTTP Proxy 偵錯工具這個位置遲早要找到接班人。</p> <p>Burp Suite 在資安領域名聲響亮，免費版 Community Edition 允許個人學習、研究或及企業內部商業使用(Internal Business Purpose，包含「以商業顧問身份為客戶提供客製化諮詢服務」)，但拿掉了儲存功能及自動化測試 <a href="https://www.perplexity.ai/search/can-burp-suite-community-used-JqQ2fmu9QICQDpGscQqmVw">參考</a>，要付費版 Professional Edition 才能火力全開。</p> <p>相形之下，採用 MIT License 的 mitmproxy，100% 符合免費可商用的條件。即便風格偏向 CLI，對一般人來說不如 Burp Suite 的純 GUI 友善，但軟體攻城獅可不是一般人，像我就覺得敲指令比滑滑鼠更有 Fu。至於若要大量檢視比對內容的場合，mitmproxy 也有 mitmweb 提供網頁操作介面。</p> <p>而 mitmproxy 開源專案非常活躍，去年 11 月推出 11.0 版，中間歷經 5 次小改版，4 月底就又推出 12.0，不用擔心跟不上 HTTP/2、TLS 規格演進。另外，mitmproxy 也逐步<a href="https://mitmproxy.org/posts/releases/mitmproxy-12/">改用 Rust 開發 Contentview、Syntax highlighting 等模組</a>，讓人對其效能及可靠性充滿期待。(延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">YT 筆記 - Rust 程式語言在 JavaScript 生態圈的角色</a>)。</p> <p>總之，我是愈看愈滿意，小試了一下，果真好用。</p> <p>我的主力平台是 Windows，這篇會以在 Winodws 環境使用為主。除了下載執行 Windows Installer，也可以用 Chocolatey 安裝：(延伸閱讀：指令式軟體安裝服務比較：Chocolatey、Scoop 與 winget](/blog/chocolatey-scoop-winget/)、<a href="/blog/choco-install-notes-for-new-windows/">我的 Windows 新裝機 Chocolatey 安裝清單</a>)<br> 註：mitmproxy 也支援用 Docker 執行，若要偵查手機 App 傳輸，用 Docker 架設更方便</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png"></p> <p>mitmproxy 主要有四種運作模式：<a href="https://docs.mitmproxy.org/stable/concepts/modes/">參考</a></p> <ul><li>HTTP/HTTPS Proxy<br> 在 OS 或程式指定 Proxy (預設：<code>http://localhost:8080</code>) 改透過 mitmproxy 存取網站，這是最傳統做法。缺點是要設定 Proxy，不同應用程式的設定方式不盡相同。</li> <li>Local Capture<br> 從 OS 層攔截 HTTP/HTTPS 傳輸，不用設 Proxy，甚至可以指定只攔截特定程序，是我覺得最方便的做法。</li> <li>WireGuard<br> mitmproxy 會扮演一台 <a href="https://www.wireguard.com/">WireGuard VPN</a> Server，客戶端安裝執行 WireGuard VPN Client，之後所有流量會經過 mitmproxy，App 與 API 間的互動不再是祕密。</li> <li>Reverse Proxy<br> 擔任指定網站的 Reverse Proxy，從中攔截傳輸內容</li></ul> <p>安裝好第一次使用前需先安裝 mitmproxy 的中間人 CA 根憑證，憑證會安裝後動態產生，每台機器不同，以降低被惡意使用的風險。安裝方法是開 CMD 跑 <code>mitmproxy --mode local</code> (建議將 C:\Program Files\mitmproxy\bin\ 加入 PATH) 後開瀏覽器連上 <a href="http://mitm.it/%EF%BC%8C%E4%BE%9D%E8%AA%AA%E6%98%8E%E5%AE%89%E8%A3%9D%E3%80%82">http://mitm.it/，依說明安裝。</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638818772211685967.png"></p> <p>【資安提醒】安裝並信任 CA 憑證代表特定軟體可以檢視 HTTPS 加密傳輸內容，此一動作影響重大，請確認憑證來源可靠並知道背後可能的風險再繼續。</p> <p>接著來幾個簡單練習。</p> <ol><li>攔截對特定網站的存取 <pre><code>mitmproxy --mode local --allow-hosts ip-api.com
-</code></pre> 啟動後分別用 curl 及 PowerShell 存取 <code>curl http://ip-api.com/json/8.8.8.8</code>，可觀察到兩次 GET 存取：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638818772214671426.png"><br> 打開每一筆 GET 可檢視 Request/Response 詳細內容<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638818772216603096.png"></li> <li>HTTPS 憑證信任問題<br> 在 Windows 信任 mitmproxy 的自訂 CA 根憑證，Windows 體系的應用程式便會自動信任 mitmproxy ，但如 curl、Java 則需另外信任憑證。 設定方式可參考<a href="https://docs.mitmproxy.org/stable/concepts/certificates/#the-mitmproxy-certificate-authority">官方說明</a>。<br> 測試 curl 時遇到一個眉角，一般來說使用 <code>curl --cacert C:\Users\&lt;userName&gt;\.mitmproxy\mitmproxy-ca-cert.pem https://www.github.com</code> 即可讓 curl 信任 mitmproxy，但 <a href="/blog/win-builtin-curl/">Windows 內建的 curl</a> 使用 Schannel 處理 TLS 而非 openssl，若已在 Windows 信任過 mitmproxy CA 憑證，便不需特別指定。但實測會遇到 <code>CertGetCertificateChain trust error CERT_TRUST_REVOCATION_STATUS_UNKNOWN</code> 錯誤，究其原理是 Schannel 會要求檢查憑證撤銷資訊，mitmproxy 預設不支援。解法有二：1) curl 加上 --ssl-no-revoke 參數、2) 為 mitmproxy 設定憑證撤銷檢查。<a href="https://www.perplexity.ai/search/simple-example-for-using-curl-t.jEx52ZRtyVG.vPwsWlkw">參考</a></li> <li>攔截特定程序的 HTTP/HTTPS 傳輸 <pre><code>mitmproxy --mode local:curl
-</code></pre> 用以上指令，只會攔截 curl 程式的傳輸，如下圖所示，我分別試了 curl、PowerShell 及瀏覽器連網站，只有 curl 的請求被捕追到，瀏覽器檢視憑證也是未更換狀態，代表 mitmproxy 未插手。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638818772218562340.png"><br> 另外執行 <code>mitmproxy --mode local:chrome</code> 對照，HTTPS 傳輸若經過 mitmproxy 時，憑證的發行者將變成 mitmproxy。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638818772222615579.png"></li> <li>若你想用 GUI 介面檢視傳輸內容，將以上操作中的 mitmproxy 換成 mitmweb 即可，例如：<code>mitmweb --mode local:chrome</code>：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig7_638818772226853420.png"></li> <li>依理來說，Local Capture 模式可以捕捉連到 localhost/127.0.0.1 的流量，但我在 Windows 上實測不成功，替代方案是跑 <code>mitmweb --mode reverse:http://locahost:80</code>，之後連上 <code>http://localhost:8080</code> 會被導向本機 80 Port，過程也將被側錄。<br> 剛好利用這些機會玩玩 Reverse Proxy 模式，小試 Windows 整合登入 IIS，成功抓到經典的兩個前置 401：<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig8_638818772230350256.png"></li></ol> <p>以上差不多已涵蓋日常 HTTP/HTTPS 偵錯的基本技巧，熟悉後便足以提著 mitmproxy 上場挑戰疑難雜症。至於 mitmproxy 更強大的程式化資料分析及修改功能，未來會再專門做一集跟大家講解。(老高上身)</p> <p>【2025-05-05 補充】</p> <p>mitmproxy Windows 版依賴開源程式套件 <a href="https://reqrypt.org/windivert.html">WinDivert, Windows Packet Divert</a> 補捉封包，該元件被廣泛應用於 Windows 平台的網路分析偵錯及資安工具，但由於功能強大能被拿來做壞事，故被少數防毒或資安軟體視為惡意程式，在 VirusTotal 分析報告中，72 項檢測中有 4 項將其判定有害：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig10_638820331058760573.png"></p> <p>上述結果可能導致實務使用時觸發防毒或資安告警。我的解讀是工具本身是中性的，可以救人也可以拿來害人，無奈「可能作惡就禁用」是常見的資安策略，只能習慣...</p> <p data-slug="mitmproxy" data-title-en="mitmproxy, the powerful HTTP/HTTPS debugger" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/10/03/20/01/mri-2813899_1280.jpg#1280#720">Learn how mitmproxy, a free and open-source HTTP proxy tool, aids debugging by intercepting HTTP/HTTPS traffic, offering CLI and web interfaces for detailed analysis. Ideal for developers preferring command-line operations over GUI.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638818772207670853.png" medium="image"/>
-    <pubDate>Sat, 03 May 2025 13:53:44 GMT</pubDate>
   </item></channel>
 </rss>
