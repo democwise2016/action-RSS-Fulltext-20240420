@@ -3,7 +3,7 @@
     <title><![CDATA[iThome 3C新聞[RSS+]]]></title>
     <link>https://ithome.com.tw/rss</link>
     <image>
-      <url>https://fastly.picsum.photos/id/675/800/800.jpg?hmac=tSVk1ZDCSz3Mtc7qQjmnXOtqflTd3DIgz1FX9xHuf_E</url>
+      <url>https://fastly.picsum.photos/id/1079/800/800.jpg?hmac=UACOLkhxd8vnU6D_uQ8EdSLjJrLtP1_b_9hc06Mw0ZA</url>
       <title>iThome 3C新聞[RSS+]</title>
       <link>https://ithome.com.tw/rss</link>
     </image>
@@ -28,8 +28,252 @@
     <itunes:owner>
       <itunes:name><![CDATA[iThome 3C新聞[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/675/800/800.jpg?hmac=tSVk1ZDCSz3Mtc7qQjmnXOtqflTd3DIgz1FX9xHuf_E"/>
+    <itunes:image href="https://fastly.picsum.photos/id/1079/800/800.jpg?hmac=UACOLkhxd8vnU6D_uQ8EdSLjJrLtP1_b_9hc06Mw0ZA"/>
 <item>
+    <title><![CDATA[5,300臺網路設備遭殭屍網路綁架，中國駭客ViciousTrap利用未有修補程式的已知漏洞入侵]]></title>
+    <link>https://ithome.com.tw/news/169195</link>
+    <itunes:title><![CDATA[5,300臺網路設備遭殭屍網路綁架，中國駭客ViciousTrap利用未有修補程式的已知漏洞入侵]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/vicioustrap-map-156.jpg?itok=qFzYEXVQ" width="960" height="420" alt=""><p>提供中小企業及SOHO族使用的網路設備，即使廠商因生命週期結束（EOL）不再提供修補，用戶往往因為仍然能夠運作，並未汰換而是繼續使用，這樣的情況也變成駭客眼中的肥羊，且有越來越多設備遭到控制。</p>
+<p>例如，最近資安業者Sekoia對於追蹤思科路由器漏洞CVE-2023-20118的攻擊行動，<a href="https://blog.sekoia.io/vicioustrap-infiltrate-control-lure-turning-edge-devices-into-honeypots-en-masse/">揭露最新的發展</a>，他們原本在<a href="https://blog.sekoia.io/polaredge-unveiling-an-uncovered-iot-botnet/">今年1月底至2月上旬</a>，發現有人利用這項漏洞，綁架思科的小型路由器設備，組成殭屍網路PolarEdge，當時已有逾2千臺設備受害，如今研究人員發現，還有其他駭客組織也加入漏洞利用行列：中國駭客ViciousTrap已藉此綁架超過5千臺路由器，並在這些路由器植入Shell指令碼NetGhost，然後將流入的網路流量導向類似蜜罐陷阱（Honeypot）的基礎設施。</p>
+<p><a href="https://nvd.nist.gov/vuln/detail/cve-2023-20118">CVE-2023-20118</a>存在於思科小型企業路由器RV016、RV042、RV042G、RV082、RV320、RV325等6款機種的網頁管理介面，為遠端命令執行（RCE）漏洞，通過身分驗證的攻擊者能藉此遠端執行任意命令，CVSS風險評為6.5，屬中度風險。由於上述機種的生命週期已經結束，<a href="https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sbr042-multi-vuln-ej76Pke5">思科表明不會提供修補</a>，並強調沒有其他緩解措施，呼籲管理者停用特定連接埠與遠端管理功能，減輕漏洞造成的資安風險。值得留意的是，美國網路安全暨基礎設施安全局（CISA）今年3月證實此漏洞已被用於實際攻擊，<a href="https://www.cisa.gov/news-events/alerts/2025/03/03/cisa-adds-five-known-exploited-vulnerabilities-catalog">列入已遭利用的漏洞名單（KEV）</a>。</p>
+<p>但前述思科路由器並非駭客的唯一目標。Sekoia研究人員進一步對駭客的基礎設施調查，結果發現，他們也鎖定D-Link、Linksys、華碩、威聯通（QNAP），以及Araknis Networks等廠牌的網路設備。</p>
+<p>根據對於遭到駭客綁架的網路設備進行調查，研究人員認為這波攻擊的主要目標是亞洲，目的是廣泛透過能經由網際網路存取的設備，來建置蜜罐陷阱網路，從而收集尚未公開弱點或零時差漏洞，以便後續用於其他攻擊行動。此外，ViciousTrap入侵設備的管道，後續也可能被其他人重複利用。</p>
+<p>Sekoia最初於今年3月看到ViciousTrap利用CVE-2023-20118，一旦利用成功，就會使用ftpget下載bash指令碼並執行，下載專為MIPS系統打造的wget二進位程式。</p>
+<p>接著駭客再次利用相同的漏洞，透過剛才取得的wget接收另一個指令碼NetGhost。此指令碼在每次執行的時候都會建立受害設備的識別編號UUID，攻擊者疑似藉此建立列管受害設備的白名單，並從C2派送有效酬載。</p>
+<p>若是攻擊者成功啟動了NetGhost，此指令碼不僅會向C2伺服器發出通知，並透過iptables及特定連接埠重新導向流入的流量，清除原本指向攻擊者基礎設施的NAT規則，並加入新的重新導向規則，以及攻擊者監聽。最終NetGhost還會自我清除，避免留下作案痕跡。</p>
+<p>究竟ViciousTrap是否參與今年1月至2月的攻擊行動？目前仍不明朗，但Sekoia發現這些駭客於4月重複利用PolarEdge事故找到的Web Shell，由於要啟動該工具必須輸入密碼，不排除他們可能是Web Shell的開發團隊。</p>
+<p>針對這波攻擊活動的受害範圍，研究人員一共從84個國家當中，找到5,300臺受害設備，雖然駭客的主要鎖定標的是思科路由器，但他們提到NetGhost感染最嚴重的國家是澳門，有近850臺，原因卻是當地許多網路用戶使用D-Link的DIR-850L路由器，而成為駭客偏好下手的目標。</p>
+<p>值得留意的是，駭客重新導向的流量大多針對臺灣與美國，而中國並未遭到波及，這也加深Sekoia推測ViciousTrap來自中國的假設。附帶一提的是，這些駭客的基礎設施有部分與GobRAT相關，不過研究人員無法確認兩組人馬是否有所交集。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/vicioustrap-map-156.jpg?itok=qFzYEXVQ" width="960" height="420" alt=""><p>提供中小企業及SOHO族使用的網路設備，即使廠商因生命週期結束（EOL）不再提供修補，用戶往往因為仍然能夠運作，並未汰換而是繼續使用，這樣的情況也變成駭客眼中的肥羊，且有越來越多設備遭到控制。</p>
+<p>例如，最近資安業者Sekoia對於追蹤思科路由器漏洞CVE-2023-20118的攻擊行動，<a href="https://blog.sekoia.io/vicioustrap-infiltrate-control-lure-turning-edge-devices-into-honeypots-en-masse/">揭露最新的發展</a>，他們原本在<a href="https://blog.sekoia.io/polaredge-unveiling-an-uncovered-iot-botnet/">今年1月底至2月上旬</a>，發現有人利用這項漏洞，綁架思科的小型路由器設備，組成殭屍網路PolarEdge，當時已有逾2千臺設備受害，如今研究人員發現，還有其他駭客組織也加入漏洞利用行列：中國駭客ViciousTrap已藉此綁架超過5千臺路由器，並在這些路由器植入Shell指令碼NetGhost，然後將流入的網路流量導向類似蜜罐陷阱（Honeypot）的基礎設施。</p>
+<p><a href="https://nvd.nist.gov/vuln/detail/cve-2023-20118">CVE-2023-20118</a>存在於思科小型企業路由器RV016、RV042、RV042G、RV082、RV320、RV325等6款機種的網頁管理介面，為遠端命令執行（RCE）漏洞，通過身分驗證的攻擊者能藉此遠端執行任意命令，CVSS風險評為6.5，屬中度風險。由於上述機種的生命週期已經結束，<a href="https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sbr042-multi-vuln-ej76Pke5">思科表明不會提供修補</a>，並強調沒有其他緩解措施，呼籲管理者停用特定連接埠與遠端管理功能，減輕漏洞造成的資安風險。值得留意的是，美國網路安全暨基礎設施安全局（CISA）今年3月證實此漏洞已被用於實際攻擊，<a href="https://www.cisa.gov/news-events/alerts/2025/03/03/cisa-adds-five-known-exploited-vulnerabilities-catalog">列入已遭利用的漏洞名單（KEV）</a>。</p>
+<p>但前述思科路由器並非駭客的唯一目標。Sekoia研究人員進一步對駭客的基礎設施調查，結果發現，他們也鎖定D-Link、Linksys、華碩、威聯通（QNAP），以及Araknis Networks等廠牌的網路設備。</p>
+<p>根據對於遭到駭客綁架的網路設備進行調查，研究人員認為這波攻擊的主要目標是亞洲，目的是廣泛透過能經由網際網路存取的設備，來建置蜜罐陷阱網路，從而收集尚未公開弱點或零時差漏洞，以便後續用於其他攻擊行動。此外，ViciousTrap入侵設備的管道，後續也可能被其他人重複利用。</p>
+<p>Sekoia最初於今年3月看到ViciousTrap利用CVE-2023-20118，一旦利用成功，就會使用ftpget下載bash指令碼並執行，下載專為MIPS系統打造的wget二進位程式。</p>
+<p>接著駭客再次利用相同的漏洞，透過剛才取得的wget接收另一個指令碼NetGhost。此指令碼在每次執行的時候都會建立受害設備的識別編號UUID，攻擊者疑似藉此建立列管受害設備的白名單，並從C2派送有效酬載。</p>
+<p>若是攻擊者成功啟動了NetGhost，此指令碼不僅會向C2伺服器發出通知，並透過iptables及特定連接埠重新導向流入的流量，清除原本指向攻擊者基礎設施的NAT規則，並加入新的重新導向規則，以及攻擊者監聽。最終NetGhost還會自我清除，避免留下作案痕跡。</p>
+<p>究竟ViciousTrap是否參與今年1月至2月的攻擊行動？目前仍不明朗，但Sekoia發現這些駭客於4月重複利用PolarEdge事故找到的Web Shell，由於要啟動該工具必須輸入密碼，不排除他們可能是Web Shell的開發團隊。</p>
+<p>針對這波攻擊活動的受害範圍，研究人員一共從84個國家當中，找到5,300臺受害設備，雖然駭客的主要鎖定標的是思科路由器，但他們提到NetGhost感染最嚴重的國家是澳門，有近850臺，原因卻是當地許多網路用戶使用D-Link的DIR-850L路由器，而成為駭客偏好下手的目標。</p>
+<p>值得留意的是，駭客重新導向的流量大多針對臺灣與美國，而中國並未遭到波及，這也加深Sekoia推測ViciousTrap來自中國的假設。附帶一提的是，這些駭客的基礎設施有部分與GobRAT相關，不過研究人員無法確認兩組人馬是否有所交集。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/vicioustrap-map-156.jpg?itok=qFzYEXVQ" width="960" height="420" alt=""><p>提供中小企業及SOHO族使用的網路設備，即使廠商因生命週期結束（EOL）不再提供修補，用戶往往因為仍然能夠運作，並未汰換而是繼續使用，這樣的情況也變成駭客眼中的肥羊，且有越來越多設備遭到控制。</p>
+<p>例如，最近資安業者Sekoia對於追蹤思科路由器漏洞CVE-2023-20118的攻擊行動，<a href="https://blog.sekoia.io/vicioustrap-infiltrate-control-lure-turning-edge-devices-into-honeypots-en-masse/">揭露最新的發展</a>，他們原本在<a href="https://blog.sekoia.io/polaredge-unveiling-an-uncovered-iot-botnet/">今年1月底至2月上旬</a>，發現有人利用這項漏洞，綁架思科的小型路由器設備，組成殭屍網路PolarEdge，當時已有逾2千臺設備受害，如今研究人員發現，還有其他駭客組織也加入漏洞利用行列：中國駭客ViciousTrap已藉此綁架超過5千臺路由器，並在這些路由器植入Shell指令碼NetGhost，然後將流入的網路流量導向類似蜜罐陷阱（Honeypot）的基礎設施。</p>
+<p><a href="https://nvd.nist.gov/vuln/detail/cve-2023-20118">CVE-2023-20118</a>存在於思科小型企業路由器RV016、RV042、RV042G、RV082、RV320、RV325等6款機種的網頁管理介面，為遠端命令執行（RCE）漏洞，通過身分驗證的攻擊者能藉此遠端執行任意命令，CVSS風險評為6.5，屬中度風險。由於上述機種的生命週期已經結束，<a href="https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sbr042-multi-vuln-ej76Pke5">思科表明不會提供修補</a>，並強調沒有其他緩解措施，呼籲管理者停用特定連接埠與遠端管理功能，減輕漏洞造成的資安風險。值得留意的是，美國網路安全暨基礎設施安全局（CISA）今年3月證實此漏洞已被用於實際攻擊，<a href="https://www.cisa.gov/news-events/alerts/2025/03/03/cisa-adds-five-known-exploited-vulnerabilities-catalog">列入已遭利用的漏洞名單（KEV）</a>。</p>
+<p>但前述思科路由器並非駭客的唯一目標。Sekoia研究人員進一步對駭客的基礎設施調查，結果發現，他們也鎖定D-Link、Linksys、華碩、威聯通（QNAP），以及Araknis Networks等廠牌的網路設備。</p>
+<p>根據對於遭到駭客綁架的網路設備進行調查，研究人員認為這波攻擊的主要目標是亞洲，目的是廣泛透過能經由網際網路存取的設備，來建置蜜罐陷阱網路，從而收集尚未公開弱點或零時差漏洞，以便後續用於其他攻擊行動。此外，ViciousTrap入侵設備的管道，後續也可能被其他人重複利用。</p>
+<p>Sekoia最初於今年3月看到ViciousTrap利用CVE-2023-20118，一旦利用成功，就會使用ftpget下載bash指令碼並執行，下載專為MIPS系統打造的wget二進位程式。</p>
+<p>接著駭客再次利用相同的漏洞，透過剛才取得的wget接收另一個指令碼NetGhost。此指令碼在每次執行的時候都會建立受害設備的識別編號UUID，攻擊者疑似藉此建立列管受害設備的白名單，並從C2派送有效酬載。</p>
+<p>若是攻擊者成功啟動了NetGhost，此指令碼不僅會向C2伺服器發出通知，並透過iptables及特定連接埠重新導向流入的流量，清除原本指向攻擊者基礎設施的NAT規則，並加入新的重新導向規則，以及攻擊者監聽。最終NetGhost還會自我清除，避免留下作案痕跡。</p>
+<p>究竟ViciousTrap是否參與今年1月至2月的攻擊行動？目前仍不明朗，但Sekoia發現這些駭客於4月重複利用PolarEdge事故找到的Web Shell，由於要啟動該工具必須輸入密碼，不排除他們可能是Web Shell的開發團隊。</p>
+<p>針對這波攻擊活動的受害範圍，研究人員一共從84個國家當中，找到5,300臺受害設備，雖然駭客的主要鎖定標的是思科路由器，但他們提到NetGhost感染最嚴重的國家是澳門，有近850臺，原因卻是當地許多網路用戶使用D-Link的DIR-850L路由器，而成為駭客偏好下手的目標。</p>
+<p>值得留意的是，駭客重新導向的流量大多針對臺灣與美國，而中國並未遭到波及，這也加深Sekoia推測ViciousTrap來自中國的假設。附帶一提的是，這些駭客的基礎設施有部分與GobRAT相關，不過研究人員無法確認兩組人馬是否有所交集。</p>]]></content:encoded>
+    
+    <pubDate>2025-05-27  12:05:20</pubDate>
+  </item><item>
+    <title><![CDATA[Glitch將關閉程式代管服務]]></title>
+    <link>https://ithome.com.tw/news/169193</link>
+    <itunes:title><![CDATA[Glitch將關閉程式代管服務]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0527-glitch-embedoptions-960.jpg?itok=eCqyFVjW" width="960" height="420" alt=""><p><a href="https://blog.glitch.com/post/changes-are-coming-to-glitch/" target="_blank">協作程式開發平臺Glitch上周宣布</a>，即將於7月8日關閉該專案的代管服務以及使用者個人資料，至於Glitch儀表板則可持續使用至今年底。外界認為這基本上是宣布要結束Glitch了。</p>
+<p>Glitch的前身為Fog Creek Software，創立於2000年，在打造出程式開發及部署平臺Glitch之後，於2018年更名為Glitch，接著在2022年賣給了美國雲端運算平臺Fastly。</p>
+<p>Glitch執行長Anil Dash表示，此次的決定有幾個原因，一是執行數百萬個程式需要花費大量的時間與金錢，然而，隨著平臺的老化以及惡意人士企圖濫用該平臺，更讓情況雪上加霜；此外，過去幾年他們也看到了許多令人讚嘆的新平臺，這些平臺提高了人們建置與執行應用程式的標準，如同十年前的Glitch。</p>
+<p>雖未明說，但上述言論等於表明了Glitch準備退出市場。</p>
+<p>目前Glitch已不再接受新的Glitch Pro訂閱，也會退款給既有Glitch Pro用戶，今年底前都仍可透過Glitch儀表板下載所有專案的程式碼，之後也將有一個新功能可將專案的子網域重新定向，確保網址能夠繼續運作。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0527-glitch-embedoptions-960.jpg?itok=eCqyFVjW" width="960" height="420" alt=""><p><a href="https://blog.glitch.com/post/changes-are-coming-to-glitch/" target="_blank">協作程式開發平臺Glitch上周宣布</a>，即將於7月8日關閉該專案的代管服務以及使用者個人資料，至於Glitch儀表板則可持續使用至今年底。外界認為這基本上是宣布要結束Glitch了。</p>
+<p>Glitch的前身為Fog Creek Software，創立於2000年，在打造出程式開發及部署平臺Glitch之後，於2018年更名為Glitch，接著在2022年賣給了美國雲端運算平臺Fastly。</p>
+<p>Glitch執行長Anil Dash表示，此次的決定有幾個原因，一是執行數百萬個程式需要花費大量的時間與金錢，然而，隨著平臺的老化以及惡意人士企圖濫用該平臺，更讓情況雪上加霜；此外，過去幾年他們也看到了許多令人讚嘆的新平臺，這些平臺提高了人們建置與執行應用程式的標準，如同十年前的Glitch。</p>
+<p>雖未明說，但上述言論等於表明了Glitch準備退出市場。</p>
+<p>目前Glitch已不再接受新的Glitch Pro訂閱，也會退款給既有Glitch Pro用戶，今年底前都仍可透過Glitch儀表板下載所有專案的程式碼，之後也將有一個新功能可將專案的子網域重新定向，確保網址能夠繼續運作。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0527-glitch-embedoptions-960.jpg?itok=eCqyFVjW" width="960" height="420" alt=""><p><a href="https://blog.glitch.com/post/changes-are-coming-to-glitch/" target="_blank">協作程式開發平臺Glitch上周宣布</a>，即將於7月8日關閉該專案的代管服務以及使用者個人資料，至於Glitch儀表板則可持續使用至今年底。外界認為這基本上是宣布要結束Glitch了。</p>
+<p>Glitch的前身為Fog Creek Software，創立於2000年，在打造出程式開發及部署平臺Glitch之後，於2018年更名為Glitch，接著在2022年賣給了美國雲端運算平臺Fastly。</p>
+<p>Glitch執行長Anil Dash表示，此次的決定有幾個原因，一是執行數百萬個程式需要花費大量的時間與金錢，然而，隨著平臺的老化以及惡意人士企圖濫用該平臺，更讓情況雪上加霜；此外，過去幾年他們也看到了許多令人讚嘆的新平臺，這些平臺提高了人們建置與執行應用程式的標準，如同十年前的Glitch。</p>
+<p>雖未明說，但上述言論等於表明了Glitch準備退出市場。</p>
+<p>目前Glitch已不再接受新的Glitch Pro訂閱，也會退款給既有Glitch Pro用戶，今年底前都仍可透過Glitch儀表板下載所有專案的程式碼，之後也將有一個新功能可將專案的子網域重新定向，確保網址能夠繼續運作。</p>]]></content:encoded>
+    
+    <pubDate>2025-05-27  12:05:56</pubDate>
+  </item><item>
+    <title><![CDATA[GitHub MCP曝嚴重漏洞，惡意Issue可誘使AI代理外洩私有儲存庫資料]]></title>
+    <link>https://ithome.com.tw/news/169191</link>
+    <itunes:title><![CDATA[GitHub MCP曝嚴重漏洞，惡意Issue可誘使AI代理外洩私有儲存庫資料]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/211_-_github_mcp_exploited_accessing_private_repositories_via_mcp_-_invariantlabs.ai_.png?itok=LpnZPKwD" width="960" height="420" alt=""><p>瑞士新創安全公司Invariant Labs<a href="https://invariantlabs.ai/blog/mcp-github-vulnerability">揭露</a>一項影響廣泛的嚴重資安漏洞，涉及目前社群積極推動並與GitHub平臺整合的MCP（Model Context Protocol）伺服器。該漏洞可使攻擊者僅透過在公開儲存庫建立特製的GitHub Issue，誘使人工智慧代理如Claude Desktop等現有支援MCP技術的人工智慧開發工具，在特定授權情境下，將用戶私有儲存庫中的敏感資料外洩至公開儲存庫。</p>
+<p>該漏洞的關鍵在於人工智慧代理在用戶授權後，會依照開發者對GitHub MCP伺服器的查詢，自動執行讀取指定儲存庫Issue、建立拉取請求等操作，而攻擊者只需在目標用戶的公開儲存庫新增具惡意提示詞注入的Issue，當用戶請求人工智慧代理檢視該儲存庫的公開Issue時，代理即可能受提示詞操控，在自動授權設定下擷取用戶帳號的私有儲存庫內容，最終將敏感資訊透過拉取請求等方式洩漏於公開儲存庫。</p>
+<p>此攻擊流程不仰賴複雜的權限提升或伺服器漏洞，而是利用MCP協定與代理授權的機制。人工智慧代理雖具用戶確認操作的安全設計，但部分用戶為提升操作效率，可能選擇總是允許等預設授權，讓代理可於無人監督下執行多項行動，進一步增加提示詞注入攻擊成功的機會。</p>
+<p>研究人員進一步說明，這類惡意代理流程漏洞，並非MCP本身的程式碼缺陷，也非傳統伺服器權限設定問題，而是生成式人工智慧代理工具與第三方平臺整合時，未妥善限制其跨儲存庫或跨權限操作的架構性問題。即使採用已加強對齊與安全訓練的先進人工智慧模型，在實驗場景下仍無法有效防範這類提示詞注入的複合攻擊。</p>
+<p>針對這類風險，研究人員建議組織與開發團隊在導入MCP等人工智慧代理技術時，應落實權限最小化原則，僅開放代理存取必要的儲存庫範圍。目前未有官方修補方案，且由於屬於架構設計層級的安全議題，現階段僅能透過額外的安全層或代理行為監控工具降低潛在風險。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/211_-_github_mcp_exploited_accessing_private_repositories_via_mcp_-_invariantlabs.ai_.png?itok=LpnZPKwD" width="960" height="420" alt=""><p>瑞士新創安全公司Invariant Labs<a href="https://invariantlabs.ai/blog/mcp-github-vulnerability">揭露</a>一項影響廣泛的嚴重資安漏洞，涉及目前社群積極推動並與GitHub平臺整合的MCP（Model Context Protocol）伺服器。該漏洞可使攻擊者僅透過在公開儲存庫建立特製的GitHub Issue，誘使人工智慧代理如Claude Desktop等現有支援MCP技術的人工智慧開發工具，在特定授權情境下，將用戶私有儲存庫中的敏感資料外洩至公開儲存庫。</p>
+<p>該漏洞的關鍵在於人工智慧代理在用戶授權後，會依照開發者對GitHub MCP伺服器的查詢，自動執行讀取指定儲存庫Issue、建立拉取請求等操作，而攻擊者只需在目標用戶的公開儲存庫新增具惡意提示詞注入的Issue，當用戶請求人工智慧代理檢視該儲存庫的公開Issue時，代理即可能受提示詞操控，在自動授權設定下擷取用戶帳號的私有儲存庫內容，最終將敏感資訊透過拉取請求等方式洩漏於公開儲存庫。</p>
+<p>此攻擊流程不仰賴複雜的權限提升或伺服器漏洞，而是利用MCP協定與代理授權的機制。人工智慧代理雖具用戶確認操作的安全設計，但部分用戶為提升操作效率，可能選擇總是允許等預設授權，讓代理可於無人監督下執行多項行動，進一步增加提示詞注入攻擊成功的機會。</p>
+<p>研究人員進一步說明，這類惡意代理流程漏洞，並非MCP本身的程式碼缺陷，也非傳統伺服器權限設定問題，而是生成式人工智慧代理工具與第三方平臺整合時，未妥善限制其跨儲存庫或跨權限操作的架構性問題。即使採用已加強對齊與安全訓練的先進人工智慧模型，在實驗場景下仍無法有效防範這類提示詞注入的複合攻擊。</p>
+<p>針對這類風險，研究人員建議組織與開發團隊在導入MCP等人工智慧代理技術時，應落實權限最小化原則，僅開放代理存取必要的儲存庫範圍。目前未有官方修補方案，且由於屬於架構設計層級的安全議題，現階段僅能透過額外的安全層或代理行為監控工具降低潛在風險。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/211_-_github_mcp_exploited_accessing_private_repositories_via_mcp_-_invariantlabs.ai_.png?itok=LpnZPKwD" width="960" height="420" alt=""><p>瑞士新創安全公司Invariant Labs<a href="https://invariantlabs.ai/blog/mcp-github-vulnerability">揭露</a>一項影響廣泛的嚴重資安漏洞，涉及目前社群積極推動並與GitHub平臺整合的MCP（Model Context Protocol）伺服器。該漏洞可使攻擊者僅透過在公開儲存庫建立特製的GitHub Issue，誘使人工智慧代理如Claude Desktop等現有支援MCP技術的人工智慧開發工具，在特定授權情境下，將用戶私有儲存庫中的敏感資料外洩至公開儲存庫。</p>
+<p>該漏洞的關鍵在於人工智慧代理在用戶授權後，會依照開發者對GitHub MCP伺服器的查詢，自動執行讀取指定儲存庫Issue、建立拉取請求等操作，而攻擊者只需在目標用戶的公開儲存庫新增具惡意提示詞注入的Issue，當用戶請求人工智慧代理檢視該儲存庫的公開Issue時，代理即可能受提示詞操控，在自動授權設定下擷取用戶帳號的私有儲存庫內容，最終將敏感資訊透過拉取請求等方式洩漏於公開儲存庫。</p>
+<p>此攻擊流程不仰賴複雜的權限提升或伺服器漏洞，而是利用MCP協定與代理授權的機制。人工智慧代理雖具用戶確認操作的安全設計，但部分用戶為提升操作效率，可能選擇總是允許等預設授權，讓代理可於無人監督下執行多項行動，進一步增加提示詞注入攻擊成功的機會。</p>
+<p>研究人員進一步說明，這類惡意代理流程漏洞，並非MCP本身的程式碼缺陷，也非傳統伺服器權限設定問題，而是生成式人工智慧代理工具與第三方平臺整合時，未妥善限制其跨儲存庫或跨權限操作的架構性問題。即使採用已加強對齊與安全訓練的先進人工智慧模型，在實驗場景下仍無法有效防範這類提示詞注入的複合攻擊。</p>
+<p>針對這類風險，研究人員建議組織與開發團隊在導入MCP等人工智慧代理技術時，應落實權限最小化原則，僅開放代理存取必要的儲存庫範圍。目前未有官方修補方案，且由於屬於架構設計層級的安全議題，現階段僅能透過額外的安全層或代理行為監控工具降低潛在風險。</p>]]></content:encoded>
+    
+    <pubDate>2025-05-27  12:05:10</pubDate>
+  </item><item>
+    <title><![CDATA[OpenAI在韓國設立子公司]]></title>
+    <link>https://ithome.com.tw/news/169192</link>
+    <itunes:title><![CDATA[OpenAI在韓國設立子公司]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1230-openai-bei_jing_tu_pian_you_dall-e_3mo_xing_sheng_cheng_1.jpg?itok=4b_uW3BC" width="960" height="420" alt=""><p>根據南韓媒體的報導，OpenAI周一（5/26）宣布在首爾創立了子公司。迄今OpenAI於全球已設立11個子公司，而首爾則是亞洲市場繼東京與新加坡之後的第三個子公司，值得一提的是，南韓的ChatGPT付費使用者數量僅次於美國市場。</p>
+<p><a href="https://www.koreaherald.com/article/10495708" target="_blank">韓國先驅報（Korea Herald）</a>引用OpenAI策略長Jason Kwon的說法，指出韓國提供了一個全棧式AI生態系統，從半導體到軟體，而且該國各個世代的人們都在日常生活中積極使用AI。</p>
+<p>OpenAI的統計顯示，韓國的ChatGPT每周活躍用戶數過去一年成長了4.5倍，不管是ChatGPT用戶數量，或是使用OpenAI API的開發者數量都在全球前十名。</p>
+<p>OpenAI本周只宣布成立子公司，但真正的辦事處要在數月後才會啟用。<a href="https://en.yna.co.kr/view/AEN20250526005300320" target="_blank">韓國聯合通訊社Yonhap報導</a>，在此之前，OpenAI便已與當地的網路公司Kakao、遊戲業者Krafton及電信業者SK Telecom合作AI技術及資料中心的開發。</p>
+<p>其它的OpenAI全球子公司還設在巴黎、倫敦、都柏林及布魯塞爾等。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1230-openai-bei_jing_tu_pian_you_dall-e_3mo_xing_sheng_cheng_1.jpg?itok=4b_uW3BC" width="960" height="420" alt=""><p>根據南韓媒體的報導，OpenAI周一（5/26）宣布在首爾創立了子公司。迄今OpenAI於全球已設立11個子公司，而首爾則是亞洲市場繼東京與新加坡之後的第三個子公司，值得一提的是，南韓的ChatGPT付費使用者數量僅次於美國市場。</p>
+<p><a href="https://www.koreaherald.com/article/10495708" target="_blank">韓國先驅報（Korea Herald）</a>引用OpenAI策略長Jason Kwon的說法，指出韓國提供了一個全棧式AI生態系統，從半導體到軟體，而且該國各個世代的人們都在日常生活中積極使用AI。</p>
+<p>OpenAI的統計顯示，韓國的ChatGPT每周活躍用戶數過去一年成長了4.5倍，不管是ChatGPT用戶數量，或是使用OpenAI API的開發者數量都在全球前十名。</p>
+<p>OpenAI本周只宣布成立子公司，但真正的辦事處要在數月後才會啟用。<a href="https://en.yna.co.kr/view/AEN20250526005300320" target="_blank">韓國聯合通訊社Yonhap報導</a>，在此之前，OpenAI便已與當地的網路公司Kakao、遊戲業者Krafton及電信業者SK Telecom合作AI技術及資料中心的開發。</p>
+<p>其它的OpenAI全球子公司還設在巴黎、倫敦、都柏林及布魯塞爾等。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1230-openai-bei_jing_tu_pian_you_dall-e_3mo_xing_sheng_cheng_1.jpg?itok=4b_uW3BC" width="960" height="420" alt=""><p>根據南韓媒體的報導，OpenAI周一（5/26）宣布在首爾創立了子公司。迄今OpenAI於全球已設立11個子公司，而首爾則是亞洲市場繼東京與新加坡之後的第三個子公司，值得一提的是，南韓的ChatGPT付費使用者數量僅次於美國市場。</p>
+<p><a href="https://www.koreaherald.com/article/10495708" target="_blank">韓國先驅報（Korea Herald）</a>引用OpenAI策略長Jason Kwon的說法，指出韓國提供了一個全棧式AI生態系統，從半導體到軟體，而且該國各個世代的人們都在日常生活中積極使用AI。</p>
+<p>OpenAI的統計顯示，韓國的ChatGPT每周活躍用戶數過去一年成長了4.5倍，不管是ChatGPT用戶數量，或是使用OpenAI API的開發者數量都在全球前十名。</p>
+<p>OpenAI本周只宣布成立子公司，但真正的辦事處要在數月後才會啟用。<a href="https://en.yna.co.kr/view/AEN20250526005300320" target="_blank">韓國聯合通訊社Yonhap報導</a>，在此之前，OpenAI便已與當地的網路公司Kakao、遊戲業者Krafton及電信業者SK Telecom合作AI技術及資料中心的開發。</p>
+<p>其它的OpenAI全球子公司還設在巴黎、倫敦、都柏林及布魯塞爾等。</p>]]></content:encoded>
+    
+    <pubDate>2025-05-27  11:05:42</pubDate>
+  </item><item>
+    <title><![CDATA[OpenAI將Operator模型升級為具推理能力的o3]]></title>
+    <link>https://ithome.com.tw/news/169180</link>
+    <itunes:title><![CDATA[OpenAI將Operator模型升級為具推理能力的o3]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0527-operator_chatgpt-openai-960.jpg?itok=dfU7dagg" width="960" height="420" alt=""><p><a href="https://x.com/OpenAI/status/1925963018791178732" target="_blank">OpenAI本周宣布</a>將Operator代理人使用的模型，由GPT-4o升級為具推理思維能力的o3。</p>
+<p>Operator為ChatGPT的電腦使用代理人（Computer-Using Agent，CUA），為ChatGPT賦予看/讀、寫/打字、點擊或操作滑鼠的能力，使其能代用戶執行多種任務，包括上網搜尋、操作應用程式、甚至訂餐廳、訂外送或下單。Operator今年1月先提供給美國，<a href="https://www.ithome.com.tw/news/167523" target="_blank">之後又陸續推向</a>巴西、日、韓及新加坡等國，且持續擴大到全球。</p>
+<p>目前Operator維持為研究預覽（research preview）版，還是僅限月付200美元的Pro方案用戶使用。</p>
+<p>OpenAI在官方X帳號說明，Operator升級使用o3模型後，它和瀏覽器互動時將會更持續、更準確，以提高任務的成功率。回應內容上也會更清楚、全面、更有條理。</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0527-OpenAI-Operator-o3.png" style="width: 550px;"></p>
+<p><a href="https://help.openai.com/en/articles/10561834-operator-release-notes" target="_blank">根據OpenAI說明</a>，新版使用o3的Operator在OSWord和WebArena測試結果，都較原有（4o）的Operator表現更好，成為新的SOTA，而在不論標竿測試和人類偏好評估上，也都超越使用o4的Operator。</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0527-OpenAI-Operator-o3-benchmark(2).png" style="width: 600px;"></p>
+<p>其他AI業者也正在開發類似Operator的代理人，包括Hugging Face的<a href="http://www.ithome.com.tw/news/168790" target="_blank">Open Computer Agent</a>能查詢Google Maps或使用圖片生成模型，Google可理解影片、共享螢幕的<a href="https://blog.google/technology/google-deepmind/gemini-universal-ai-assistant/#live-capabilities" target="_blank">Project Astra</a>現在則整合到Google Live。<span style="font-size:14px;"><span style="color:#696969;">圖片來源／OpenAI</span></span></p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0527-operator_chatgpt-openai-960.jpg?itok=dfU7dagg" width="960" height="420" alt=""><p><a href="https://x.com/OpenAI/status/1925963018791178732" target="_blank">OpenAI本周宣布</a>將Operator代理人使用的模型，由GPT-4o升級為具推理思維能力的o3。</p>
+<p>Operator為ChatGPT的電腦使用代理人（Computer-Using Agent，CUA），為ChatGPT賦予看/讀、寫/打字、點擊或操作滑鼠的能力，使其能代用戶執行多種任務，包括上網搜尋、操作應用程式、甚至訂餐廳、訂外送或下單。Operator今年1月先提供給美國，<a href="https://www.ithome.com.tw/news/167523" target="_blank">之後又陸續推向</a>巴西、日、韓及新加坡等國，且持續擴大到全球。</p>
+<p>目前Operator維持為研究預覽（research preview）版，還是僅限月付200美元的Pro方案用戶使用。</p>
+<p>OpenAI在官方X帳號說明，Operator升級使用o3模型後，它和瀏覽器互動時將會更持續、更準確，以提高任務的成功率。回應內容上也會更清楚、全面、更有條理。</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0527-OpenAI-Operator-o3.png" style="width: 550px;"></p>
+<p><a href="https://help.openai.com/en/articles/10561834-operator-release-notes" target="_blank">根據OpenAI說明</a>，新版使用o3的Operator在OSWord和WebArena測試結果，都較原有（4o）的Operator表現更好，成為新的SOTA，而在不論標竿測試和人類偏好評估上，也都超越使用o4的Operator。</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0527-OpenAI-Operator-o3-benchmark(2).png" style="width: 600px;"></p>
+<p>其他AI業者也正在開發類似Operator的代理人，包括Hugging Face的<a href="http://www.ithome.com.tw/news/168790" target="_blank">Open Computer Agent</a>能查詢Google Maps或使用圖片生成模型，Google可理解影片、共享螢幕的<a href="https://blog.google/technology/google-deepmind/gemini-universal-ai-assistant/#live-capabilities" target="_blank">Project Astra</a>現在則整合到Google Live。<span style="font-size:14px;"><span style="color:#696969;">圖片來源／OpenAI</span></span></p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0527-operator_chatgpt-openai-960.jpg?itok=dfU7dagg" width="960" height="420" alt=""><p><a href="https://x.com/OpenAI/status/1925963018791178732" target="_blank">OpenAI本周宣布</a>將Operator代理人使用的模型，由GPT-4o升級為具推理思維能力的o3。</p>
+<p>Operator為ChatGPT的電腦使用代理人（Computer-Using Agent，CUA），為ChatGPT賦予看/讀、寫/打字、點擊或操作滑鼠的能力，使其能代用戶執行多種任務，包括上網搜尋、操作應用程式、甚至訂餐廳、訂外送或下單。Operator今年1月先提供給美國，<a href="https://www.ithome.com.tw/news/167523" target="_blank">之後又陸續推向</a>巴西、日、韓及新加坡等國，且持續擴大到全球。</p>
+<p>目前Operator維持為研究預覽（research preview）版，還是僅限月付200美元的Pro方案用戶使用。</p>
+<p>OpenAI在官方X帳號說明，Operator升級使用o3模型後，它和瀏覽器互動時將會更持續、更準確，以提高任務的成功率。回應內容上也會更清楚、全面、更有條理。</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0527-OpenAI-Operator-o3.png" style="width: 550px;"></p>
+<p><a href="https://help.openai.com/en/articles/10561834-operator-release-notes" target="_blank">根據OpenAI說明</a>，新版使用o3的Operator在OSWord和WebArena測試結果，都較原有（4o）的Operator表現更好，成為新的SOTA，而在不論標竿測試和人類偏好評估上，也都超越使用o4的Operator。</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0527-OpenAI-Operator-o3-benchmark(2).png" style="width: 600px;"></p>
+<p>其他AI業者也正在開發類似Operator的代理人，包括Hugging Face的<a href="http://www.ithome.com.tw/news/168790" target="_blank">Open Computer Agent</a>能查詢Google Maps或使用圖片生成模型，Google可理解影片、共享螢幕的<a href="https://blog.google/technology/google-deepmind/gemini-universal-ai-assistant/#live-capabilities" target="_blank">Project Astra</a>現在則整合到Google Live。<span style="font-size:14px;"><span style="color:#696969;">圖片來源／OpenAI</span></span></p>]]></content:encoded>
+    
+    <pubDate>2025-05-27  10:05:36</pubDate>
+  </item><item>
+    <title><![CDATA[微軟開源Aurora AI模型跨域天氣預報，準確度全面超越傳統數值模擬方法]]></title>
+    <link>https://ithome.com.tw/news/169170</link>
+    <itunes:title><![CDATA[微軟開源Aurora AI模型跨域天氣預報，準確度全面超越傳統數值模擬方法]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/210_-_from_sea_to_sky_microsofts_aurora_ai_foundation_model_goes_beyond_-_news.microsoft.com_.png?itok=GRHRjMhl" width="960" height="420" alt=""><p>微軟研究院<a href="https://news.microsoft.com/source/features/ai/microsofts-aurora-ai-foundation-model-goes-beyond-weather-forecasting/">宣布</a>開源Aurora AI基礎模型，該模型結合深度學習與大規模異質資料處理技術，除了能精確預報天氣，還可透過微調應用於海洋波浪及空氣品質等多種環境事件，推動氣象與地球系統科學的技術發展。</p>
+<p>根據微軟團隊發表於《Nature》期刊的論文，Aurora為大型人工智慧基礎模型，以超過一百萬小時來自衛星、雷達、氣象站及電腦模擬等多種來源的氣象與環境資料訓練而成。該模型不限於傳統天氣預報任務，其彈性架構可經有限微調，應用於颱風路徑預報、海浪高度及方向分析，甚至空氣污染事件預測。</p>
+<p>Aurora訓練所使用的資料規模，較多數同類人工智慧模型更為龐大，使其在不同預報任務能有效整合多元資料來源，例如在2023年杜蘇芮（Doksuri）颱風路徑預測，Aurora於事件發生前四天即能準確預測其將登陸菲律賓北部，當時美國聯合颱風警報中心（JTWC）則預測路徑較偏向臺灣附近。根據微軟研究團隊測試，Aurora於2022至2023年全球熱帶氣旋預報任務，軌跡預測表現於所有比較案例均優於七個主要氣象中心，這是機器學習模型首次在該領域全面超越傳統數值模式。</p>
+<p>除天氣與氣旋外，Aurora在海浪預報及空氣品質預測等複雜環境事件，同樣展現高度精確度。針對海浪預報，Aurora可捕捉細緻波浪結構變化，對於受颱風影響的極端海象能有更佳掌握。在空氣品質預測案例，儘管訓練階段未特別學習大氣化學反應，Aurora仍可透過少量空氣品質資料微調，有效預測沙塵暴等空氣污染事件，並大幅降低傳統方法的計算資源消耗。</p>
+<p>Aurora採用彈性的深度學習編碼器架構，能同時處理多源、結構多樣且維度複雜的資料，在推論階段可於數秒內產生中期氣象預報，速度約為傳統數值天氣預報系統的5,000倍，且運作成本明顯較低。研究團隊指出，Aurora每次微調作業僅需約4至8周即可完成，較傳統數值氣象模式開發周期大幅縮短。</p>
+<p>目前Aurora模型已整合至MSN Weather服務，並於Azure AI Foundry Labs上提供開發者試用及二次開發。微軟已釋出模型權重及部分原始碼，開發者可依需求進行微調，支援能源調度、農業風險預警、交通安全等多元應用。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/210_-_from_sea_to_sky_microsofts_aurora_ai_foundation_model_goes_beyond_-_news.microsoft.com_.png?itok=GRHRjMhl" width="960" height="420" alt=""><p>微軟研究院<a href="https://news.microsoft.com/source/features/ai/microsofts-aurora-ai-foundation-model-goes-beyond-weather-forecasting/">宣布</a>開源Aurora AI基礎模型，該模型結合深度學習與大規模異質資料處理技術，除了能精確預報天氣，還可透過微調應用於海洋波浪及空氣品質等多種環境事件，推動氣象與地球系統科學的技術發展。</p>
+<p>根據微軟團隊發表於《Nature》期刊的論文，Aurora為大型人工智慧基礎模型，以超過一百萬小時來自衛星、雷達、氣象站及電腦模擬等多種來源的氣象與環境資料訓練而成。該模型不限於傳統天氣預報任務，其彈性架構可經有限微調，應用於颱風路徑預報、海浪高度及方向分析，甚至空氣污染事件預測。</p>
+<p>Aurora訓練所使用的資料規模，較多數同類人工智慧模型更為龐大，使其在不同預報任務能有效整合多元資料來源，例如在2023年杜蘇芮（Doksuri）颱風路徑預測，Aurora於事件發生前四天即能準確預測其將登陸菲律賓北部，當時美國聯合颱風警報中心（JTWC）則預測路徑較偏向臺灣附近。根據微軟研究團隊測試，Aurora於2022至2023年全球熱帶氣旋預報任務，軌跡預測表現於所有比較案例均優於七個主要氣象中心，這是機器學習模型首次在該領域全面超越傳統數值模式。</p>
+<p>除天氣與氣旋外，Aurora在海浪預報及空氣品質預測等複雜環境事件，同樣展現高度精確度。針對海浪預報，Aurora可捕捉細緻波浪結構變化，對於受颱風影響的極端海象能有更佳掌握。在空氣品質預測案例，儘管訓練階段未特別學習大氣化學反應，Aurora仍可透過少量空氣品質資料微調，有效預測沙塵暴等空氣污染事件，並大幅降低傳統方法的計算資源消耗。</p>
+<p>Aurora採用彈性的深度學習編碼器架構，能同時處理多源、結構多樣且維度複雜的資料，在推論階段可於數秒內產生中期氣象預報，速度約為傳統數值天氣預報系統的5,000倍，且運作成本明顯較低。研究團隊指出，Aurora每次微調作業僅需約4至8周即可完成，較傳統數值氣象模式開發周期大幅縮短。</p>
+<p>目前Aurora模型已整合至MSN Weather服務，並於Azure AI Foundry Labs上提供開發者試用及二次開發。微軟已釋出模型權重及部分原始碼，開發者可依需求進行微調，支援能源調度、農業風險預警、交通安全等多元應用。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/210_-_from_sea_to_sky_microsofts_aurora_ai_foundation_model_goes_beyond_-_news.microsoft.com_.png?itok=GRHRjMhl" width="960" height="420" alt=""><p>微軟研究院<a href="https://news.microsoft.com/source/features/ai/microsofts-aurora-ai-foundation-model-goes-beyond-weather-forecasting/">宣布</a>開源Aurora AI基礎模型，該模型結合深度學習與大規模異質資料處理技術，除了能精確預報天氣，還可透過微調應用於海洋波浪及空氣品質等多種環境事件，推動氣象與地球系統科學的技術發展。</p>
+<p>根據微軟團隊發表於《Nature》期刊的論文，Aurora為大型人工智慧基礎模型，以超過一百萬小時來自衛星、雷達、氣象站及電腦模擬等多種來源的氣象與環境資料訓練而成。該模型不限於傳統天氣預報任務，其彈性架構可經有限微調，應用於颱風路徑預報、海浪高度及方向分析，甚至空氣污染事件預測。</p>
+<p>Aurora訓練所使用的資料規模，較多數同類人工智慧模型更為龐大，使其在不同預報任務能有效整合多元資料來源，例如在2023年杜蘇芮（Doksuri）颱風路徑預測，Aurora於事件發生前四天即能準確預測其將登陸菲律賓北部，當時美國聯合颱風警報中心（JTWC）則預測路徑較偏向臺灣附近。根據微軟研究團隊測試，Aurora於2022至2023年全球熱帶氣旋預報任務，軌跡預測表現於所有比較案例均優於七個主要氣象中心，這是機器學習模型首次在該領域全面超越傳統數值模式。</p>
+<p>除天氣與氣旋外，Aurora在海浪預報及空氣品質預測等複雜環境事件，同樣展現高度精確度。針對海浪預報，Aurora可捕捉細緻波浪結構變化，對於受颱風影響的極端海象能有更佳掌握。在空氣品質預測案例，儘管訓練階段未特別學習大氣化學反應，Aurora仍可透過少量空氣品質資料微調，有效預測沙塵暴等空氣污染事件，並大幅降低傳統方法的計算資源消耗。</p>
+<p>Aurora採用彈性的深度學習編碼器架構，能同時處理多源、結構多樣且維度複雜的資料，在推論階段可於數秒內產生中期氣象預報，速度約為傳統數值天氣預報系統的5,000倍，且運作成本明顯較低。研究團隊指出，Aurora每次微調作業僅需約4至8周即可完成，較傳統數值氣象模式開發周期大幅縮短。</p>
+<p>目前Aurora模型已整合至MSN Weather服務，並於Azure AI Foundry Labs上提供開發者試用及二次開發。微軟已釋出模型權重及部分原始碼，開發者可依需求進行微調，支援能源調度、農業風險預警、交通安全等多元應用。</p>]]></content:encoded>
+    
+    <pubDate>2025-05-27  08:05:20</pubDate>
+  </item><item>
+    <title><![CDATA[研究人員相信Careto駭客組織背後是西班牙政府]]></title>
+    <link>https://ithome.com.tw/news/169179</link>
+    <itunes:title><![CDATA[研究人員相信Careto駭客組織背後是西班牙政府]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0526-_careto_kaspersky_2024-image_source-kaspersky-960.jpg?itok=daziWve9" width="960" height="420" alt=""><p><a href="https://techcrunch.com/2025/05/23/mysterious-hacking-group-careto-was-run-by-the-spanish-government-sources-say/" target="_blank">Techcrunch引述消息人員報導</a>，11年前一個被視為世界上最狡猾的駭客攻擊行動，其實背後行動者是西班牙政府。</p>
+<p><a href="https://www.ithome.com.tw/news/85145" target="_blank">2014年資安業者卡巴斯基發現</a>一樁進階滲透攻擊（Advanced Persistent Threat，APT）行動，鎖定政府機關和能源企業，包括外交辦公室、大使館、能源或石油企業，目的在竊取機密資料如文件、加密金鑰、VPN配置等。經過分析，研究人員將其稱為Careto或The Mask，這是因為他們在其程式碼中發現到Careto（西語中的面具之意）的字樣。</p>
+<p>Careto最早現身於2007年，到2013年之間是其第一波活動期，而在沈寂幾年後<a href="https://www.kaspersky.com/about/press-releases/careto-apt-resurfaced-after-10-years-with-new-malicious-frameworks" target="_blank">2019年又再次活躍</a>。在前一次活動期間，Careto即已能使用極為複雜的惡意程式、rootkit、bootkit，除了能夠攔截所有的通訊管道且蒐集重要資訊外，其惡意程式還能隱身、針對防毒產品執行客製化的攻擊。它的目標平臺從Mac OS X、Linux外，到Android與iOS。到了近年，Careto的能力更提升為多模，能用惡意程式偷錄麥克風聲音、竊取瀏覽器或WhatsApp cookies，或是取得感染機器的控制權。而Careto的受害者國家也遍布歐洲、拉丁美洲到北、中非，受害組織高達數百。</p>
+<p>卡巴斯基從未明指Careto的身份，但Techcrunch最新報導引述卡巴斯基至少4名前員工指出，Careto/The Mask背後主謀者是西班牙政府。一名前員工透露，線索之一是一名古巴政府員工是西國巴斯克地區恐怖主義ETA成員。<a href="https://media.kasperskycontenthub.com/wp-content/uploads/sites/43/2018/03/20133638/unveilingthemask_v1.0.pdf" target="_blank">根據卡巴斯基的調查</a>，其他受害者分布地區包括摩洛哥、巴西、英國屬地直布羅陀等地，也都是和西班牙有歷史新仇舊恨。</p>
+<p>卡巴斯基拒絕評論報導。</p>
+<p>駭客組織與政府資源有關連，甚至直屬政府單位，在全球都不是罕見，並非只有北韓和中國如此。例如，Equation Group據信屬於美國國安局（NSA），Lamberts為中情局（CIA）所有，而Animal Farm背後是法國政府。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0526-_careto_kaspersky_2024-image_source-kaspersky-960.jpg?itok=daziWve9" width="960" height="420" alt=""><p><a href="https://techcrunch.com/2025/05/23/mysterious-hacking-group-careto-was-run-by-the-spanish-government-sources-say/" target="_blank">Techcrunch引述消息人員報導</a>，11年前一個被視為世界上最狡猾的駭客攻擊行動，其實背後行動者是西班牙政府。</p>
+<p><a href="https://www.ithome.com.tw/news/85145" target="_blank">2014年資安業者卡巴斯基發現</a>一樁進階滲透攻擊（Advanced Persistent Threat，APT）行動，鎖定政府機關和能源企業，包括外交辦公室、大使館、能源或石油企業，目的在竊取機密資料如文件、加密金鑰、VPN配置等。經過分析，研究人員將其稱為Careto或The Mask，這是因為他們在其程式碼中發現到Careto（西語中的面具之意）的字樣。</p>
+<p>Careto最早現身於2007年，到2013年之間是其第一波活動期，而在沈寂幾年後<a href="https://www.kaspersky.com/about/press-releases/careto-apt-resurfaced-after-10-years-with-new-malicious-frameworks" target="_blank">2019年又再次活躍</a>。在前一次活動期間，Careto即已能使用極為複雜的惡意程式、rootkit、bootkit，除了能夠攔截所有的通訊管道且蒐集重要資訊外，其惡意程式還能隱身、針對防毒產品執行客製化的攻擊。它的目標平臺從Mac OS X、Linux外，到Android與iOS。到了近年，Careto的能力更提升為多模，能用惡意程式偷錄麥克風聲音、竊取瀏覽器或WhatsApp cookies，或是取得感染機器的控制權。而Careto的受害者國家也遍布歐洲、拉丁美洲到北、中非，受害組織高達數百。</p>
+<p>卡巴斯基從未明指Careto的身份，但Techcrunch最新報導引述卡巴斯基至少4名前員工指出，Careto/The Mask背後主謀者是西班牙政府。一名前員工透露，線索之一是一名古巴政府員工是西國巴斯克地區恐怖主義ETA成員。<a href="https://media.kasperskycontenthub.com/wp-content/uploads/sites/43/2018/03/20133638/unveilingthemask_v1.0.pdf" target="_blank">根據卡巴斯基的調查</a>，其他受害者分布地區包括摩洛哥、巴西、英國屬地直布羅陀等地，也都是和西班牙有歷史新仇舊恨。</p>
+<p>卡巴斯基拒絕評論報導。</p>
+<p>駭客組織與政府資源有關連，甚至直屬政府單位，在全球都不是罕見，並非只有北韓和中國如此。例如，Equation Group據信屬於美國國安局（NSA），Lamberts為中情局（CIA）所有，而Animal Farm背後是法國政府。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0526-_careto_kaspersky_2024-image_source-kaspersky-960.jpg?itok=daziWve9" width="960" height="420" alt=""><p><a href="https://techcrunch.com/2025/05/23/mysterious-hacking-group-careto-was-run-by-the-spanish-government-sources-say/" target="_blank">Techcrunch引述消息人員報導</a>，11年前一個被視為世界上最狡猾的駭客攻擊行動，其實背後行動者是西班牙政府。</p>
+<p><a href="https://www.ithome.com.tw/news/85145" target="_blank">2014年資安業者卡巴斯基發現</a>一樁進階滲透攻擊（Advanced Persistent Threat，APT）行動，鎖定政府機關和能源企業，包括外交辦公室、大使館、能源或石油企業，目的在竊取機密資料如文件、加密金鑰、VPN配置等。經過分析，研究人員將其稱為Careto或The Mask，這是因為他們在其程式碼中發現到Careto（西語中的面具之意）的字樣。</p>
+<p>Careto最早現身於2007年，到2013年之間是其第一波活動期，而在沈寂幾年後<a href="https://www.kaspersky.com/about/press-releases/careto-apt-resurfaced-after-10-years-with-new-malicious-frameworks" target="_blank">2019年又再次活躍</a>。在前一次活動期間，Careto即已能使用極為複雜的惡意程式、rootkit、bootkit，除了能夠攔截所有的通訊管道且蒐集重要資訊外，其惡意程式還能隱身、針對防毒產品執行客製化的攻擊。它的目標平臺從Mac OS X、Linux外，到Android與iOS。到了近年，Careto的能力更提升為多模，能用惡意程式偷錄麥克風聲音、竊取瀏覽器或WhatsApp cookies，或是取得感染機器的控制權。而Careto的受害者國家也遍布歐洲、拉丁美洲到北、中非，受害組織高達數百。</p>
+<p>卡巴斯基從未明指Careto的身份，但Techcrunch最新報導引述卡巴斯基至少4名前員工指出，Careto/The Mask背後主謀者是西班牙政府。一名前員工透露，線索之一是一名古巴政府員工是西國巴斯克地區恐怖主義ETA成員。<a href="https://media.kasperskycontenthub.com/wp-content/uploads/sites/43/2018/03/20133638/unveilingthemask_v1.0.pdf" target="_blank">根據卡巴斯基的調查</a>，其他受害者分布地區包括摩洛哥、巴西、英國屬地直布羅陀等地，也都是和西班牙有歷史新仇舊恨。</p>
+<p>卡巴斯基拒絕評論報導。</p>
+<p>駭客組織與政府資源有關連，甚至直屬政府單位，在全球都不是罕見，並非只有北韓和中國如此。例如，Equation Group據信屬於美國國安局（NSA），Lamberts為中情局（CIA）所有，而Animal Farm背後是法國政府。</p>]]></content:encoded>
+    
+    <pubDate>2025-05-27  08:05:59</pubDate>
+  </item><item>
+    <title><![CDATA[Dero惡意程式可自動感染公開Docker容器執行挖礦]]></title>
+    <link>https://ithome.com.tw/news/169165</link>
+    <itunes:title><![CDATA[Dero惡意程式可自動感染公開Docker容器執行挖礦]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/208_-_dero_miner_spreads_inside_containerized_linux_environments_-_secure_-_securelist.com_.png?itok=M77Bp3Om" width="960" height="420" alt=""><p>Kaspersky<a href="https://securelist.com/dero-miner-infects-containers-through-docker-api/116546/">公開</a>新一波針對Docker API服務的自動化惡意程式攻擊，該攻擊以植入Dero加密貨幣挖礦程式為核心，專門鎖定存取權限管理不嚴的Docker容器環境，進行自動化散播及占用受害主機運算資源，最終形成具備自我擴散能力的挖礦僵屍網路。</p>
+<p>本次自動化攻擊流程主要仰賴兩支以Go語言撰寫，且經UPX壓縮的惡意程式，分別是名為「nginx」負責散播及持久化的元件，以及名為「cloud」的Dero加密貨幣挖礦程式。「nginx」並非一般網頁伺服器，而是假冒知名開源服務名稱以降低被偵測風險。</p>
+<p>「nginx」的主要功能包含持續監控自身與挖礦程式的運作狀態，還會主動掃描外部網路尋找可利用的Docker API，並將自身與挖礦程式植入新感染的容器。整個傳播過程無需依靠C2伺服器，攻擊完全仰賴感染主機的自動掃描與橫向擴散能力。</p>
+<p>攻擊者利用「nginx」程式隨機產生IPv4子網，並以掃描工具搜尋並鎖定開放Docker預設API埠口2375的主機。發現目標後，惡意程式會嘗試列出主機上的容器，當符合條件，便遠端新建以Ubuntu 18.04為基礎的惡意容器，並設為自動重啟以確保持續運作。新建容器將安裝必要相依工具，同時複製「nginx」與挖礦程式進入環境。為強化持久化，nginx會將自身啟動指令寫入/root/.bash_aliases，確保容器每次啟動時自動執行。</p>
+<p>除了新建容器，「nginx」也會檢查現有以Ubuntu 18.04為基礎且尚未感染的容器，並以相同方式植入惡意程式並啟動挖礦。這套自動化機制可在無須外部聯繫的情況，持續自我複製與擴散，任何未設防的Docker API都有可能成為僵屍網路的一部分。「cloud」挖礦程式則根據程式內預先寫入且經加密的設定，持續連接特定Dero礦池節點，利用受害主機的運算資源進行加密貨幣挖礦。</p>
+<p>該挖礦攻擊的一大特點，在於攻擊者採用加密方式儲存錢包地址及礦池節點資訊，進一步提升隱蔽性與調查難度。全球公開Docker API主機數量雖不多，但根據Shodan統計，2025年4月全球有超過520臺開放2375埠口的Docker API主機暴露於網際網路，皆為潛在受害目標。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/208_-_dero_miner_spreads_inside_containerized_linux_environments_-_secure_-_securelist.com_.png?itok=M77Bp3Om" width="960" height="420" alt=""><p>Kaspersky<a href="https://securelist.com/dero-miner-infects-containers-through-docker-api/116546/">公開</a>新一波針對Docker API服務的自動化惡意程式攻擊，該攻擊以植入Dero加密貨幣挖礦程式為核心，專門鎖定存取權限管理不嚴的Docker容器環境，進行自動化散播及占用受害主機運算資源，最終形成具備自我擴散能力的挖礦僵屍網路。</p>
+<p>本次自動化攻擊流程主要仰賴兩支以Go語言撰寫，且經UPX壓縮的惡意程式，分別是名為「nginx」負責散播及持久化的元件，以及名為「cloud」的Dero加密貨幣挖礦程式。「nginx」並非一般網頁伺服器，而是假冒知名開源服務名稱以降低被偵測風險。</p>
+<p>「nginx」的主要功能包含持續監控自身與挖礦程式的運作狀態，還會主動掃描外部網路尋找可利用的Docker API，並將自身與挖礦程式植入新感染的容器。整個傳播過程無需依靠C2伺服器，攻擊完全仰賴感染主機的自動掃描與橫向擴散能力。</p>
+<p>攻擊者利用「nginx」程式隨機產生IPv4子網，並以掃描工具搜尋並鎖定開放Docker預設API埠口2375的主機。發現目標後，惡意程式會嘗試列出主機上的容器，當符合條件，便遠端新建以Ubuntu 18.04為基礎的惡意容器，並設為自動重啟以確保持續運作。新建容器將安裝必要相依工具，同時複製「nginx」與挖礦程式進入環境。為強化持久化，nginx會將自身啟動指令寫入/root/.bash_aliases，確保容器每次啟動時自動執行。</p>
+<p>除了新建容器，「nginx」也會檢查現有以Ubuntu 18.04為基礎且尚未感染的容器，並以相同方式植入惡意程式並啟動挖礦。這套自動化機制可在無須外部聯繫的情況，持續自我複製與擴散，任何未設防的Docker API都有可能成為僵屍網路的一部分。「cloud」挖礦程式則根據程式內預先寫入且經加密的設定，持續連接特定Dero礦池節點，利用受害主機的運算資源進行加密貨幣挖礦。</p>
+<p>該挖礦攻擊的一大特點，在於攻擊者採用加密方式儲存錢包地址及礦池節點資訊，進一步提升隱蔽性與調查難度。全球公開Docker API主機數量雖不多，但根據Shodan統計，2025年4月全球有超過520臺開放2375埠口的Docker API主機暴露於網際網路，皆為潛在受害目標。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/208_-_dero_miner_spreads_inside_containerized_linux_environments_-_secure_-_securelist.com_.png?itok=M77Bp3Om" width="960" height="420" alt=""><p>Kaspersky<a href="https://securelist.com/dero-miner-infects-containers-through-docker-api/116546/">公開</a>新一波針對Docker API服務的自動化惡意程式攻擊，該攻擊以植入Dero加密貨幣挖礦程式為核心，專門鎖定存取權限管理不嚴的Docker容器環境，進行自動化散播及占用受害主機運算資源，最終形成具備自我擴散能力的挖礦僵屍網路。</p>
+<p>本次自動化攻擊流程主要仰賴兩支以Go語言撰寫，且經UPX壓縮的惡意程式，分別是名為「nginx」負責散播及持久化的元件，以及名為「cloud」的Dero加密貨幣挖礦程式。「nginx」並非一般網頁伺服器，而是假冒知名開源服務名稱以降低被偵測風險。</p>
+<p>「nginx」的主要功能包含持續監控自身與挖礦程式的運作狀態，還會主動掃描外部網路尋找可利用的Docker API，並將自身與挖礦程式植入新感染的容器。整個傳播過程無需依靠C2伺服器，攻擊完全仰賴感染主機的自動掃描與橫向擴散能力。</p>
+<p>攻擊者利用「nginx」程式隨機產生IPv4子網，並以掃描工具搜尋並鎖定開放Docker預設API埠口2375的主機。發現目標後，惡意程式會嘗試列出主機上的容器，當符合條件，便遠端新建以Ubuntu 18.04為基礎的惡意容器，並設為自動重啟以確保持續運作。新建容器將安裝必要相依工具，同時複製「nginx」與挖礦程式進入環境。為強化持久化，nginx會將自身啟動指令寫入/root/.bash_aliases，確保容器每次啟動時自動執行。</p>
+<p>除了新建容器，「nginx」也會檢查現有以Ubuntu 18.04為基礎且尚未感染的容器，並以相同方式植入惡意程式並啟動挖礦。這套自動化機制可在無須外部聯繫的情況，持續自我複製與擴散，任何未設防的Docker API都有可能成為僵屍網路的一部分。「cloud」挖礦程式則根據程式內預先寫入且經加密的設定，持續連接特定Dero礦池節點，利用受害主機的運算資源進行加密貨幣挖礦。</p>
+<p>該挖礦攻擊的一大特點，在於攻擊者採用加密方式儲存錢包地址及礦池節點資訊，進一步提升隱蔽性與調查難度。全球公開Docker API主機數量雖不多，但根據Shodan統計，2025年4月全球有超過520臺開放2375埠口的Docker API主機暴露於網際網路，皆為潛在受害目標。</p>]]></content:encoded>
+    
+    <pubDate>2025-05-27  08:05:39</pubDate>
+  </item><item>
     <title><![CDATA[Google行銷年會宣布十多年來最大廣告競價技術更新，不靠關鍵字只靠語意觸發競價，也能用AI替廣告主競價冷門關鍵字廣告]]></title>
     <link>https://ithome.com.tw/news/169178</link>
     <itunes:title><![CDATA[Google行銷年會宣布十多年來最大廣告競價技術更新，不靠關鍵字只靠語意觸發競價，也能用AI替廣告主競價冷門關鍵字廣告]]></itunes:title>
@@ -1180,360 +1424,5 @@
 <p>Pro、Max、Team和Enterprise計畫都包含兩款模型和延伸性思考功能，已透過Anthropic API、Amazon Bedrock和Google Cloud的Vertex AI上提供服務。在定價上，Claude Opus 4每百萬token輸入/輸出價格為15/75美元，Claude Sonnet 4則是3/15美元，與上一代模型一致。</p>]]></content:encoded>
     
     <pubDate>2025-05-23  02:05:26</pubDate>
-  </item><item>
-    <title><![CDATA[Meta公布Llama新創贊助計畫]]></title>
-    <link>https://ithome.com.tw/news/169133</link>
-    <itunes:title><![CDATA[Meta公布Llama新創贊助計畫]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-llama_startup_program-meta-960.jpg?itok=Dfmhxu6J" width="960" height="420" alt=""><p><a href="https://ai.meta.com/blog/llama-startup-program/" target="_blank">Meta宣布Llama新創計畫</a>（Llama Startup Program），招攬美國新創公司利用Llama模型開發生成式AI應用。</p>
-<p>Meta去年也曾透過<a href="https://about.fb.com/news/2025/04/llama-impact-grant-recipients/" target="_blank">Llama Impact Grants</a>獎勵計畫鼓勵開發商以Llama開發AI計畫，並<a href="https://ai.meta.com/blog/llama-impact-grant-innovation-award-winners-2024/" target="_blank">提供30萬到50萬美元獎金</a>。</p>
-<p>Llama新創計畫將提供早期新創團隊Llama開發資源，以及Meta團隊的協助，加速其產品開發。任何註冊成立、籌集資金少於1,000萬美元、至少有一名開發人員，並且正在構建生成式AI應用程式的美國公司，都可在5月30日截止日期前申請。</p>
-<p>在Llama新創計畫下，首先Meta將提供資助，供新創團隊透過雲端推論服務業的API使用Llama。Meta會提供每團隊最高6,000美元，最長6個月的資金來補貼打造生成式AI解決方案。此外，他們還可獲得Meta Llama團隊的技術支援，助其了解Llama使用場景並推動新創團隊實現Llama專案。</p>
-<p>Meta表示，Llama新創計畫特別適合開發科技與軟體、金融服務、健康照護和生技、電信、零售與電商等領域的生成式AI應用。Meta說，只要符合上述條件，<a href="https://www.llama.com/programs/startups/" target="_blank">即使現在沒有在用Llama也能報名</a>。</p>
-<p>不過這項計畫目前提供美國新創公司，不確定是否會推向其他地區。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-llama_startup_program-meta-960.jpg?itok=Dfmhxu6J" width="960" height="420" alt=""><p><a href="https://ai.meta.com/blog/llama-startup-program/" target="_blank">Meta宣布Llama新創計畫</a>（Llama Startup Program），招攬美國新創公司利用Llama模型開發生成式AI應用。</p>
-<p>Meta去年也曾透過<a href="https://about.fb.com/news/2025/04/llama-impact-grant-recipients/" target="_blank">Llama Impact Grants</a>獎勵計畫鼓勵開發商以Llama開發AI計畫，並<a href="https://ai.meta.com/blog/llama-impact-grant-innovation-award-winners-2024/" target="_blank">提供30萬到50萬美元獎金</a>。</p>
-<p>Llama新創計畫將提供早期新創團隊Llama開發資源，以及Meta團隊的協助，加速其產品開發。任何註冊成立、籌集資金少於1,000萬美元、至少有一名開發人員，並且正在構建生成式AI應用程式的美國公司，都可在5月30日截止日期前申請。</p>
-<p>在Llama新創計畫下，首先Meta將提供資助，供新創團隊透過雲端推論服務業的API使用Llama。Meta會提供每團隊最高6,000美元，最長6個月的資金來補貼打造生成式AI解決方案。此外，他們還可獲得Meta Llama團隊的技術支援，助其了解Llama使用場景並推動新創團隊實現Llama專案。</p>
-<p>Meta表示，Llama新創計畫特別適合開發科技與軟體、金融服務、健康照護和生技、電信、零售與電商等領域的生成式AI應用。Meta說，只要符合上述條件，<a href="https://www.llama.com/programs/startups/" target="_blank">即使現在沒有在用Llama也能報名</a>。</p>
-<p>不過這項計畫目前提供美國新創公司，不確定是否會推向其他地區。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-llama_startup_program-meta-960.jpg?itok=Dfmhxu6J" width="960" height="420" alt=""><p><a href="https://ai.meta.com/blog/llama-startup-program/" target="_blank">Meta宣布Llama新創計畫</a>（Llama Startup Program），招攬美國新創公司利用Llama模型開發生成式AI應用。</p>
-<p>Meta去年也曾透過<a href="https://about.fb.com/news/2025/04/llama-impact-grant-recipients/" target="_blank">Llama Impact Grants</a>獎勵計畫鼓勵開發商以Llama開發AI計畫，並<a href="https://ai.meta.com/blog/llama-impact-grant-innovation-award-winners-2024/" target="_blank">提供30萬到50萬美元獎金</a>。</p>
-<p>Llama新創計畫將提供早期新創團隊Llama開發資源，以及Meta團隊的協助，加速其產品開發。任何註冊成立、籌集資金少於1,000萬美元、至少有一名開發人員，並且正在構建生成式AI應用程式的美國公司，都可在5月30日截止日期前申請。</p>
-<p>在Llama新創計畫下，首先Meta將提供資助，供新創團隊透過雲端推論服務業的API使用Llama。Meta會提供每團隊最高6,000美元，最長6個月的資金來補貼打造生成式AI解決方案。此外，他們還可獲得Meta Llama團隊的技術支援，助其了解Llama使用場景並推動新創團隊實現Llama專案。</p>
-<p>Meta表示，Llama新創計畫特別適合開發科技與軟體、金融服務、健康照護和生技、電信、零售與電商等領域的生成式AI應用。Meta說，只要符合上述條件，<a href="https://www.llama.com/programs/startups/" target="_blank">即使現在沒有在用Llama也能報名</a>。</p>
-<p>不過這項計畫目前提供美國新創公司，不確定是否會推向其他地區。</p>]]></content:encoded>
-    
-    <pubDate>2025-05-23  02:05:00</pubDate>
-  </item><item>
-    <title><![CDATA[中國駭客利用Ivanti EPMM漏洞從事攻擊，對歐美、亞太地區出手]]></title>
-    <link>https://ithome.com.tw/news/169130</link>
-    <itunes:title><![CDATA[中國駭客利用Ivanti EPMM漏洞從事攻擊，對歐美、亞太地區出手]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/ivanti001-156.jpg?itok=MDJwCQh8" width="960" height="420" alt=""><p>資安業者Ivanti於5月上旬<a href="https://www.ithome.com.tw/news/168936">發布更新</a>，修補已遭利用的Endpoint Manager Mobile（EPMM）漏洞CVE-2025-4427、漏洞CVE-2025-4428，後續<a href="https://www.ithome.com.tw/news/169112">資安業者Wiz指出他們從16日看到多起資安事故</a>，駭客將此漏洞用於4種攻擊，現在有其他研究人員<a href="https://blog.eclecticiq.com/china-nexus-threat-actor-actively-exploiting-ivanti-endpoint-manager-mobile-cve-2025-4428-vulnerability">公布新的調查結果</a>，指出中國駭客UNC5221在此之前，已用於廣泛的攻擊行動。</p>
-<p>威脅情報業者EclecticIQ指出，UNC5221利用這些漏洞，攻擊可透過網際網路存取的EPMM系統，範圍橫跨歐洲、北美、亞太地區，鎖定的目標涵蓋醫療照護、電信、航空、政府機關、金融、國防產業，目的疑似對高價值目標從事網路間諜活動，並竊取與中國利益有關的機密資訊。而這些駭客的攻擊行動，最早可追溯至5月15日。</p>
-<p>一旦UNC5221成功取得受害組織的初始入侵管道，就可能利用Linux作業系統內建的wget、curl、fetch等公用程式，從AWS S3儲存桶下載惡意程式KrustyLoader，目的是能持續在EPMM活動。</p>
-<p>接著，駭客試圖接收第二階段酬載，此為經過AES-128-CFB演算法處理的Sliver後門程式，經解密後此後門將以Shell Code的型式於記憶體內運作。</p>
-<p>為了竊取EPMM存放的機敏資訊，駭客也會對於EPMM搭配的MySQL資料庫下手，存取名為mifs的資料庫內容，挖掘列管的使用者行動裝置資料，這些包含IMEI碼、手機號碼、地理位置、SIM卡資料、LDAP資訊，甚至是Office 365的Token。</p>
-<p>此外，UNC5221還會使用反向代理伺服器工具Fast Reverse Proxy（FRP）該進行偵察及橫向移動。</p>
-<p>值得留意的是，UNC5221鎖定Ivanti漏洞下手的情況並非首例，兩個月前駭客試圖利用同廠牌SSL VPN系統Ivanti Connect Secure（ICS）的<a href="https://www.ithome.com.tw/news/168319">資安漏洞CVE-2025-22457</a>，於受害組織部署惡意程式載入工具TrailBlaze、後門程式BrushFire。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/ivanti001-156.jpg?itok=MDJwCQh8" width="960" height="420" alt=""><p>資安業者Ivanti於5月上旬<a href="https://www.ithome.com.tw/news/168936">發布更新</a>，修補已遭利用的Endpoint Manager Mobile（EPMM）漏洞CVE-2025-4427、漏洞CVE-2025-4428，後續<a href="https://www.ithome.com.tw/news/169112">資安業者Wiz指出他們從16日看到多起資安事故</a>，駭客將此漏洞用於4種攻擊，現在有其他研究人員<a href="https://blog.eclecticiq.com/china-nexus-threat-actor-actively-exploiting-ivanti-endpoint-manager-mobile-cve-2025-4428-vulnerability">公布新的調查結果</a>，指出中國駭客UNC5221在此之前，已用於廣泛的攻擊行動。</p>
-<p>威脅情報業者EclecticIQ指出，UNC5221利用這些漏洞，攻擊可透過網際網路存取的EPMM系統，範圍橫跨歐洲、北美、亞太地區，鎖定的目標涵蓋醫療照護、電信、航空、政府機關、金融、國防產業，目的疑似對高價值目標從事網路間諜活動，並竊取與中國利益有關的機密資訊。而這些駭客的攻擊行動，最早可追溯至5月15日。</p>
-<p>一旦UNC5221成功取得受害組織的初始入侵管道，就可能利用Linux作業系統內建的wget、curl、fetch等公用程式，從AWS S3儲存桶下載惡意程式KrustyLoader，目的是能持續在EPMM活動。</p>
-<p>接著，駭客試圖接收第二階段酬載，此為經過AES-128-CFB演算法處理的Sliver後門程式，經解密後此後門將以Shell Code的型式於記憶體內運作。</p>
-<p>為了竊取EPMM存放的機敏資訊，駭客也會對於EPMM搭配的MySQL資料庫下手，存取名為mifs的資料庫內容，挖掘列管的使用者行動裝置資料，這些包含IMEI碼、手機號碼、地理位置、SIM卡資料、LDAP資訊，甚至是Office 365的Token。</p>
-<p>此外，UNC5221還會使用反向代理伺服器工具Fast Reverse Proxy（FRP）該進行偵察及橫向移動。</p>
-<p>值得留意的是，UNC5221鎖定Ivanti漏洞下手的情況並非首例，兩個月前駭客試圖利用同廠牌SSL VPN系統Ivanti Connect Secure（ICS）的<a href="https://www.ithome.com.tw/news/168319">資安漏洞CVE-2025-22457</a>，於受害組織部署惡意程式載入工具TrailBlaze、後門程式BrushFire。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/ivanti001-156.jpg?itok=MDJwCQh8" width="960" height="420" alt=""><p>資安業者Ivanti於5月上旬<a href="https://www.ithome.com.tw/news/168936">發布更新</a>，修補已遭利用的Endpoint Manager Mobile（EPMM）漏洞CVE-2025-4427、漏洞CVE-2025-4428，後續<a href="https://www.ithome.com.tw/news/169112">資安業者Wiz指出他們從16日看到多起資安事故</a>，駭客將此漏洞用於4種攻擊，現在有其他研究人員<a href="https://blog.eclecticiq.com/china-nexus-threat-actor-actively-exploiting-ivanti-endpoint-manager-mobile-cve-2025-4428-vulnerability">公布新的調查結果</a>，指出中國駭客UNC5221在此之前，已用於廣泛的攻擊行動。</p>
-<p>威脅情報業者EclecticIQ指出，UNC5221利用這些漏洞，攻擊可透過網際網路存取的EPMM系統，範圍橫跨歐洲、北美、亞太地區，鎖定的目標涵蓋醫療照護、電信、航空、政府機關、金融、國防產業，目的疑似對高價值目標從事網路間諜活動，並竊取與中國利益有關的機密資訊。而這些駭客的攻擊行動，最早可追溯至5月15日。</p>
-<p>一旦UNC5221成功取得受害組織的初始入侵管道，就可能利用Linux作業系統內建的wget、curl、fetch等公用程式，從AWS S3儲存桶下載惡意程式KrustyLoader，目的是能持續在EPMM活動。</p>
-<p>接著，駭客試圖接收第二階段酬載，此為經過AES-128-CFB演算法處理的Sliver後門程式，經解密後此後門將以Shell Code的型式於記憶體內運作。</p>
-<p>為了竊取EPMM存放的機敏資訊，駭客也會對於EPMM搭配的MySQL資料庫下手，存取名為mifs的資料庫內容，挖掘列管的使用者行動裝置資料，這些包含IMEI碼、手機號碼、地理位置、SIM卡資料、LDAP資訊，甚至是Office 365的Token。</p>
-<p>此外，UNC5221還會使用反向代理伺服器工具Fast Reverse Proxy（FRP）該進行偵察及橫向移動。</p>
-<p>值得留意的是，UNC5221鎖定Ivanti漏洞下手的情況並非首例，兩個月前駭客試圖利用同廠牌SSL VPN系統Ivanti Connect Secure（ICS）的<a href="https://www.ithome.com.tw/news/168319">資安漏洞CVE-2025-22457</a>，於受害組織部署惡意程式載入工具TrailBlaze、後門程式BrushFire。</p>]]></content:encoded>
-    
-    <pubDate>2025-05-23  12:05:24</pubDate>
-  </item><item>
-    <title><![CDATA[TypeScript Native預覽版開放，編譯效能飆上10倍速]]></title>
-    <link>https://ithome.com.tw/news/169122</link>
-    <itunes:title><![CDATA[TypeScript Native預覽版開放，編譯效能飆上10倍速]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/200_-_announcing_typescript_native_previews_-_typescript_-_devblogs.microsoft.com_.png?itok=864ulAzJ" width="960" height="420" alt=""><p>微軟TypeScript團隊宣布<a href="https://devblogs.microsoft.com/typescript/announcing-typescript-native-previews/">開放TypeScript Native預覽版</a>，這是官方主分支TypeScript編譯器首次以原生程式語言重寫，針對效能與大型專案開發需求進行架構層級調整。根據官方公開的實測資料，Native預覽版於多項主流開源專案的型別檢查與編譯速度，可達現有JavaScript版本的10倍以上，大幅縮短專案建置與開發周期。</p>
-<p>此計畫是因應雲端原生、人工智慧應用與現代前端工程規模化需求，也替長期受大型TypeScript專案效能瓶頸影響的開發團隊，提供具體解決之道。</p>
-<p>TypeScript在JavaScript生態系引入靜態型別檢查，強化程式碼安全性與可維護性。隨著專案規模擴大，現有Node.js版TypeScript編譯器於大型程式碼庫進行型別檢查、專案建置或語言服務時，常有啟動與執行延遲的狀況。</p>
-<p>為解決上述問題，TypeScript團隊從2024年開始推動，以Go語言重寫編譯器與工具鏈的原生計畫，內部開發代號Corsa，並以未來TypeScript 7納入主分支為目標。目前Native預覽版主要透過NPM釋出，對外提供@typescript/native-preview套件，開發者可直接於專案中安裝及體驗。</p>
-<p>TypeScript Native預覽版本已能支援多數常見TypeScript語法與專案結構，同時也涵蓋JSX、JavaScript with JSDoc等開發情境，不過，部分emit、build與語言服務功能則尚未完整。官方公開如VS Code、Playwright等大型程式碼庫效能資料，顯示原本需數十秒至一分鐘的型別檢查，在Native預覽版下大幅縮短至數秒內完成。</p>
-<p>除命令列工具外，TypeScript Native預覽版還針對VS Code推出預覽擴充套件，開發者可於VS Code中啟用原生語言服務。現階段語言服務屬早期版本，僅支援基本型別檢查與自動完成，其他自動匯入、參考查找、重新命名等進階功能則仍在開發中。</p>
-<p>開發團隊表示，Native預覽版目前每日發布Nightly Build，未來將逐步補齊語言服務功能，並朝向取代現有以TSServer為基礎的JavaScript語言服務，加速對標準語言伺服器協定（LSP）的支援，提升跨編輯器整合與開發流程的一致性。</p>
-<p>TypeScript Native目前仍為預覽階段，部分功能如--build模式、宣告檔案產生、舊版JavaScript目標編譯等尚未完善，官方建議開發團隊可於測試或非關鍵專案中先行嚐鮮。值得注意的是，Native版本提前加入TypeScript 6與7規畫的棄用與重大變更，例如模組解析模式與語法調整，開發者可以同步檢視專案設定，以利未來升級。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/200_-_announcing_typescript_native_previews_-_typescript_-_devblogs.microsoft.com_.png?itok=864ulAzJ" width="960" height="420" alt=""><p>微軟TypeScript團隊宣布<a href="https://devblogs.microsoft.com/typescript/announcing-typescript-native-previews/">開放TypeScript Native預覽版</a>，這是官方主分支TypeScript編譯器首次以原生程式語言重寫，針對效能與大型專案開發需求進行架構層級調整。根據官方公開的實測資料，Native預覽版於多項主流開源專案的型別檢查與編譯速度，可達現有JavaScript版本的10倍以上，大幅縮短專案建置與開發周期。</p>
-<p>此計畫是因應雲端原生、人工智慧應用與現代前端工程規模化需求，也替長期受大型TypeScript專案效能瓶頸影響的開發團隊，提供具體解決之道。</p>
-<p>TypeScript在JavaScript生態系引入靜態型別檢查，強化程式碼安全性與可維護性。隨著專案規模擴大，現有Node.js版TypeScript編譯器於大型程式碼庫進行型別檢查、專案建置或語言服務時，常有啟動與執行延遲的狀況。</p>
-<p>為解決上述問題，TypeScript團隊從2024年開始推動，以Go語言重寫編譯器與工具鏈的原生計畫，內部開發代號Corsa，並以未來TypeScript 7納入主分支為目標。目前Native預覽版主要透過NPM釋出，對外提供@typescript/native-preview套件，開發者可直接於專案中安裝及體驗。</p>
-<p>TypeScript Native預覽版本已能支援多數常見TypeScript語法與專案結構，同時也涵蓋JSX、JavaScript with JSDoc等開發情境，不過，部分emit、build與語言服務功能則尚未完整。官方公開如VS Code、Playwright等大型程式碼庫效能資料，顯示原本需數十秒至一分鐘的型別檢查，在Native預覽版下大幅縮短至數秒內完成。</p>
-<p>除命令列工具外，TypeScript Native預覽版還針對VS Code推出預覽擴充套件，開發者可於VS Code中啟用原生語言服務。現階段語言服務屬早期版本，僅支援基本型別檢查與自動完成，其他自動匯入、參考查找、重新命名等進階功能則仍在開發中。</p>
-<p>開發團隊表示，Native預覽版目前每日發布Nightly Build，未來將逐步補齊語言服務功能，並朝向取代現有以TSServer為基礎的JavaScript語言服務，加速對標準語言伺服器協定（LSP）的支援，提升跨編輯器整合與開發流程的一致性。</p>
-<p>TypeScript Native目前仍為預覽階段，部分功能如--build模式、宣告檔案產生、舊版JavaScript目標編譯等尚未完善，官方建議開發團隊可於測試或非關鍵專案中先行嚐鮮。值得注意的是，Native版本提前加入TypeScript 6與7規畫的棄用與重大變更，例如模組解析模式與語法調整，開發者可以同步檢視專案設定，以利未來升級。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/200_-_announcing_typescript_native_previews_-_typescript_-_devblogs.microsoft.com_.png?itok=864ulAzJ" width="960" height="420" alt=""><p>微軟TypeScript團隊宣布<a href="https://devblogs.microsoft.com/typescript/announcing-typescript-native-previews/">開放TypeScript Native預覽版</a>，這是官方主分支TypeScript編譯器首次以原生程式語言重寫，針對效能與大型專案開發需求進行架構層級調整。根據官方公開的實測資料，Native預覽版於多項主流開源專案的型別檢查與編譯速度，可達現有JavaScript版本的10倍以上，大幅縮短專案建置與開發周期。</p>
-<p>此計畫是因應雲端原生、人工智慧應用與現代前端工程規模化需求，也替長期受大型TypeScript專案效能瓶頸影響的開發團隊，提供具體解決之道。</p>
-<p>TypeScript在JavaScript生態系引入靜態型別檢查，強化程式碼安全性與可維護性。隨著專案規模擴大，現有Node.js版TypeScript編譯器於大型程式碼庫進行型別檢查、專案建置或語言服務時，常有啟動與執行延遲的狀況。</p>
-<p>為解決上述問題，TypeScript團隊從2024年開始推動，以Go語言重寫編譯器與工具鏈的原生計畫，內部開發代號Corsa，並以未來TypeScript 7納入主分支為目標。目前Native預覽版主要透過NPM釋出，對外提供@typescript/native-preview套件，開發者可直接於專案中安裝及體驗。</p>
-<p>TypeScript Native預覽版本已能支援多數常見TypeScript語法與專案結構，同時也涵蓋JSX、JavaScript with JSDoc等開發情境，不過，部分emit、build與語言服務功能則尚未完整。官方公開如VS Code、Playwright等大型程式碼庫效能資料，顯示原本需數十秒至一分鐘的型別檢查，在Native預覽版下大幅縮短至數秒內完成。</p>
-<p>除命令列工具外，TypeScript Native預覽版還針對VS Code推出預覽擴充套件，開發者可於VS Code中啟用原生語言服務。現階段語言服務屬早期版本，僅支援基本型別檢查與自動完成，其他自動匯入、參考查找、重新命名等進階功能則仍在開發中。</p>
-<p>開發團隊表示，Native預覽版目前每日發布Nightly Build，未來將逐步補齊語言服務功能，並朝向取代現有以TSServer為基礎的JavaScript語言服務，加速對標準語言伺服器協定（LSP）的支援，提升跨編輯器整合與開發流程的一致性。</p>
-<p>TypeScript Native目前仍為預覽階段，部分功能如--build模式、宣告檔案產生、舊版JavaScript目標編譯等尚未完善，官方建議開發團隊可於測試或非關鍵專案中先行嚐鮮。值得注意的是，Native版本提前加入TypeScript 6與7規畫的棄用與重大變更，例如模組解析模式與語法調整，開發者可以同步檢視專案設定，以利未來升級。</p>]]></content:encoded>
-    
-    <pubDate>2025-05-23  12:05:37</pubDate>
-  </item><item>
-    <title><![CDATA[Mistral公布240億參數程式設計代理人模型Devstral　可單機本地部署]]></title>
-    <link>https://ithome.com.tw/news/169127</link>
-    <itunes:title><![CDATA[Mistral公布240億參數程式設計代理人模型Devstral　可單機本地部署]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-devstral-coding_agent-mistral_ai-2-960.jpg?itok=pNjfBukI" width="960" height="420" alt=""><p><a href="https://mistral.ai/news/devstral" target="_blank">法國AI新創公司Mistral本周宣布</a>協助程式設計的代理人大語言模型（LLM）Devstral，可單機部署，且號稱軟工能力比GPT-4.1mini、Deepseek-V3還強。</p>
-<p>Devstral是Mistral和開源 AI程式設計師專案OpenHands（原名OpenDevin）開發商All Hands AI合作開發。在OpenHands等程式撰寫平臺上，Devstral可和本地codebase互動，協助加速程式開發。而且由於Devstral僅24億參數，使其適合執行在單一GPU 如Nvidia GeForce RTX 4090或32MB RAM的Mac電腦上，很適合在本地機器上的部署。</p>
-<p>Devstral是從Mistral-Small 3.1微調成24億參數的模型，具備最高128k字詞的長context window。它具有工具使用能力，能用工具來探索codebase、編輯多個檔案，支援軟工（SWE）代理人。由於它在以Mistral-Small 3.1微調前，視覺編碼器已經移除，因此支援編輯代理人時，Devstral只支援文字輸出輸入。</p>
-<p><a href="https://huggingface.co/mistralai/Devstral-Small-2505" target="_blank">根據Mistral提供的資料</a>，在SWE-Bench Verified的標竿測試中，Devstral跑分（46.8%）優於其他模型，包括Claude 3.5 Haiku、SWE-smith-LM 32B，並大幅超越GPT-4.1-mini（23.6%）。而在以同樣的測試支架（scaffold，即OpenHands）上，Devstral在SWE-Bench Verified跑分，還超過更大模型如Deepseek-V3-0324 和 Qwen3 232B-A22B。</p>
-<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0523-Devstral-coding%20agent-Mistral%20AI.png" style="width: 600px;"></p>
-<p><span style="color:#696969;"><span style="font-size:14px;">圖片來源／Mistral</span></span></p>
-<p>Devstral目前為實驗預覽版，將以Apache 2.0授權開源，意謂著可作商業或非商業用途。<a href="https://docs.all-hands.dev/modules/usage/llms/local-llms" target="_blank">文件公開</a>供開發人員試用、開發或客製化。</p>
-<p>Mistral也透過其API提供devstral-small-2025給開發人員，費用等同Mistral Small 3.1，為輸入每100萬字詞0.1美元，輸出費用為每100萬字詞0.3美元。</p>
-<p>欲自行部署者，即日起可以在<a href="https://huggingface.co/mistralai/Devstral-Small-2505" target="_blank">Hugging Face</a>、<a href="https://ollama.com/library/devstral" target="_blank">Ollama</a>、<a href="https://www.kaggle.com/models/mistral-ai/devstral-small-2505" target="_blank">Kaggle</a>、<a href="https://docs.unsloth.ai/basics/devstral" target="_blank">Unsloth</a>、<a href="https://lmstudio.ai/model/devstral-small-2505-MLX" target="_blank">LM Studio</a>等網站下載。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-devstral-coding_agent-mistral_ai-2-960.jpg?itok=pNjfBukI" width="960" height="420" alt=""><p><a href="https://mistral.ai/news/devstral" target="_blank">法國AI新創公司Mistral本周宣布</a>協助程式設計的代理人大語言模型（LLM）Devstral，可單機部署，且號稱軟工能力比GPT-4.1mini、Deepseek-V3還強。</p>
-<p>Devstral是Mistral和開源 AI程式設計師專案OpenHands（原名OpenDevin）開發商All Hands AI合作開發。在OpenHands等程式撰寫平臺上，Devstral可和本地codebase互動，協助加速程式開發。而且由於Devstral僅24億參數，使其適合執行在單一GPU 如Nvidia GeForce RTX 4090或32MB RAM的Mac電腦上，很適合在本地機器上的部署。</p>
-<p>Devstral是從Mistral-Small 3.1微調成24億參數的模型，具備最高128k字詞的長context window。它具有工具使用能力，能用工具來探索codebase、編輯多個檔案，支援軟工（SWE）代理人。由於它在以Mistral-Small 3.1微調前，視覺編碼器已經移除，因此支援編輯代理人時，Devstral只支援文字輸出輸入。</p>
-<p><a href="https://huggingface.co/mistralai/Devstral-Small-2505" target="_blank">根據Mistral提供的資料</a>，在SWE-Bench Verified的標竿測試中，Devstral跑分（46.8%）優於其他模型，包括Claude 3.5 Haiku、SWE-smith-LM 32B，並大幅超越GPT-4.1-mini（23.6%）。而在以同樣的測試支架（scaffold，即OpenHands）上，Devstral在SWE-Bench Verified跑分，還超過更大模型如Deepseek-V3-0324 和 Qwen3 232B-A22B。</p>
-<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0523-Devstral-coding%20agent-Mistral%20AI.png" style="width: 600px;"></p>
-<p><span style="color:#696969;"><span style="font-size:14px;">圖片來源／Mistral</span></span></p>
-<p>Devstral目前為實驗預覽版，將以Apache 2.0授權開源，意謂著可作商業或非商業用途。<a href="https://docs.all-hands.dev/modules/usage/llms/local-llms" target="_blank">文件公開</a>供開發人員試用、開發或客製化。</p>
-<p>Mistral也透過其API提供devstral-small-2025給開發人員，費用等同Mistral Small 3.1，為輸入每100萬字詞0.1美元，輸出費用為每100萬字詞0.3美元。</p>
-<p>欲自行部署者，即日起可以在<a href="https://huggingface.co/mistralai/Devstral-Small-2505" target="_blank">Hugging Face</a>、<a href="https://ollama.com/library/devstral" target="_blank">Ollama</a>、<a href="https://www.kaggle.com/models/mistral-ai/devstral-small-2505" target="_blank">Kaggle</a>、<a href="https://docs.unsloth.ai/basics/devstral" target="_blank">Unsloth</a>、<a href="https://lmstudio.ai/model/devstral-small-2505-MLX" target="_blank">LM Studio</a>等網站下載。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-devstral-coding_agent-mistral_ai-2-960.jpg?itok=pNjfBukI" width="960" height="420" alt=""><p><a href="https://mistral.ai/news/devstral" target="_blank">法國AI新創公司Mistral本周宣布</a>協助程式設計的代理人大語言模型（LLM）Devstral，可單機部署，且號稱軟工能力比GPT-4.1mini、Deepseek-V3還強。</p>
-<p>Devstral是Mistral和開源 AI程式設計師專案OpenHands（原名OpenDevin）開發商All Hands AI合作開發。在OpenHands等程式撰寫平臺上，Devstral可和本地codebase互動，協助加速程式開發。而且由於Devstral僅24億參數，使其適合執行在單一GPU 如Nvidia GeForce RTX 4090或32MB RAM的Mac電腦上，很適合在本地機器上的部署。</p>
-<p>Devstral是從Mistral-Small 3.1微調成24億參數的模型，具備最高128k字詞的長context window。它具有工具使用能力，能用工具來探索codebase、編輯多個檔案，支援軟工（SWE）代理人。由於它在以Mistral-Small 3.1微調前，視覺編碼器已經移除，因此支援編輯代理人時，Devstral只支援文字輸出輸入。</p>
-<p><a href="https://huggingface.co/mistralai/Devstral-Small-2505" target="_blank">根據Mistral提供的資料</a>，在SWE-Bench Verified的標竿測試中，Devstral跑分（46.8%）優於其他模型，包括Claude 3.5 Haiku、SWE-smith-LM 32B，並大幅超越GPT-4.1-mini（23.6%）。而在以同樣的測試支架（scaffold，即OpenHands）上，Devstral在SWE-Bench Verified跑分，還超過更大模型如Deepseek-V3-0324 和 Qwen3 232B-A22B。</p>
-<p><img alt="" src="https://s4.itho.me/sites/default/files/images/0523-Devstral-coding%20agent-Mistral%20AI.png" style="width: 600px;"></p>
-<p><span style="color:#696969;"><span style="font-size:14px;">圖片來源／Mistral</span></span></p>
-<p>Devstral目前為實驗預覽版，將以Apache 2.0授權開源，意謂著可作商業或非商業用途。<a href="https://docs.all-hands.dev/modules/usage/llms/local-llms" target="_blank">文件公開</a>供開發人員試用、開發或客製化。</p>
-<p>Mistral也透過其API提供devstral-small-2025給開發人員，費用等同Mistral Small 3.1，為輸入每100萬字詞0.1美元，輸出費用為每100萬字詞0.3美元。</p>
-<p>欲自行部署者，即日起可以在<a href="https://huggingface.co/mistralai/Devstral-Small-2505" target="_blank">Hugging Face</a>、<a href="https://ollama.com/library/devstral" target="_blank">Ollama</a>、<a href="https://www.kaggle.com/models/mistral-ai/devstral-small-2505" target="_blank">Kaggle</a>、<a href="https://docs.unsloth.ai/basics/devstral" target="_blank">Unsloth</a>、<a href="https://lmstudio.ai/model/devstral-small-2505-MLX" target="_blank">LM Studio</a>等網站下載。</p>]]></content:encoded>
-    
-    <pubDate>2025-05-23  11:05:07</pubDate>
-  </item><item>
-    <title><![CDATA[Windows Server 2025的dMSA服務帳號提權惹議，起因是遷移流程可被濫用]]></title>
-    <link>https://ithome.com.tw/news/169126</link>
-    <itunes:title><![CDATA[Windows Server 2025的dMSA服務帳號提權惹議，起因是遷移流程可被濫用]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/badsuccessor-image5-156.jpg?itok=ROtfpPko" width="960" height="420" alt=""><p>為了強化AD服務帳號的安全，微軟在最新推出的Windows Server 2025當中，導入新型態的「<a href="https://learn.microsoft.com/zh-tw/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/delegated-managed-service-accounts-overview">委派受管理的服務帳號（Delegated Managed Service Account，dMSA）</a>」，目的是讓IT人員能將原有的服務帳號，轉換成採用受到管控、隨機化金鑰的電腦帳號，來減輕遭到Kerberoasting攻擊的風險。然而這種新的機制存在弱點，使得攻擊者有機可乘，能藉此滲透AD的部分使用者帳號。</p>
-<p>資安業者Akamai揭露Windows Server 2025的<a href="https://www.akamai.com/blog/security-research/abusing-dmsa-for-privilege-escalation-in-active-directory">權限提升漏洞BadSuccessor</a>，這項弱點存在於dMSA，攻擊者有機會入侵AD的任何使用者帳號，相當危險。值得留意的是，Akamai於4月1日向微軟通報此事，微軟雖然對於他們提供的資料及概念驗證進行驗證後，承認有這項弱點，但由於微軟評估僅有中度風險，不符合立即處理的條件，目前尚未進行修補。對此，Akamai認為IT人員必須採取其他積極的措施，以減少遭受相關攻擊的資安風險。</p>
-<p>什麼是dMSA？簡單來說，它是微軟在Windows Server 2025新增的AD帳號類型，是群組受管理的服務帳號（Group Managed Service Account，gMSA）的延伸，其中最重要的功能，就是能將非受到管理的服務帳號無縫遷移來提升安全性。因此，一般來說，IT人員會建立dMSA帳號來著換現有的服務帳號，為了能無縫接軌，dMSA可透過遷移流程來繼承舊帳號的所有權限。</p>
-<p>不過，Akamai在調查dMSA內部的運作機制後，發現這種帳號能讓攻擊者挾持網域的任何原則，而攻擊者觸發弱點的事先準備工作，就是取得網域任意組織單位（Organizational Unit，OU）的良性權限，使得相關攻擊能逃過各式的資安偵測機制。</p>
-<p>值得留意的是，研究人員強調，這種弱點存在於預設組態的Windows Server 2025，而且相當容易利用。更可怕的是，企業的網域當中，只要有其中1臺網域伺服器是採用這款作業系統架設，就會曝險，即使企業並未使用dMSA也無法倖免。</p>
-<p>在調查的過程裡，研究人員發現了稱為模擬遷移（Simulated Migration）的手法，攻擊者無須取得舊帳號的任何權限，唯一的條件就是事先得到dMSA帳號的寫入權限。一旦研究人員標記dMSA帳號由指定使用者經手處理，<a href="https://learn.microsoft.com/zh-tw/windows/win32/secauthn/key-distribution-center">金鑰配送中心（Key Distribution Center，KDC）</a>就會自動認定是正常的遷移工作，授予dMSA原始帳號擁有的每一項權限。研究人員強調，利用BadSuccessor的攻擊適用於網域管理員在內的任何帳號，允許控制dMSA物件的使用者控制整個網域，攻擊過程沒有實際的遷移，也沒有任何驗證，而且駭客還不太可能失手。</p>
-<p>究竟這樣的弱點危害有多大？研究人員藉由低權限的使用者展示概念驗證，藉由建立新的dMSA帳號來利用漏洞，最終成功控制了整個網域。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/badsuccessor-image5-156.jpg?itok=ROtfpPko" width="960" height="420" alt=""><p>為了強化AD服務帳號的安全，微軟在最新推出的Windows Server 2025當中，導入新型態的「<a href="https://learn.microsoft.com/zh-tw/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/delegated-managed-service-accounts-overview">委派受管理的服務帳號（Delegated Managed Service Account，dMSA）</a>」，目的是讓IT人員能將原有的服務帳號，轉換成採用受到管控、隨機化金鑰的電腦帳號，來減輕遭到Kerberoasting攻擊的風險。然而這種新的機制存在弱點，使得攻擊者有機可乘，能藉此滲透AD的部分使用者帳號。</p>
-<p>資安業者Akamai揭露Windows Server 2025的<a href="https://www.akamai.com/blog/security-research/abusing-dmsa-for-privilege-escalation-in-active-directory">權限提升漏洞BadSuccessor</a>，這項弱點存在於dMSA，攻擊者有機會入侵AD的任何使用者帳號，相當危險。值得留意的是，Akamai於4月1日向微軟通報此事，微軟雖然對於他們提供的資料及概念驗證進行驗證後，承認有這項弱點，但由於微軟評估僅有中度風險，不符合立即處理的條件，目前尚未進行修補。對此，Akamai認為IT人員必須採取其他積極的措施，以減少遭受相關攻擊的資安風險。</p>
-<p>什麼是dMSA？簡單來說，它是微軟在Windows Server 2025新增的AD帳號類型，是群組受管理的服務帳號（Group Managed Service Account，gMSA）的延伸，其中最重要的功能，就是能將非受到管理的服務帳號無縫遷移來提升安全性。因此，一般來說，IT人員會建立dMSA帳號來著換現有的服務帳號，為了能無縫接軌，dMSA可透過遷移流程來繼承舊帳號的所有權限。</p>
-<p>不過，Akamai在調查dMSA內部的運作機制後，發現這種帳號能讓攻擊者挾持網域的任何原則，而攻擊者觸發弱點的事先準備工作，就是取得網域任意組織單位（Organizational Unit，OU）的良性權限，使得相關攻擊能逃過各式的資安偵測機制。</p>
-<p>值得留意的是，研究人員強調，這種弱點存在於預設組態的Windows Server 2025，而且相當容易利用。更可怕的是，企業的網域當中，只要有其中1臺網域伺服器是採用這款作業系統架設，就會曝險，即使企業並未使用dMSA也無法倖免。</p>
-<p>在調查的過程裡，研究人員發現了稱為模擬遷移（Simulated Migration）的手法，攻擊者無須取得舊帳號的任何權限，唯一的條件就是事先得到dMSA帳號的寫入權限。一旦研究人員標記dMSA帳號由指定使用者經手處理，<a href="https://learn.microsoft.com/zh-tw/windows/win32/secauthn/key-distribution-center">金鑰配送中心（Key Distribution Center，KDC）</a>就會自動認定是正常的遷移工作，授予dMSA原始帳號擁有的每一項權限。研究人員強調，利用BadSuccessor的攻擊適用於網域管理員在內的任何帳號，允許控制dMSA物件的使用者控制整個網域，攻擊過程沒有實際的遷移，也沒有任何驗證，而且駭客還不太可能失手。</p>
-<p>究竟這樣的弱點危害有多大？研究人員藉由低權限的使用者展示概念驗證，藉由建立新的dMSA帳號來利用漏洞，最終成功控制了整個網域。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/badsuccessor-image5-156.jpg?itok=ROtfpPko" width="960" height="420" alt=""><p>為了強化AD服務帳號的安全，微軟在最新推出的Windows Server 2025當中，導入新型態的「<a href="https://learn.microsoft.com/zh-tw/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/delegated-managed-service-accounts-overview">委派受管理的服務帳號（Delegated Managed Service Account，dMSA）</a>」，目的是讓IT人員能將原有的服務帳號，轉換成採用受到管控、隨機化金鑰的電腦帳號，來減輕遭到Kerberoasting攻擊的風險。然而這種新的機制存在弱點，使得攻擊者有機可乘，能藉此滲透AD的部分使用者帳號。</p>
-<p>資安業者Akamai揭露Windows Server 2025的<a href="https://www.akamai.com/blog/security-research/abusing-dmsa-for-privilege-escalation-in-active-directory">權限提升漏洞BadSuccessor</a>，這項弱點存在於dMSA，攻擊者有機會入侵AD的任何使用者帳號，相當危險。值得留意的是，Akamai於4月1日向微軟通報此事，微軟雖然對於他們提供的資料及概念驗證進行驗證後，承認有這項弱點，但由於微軟評估僅有中度風險，不符合立即處理的條件，目前尚未進行修補。對此，Akamai認為IT人員必須採取其他積極的措施，以減少遭受相關攻擊的資安風險。</p>
-<p>什麼是dMSA？簡單來說，它是微軟在Windows Server 2025新增的AD帳號類型，是群組受管理的服務帳號（Group Managed Service Account，gMSA）的延伸，其中最重要的功能，就是能將非受到管理的服務帳號無縫遷移來提升安全性。因此，一般來說，IT人員會建立dMSA帳號來著換現有的服務帳號，為了能無縫接軌，dMSA可透過遷移流程來繼承舊帳號的所有權限。</p>
-<p>不過，Akamai在調查dMSA內部的運作機制後，發現這種帳號能讓攻擊者挾持網域的任何原則，而攻擊者觸發弱點的事先準備工作，就是取得網域任意組織單位（Organizational Unit，OU）的良性權限，使得相關攻擊能逃過各式的資安偵測機制。</p>
-<p>值得留意的是，研究人員強調，這種弱點存在於預設組態的Windows Server 2025，而且相當容易利用。更可怕的是，企業的網域當中，只要有其中1臺網域伺服器是採用這款作業系統架設，就會曝險，即使企業並未使用dMSA也無法倖免。</p>
-<p>在調查的過程裡，研究人員發現了稱為模擬遷移（Simulated Migration）的手法，攻擊者無須取得舊帳號的任何權限，唯一的條件就是事先得到dMSA帳號的寫入權限。一旦研究人員標記dMSA帳號由指定使用者經手處理，<a href="https://learn.microsoft.com/zh-tw/windows/win32/secauthn/key-distribution-center">金鑰配送中心（Key Distribution Center，KDC）</a>就會自動認定是正常的遷移工作，授予dMSA原始帳號擁有的每一項權限。研究人員強調，利用BadSuccessor的攻擊適用於網域管理員在內的任何帳號，允許控制dMSA物件的使用者控制整個網域，攻擊過程沒有實際的遷移，也沒有任何驗證，而且駭客還不太可能失手。</p>
-<p>究竟這樣的弱點危害有多大？研究人員藉由低權限的使用者展示概念驗證，藉由建立新的dMSA帳號來利用漏洞，最終成功控制了整個網域。</p>]]></content:encoded>
-    
-    <pubDate>2025-05-23  11:05:31</pubDate>
-  </item><item>
-    <title><![CDATA[OpenAI發表Stargate UAE，於阿布達比建置AI資料中心]]></title>
-    <link>https://ithome.com.tw/news/169121</link>
-    <itunes:title><![CDATA[OpenAI發表Stargate UAE，於阿布達比建置AI資料中心]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-stargate_uae-united_arab_emirates-a_la_bo_lian_he_da_gong_guo_-image_by_g42-960.jpg?itok=tp6aUbju" width="960" height="420" alt=""><p><a href="https://openai.com/index/introducing-stargate-uae/" target="_blank">OpenAI周四（5/22）發布了Stargate UAE</a>，將與阿拉伯聯合大公國（United Arab Emirates，UAE）、G42、Nvidia及甲骨文等業者合作，於阿布達比建置AI資料中心，這是OpenAI Stargate平臺首次的國際部署，也是<a href="https://www.ithome.com.tw/news/168831" target="_blank">OpenAI for Countries計畫</a>第一個合作的國家。</p>
-<p>Stargate UAE將部署在阿布達比，由UAE及美國共同興建的5GW級AI園區（UAE–U.S. AI Campus）中。Stargate UAE是個1GW的運算叢集，將由G42負責建置，由OpenAI及甲骨文負責經營，其它合作夥伴還包括提供零信任安全性與AI就緒連接的思科，軟銀集團，以及準備供應Grace Blackwell GB300系統的Nvidia。首個200MW的AI叢集預計於2026年上線。</p>
-<p>UAE–U.S. AI Campus占地10平方英里（約26平方公里），是美國境外最大的AI基礎設施群，它將提供5GW的AI資料中心容量及區域運算資源；由核能、太陽能與天然氣提供動力，儘量減少碳排放；內含一個推動創新、培育人才及可持續運算基礎設施的科學園區。</p>
-<p>至於OpenAI則說，Stargate UAE將用來支持UAE在政府、能源、醫療保健、教育及交通等關鍵領域利用OpenAI的工具，以加速創新並推動經濟成長，並將讓UAE成為全球第一個於全國範圍內啟用ChatGPT的國家，讓國內人民都能使用OpenAI的技術。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-stargate_uae-united_arab_emirates-a_la_bo_lian_he_da_gong_guo_-image_by_g42-960.jpg?itok=tp6aUbju" width="960" height="420" alt=""><p><a href="https://openai.com/index/introducing-stargate-uae/" target="_blank">OpenAI周四（5/22）發布了Stargate UAE</a>，將與阿拉伯聯合大公國（United Arab Emirates，UAE）、G42、Nvidia及甲骨文等業者合作，於阿布達比建置AI資料中心，這是OpenAI Stargate平臺首次的國際部署，也是<a href="https://www.ithome.com.tw/news/168831" target="_blank">OpenAI for Countries計畫</a>第一個合作的國家。</p>
-<p>Stargate UAE將部署在阿布達比，由UAE及美國共同興建的5GW級AI園區（UAE–U.S. AI Campus）中。Stargate UAE是個1GW的運算叢集，將由G42負責建置，由OpenAI及甲骨文負責經營，其它合作夥伴還包括提供零信任安全性與AI就緒連接的思科，軟銀集團，以及準備供應Grace Blackwell GB300系統的Nvidia。首個200MW的AI叢集預計於2026年上線。</p>
-<p>UAE–U.S. AI Campus占地10平方英里（約26平方公里），是美國境外最大的AI基礎設施群，它將提供5GW的AI資料中心容量及區域運算資源；由核能、太陽能與天然氣提供動力，儘量減少碳排放；內含一個推動創新、培育人才及可持續運算基礎設施的科學園區。</p>
-<p>至於OpenAI則說，Stargate UAE將用來支持UAE在政府、能源、醫療保健、教育及交通等關鍵領域利用OpenAI的工具，以加速創新並推動經濟成長，並將讓UAE成為全球第一個於全國範圍內啟用ChatGPT的國家，讓國內人民都能使用OpenAI的技術。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/0523-stargate_uae-united_arab_emirates-a_la_bo_lian_he_da_gong_guo_-image_by_g42-960.jpg?itok=tp6aUbju" width="960" height="420" alt=""><p><a href="https://openai.com/index/introducing-stargate-uae/" target="_blank">OpenAI周四（5/22）發布了Stargate UAE</a>，將與阿拉伯聯合大公國（United Arab Emirates，UAE）、G42、Nvidia及甲骨文等業者合作，於阿布達比建置AI資料中心，這是OpenAI Stargate平臺首次的國際部署，也是<a href="https://www.ithome.com.tw/news/168831" target="_blank">OpenAI for Countries計畫</a>第一個合作的國家。</p>
-<p>Stargate UAE將部署在阿布達比，由UAE及美國共同興建的5GW級AI園區（UAE–U.S. AI Campus）中。Stargate UAE是個1GW的運算叢集，將由G42負責建置，由OpenAI及甲骨文負責經營，其它合作夥伴還包括提供零信任安全性與AI就緒連接的思科，軟銀集團，以及準備供應Grace Blackwell GB300系統的Nvidia。首個200MW的AI叢集預計於2026年上線。</p>
-<p>UAE–U.S. AI Campus占地10平方英里（約26平方公里），是美國境外最大的AI基礎設施群，它將提供5GW的AI資料中心容量及區域運算資源；由核能、太陽能與天然氣提供動力，儘量減少碳排放；內含一個推動創新、培育人才及可持續運算基礎設施的科學園區。</p>
-<p>至於OpenAI則說，Stargate UAE將用來支持UAE在政府、能源、醫療保健、教育及交通等關鍵領域利用OpenAI的工具，以加速創新並推動經濟成長，並將讓UAE成為全球第一個於全國範圍內啟用ChatGPT的國家，讓國內人民都能使用OpenAI的技術。</p>]]></content:encoded>
-    
-    <pubDate>2025-05-23  10:05:44</pubDate>
-  </item><item>
-    <title><![CDATA[處處靠AI提升人員效率，不只改造工作流程，更強化商業模式]]></title>
-    <link>https://ithome.com.tw/news/169106</link>
-    <itunes:title><![CDATA[處處靠AI提升人員效率，不只改造工作流程，更強化商業模式]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1235-feng_mian_-aiying_yong_-tu_1-chen_jian_xin_wen_-960-tu_pian_lai_yuan_-tvbs.jpg?itok=56bKv-to" width="960" height="420" alt=""><p>「導入AI時，重點還是人。」TVBS AI未來科技部副總監吳楨文強調，TVBS不是用AI全自動化取代人類，而是作為人機協作過程中的副駕駛，讓個人的工作效率提升3倍、5倍，甚至10倍。</p>
-<p>「所以我們導入AI，第一個想到的不是可以裁員，是大家如何將省下來的時間，用來更進一步發揮自己的專業。」吳楨文認為，TVBS AI用得越多，不是省得越多，而是個人和企業的競爭力，能更加提升。</p>
-<p>如今，TVBS各技術與非技術部門紛紛擁抱AI，使他們不僅用AI來加速軟體開發，還能用更快的速度，產製更多電視臺及網路媒體的內容。不只改造內部作業流程，他們還利用大數據與AI強化自家核心商業模式，包括強化數位通路經營、提升廣告與行銷精準度，以及發展更多廣告投放模式。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用AI輔助晨間新聞資料蒐集與撰寫，不再需要夜間值班</strong></span></span></p>
-<p>早上6點，電視臺就得開始播報晨間新聞。許多大型電視臺及報社，甚至要有夜間人員輪班，追蹤人們睡覺時發生什麼新聞。傳統做法，由人工花費大把時間讀報、瀏覽主流媒體及通訊社網站，再整理素材、蒐集補充資料、寫稿。</p>
-<p>然而，去年5月開始，TVBS不只半夜不需要有人值班，更只要在早上4點，靠1名早班人員，即可完成國內外新聞資料蒐集、整理、挑選、撰稿，讓主播可以準時於6點報新聞。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-600-%E5%9C%961-%E6%99%A8%E9%96%93%E6%96%B0%E8%81%9E-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>利用Elasticsearch和生成式AI等機制，TVBS可以自動從遠超出人工閱讀負荷的資料來源摘要出重點，利用Kibana儀表板呈現，提供早班人員快速閱覽和撰寫新聞。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p>這個轉變，背後功臣是TVBS綜合開源技術及同集團公司旗下AI應用，自行打造而成的新聞資蒐機制。首先，他們用RSS訂閱機制來集中新聞資訊，再用由AI挑選出可能具有新聞價值的內容，用爬蟲工具蒐集文章全文，接著，利用生成式AI分析、摘要文章內容，儲存到儲存至Elasticsearch向量資料庫。記者就能透過Kibana介面，去搜尋、瀏覽這些新聞資料。</p>
-<p>有了由AI挑選、摘要過的內容，早班人員便能快速決定晨間新聞題目，並根據摘要來輕易撰寫新聞稿。原本，人類只能看國內主要媒體的重要新聞中，約1、200則新聞標題。利用AI，他們擴大資訊蒐集數量，可達到原本10倍以上，超過2000則，更能加入外媒資訊來源。</p>
-<p>不止閱讀量提升，這套機制更省下原先準備晨間新聞5至6成的人力與時間，得以多出餘力，能將重要資訊提早發布至網路新聞平臺。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%964-AI%E5%85%A7%E5%AE%B9%E7%94%A2%E8%A3%BD%E5%8A%A9%E6%89%8B-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>TVBS與同集團的AI技術廠商合作打造生成式AI工具平臺，類似於媒體業用ChatGPT，來協助專題素材整理、SEO文章撰寫、中英臺語的語音轉字幕等，一系列圖文處理作業。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>全面用AI自動校對資訊圖卡，更用GenAI搞定4成一般圖卡製作</strong></span></span></p>
-<p>過往，要製作電視新聞的資訊圖卡，需要由編輯發送需求給專門製作部門，由具有美術設計專業的人員製作完後，還要經歷校對錯字、檢查使用照片、查證內容等流程。</p>
-<p>就算只是簡單套用模板的圖卡，仍須遵守標準跨部門協作流程，包括圖卡申請、上系統填詳細資訊、等待派單、完成初版後審核、審核後的完工輸出，整體費時可能超過1小時。當資訊圖卡需求較密集時，形成節目製作的瓶頸。</p>
-<p>現在，TVBS使用生成式AI工具，來製作較簡易的一般資訊圖卡。首先，利用AI整理新聞內容，產出適合放在圖卡上的小標與重點摘要。接著，AI會再結合美術部門設計的圖卡樣本，來生產出圖卡。最後，利用AI視覺功能，來檢查圖卡錯字、是否圖文不符等情況。</p>
-<p><span style="text-align: center;">整個圖卡製作過程不需技術專業，也不再需要跨部門來回溝通，由編輯一人即可完成。美術設計人員不需負責製作大量一般圖卡，即能更專注圖卡樣板製作，以及複雜或具情境性的圖卡。</span></p>
-<p>目前，由編輯自行用AI產製的圖卡，占總圖卡數量4成。不只如此，全部的圖卡製作流程現在都導入AI，於美編收件和最後交稿時自動校對。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用生成式AI幫程式碼評分，協助資深工程師審查程式碼</strong></span></span></p>
-<p>資深工程師一個重要日常工作是程式碼審查。不過，目前TVBS有接近50名工程師，資深工程師占比不大，每天必須要看數十個，甚至上百個Pull Request。面對大量程式碼，不只費時費神，且速度與品質難以兼顧。</p>
-<p>近期，TVBS IT部門嘗試利用RPA工具N8N，串聯不同LLM，來替資深工程師做第一輪程式碼審查。當一段程式碼有變動，系統會自動擷取變更內容，送交AI分析。</p>
-<p>AI會針對每段變更給出0至100的分數，若低於60分，即表示該段程式碼有明顯問題，會直接拒絕。若高於60分，則會附上可接受的理由與改善建議。當AI判斷程式碼有改善空間，還會提供具體的修改建議與範例程式碼。</p>
-<p>當AI完成第一輪程式碼審查，資深工程師只需查看AI提供的摘要與建議，再針對其中的關鍵部分進行複查，即可大幅節省閱讀與分析程式碼的時間，也提升整體審查品質。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用生成式AI主動推薦相關內容，透過互動式體驗增加讀者黏著度</strong></span></span></p>
-<p>2年前，TVBS就已經在自家健康類內容網站「健康2.0」推出AI聊天機器人，回答醫療、營養、運動及心理健康等問題，並推薦適合文章及影片。近期，他們更進一步強化用GenAI推薦的做法。</p>
-<p>之前，需要讀者主動對聊天機器人提出問題，AI才能開始與讀者互動、推薦內容。現在，生成式AI根據文章內容，在文章底下生成相關Q&amp;A，嘗試引起讀者興趣。當讀者點擊問題，就會跳轉到AI聊天機器人介面，並由機器人回答該問題、推薦相關影音和文章。</p>
-<p>TVBS還會蒐集讀者點擊問題的行為，以及讀者和機器人互動的內容，進一步了解讀者對文章內容的偏好，作為之後產製內容、設計產品以及投放廣告的依據。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>自動替文章貼標，支援讀者喜好分析及廣告更精準投放</strong></span></span></p>
-<p>TVBS數位通路流量常居全臺一、二名，每月不重複使用者約1,600萬人。TVBS希望，在這些讀者進入自家網站後留住他們注意力，並更加了解他們喜好，以增加廣告曝光度及精準度，進而提升重要廣告收入。</p>
-<p>TVBS利用潛在狄利克里分配（Latent Dirichlet allocation，LDA）模型，自動替自家網路文章貼標。這是一種NLP模型，利用統計方法在一系列文章中發現抽象主題。使用統計模型的好處是，不需要利用具備領域專業知識的專家先標註機器學習用資料，就可以根據文章內容提取出主題的關鍵字，以及關鍵字與文章的關聯性強度。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%963-LDA-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>運用LDA統計模型，TVBS可以替文章自動貼上標籤，並分析文章與特定主題關鍵字的關聯性，以支援內容搜尋、文章推薦等功能。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p>除了LDA模型自動推薦文章標籤，真人還可以根據自己專業理解、當下熱門話題、行銷需求等因素，來調整實際關鍵字。根據這些關鍵字標籤，TVBS可以更好打造搜尋和推薦功能，還可以根據讀者閱讀行為，分析他們對不同主題的興趣程度。</p>
-<p>TVBS會實驗，每個內容媒體，適合多少關鍵字分類數。當分類數過少，會降低推薦精準度，反之則會單一分類收錄的文章太少。目前做法下，健康內容媒體共有30種分類，時尚內容媒體則是25種。健康內容等網站，文章性質較長尾，更適合依據興趣主題推薦。這也是為何，TVBS尚未將此做法套用於新聞網站，因為讀者閱讀新聞的方式，較適合傳統的最新時事和熱門議題推薦。</p>
-<p><strong style="color: rgb(178, 34, 34); font-size: 28px;">用生成式AI打造虛擬藝人和主持人，提供個人化互動體驗</strong></p>
-<p>TVBS與外部廠商合作，利用生成式AI打造虛擬藝人和主持人，在Web App上提供個人化、互動式的節目演出或主持。他們利用真實藝人相關的資料來訓練AI，嘗試重現藝人言行、擅長領域知識，甚至口頭禪。</p>
-<p>有些虛擬藝人，更經過藝人本人的聲音語料訓練，佐以雲端技術計算技術，與使用者互動時，即時產出語音內容。甚至，會在互動過程中記憶使用者聊天內容、興趣偏好及個性，給予個人化回應。</p>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%965-AI%E6%98%8E%E6%98%9F%E8%99%9B%E6%93%AC%E4%BA%BA-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color:#3366ff;"><strong>TVBS與外部AI廠商合作打造生成式AI藝人和主持人，可以在Web App中根據每一位使用者的輸入內容，模仿真實藝人語氣和知識來提供個人化的互動式節目。</strong></span><span style="font-size:14px;"><span style="color:#696969;">（圖片來源／TVBS）</span></span></p>
-<p><a href="https://www.ithome.com.tw/article/169110" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1235-feng_mian_p1-you_hua_-open-960x420_kao_bei_0.jpg?itok=o6uFlg2T" style="width: 550px;"></a></p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1235-feng_mian_-aiying_yong_-tu_1-chen_jian_xin_wen_-960-tu_pian_lai_yuan_-tvbs.jpg?itok=56bKv-to" width="960" height="420" alt=""><p>「導入AI時，重點還是人。」TVBS AI未來科技部副總監吳楨文強調，TVBS不是用AI全自動化取代人類，而是作為人機協作過程中的副駕駛，讓個人的工作效率提升3倍、5倍，甚至10倍。</p>
-<p>「所以我們導入AI，第一個想到的不是可以裁員，是大家如何將省下來的時間，用來更進一步發揮自己的專業。」吳楨文認為，TVBS AI用得越多，不是省得越多，而是個人和企業的競爭力，能更加提升。</p>
-<p>如今，TVBS各技術與非技術部門紛紛擁抱AI，使他們不僅用AI來加速軟體開發，還能用更快的速度，產製更多電視臺及網路媒體的內容。不只改造內部作業流程，他們還利用大數據與AI強化自家核心商業模式，包括強化數位通路經營、提升廣告與行銷精準度，以及發展更多廣告投放模式。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用AI輔助晨間新聞資料蒐集與撰寫，不再需要夜間值班</strong></span></span></p>
-<p>早上6點，電視臺就得開始播報晨間新聞。許多大型電視臺及報社，甚至要有夜間人員輪班，追蹤人們睡覺時發生什麼新聞。傳統做法，由人工花費大把時間讀報、瀏覽主流媒體及通訊社網站，再整理素材、蒐集補充資料、寫稿。</p>
-<p>然而，去年5月開始，TVBS不只半夜不需要有人值班，更只要在早上4點，靠1名早班人員，即可完成國內外新聞資料蒐集、整理、挑選、撰稿，讓主播可以準時於6點報新聞。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-600-%E5%9C%961-%E6%99%A8%E9%96%93%E6%96%B0%E8%81%9E-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>利用Elasticsearch和生成式AI等機制，TVBS可以自動從遠超出人工閱讀負荷的資料來源摘要出重點，利用Kibana儀表板呈現，提供早班人員快速閱覽和撰寫新聞。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p>這個轉變，背後功臣是TVBS綜合開源技術及同集團公司旗下AI應用，自行打造而成的新聞資蒐機制。首先，他們用RSS訂閱機制來集中新聞資訊，再用由AI挑選出可能具有新聞價值的內容，用爬蟲工具蒐集文章全文，接著，利用生成式AI分析、摘要文章內容，儲存到儲存至Elasticsearch向量資料庫。記者就能透過Kibana介面，去搜尋、瀏覽這些新聞資料。</p>
-<p>有了由AI挑選、摘要過的內容，早班人員便能快速決定晨間新聞題目，並根據摘要來輕易撰寫新聞稿。原本，人類只能看國內主要媒體的重要新聞中，約1、200則新聞標題。利用AI，他們擴大資訊蒐集數量，可達到原本10倍以上，超過2000則，更能加入外媒資訊來源。</p>
-<p>不止閱讀量提升，這套機制更省下原先準備晨間新聞5至6成的人力與時間，得以多出餘力，能將重要資訊提早發布至網路新聞平臺。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%964-AI%E5%85%A7%E5%AE%B9%E7%94%A2%E8%A3%BD%E5%8A%A9%E6%89%8B-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>TVBS與同集團的AI技術廠商合作打造生成式AI工具平臺，類似於媒體業用ChatGPT，來協助專題素材整理、SEO文章撰寫、中英臺語的語音轉字幕等，一系列圖文處理作業。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>全面用AI自動校對資訊圖卡，更用GenAI搞定4成一般圖卡製作</strong></span></span></p>
-<p>過往，要製作電視新聞的資訊圖卡，需要由編輯發送需求給專門製作部門，由具有美術設計專業的人員製作完後，還要經歷校對錯字、檢查使用照片、查證內容等流程。</p>
-<p>就算只是簡單套用模板的圖卡，仍須遵守標準跨部門協作流程，包括圖卡申請、上系統填詳細資訊、等待派單、完成初版後審核、審核後的完工輸出，整體費時可能超過1小時。當資訊圖卡需求較密集時，形成節目製作的瓶頸。</p>
-<p>現在，TVBS使用生成式AI工具，來製作較簡易的一般資訊圖卡。首先，利用AI整理新聞內容，產出適合放在圖卡上的小標與重點摘要。接著，AI會再結合美術部門設計的圖卡樣本，來生產出圖卡。最後，利用AI視覺功能，來檢查圖卡錯字、是否圖文不符等情況。</p>
-<p><span style="text-align: center;">整個圖卡製作過程不需技術專業，也不再需要跨部門來回溝通，由編輯一人即可完成。美術設計人員不需負責製作大量一般圖卡，即能更專注圖卡樣板製作，以及複雜或具情境性的圖卡。</span></p>
-<p>目前，由編輯自行用AI產製的圖卡，占總圖卡數量4成。不只如此，全部的圖卡製作流程現在都導入AI，於美編收件和最後交稿時自動校對。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用生成式AI幫程式碼評分，協助資深工程師審查程式碼</strong></span></span></p>
-<p>資深工程師一個重要日常工作是程式碼審查。不過，目前TVBS有接近50名工程師，資深工程師占比不大，每天必須要看數十個，甚至上百個Pull Request。面對大量程式碼，不只費時費神，且速度與品質難以兼顧。</p>
-<p>近期，TVBS IT部門嘗試利用RPA工具N8N，串聯不同LLM，來替資深工程師做第一輪程式碼審查。當一段程式碼有變動，系統會自動擷取變更內容，送交AI分析。</p>
-<p>AI會針對每段變更給出0至100的分數，若低於60分，即表示該段程式碼有明顯問題，會直接拒絕。若高於60分，則會附上可接受的理由與改善建議。當AI判斷程式碼有改善空間，還會提供具體的修改建議與範例程式碼。</p>
-<p>當AI完成第一輪程式碼審查，資深工程師只需查看AI提供的摘要與建議，再針對其中的關鍵部分進行複查，即可大幅節省閱讀與分析程式碼的時間，也提升整體審查品質。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用生成式AI主動推薦相關內容，透過互動式體驗增加讀者黏著度</strong></span></span></p>
-<p>2年前，TVBS就已經在自家健康類內容網站「健康2.0」推出AI聊天機器人，回答醫療、營養、運動及心理健康等問題，並推薦適合文章及影片。近期，他們更進一步強化用GenAI推薦的做法。</p>
-<p>之前，需要讀者主動對聊天機器人提出問題，AI才能開始與讀者互動、推薦內容。現在，生成式AI根據文章內容，在文章底下生成相關Q&amp;A，嘗試引起讀者興趣。當讀者點擊問題，就會跳轉到AI聊天機器人介面，並由機器人回答該問題、推薦相關影音和文章。</p>
-<p>TVBS還會蒐集讀者點擊問題的行為，以及讀者和機器人互動的內容，進一步了解讀者對文章內容的偏好，作為之後產製內容、設計產品以及投放廣告的依據。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>自動替文章貼標，支援讀者喜好分析及廣告更精準投放</strong></span></span></p>
-<p>TVBS數位通路流量常居全臺一、二名，每月不重複使用者約1,600萬人。TVBS希望，在這些讀者進入自家網站後留住他們注意力，並更加了解他們喜好，以增加廣告曝光度及精準度，進而提升重要廣告收入。</p>
-<p>TVBS利用潛在狄利克里分配（Latent Dirichlet allocation，LDA）模型，自動替自家網路文章貼標。這是一種NLP模型，利用統計方法在一系列文章中發現抽象主題。使用統計模型的好處是，不需要利用具備領域專業知識的專家先標註機器學習用資料，就可以根據文章內容提取出主題的關鍵字，以及關鍵字與文章的關聯性強度。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%963-LDA-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>運用LDA統計模型，TVBS可以替文章自動貼上標籤，並分析文章與特定主題關鍵字的關聯性，以支援內容搜尋、文章推薦等功能。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p>除了LDA模型自動推薦文章標籤，真人還可以根據自己專業理解、當下熱門話題、行銷需求等因素，來調整實際關鍵字。根據這些關鍵字標籤，TVBS可以更好打造搜尋和推薦功能，還可以根據讀者閱讀行為，分析他們對不同主題的興趣程度。</p>
-<p>TVBS會實驗，每個內容媒體，適合多少關鍵字分類數。當分類數過少，會降低推薦精準度，反之則會單一分類收錄的文章太少。目前做法下，健康內容媒體共有30種分類，時尚內容媒體則是25種。健康內容等網站，文章性質較長尾，更適合依據興趣主題推薦。這也是為何，TVBS尚未將此做法套用於新聞網站，因為讀者閱讀新聞的方式，較適合傳統的最新時事和熱門議題推薦。</p>
-<p><strong style="color: rgb(178, 34, 34); font-size: 28px;">用生成式AI打造虛擬藝人和主持人，提供個人化互動體驗</strong></p>
-<p>TVBS與外部廠商合作，利用生成式AI打造虛擬藝人和主持人，在Web App上提供個人化、互動式的節目演出或主持。他們利用真實藝人相關的資料來訓練AI，嘗試重現藝人言行、擅長領域知識，甚至口頭禪。</p>
-<p>有些虛擬藝人，更經過藝人本人的聲音語料訓練，佐以雲端技術計算技術，與使用者互動時，即時產出語音內容。甚至，會在互動過程中記憶使用者聊天內容、興趣偏好及個性，給予個人化回應。</p>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%965-AI%E6%98%8E%E6%98%9F%E8%99%9B%E6%93%AC%E4%BA%BA-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color:#3366ff;"><strong>TVBS與外部AI廠商合作打造生成式AI藝人和主持人，可以在Web App中根據每一位使用者的輸入內容，模仿真實藝人語氣和知識來提供個人化的互動式節目。</strong></span><span style="font-size:14px;"><span style="color:#696969;">（圖片來源／TVBS）</span></span></p>
-<p><a href="https://www.ithome.com.tw/article/169110" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1235-feng_mian_p1-you_hua_-open-960x420_kao_bei_0.jpg?itok=o6uFlg2T" style="width: 550px;"></a></p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1235-feng_mian_-aiying_yong_-tu_1-chen_jian_xin_wen_-960-tu_pian_lai_yuan_-tvbs.jpg?itok=56bKv-to" width="960" height="420" alt=""><p>「導入AI時，重點還是人。」TVBS AI未來科技部副總監吳楨文強調，TVBS不是用AI全自動化取代人類，而是作為人機協作過程中的副駕駛，讓個人的工作效率提升3倍、5倍，甚至10倍。</p>
-<p>「所以我們導入AI，第一個想到的不是可以裁員，是大家如何將省下來的時間，用來更進一步發揮自己的專業。」吳楨文認為，TVBS AI用得越多，不是省得越多，而是個人和企業的競爭力，能更加提升。</p>
-<p>如今，TVBS各技術與非技術部門紛紛擁抱AI，使他們不僅用AI來加速軟體開發，還能用更快的速度，產製更多電視臺及網路媒體的內容。不只改造內部作業流程，他們還利用大數據與AI強化自家核心商業模式，包括強化數位通路經營、提升廣告與行銷精準度，以及發展更多廣告投放模式。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用AI輔助晨間新聞資料蒐集與撰寫，不再需要夜間值班</strong></span></span></p>
-<p>早上6點，電視臺就得開始播報晨間新聞。許多大型電視臺及報社，甚至要有夜間人員輪班，追蹤人們睡覺時發生什麼新聞。傳統做法，由人工花費大把時間讀報、瀏覽主流媒體及通訊社網站，再整理素材、蒐集補充資料、寫稿。</p>
-<p>然而，去年5月開始，TVBS不只半夜不需要有人值班，更只要在早上4點，靠1名早班人員，即可完成國內外新聞資料蒐集、整理、挑選、撰稿，讓主播可以準時於6點報新聞。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-600-%E5%9C%961-%E6%99%A8%E9%96%93%E6%96%B0%E8%81%9E-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>利用Elasticsearch和生成式AI等機制，TVBS可以自動從遠超出人工閱讀負荷的資料來源摘要出重點，利用Kibana儀表板呈現，提供早班人員快速閱覽和撰寫新聞。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p>這個轉變，背後功臣是TVBS綜合開源技術及同集團公司旗下AI應用，自行打造而成的新聞資蒐機制。首先，他們用RSS訂閱機制來集中新聞資訊，再用由AI挑選出可能具有新聞價值的內容，用爬蟲工具蒐集文章全文，接著，利用生成式AI分析、摘要文章內容，儲存到儲存至Elasticsearch向量資料庫。記者就能透過Kibana介面，去搜尋、瀏覽這些新聞資料。</p>
-<p>有了由AI挑選、摘要過的內容，早班人員便能快速決定晨間新聞題目，並根據摘要來輕易撰寫新聞稿。原本，人類只能看國內主要媒體的重要新聞中，約1、200則新聞標題。利用AI，他們擴大資訊蒐集數量，可達到原本10倍以上，超過2000則，更能加入外媒資訊來源。</p>
-<p>不止閱讀量提升，這套機制更省下原先準備晨間新聞5至6成的人力與時間，得以多出餘力，能將重要資訊提早發布至網路新聞平臺。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%964-AI%E5%85%A7%E5%AE%B9%E7%94%A2%E8%A3%BD%E5%8A%A9%E6%89%8B-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>TVBS與同集團的AI技術廠商合作打造生成式AI工具平臺，類似於媒體業用ChatGPT，來協助專題素材整理、SEO文章撰寫、中英臺語的語音轉字幕等，一系列圖文處理作業。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>全面用AI自動校對資訊圖卡，更用GenAI搞定4成一般圖卡製作</strong></span></span></p>
-<p>過往，要製作電視新聞的資訊圖卡，需要由編輯發送需求給專門製作部門，由具有美術設計專業的人員製作完後，還要經歷校對錯字、檢查使用照片、查證內容等流程。</p>
-<p>就算只是簡單套用模板的圖卡，仍須遵守標準跨部門協作流程，包括圖卡申請、上系統填詳細資訊、等待派單、完成初版後審核、審核後的完工輸出，整體費時可能超過1小時。當資訊圖卡需求較密集時，形成節目製作的瓶頸。</p>
-<p>現在，TVBS使用生成式AI工具，來製作較簡易的一般資訊圖卡。首先，利用AI整理新聞內容，產出適合放在圖卡上的小標與重點摘要。接著，AI會再結合美術部門設計的圖卡樣本，來生產出圖卡。最後，利用AI視覺功能，來檢查圖卡錯字、是否圖文不符等情況。</p>
-<p><span style="text-align: center;">整個圖卡製作過程不需技術專業，也不再需要跨部門來回溝通，由編輯一人即可完成。美術設計人員不需負責製作大量一般圖卡，即能更專注圖卡樣板製作，以及複雜或具情境性的圖卡。</span></p>
-<p>目前，由編輯自行用AI產製的圖卡，占總圖卡數量4成。不只如此，全部的圖卡製作流程現在都導入AI，於美編收件和最後交稿時自動校對。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用生成式AI幫程式碼評分，協助資深工程師審查程式碼</strong></span></span></p>
-<p>資深工程師一個重要日常工作是程式碼審查。不過，目前TVBS有接近50名工程師，資深工程師占比不大，每天必須要看數十個，甚至上百個Pull Request。面對大量程式碼，不只費時費神，且速度與品質難以兼顧。</p>
-<p>近期，TVBS IT部門嘗試利用RPA工具N8N，串聯不同LLM，來替資深工程師做第一輪程式碼審查。當一段程式碼有變動，系統會自動擷取變更內容，送交AI分析。</p>
-<p>AI會針對每段變更給出0至100的分數，若低於60分，即表示該段程式碼有明顯問題，會直接拒絕。若高於60分，則會附上可接受的理由與改善建議。當AI判斷程式碼有改善空間，還會提供具體的修改建議與範例程式碼。</p>
-<p>當AI完成第一輪程式碼審查，資深工程師只需查看AI提供的摘要與建議，再針對其中的關鍵部分進行複查，即可大幅節省閱讀與分析程式碼的時間，也提升整體審查品質。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>用生成式AI主動推薦相關內容，透過互動式體驗增加讀者黏著度</strong></span></span></p>
-<p>2年前，TVBS就已經在自家健康類內容網站「健康2.0」推出AI聊天機器人，回答醫療、營養、運動及心理健康等問題，並推薦適合文章及影片。近期，他們更進一步強化用GenAI推薦的做法。</p>
-<p>之前，需要讀者主動對聊天機器人提出問題，AI才能開始與讀者互動、推薦內容。現在，生成式AI根據文章內容，在文章底下生成相關Q&amp;A，嘗試引起讀者興趣。當讀者點擊問題，就會跳轉到AI聊天機器人介面，並由機器人回答該問題、推薦相關影音和文章。</p>
-<p>TVBS還會蒐集讀者點擊問題的行為，以及讀者和機器人互動的內容，進一步了解讀者對文章內容的偏好，作為之後產製內容、設計產品以及投放廣告的依據。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>自動替文章貼標，支援讀者喜好分析及廣告更精準投放</strong></span></span></p>
-<p>TVBS數位通路流量常居全臺一、二名，每月不重複使用者約1,600萬人。TVBS希望，在這些讀者進入自家網站後留住他們注意力，並更加了解他們喜好，以增加廣告曝光度及精準度，進而提升重要廣告收入。</p>
-<p>TVBS利用潛在狄利克里分配（Latent Dirichlet allocation，LDA）模型，自動替自家網路文章貼標。這是一種NLP模型，利用統計方法在一系列文章中發現抽象主題。使用統計模型的好處是，不需要利用具備領域專業知識的專家先標註機器學習用資料，就可以根據文章內容提取出主題的關鍵字，以及關鍵字與文章的關聯性強度。</p>
-<hr>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%963-LDA-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color: rgb(51, 102, 255);"><strong>運用LDA統計模型，TVBS可以替文章自動貼上標籤，並分析文章與特定主題關鍵字的關聯性，以支援內容搜尋、文章推薦等功能。</strong></span><span style="color: rgb(105, 105, 105); font-size: 14px;">（圖片來源／TVBS）</span></p>
-<hr>
-<p>除了LDA模型自動推薦文章標籤，真人還可以根據自己專業理解、當下熱門話題、行銷需求等因素，來調整實際關鍵字。根據這些關鍵字標籤，TVBS可以更好打造搜尋和推薦功能，還可以根據讀者閱讀行為，分析他們對不同主題的興趣程度。</p>
-<p>TVBS會實驗，每個內容媒體，適合多少關鍵字分類數。當分類數過少，會降低推薦精準度，反之則會單一分類收錄的文章太少。目前做法下，健康內容媒體共有30種分類，時尚內容媒體則是25種。健康內容等網站，文章性質較長尾，更適合依據興趣主題推薦。這也是為何，TVBS尚未將此做法套用於新聞網站，因為讀者閱讀新聞的方式，較適合傳統的最新時事和熱門議題推薦。</p>
-<p><strong style="color: rgb(178, 34, 34); font-size: 28px;">用生成式AI打造虛擬藝人和主持人，提供個人化互動體驗</strong></p>
-<p>TVBS與外部廠商合作，利用生成式AI打造虛擬藝人和主持人，在Web App上提供個人化、互動式的節目演出或主持。他們利用真實藝人相關的資料來訓練AI，嘗試重現藝人言行、擅長領域知識，甚至口頭禪。</p>
-<p>有些虛擬藝人，更經過藝人本人的聲音語料訓練，佐以雲端技術計算技術，與使用者互動時，即時產出語音內容。甚至，會在互動過程中記憶使用者聊天內容、興趣偏好及個性，給予個人化回應。</p>
-<p class="rtecenter"><img alt="" src="https://s4.itho.me/sites/default/files/images/1235-%E5%B0%81%E9%9D%A2-AI%E6%87%89%E7%94%A8-%E5%9C%965-AI%E6%98%8E%E6%98%9F%E8%99%9B%E6%93%AC%E4%BA%BA-%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90-TVBS.jpg" style="width: 600px;"></p>
-<p><span style="color:#3366ff;"><strong>TVBS與外部AI廠商合作打造生成式AI藝人和主持人，可以在Web App中根據每一位使用者的輸入內容，模仿真實藝人語氣和知識來提供個人化的互動式節目。</strong></span><span style="font-size:14px;"><span style="color:#696969;">（圖片來源／TVBS）</span></span></p>
-<p><a href="https://www.ithome.com.tw/article/169110" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1235-feng_mian_p1-you_hua_-open-960x420_kao_bei_0.jpg?itok=o6uFlg2T" style="width: 550px;"></a></p>]]></content:encoded>
-    
-    <pubDate>2025-05-23  08:05:29</pubDate>
-  </item><item>
-    <title><![CDATA[TVBS用AI走進媒體新時代]]></title>
-    <link>https://ithome.com.tw/article/169110</link>
-    <itunes:title><![CDATA[TVBS用AI走進媒體新時代]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1235-feng_mian_p1-you_hua_-open-960x420_kao_bei_0.jpg?itok=o6uFlg2T" width="960" height="420" alt=""><p>身處網路通路崛起、科技飛速進步的時代，30年老電視臺TVBS花費5年，用AI改寫自家軟體開發、內容產製、行政管理及商業盈利的流程。背後關鍵，不只是技術部門持續學習最新科技，更是把技術力和應用意願帶給第一線人員，讓公司每一個非技術部門，都有自主用AI創新的能力。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1235-feng_mian_p1-you_hua_-open-960x420_kao_bei_0.jpg?itok=o6uFlg2T" width="960" height="420" alt=""><p>身處網路通路崛起、科技飛速進步的時代，30年老電視臺TVBS花費5年，用AI改寫自家軟體開發、內容產製、行政管理及商業盈利的流程。背後關鍵，不只是技術部門持續學習最新科技，更是把技術力和應用意願帶給第一線人員，讓公司每一個非技術部門，都有自主用AI創新的能力。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1235-feng_mian_p1-you_hua_-open-960x420_kao_bei_0.jpg?itok=o6uFlg2T" width="960" height="420" alt=""><p>身處網路通路崛起、科技飛速進步的時代，30年老電視臺TVBS花費5年，用AI改寫自家軟體開發、內容產製、行政管理及商業盈利的流程。背後關鍵，不只是技術部門持續學習最新科技，更是把技術力和應用意願帶給第一線人員，讓公司每一個非技術部門，都有自主用AI創新的能力。</p>]]></content:encoded>
-    
-    <pubDate>2025-05-23  08:05:25</pubDate>
   </item></channel>
 </rss>
