@@ -30,6 +30,465 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[前端練習 - 讓數十萬筆的超大表格也能流暢捲動]]></title>
+    <link>https://blog.darkthread.net/blog/virtual-scrolling/</link>
+    <itunes:title><![CDATA[前端練習 - 讓數十萬筆的超大表格也能流暢捲動]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>遇到數萬到數十萬筆資料的超大表格，當代瀏覽器及電腦的效能或許還足以應付，顯示沒問題，但遇上畫面捲動或資料動態更新等操作，便不免出現畫面停滯、短暫空白、延遲顯示等狀況。</p> <p>例如以下這個有三萬兩千六百筆、七個欄位的股價表，進入網頁要等兩三秒；捲動會有短暫空白，內容幾秒後出現；而點收盤價排序，則要等個三四秒才會刷新結果。<a href="https://darkthread.github.io/virtualization/slow.html">線上展示</a></p> <p><img src="https://darkthread.github.io/virtualization/slow.gif"></p> <p>更慘的是，多操作幾下，瀏覽器有時會原地休克...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638842783780455390.png"></p> <p>面對這類挑戰，有個簡單解法是改成分頁顯示逃避問題。每次只顯示一頁資料，反正使用者一次能閱讀的資料數頂多數十上百筆，讀完再切下一頁。如此，瀏覽器每次只需渲染 (Render) 幾十筆頂多上百筆 &lt;TR&gt;，輕鬆自在，很難出現效能問題。</p> <p>但分頁操作的有重大缺點：點一次換一頁，無法快速線性移動，流暢性體驗遠不及捲軸。想像一下，如果有個捲軸中間的滑塊(Thumb)不能拖拉，只讓你按上下箭頭(Button)捲動，一定難用到靠北吧？而分頁採用的正是這等操作概念。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638842783784004899.png"><br> 圖片來源：<a href="https://developer.chrome.com/docs/css-ui/scrollbar-styling?hl=zh-tw">捲軸樣式</a></p> <p>更甭提，現在大家的滑鼠都有滾輪，不能拖拉捲動、不能用滾輪捲動，分頁操作介面常被嫌棄到不行。</p> <p>於是，無比內捲的前端設計界就有人想出了「虛擬捲動 (Virtual Scrolling)」這個點子，用來解決大量數千甚至數萬筆資料畫面渲染時的效能瓶頸。核心想法是：永遠只渲染目前在瀏覽器可視範圍（Viewport）內可見的資料項目，看不到的部分根本不用在 DOM 裡出現，省去 DOM 處理與渲染的成本。使用者捲動畫面時，程式動態改變渲染的資料對象，確保可見區域的內容都如實顯示即可，使用者感覺自己在操作一個完整的超長列表，實際上 DOM 只有可視範圍那區的少量元素，完美!</p> <p>以下 TABLE 的例子，可視區域的高度只能看到五列，抓上下兩列緩衝(以免一次捲動距離過大，上下出現空白)，只需產生九列的資料就夠。上下方則各放一列空白，其高度設定省略掉沒產生資料筆數的高度。例如，九列內容上方其實有 100 列，則上方填充列的 CSS height 就設成 100 * 每列高度，下方的填充列比照辦理。加入上面填充列，滑塊所在位置可正確反應當前看到資料是在全部資料的上段、中段還是下段的大約 100% 位置，操作上更直覺。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638842783785794543.png"></p> <p>虛擬捲動的詳細原理網路上有不少圖文並茂的教學(推這篇：<a href="https://dev.to/adamklein/build-your-own-virtual-scroll-part-i-11ib">Build your Own Virtual Scroll by klein</a>)，而想當然爾，現成程式庫或元件自然也是滿坑滿谷，例如 <a href="https://www.telerik.com/kendo-jquery-ui/documentation/controls/grid/scrolling/virtual-scrolling">Kendo UI Grid</a>、<a href="https://github.com/Akryum/vue-virtual-scroller">vue-virtual-scroller</a>，因此我們在開發設計網頁時，可以透過虛擬捲動提供更優質的操作體驗，我們下次再見。(揮手下降)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638842783787558165.png"></p> <p>電影散場還在的各位，彩蛋來了。</p> <p>如果你跟我一樣，在一堆人歡慶這輩子都不必再寫他 X 的程式的 AI 年代，仍想享受自己寫程式徒手刻出虛擬捲動效果的樂趣，以下是我的心得。</p> <p>先看成品：<a href="https://darkthread.github.io/virtualization/virt-scroll.html">線上展示</a></p> <p><img src="https://darkthread.github.io/virtualization/virt-scroll.gif"></p> <p>清單表格生成、排序及關鍵字篩選是用 Vue.js 實作，原本因為一次要顯示三萬多筆，操作上嚴重卡頓，有時還會因不明原因瀏覽器凍結。加入虛擬捲動技術後，每次只需要產生不超過 100 筆 &lt;TR&gt;，不管一開始的顯示、捲動、排序都沒有半點延遲，但整體感覺就是在瀏覽一個超大 &lt;TABLE&gt;，體驗十分良好。</p> <pre><code>const app = Vue.createApp({
+data() {
+return {
+data: [],
+sortedData: [],
+sortMode: 0, // 0: 無排序, 1: 股價由低至高, 2: 股價由高到低
+keywd: '', // 關鍵字
+// 虛擬化捲動相關變數
+rowHeight: 28,
+visibleItems: [],
+startIndex: 0,
+endIndex: 0,
+bufferSize: 5,
+viewportHeight: 0,
+scrollTop: -1,
+isScrolling: false,
+}
+},
+watch: {
+keywd(newVal) {
+this.updateVisibleItems();
+}
+},
+computed: {
+filteredData() { // 關鍵字篩選
+if (!this.keywd) return this.sortedData;
+const keyword = this.keywd.toLowerCase();
+return this.sortedData.filter(item =&gt; item.Name.toLowerCase().includes(keyword) || item.Code.includes(keyword));
+},
+},
+methods: {
+sortData() {
+// ... 資料排序 (略)
+},
+toggleOrder() {
+// ... 排序切換 (略)
+},
+loadData() {
+// 股價資料來源：https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL
+let idx = 1;
+fetch('./STOCK_DAY_ALL.json')
+.then(response =&gt; response.json())
+.then(data =&gt; {
+// 過濾無收盤價或收盤價 &lt; 5 的資料
+data = data.filter(item =&gt; item.ClosingPrice &amp;&amp; parseFloat(item.ClosingPrice) &gt;= 5);
+// ...資料增量十倍 (略)
+// 稍後執行虛擬捲動初始化
+this.$nextTick(() =&gt; {
+this.initializeVirtualScroll();
+});
+})
+},
+// 虛擬捲動初始化
+initializeVirtualScroll() {
+// 測量 Row 高度 (用 setTimeout 技巧，等 Vue 生成內容後再測量)
+setTimeout(() =&gt; {
+const sampleRow = document.querySelector('.stk-item');
+if (sampleRow) {
+this.rowHeight = sampleRow.offsetHeight;
+}
+}, 50);
+// 更新可視項目
+this.updateVisibleItems();
+},
+// 使用者捲動時，重算可視項目
+handleScroll(event) {
+this.updateVisibleItems();
+},
+updateVisibleItems() {
+const container = document.querySelector('.stk-list');
+// 使用者
+if (!container || this.isScrolling) return;
+this.isScrolling = true;
+const containerHeight = container.clientHeight;
+// 取得目前捲動位置
+let scrollTop = container.scrollTop;
+const data = this.filteredData;
+// 顯示範圍的開始筆數(向上抓 bufferSize 筆)
+this.startIndex = Math.floor(scrollTop / this.rowHeight) - this.bufferSize;
+this.startIndex = Math.max(0, this.startIndex);
+// 顯示範圍筆數 = 容器高度 / 列高 + 2 倍 bufferSize 筆
+const visibleCount = Math.ceil(containerHeight / this.rowHeight) + 2 * this.bufferSize;
+// 顯示範圍的結束筆數 (不可大於總筆數)
+this.endIndex = Math.min(this.startIndex + visibleCount, data.length);
+if (this.startIndex &gt;= this.endIndex) {
+this.startIndex = Math.max(0, this.endIndex - visibleCount);
+}
+// 上下各放一列佔位，依範圍外的筆數多寬計算高度
+this.topSpacerHeight = this.startIndex * this.rowHeight;
+this.bottomSpacerHeight = (data.length - this.endIndex) * this.rowHeight;
+// 從資料陣列取出可視範圍的項目
+this.visibleItems = data.slice(this.startIndex, this.endIndex);
+this.$nextTick(() =&gt; {
+this.isScrolling = false;
+container.scrollTop = scrollTop; // 確保捲動位置不變
+});
+}
+}
+});
+const vm = app.mount('#app');
+vm.loadData();
+// 視窗縮放時可能改變可視範圍大小，觸發重算，但加上 debounce 以避免縮放過程連續觸發
+let debounceTimer;
+window.addEventListener('resize', () =&gt; {
+clearTimeout(debounceTimer);
+debounceTimer = setTimeout(() =&gt; {
+vm.updateVisibleItems();
+}, 100);
+});
+</code></pre> <p>HTML 部分如下：</p> <pre><code>&lt;div class="stk-list" @scroll="handleScroll"&gt;
+&lt;table class="stk-table"&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;td width="100"&gt;
+股票代碼
+&lt;/td&gt;
+&lt;td width="200"&gt;名稱&lt;/td&gt;
+&lt;td width="80"&gt;
+&lt;button @click="toggleOrder()"&gt;
+收盤價
+&lt;span&gt;
+&lt;span v-if="sortMode == 1"&gt;▲&lt;/span&gt;
+&lt;span v-else-if="sortMode == 2"&gt;▼&lt;/span&gt;
+&lt;span v-else&gt;⇳&lt;/span&gt;
+&lt;/span&gt;
+&lt;/button&gt;
+&lt;/td&gt;
+&lt;td width="80"&gt;開盤價&lt;/td&gt;
+&lt;td width="80"&gt;最高價&lt;/td&gt;
+&lt;td width="80"&gt;最低價&lt;/td&gt;
+&lt;td width="100"&gt;成交量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class="table-body-spacer" :style="{ height: topSpacerHeight + 'px' }"&gt;&lt;/tr&gt;
+&lt;tr v-for="stock in visibleItems" class="stk-item"&gt;
+&lt;td&gt;{{ stock.Code }}&lt;/td&gt;
+&lt;td&gt;{{ stock.Name }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.ClosingPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.OpeningPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.HighestPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.LowestPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.TradeVolume }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class="table-body-spacer" :style="{ height: bottomSpacerHeight + 'px' }"&gt;&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+</code></pre> <p>相關說明有加成註解，希望解釋夠清楚。完整程式碼在 <a href="https://github.com/darkthread/darkthread.github.io/blob/master/virtualization/virt-scroll.html">Github</a> 有需要請自取，最後補充這次學到的心得：</p> <ol><li>scroll 事件會被連續觸發，使用者點一次捲軸上下箭頭可能會觸發多次，而拖拉滑塊或是滾滑鼠滾輪更是會持續發送，故我加了 isScrolling 旗標防止重複執行。</li> <li>發現修改上下填充列高度，元素高度異動會改變可視範圍容器的 scrollTop 觸發 scroll 事件，接重算可視範圍及填充列高度，渲染後 scrollTop 改變再次觸發 scroll 事件... 形成永動機捲到地老天荒。 最後我找到的解法是在更新可視範圍及填充列高度後，覆寫容器的 scrollTop 維持不變才克服。</li> <li>setTimeout 與 this.$nextTick() 的不同：Vue 的 $nextTick() 會在 Vue 的 DOM 更新完成後、瀏覽器渲染之前觸發。故要測量 rowHight 要用 setTimeout 等 DOM 渲染完成才準確、而覆寫 <code>container.scrollTop = scrollTop</code> 要趕在 DOM 渲染之前防止 scroll 事件。</li></ol> <p>我被拉捲軸捲成永動機的問題卡住，花了很久時間才研究出解法。問 AI 指出了正確方向，但沒一次改對，靠著加 Log 觀察及理解問題根源的古典除錯技術，最後試出了可行做法，解掉問題瞬間的興奮是靠 AI 改 Code 所沒有的。</p> <p>面對沒學過的應用需求，AI 寫的程式直接可用，賺到時間；AI 生成方向正確但不 Work 的程式，搞懂原理並修到好，則賺到知識及樂趣。怎麼都不會虧，哈!</p> <p data-slug="virtual-scrolling" data-title-en="Virutal scrolling excercise" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720">The blog explores virtual scrolling as a solution to handle large datasets in web applications. By rendering only visible items in the viewport, it improves performance and user experience compared to traditional pagination. The post shares insights and a personal implementation using Vue.js.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>遇到數萬到數十萬筆資料的超大表格，當代瀏覽器及電腦的效能或許還足以應付，顯示沒問題，但遇上畫面捲動或資料動態更新等操作，便不免出現畫面停滯、短暫空白、延遲顯示等狀況。</p> <p>例如以下這個有三萬兩千六百筆、七個欄位的股價表，進入網頁要等兩三秒；捲動會有短暫空白，內容幾秒後出現；而點收盤價排序，則要等個三四秒才會刷新結果。<a href="https://darkthread.github.io/virtualization/slow.html">線上展示</a></p> <p><img src="https://darkthread.github.io/virtualization/slow.gif"></p> <p>更慘的是，多操作幾下，瀏覽器有時會原地休克...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638842783780455390.png"></p> <p>面對這類挑戰，有個簡單解法是改成分頁顯示逃避問題。每次只顯示一頁資料，反正使用者一次能閱讀的資料數頂多數十上百筆，讀完再切下一頁。如此，瀏覽器每次只需渲染 (Render) 幾十筆頂多上百筆 &lt;TR&gt;，輕鬆自在，很難出現效能問題。</p> <p>但分頁操作的有重大缺點：點一次換一頁，無法快速線性移動，流暢性體驗遠不及捲軸。想像一下，如果有個捲軸中間的滑塊(Thumb)不能拖拉，只讓你按上下箭頭(Button)捲動，一定難用到靠北吧？而分頁採用的正是這等操作概念。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638842783784004899.png"><br> 圖片來源：<a href="https://developer.chrome.com/docs/css-ui/scrollbar-styling?hl=zh-tw">捲軸樣式</a></p> <p>更甭提，現在大家的滑鼠都有滾輪，不能拖拉捲動、不能用滾輪捲動，分頁操作介面常被嫌棄到不行。</p> <p>於是，無比內捲的前端設計界就有人想出了「虛擬捲動 (Virtual Scrolling)」這個點子，用來解決大量數千甚至數萬筆資料畫面渲染時的效能瓶頸。核心想法是：永遠只渲染目前在瀏覽器可視範圍（Viewport）內可見的資料項目，看不到的部分根本不用在 DOM 裡出現，省去 DOM 處理與渲染的成本。使用者捲動畫面時，程式動態改變渲染的資料對象，確保可見區域的內容都如實顯示即可，使用者感覺自己在操作一個完整的超長列表，實際上 DOM 只有可視範圍那區的少量元素，完美!</p> <p>以下 TABLE 的例子，可視區域的高度只能看到五列，抓上下兩列緩衝(以免一次捲動距離過大，上下出現空白)，只需產生九列的資料就夠。上下方則各放一列空白，其高度設定省略掉沒產生資料筆數的高度。例如，九列內容上方其實有 100 列，則上方填充列的 CSS height 就設成 100 * 每列高度，下方的填充列比照辦理。加入上面填充列，滑塊所在位置可正確反應當前看到資料是在全部資料的上段、中段還是下段的大約 100% 位置，操作上更直覺。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638842783785794543.png"></p> <p>虛擬捲動的詳細原理網路上有不少圖文並茂的教學(推這篇：<a href="https://dev.to/adamklein/build-your-own-virtual-scroll-part-i-11ib">Build your Own Virtual Scroll by klein</a>)，而想當然爾，現成程式庫或元件自然也是滿坑滿谷，例如 <a href="https://www.telerik.com/kendo-jquery-ui/documentation/controls/grid/scrolling/virtual-scrolling">Kendo UI Grid</a>、<a href="https://github.com/Akryum/vue-virtual-scroller">vue-virtual-scroller</a>，因此我們在開發設計網頁時，可以透過虛擬捲動提供更優質的操作體驗，我們下次再見。(揮手下降)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638842783787558165.png"></p> <p>電影散場還在的各位，彩蛋來了。</p> <p>如果你跟我一樣，在一堆人歡慶這輩子都不必再寫他 X 的程式的 AI 年代，仍想享受自己寫程式徒手刻出虛擬捲動效果的樂趣，以下是我的心得。</p> <p>先看成品：<a href="https://darkthread.github.io/virtualization/virt-scroll.html">線上展示</a></p> <p><img src="https://darkthread.github.io/virtualization/virt-scroll.gif"></p> <p>清單表格生成、排序及關鍵字篩選是用 Vue.js 實作，原本因為一次要顯示三萬多筆，操作上嚴重卡頓，有時還會因不明原因瀏覽器凍結。加入虛擬捲動技術後，每次只需要產生不超過 100 筆 &lt;TR&gt;，不管一開始的顯示、捲動、排序都沒有半點延遲，但整體感覺就是在瀏覽一個超大 &lt;TABLE&gt;，體驗十分良好。</p> <pre><code>const app = Vue.createApp({
+data() {
+return {
+data: [],
+sortedData: [],
+sortMode: 0, // 0: 無排序, 1: 股價由低至高, 2: 股價由高到低
+keywd: '', // 關鍵字
+// 虛擬化捲動相關變數
+rowHeight: 28,
+visibleItems: [],
+startIndex: 0,
+endIndex: 0,
+bufferSize: 5,
+viewportHeight: 0,
+scrollTop: -1,
+isScrolling: false,
+}
+},
+watch: {
+keywd(newVal) {
+this.updateVisibleItems();
+}
+},
+computed: {
+filteredData() { // 關鍵字篩選
+if (!this.keywd) return this.sortedData;
+const keyword = this.keywd.toLowerCase();
+return this.sortedData.filter(item =&gt; item.Name.toLowerCase().includes(keyword) || item.Code.includes(keyword));
+},
+},
+methods: {
+sortData() {
+// ... 資料排序 (略)
+},
+toggleOrder() {
+// ... 排序切換 (略)
+},
+loadData() {
+// 股價資料來源：https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL
+let idx = 1;
+fetch('./STOCK_DAY_ALL.json')
+.then(response =&gt; response.json())
+.then(data =&gt; {
+// 過濾無收盤價或收盤價 &lt; 5 的資料
+data = data.filter(item =&gt; item.ClosingPrice &amp;&amp; parseFloat(item.ClosingPrice) &gt;= 5);
+// ...資料增量十倍 (略)
+// 稍後執行虛擬捲動初始化
+this.$nextTick(() =&gt; {
+this.initializeVirtualScroll();
+});
+})
+},
+// 虛擬捲動初始化
+initializeVirtualScroll() {
+// 測量 Row 高度 (用 setTimeout 技巧，等 Vue 生成內容後再測量)
+setTimeout(() =&gt; {
+const sampleRow = document.querySelector('.stk-item');
+if (sampleRow) {
+this.rowHeight = sampleRow.offsetHeight;
+}
+}, 50);
+// 更新可視項目
+this.updateVisibleItems();
+},
+// 使用者捲動時，重算可視項目
+handleScroll(event) {
+this.updateVisibleItems();
+},
+updateVisibleItems() {
+const container = document.querySelector('.stk-list');
+// 使用者
+if (!container || this.isScrolling) return;
+this.isScrolling = true;
+const containerHeight = container.clientHeight;
+// 取得目前捲動位置
+let scrollTop = container.scrollTop;
+const data = this.filteredData;
+// 顯示範圍的開始筆數(向上抓 bufferSize 筆)
+this.startIndex = Math.floor(scrollTop / this.rowHeight) - this.bufferSize;
+this.startIndex = Math.max(0, this.startIndex);
+// 顯示範圍筆數 = 容器高度 / 列高 + 2 倍 bufferSize 筆
+const visibleCount = Math.ceil(containerHeight / this.rowHeight) + 2 * this.bufferSize;
+// 顯示範圍的結束筆數 (不可大於總筆數)
+this.endIndex = Math.min(this.startIndex + visibleCount, data.length);
+if (this.startIndex &gt;= this.endIndex) {
+this.startIndex = Math.max(0, this.endIndex - visibleCount);
+}
+// 上下各放一列佔位，依範圍外的筆數多寬計算高度
+this.topSpacerHeight = this.startIndex * this.rowHeight;
+this.bottomSpacerHeight = (data.length - this.endIndex) * this.rowHeight;
+// 從資料陣列取出可視範圍的項目
+this.visibleItems = data.slice(this.startIndex, this.endIndex);
+this.$nextTick(() =&gt; {
+this.isScrolling = false;
+container.scrollTop = scrollTop; // 確保捲動位置不變
+});
+}
+}
+});
+const vm = app.mount('#app');
+vm.loadData();
+// 視窗縮放時可能改變可視範圍大小，觸發重算，但加上 debounce 以避免縮放過程連續觸發
+let debounceTimer;
+window.addEventListener('resize', () =&gt; {
+clearTimeout(debounceTimer);
+debounceTimer = setTimeout(() =&gt; {
+vm.updateVisibleItems();
+}, 100);
+});
+</code></pre> <p>HTML 部分如下：</p> <pre><code>&lt;div class="stk-list" @scroll="handleScroll"&gt;
+&lt;table class="stk-table"&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;td width="100"&gt;
+股票代碼
+&lt;/td&gt;
+&lt;td width="200"&gt;名稱&lt;/td&gt;
+&lt;td width="80"&gt;
+&lt;button @click="toggleOrder()"&gt;
+收盤價
+&lt;span&gt;
+&lt;span v-if="sortMode == 1"&gt;▲&lt;/span&gt;
+&lt;span v-else-if="sortMode == 2"&gt;▼&lt;/span&gt;
+&lt;span v-else&gt;⇳&lt;/span&gt;
+&lt;/span&gt;
+&lt;/button&gt;
+&lt;/td&gt;
+&lt;td width="80"&gt;開盤價&lt;/td&gt;
+&lt;td width="80"&gt;最高價&lt;/td&gt;
+&lt;td width="80"&gt;最低價&lt;/td&gt;
+&lt;td width="100"&gt;成交量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class="table-body-spacer" :style="{ height: topSpacerHeight + 'px' }"&gt;&lt;/tr&gt;
+&lt;tr v-for="stock in visibleItems" class="stk-item"&gt;
+&lt;td&gt;{{ stock.Code }}&lt;/td&gt;
+&lt;td&gt;{{ stock.Name }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.ClosingPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.OpeningPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.HighestPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.LowestPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.TradeVolume }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class="table-body-spacer" :style="{ height: bottomSpacerHeight + 'px' }"&gt;&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+</code></pre> <p>相關說明有加成註解，希望解釋夠清楚。完整程式碼在 <a href="https://github.com/darkthread/darkthread.github.io/blob/master/virtualization/virt-scroll.html">Github</a> 有需要請自取，最後補充這次學到的心得：</p> <ol><li>scroll 事件會被連續觸發，使用者點一次捲軸上下箭頭可能會觸發多次，而拖拉滑塊或是滾滑鼠滾輪更是會持續發送，故我加了 isScrolling 旗標防止重複執行。</li> <li>發現修改上下填充列高度，元素高度異動會改變可視範圍容器的 scrollTop 觸發 scroll 事件，接重算可視範圍及填充列高度，渲染後 scrollTop 改變再次觸發 scroll 事件... 形成永動機捲到地老天荒。 最後我找到的解法是在更新可視範圍及填充列高度後，覆寫容器的 scrollTop 維持不變才克服。</li> <li>setTimeout 與 this.$nextTick() 的不同：Vue 的 $nextTick() 會在 Vue 的 DOM 更新完成後、瀏覽器渲染之前觸發。故要測量 rowHight 要用 setTimeout 等 DOM 渲染完成才準確、而覆寫 <code>container.scrollTop = scrollTop</code> 要趕在 DOM 渲染之前防止 scroll 事件。</li></ol> <p>我被拉捲軸捲成永動機的問題卡住，花了很久時間才研究出解法。問 AI 指出了正確方向，但沒一次改對，靠著加 Log 觀察及理解問題根源的古典除錯技術，最後試出了可行做法，解掉問題瞬間的興奮是靠 AI 改 Code 所沒有的。</p> <p>面對沒學過的應用需求，AI 寫的程式直接可用，賺到時間；AI 生成方向正確但不 Work 的程式，搞懂原理並修到好，則賺到知識及樂趣。怎麼都不會虧，哈!</p> <p data-slug="virtual-scrolling" data-title-en="Virutal scrolling excercise" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720">The blog explores virtual scrolling as a solution to handle large datasets in web applications. By rendering only visible items in the viewport, it improves performance and user experience compared to traditional pagination. The post shares insights and a personal implementation using Vue.js.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>遇到數萬到數十萬筆資料的超大表格，當代瀏覽器及電腦的效能或許還足以應付，顯示沒問題，但遇上畫面捲動或資料動態更新等操作，便不免出現畫面停滯、短暫空白、延遲顯示等狀況。</p> <p>例如以下這個有三萬兩千六百筆、七個欄位的股價表，進入網頁要等兩三秒；捲動會有短暫空白，內容幾秒後出現；而點收盤價排序，則要等個三四秒才會刷新結果。<a href="https://darkthread.github.io/virtualization/slow.html">線上展示</a></p> <p><img src="https://darkthread.github.io/virtualization/slow.gif"></p> <p>更慘的是，多操作幾下，瀏覽器有時會原地休克...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638842783780455390.png"></p> <p>面對這類挑戰，有個簡單解法是改成分頁顯示逃避問題。每次只顯示一頁資料，反正使用者一次能閱讀的資料數頂多數十上百筆，讀完再切下一頁。如此，瀏覽器每次只需渲染 (Render) 幾十筆頂多上百筆 &lt;TR&gt;，輕鬆自在，很難出現效能問題。</p> <p>但分頁操作的有重大缺點：點一次換一頁，無法快速線性移動，流暢性體驗遠不及捲軸。想像一下，如果有個捲軸中間的滑塊(Thumb)不能拖拉，只讓你按上下箭頭(Button)捲動，一定難用到靠北吧？而分頁採用的正是這等操作概念。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638842783784004899.png"><br> 圖片來源：<a href="https://developer.chrome.com/docs/css-ui/scrollbar-styling?hl=zh-tw">捲軸樣式</a></p> <p>更甭提，現在大家的滑鼠都有滾輪，不能拖拉捲動、不能用滾輪捲動，分頁操作介面常被嫌棄到不行。</p> <p>於是，無比內捲的前端設計界就有人想出了「虛擬捲動 (Virtual Scrolling)」這個點子，用來解決大量數千甚至數萬筆資料畫面渲染時的效能瓶頸。核心想法是：永遠只渲染目前在瀏覽器可視範圍（Viewport）內可見的資料項目，看不到的部分根本不用在 DOM 裡出現，省去 DOM 處理與渲染的成本。使用者捲動畫面時，程式動態改變渲染的資料對象，確保可見區域的內容都如實顯示即可，使用者感覺自己在操作一個完整的超長列表，實際上 DOM 只有可視範圍那區的少量元素，完美!</p> <p>以下 TABLE 的例子，可視區域的高度只能看到五列，抓上下兩列緩衝(以免一次捲動距離過大，上下出現空白)，只需產生九列的資料就夠。上下方則各放一列空白，其高度設定省略掉沒產生資料筆數的高度。例如，九列內容上方其實有 100 列，則上方填充列的 CSS height 就設成 100 * 每列高度，下方的填充列比照辦理。加入上面填充列，滑塊所在位置可正確反應當前看到資料是在全部資料的上段、中段還是下段的大約 100% 位置，操作上更直覺。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638842783785794543.png"></p> <p>虛擬捲動的詳細原理網路上有不少圖文並茂的教學(推這篇：<a href="https://dev.to/adamklein/build-your-own-virtual-scroll-part-i-11ib">Build your Own Virtual Scroll by klein</a>)，而想當然爾，現成程式庫或元件自然也是滿坑滿谷，例如 <a href="https://www.telerik.com/kendo-jquery-ui/documentation/controls/grid/scrolling/virtual-scrolling">Kendo UI Grid</a>、<a href="https://github.com/Akryum/vue-virtual-scroller">vue-virtual-scroller</a>，因此我們在開發設計網頁時，可以透過虛擬捲動提供更優質的操作體驗，我們下次再見。(揮手下降)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638842783787558165.png"></p> <p>電影散場還在的各位，彩蛋來了。</p> <p>如果你跟我一樣，在一堆人歡慶這輩子都不必再寫他 X 的程式的 AI 年代，仍想享受自己寫程式徒手刻出虛擬捲動效果的樂趣，以下是我的心得。</p> <p>先看成品：<a href="https://darkthread.github.io/virtualization/virt-scroll.html">線上展示</a></p> <p><img src="https://darkthread.github.io/virtualization/virt-scroll.gif"></p> <p>清單表格生成、排序及關鍵字篩選是用 Vue.js 實作，原本因為一次要顯示三萬多筆，操作上嚴重卡頓，有時還會因不明原因瀏覽器凍結。加入虛擬捲動技術後，每次只需要產生不超過 100 筆 &lt;TR&gt;，不管一開始的顯示、捲動、排序都沒有半點延遲，但整體感覺就是在瀏覽一個超大 &lt;TABLE&gt;，體驗十分良好。</p> <pre><code>const app = Vue.createApp({
+data() {
+return {
+data: [],
+sortedData: [],
+sortMode: 0, // 0: 無排序, 1: 股價由低至高, 2: 股價由高到低
+keywd: '', // 關鍵字
+// 虛擬化捲動相關變數
+rowHeight: 28,
+visibleItems: [],
+startIndex: 0,
+endIndex: 0,
+bufferSize: 5,
+viewportHeight: 0,
+scrollTop: -1,
+isScrolling: false,
+}
+},
+watch: {
+keywd(newVal) {
+this.updateVisibleItems();
+}
+},
+computed: {
+filteredData() { // 關鍵字篩選
+if (!this.keywd) return this.sortedData;
+const keyword = this.keywd.toLowerCase();
+return this.sortedData.filter(item =&gt; item.Name.toLowerCase().includes(keyword) || item.Code.includes(keyword));
+},
+},
+methods: {
+sortData() {
+// ... 資料排序 (略)
+},
+toggleOrder() {
+// ... 排序切換 (略)
+},
+loadData() {
+// 股價資料來源：https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL
+let idx = 1;
+fetch('./STOCK_DAY_ALL.json')
+.then(response =&gt; response.json())
+.then(data =&gt; {
+// 過濾無收盤價或收盤價 &lt; 5 的資料
+data = data.filter(item =&gt; item.ClosingPrice &amp;&amp; parseFloat(item.ClosingPrice) &gt;= 5);
+// ...資料增量十倍 (略)
+// 稍後執行虛擬捲動初始化
+this.$nextTick(() =&gt; {
+this.initializeVirtualScroll();
+});
+})
+},
+// 虛擬捲動初始化
+initializeVirtualScroll() {
+// 測量 Row 高度 (用 setTimeout 技巧，等 Vue 生成內容後再測量)
+setTimeout(() =&gt; {
+const sampleRow = document.querySelector('.stk-item');
+if (sampleRow) {
+this.rowHeight = sampleRow.offsetHeight;
+}
+}, 50);
+// 更新可視項目
+this.updateVisibleItems();
+},
+// 使用者捲動時，重算可視項目
+handleScroll(event) {
+this.updateVisibleItems();
+},
+updateVisibleItems() {
+const container = document.querySelector('.stk-list');
+// 使用者
+if (!container || this.isScrolling) return;
+this.isScrolling = true;
+const containerHeight = container.clientHeight;
+// 取得目前捲動位置
+let scrollTop = container.scrollTop;
+const data = this.filteredData;
+// 顯示範圍的開始筆數(向上抓 bufferSize 筆)
+this.startIndex = Math.floor(scrollTop / this.rowHeight) - this.bufferSize;
+this.startIndex = Math.max(0, this.startIndex);
+// 顯示範圍筆數 = 容器高度 / 列高 + 2 倍 bufferSize 筆
+const visibleCount = Math.ceil(containerHeight / this.rowHeight) + 2 * this.bufferSize;
+// 顯示範圍的結束筆數 (不可大於總筆數)
+this.endIndex = Math.min(this.startIndex + visibleCount, data.length);
+if (this.startIndex &gt;= this.endIndex) {
+this.startIndex = Math.max(0, this.endIndex - visibleCount);
+}
+// 上下各放一列佔位，依範圍外的筆數多寬計算高度
+this.topSpacerHeight = this.startIndex * this.rowHeight;
+this.bottomSpacerHeight = (data.length - this.endIndex) * this.rowHeight;
+// 從資料陣列取出可視範圍的項目
+this.visibleItems = data.slice(this.startIndex, this.endIndex);
+this.$nextTick(() =&gt; {
+this.isScrolling = false;
+container.scrollTop = scrollTop; // 確保捲動位置不變
+});
+}
+}
+});
+const vm = app.mount('#app');
+vm.loadData();
+// 視窗縮放時可能改變可視範圍大小，觸發重算，但加上 debounce 以避免縮放過程連續觸發
+let debounceTimer;
+window.addEventListener('resize', () =&gt; {
+clearTimeout(debounceTimer);
+debounceTimer = setTimeout(() =&gt; {
+vm.updateVisibleItems();
+}, 100);
+});
+</code></pre> <p>HTML 部分如下：</p> <pre><code>&lt;div class="stk-list" @scroll="handleScroll"&gt;
+&lt;table class="stk-table"&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;td width="100"&gt;
+股票代碼
+&lt;/td&gt;
+&lt;td width="200"&gt;名稱&lt;/td&gt;
+&lt;td width="80"&gt;
+&lt;button @click="toggleOrder()"&gt;
+收盤價
+&lt;span&gt;
+&lt;span v-if="sortMode == 1"&gt;▲&lt;/span&gt;
+&lt;span v-else-if="sortMode == 2"&gt;▼&lt;/span&gt;
+&lt;span v-else&gt;⇳&lt;/span&gt;
+&lt;/span&gt;
+&lt;/button&gt;
+&lt;/td&gt;
+&lt;td width="80"&gt;開盤價&lt;/td&gt;
+&lt;td width="80"&gt;最高價&lt;/td&gt;
+&lt;td width="80"&gt;最低價&lt;/td&gt;
+&lt;td width="100"&gt;成交量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class="table-body-spacer" :style="{ height: topSpacerHeight + 'px' }"&gt;&lt;/tr&gt;
+&lt;tr v-for="stock in visibleItems" class="stk-item"&gt;
+&lt;td&gt;{{ stock.Code }}&lt;/td&gt;
+&lt;td&gt;{{ stock.Name }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.ClosingPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.OpeningPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.HighestPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.LowestPrice }}&lt;/td&gt;
+&lt;td class="num"&gt;{{ stock.TradeVolume }}&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class="table-body-spacer" :style="{ height: bottomSpacerHeight + 'px' }"&gt;&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+</code></pre> <p>相關說明有加成註解，希望解釋夠清楚。完整程式碼在 <a href="https://github.com/darkthread/darkthread.github.io/blob/master/virtualization/virt-scroll.html">Github</a> 有需要請自取，最後補充這次學到的心得：</p> <ol><li>scroll 事件會被連續觸發，使用者點一次捲軸上下箭頭可能會觸發多次，而拖拉滑塊或是滾滑鼠滾輪更是會持續發送，故我加了 isScrolling 旗標防止重複執行。</li> <li>發現修改上下填充列高度，元素高度異動會改變可視範圍容器的 scrollTop 觸發 scroll 事件，接重算可視範圍及填充列高度，渲染後 scrollTop 改變再次觸發 scroll 事件... 形成永動機捲到地老天荒。 最後我找到的解法是在更新可視範圍及填充列高度後，覆寫容器的 scrollTop 維持不變才克服。</li> <li>setTimeout 與 this.$nextTick() 的不同：Vue 的 $nextTick() 會在 Vue 的 DOM 更新完成後、瀏覽器渲染之前觸發。故要測量 rowHight 要用 setTimeout 等 DOM 渲染完成才準確、而覆寫 <code>container.scrollTop = scrollTop</code> 要趕在 DOM 渲染之前防止 scroll 事件。</li></ol> <p>我被拉捲軸捲成永動機的問題卡住，花了很久時間才研究出解法。問 AI 指出了正確方向，但沒一次改對，靠著加 Log 觀察及理解問題根源的古典除錯技術，最後試出了可行做法，解掉問題瞬間的興奮是靠 AI 改 Code 所沒有的。</p> <p>面對沒學過的應用需求，AI 寫的程式直接可用，賺到時間；AI 生成方向正確但不 Work 的程式，搞懂原理並修到好，則賺到知識及樂趣。怎麼都不會虧，哈!</p> <p data-slug="virtual-scrolling" data-title-en="Virutal scrolling excercise" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720">The blog explores virtual scrolling as a solution to handle large datasets in web applications. By rendering only visible items in the viewport, it improves performance and user experience compared to traditional pagination. The post shares insights and a personal implementation using Vue.js.</p>]]></content:encoded>
+    <itunes:image href="https://darkthread.github.io/virtualization/slow.gif"/>
+          <media:content url="https://darkthread.github.io/virtualization/slow.gif" medium="image"/>
+    <pubDate>Sat, 31 May 2025 08:45:59 GMT</pubDate>
+  </item><item>
     <title><![CDATA[資安新聞：SSL/TLS 憑證效期愈來愈短，每月更新一次的時代即將來臨]]></title>
     <link>https://blog.darkthread.net/blog/cert-vald-47days/</link>
     <itunes:title><![CDATA[資安新聞：SSL/TLS 憑證效期愈來愈短，每月更新一次的時代即將來臨]]></itunes:title>
@@ -1616,20 +2075,5 @@ nvm use --lts
     <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638826512769607482.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638826512769607482.png" medium="image"/>
     <pubDate>Mon, 12 May 2025 12:53:08 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手日記】CMD.exe 正常開啟，視窗卻不見蹤影]]></title>
-    <link>https://blog.darkthread.net/blog/off-screen-cmd/</link>
-    <itunes:title><![CDATA[【茶包射手日記】CMD.exe 正常開啟，視窗卻不見蹤影]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>遇到鳥問題。在 Windows 10 輸入 CMD 開啟命令列提示視窗，下方工作列有出現 CMD 項目，但視窗本體不見蹤影。</p> <p>身為資深 Windows 使用者，馬上想到可能是系統有記憶上次視窗開啟的桌面座標及大小，下次開啟時顯示在同一位置。我前陣子有調過螢幕，第二螢幕由右邊搬到左邊，有可能它記憶的座標在「右邊的第二螢幕」超出了可視範圍。</p> <p>定神一看，點擊工作列 CMD 項目切換焦點時有塊由小到大的黑影向右方一閃而過，把第二螢幕切到右邊，果然 CMD 視窗出現在第二螢幕，證實了我的猜測。</p> <p>爬文找到 CMD 存視窗座標及大小的 Registry 位置，在 HKCU:\Console 下，cmd.exe、Git Bash、Git CMD 各有自己的設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png"></p> <p>WinowPostion 0x01cf07f6, 相當於 X=0x7f6(2038)，Y=0x1cf(463)、WindowSize 0x00170078 則代表視窗大小為寬 120 字元高 33 字元。我的螢幕寬 1920，視窗左上角設成 2038 超出最右側，落在不可視範圍。嚴格說起是 CMD 的 Bug，遇到座標超出範圍自動拉回可視區域才是友善做法。</p> <p>知道原因，修正不難，把 WinowPostion 砍掉即可。順便練習怎麼用 PowerShell 操作：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638823149764650519.png"></p> <p>註：有讀者提到可以按 Win + 左/右 將視窗移回可視桌面範圍，但當時試過未成功，找機會再來驗證一次。</p> <p data-slug="off-screen-cmd" data-fbimg="https://i.imgur.com/frud5p3.jpeg#1280#720">A misplaced CMD window issue on Windows was resolved by adjusting Registry settings for window position and size, correcting its off-screen coordinates.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>遇到鳥問題。在 Windows 10 輸入 CMD 開啟命令列提示視窗，下方工作列有出現 CMD 項目，但視窗本體不見蹤影。</p> <p>身為資深 Windows 使用者，馬上想到可能是系統有記憶上次視窗開啟的桌面座標及大小，下次開啟時顯示在同一位置。我前陣子有調過螢幕，第二螢幕由右邊搬到左邊，有可能它記憶的座標在「右邊的第二螢幕」超出了可視範圍。</p> <p>定神一看，點擊工作列 CMD 項目切換焦點時有塊由小到大的黑影向右方一閃而過，把第二螢幕切到右邊，果然 CMD 視窗出現在第二螢幕，證實了我的猜測。</p> <p>爬文找到 CMD 存視窗座標及大小的 Registry 位置，在 HKCU:\Console 下，cmd.exe、Git Bash、Git CMD 各有自己的設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png"></p> <p>WinowPostion 0x01cf07f6, 相當於 X=0x7f6(2038)，Y=0x1cf(463)、WindowSize 0x00170078 則代表視窗大小為寬 120 字元高 33 字元。我的螢幕寬 1920，視窗左上角設成 2038 超出最右側，落在不可視範圍。嚴格說起是 CMD 的 Bug，遇到座標超出範圍自動拉回可視區域才是友善做法。</p> <p>知道原因，修正不難，把 WinowPostion 砍掉即可。順便練習怎麼用 PowerShell 操作：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638823149764650519.png"></p> <p>註：有讀者提到可以按 Win + 左/右 將視窗移回可視桌面範圍，但當時試過未成功，找機會再來驗證一次。</p> <p data-slug="off-screen-cmd" data-fbimg="https://i.imgur.com/frud5p3.jpeg#1280#720">A misplaced CMD window issue on Windows was resolved by adjusting Registry settings for window position and size, correcting its off-screen coordinates.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>遇到鳥問題。在 Windows 10 輸入 CMD 開啟命令列提示視窗，下方工作列有出現 CMD 項目，但視窗本體不見蹤影。</p> <p>身為資深 Windows 使用者，馬上想到可能是系統有記憶上次視窗開啟的桌面座標及大小，下次開啟時顯示在同一位置。我前陣子有調過螢幕，第二螢幕由右邊搬到左邊，有可能它記憶的座標在「右邊的第二螢幕」超出了可視範圍。</p> <p>定神一看，點擊工作列 CMD 項目切換焦點時有塊由小到大的黑影向右方一閃而過，把第二螢幕切到右邊，果然 CMD 視窗出現在第二螢幕，證實了我的猜測。</p> <p>爬文找到 CMD 存視窗座標及大小的 Registry 位置，在 HKCU:\Console 下，cmd.exe、Git Bash、Git CMD 各有自己的設定：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png"></p> <p>WinowPostion 0x01cf07f6, 相當於 X=0x7f6(2038)，Y=0x1cf(463)、WindowSize 0x00170078 則代表視窗大小為寬 120 字元高 33 字元。我的螢幕寬 1920，視窗左上角設成 2038 超出最右側，落在不可視範圍。嚴格說起是 CMD 的 Bug，遇到座標超出範圍自動拉回可視區域才是友善做法。</p> <p>知道原因，修正不難，把 WinowPostion 砍掉即可。順便練習怎麼用 PowerShell 操作：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638823149764650519.png"></p> <p>註：有讀者提到可以按 Win + 左/右 將視窗移回可視桌面範圍，但當時試過未成功，找機會再來驗證一次。</p> <p data-slug="off-screen-cmd" data-fbimg="https://i.imgur.com/frud5p3.jpeg#1280#720">A misplaced CMD window issue on Windows was resolved by adjusting Registry settings for window position and size, correcting its off-screen coordinates.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638823149760220603.png" medium="image"/>
-    <pubDate>Thu, 08 May 2025 15:01:35 GMT</pubDate>
   </item></channel>
 </rss>
