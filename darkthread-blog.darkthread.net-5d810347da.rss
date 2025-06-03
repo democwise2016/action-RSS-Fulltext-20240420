@@ -30,6 +30,21 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[讀懂資安新聞 - Chrome 為什麼取消中華電信的根憑證信任？]]></title>
+    <link>https://blog.darkthread.net/blog/chrome-remove-epki-trust/</link>
+    <itunes:title><![CDATA[讀懂資安新聞 - Chrome 為什麼取消中華電信的根憑證信任？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這幾天有則大消息 - <a href="https://www.ithome.com.tw/news/169318">合規改善不符要求，Chrome 8 月起停止預設信任中華電信 TLS 新憑證 by iThome</a>。</p> <p>簡單來說，Chrome 瀏覽器憑證預設信任設定將進行調整，Chrome 139+ 版本將不再預設信任中華電信 2025/08/01 之後發行 TLS 憑證，7/31 之前發行的網站憑證則不受影響。換言之，若網站使用中華電信 8/1 後簽發的 TLS 憑證，Chrome 瀏覽器會顯示網站不安全，不過實務上大家應該都會改換其他 CA 簽發的憑證，沒必要自找麻煩。</p> <p>Chrome 這次取消憑證有兩家，除了中華電信，另一家是匈牙利的 Netlock，理由是這兩家憑證授權機構 (CA) 過去一年內被觀察到的多項合規失誤與管理不善問題，作為公開信任憑證簽發機構的可靠性信心下降，其行為模式存在誠信缺失且未達預期標準，故決定移除信任。</p> <p>好奇心起。究竟中華電信犯了什麼錯，以至於斯？</p> <p>用 AI 查了資料，解答頗硬，一堆過去沒接觸過的術語，不過，自己開的局，含淚也要打完... XD 收獲是從看熱鬧向看門道推進了一寸。</p> <p>中華電信最嚴重的合規問題之一是憑證遷移過程對限制性 CAA (Certificate Authority Authorization) 記錄的<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1951415">檢查失誤</a>。</p> <p>事件發生於 2025 年初中華電信在進行政府伺服器數位憑證管理中心 (GTLSCA) 到 HiPKI OV TLS CA 的 TLS 憑證大規模遷移時，未正確檢查 CAA (Certificate Authority Authorization) 記錄，導致 HiPKI OV TLS CA 發行了大量未被授權的憑證。因為兩個 GTLSCA 跟 HiPKI OV TLS CA 都是由中華電信管理，中華電信直接使用原本在 GTLSCA 驗證過的 DCV (Domain Control Validation) 資料，批次重新簽發新憑證，未重新檢查 CAA 記錄。</p> <p>2025/03/01 Chrome Root Program 通知中華電信，指出憑證簽發量異常，且有新發行憑證的域名 CAA 記錄並未授權 HiPKI OV TLS CA 簽發，事後調查 2024/9/4 ~ 2025/2/26 間共有 11,860 張憑證因未正確檢查 CAA 記錄而被撤銷(大多尚未安裝，只有 24 張進行安裝測試)。之後中華電信被要求對團隊進行 BR (Baseline Requirements) 合規再訓練，未來不再進行不同 CA 驗證資料的批次遷移，所有申請都需重新執行完整驗證流程。</p> <p>【資安小辭典】</p> <ul><li>DCV (Domain Control Validation) 網域控制驗證<br> 讓憑證申請者證明對申請憑證的網域有實際控制權，常見做法包含在 DNS 加入指定 TXT 或 CNAME 記錄、用指定 Email (如 admin@、webmaster@) 收取驗證信、在網站指定路徑放置驗證檔案... 等。</li> <li>CAA (Certification Authority Authorization) 憑證頒發機構授權<br> 網域持有人透過 DNS CAA 記錄，指定哪些 CA 可以為該網域簽發憑證。做法是 CA 在簽發憑證前，查詢該網域的 CAA 記錄，確認自身是否被授權，若無 CAA 記錄，任何 CA 均可簽發；若有，僅被授權的 CA 可簽發。<br> 主要用於防止未經授權的 CA 為網域簽發憑證，提升整體安全性。<br> (註：依我的解讀，應該是某個簽發對象的 DNS 有 CAA 記錄，沒列舉中華電信為授權 CA，但中華電信完全沒檢查就簽發了憑證被抓包，事情才爆出來)</li></ul> <p>依據Google 資安部落格的<a href="https://security.googleblog.com/2025/05/sustaining-digital-certificate-security-chrome-root-store-changes.html">說法</a>：</p> <blockquote> <p>Over the past several months and years, we have observed a pattern of compliance failures, unmet improvement commitments, and the absence of tangible, measurable progress in response to publicly disclosed incident reports. When these factors are considered in aggregate and considered against the inherent risk each publicly-trusted CA poses to the internet, continued public trust is no longer justified.<br> 在過去的幾個月和幾年裡，我們觀察到了不合規範、承諾跳票及在回應公揭露事件報告方面缺乏有形、可衡量的進展。綜合考慮這些因素並結合每個公眾信任 CA 對 Internet 的固有風險時，不宜再給予持續的公眾信任。</p> </blockquote> <p>(註：這是 Chrome 每次說明撤銷根憑證信任理由的標準說法，其措辭不特別針對中華電信，撤銷理由有一大部分與 <a href="https://security.googleblog.com/2024/06/sustaining-digital-certificate-security.html">2024 年公告</a>一字不差)</p> <p>這次被撤銷信任的根憑證包含：</p> <ul><li>OU=ePKI Root Certification Authority, O=Chunghwa Telecom Co., Ltd., C=TW</li> <li>CN=HiPKI Root CA – G1, O=Chunghwa Telecom Co., Ltd., C=TW</li></ul> <p>新政策適用於使用 Chrome Root Store 的所有平台，包括 Windows、macOS、ChromeOS、Android 和 Linux，但不影響 iOS 系統。</p> <p>中華電信憑證的主要應用還是在政府與基礎建設領域，受最大影響的還是政府網站跟公家機關吧!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638845516655303708.png"></p> <p>中華電信目前<a href="https://www.cht.com.tw/zh-tw/home/cht/messages/2025/0602-1810">争取 2026/03 前恢復被 Chrome 信任</a>，若一切如願且網站憑證效期落在明年 3 月之後，可當成什麼都沒發生。數發部則於今年 3 月<a href="https://moda.gov.tw/press/press-releases/16348">啟動「政府網站雙憑證」機制應變</a>，增加符合公開信任根憑證標準的本土 CA 簽發的憑證(註：沒說哪一家，但應該是 TWCA 吧？)，當原有憑證被特定瀏覽器(我猜主流瀏覽器都會跟進)撤除信任時，能切換至受信任之替代憑證。</p> <p>總之，受影響的網站自會默默處理，解法也不難，這件事對大部分的人應該是無感的。</p> <p data-slug="chrome-remove-epki-trust" data-fbimg="https://i.postimg.cc/44110bZR/image.png#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這幾天有則大消息 - <a href="https://www.ithome.com.tw/news/169318">合規改善不符要求，Chrome 8 月起停止預設信任中華電信 TLS 新憑證 by iThome</a>。</p> <p>簡單來說，Chrome 瀏覽器憑證預設信任設定將進行調整，Chrome 139+ 版本將不再預設信任中華電信 2025/08/01 之後發行 TLS 憑證，7/31 之前發行的網站憑證則不受影響。換言之，若網站使用中華電信 8/1 後簽發的 TLS 憑證，Chrome 瀏覽器會顯示網站不安全，不過實務上大家應該都會改換其他 CA 簽發的憑證，沒必要自找麻煩。</p> <p>Chrome 這次取消憑證有兩家，除了中華電信，另一家是匈牙利的 Netlock，理由是這兩家憑證授權機構 (CA) 過去一年內被觀察到的多項合規失誤與管理不善問題，作為公開信任憑證簽發機構的可靠性信心下降，其行為模式存在誠信缺失且未達預期標準，故決定移除信任。</p> <p>好奇心起。究竟中華電信犯了什麼錯，以至於斯？</p> <p>用 AI 查了資料，解答頗硬，一堆過去沒接觸過的術語，不過，自己開的局，含淚也要打完... XD 收獲是從看熱鬧向看門道推進了一寸。</p> <p>中華電信最嚴重的合規問題之一是憑證遷移過程對限制性 CAA (Certificate Authority Authorization) 記錄的<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1951415">檢查失誤</a>。</p> <p>事件發生於 2025 年初中華電信在進行政府伺服器數位憑證管理中心 (GTLSCA) 到 HiPKI OV TLS CA 的 TLS 憑證大規模遷移時，未正確檢查 CAA (Certificate Authority Authorization) 記錄，導致 HiPKI OV TLS CA 發行了大量未被授權的憑證。因為兩個 GTLSCA 跟 HiPKI OV TLS CA 都是由中華電信管理，中華電信直接使用原本在 GTLSCA 驗證過的 DCV (Domain Control Validation) 資料，批次重新簽發新憑證，未重新檢查 CAA 記錄。</p> <p>2025/03/01 Chrome Root Program 通知中華電信，指出憑證簽發量異常，且有新發行憑證的域名 CAA 記錄並未授權 HiPKI OV TLS CA 簽發，事後調查 2024/9/4 ~ 2025/2/26 間共有 11,860 張憑證因未正確檢查 CAA 記錄而被撤銷(大多尚未安裝，只有 24 張進行安裝測試)。之後中華電信被要求對團隊進行 BR (Baseline Requirements) 合規再訓練，未來不再進行不同 CA 驗證資料的批次遷移，所有申請都需重新執行完整驗證流程。</p> <p>【資安小辭典】</p> <ul><li>DCV (Domain Control Validation) 網域控制驗證<br> 讓憑證申請者證明對申請憑證的網域有實際控制權，常見做法包含在 DNS 加入指定 TXT 或 CNAME 記錄、用指定 Email (如 admin@、webmaster@) 收取驗證信、在網站指定路徑放置驗證檔案... 等。</li> <li>CAA (Certification Authority Authorization) 憑證頒發機構授權<br> 網域持有人透過 DNS CAA 記錄，指定哪些 CA 可以為該網域簽發憑證。做法是 CA 在簽發憑證前，查詢該網域的 CAA 記錄，確認自身是否被授權，若無 CAA 記錄，任何 CA 均可簽發；若有，僅被授權的 CA 可簽發。<br> 主要用於防止未經授權的 CA 為網域簽發憑證，提升整體安全性。<br> (註：依我的解讀，應該是某個簽發對象的 DNS 有 CAA 記錄，沒列舉中華電信為授權 CA，但中華電信完全沒檢查就簽發了憑證被抓包，事情才爆出來)</li></ul> <p>依據Google 資安部落格的<a href="https://security.googleblog.com/2025/05/sustaining-digital-certificate-security-chrome-root-store-changes.html">說法</a>：</p> <blockquote> <p>Over the past several months and years, we have observed a pattern of compliance failures, unmet improvement commitments, and the absence of tangible, measurable progress in response to publicly disclosed incident reports. When these factors are considered in aggregate and considered against the inherent risk each publicly-trusted CA poses to the internet, continued public trust is no longer justified.<br> 在過去的幾個月和幾年裡，我們觀察到了不合規範、承諾跳票及在回應公揭露事件報告方面缺乏有形、可衡量的進展。綜合考慮這些因素並結合每個公眾信任 CA 對 Internet 的固有風險時，不宜再給予持續的公眾信任。</p> </blockquote> <p>(註：這是 Chrome 每次說明撤銷根憑證信任理由的標準說法，其措辭不特別針對中華電信，撤銷理由有一大部分與 <a href="https://security.googleblog.com/2024/06/sustaining-digital-certificate-security.html">2024 年公告</a>一字不差)</p> <p>這次被撤銷信任的根憑證包含：</p> <ul><li>OU=ePKI Root Certification Authority, O=Chunghwa Telecom Co., Ltd., C=TW</li> <li>CN=HiPKI Root CA – G1, O=Chunghwa Telecom Co., Ltd., C=TW</li></ul> <p>新政策適用於使用 Chrome Root Store 的所有平台，包括 Windows、macOS、ChromeOS、Android 和 Linux，但不影響 iOS 系統。</p> <p>中華電信憑證的主要應用還是在政府與基礎建設領域，受最大影響的還是政府網站跟公家機關吧!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638845516655303708.png"></p> <p>中華電信目前<a href="https://www.cht.com.tw/zh-tw/home/cht/messages/2025/0602-1810">争取 2026/03 前恢復被 Chrome 信任</a>，若一切如願且網站憑證效期落在明年 3 月之後，可當成什麼都沒發生。數發部則於今年 3 月<a href="https://moda.gov.tw/press/press-releases/16348">啟動「政府網站雙憑證」機制應變</a>，增加符合公開信任根憑證標準的本土 CA 簽發的憑證(註：沒說哪一家，但應該是 TWCA 吧？)，當原有憑證被特定瀏覽器(我猜主流瀏覽器都會跟進)撤除信任時，能切換至受信任之替代憑證。</p> <p>總之，受影響的網站自會默默處理，解法也不難，這件事對大部分的人應該是無感的。</p> <p data-slug="chrome-remove-epki-trust" data-fbimg="https://i.postimg.cc/44110bZR/image.png#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這幾天有則大消息 - <a href="https://www.ithome.com.tw/news/169318">合規改善不符要求，Chrome 8 月起停止預設信任中華電信 TLS 新憑證 by iThome</a>。</p> <p>簡單來說，Chrome 瀏覽器憑證預設信任設定將進行調整，Chrome 139+ 版本將不再預設信任中華電信 2025/08/01 之後發行 TLS 憑證，7/31 之前發行的網站憑證則不受影響。換言之，若網站使用中華電信 8/1 後簽發的 TLS 憑證，Chrome 瀏覽器會顯示網站不安全，不過實務上大家應該都會改換其他 CA 簽發的憑證，沒必要自找麻煩。</p> <p>Chrome 這次取消憑證有兩家，除了中華電信，另一家是匈牙利的 Netlock，理由是這兩家憑證授權機構 (CA) 過去一年內被觀察到的多項合規失誤與管理不善問題，作為公開信任憑證簽發機構的可靠性信心下降，其行為模式存在誠信缺失且未達預期標準，故決定移除信任。</p> <p>好奇心起。究竟中華電信犯了什麼錯，以至於斯？</p> <p>用 AI 查了資料，解答頗硬，一堆過去沒接觸過的術語，不過，自己開的局，含淚也要打完... XD 收獲是從看熱鬧向看門道推進了一寸。</p> <p>中華電信最嚴重的合規問題之一是憑證遷移過程對限制性 CAA (Certificate Authority Authorization) 記錄的<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1951415">檢查失誤</a>。</p> <p>事件發生於 2025 年初中華電信在進行政府伺服器數位憑證管理中心 (GTLSCA) 到 HiPKI OV TLS CA 的 TLS 憑證大規模遷移時，未正確檢查 CAA (Certificate Authority Authorization) 記錄，導致 HiPKI OV TLS CA 發行了大量未被授權的憑證。因為兩個 GTLSCA 跟 HiPKI OV TLS CA 都是由中華電信管理，中華電信直接使用原本在 GTLSCA 驗證過的 DCV (Domain Control Validation) 資料，批次重新簽發新憑證，未重新檢查 CAA 記錄。</p> <p>2025/03/01 Chrome Root Program 通知中華電信，指出憑證簽發量異常，且有新發行憑證的域名 CAA 記錄並未授權 HiPKI OV TLS CA 簽發，事後調查 2024/9/4 ~ 2025/2/26 間共有 11,860 張憑證因未正確檢查 CAA 記錄而被撤銷(大多尚未安裝，只有 24 張進行安裝測試)。之後中華電信被要求對團隊進行 BR (Baseline Requirements) 合規再訓練，未來不再進行不同 CA 驗證資料的批次遷移，所有申請都需重新執行完整驗證流程。</p> <p>【資安小辭典】</p> <ul><li>DCV (Domain Control Validation) 網域控制驗證<br> 讓憑證申請者證明對申請憑證的網域有實際控制權，常見做法包含在 DNS 加入指定 TXT 或 CNAME 記錄、用指定 Email (如 admin@、webmaster@) 收取驗證信、在網站指定路徑放置驗證檔案... 等。</li> <li>CAA (Certification Authority Authorization) 憑證頒發機構授權<br> 網域持有人透過 DNS CAA 記錄，指定哪些 CA 可以為該網域簽發憑證。做法是 CA 在簽發憑證前，查詢該網域的 CAA 記錄，確認自身是否被授權，若無 CAA 記錄，任何 CA 均可簽發；若有，僅被授權的 CA 可簽發。<br> 主要用於防止未經授權的 CA 為網域簽發憑證，提升整體安全性。<br> (註：依我的解讀，應該是某個簽發對象的 DNS 有 CAA 記錄，沒列舉中華電信為授權 CA，但中華電信完全沒檢查就簽發了憑證被抓包，事情才爆出來)</li></ul> <p>依據Google 資安部落格的<a href="https://security.googleblog.com/2025/05/sustaining-digital-certificate-security-chrome-root-store-changes.html">說法</a>：</p> <blockquote> <p>Over the past several months and years, we have observed a pattern of compliance failures, unmet improvement commitments, and the absence of tangible, measurable progress in response to publicly disclosed incident reports. When these factors are considered in aggregate and considered against the inherent risk each publicly-trusted CA poses to the internet, continued public trust is no longer justified.<br> 在過去的幾個月和幾年裡，我們觀察到了不合規範、承諾跳票及在回應公揭露事件報告方面缺乏有形、可衡量的進展。綜合考慮這些因素並結合每個公眾信任 CA 對 Internet 的固有風險時，不宜再給予持續的公眾信任。</p> </blockquote> <p>(註：這是 Chrome 每次說明撤銷根憑證信任理由的標準說法，其措辭不特別針對中華電信，撤銷理由有一大部分與 <a href="https://security.googleblog.com/2024/06/sustaining-digital-certificate-security.html">2024 年公告</a>一字不差)</p> <p>這次被撤銷信任的根憑證包含：</p> <ul><li>OU=ePKI Root Certification Authority, O=Chunghwa Telecom Co., Ltd., C=TW</li> <li>CN=HiPKI Root CA – G1, O=Chunghwa Telecom Co., Ltd., C=TW</li></ul> <p>新政策適用於使用 Chrome Root Store 的所有平台，包括 Windows、macOS、ChromeOS、Android 和 Linux，但不影響 iOS 系統。</p> <p>中華電信憑證的主要應用還是在政府與基礎建設領域，受最大影響的還是政府網站跟公家機關吧!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638845516655303708.png"></p> <p>中華電信目前<a href="https://www.cht.com.tw/zh-tw/home/cht/messages/2025/0602-1810">争取 2026/03 前恢復被 Chrome 信任</a>，若一切如願且網站憑證效期落在明年 3 月之後，可當成什麼都沒發生。數發部則於今年 3 月<a href="https://moda.gov.tw/press/press-releases/16348">啟動「政府網站雙憑證」機制應變</a>，增加符合公開信任根憑證標準的本土 CA 簽發的憑證(註：沒說哪一家，但應該是 TWCA 吧？)，當原有憑證被特定瀏覽器(我猜主流瀏覽器都會跟進)撤除信任時，能切換至受信任之替代憑證。</p> <p>總之，受影響的網站自會默默處理，解法也不難，這件事對大部分的人應該是無感的。</p> <p data-slug="chrome-remove-epki-trust" data-fbimg="https://i.postimg.cc/44110bZR/image.png#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638845516655303708.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638845516655303708.png" medium="image"/>
+    <pubDate>Tue, 03 Jun 2025 12:45:52 GMT</pubDate>
+  </item><item>
     <title><![CDATA[維修 DIY 雜記 202505]]></title>
     <link>https://blog.darkthread.net/blog/fix-notes-202505/</link>
     <itunes:title><![CDATA[維修 DIY 雜記 202505]]></itunes:title>
@@ -1682,104 +1697,5 @@ Start-Process excel.exe $tmpCsvPath
     <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png" medium="image"/>
     <pubDate>Tue, 20 May 2025 14:12:14 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[收釣魚信學冷知識 - 在 SMTP 郵件假冒寄件人]]></title>
-    <link>https://blog.darkthread.net/blog/fake-sender-email/</link>
-    <itunes:title><![CDATA[收釣魚信學冷知識 - 在 SMTP 郵件假冒寄件人]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>「社交攻擊演練」幾乎已是資安教育的必修課程，也成為各大資安廠商的標準服務項目，就像牛肉麵店都有豆干跟海帶一樣。</p> <p>於是，我們三不五時都會收到各式釣魚信，五花八門，什麼都有：商品特價優惠、催繳停車費、專案促銷回饋、通知可以退稅、催你點連結進 Teams 開會... 一時失察點中連結，很快會收到關懷(連釣魚信都分不出來，可憐的孩子 😄)。</p> <p>久而久之，我們多半練就出用膝蓋都能識別釣魚信的能力，例如：可疑的寄件者及連結網址，網域名稱刻意<a href="https://www.informationsecurity.com.tw/article/article_detail.aspx?aid=6813">取跟正版差一兩個易混淆的字元</a>、非公務內容... 等，一望便知。</p> <p>其中最好識別的就是寄件者，發現寄件者是外部信箱且非熟悉的往來對象，馬上提高警覺就對了!</p> <p>不過，最近我收到一封高仿真的社交攻擊演練釣魚信，除了抓準近期內部公告的某項政策結合時事，用詞遣字也用到內部獨有術語，並加註處理期限提醒逾會影響考績，企圖增加收信者發生受迫性失誤的機率，高度客製化的設計讓我迷惑了幾秒。</p> <p>但身為技術控，則在釣魚信找到其他亮點，拓展了眼界學到新東西。</p> <p>我用<a href="/blog/docker-mailserver-for-internal-test/">自家的 Docker Mailserver</a>嘗試重現。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638832639389844741.png"></p> <p>這是一封外部寄件者寄給 admin@example.com 的信件，但在 Outlook 清單顯示的寄件者是 hr@example.com [1]，跟 admin@example.com 同一網域，開啟信件的寄件者則顯示為 <code>Phisher &lt;service@phisher.com&gt; 代表hr@example.com</code> [2]。</p> <p>我過去沒注意過 Email 可以這樣玩，以為資安廠商用了什麼高級駭客技巧，後來才發現這是<a href="https://www.rfc-editor.org/rfc/rfc5322#page-22:%7E:text=The%20%22From%3A%22%20field%20specifies%20the%20author(s)%20of%20the%20message%2C%0A%20%20%20that%20is%2C%20the%20mailbox(es)%20of%20the%20person(s)%20or%20system(s)%20responsible%0A%20%20%20for%20the%20writing%20of%20the%20message.%20%20The%20%22Sender%3A%22%20field%20specifies%20the%0A%20%20%20mailbox%20of%20the%20agent%20responsible%20for%20the%20actual%20transmission%20of%20the%0A%20%20%20message.">古老 SMTP 協定就支援的規格</a>。</p> <blockquote> <p>The "From:" field specifies the author(s) of the message, that is, the mailbox(es) of the person(s) or system(s) responsible for the writing of the message. The "Sender:" field specifies the mailbox of the agent responsible for the actual transmission of the message.<br> 「From:」欄位指定訊息的作者，即負責撰寫訊息的個人或系統的電子郵件地址。「Sender:」欄位則指定負責實際傳送該訊息的代理人的電子郵件地址。</p> </blockquote> <p>SMTP 允許兩個欄位不同，而在郵件軟體會顯示成 <code>Sender 代表 From</code>。信是用底下這段程式做出來的，跟標準 SMTP 寄信寫法幾乎相同，只差在宣告不同的 From 跟 Sender：</p> <pre><code>using MimeKit;
-using MailKit.Net.Smtp;
-// System.Net.Mail 的 HELO 宣告固定用機器名稱，會被 Docker Mailserver SMTP Server 拒收
-// 故程式改用可指定 client.LocalDomain 的 MailKit
-var message = new MimeMessage();
-message.From.Add(new MailboxAddress(string.Empty, "hr@example.com"));
-message.Sender = new MailboxAddress("Phisher", "service@phisher.com");
-message.To.Add(new MailboxAddress("Admin", "admin@example.com"));
-message.Subject = "出勤異常通知: 2025-05-16 下班未刷卡";
-message.Body = new TextPart("html")
-{
-Text =
-"""
-&lt;div style="font-family: 微軟正黑體; font-size: 11pt;"&gt;
-&lt;p&gt;親愛的同仁您好，&lt;/p&gt;
-&lt;p&gt;系統發現您於 &lt;span style="color: red"&gt;&lt;strong&gt;2025-05-16&lt;/strong&gt; 當日下班時未完成刷卡&lt;/span&gt;。&lt;/p&gt;
-&lt;p&gt;請您儘速至&lt;a href="https://fakeweb.phisher.com/gotyou"&gt;人資系統補登下班紀錄&lt;/a&gt;，或洽詢人資部門協助。&lt;/p&gt;
-&lt;/div&gt;
-"""
-};
-using (var client = new SmtpClient())
-{
-client.LocalDomain = "mail.example.com";
-client.Connect("mail.example.com", 25, false);
-client.Send(message);
-client.Disconnect(true);
-}
-Console.WriteLine("Email sent successfully.");
-</code></pre> <p>未經檢核授權就任意宣告代表誰，感覺是會被誤用或惡意利用的特性呀! 好奇郵件伺服器真的不設防嗎？</p> <p>查了一下，SMTP 協議本身允許任何人設定 From 欄位為任意 Email 地址，也允許 Sender 與 From 不同，但現代郵件伺服器會有一些驗證與防偽措施，例如 SPF、DKIM、DMARC 等。</p> <p>SPF 透過在網域 DNS 設置 SPF 記錄，明確列出哪些 IP 位址的郵件伺服器授權可以以該網域名義發送郵件，因此若你宣稱的 Sender/From 網域未授權你的 IP 代表發信，信件通常會被拒收或當成垃圾/釣魚信。</p> <p>關於 SPF、DKIM、DMARC <a href="/blog/docker-mailserver-for-internal-test/">前文</a>有較多說明，而我為了方便測試，停用了 SPF、DMARC，故在真實世界除非伺服器有額外設定(如：允許 SMTP Relay)或被動手腳，這招沒那麼容易得逞。要不是收到這封信，我應該學不到這個冷知識，噗。</p> <p data-slug="fake-sender-email" data-title-en="Fake sender of SMTP mail" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2019/09/23/13/11/iceberg-4498548_960_720.jpg#960#720">Phishing attacks often exploit email’s “From” and “Sender” fields to deceive recipients. SMTP allows these fields to differ, but modern email servers use SPF, DKIM, and DMARC to prevent misuse.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>「社交攻擊演練」幾乎已是資安教育的必修課程，也成為各大資安廠商的標準服務項目，就像牛肉麵店都有豆干跟海帶一樣。</p> <p>於是，我們三不五時都會收到各式釣魚信，五花八門，什麼都有：商品特價優惠、催繳停車費、專案促銷回饋、通知可以退稅、催你點連結進 Teams 開會... 一時失察點中連結，很快會收到關懷(連釣魚信都分不出來，可憐的孩子 😄)。</p> <p>久而久之，我們多半練就出用膝蓋都能識別釣魚信的能力，例如：可疑的寄件者及連結網址，網域名稱刻意<a href="https://www.informationsecurity.com.tw/article/article_detail.aspx?aid=6813">取跟正版差一兩個易混淆的字元</a>、非公務內容... 等，一望便知。</p> <p>其中最好識別的就是寄件者，發現寄件者是外部信箱且非熟悉的往來對象，馬上提高警覺就對了!</p> <p>不過，最近我收到一封高仿真的社交攻擊演練釣魚信，除了抓準近期內部公告的某項政策結合時事，用詞遣字也用到內部獨有術語，並加註處理期限提醒逾會影響考績，企圖增加收信者發生受迫性失誤的機率，高度客製化的設計讓我迷惑了幾秒。</p> <p>但身為技術控，則在釣魚信找到其他亮點，拓展了眼界學到新東西。</p> <p>我用<a href="/blog/docker-mailserver-for-internal-test/">自家的 Docker Mailserver</a>嘗試重現。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638832639389844741.png"></p> <p>這是一封外部寄件者寄給 admin@example.com 的信件，但在 Outlook 清單顯示的寄件者是 hr@example.com [1]，跟 admin@example.com 同一網域，開啟信件的寄件者則顯示為 <code>Phisher &lt;service@phisher.com&gt; 代表hr@example.com</code> [2]。</p> <p>我過去沒注意過 Email 可以這樣玩，以為資安廠商用了什麼高級駭客技巧，後來才發現這是<a href="https://www.rfc-editor.org/rfc/rfc5322#page-22:%7E:text=The%20%22From%3A%22%20field%20specifies%20the%20author(s)%20of%20the%20message%2C%0A%20%20%20that%20is%2C%20the%20mailbox(es)%20of%20the%20person(s)%20or%20system(s)%20responsible%0A%20%20%20for%20the%20writing%20of%20the%20message.%20%20The%20%22Sender%3A%22%20field%20specifies%20the%0A%20%20%20mailbox%20of%20the%20agent%20responsible%20for%20the%20actual%20transmission%20of%20the%0A%20%20%20message.">古老 SMTP 協定就支援的規格</a>。</p> <blockquote> <p>The "From:" field specifies the author(s) of the message, that is, the mailbox(es) of the person(s) or system(s) responsible for the writing of the message. The "Sender:" field specifies the mailbox of the agent responsible for the actual transmission of the message.<br> 「From:」欄位指定訊息的作者，即負責撰寫訊息的個人或系統的電子郵件地址。「Sender:」欄位則指定負責實際傳送該訊息的代理人的電子郵件地址。</p> </blockquote> <p>SMTP 允許兩個欄位不同，而在郵件軟體會顯示成 <code>Sender 代表 From</code>。信是用底下這段程式做出來的，跟標準 SMTP 寄信寫法幾乎相同，只差在宣告不同的 From 跟 Sender：</p> <pre><code>using MimeKit;
-using MailKit.Net.Smtp;
-// System.Net.Mail 的 HELO 宣告固定用機器名稱，會被 Docker Mailserver SMTP Server 拒收
-// 故程式改用可指定 client.LocalDomain 的 MailKit
-var message = new MimeMessage();
-message.From.Add(new MailboxAddress(string.Empty, "hr@example.com"));
-message.Sender = new MailboxAddress("Phisher", "service@phisher.com");
-message.To.Add(new MailboxAddress("Admin", "admin@example.com"));
-message.Subject = "出勤異常通知: 2025-05-16 下班未刷卡";
-message.Body = new TextPart("html")
-{
-Text =
-"""
-&lt;div style="font-family: 微軟正黑體; font-size: 11pt;"&gt;
-&lt;p&gt;親愛的同仁您好，&lt;/p&gt;
-&lt;p&gt;系統發現您於 &lt;span style="color: red"&gt;&lt;strong&gt;2025-05-16&lt;/strong&gt; 當日下班時未完成刷卡&lt;/span&gt;。&lt;/p&gt;
-&lt;p&gt;請您儘速至&lt;a href="https://fakeweb.phisher.com/gotyou"&gt;人資系統補登下班紀錄&lt;/a&gt;，或洽詢人資部門協助。&lt;/p&gt;
-&lt;/div&gt;
-"""
-};
-using (var client = new SmtpClient())
-{
-client.LocalDomain = "mail.example.com";
-client.Connect("mail.example.com", 25, false);
-client.Send(message);
-client.Disconnect(true);
-}
-Console.WriteLine("Email sent successfully.");
-</code></pre> <p>未經檢核授權就任意宣告代表誰，感覺是會被誤用或惡意利用的特性呀! 好奇郵件伺服器真的不設防嗎？</p> <p>查了一下，SMTP 協議本身允許任何人設定 From 欄位為任意 Email 地址，也允許 Sender 與 From 不同，但現代郵件伺服器會有一些驗證與防偽措施，例如 SPF、DKIM、DMARC 等。</p> <p>SPF 透過在網域 DNS 設置 SPF 記錄，明確列出哪些 IP 位址的郵件伺服器授權可以以該網域名義發送郵件，因此若你宣稱的 Sender/From 網域未授權你的 IP 代表發信，信件通常會被拒收或當成垃圾/釣魚信。</p> <p>關於 SPF、DKIM、DMARC <a href="/blog/docker-mailserver-for-internal-test/">前文</a>有較多說明，而我為了方便測試，停用了 SPF、DMARC，故在真實世界除非伺服器有額外設定(如：允許 SMTP Relay)或被動手腳，這招沒那麼容易得逞。要不是收到這封信，我應該學不到這個冷知識，噗。</p> <p data-slug="fake-sender-email" data-title-en="Fake sender of SMTP mail" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2019/09/23/13/11/iceberg-4498548_960_720.jpg#960#720">Phishing attacks often exploit email’s “From” and “Sender” fields to deceive recipients. SMTP allows these fields to differ, but modern email servers use SPF, DKIM, and DMARC to prevent misuse.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>「社交攻擊演練」幾乎已是資安教育的必修課程，也成為各大資安廠商的標準服務項目，就像牛肉麵店都有豆干跟海帶一樣。</p> <p>於是，我們三不五時都會收到各式釣魚信，五花八門，什麼都有：商品特價優惠、催繳停車費、專案促銷回饋、通知可以退稅、催你點連結進 Teams 開會... 一時失察點中連結，很快會收到關懷(連釣魚信都分不出來，可憐的孩子 😄)。</p> <p>久而久之，我們多半練就出用膝蓋都能識別釣魚信的能力，例如：可疑的寄件者及連結網址，網域名稱刻意<a href="https://www.informationsecurity.com.tw/article/article_detail.aspx?aid=6813">取跟正版差一兩個易混淆的字元</a>、非公務內容... 等，一望便知。</p> <p>其中最好識別的就是寄件者，發現寄件者是外部信箱且非熟悉的往來對象，馬上提高警覺就對了!</p> <p>不過，最近我收到一封高仿真的社交攻擊演練釣魚信，除了抓準近期內部公告的某項政策結合時事，用詞遣字也用到內部獨有術語，並加註處理期限提醒逾會影響考績，企圖增加收信者發生受迫性失誤的機率，高度客製化的設計讓我迷惑了幾秒。</p> <p>但身為技術控，則在釣魚信找到其他亮點，拓展了眼界學到新東西。</p> <p>我用<a href="/blog/docker-mailserver-for-internal-test/">自家的 Docker Mailserver</a>嘗試重現。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638832639389844741.png"></p> <p>這是一封外部寄件者寄給 admin@example.com 的信件，但在 Outlook 清單顯示的寄件者是 hr@example.com [1]，跟 admin@example.com 同一網域，開啟信件的寄件者則顯示為 <code>Phisher &lt;service@phisher.com&gt; 代表hr@example.com</code> [2]。</p> <p>我過去沒注意過 Email 可以這樣玩，以為資安廠商用了什麼高級駭客技巧，後來才發現這是<a href="https://www.rfc-editor.org/rfc/rfc5322#page-22:%7E:text=The%20%22From%3A%22%20field%20specifies%20the%20author(s)%20of%20the%20message%2C%0A%20%20%20that%20is%2C%20the%20mailbox(es)%20of%20the%20person(s)%20or%20system(s)%20responsible%0A%20%20%20for%20the%20writing%20of%20the%20message.%20%20The%20%22Sender%3A%22%20field%20specifies%20the%0A%20%20%20mailbox%20of%20the%20agent%20responsible%20for%20the%20actual%20transmission%20of%20the%0A%20%20%20message.">古老 SMTP 協定就支援的規格</a>。</p> <blockquote> <p>The "From:" field specifies the author(s) of the message, that is, the mailbox(es) of the person(s) or system(s) responsible for the writing of the message. The "Sender:" field specifies the mailbox of the agent responsible for the actual transmission of the message.<br> 「From:」欄位指定訊息的作者，即負責撰寫訊息的個人或系統的電子郵件地址。「Sender:」欄位則指定負責實際傳送該訊息的代理人的電子郵件地址。</p> </blockquote> <p>SMTP 允許兩個欄位不同，而在郵件軟體會顯示成 <code>Sender 代表 From</code>。信是用底下這段程式做出來的，跟標準 SMTP 寄信寫法幾乎相同，只差在宣告不同的 From 跟 Sender：</p> <pre><code>using MimeKit;
-using MailKit.Net.Smtp;
-// System.Net.Mail 的 HELO 宣告固定用機器名稱，會被 Docker Mailserver SMTP Server 拒收
-// 故程式改用可指定 client.LocalDomain 的 MailKit
-var message = new MimeMessage();
-message.From.Add(new MailboxAddress(string.Empty, "hr@example.com"));
-message.Sender = new MailboxAddress("Phisher", "service@phisher.com");
-message.To.Add(new MailboxAddress("Admin", "admin@example.com"));
-message.Subject = "出勤異常通知: 2025-05-16 下班未刷卡";
-message.Body = new TextPart("html")
-{
-Text =
-"""
-&lt;div style="font-family: 微軟正黑體; font-size: 11pt;"&gt;
-&lt;p&gt;親愛的同仁您好，&lt;/p&gt;
-&lt;p&gt;系統發現您於 &lt;span style="color: red"&gt;&lt;strong&gt;2025-05-16&lt;/strong&gt; 當日下班時未完成刷卡&lt;/span&gt;。&lt;/p&gt;
-&lt;p&gt;請您儘速至&lt;a href="https://fakeweb.phisher.com/gotyou"&gt;人資系統補登下班紀錄&lt;/a&gt;，或洽詢人資部門協助。&lt;/p&gt;
-&lt;/div&gt;
-"""
-};
-using (var client = new SmtpClient())
-{
-client.LocalDomain = "mail.example.com";
-client.Connect("mail.example.com", 25, false);
-client.Send(message);
-client.Disconnect(true);
-}
-Console.WriteLine("Email sent successfully.");
-</code></pre> <p>未經檢核授權就任意宣告代表誰，感覺是會被誤用或惡意利用的特性呀! 好奇郵件伺服器真的不設防嗎？</p> <p>查了一下，SMTP 協議本身允許任何人設定 From 欄位為任意 Email 地址，也允許 Sender 與 From 不同，但現代郵件伺服器會有一些驗證與防偽措施，例如 SPF、DKIM、DMARC 等。</p> <p>SPF 透過在網域 DNS 設置 SPF 記錄，明確列出哪些 IP 位址的郵件伺服器授權可以以該網域名義發送郵件，因此若你宣稱的 Sender/From 網域未授權你的 IP 代表發信，信件通常會被拒收或當成垃圾/釣魚信。</p> <p>關於 SPF、DKIM、DMARC <a href="/blog/docker-mailserver-for-internal-test/">前文</a>有較多說明，而我為了方便測試，停用了 SPF、DMARC，故在真實世界除非伺服器有額外設定(如：允許 SMTP Relay)或被動手腳，這招沒那麼容易得逞。要不是收到這封信，我應該學不到這個冷知識，噗。</p> <p data-slug="fake-sender-email" data-title-en="Fake sender of SMTP mail" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2019/09/23/13/11/iceberg-4498548_960_720.jpg#960#720">Phishing attacks often exploit email’s “From” and “Sender” fields to deceive recipients. SMTP allows these fields to differ, but modern email servers use SPF, DKIM, and DMARC to prevent misuse.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638832639389844741.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638832639389844741.png" medium="image"/>
-    <pubDate>Mon, 19 May 2025 15:05:21 GMT</pubDate>
   </item></channel>
 </rss>
