@@ -30,6 +30,57 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[再探網路管制環境之 Outlook 啟動卡住問題]]></title>
+    <link>https://blog.darkthread.net/blog/outlook-in-restricted-env/</link>
+    <itunes:title><![CDATA[再探網路管制環境之 Outlook 啟動卡住問題]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>問題症狀：企業內部新安裝 Outlook 2021，設定好 Exchange 帳號正確連上信箱，但每次啟動 Outlook 沒多久會彈出一連線中轉圈圈動畫的空白對話框，對話框具強制性(Modal)阻擋 Outlook 操作，要命的是轉圈圈沒完沒了，怎麼等都不會結束或 Timeout。</p> <p>原以為是新安裝後等待重建索引(信箱有好幾 GB 應該要跑一陣子)，但想想不對，建立索引應在背景執行，沒有索引沒好不准用的道理。後來，網管人員捎來一帖祕方，<del>囑咐加三碗水文火煎煮至一碗</del>，一服見效。</p> <p>聽到有這等神奇祕方，特向苦主索來藥方一探究竟。</p> <pre><code>Windows Registry Editor Version 5.00
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"ExcludeExplicitO365Endpoint"=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"DisableAutodiscoverV2Service"=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"EnableOffice365ConfigService"=dword:00000000
+[HKEY_CURRENT_USER\Software\Policies\Microsoft\Office\16.0\Common\Internet]
+"OnlineStorage"=dword:00000065
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OneDrive]
+"DisableFileSyncNGSC"=dword:00000001
+</code></pre> <p>搞了半天，原來類似問題我之前也遇過(參見 <a href="/blog/outlook-conn-fail-alert/">Outlook 2019 卡信及彈出無法連線錯誤</a>)，開題出在新版 Outlook 預設會啟動各種雲端探索程序，以便整合 Microsoft 365 等線上版的 Exchange，<a href="https://learn.microsoft.com/zh-tw/exchange/architecture/client-access/autodiscover?view=exchserver-2019&amp;utm_source=chatgpt.com&amp;WT.mc_id=DOP-MVP-37580">自動探索(Auto Discovery)</a>的目的在於減少使用者設定及部署步驟，使用者只需提供 Email 信箱，由 Outlook 自己去找出伺服器 IP、通訊協定，完成相關設定。</p> <p>若企業環境的 Outlook 只會連特定地端 Exchange 伺服器，不太需要這些功能，卻因防火牆或特殊的 DNS 設定導致雲端查詢動作異常，感覺程式是跑進沒料想的流程以致卡死，沒拋出錯誤也不會 Timeout。</p> <p>這幾味藥材的藥效如下：(補充：Registry 的 16.0 對映 Outlook 版本：16.0 = Outlook 2016/2019, 15.0 = Outlook 2013, 14.0 = Outlook 2010, 12.0 = Outlook 2007 <a href="https://support.intermedia.com/app/articles/detail/a_id/10488/%7E/how-do-i-disable-autodiscover-for-on-premises-exchange%3F">參考</a>)</p> <ul><li>ExcludeExplicitO365Endpoint<br> 設為 1 時 Outlook 會跳過直接連接 Microsoft 365 的 AutoDiscover 端點，強制使用傳統 Exchange 偵測流程。<br> 註：另一常見症狀是連內部 Exchange 一直跳登入視窗 <a href="https://learn.microsoft.com/en-us/answers/questions/2042260/exchange-2019-and-outlook-2016-2019-and-2021-autod?WT.mc_id=DOP-MVP-37580">參考</a></li> <li>DisableAutodiscoverV2Service<br> 設為 1 禁用 AutoDiscover V2 服務。<br> 註：上回<a href="/blog/outlook-conn-fail-alert/">案例</a>是設定 ExcludeExplicitO365Endpoint 及 DisableAutodiscoverV2Service。</li> <li>EnableOffice365ConfigService<br> 設為 0 時停用 Office 365 設定服務，強制 Outlook 僅依賴本地 Exchange 伺服器進行配置。(企業 DNS 需<a href="https://learn.microsoft.com/en-us/exchange/architecture/client-access/autodiscover?view=exchserver-2019&amp;WT.mc_id=DOP-MVP-37580#autodiscover-in-dns">配合加入設定</a>)</li> <li>OnlineStorage<br> 控制 Office 應用程式的雲端儲存整合行為。設為 DWORD: 65 可停用 OneDrive Personal 及 OneDrive for Business 同步功能。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638848811126023166.png"><br> 資料來源：<a href="https://learn.microsoft.com/en-us/microsoft-365/troubleshoot/group-policy/block-onedrive-use-from-office?WT.mc_id=DOP-MVP-37580#modify-the-registry">How to block OneDrive use from within Microsoft 365 Apps for enterprise and Office 2016 applications</a></li> <li>DisableFileSyncNGSC<br> 設為 1 時禁用 Next Generation Sync Client (NGSC)，可完全關閉 OneDrive 同步。<a href="https://support.microsoft.com/en-us/office/onedrive-won-t-start-0c158fa6-0cd8-4373-98c8-9179e24f10f2?WT.mc_id=DOP-MVP-37580">參考</a></li></ul> <p data-slug="outlook-in-restricted-env" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>問題症狀：企業內部新安裝 Outlook 2021，設定好 Exchange 帳號正確連上信箱，但每次啟動 Outlook 沒多久會彈出一連線中轉圈圈動畫的空白對話框，對話框具強制性(Modal)阻擋 Outlook 操作，要命的是轉圈圈沒完沒了，怎麼等都不會結束或 Timeout。</p> <p>原以為是新安裝後等待重建索引(信箱有好幾 GB 應該要跑一陣子)，但想想不對，建立索引應在背景執行，沒有索引沒好不准用的道理。後來，網管人員捎來一帖祕方，<del>囑咐加三碗水文火煎煮至一碗</del>，一服見效。</p> <p>聽到有這等神奇祕方，特向苦主索來藥方一探究竟。</p> <pre><code>Windows Registry Editor Version 5.00
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"ExcludeExplicitO365Endpoint"=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"DisableAutodiscoverV2Service"=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"EnableOffice365ConfigService"=dword:00000000
+[HKEY_CURRENT_USER\Software\Policies\Microsoft\Office\16.0\Common\Internet]
+"OnlineStorage"=dword:00000065
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OneDrive]
+"DisableFileSyncNGSC"=dword:00000001
+</code></pre> <p>搞了半天，原來類似問題我之前也遇過(參見 <a href="/blog/outlook-conn-fail-alert/">Outlook 2019 卡信及彈出無法連線錯誤</a>)，開題出在新版 Outlook 預設會啟動各種雲端探索程序，以便整合 Microsoft 365 等線上版的 Exchange，<a href="https://learn.microsoft.com/zh-tw/exchange/architecture/client-access/autodiscover?view=exchserver-2019&amp;utm_source=chatgpt.com&amp;WT.mc_id=DOP-MVP-37580">自動探索(Auto Discovery)</a>的目的在於減少使用者設定及部署步驟，使用者只需提供 Email 信箱，由 Outlook 自己去找出伺服器 IP、通訊協定，完成相關設定。</p> <p>若企業環境的 Outlook 只會連特定地端 Exchange 伺服器，不太需要這些功能，卻因防火牆或特殊的 DNS 設定導致雲端查詢動作異常，感覺程式是跑進沒料想的流程以致卡死，沒拋出錯誤也不會 Timeout。</p> <p>這幾味藥材的藥效如下：(補充：Registry 的 16.0 對映 Outlook 版本：16.0 = Outlook 2016/2019, 15.0 = Outlook 2013, 14.0 = Outlook 2010, 12.0 = Outlook 2007 <a href="https://support.intermedia.com/app/articles/detail/a_id/10488/%7E/how-do-i-disable-autodiscover-for-on-premises-exchange%3F">參考</a>)</p> <ul><li>ExcludeExplicitO365Endpoint<br> 設為 1 時 Outlook 會跳過直接連接 Microsoft 365 的 AutoDiscover 端點，強制使用傳統 Exchange 偵測流程。<br> 註：另一常見症狀是連內部 Exchange 一直跳登入視窗 <a href="https://learn.microsoft.com/en-us/answers/questions/2042260/exchange-2019-and-outlook-2016-2019-and-2021-autod?WT.mc_id=DOP-MVP-37580">參考</a></li> <li>DisableAutodiscoverV2Service<br> 設為 1 禁用 AutoDiscover V2 服務。<br> 註：上回<a href="/blog/outlook-conn-fail-alert/">案例</a>是設定 ExcludeExplicitO365Endpoint 及 DisableAutodiscoverV2Service。</li> <li>EnableOffice365ConfigService<br> 設為 0 時停用 Office 365 設定服務，強制 Outlook 僅依賴本地 Exchange 伺服器進行配置。(企業 DNS 需<a href="https://learn.microsoft.com/en-us/exchange/architecture/client-access/autodiscover?view=exchserver-2019&amp;WT.mc_id=DOP-MVP-37580#autodiscover-in-dns">配合加入設定</a>)</li> <li>OnlineStorage<br> 控制 Office 應用程式的雲端儲存整合行為。設為 DWORD: 65 可停用 OneDrive Personal 及 OneDrive for Business 同步功能。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638848811126023166.png"><br> 資料來源：<a href="https://learn.microsoft.com/en-us/microsoft-365/troubleshoot/group-policy/block-onedrive-use-from-office?WT.mc_id=DOP-MVP-37580#modify-the-registry">How to block OneDrive use from within Microsoft 365 Apps for enterprise and Office 2016 applications</a></li> <li>DisableFileSyncNGSC<br> 設為 1 時禁用 Next Generation Sync Client (NGSC)，可完全關閉 OneDrive 同步。<a href="https://support.microsoft.com/en-us/office/onedrive-won-t-start-0c158fa6-0cd8-4373-98c8-9179e24f10f2?WT.mc_id=DOP-MVP-37580">參考</a></li></ul> <p data-slug="outlook-in-restricted-env" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>問題症狀：企業內部新安裝 Outlook 2021，設定好 Exchange 帳號正確連上信箱，但每次啟動 Outlook 沒多久會彈出一連線中轉圈圈動畫的空白對話框，對話框具強制性(Modal)阻擋 Outlook 操作，要命的是轉圈圈沒完沒了，怎麼等都不會結束或 Timeout。</p> <p>原以為是新安裝後等待重建索引(信箱有好幾 GB 應該要跑一陣子)，但想想不對，建立索引應在背景執行，沒有索引沒好不准用的道理。後來，網管人員捎來一帖祕方，<del>囑咐加三碗水文火煎煮至一碗</del>，一服見效。</p> <p>聽到有這等神奇祕方，特向苦主索來藥方一探究竟。</p> <pre><code>Windows Registry Editor Version 5.00
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"ExcludeExplicitO365Endpoint"=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"DisableAutodiscoverV2Service"=dword:00000001
+[HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Outlook\AutoDiscover]
+"EnableOffice365ConfigService"=dword:00000000
+[HKEY_CURRENT_USER\Software\Policies\Microsoft\Office\16.0\Common\Internet]
+"OnlineStorage"=dword:00000065
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OneDrive]
+"DisableFileSyncNGSC"=dword:00000001
+</code></pre> <p>搞了半天，原來類似問題我之前也遇過(參見 <a href="/blog/outlook-conn-fail-alert/">Outlook 2019 卡信及彈出無法連線錯誤</a>)，開題出在新版 Outlook 預設會啟動各種雲端探索程序，以便整合 Microsoft 365 等線上版的 Exchange，<a href="https://learn.microsoft.com/zh-tw/exchange/architecture/client-access/autodiscover?view=exchserver-2019&amp;utm_source=chatgpt.com&amp;WT.mc_id=DOP-MVP-37580">自動探索(Auto Discovery)</a>的目的在於減少使用者設定及部署步驟，使用者只需提供 Email 信箱，由 Outlook 自己去找出伺服器 IP、通訊協定，完成相關設定。</p> <p>若企業環境的 Outlook 只會連特定地端 Exchange 伺服器，不太需要這些功能，卻因防火牆或特殊的 DNS 設定導致雲端查詢動作異常，感覺程式是跑進沒料想的流程以致卡死，沒拋出錯誤也不會 Timeout。</p> <p>這幾味藥材的藥效如下：(補充：Registry 的 16.0 對映 Outlook 版本：16.0 = Outlook 2016/2019, 15.0 = Outlook 2013, 14.0 = Outlook 2010, 12.0 = Outlook 2007 <a href="https://support.intermedia.com/app/articles/detail/a_id/10488/%7E/how-do-i-disable-autodiscover-for-on-premises-exchange%3F">參考</a>)</p> <ul><li>ExcludeExplicitO365Endpoint<br> 設為 1 時 Outlook 會跳過直接連接 Microsoft 365 的 AutoDiscover 端點，強制使用傳統 Exchange 偵測流程。<br> 註：另一常見症狀是連內部 Exchange 一直跳登入視窗 <a href="https://learn.microsoft.com/en-us/answers/questions/2042260/exchange-2019-and-outlook-2016-2019-and-2021-autod?WT.mc_id=DOP-MVP-37580">參考</a></li> <li>DisableAutodiscoverV2Service<br> 設為 1 禁用 AutoDiscover V2 服務。<br> 註：上回<a href="/blog/outlook-conn-fail-alert/">案例</a>是設定 ExcludeExplicitO365Endpoint 及 DisableAutodiscoverV2Service。</li> <li>EnableOffice365ConfigService<br> 設為 0 時停用 Office 365 設定服務，強制 Outlook 僅依賴本地 Exchange 伺服器進行配置。(企業 DNS 需<a href="https://learn.microsoft.com/en-us/exchange/architecture/client-access/autodiscover?view=exchserver-2019&amp;WT.mc_id=DOP-MVP-37580#autodiscover-in-dns">配合加入設定</a>)</li> <li>OnlineStorage<br> 控制 Office 應用程式的雲端儲存整合行為。設為 DWORD: 65 可停用 OneDrive Personal 及 OneDrive for Business 同步功能。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638848811126023166.png"><br> 資料來源：<a href="https://learn.microsoft.com/en-us/microsoft-365/troubleshoot/group-policy/block-onedrive-use-from-office?WT.mc_id=DOP-MVP-37580#modify-the-registry">How to block OneDrive use from within Microsoft 365 Apps for enterprise and Office 2016 applications</a></li> <li>DisableFileSyncNGSC<br> 設為 1 時禁用 Next Generation Sync Client (NGSC)，可完全關閉 OneDrive 同步。<a href="https://support.microsoft.com/en-us/office/onedrive-won-t-start-0c158fa6-0cd8-4373-98c8-9179e24f10f2?WT.mc_id=DOP-MVP-37580">參考</a></li></ul> <p data-slug="outlook-in-restricted-env" data-fbimg="https://images.pexels.com/photos/53389/iceberg-antarctica-polar-blue-53389.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638848811126023166.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638848811126023166.png" medium="image"/>
+    <pubDate>Sat, 07 Jun 2025 08:45:51 GMT</pubDate>
+  </item><item>
     <title><![CDATA[讀懂資安新聞 - Chrome 為什麼取消中華電信的根憑證信任？]]></title>
     <link>https://blog.darkthread.net/blog/chrome-remove-epki-trust/</link>
     <itunes:title><![CDATA[讀懂資安新聞 - Chrome 為什麼取消中華電信的根憑證信任？]]></itunes:title>
@@ -1517,185 +1568,5 @@ vm.genData(vm.dataCount);
     <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig3_638834368087274304.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig3_638834368087274304.png" medium="image"/>
     <pubDate>Wed, 21 May 2025 15:06:16 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[淺談 Exchange 退信通知處理自動化]]></title>
-    <link>https://blog.darkthread.net/blog/exchange-ndr-parse-summary/</link>
-    <itunes:title><![CDATA[淺談 Exchange 退信通知處理自動化]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>用 Exchange 或任何郵件伺服器寄信，當信件因種種原因無法送達，Outlook 會收到一封來自 Mail Delivery Subsystem &lt;MAILER-DAEMON&gt; 的退信通知，NDR 格式及內容沒有統一規範，依伺服器版本而異，但都會包含有問題的 Email 地址及無法送達原因，</p> <p>這封退信通知有個專業術語叫 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxomsg/b76d85db-de6f-4a01-8ae5-ff5b59c86a31?WT.mc_id=DOP-MVP-37580">NDR Non-Delivery Report</a>，Exchange 的 NDR 類似這樣：</p> <pre><code>傳遞至下列收件者或群組失敗:
-user1@gmail.com
-因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。
-user2@hotmail.com
-收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。
-user3@yahoo.com.tw
-收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。
-下列組織已拒絕您的郵件: gmail-smtp-in.l.google.com
-系統管理員的診斷資訊:
-產生的伺服器: smtp.example.com
-... 下方附帶一堆偵錯資訊 ...
-</code></pre> <p>基本上，NDR 有 Email 地址及退信原因可供我們判斷該地址是錯誤、失效還是信箱爆了，再決定處置方式。要如何從一堆 NDR 中提取關鍵資訊，讓整理工作更有效率？這篇來分享我的做法。</p> <p>假設你手上累積了一堆 NDR，第一步可先用 Outlook 篩選寄件者 MAILER-DAEMON 將它們搬到特定資料夾方便用程式批次處理。<br> 註：NDR 在 Exchange 是一種特別型別(REPORT.IPM.Note.NDR)，非一般標準郵件，雖然能用郵件規則設定寄件者條件搬檔，但郵件規在收到 NDR 時不會生效。 <a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/setting-up-a-rule-to-forward-undeliverable-reports/ef7e2f9c-85d5-4bd4-84dc-edaf27c9baac?WT.mc_id=DOP-MVP-37580">參考</a>)</p> <p>我寫了一段 PowerShell Script 可從指定資料夾擷取每一封 NDR 中的 Email 及退信原因，彙整成一份 CSV：(註：程式會用到 .NET Framework API 操作 Outlook COM+，需以 PowerShell 5.1 執行，不支援 pwsh 7+ 跑)</p> <pre><code>$ErrorActionPreference = 'STOP'
-$outlook = [System.Runtime.InteropServices.Marshal]::GetActiveObject('Outlook.Application')
-$ns = $outlook.GetNamespace('MAPI')
-# $inbox = $ns.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
-$mailbox = $ns.Folders | Where-Object { $_.Name -eq 'amdin@example.com' }
-# $ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq '刪除的郵件' }
-$ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq 'NDR資料夾' }
-$header = '傳遞至下列收件者或群組失敗:'
-$headerLen = $header.Length
-$reportTime = $null
-$list = @()
-$ndrFolder.Items | ForEach-Object {
-$item = $_
-if ($item -is [Microsoft.Office.Interop.Outlook.ReportItem]) {
-$reportTime = "　" + $item.CreationTime.ToString('yyyy-MM-dd HH:mm:ss')
-$body = $item.Body
-$end = $body.IndexOf('系統管理員的診斷資訊:')
-if ($end -gt 0) {
-$body = $body.Substring($headerLen, $end - $headerLen)
-}
-$lines = $body.Replace("`r", '').Split("`n")
-$email = ''
-$lines | ForEach-Object {
-$line = $_.Trim()
-if ($email) {
-$list += [PSCustomObject]@{
-Email = $email
-Time = $reportTime
-Reason = $line
-}
-$email = ''
-}
-else {
-$match = [regex]::Match($line, '^(?&lt;m&gt;[\w-\.]+@([\w-]+\.)+[\w-]{2,4})')
-if ($match.Success) {
-$email = $match.Groups['m'].Value
-}
-}
-}
-}
-}
-$tmpCsvPath = [IO.Path]::GetTempFileName() + ".csv"
-$list | Sort-Object Email, Time | ConvertTo-Csv -NoTypeInformation | Out-File $tmpCsvPath -Encoding utf8
-Start-Process excel.exe $tmpCsvPath
-</code></pre> <p>程式原理不難，先找到信箱，找出放 NDR 的資料夾，逐一檢查資料夾裡的項目是否為 Microsoft.Office.Interop.Outlook.ReportItem，若是則取出內容進行解析，依據 Exchage NDR 格式擷取出 Email 及無法寄達原因，最後匯出 CSV 呼叫 Excel 開啟。</p> <p>產生的 CSV 如下，同一 Email 的多次退信記錄列在一起，方便快速 Email 是一時信箱滿了還是地址有錯，亦或為亂填的髒資料，再決定要如何處置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"></p> <p>就醬，用不到 50 行 PowerShell 可省下大量的人工處理時間。</p> <p>雖然要自己寫程式，與這幾年興起的 Low Code/No Code/RPA 主流背道而馳(延伸閱讀：<a href="/blog/my-opinion-on-rpa/">關於 RPA (機器人流程自動化)，我說的其實是...</a>)，但這仍是熱愛 Coding 的我最偏好的作業自動化實踐方式。</p> <p>最後，順手整理常見退信原因以備不時之需：</p> <ol><li>因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。</li> <li>收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送此郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的電子郵件地址不正確。請檢查電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>伺服器嘗試傳遞此郵件但不成功，已停止嘗試。收件者的郵件伺服器可能暫時離線或暫時無法接收郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>找不到您輸入的電子郵件地址。請檢查收件者的電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>無法傳遞您的郵件。請稍後再嘗試重新傳送。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件至此電子郵件地址時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li></ol> <p data-slug="exchange-ndr-parse-summary" data-title-en="Automating NDR Processing in Outlook" data-catg=".NET" data-fbimg="https://i.postimg.cc/MHnYkQjT/image.png#1280#720">This blog discusses using PowerShell to automate processing Non-Delivery Reports (NDR) in Outlook, extracting email addresses and failure reasons into a CSV for efficient handling.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>用 Exchange 或任何郵件伺服器寄信，當信件因種種原因無法送達，Outlook 會收到一封來自 Mail Delivery Subsystem &lt;MAILER-DAEMON&gt; 的退信通知，NDR 格式及內容沒有統一規範，依伺服器版本而異，但都會包含有問題的 Email 地址及無法送達原因，</p> <p>這封退信通知有個專業術語叫 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxomsg/b76d85db-de6f-4a01-8ae5-ff5b59c86a31?WT.mc_id=DOP-MVP-37580">NDR Non-Delivery Report</a>，Exchange 的 NDR 類似這樣：</p> <pre><code>傳遞至下列收件者或群組失敗:
-user1@gmail.com
-因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。
-user2@hotmail.com
-收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。
-user3@yahoo.com.tw
-收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。
-下列組織已拒絕您的郵件: gmail-smtp-in.l.google.com
-系統管理員的診斷資訊:
-產生的伺服器: smtp.example.com
-... 下方附帶一堆偵錯資訊 ...
-</code></pre> <p>基本上，NDR 有 Email 地址及退信原因可供我們判斷該地址是錯誤、失效還是信箱爆了，再決定處置方式。要如何從一堆 NDR 中提取關鍵資訊，讓整理工作更有效率？這篇來分享我的做法。</p> <p>假設你手上累積了一堆 NDR，第一步可先用 Outlook 篩選寄件者 MAILER-DAEMON 將它們搬到特定資料夾方便用程式批次處理。<br> 註：NDR 在 Exchange 是一種特別型別(REPORT.IPM.Note.NDR)，非一般標準郵件，雖然能用郵件規則設定寄件者條件搬檔，但郵件規在收到 NDR 時不會生效。 <a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/setting-up-a-rule-to-forward-undeliverable-reports/ef7e2f9c-85d5-4bd4-84dc-edaf27c9baac?WT.mc_id=DOP-MVP-37580">參考</a>)</p> <p>我寫了一段 PowerShell Script 可從指定資料夾擷取每一封 NDR 中的 Email 及退信原因，彙整成一份 CSV：(註：程式會用到 .NET Framework API 操作 Outlook COM+，需以 PowerShell 5.1 執行，不支援 pwsh 7+ 跑)</p> <pre><code>$ErrorActionPreference = 'STOP'
-$outlook = [System.Runtime.InteropServices.Marshal]::GetActiveObject('Outlook.Application')
-$ns = $outlook.GetNamespace('MAPI')
-# $inbox = $ns.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
-$mailbox = $ns.Folders | Where-Object { $_.Name -eq 'amdin@example.com' }
-# $ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq '刪除的郵件' }
-$ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq 'NDR資料夾' }
-$header = '傳遞至下列收件者或群組失敗:'
-$headerLen = $header.Length
-$reportTime = $null
-$list = @()
-$ndrFolder.Items | ForEach-Object {
-$item = $_
-if ($item -is [Microsoft.Office.Interop.Outlook.ReportItem]) {
-$reportTime = "　" + $item.CreationTime.ToString('yyyy-MM-dd HH:mm:ss')
-$body = $item.Body
-$end = $body.IndexOf('系統管理員的診斷資訊:')
-if ($end -gt 0) {
-$body = $body.Substring($headerLen, $end - $headerLen)
-}
-$lines = $body.Replace("`r", '').Split("`n")
-$email = ''
-$lines | ForEach-Object {
-$line = $_.Trim()
-if ($email) {
-$list += [PSCustomObject]@{
-Email = $email
-Time = $reportTime
-Reason = $line
-}
-$email = ''
-}
-else {
-$match = [regex]::Match($line, '^(?&lt;m&gt;[\w-\.]+@([\w-]+\.)+[\w-]{2,4})')
-if ($match.Success) {
-$email = $match.Groups['m'].Value
-}
-}
-}
-}
-}
-$tmpCsvPath = [IO.Path]::GetTempFileName() + ".csv"
-$list | Sort-Object Email, Time | ConvertTo-Csv -NoTypeInformation | Out-File $tmpCsvPath -Encoding utf8
-Start-Process excel.exe $tmpCsvPath
-</code></pre> <p>程式原理不難，先找到信箱，找出放 NDR 的資料夾，逐一檢查資料夾裡的項目是否為 Microsoft.Office.Interop.Outlook.ReportItem，若是則取出內容進行解析，依據 Exchage NDR 格式擷取出 Email 及無法寄達原因，最後匯出 CSV 呼叫 Excel 開啟。</p> <p>產生的 CSV 如下，同一 Email 的多次退信記錄列在一起，方便快速 Email 是一時信箱滿了還是地址有錯，亦或為亂填的髒資料，再決定要如何處置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"></p> <p>就醬，用不到 50 行 PowerShell 可省下大量的人工處理時間。</p> <p>雖然要自己寫程式，與這幾年興起的 Low Code/No Code/RPA 主流背道而馳(延伸閱讀：<a href="/blog/my-opinion-on-rpa/">關於 RPA (機器人流程自動化)，我說的其實是...</a>)，但這仍是熱愛 Coding 的我最偏好的作業自動化實踐方式。</p> <p>最後，順手整理常見退信原因以備不時之需：</p> <ol><li>因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。</li> <li>收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送此郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的電子郵件地址不正確。請檢查電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>伺服器嘗試傳遞此郵件但不成功，已停止嘗試。收件者的郵件伺服器可能暫時離線或暫時無法接收郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>找不到您輸入的電子郵件地址。請檢查收件者的電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>無法傳遞您的郵件。請稍後再嘗試重新傳送。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件至此電子郵件地址時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li></ol> <p data-slug="exchange-ndr-parse-summary" data-title-en="Automating NDR Processing in Outlook" data-catg=".NET" data-fbimg="https://i.postimg.cc/MHnYkQjT/image.png#1280#720">This blog discusses using PowerShell to automate processing Non-Delivery Reports (NDR) in Outlook, extracting email addresses and failure reasons into a CSV for efficient handling.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>用 Exchange 或任何郵件伺服器寄信，當信件因種種原因無法送達，Outlook 會收到一封來自 Mail Delivery Subsystem &lt;MAILER-DAEMON&gt; 的退信通知，NDR 格式及內容沒有統一規範，依伺服器版本而異，但都會包含有問題的 Email 地址及無法送達原因，</p> <p>這封退信通知有個專業術語叫 <a href="https://learn.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxomsg/b76d85db-de6f-4a01-8ae5-ff5b59c86a31?WT.mc_id=DOP-MVP-37580">NDR Non-Delivery Report</a>，Exchange 的 NDR 類似這樣：</p> <pre><code>傳遞至下列收件者或群組失敗:
-user1@gmail.com
-因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。
-user2@hotmail.com
-收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。
-user3@yahoo.com.tw
-收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。
-下列組織已拒絕您的郵件: gmail-smtp-in.l.google.com
-系統管理員的診斷資訊:
-產生的伺服器: smtp.example.com
-... 下方附帶一堆偵錯資訊 ...
-</code></pre> <p>基本上，NDR 有 Email 地址及退信原因可供我們判斷該地址是錯誤、失效還是信箱爆了，再決定處置方式。要如何從一堆 NDR 中提取關鍵資訊，讓整理工作更有效率？這篇來分享我的做法。</p> <p>假設你手上累積了一堆 NDR，第一步可先用 Outlook 篩選寄件者 MAILER-DAEMON 將它們搬到特定資料夾方便用程式批次處理。<br> 註：NDR 在 Exchange 是一種特別型別(REPORT.IPM.Note.NDR)，非一般標準郵件，雖然能用郵件規則設定寄件者條件搬檔，但郵件規在收到 NDR 時不會生效。 <a href="https://answers.microsoft.com/en-us/outlook_com/forum/all/setting-up-a-rule-to-forward-undeliverable-reports/ef7e2f9c-85d5-4bd4-84dc-edaf27c9baac?WT.mc_id=DOP-MVP-37580">參考</a>)</p> <p>我寫了一段 PowerShell Script 可從指定資料夾擷取每一封 NDR 中的 Email 及退信原因，彙整成一份 CSV：(註：程式會用到 .NET Framework API 操作 Outlook COM+，需以 PowerShell 5.1 執行，不支援 pwsh 7+ 跑)</p> <pre><code>$ErrorActionPreference = 'STOP'
-$outlook = [System.Runtime.InteropServices.Marshal]::GetActiveObject('Outlook.Application')
-$ns = $outlook.GetNamespace('MAPI')
-# $inbox = $ns.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
-$mailbox = $ns.Folders | Where-Object { $_.Name -eq 'amdin@example.com' }
-# $ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq '刪除的郵件' }
-$ndrFolder = $mailbox.Folders | Where-Object { $_.Name -eq 'NDR資料夾' }
-$header = '傳遞至下列收件者或群組失敗:'
-$headerLen = $header.Length
-$reportTime = $null
-$list = @()
-$ndrFolder.Items | ForEach-Object {
-$item = $_
-if ($item -is [Microsoft.Office.Interop.Outlook.ReportItem]) {
-$reportTime = "　" + $item.CreationTime.ToString('yyyy-MM-dd HH:mm:ss')
-$body = $item.Body
-$end = $body.IndexOf('系統管理員的診斷資訊:')
-if ($end -gt 0) {
-$body = $body.Substring($headerLen, $end - $headerLen)
-}
-$lines = $body.Replace("`r", '').Split("`n")
-$email = ''
-$lines | ForEach-Object {
-$line = $_.Trim()
-if ($email) {
-$list += [PSCustomObject]@{
-Email = $email
-Time = $reportTime
-Reason = $line
-}
-$email = ''
-}
-else {
-$match = [regex]::Match($line, '^(?&lt;m&gt;[\w-\.]+@([\w-]+\.)+[\w-]{2,4})')
-if ($match.Success) {
-$email = $match.Groups['m'].Value
-}
-}
-}
-}
-}
-$tmpCsvPath = [IO.Path]::GetTempFileName() + ".csv"
-$list | Sort-Object Email, Time | ConvertTo-Csv -NoTypeInformation | Out-File $tmpCsvPath -Encoding utf8
-Start-Process excel.exe $tmpCsvPath
-</code></pre> <p>程式原理不難，先找到信箱，找出放 NDR 的資料夾，逐一檢查資料夾裡的項目是否為 Microsoft.Office.Interop.Outlook.ReportItem，若是則取出內容進行解析，依據 Exchage NDR 格式擷取出 Email 及無法寄達原因，最後匯出 CSV 呼叫 Excel 開啟。</p> <p>產生的 CSV 如下，同一 Email 的多次退信記錄列在一起，方便快速 Email 是一時信箱滿了還是地址有錯，亦或為亂填的髒資料，再決定要如何處置。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"></p> <p>就醬，用不到 50 行 PowerShell 可省下大量的人工處理時間。</p> <p>雖然要自己寫程式，與這幾年興起的 Low Code/No Code/RPA 主流背道而馳(延伸閱讀：<a href="/blog/my-opinion-on-rpa/">關於 RPA (機器人流程自動化)，我說的其實是...</a>)，但這仍是熱愛 Coding 的我最偏好的作業自動化實踐方式。</p> <p>最後，順手整理常見退信原因以備不時之需：</p> <ol><li>因為權限或安全性問題，所以無法傳遞您的郵件。郵件可能遭到仲裁者拒絕，郵件地址可能只接受某些寄件者的電子郵件，或者有其他限制阻止傳遞郵件。</li> <li>收件者的信箱已滿，目前無法接受郵件。請稍後再試著重新傳送郵件，或直接與收件者連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送此郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的信箱有問題。請嘗試重新傳送您的郵件。如果問題持續發生，請與您的電子郵件系統管理員連絡。</li> <li>收件者的電子郵件地址不正確。請檢查電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>伺服器嘗試傳遞此郵件但不成功，已停止嘗試。收件者的郵件伺服器可能暫時離線或暫時無法接收郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>找不到您輸入的電子郵件地址。請檢查收件者的電子郵件地址，然後嘗試重新傳送郵件。如果問題持續發生，請連絡您的電子郵件系統管理員。</li> <li>無法傳遞您的郵件。請稍後再嘗試重新傳送。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li> <li>傳遞此郵件至此電子郵件地址時發生通訊失敗。請稍後再嘗試重新傳送郵件。如果問題持續發生，請連絡電子郵件系統管理員。</li></ol> <p data-slug="exchange-ndr-parse-summary" data-title-en="Automating NDR Processing in Outlook" data-catg=".NET" data-fbimg="https://i.postimg.cc/MHnYkQjT/image.png#1280#720">This blog discusses using PowerShell to automate processing Non-Delivery Reports (NDR) in Outlook, extracting email addresses and failure reasons into a CSV for efficient handling.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638833471569079371.png" medium="image"/>
-    <pubDate>Tue, 20 May 2025 14:12:14 GMT</pubDate>
   </item></channel>
 </rss>
