@@ -3,7 +3,7 @@
     <title><![CDATA[iThome 3C新聞[RSS+]]]></title>
     <link>https://ithome.com.tw/rss</link>
     <image>
-      <url>https://fastly.picsum.photos/id/461/800/800.jpg?hmac=gAkIbZ_hRft34e54XiiSQJKzuS2ynJMxuMQ85P2jt_4</url>
+      <url>https://fastly.picsum.photos/id/498/800/800.jpg?hmac=AHAZ_wuFFoOFep_BKoLvHZ_VU1rxqu1D2rSf8xsaTp0</url>
       <title>iThome 3C新聞[RSS+]</title>
       <link>https://ithome.com.tw/rss</link>
     </image>
@@ -28,8 +28,306 @@
     <itunes:owner>
       <itunes:name><![CDATA[iThome 3C新聞[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/461/800/800.jpg?hmac=gAkIbZ_hRft34e54XiiSQJKzuS2ynJMxuMQ85P2jt_4"/>
+    <itunes:image href="https://fastly.picsum.photos/id/498/800/800.jpg?hmac=AHAZ_wuFFoOFep_BKoLvHZ_VU1rxqu1D2rSf8xsaTp0"/>
 <item>
+    <title><![CDATA[蘋果切入雲原生基礎技術競爭，推出主打安全和隱私的MacOS原生容器化專案]]></title>
+    <link>https://ithome.com.tw/news/169464</link>
+    <itunes:title><![CDATA[蘋果切入雲原生基礎技術競爭，推出主打安全和隱私的MacOS原生容器化專案]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/pin_guo_rong_qi_ji_shu_.png?itok=Hu2PaFMt" width="960" height="420" alt=""><p>在今年WWDC，除了多項全新介面設計的發布之外，蘋果也悄悄的發布了一項根本性的雲原生開源專案，MacOS原生的容器技術專案，也就是<a href="https://github.com/apple/containerization">容器化開源專案Containerization專案</a>，以及對應的命令列工具<a href="https://github.com/apple/container">container專案</a>。</p>
+<p>蘋果工程師Michael Crosby在WWDC中發布了這個容器化開源專案（Containerization），這是一個可以像原生應用般建置容器化應用的Swift框架。「蘋果發布這個專案的目標是希望能改變Linux容器的設計和導入方式，達到更安全，更隱私，也更有效率的效果。」他強調。&nbsp;&nbsp;</p>
+<p>蘋果在2021年挖角了Docker公司重要工程師Michael Crosby，他是Docker專案的維護者，擔任過2018年OCI技術監督委員會主席，是容器技術標準化的關鍵推手。Michael Crosby現在成了蘋果容器化專案的關鍵推手。</p>
+<p>過去要在macOS上執行一個容器，得先建立一個大型Linux虛擬機器，預先配置足夠的處理器和記憶體資源，才能用來執行多個容器。這個虛擬機器會將事先配置的資源，共享、分配給虛擬機器中每一個容器來運用。</p>
+<p>這個做法的缺點是，每當要新增一個容器需要存取一份外部目錄中的檔案時，得先將Mac上的這個目錄和檔案分享給虛擬機器，接著才能提供給這份檔案資料的容器，其他容器也有機會可以存取這個檔案。<br>
+Michael Crosby指出，蘋果推出這個容器化專案想要達成三大目標，第一是安全目標，希望能容器具備現在虛擬化技術所能提供的隔離效果，也希望減少在虛擬機器中的核心工具和動態函式庫。「減少這些機制，可以減少可被駭客利用的攻擊面，也能降低維運成本。」他解釋。</p>
+<p>其次，隱私是第二項目標，「限制可存取的目錄應該成為每一個容器的基礎能力，應該讓只有這份資料需求的容器，才能存取它。」Michael Crosby補充。最後一項專案目標是效能，希望能依據使用者所能提供的資源來調校效能。</p>
+<p>蘋果新發表的Containerization專案是一個開源的Swift框架專案，提供了一套可以執行容器和管理容器映像檔的API，以及一個用Swift開發的系統啟動工具。要啟動一個容器，通常會先從儲存庫下載一份容器映像檔，映像檔中有一份用來啟動這個容器的配置，以及內建儲存應用程式碼和相關站是酷的檔案系統。在Containerization專案，在一個macOS容器中的檔案系統，會視為一個區塊儲存裝置（block device），會格式化成Linux最常見的EXT4目錄結構。Containerization專案提供了Swift元件，可以直接存取EXT4格式目錄中的檔案。&nbsp;&nbsp;</p>
+<p>為了確保夠安全的隔離應，每一個macOS容器要執行時，Containerization會同時啟動一個輕量化的虛擬機器來隔離這個容器，啟動時間不用到1秒。這個設計帶來幾個好處，第一是，可以讓每一個macOS容器可以有獨立的IP位址，讓這些容器的網路存取更有效率，存取macOS容器上的服務，不需要參考通訊埠對應表，而能直接存取。另一個好處是，可以限制，容器只能讀取到它所請求的內容，這些內容不會被其他容器接觸。在資源配置也能更有效率，只要沒有啟動容器，就不需要占用記憶體貨處理器的資源。</p>
+<p>啟動一個maOS容器時，會透過一隻起程式vminid，進行IP指派，掛上區塊儲存裝置和相關啟動作業。傳統虛擬機器啟動時，會啟動一套完整的作業系統，但為了減少攻擊面，在Containerization專案的輕量化虛擬機器中，完全沒有核心工具和動態函式庫，移除了許多核心指令，如移除cd、cp、ls等常見目錄指令，也沒有提供libc實作。這個vminid沒有任何連結檔案，直接用了Swift的靜態Linux SDK，把vminitd編譯成一隻靜態的linux執行檔。</p>
+<p>Containerization支援容器化標準OCI的映像檔，可以直接從Docker Hub等標準Registre直接拉取映像檔來部署。另外，也提供了一套建置Linux容器化應用的工具，也就是命令列工具container，可以管理容器映像檔和支援容器需要的儲存、網路服務等，可以支援 run、pull 及 push等標準容器化操作命令。另外，macOS容器透過Rosetta 2技術，也可以執行為x86-64架構編譯的二進位檔，也就是在Intel 處理器Mac上編譯的二進位檔。&nbsp;</p>
+<p>目前這個Containerization容器化專案需要安裝macOS 26 Beta或更新版本才能執行。若在macOS 15上執行，則會有部分網路功能的閒置。</p>
+<p>許多開發者使用Mac電腦作為開發工具，但要在本地端提供容器化的雲原生測試環境，過去得安裝一些容器軟體，像是Docker、Podman、Orbstack或Lima等。</p>
+<p>雖然蘋果沒有進一步說明，為何要跳下來打造雲原生生態圈最基礎的容器化技術。但隨著蘋果Containerization專案，以及對應的命令列工具container專案的發布，這意味著蘋果開始提供更原生的Linux容器支援，有助於讓macOS成為大規模雲原生架構的資訊基礎，在雲原生技術生態圈中，扮演更關鍵的角色。</p>
+<p>&nbsp;</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/pin_guo_rong_qi_ji_shu_.png?itok=Hu2PaFMt" width="960" height="420" alt=""><p>在今年WWDC，除了多項全新介面設計的發布之外，蘋果也悄悄的發布了一項根本性的雲原生開源專案，MacOS原生的容器技術專案，也就是<a href="https://github.com/apple/containerization">容器化開源專案Containerization專案</a>，以及對應的命令列工具<a href="https://github.com/apple/container">container專案</a>。</p>
+<p>蘋果工程師Michael Crosby在WWDC中發布了這個容器化開源專案（Containerization），這是一個可以像原生應用般建置容器化應用的Swift框架。「蘋果發布這個專案的目標是希望能改變Linux容器的設計和導入方式，達到更安全，更隱私，也更有效率的效果。」他強調。&nbsp;&nbsp;</p>
+<p>蘋果在2021年挖角了Docker公司重要工程師Michael Crosby，他是Docker專案的維護者，擔任過2018年OCI技術監督委員會主席，是容器技術標準化的關鍵推手。Michael Crosby現在成了蘋果容器化專案的關鍵推手。</p>
+<p>過去要在macOS上執行一個容器，得先建立一個大型Linux虛擬機器，預先配置足夠的處理器和記憶體資源，才能用來執行多個容器。這個虛擬機器會將事先配置的資源，共享、分配給虛擬機器中每一個容器來運用。</p>
+<p>這個做法的缺點是，每當要新增一個容器需要存取一份外部目錄中的檔案時，得先將Mac上的這個目錄和檔案分享給虛擬機器，接著才能提供給這份檔案資料的容器，其他容器也有機會可以存取這個檔案。<br>
+Michael Crosby指出，蘋果推出這個容器化專案想要達成三大目標，第一是安全目標，希望能容器具備現在虛擬化技術所能提供的隔離效果，也希望減少在虛擬機器中的核心工具和動態函式庫。「減少這些機制，可以減少可被駭客利用的攻擊面，也能降低維運成本。」他解釋。</p>
+<p>其次，隱私是第二項目標，「限制可存取的目錄應該成為每一個容器的基礎能力，應該讓只有這份資料需求的容器，才能存取它。」Michael Crosby補充。最後一項專案目標是效能，希望能依據使用者所能提供的資源來調校效能。</p>
+<p>蘋果新發表的Containerization專案是一個開源的Swift框架專案，提供了一套可以執行容器和管理容器映像檔的API，以及一個用Swift開發的系統啟動工具。要啟動一個容器，通常會先從儲存庫下載一份容器映像檔，映像檔中有一份用來啟動這個容器的配置，以及內建儲存應用程式碼和相關站是酷的檔案系統。在Containerization專案，在一個macOS容器中的檔案系統，會視為一個區塊儲存裝置（block device），會格式化成Linux最常見的EXT4目錄結構。Containerization專案提供了Swift元件，可以直接存取EXT4格式目錄中的檔案。&nbsp;&nbsp;</p>
+<p>為了確保夠安全的隔離應，每一個macOS容器要執行時，Containerization會同時啟動一個輕量化的虛擬機器來隔離這個容器，啟動時間不用到1秒。這個設計帶來幾個好處，第一是，可以讓每一個macOS容器可以有獨立的IP位址，讓這些容器的網路存取更有效率，存取macOS容器上的服務，不需要參考通訊埠對應表，而能直接存取。另一個好處是，可以限制，容器只能讀取到它所請求的內容，這些內容不會被其他容器接觸。在資源配置也能更有效率，只要沒有啟動容器，就不需要占用記憶體貨處理器的資源。</p>
+<p>啟動一個maOS容器時，會透過一隻起程式vminid，進行IP指派，掛上區塊儲存裝置和相關啟動作業。傳統虛擬機器啟動時，會啟動一套完整的作業系統，但為了減少攻擊面，在Containerization專案的輕量化虛擬機器中，完全沒有核心工具和動態函式庫，移除了許多核心指令，如移除cd、cp、ls等常見目錄指令，也沒有提供libc實作。這個vminid沒有任何連結檔案，直接用了Swift的靜態Linux SDK，把vminitd編譯成一隻靜態的linux執行檔。</p>
+<p>Containerization支援容器化標準OCI的映像檔，可以直接從Docker Hub等標準Registre直接拉取映像檔來部署。另外，也提供了一套建置Linux容器化應用的工具，也就是命令列工具container，可以管理容器映像檔和支援容器需要的儲存、網路服務等，可以支援 run、pull 及 push等標準容器化操作命令。另外，macOS容器透過Rosetta 2技術，也可以執行為x86-64架構編譯的二進位檔，也就是在Intel 處理器Mac上編譯的二進位檔。&nbsp;</p>
+<p>目前這個Containerization容器化專案需要安裝macOS 26 Beta或更新版本才能執行。若在macOS 15上執行，則會有部分網路功能的閒置。</p>
+<p>許多開發者使用Mac電腦作為開發工具，但要在本地端提供容器化的雲原生測試環境，過去得安裝一些容器軟體，像是Docker、Podman、Orbstack或Lima等。</p>
+<p>雖然蘋果沒有進一步說明，為何要跳下來打造雲原生生態圈最基礎的容器化技術。但隨著蘋果Containerization專案，以及對應的命令列工具container專案的發布，這意味著蘋果開始提供更原生的Linux容器支援，有助於讓macOS成為大規模雲原生架構的資訊基礎，在雲原生技術生態圈中，扮演更關鍵的角色。</p>
+<p>&nbsp;</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/pin_guo_rong_qi_ji_shu_.png?itok=Hu2PaFMt" width="960" height="420" alt=""><p>在今年WWDC，除了多項全新介面設計的發布之外，蘋果也悄悄的發布了一項根本性的雲原生開源專案，MacOS原生的容器技術專案，也就是<a href="https://github.com/apple/containerization">容器化開源專案Containerization專案</a>，以及對應的命令列工具<a href="https://github.com/apple/container">container專案</a>。</p>
+<p>蘋果工程師Michael Crosby在WWDC中發布了這個容器化開源專案（Containerization），這是一個可以像原生應用般建置容器化應用的Swift框架。「蘋果發布這個專案的目標是希望能改變Linux容器的設計和導入方式，達到更安全，更隱私，也更有效率的效果。」他強調。&nbsp;&nbsp;</p>
+<p>蘋果在2021年挖角了Docker公司重要工程師Michael Crosby，他是Docker專案的維護者，擔任過2018年OCI技術監督委員會主席，是容器技術標準化的關鍵推手。Michael Crosby現在成了蘋果容器化專案的關鍵推手。</p>
+<p>過去要在macOS上執行一個容器，得先建立一個大型Linux虛擬機器，預先配置足夠的處理器和記憶體資源，才能用來執行多個容器。這個虛擬機器會將事先配置的資源，共享、分配給虛擬機器中每一個容器來運用。</p>
+<p>這個做法的缺點是，每當要新增一個容器需要存取一份外部目錄中的檔案時，得先將Mac上的這個目錄和檔案分享給虛擬機器，接著才能提供給這份檔案資料的容器，其他容器也有機會可以存取這個檔案。<br>
+Michael Crosby指出，蘋果推出這個容器化專案想要達成三大目標，第一是安全目標，希望能容器具備現在虛擬化技術所能提供的隔離效果，也希望減少在虛擬機器中的核心工具和動態函式庫。「減少這些機制，可以減少可被駭客利用的攻擊面，也能降低維運成本。」他解釋。</p>
+<p>其次，隱私是第二項目標，「限制可存取的目錄應該成為每一個容器的基礎能力，應該讓只有這份資料需求的容器，才能存取它。」Michael Crosby補充。最後一項專案目標是效能，希望能依據使用者所能提供的資源來調校效能。</p>
+<p>蘋果新發表的Containerization專案是一個開源的Swift框架專案，提供了一套可以執行容器和管理容器映像檔的API，以及一個用Swift開發的系統啟動工具。要啟動一個容器，通常會先從儲存庫下載一份容器映像檔，映像檔中有一份用來啟動這個容器的配置，以及內建儲存應用程式碼和相關站是酷的檔案系統。在Containerization專案，在一個macOS容器中的檔案系統，會視為一個區塊儲存裝置（block device），會格式化成Linux最常見的EXT4目錄結構。Containerization專案提供了Swift元件，可以直接存取EXT4格式目錄中的檔案。&nbsp;&nbsp;</p>
+<p>為了確保夠安全的隔離應，每一個macOS容器要執行時，Containerization會同時啟動一個輕量化的虛擬機器來隔離這個容器，啟動時間不用到1秒。這個設計帶來幾個好處，第一是，可以讓每一個macOS容器可以有獨立的IP位址，讓這些容器的網路存取更有效率，存取macOS容器上的服務，不需要參考通訊埠對應表，而能直接存取。另一個好處是，可以限制，容器只能讀取到它所請求的內容，這些內容不會被其他容器接觸。在資源配置也能更有效率，只要沒有啟動容器，就不需要占用記憶體貨處理器的資源。</p>
+<p>啟動一個maOS容器時，會透過一隻起程式vminid，進行IP指派，掛上區塊儲存裝置和相關啟動作業。傳統虛擬機器啟動時，會啟動一套完整的作業系統，但為了減少攻擊面，在Containerization專案的輕量化虛擬機器中，完全沒有核心工具和動態函式庫，移除了許多核心指令，如移除cd、cp、ls等常見目錄指令，也沒有提供libc實作。這個vminid沒有任何連結檔案，直接用了Swift的靜態Linux SDK，把vminitd編譯成一隻靜態的linux執行檔。</p>
+<p>Containerization支援容器化標準OCI的映像檔，可以直接從Docker Hub等標準Registre直接拉取映像檔來部署。另外，也提供了一套建置Linux容器化應用的工具，也就是命令列工具container，可以管理容器映像檔和支援容器需要的儲存、網路服務等，可以支援 run、pull 及 push等標準容器化操作命令。另外，macOS容器透過Rosetta 2技術，也可以執行為x86-64架構編譯的二進位檔，也就是在Intel 處理器Mac上編譯的二進位檔。&nbsp;</p>
+<p>目前這個Containerization容器化專案需要安裝macOS 26 Beta或更新版本才能執行。若在macOS 15上執行，則會有部分網路功能的閒置。</p>
+<p>許多開發者使用Mac電腦作為開發工具，但要在本地端提供容器化的雲原生測試環境，過去得安裝一些容器軟體，像是Docker、Podman、Orbstack或Lima等。</p>
+<p>雖然蘋果沒有進一步說明，為何要跳下來打造雲原生生態圈最基礎的容器化技術。但隨著蘋果Containerization專案，以及對應的命令列工具container專案的發布，這意味著蘋果開始提供更原生的Linux容器支援，有助於讓macOS成為大規模雲原生架構的資訊基礎，在雲原生技術生態圈中，扮演更關鍵的角色。</p>
+<p>&nbsp;</p>]]></content:encoded>
+    
+    <pubDate>2025-06-10  06:06:19</pubDate>
+  </item><item>
+    <title><![CDATA[網路流量解析工具Wireshark存在高風險漏洞，攻擊者可藉特製封包觸發DoS]]></title>
+    <link>https://ithome.com.tw/news/169460</link>
+    <itunes:title><![CDATA[網路流量解析工具Wireshark存在高風險漏洞，攻擊者可藉特製封包觸發DoS]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/235_-_wireshark_go_deep_-_wireshark_wnpa-sec-2025-02_dissection_engin_-_www.wireshark.org_.jpg?itok=aKIH9h-m" width="960" height="420" alt=""><p>知名開源網路封包解析工具Wireshark<a href="https://www.wireshark.org/security/wnpa-sec-2025-02.html">修補</a>了高風險安全漏洞<a href="https://nvd.nist.gov/vuln/detail/CVE-2025-5601">CVE-2025-5601</a>，該漏洞影響Wireshark 4.4.0至4.4.6及4.2.0至4.2.11等多個主要版本。根據官方公告，攻擊者僅需注入特製封包至網路，或誘導使用者開啟特製封包檔案，即可能導致Wireshark程式異常終止，造成阻斷服務（DoS）。雖然目前Wireshark官方尚未接獲實際攻擊事件，但仍建議所有受影響用戶儘速升級至4.4.7、4.2.12或更新版本，以避免潛在風險。</p>
+<p>本次漏洞源自Wireshark處理封包欄位資訊時，欄位工具（Column Utility）模組存在記憶體操作缺陷。官方<a href="https://gitlab.com/wireshark/wireshark/-/issues/20509">透過</a>自動化模糊測試（Fuzz Testing）發現，當系統遇到特定格式的封包或封包檔案，可能導致記憶體寫入越界，進而引發程式崩潰。此問題屬於典型的緩衝區溢位（Buffer Overflow）問題，濫用該漏洞不需複雜攻擊流程，只要將特製資料注入網路，或讓Wireshark開啟惡意封包檔案，都可能觸發崩潰。</p>
+<p>Wireshark開發團隊已於官方GitLab專案平臺完成漏洞追蹤與修補，所有相關修補程式已併入主線分支，並於官網公告及CVE資料庫公開。根據漏洞嚴重度評分CVSS 3.1，此漏洞風險等級為高，主要影響尚未升級，以及在安全隔離措施不足的環境中運作的Wireshark。</p>
+<p>Wireshark被廣泛應用於企業網路監控、資訊安全事件分析與學術研究，使用者應檢查現有環境所用版本，並儘速部署官方更新，並參考Wireshark官方安全公告、GitLab專案說明及CVE-2025-5601漏洞細節，獲取最新修補資訊及安全指引。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/235_-_wireshark_go_deep_-_wireshark_wnpa-sec-2025-02_dissection_engin_-_www.wireshark.org_.jpg?itok=aKIH9h-m" width="960" height="420" alt=""><p>知名開源網路封包解析工具Wireshark<a href="https://www.wireshark.org/security/wnpa-sec-2025-02.html">修補</a>了高風險安全漏洞<a href="https://nvd.nist.gov/vuln/detail/CVE-2025-5601">CVE-2025-5601</a>，該漏洞影響Wireshark 4.4.0至4.4.6及4.2.0至4.2.11等多個主要版本。根據官方公告，攻擊者僅需注入特製封包至網路，或誘導使用者開啟特製封包檔案，即可能導致Wireshark程式異常終止，造成阻斷服務（DoS）。雖然目前Wireshark官方尚未接獲實際攻擊事件，但仍建議所有受影響用戶儘速升級至4.4.7、4.2.12或更新版本，以避免潛在風險。</p>
+<p>本次漏洞源自Wireshark處理封包欄位資訊時，欄位工具（Column Utility）模組存在記憶體操作缺陷。官方<a href="https://gitlab.com/wireshark/wireshark/-/issues/20509">透過</a>自動化模糊測試（Fuzz Testing）發現，當系統遇到特定格式的封包或封包檔案，可能導致記憶體寫入越界，進而引發程式崩潰。此問題屬於典型的緩衝區溢位（Buffer Overflow）問題，濫用該漏洞不需複雜攻擊流程，只要將特製資料注入網路，或讓Wireshark開啟惡意封包檔案，都可能觸發崩潰。</p>
+<p>Wireshark開發團隊已於官方GitLab專案平臺完成漏洞追蹤與修補，所有相關修補程式已併入主線分支，並於官網公告及CVE資料庫公開。根據漏洞嚴重度評分CVSS 3.1，此漏洞風險等級為高，主要影響尚未升級，以及在安全隔離措施不足的環境中運作的Wireshark。</p>
+<p>Wireshark被廣泛應用於企業網路監控、資訊安全事件分析與學術研究，使用者應檢查現有環境所用版本，並儘速部署官方更新，並參考Wireshark官方安全公告、GitLab專案說明及CVE-2025-5601漏洞細節，獲取最新修補資訊及安全指引。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/235_-_wireshark_go_deep_-_wireshark_wnpa-sec-2025-02_dissection_engin_-_www.wireshark.org_.jpg?itok=aKIH9h-m" width="960" height="420" alt=""><p>知名開源網路封包解析工具Wireshark<a href="https://www.wireshark.org/security/wnpa-sec-2025-02.html">修補</a>了高風險安全漏洞<a href="https://nvd.nist.gov/vuln/detail/CVE-2025-5601">CVE-2025-5601</a>，該漏洞影響Wireshark 4.4.0至4.4.6及4.2.0至4.2.11等多個主要版本。根據官方公告，攻擊者僅需注入特製封包至網路，或誘導使用者開啟特製封包檔案，即可能導致Wireshark程式異常終止，造成阻斷服務（DoS）。雖然目前Wireshark官方尚未接獲實際攻擊事件，但仍建議所有受影響用戶儘速升級至4.4.7、4.2.12或更新版本，以避免潛在風險。</p>
+<p>本次漏洞源自Wireshark處理封包欄位資訊時，欄位工具（Column Utility）模組存在記憶體操作缺陷。官方<a href="https://gitlab.com/wireshark/wireshark/-/issues/20509">透過</a>自動化模糊測試（Fuzz Testing）發現，當系統遇到特定格式的封包或封包檔案，可能導致記憶體寫入越界，進而引發程式崩潰。此問題屬於典型的緩衝區溢位（Buffer Overflow）問題，濫用該漏洞不需複雜攻擊流程，只要將特製資料注入網路，或讓Wireshark開啟惡意封包檔案，都可能觸發崩潰。</p>
+<p>Wireshark開發團隊已於官方GitLab專案平臺完成漏洞追蹤與修補，所有相關修補程式已併入主線分支，並於官網公告及CVE資料庫公開。根據漏洞嚴重度評分CVSS 3.1，此漏洞風險等級為高，主要影響尚未升級，以及在安全隔離措施不足的環境中運作的Wireshark。</p>
+<p>Wireshark被廣泛應用於企業網路監控、資訊安全事件分析與學術研究，使用者應檢查現有環境所用版本，並儘速部署官方更新，並參考Wireshark官方安全公告、GitLab專案說明及CVE-2025-5601漏洞細節，獲取最新修補資訊及安全指引。</p>]]></content:encoded>
+    
+    <pubDate>2025-06-10  05:06:57</pubDate>
+  </item><item>
+    <title><![CDATA[【資安日報】6月10日，中國駭客鎖定資安業者SentinelOne及超過70個企業組織從事大規模攻擊]]></title>
+    <link>https://ithome.com.tw/news/169459</link>
+    <itunes:title><![CDATA[【資安日報】6月10日，中國駭客鎖定資安業者SentinelOne及超過70個企業組織從事大規模攻擊]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/20250610.jpg?itok=xFv61eDV" width="960" height="420" alt=""><p>繼5月底傳出<a href="https://www.ithome.com.tw/news/169308">營運中斷</a>的消息，本週資安業者SentinelOne公布遭遇中國駭客攻擊的調查結果。儘管兩起事故看起來沒有直接關連，但是公布的時間點相當接近，仍不免令人好奇它們之間是否有交集。</p>
+<p>此外，隨著暑假旅遊旺季的到來，打著訂房網站名號的網釣攻擊也相當值得留意，民眾必須特別提高警覺；而在資安漏洞的部分，Python壓縮檔模組重大漏洞、Google帳號的電話號碼資訊可被暴力破解的情況，也相當受到矚目。</p>
+<p>&nbsp;</p>
+<h3><strong>【攻擊與威脅】</strong></h3>
+<p><a href="https://www.ithome.com.tw/news/169453"><strong style="font-size: 22px;">中國駭客鎖定資安業者SentinelOne而來，意圖對用戶從事供應鏈攻擊</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/China_TopTier_10.jpg" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/China_TopTier_10.jpg" style="width: 300px; float: right;"></a></p>
+<p>EDR是網路攻擊者的眼中釘，除了設法迴避偵測，若能設法攻陷、破壞這些資安產品與服務、敗壞資安公司商譽，對他們自然有很大的好處，而對於資安廠商而言，協助客戶做好防護之餘，自保也很重要！4月底資安業者SentinelOne揭露有多組人馬針對他們而來的情況，這些攻擊者大致可分成3種類型，分別是以IT工作者名義求職的北韓駭客、試圖存取及濫用該公司資安平臺的勒索軟體駿客，以及鎖定他們客戶及業務的中國駭客組織。如今該公司針對中國駭客的活動，公布更完整的調查結果。</p>
+<p>針對相關事故的調查過程，SentinelOne指出他們起初於去年10月，察覺駭客偵察該公司網路環境的活動並進行追蹤，結果發現兩波攻擊行動，並將活動命名為PurpleHaze和ShadowPad。該公司強調，經過徹底調查及確認，他們的基礎設施、軟體與硬體均未被入侵。</p>
+<p>而對於受害企業的部分，SentinelOne表示，發生在他們網路環境的活動，僅是這些駭客攻擊活動的一部分，最早可追溯到去年6月，而且，該公司並非唯一的目標，他們認為，自己遭到攻擊僅是大規模攻擊的一部分。</p>
+<p><a href="https://www.ithome.com.tw/news/169451"><strong style="font-size: 22px;">惡意軟體AsyncRAT透過冒牌Booking.com訂房網站散布</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/fake_booking_sites_captcha.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/fake_booking_sites_captcha.png" style="width: 300px; float: right;"></a>最近幾年許多人報復性出遊，並選擇以自助旅行的方式出國，為了安排住宿，很有可能會透過訂房網站來挑選旅館，然而駭客也看上這點來引誘旅客上當，藉此散布惡意程式。</p>
+<p>資安業者Malwarebytes揭露自5月中旬出現的網釣攻擊活動，駭客設置冒牌的Booking.com訂房網站，並透過電玩網站、社群網站、廣告的惡意連結，來引誘使用者上門。一旦使用者被重新導向到假訂房網站，就會看到假的CAPTCHA圖靈驗證機制，然而，實際上，這些手段都是為了引導使用者依照指示操作，將特定命令複製貼上，並透過執行對話框執行的ClickFix網釣手法。</p>
+<p>使用者先是看到網站上的對話框，要求勾選我不是機器人的選項，若是照做，電腦就會複製駭客的惡意指令，並顯示接下來的「驗證步驟」：攻擊者要求使用者用快速鍵（Windows鍵+R）開啟執行視窗，然後在「驗證視窗」按Ctrl+V貼上特定資料並輸入Enter。一旦使用者照做，就會在電腦執行駭客的惡意命令，啟動PowerShell視窗，下載並執行惡意檔案，最終於電腦植入惡意程式AsyncRAT。</p>
+<p><a href="https://www.ithome.com.tw/news/169448"><strong style="font-size: 22px;">駭客盜用React Native、GlueStack維護團隊帳號，上架惡意NPM套件散布木馬</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/684491ed44f58ba31e6c82dd_AD_4nXf9QC66wRY7ovaRZDF7wOo5Fgd1h7lRrFU6P2vZgPR0z3faqocpJnQ0hfoaWAUGvl8sA_xiG66jqAJh__yfiFLImEiDPMszUauAZbaVHg9D5ZGzzvqkVrn6kz2xyWoUrlOxuRo6Gw.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/684491ed44f58ba31e6c82dd_AD_4nXf9QC66wRY7ovaRZDF7wOo5Fgd1h7lRrFU6P2vZgPR0z3faqocpJnQ0hfoaWAUGvl8sA_xiG66jqAJh__yfiFLImEiDPMszUauAZbaVHg9D5ZGzzvqkVrn6kz2xyWoUrlOxuRo6Gw.png" style="width: 300px; float: right;"></a></p>
+<p>最近幾年駭客入侵開發團隊的帳號並冒名上傳惡意套件的情況，已有多起事故傳出，如今類似的攻擊行動再度出現，引起研究人員的關注。</p>
+<p>資安業者Aikido Security揭露針對React Native Aria生態系統的NPM供應鏈攻擊，這起事故發生於6月6日晚間，駭客疑似透過其中一個外流的維護人員帳號Token，發布16個React Native和GlueStack套件的惡意版本。由於這些套件相當熱門，每週下載超過100萬次，影響的範圍可能非常廣泛。</p>
+<p>對於這起事故發生的過程，Aikido Security以其中最早被竄改的NPM套件@react-native-aria/focus為例，駭客更動了lib/commonjs/index.js，並在第46行植入惡意程式碼。為了讓資安人員難以察覺，攻擊者使用大量空白字元混淆手法，將有問題的程式碼隱匿於螢幕難以顯示的地方。研究人員經過調查，確認是曾經鎖定另一個套件rand-user-agent的RAT木馬程式。</p>
+<p><a href="https://www.ithome.com.tw/news/169394"><strong style="font-size: 22px;">Meta、Yandex被揭露監聽Android本機通訊埠，橋接瀏覽器與App身分進行追蹤，引發資安疑慮</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/websites-app-ID-sharing.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/websites-app-ID-sharing.png" style="width: 300px; float: right;"></a>西班牙IMDEA Networks Institute、荷蘭Radboud University及比利時KU Leuven等學術機構研究人員共同發表研究，發現知名科技公司Meta與Yandex在Android平臺上，透過監聽本機通訊埠的方式，建立瀏覽器與原生App之間的身分橋接，實現用戶行為的去匿名化（de-anonymizing）追蹤。此技術手法繞過了傳統的隱私保護機制，侵害行動裝置用戶的個人資料保護與隱私安全。</p>
+<p>研究人員發現，Meta的Facebook與Instagram應用程式，以及Yandex旗下多款應用程式，會在Android裝置中於背景持續監聽特定本地端通訊埠。當用戶開啟安裝Meta Pixel或Yandex Metrica追蹤碼的網站時，瀏覽器中的JavaScript腳本會將瀏覽行為與身分資訊經由本地端Socket傳遞至這些原生App，進而實現網頁與應用程式間的身分串接。此舉突破現行如清除Cookie、無痕瀏覽以及Android權限控管等防護，可連結原本分散、短暫的瀏覽識別與長期、個人化的App帳號或裝置識別碼，提升追蹤的精確度與持續性。</p>
+<p>即便用戶未明確同意Cookie政策，這些身分串接仍有機會被觸發，且由於本機通訊埠監聽並無特別權限限制，其他惡意App也可能監聽相關連接埠，衍生更多資安與個資外洩風險。</p>
+<p><strong style="font-size: 22px;">其他攻擊與威脅</strong></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://hackread.com/malicious-apps-google-play-users-for-seed-phrases/">逾20款惡意App上架Google Play市集，意圖加密貨幣錢包的竊取通關密語</a></strong></p>
+<!-- notionvc: df5ed05b-77b0-4cf8-9884-b412494e6c71 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://gbhackers.com/new-rust-developed-infostealer/">以Rust打造的竊資軟體鎖定Chromium瀏覽器而來，企圖竊取敏感資料</a></strong></p>
+<!-- notionvc: e5357854-be7c-49c9-81b3-d26842fd3427 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://hunt.io/blog/pasteee-xworm-asyncrat-infrastructure#XWorm_and_AsyncRat_Indicators_of_Compromise_IOCs">程式碼共享平臺Paste.ee遭濫用，駭客意圖散布XWorm和AsyncRAT</a></strong></p>
+<!-- notionvc: b3d33a01-fd88-4011-96e2-0d434caae772 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://gbhackers.com/kimsuky-strikes/">北韓駭客Kinsuky同時藉由臉書、電子郵件、Telegram從事網釣攻擊</a></strong></p>
+<p>&nbsp;</p>
+<h3><strong>【漏洞與修補】</strong></h3>
+<p><a href="https://ithome.com.tw/news/169422"><strong style="font-size: 22px;">Python壓縮檔模組tarfile存在重大資安弱點，恐導致檔案系統遭任意寫入</strong></a></p>
+<p>在Python環境裡，專門用來讀取、建立、打包，以及解壓縮tar檔案的程式庫tarfile，一旦出現弱點，就有可能讓攻擊者用於路徑穿越、任意檔案寫入（及覆蓋）、遠端執行任意程式碼（RCE）、權限提升、逃逸沙箱，甚至還有可能污染套件，引發供應鏈攻擊，因此該程式庫相關的弱點，往往都必須提高警覺。</p>
+<p>6月3日Python軟體基金會發布資安公告，指出他們針對tarfile模組修補一系列資安弱點，其中有1個重大層級、3個高風險層級，以及1個中度風險的弱點。</p>
+<p>這些漏洞是：CVE-2025-4517、CVE-2025-4435、CVE-2025-4330、CVE-2025-4138、CVE-2024-12718，大部分涉及如何繞過tar檔案解壓縮的過濾機制，而該機制是3.12版Python開始引入的。一旦曝險的Python透過tarfile模組來解壓縮特定功能組態、不受信任的tar檔，就有可能觸發漏洞。最嚴重的資安漏洞是CVE-2025-4517，發生在使用filter="data"的功能參數執行解壓縮的過程，使得攻擊者能夠在檔案系統任意寫入，CVSS風險達到9.4分（滿分10分）。</p>
+<p><a href="https://www.ithome.com.tw/news/169449"><strong style="font-size: 22px;">Google用戶的電話號碼驚傳可被暴力破解</strong></a></p>
+<p>資安研究人員BruteCat周一（6月9日）揭露，他利用Google在無JavaScript模式中忘了關閉的帳戶復原服務，成功地暴力破解了Google用戶的電話號碼。研究人員在今年4月將漏洞報告提交給Google，獲得5,000美元獎金，而Google則於本月確認，無JavaScript的使用者名稱復原表單已全面被棄用。</p>
+<p>為了避免遭到濫用，Google至少自2018年於登錄服務中就開始實施JavaScript機器人檢測框架，以防止機器人登錄。BruteCat說，他是在今年初於瀏覽器上關閉了JavaScript，想查探是否有任何Google服務在沒有JavaScript的情況下仍能運作，結果發現，帳戶復原服務竟然可正常執行。BruteCat採用IPv6以隨機切換來源位址，並利用BotGuard令牌來繞過CAPTCHA，接著利用自動化工具以於密碼恢復流程中，取得只有兩個數字的遮罩電話號碼提示，再進行暴力破解。</p>
+<p>BruteCat利用每小時0.3美元的伺服器資源即可執行每秒4萬次的檢查，發現找到一個正確的美國電話號碼需20分鐘，找到一個英國號碼只要4分鐘，找到一個荷蘭號碼只需15秒，新加坡號碼更只要5秒。</p>
+<p><strong style="font-size: 22px;">其他漏洞與修補</strong></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://www.securityweek.com/hpe-patches-critical-vulnerability-in-storeonce/">HPE修補備份平臺StoreOnce重大漏洞</a></strong></p>
+<!-- notionvc: cfbc33c6-b25e-417b-a51e-6f528b223aaa --><p></p>
+<p>&nbsp;</p>
+<h3><strong>近期資安日報</strong></h3>
+<p><a href="https://www.ithome.com.tw/news/169436"><strong>【6月9日】中國驚傳大規模資料外洩，40億筆民眾個資在網際網路短暫裸奔</strong></a></p>
+<p><a href="https://www.ithome.com.tw/news/169399"><strong>【6月6日】鎖定求職者的網釣不再只針對IT人員，出現向企業財務高層以挖角為誘餌的網路攻擊</strong></a></p>
+<p><a href="https://www.ithome.com.tw/news/169392"><strong>【6月5日】Roundcube存在9.9分的重大層級漏洞，恐波及其他內建此郵件伺服器的系統</strong></a></p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/20250610.jpg?itok=xFv61eDV" width="960" height="420" alt=""><p>繼5月底傳出<a href="https://www.ithome.com.tw/news/169308">營運中斷</a>的消息，本週資安業者SentinelOne公布遭遇中國駭客攻擊的調查結果。儘管兩起事故看起來沒有直接關連，但是公布的時間點相當接近，仍不免令人好奇它們之間是否有交集。</p>
+<p>此外，隨著暑假旅遊旺季的到來，打著訂房網站名號的網釣攻擊也相當值得留意，民眾必須特別提高警覺；而在資安漏洞的部分，Python壓縮檔模組重大漏洞、Google帳號的電話號碼資訊可被暴力破解的情況，也相當受到矚目。</p>
+<p>&nbsp;</p>
+<h3><strong>【攻擊與威脅】</strong></h3>
+<p><a href="https://www.ithome.com.tw/news/169453"><strong style="font-size: 22px;">中國駭客鎖定資安業者SentinelOne而來，意圖對用戶從事供應鏈攻擊</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/China_TopTier_10.jpg" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/China_TopTier_10.jpg" style="width: 300px; float: right;"></a></p>
+<p>EDR是網路攻擊者的眼中釘，除了設法迴避偵測，若能設法攻陷、破壞這些資安產品與服務、敗壞資安公司商譽，對他們自然有很大的好處，而對於資安廠商而言，協助客戶做好防護之餘，自保也很重要！4月底資安業者SentinelOne揭露有多組人馬針對他們而來的情況，這些攻擊者大致可分成3種類型，分別是以IT工作者名義求職的北韓駭客、試圖存取及濫用該公司資安平臺的勒索軟體駿客，以及鎖定他們客戶及業務的中國駭客組織。如今該公司針對中國駭客的活動，公布更完整的調查結果。</p>
+<p>針對相關事故的調查過程，SentinelOne指出他們起初於去年10月，察覺駭客偵察該公司網路環境的活動並進行追蹤，結果發現兩波攻擊行動，並將活動命名為PurpleHaze和ShadowPad。該公司強調，經過徹底調查及確認，他們的基礎設施、軟體與硬體均未被入侵。</p>
+<p>而對於受害企業的部分，SentinelOne表示，發生在他們網路環境的活動，僅是這些駭客攻擊活動的一部分，最早可追溯到去年6月，而且，該公司並非唯一的目標，他們認為，自己遭到攻擊僅是大規模攻擊的一部分。</p>
+<p><a href="https://www.ithome.com.tw/news/169451"><strong style="font-size: 22px;">惡意軟體AsyncRAT透過冒牌Booking.com訂房網站散布</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/fake_booking_sites_captcha.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/fake_booking_sites_captcha.png" style="width: 300px; float: right;"></a>最近幾年許多人報復性出遊，並選擇以自助旅行的方式出國，為了安排住宿，很有可能會透過訂房網站來挑選旅館，然而駭客也看上這點來引誘旅客上當，藉此散布惡意程式。</p>
+<p>資安業者Malwarebytes揭露自5月中旬出現的網釣攻擊活動，駭客設置冒牌的Booking.com訂房網站，並透過電玩網站、社群網站、廣告的惡意連結，來引誘使用者上門。一旦使用者被重新導向到假訂房網站，就會看到假的CAPTCHA圖靈驗證機制，然而，實際上，這些手段都是為了引導使用者依照指示操作，將特定命令複製貼上，並透過執行對話框執行的ClickFix網釣手法。</p>
+<p>使用者先是看到網站上的對話框，要求勾選我不是機器人的選項，若是照做，電腦就會複製駭客的惡意指令，並顯示接下來的「驗證步驟」：攻擊者要求使用者用快速鍵（Windows鍵+R）開啟執行視窗，然後在「驗證視窗」按Ctrl+V貼上特定資料並輸入Enter。一旦使用者照做，就會在電腦執行駭客的惡意命令，啟動PowerShell視窗，下載並執行惡意檔案，最終於電腦植入惡意程式AsyncRAT。</p>
+<p><a href="https://www.ithome.com.tw/news/169448"><strong style="font-size: 22px;">駭客盜用React Native、GlueStack維護團隊帳號，上架惡意NPM套件散布木馬</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/684491ed44f58ba31e6c82dd_AD_4nXf9QC66wRY7ovaRZDF7wOo5Fgd1h7lRrFU6P2vZgPR0z3faqocpJnQ0hfoaWAUGvl8sA_xiG66jqAJh__yfiFLImEiDPMszUauAZbaVHg9D5ZGzzvqkVrn6kz2xyWoUrlOxuRo6Gw.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/684491ed44f58ba31e6c82dd_AD_4nXf9QC66wRY7ovaRZDF7wOo5Fgd1h7lRrFU6P2vZgPR0z3faqocpJnQ0hfoaWAUGvl8sA_xiG66jqAJh__yfiFLImEiDPMszUauAZbaVHg9D5ZGzzvqkVrn6kz2xyWoUrlOxuRo6Gw.png" style="width: 300px; float: right;"></a></p>
+<p>最近幾年駭客入侵開發團隊的帳號並冒名上傳惡意套件的情況，已有多起事故傳出，如今類似的攻擊行動再度出現，引起研究人員的關注。</p>
+<p>資安業者Aikido Security揭露針對React Native Aria生態系統的NPM供應鏈攻擊，這起事故發生於6月6日晚間，駭客疑似透過其中一個外流的維護人員帳號Token，發布16個React Native和GlueStack套件的惡意版本。由於這些套件相當熱門，每週下載超過100萬次，影響的範圍可能非常廣泛。</p>
+<p>對於這起事故發生的過程，Aikido Security以其中最早被竄改的NPM套件@react-native-aria/focus為例，駭客更動了lib/commonjs/index.js，並在第46行植入惡意程式碼。為了讓資安人員難以察覺，攻擊者使用大量空白字元混淆手法，將有問題的程式碼隱匿於螢幕難以顯示的地方。研究人員經過調查，確認是曾經鎖定另一個套件rand-user-agent的RAT木馬程式。</p>
+<p><a href="https://www.ithome.com.tw/news/169394"><strong style="font-size: 22px;">Meta、Yandex被揭露監聽Android本機通訊埠，橋接瀏覽器與App身分進行追蹤，引發資安疑慮</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/websites-app-ID-sharing.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/websites-app-ID-sharing.png" style="width: 300px; float: right;"></a>西班牙IMDEA Networks Institute、荷蘭Radboud University及比利時KU Leuven等學術機構研究人員共同發表研究，發現知名科技公司Meta與Yandex在Android平臺上，透過監聽本機通訊埠的方式，建立瀏覽器與原生App之間的身分橋接，實現用戶行為的去匿名化（de-anonymizing）追蹤。此技術手法繞過了傳統的隱私保護機制，侵害行動裝置用戶的個人資料保護與隱私安全。</p>
+<p>研究人員發現，Meta的Facebook與Instagram應用程式，以及Yandex旗下多款應用程式，會在Android裝置中於背景持續監聽特定本地端通訊埠。當用戶開啟安裝Meta Pixel或Yandex Metrica追蹤碼的網站時，瀏覽器中的JavaScript腳本會將瀏覽行為與身分資訊經由本地端Socket傳遞至這些原生App，進而實現網頁與應用程式間的身分串接。此舉突破現行如清除Cookie、無痕瀏覽以及Android權限控管等防護，可連結原本分散、短暫的瀏覽識別與長期、個人化的App帳號或裝置識別碼，提升追蹤的精確度與持續性。</p>
+<p>即便用戶未明確同意Cookie政策，這些身分串接仍有機會被觸發，且由於本機通訊埠監聽並無特別權限限制，其他惡意App也可能監聽相關連接埠，衍生更多資安與個資外洩風險。</p>
+<p><strong style="font-size: 22px;">其他攻擊與威脅</strong></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://hackread.com/malicious-apps-google-play-users-for-seed-phrases/">逾20款惡意App上架Google Play市集，意圖加密貨幣錢包的竊取通關密語</a></strong></p>
+<!-- notionvc: df5ed05b-77b0-4cf8-9884-b412494e6c71 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://gbhackers.com/new-rust-developed-infostealer/">以Rust打造的竊資軟體鎖定Chromium瀏覽器而來，企圖竊取敏感資料</a></strong></p>
+<!-- notionvc: e5357854-be7c-49c9-81b3-d26842fd3427 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://hunt.io/blog/pasteee-xworm-asyncrat-infrastructure#XWorm_and_AsyncRat_Indicators_of_Compromise_IOCs">程式碼共享平臺Paste.ee遭濫用，駭客意圖散布XWorm和AsyncRAT</a></strong></p>
+<!-- notionvc: b3d33a01-fd88-4011-96e2-0d434caae772 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://gbhackers.com/kimsuky-strikes/">北韓駭客Kinsuky同時藉由臉書、電子郵件、Telegram從事網釣攻擊</a></strong></p>
+<p>&nbsp;</p>
+<h3><strong>【漏洞與修補】</strong></h3>
+<p><a href="https://ithome.com.tw/news/169422"><strong style="font-size: 22px;">Python壓縮檔模組tarfile存在重大資安弱點，恐導致檔案系統遭任意寫入</strong></a></p>
+<p>在Python環境裡，專門用來讀取、建立、打包，以及解壓縮tar檔案的程式庫tarfile，一旦出現弱點，就有可能讓攻擊者用於路徑穿越、任意檔案寫入（及覆蓋）、遠端執行任意程式碼（RCE）、權限提升、逃逸沙箱，甚至還有可能污染套件，引發供應鏈攻擊，因此該程式庫相關的弱點，往往都必須提高警覺。</p>
+<p>6月3日Python軟體基金會發布資安公告，指出他們針對tarfile模組修補一系列資安弱點，其中有1個重大層級、3個高風險層級，以及1個中度風險的弱點。</p>
+<p>這些漏洞是：CVE-2025-4517、CVE-2025-4435、CVE-2025-4330、CVE-2025-4138、CVE-2024-12718，大部分涉及如何繞過tar檔案解壓縮的過濾機制，而該機制是3.12版Python開始引入的。一旦曝險的Python透過tarfile模組來解壓縮特定功能組態、不受信任的tar檔，就有可能觸發漏洞。最嚴重的資安漏洞是CVE-2025-4517，發生在使用filter="data"的功能參數執行解壓縮的過程，使得攻擊者能夠在檔案系統任意寫入，CVSS風險達到9.4分（滿分10分）。</p>
+<p><a href="https://www.ithome.com.tw/news/169449"><strong style="font-size: 22px;">Google用戶的電話號碼驚傳可被暴力破解</strong></a></p>
+<p>資安研究人員BruteCat周一（6月9日）揭露，他利用Google在無JavaScript模式中忘了關閉的帳戶復原服務，成功地暴力破解了Google用戶的電話號碼。研究人員在今年4月將漏洞報告提交給Google，獲得5,000美元獎金，而Google則於本月確認，無JavaScript的使用者名稱復原表單已全面被棄用。</p>
+<p>為了避免遭到濫用，Google至少自2018年於登錄服務中就開始實施JavaScript機器人檢測框架，以防止機器人登錄。BruteCat說，他是在今年初於瀏覽器上關閉了JavaScript，想查探是否有任何Google服務在沒有JavaScript的情況下仍能運作，結果發現，帳戶復原服務竟然可正常執行。BruteCat採用IPv6以隨機切換來源位址，並利用BotGuard令牌來繞過CAPTCHA，接著利用自動化工具以於密碼恢復流程中，取得只有兩個數字的遮罩電話號碼提示，再進行暴力破解。</p>
+<p>BruteCat利用每小時0.3美元的伺服器資源即可執行每秒4萬次的檢查，發現找到一個正確的美國電話號碼需20分鐘，找到一個英國號碼只要4分鐘，找到一個荷蘭號碼只需15秒，新加坡號碼更只要5秒。</p>
+<p><strong style="font-size: 22px;">其他漏洞與修補</strong></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://www.securityweek.com/hpe-patches-critical-vulnerability-in-storeonce/">HPE修補備份平臺StoreOnce重大漏洞</a></strong></p>
+<!-- notionvc: cfbc33c6-b25e-417b-a51e-6f528b223aaa --><p></p>
+<p>&nbsp;</p>
+<h3><strong>近期資安日報</strong></h3>
+<p><a href="https://www.ithome.com.tw/news/169436"><strong>【6月9日】中國驚傳大規模資料外洩，40億筆民眾個資在網際網路短暫裸奔</strong></a></p>
+<p><a href="https://www.ithome.com.tw/news/169399"><strong>【6月6日】鎖定求職者的網釣不再只針對IT人員，出現向企業財務高層以挖角為誘餌的網路攻擊</strong></a></p>
+<p><a href="https://www.ithome.com.tw/news/169392"><strong>【6月5日】Roundcube存在9.9分的重大層級漏洞，恐波及其他內建此郵件伺服器的系統</strong></a></p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/20250610.jpg?itok=xFv61eDV" width="960" height="420" alt=""><p>繼5月底傳出<a href="https://www.ithome.com.tw/news/169308">營運中斷</a>的消息，本週資安業者SentinelOne公布遭遇中國駭客攻擊的調查結果。儘管兩起事故看起來沒有直接關連，但是公布的時間點相當接近，仍不免令人好奇它們之間是否有交集。</p>
+<p>此外，隨著暑假旅遊旺季的到來，打著訂房網站名號的網釣攻擊也相當值得留意，民眾必須特別提高警覺；而在資安漏洞的部分，Python壓縮檔模組重大漏洞、Google帳號的電話號碼資訊可被暴力破解的情況，也相當受到矚目。</p>
+<p>&nbsp;</p>
+<h3><strong>【攻擊與威脅】</strong></h3>
+<p><a href="https://www.ithome.com.tw/news/169453"><strong style="font-size: 22px;">中國駭客鎖定資安業者SentinelOne而來，意圖對用戶從事供應鏈攻擊</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/China_TopTier_10.jpg" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/China_TopTier_10.jpg" style="width: 300px; float: right;"></a></p>
+<p>EDR是網路攻擊者的眼中釘，除了設法迴避偵測，若能設法攻陷、破壞這些資安產品與服務、敗壞資安公司商譽，對他們自然有很大的好處，而對於資安廠商而言，協助客戶做好防護之餘，自保也很重要！4月底資安業者SentinelOne揭露有多組人馬針對他們而來的情況，這些攻擊者大致可分成3種類型，分別是以IT工作者名義求職的北韓駭客、試圖存取及濫用該公司資安平臺的勒索軟體駿客，以及鎖定他們客戶及業務的中國駭客組織。如今該公司針對中國駭客的活動，公布更完整的調查結果。</p>
+<p>針對相關事故的調查過程，SentinelOne指出他們起初於去年10月，察覺駭客偵察該公司網路環境的活動並進行追蹤，結果發現兩波攻擊行動，並將活動命名為PurpleHaze和ShadowPad。該公司強調，經過徹底調查及確認，他們的基礎設施、軟體與硬體均未被入侵。</p>
+<p>而對於受害企業的部分，SentinelOne表示，發生在他們網路環境的活動，僅是這些駭客攻擊活動的一部分，最早可追溯到去年6月，而且，該公司並非唯一的目標，他們認為，自己遭到攻擊僅是大規模攻擊的一部分。</p>
+<p><a href="https://www.ithome.com.tw/news/169451"><strong style="font-size: 22px;">惡意軟體AsyncRAT透過冒牌Booking.com訂房網站散布</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/fake_booking_sites_captcha.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/fake_booking_sites_captcha.png" style="width: 300px; float: right;"></a>最近幾年許多人報復性出遊，並選擇以自助旅行的方式出國，為了安排住宿，很有可能會透過訂房網站來挑選旅館，然而駭客也看上這點來引誘旅客上當，藉此散布惡意程式。</p>
+<p>資安業者Malwarebytes揭露自5月中旬出現的網釣攻擊活動，駭客設置冒牌的Booking.com訂房網站，並透過電玩網站、社群網站、廣告的惡意連結，來引誘使用者上門。一旦使用者被重新導向到假訂房網站，就會看到假的CAPTCHA圖靈驗證機制，然而，實際上，這些手段都是為了引導使用者依照指示操作，將特定命令複製貼上，並透過執行對話框執行的ClickFix網釣手法。</p>
+<p>使用者先是看到網站上的對話框，要求勾選我不是機器人的選項，若是照做，電腦就會複製駭客的惡意指令，並顯示接下來的「驗證步驟」：攻擊者要求使用者用快速鍵（Windows鍵+R）開啟執行視窗，然後在「驗證視窗」按Ctrl+V貼上特定資料並輸入Enter。一旦使用者照做，就會在電腦執行駭客的惡意命令，啟動PowerShell視窗，下載並執行惡意檔案，最終於電腦植入惡意程式AsyncRAT。</p>
+<p><a href="https://www.ithome.com.tw/news/169448"><strong style="font-size: 22px;">駭客盜用React Native、GlueStack維護團隊帳號，上架惡意NPM套件散布木馬</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/684491ed44f58ba31e6c82dd_AD_4nXf9QC66wRY7ovaRZDF7wOo5Fgd1h7lRrFU6P2vZgPR0z3faqocpJnQ0hfoaWAUGvl8sA_xiG66jqAJh__yfiFLImEiDPMszUauAZbaVHg9D5ZGzzvqkVrn6kz2xyWoUrlOxuRo6Gw.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/684491ed44f58ba31e6c82dd_AD_4nXf9QC66wRY7ovaRZDF7wOo5Fgd1h7lRrFU6P2vZgPR0z3faqocpJnQ0hfoaWAUGvl8sA_xiG66jqAJh__yfiFLImEiDPMszUauAZbaVHg9D5ZGzzvqkVrn6kz2xyWoUrlOxuRo6Gw.png" style="width: 300px; float: right;"></a></p>
+<p>最近幾年駭客入侵開發團隊的帳號並冒名上傳惡意套件的情況，已有多起事故傳出，如今類似的攻擊行動再度出現，引起研究人員的關注。</p>
+<p>資安業者Aikido Security揭露針對React Native Aria生態系統的NPM供應鏈攻擊，這起事故發生於6月6日晚間，駭客疑似透過其中一個外流的維護人員帳號Token，發布16個React Native和GlueStack套件的惡意版本。由於這些套件相當熱門，每週下載超過100萬次，影響的範圍可能非常廣泛。</p>
+<p>對於這起事故發生的過程，Aikido Security以其中最早被竄改的NPM套件@react-native-aria/focus為例，駭客更動了lib/commonjs/index.js，並在第46行植入惡意程式碼。為了讓資安人員難以察覺，攻擊者使用大量空白字元混淆手法，將有問題的程式碼隱匿於螢幕難以顯示的地方。研究人員經過調查，確認是曾經鎖定另一個套件rand-user-agent的RAT木馬程式。</p>
+<p><a href="https://www.ithome.com.tw/news/169394"><strong style="font-size: 22px;">Meta、Yandex被揭露監聽Android本機通訊埠，橋接瀏覽器與App身分進行追蹤，引發資安疑慮</strong></a></p>
+<p><a href="https://s4.itho.me/sites/default/files/images/websites-app-ID-sharing.png" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/images/websites-app-ID-sharing.png" style="width: 300px; float: right;"></a>西班牙IMDEA Networks Institute、荷蘭Radboud University及比利時KU Leuven等學術機構研究人員共同發表研究，發現知名科技公司Meta與Yandex在Android平臺上，透過監聽本機通訊埠的方式，建立瀏覽器與原生App之間的身分橋接，實現用戶行為的去匿名化（de-anonymizing）追蹤。此技術手法繞過了傳統的隱私保護機制，侵害行動裝置用戶的個人資料保護與隱私安全。</p>
+<p>研究人員發現，Meta的Facebook與Instagram應用程式，以及Yandex旗下多款應用程式，會在Android裝置中於背景持續監聽特定本地端通訊埠。當用戶開啟安裝Meta Pixel或Yandex Metrica追蹤碼的網站時，瀏覽器中的JavaScript腳本會將瀏覽行為與身分資訊經由本地端Socket傳遞至這些原生App，進而實現網頁與應用程式間的身分串接。此舉突破現行如清除Cookie、無痕瀏覽以及Android權限控管等防護，可連結原本分散、短暫的瀏覽識別與長期、個人化的App帳號或裝置識別碼，提升追蹤的精確度與持續性。</p>
+<p>即便用戶未明確同意Cookie政策，這些身分串接仍有機會被觸發，且由於本機通訊埠監聽並無特別權限限制，其他惡意App也可能監聽相關連接埠，衍生更多資安與個資外洩風險。</p>
+<p><strong style="font-size: 22px;">其他攻擊與威脅</strong></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://hackread.com/malicious-apps-google-play-users-for-seed-phrases/">逾20款惡意App上架Google Play市集，意圖加密貨幣錢包的竊取通關密語</a></strong></p>
+<!-- notionvc: df5ed05b-77b0-4cf8-9884-b412494e6c71 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://gbhackers.com/new-rust-developed-infostealer/">以Rust打造的竊資軟體鎖定Chromium瀏覽器而來，企圖竊取敏感資料</a></strong></p>
+<!-- notionvc: e5357854-be7c-49c9-81b3-d26842fd3427 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://hunt.io/blog/pasteee-xworm-asyncrat-infrastructure#XWorm_and_AsyncRat_Indicators_of_Compromise_IOCs">程式碼共享平臺Paste.ee遭濫用，駭客意圖散布XWorm和AsyncRAT</a></strong></p>
+<!-- notionvc: b3d33a01-fd88-4011-96e2-0d434caae772 --><p></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://gbhackers.com/kimsuky-strikes/">北韓駭客Kinsuky同時藉由臉書、電子郵件、Telegram從事網釣攻擊</a></strong></p>
+<p>&nbsp;</p>
+<h3><strong>【漏洞與修補】</strong></h3>
+<p><a href="https://ithome.com.tw/news/169422"><strong style="font-size: 22px;">Python壓縮檔模組tarfile存在重大資安弱點，恐導致檔案系統遭任意寫入</strong></a></p>
+<p>在Python環境裡，專門用來讀取、建立、打包，以及解壓縮tar檔案的程式庫tarfile，一旦出現弱點，就有可能讓攻擊者用於路徑穿越、任意檔案寫入（及覆蓋）、遠端執行任意程式碼（RCE）、權限提升、逃逸沙箱，甚至還有可能污染套件，引發供應鏈攻擊，因此該程式庫相關的弱點，往往都必須提高警覺。</p>
+<p>6月3日Python軟體基金會發布資安公告，指出他們針對tarfile模組修補一系列資安弱點，其中有1個重大層級、3個高風險層級，以及1個中度風險的弱點。</p>
+<p>這些漏洞是：CVE-2025-4517、CVE-2025-4435、CVE-2025-4330、CVE-2025-4138、CVE-2024-12718，大部分涉及如何繞過tar檔案解壓縮的過濾機制，而該機制是3.12版Python開始引入的。一旦曝險的Python透過tarfile模組來解壓縮特定功能組態、不受信任的tar檔，就有可能觸發漏洞。最嚴重的資安漏洞是CVE-2025-4517，發生在使用filter="data"的功能參數執行解壓縮的過程，使得攻擊者能夠在檔案系統任意寫入，CVSS風險達到9.4分（滿分10分）。</p>
+<p><a href="https://www.ithome.com.tw/news/169449"><strong style="font-size: 22px;">Google用戶的電話號碼驚傳可被暴力破解</strong></a></p>
+<p>資安研究人員BruteCat周一（6月9日）揭露，他利用Google在無JavaScript模式中忘了關閉的帳戶復原服務，成功地暴力破解了Google用戶的電話號碼。研究人員在今年4月將漏洞報告提交給Google，獲得5,000美元獎金，而Google則於本月確認，無JavaScript的使用者名稱復原表單已全面被棄用。</p>
+<p>為了避免遭到濫用，Google至少自2018年於登錄服務中就開始實施JavaScript機器人檢測框架，以防止機器人登錄。BruteCat說，他是在今年初於瀏覽器上關閉了JavaScript，想查探是否有任何Google服務在沒有JavaScript的情況下仍能運作，結果發現，帳戶復原服務竟然可正常執行。BruteCat採用IPv6以隨機切換來源位址，並利用BotGuard令牌來繞過CAPTCHA，接著利用自動化工具以於密碼恢復流程中，取得只有兩個數字的遮罩電話號碼提示，再進行暴力破解。</p>
+<p>BruteCat利用每小時0.3美元的伺服器資源即可執行每秒4萬次的檢查，發現找到一個正確的美國電話號碼需20分鐘，找到一個英國號碼只要4分鐘，找到一個荷蘭號碼只需15秒，新加坡號碼更只要5秒。</p>
+<p><strong style="font-size: 22px;">其他漏洞與修補</strong></p>
+<p>◆<strong style="font-size: 20px;"><a href="https://www.securityweek.com/hpe-patches-critical-vulnerability-in-storeonce/">HPE修補備份平臺StoreOnce重大漏洞</a></strong></p>
+<!-- notionvc: cfbc33c6-b25e-417b-a51e-6f528b223aaa --><p></p>
+<p>&nbsp;</p>
+<h3><strong>近期資安日報</strong></h3>
+<p><a href="https://www.ithome.com.tw/news/169436"><strong>【6月9日】中國驚傳大規模資料外洩，40億筆民眾個資在網際網路短暫裸奔</strong></a></p>
+<p><a href="https://www.ithome.com.tw/news/169399"><strong>【6月6日】鎖定求職者的網釣不再只針對IT人員，出現向企業財務高層以挖角為誘餌的網路攻擊</strong></a></p>
+<p><a href="https://www.ithome.com.tw/news/169392"><strong>【6月5日】Roundcube存在9.9分的重大層級漏洞，恐波及其他內建此郵件伺服器的系統</strong></a></p>]]></content:encoded>
+    
+    <pubDate>2025-06-10  04:06:37</pubDate>
+  </item><item>
+    <title><![CDATA[中國駭客鎖定資安業者SentinelOne而來，意圖對用戶從事供應鏈攻擊]]></title>
+    <link>https://ithome.com.tw/news/169453</link>
+    <itunes:title><![CDATA[中國駭客鎖定資安業者SentinelOne而來，意圖對用戶從事供應鏈攻擊]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/china_toptier_10-156.jpg?itok=E6ZXcIMN" width="960" height="420" alt=""><p>EDR是網路攻擊者的眼中釘，除了設法迴避偵測，若能設法攻陷、破壞這些資安產品與服務、敗壞資安公司商譽，對他們自然有很大的好處，而對於資安廠商而言，協助客戶做好防護之餘，自保也很重要！4月底資安業者SentinelOne揭露<a href="https://www.sentinelone.com/labs/top-tier-target-what-it-takes-to-defend-a-cybersecurity-company-from-todays-adversaries/">有多組人馬針對他們而來</a>的情況，這些攻擊者大致可分成3種類型，分別是以IT工作者名義求職的北韓駭客、試圖存取及濫用該公司資安平臺的勒索軟體駿客，以及鎖定他們客戶及業務的中國駭客組織。如今該公司針對中國駭客的活動，<a href="https://www.sentinelone.com/labs/follow-the-smoke-china-nexus-threat-actors-hammer-at-the-doors-of-top-tier-targets/">公布更完整的調查結果</a>。</p>
+<p>針對相關事故的調查過程，SentinelOne指出他們起初於去年10月，察覺駭客偵察該公司網路環境的活動並進行追蹤，結果發現兩波攻擊行動，並將活動命名為PurpleHaze和ShadowPad。該公司強調，經過徹底調查及確認，他們的基礎設施、軟體與硬體均未被入侵。</p>
+<p>而對於受害企業的部分，SentinelOne表示，發生在他們網路環境的活動，僅是這些駭客攻擊活動的一部分，最早可追溯到去年6月，而且，該公司並非唯一的目標，他們認為，自己遭到攻擊僅是大規模攻擊的一部分。</p>
+<p>針對這兩波攻擊，研究人員提及在PurpleHaze發生在去年9月至10月，駭客使用後門程式GOREshell建立反向SSH連線，此後門程式以Go語言打造而成，鎖定Windows、Linux電腦下手，共通點是駭客使用相同的SSH私鑰進行，此外，為了抹除證據，他們也使用自製工具清除事件記錄檔案。</p>
+<p>另一波攻擊行動ShadowPad延續的時間較長，為去年6月至今年3月，駭客使用PowerShell命令下載經過混淆處理的惡意程式ShadowPad，並使用 DNS over HTTPS（DOH）建立C2連線以迴避偵測，研究人員提及，駭客取得初始入侵管道的方式，疑似透過Check Point安全閘道設備弱點得逞。</p>
+<p>而對於這些攻擊行動，研究人員分別看到三起事故。以ShadowPad而言，駭客在去年6月對南亞政府組織下手，接著，他們自7月至今年3月，對全球超過70個企業組織展開攻擊，範圍橫跨製造、政府、金融、電信，以及研究領域。</p>
+<p>最後一波攻擊與SentinelOne有關，今年初，駭客入侵一家經營IT服務與物流的公司，而該公司當時負責SentinelOne員工硬體設備的物流業務。</p>
+<p>在PurpleHaze活動期間裡，也同樣發生三起事故。第一起是針對上述提及的南亞政府機關，於去年10月散布GOREshell，過程裡採用中國經營的Operational Relay Box（ORB）網路。</p>
+<p>第二起事故也發生在10月，駭客針對SentinelOne可透過網際網路存取的伺服器試圖進行偵測，這起事故駭客使用的基礎設施，與攻擊南亞政府機關的團體有關。</p>
+<p>研究人員提及發生於去年9月下旬的事故，駭客入侵一家歐洲媒體，除了使用GOREshell，還使用PHP打造的Web Shell，以及名為The Hacker's Choice的工具。他們提及駭客入侵的管道，是利用Ivanti Cloud Services Appliance的資安漏洞CVE-2024-8963和CVE-2024-8190，而當時這些漏洞尚未公開。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/china_toptier_10-156.jpg?itok=E6ZXcIMN" width="960" height="420" alt=""><p>EDR是網路攻擊者的眼中釘，除了設法迴避偵測，若能設法攻陷、破壞這些資安產品與服務、敗壞資安公司商譽，對他們自然有很大的好處，而對於資安廠商而言，協助客戶做好防護之餘，自保也很重要！4月底資安業者SentinelOne揭露<a href="https://www.sentinelone.com/labs/top-tier-target-what-it-takes-to-defend-a-cybersecurity-company-from-todays-adversaries/">有多組人馬針對他們而來</a>的情況，這些攻擊者大致可分成3種類型，分別是以IT工作者名義求職的北韓駭客、試圖存取及濫用該公司資安平臺的勒索軟體駿客，以及鎖定他們客戶及業務的中國駭客組織。如今該公司針對中國駭客的活動，<a href="https://www.sentinelone.com/labs/follow-the-smoke-china-nexus-threat-actors-hammer-at-the-doors-of-top-tier-targets/">公布更完整的調查結果</a>。</p>
+<p>針對相關事故的調查過程，SentinelOne指出他們起初於去年10月，察覺駭客偵察該公司網路環境的活動並進行追蹤，結果發現兩波攻擊行動，並將活動命名為PurpleHaze和ShadowPad。該公司強調，經過徹底調查及確認，他們的基礎設施、軟體與硬體均未被入侵。</p>
+<p>而對於受害企業的部分，SentinelOne表示，發生在他們網路環境的活動，僅是這些駭客攻擊活動的一部分，最早可追溯到去年6月，而且，該公司並非唯一的目標，他們認為，自己遭到攻擊僅是大規模攻擊的一部分。</p>
+<p>針對這兩波攻擊，研究人員提及在PurpleHaze發生在去年9月至10月，駭客使用後門程式GOREshell建立反向SSH連線，此後門程式以Go語言打造而成，鎖定Windows、Linux電腦下手，共通點是駭客使用相同的SSH私鑰進行，此外，為了抹除證據，他們也使用自製工具清除事件記錄檔案。</p>
+<p>另一波攻擊行動ShadowPad延續的時間較長，為去年6月至今年3月，駭客使用PowerShell命令下載經過混淆處理的惡意程式ShadowPad，並使用 DNS over HTTPS（DOH）建立C2連線以迴避偵測，研究人員提及，駭客取得初始入侵管道的方式，疑似透過Check Point安全閘道設備弱點得逞。</p>
+<p>而對於這些攻擊行動，研究人員分別看到三起事故。以ShadowPad而言，駭客在去年6月對南亞政府組織下手，接著，他們自7月至今年3月，對全球超過70個企業組織展開攻擊，範圍橫跨製造、政府、金融、電信，以及研究領域。</p>
+<p>最後一波攻擊與SentinelOne有關，今年初，駭客入侵一家經營IT服務與物流的公司，而該公司當時負責SentinelOne員工硬體設備的物流業務。</p>
+<p>在PurpleHaze活動期間裡，也同樣發生三起事故。第一起是針對上述提及的南亞政府機關，於去年10月散布GOREshell，過程裡採用中國經營的Operational Relay Box（ORB）網路。</p>
+<p>第二起事故也發生在10月，駭客針對SentinelOne可透過網際網路存取的伺服器試圖進行偵測，這起事故駭客使用的基礎設施，與攻擊南亞政府機關的團體有關。</p>
+<p>研究人員提及發生於去年9月下旬的事故，駭客入侵一家歐洲媒體，除了使用GOREshell，還使用PHP打造的Web Shell，以及名為The Hacker's Choice的工具。他們提及駭客入侵的管道，是利用Ivanti Cloud Services Appliance的資安漏洞CVE-2024-8963和CVE-2024-8190，而當時這些漏洞尚未公開。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/china_toptier_10-156.jpg?itok=E6ZXcIMN" width="960" height="420" alt=""><p>EDR是網路攻擊者的眼中釘，除了設法迴避偵測，若能設法攻陷、破壞這些資安產品與服務、敗壞資安公司商譽，對他們自然有很大的好處，而對於資安廠商而言，協助客戶做好防護之餘，自保也很重要！4月底資安業者SentinelOne揭露<a href="https://www.sentinelone.com/labs/top-tier-target-what-it-takes-to-defend-a-cybersecurity-company-from-todays-adversaries/">有多組人馬針對他們而來</a>的情況，這些攻擊者大致可分成3種類型，分別是以IT工作者名義求職的北韓駭客、試圖存取及濫用該公司資安平臺的勒索軟體駿客，以及鎖定他們客戶及業務的中國駭客組織。如今該公司針對中國駭客的活動，<a href="https://www.sentinelone.com/labs/follow-the-smoke-china-nexus-threat-actors-hammer-at-the-doors-of-top-tier-targets/">公布更完整的調查結果</a>。</p>
+<p>針對相關事故的調查過程，SentinelOne指出他們起初於去年10月，察覺駭客偵察該公司網路環境的活動並進行追蹤，結果發現兩波攻擊行動，並將活動命名為PurpleHaze和ShadowPad。該公司強調，經過徹底調查及確認，他們的基礎設施、軟體與硬體均未被入侵。</p>
+<p>而對於受害企業的部分，SentinelOne表示，發生在他們網路環境的活動，僅是這些駭客攻擊活動的一部分，最早可追溯到去年6月，而且，該公司並非唯一的目標，他們認為，自己遭到攻擊僅是大規模攻擊的一部分。</p>
+<p>針對這兩波攻擊，研究人員提及在PurpleHaze發生在去年9月至10月，駭客使用後門程式GOREshell建立反向SSH連線，此後門程式以Go語言打造而成，鎖定Windows、Linux電腦下手，共通點是駭客使用相同的SSH私鑰進行，此外，為了抹除證據，他們也使用自製工具清除事件記錄檔案。</p>
+<p>另一波攻擊行動ShadowPad延續的時間較長，為去年6月至今年3月，駭客使用PowerShell命令下載經過混淆處理的惡意程式ShadowPad，並使用 DNS over HTTPS（DOH）建立C2連線以迴避偵測，研究人員提及，駭客取得初始入侵管道的方式，疑似透過Check Point安全閘道設備弱點得逞。</p>
+<p>而對於這些攻擊行動，研究人員分別看到三起事故。以ShadowPad而言，駭客在去年6月對南亞政府組織下手，接著，他們自7月至今年3月，對全球超過70個企業組織展開攻擊，範圍橫跨製造、政府、金融、電信，以及研究領域。</p>
+<p>最後一波攻擊與SentinelOne有關，今年初，駭客入侵一家經營IT服務與物流的公司，而該公司當時負責SentinelOne員工硬體設備的物流業務。</p>
+<p>在PurpleHaze活動期間裡，也同樣發生三起事故。第一起是針對上述提及的南亞政府機關，於去年10月散布GOREshell，過程裡採用中國經營的Operational Relay Box（ORB）網路。</p>
+<p>第二起事故也發生在10月，駭客針對SentinelOne可透過網際網路存取的伺服器試圖進行偵測，這起事故駭客使用的基礎設施，與攻擊南亞政府機關的團體有關。</p>
+<p>研究人員提及發生於去年9月下旬的事故，駭客入侵一家歐洲媒體，除了使用GOREshell，還使用PHP打造的Web Shell，以及名為The Hacker's Choice的工具。他們提及駭客入侵的管道，是利用Ivanti Cloud Services Appliance的資安漏洞CVE-2024-8963和CVE-2024-8190，而當時這些漏洞尚未公開。</p>]]></content:encoded>
+    
+    <pubDate>2025-06-10  04:06:18</pubDate>
+  </item><item>
+    <title><![CDATA[惡意軟體AsyncRAT透過冒牌Booking.com訂房網站散布]]></title>
+    <link>https://ithome.com.tw/news/169451</link>
+    <itunes:title><![CDATA[惡意軟體AsyncRAT透過冒牌Booking.com訂房網站散布]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/fake_booking_sites_captcha-156.jpg?itok=uq03sKCR" width="960" height="420" alt=""><p>最近幾年許多人報復性出遊，並選擇以自助旅行的方式出國，為了安排住宿，很有可能會透過訂房網站來挑選旅館，然而駭客也看上這點來引誘旅客上當，藉此散布惡意程式。</p>
+<p>資安業者Malwarebytes揭露<a href="https://www.malwarebytes.com/blog/news/2025/06/victims-risk-asyncrat-infection-after-being-redirected-to-fake-booking-sites">自5月中旬出現的網釣攻擊活動</a>，駭客設置冒牌的Booking.com訂房網站，並透過電玩網站、社群網站、廣告的惡意連結，來引誘使用者上門。一旦使用者被重新導向到假訂房網站，就會看到假的CAPTCHA圖靈驗證機制，然而，實際上，這些手段都是為了引導使用者依照指示操作，將特定命令複製貼上，並透過執行對話框執行的ClickFix網釣手法。</p>
+<p>使用者先是看到網站上的對話框，要求勾選我不是機器人的選項，若是照做，電腦就會複製駭客的惡意指令，並顯示接下來的「驗證步驟」：攻擊者要求使用者用快速鍵（Windows鍵+R）開啟執行視窗，然後在「驗證視窗」按Ctrl+V貼上特定資料並輸入Enter。一旦使用者照做，就會在電腦執行駭客的惡意命令，啟動PowerShell視窗，下載並執行惡意檔案，最終於電腦植入惡意程式AsyncRAT。</p>
+<p>研究人員提及，若是Chrome的使用者，過程中可能會看到警示訊息，指出該網站試圖檢視剪貼簿的文字與圖片內容，但一般人往往為了讓流程繼續進行，而而在未了解警示訊息含義的狀態中，就按下同意，錯失察覺異狀的機會。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/fake_booking_sites_captcha-156.jpg?itok=uq03sKCR" width="960" height="420" alt=""><p>最近幾年許多人報復性出遊，並選擇以自助旅行的方式出國，為了安排住宿，很有可能會透過訂房網站來挑選旅館，然而駭客也看上這點來引誘旅客上當，藉此散布惡意程式。</p>
+<p>資安業者Malwarebytes揭露<a href="https://www.malwarebytes.com/blog/news/2025/06/victims-risk-asyncrat-infection-after-being-redirected-to-fake-booking-sites">自5月中旬出現的網釣攻擊活動</a>，駭客設置冒牌的Booking.com訂房網站，並透過電玩網站、社群網站、廣告的惡意連結，來引誘使用者上門。一旦使用者被重新導向到假訂房網站，就會看到假的CAPTCHA圖靈驗證機制，然而，實際上，這些手段都是為了引導使用者依照指示操作，將特定命令複製貼上，並透過執行對話框執行的ClickFix網釣手法。</p>
+<p>使用者先是看到網站上的對話框，要求勾選我不是機器人的選項，若是照做，電腦就會複製駭客的惡意指令，並顯示接下來的「驗證步驟」：攻擊者要求使用者用快速鍵（Windows鍵+R）開啟執行視窗，然後在「驗證視窗」按Ctrl+V貼上特定資料並輸入Enter。一旦使用者照做，就會在電腦執行駭客的惡意命令，啟動PowerShell視窗，下載並執行惡意檔案，最終於電腦植入惡意程式AsyncRAT。</p>
+<p>研究人員提及，若是Chrome的使用者，過程中可能會看到警示訊息，指出該網站試圖檢視剪貼簿的文字與圖片內容，但一般人往往為了讓流程繼續進行，而而在未了解警示訊息含義的狀態中，就按下同意，錯失察覺異狀的機會。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/fake_booking_sites_captcha-156.jpg?itok=uq03sKCR" width="960" height="420" alt=""><p>最近幾年許多人報復性出遊，並選擇以自助旅行的方式出國，為了安排住宿，很有可能會透過訂房網站來挑選旅館，然而駭客也看上這點來引誘旅客上當，藉此散布惡意程式。</p>
+<p>資安業者Malwarebytes揭露<a href="https://www.malwarebytes.com/blog/news/2025/06/victims-risk-asyncrat-infection-after-being-redirected-to-fake-booking-sites">自5月中旬出現的網釣攻擊活動</a>，駭客設置冒牌的Booking.com訂房網站，並透過電玩網站、社群網站、廣告的惡意連結，來引誘使用者上門。一旦使用者被重新導向到假訂房網站，就會看到假的CAPTCHA圖靈驗證機制，然而，實際上，這些手段都是為了引導使用者依照指示操作，將特定命令複製貼上，並透過執行對話框執行的ClickFix網釣手法。</p>
+<p>使用者先是看到網站上的對話框，要求勾選我不是機器人的選項，若是照做，電腦就會複製駭客的惡意指令，並顯示接下來的「驗證步驟」：攻擊者要求使用者用快速鍵（Windows鍵+R）開啟執行視窗，然後在「驗證視窗」按Ctrl+V貼上特定資料並輸入Enter。一旦使用者照做，就會在電腦執行駭客的惡意命令，啟動PowerShell視窗，下載並執行惡意檔案，最終於電腦植入惡意程式AsyncRAT。</p>
+<p>研究人員提及，若是Chrome的使用者，過程中可能會看到警示訊息，指出該網站試圖檢視剪貼簿的文字與圖片內容，但一般人往往為了讓流程繼續進行，而而在未了解警示訊息含義的狀態中，就按下同意，錯失察覺異狀的機會。</p>]]></content:encoded>
+    
+    <pubDate>2025-06-10  02:06:55</pubDate>
+  </item><item>
     <title><![CDATA[OpenAI年度經常性收入突破100億美元]]></title>
     <link>https://ithome.com.tw/news/169450</link>
     <itunes:title><![CDATA[OpenAI年度經常性收入突破100億美元]]></itunes:title>
@@ -1555,204 +1853,5 @@
 <p>差分分析顯示，NICKNAME影響iOS 18.3，蘋果已經修補，但是該漏洞可能只是更大攻擊串的其中一段，因此研究人員認為無法下結論說這波攻擊已經平息。</p>]]></content:encoded>
     
     <pubDate>2025-06-09  08:06:20</pubDate>
-  </item><item>
-    <title><![CDATA[Cloud Run GPU正式上線，支援AI推論與批次運算彈性擴展]]></title>
-    <link>https://ithome.com.tw/news/169415</link>
-    <itunes:title><![CDATA[Cloud Run GPU正式上線，支援AI推論與批次運算彈性擴展]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/2_srvmwli.max-1600x1600.jpg?itok=H7uSOwfx" width="960" height="420" alt=""><p>Google正式發布<a href="https://cloud.google.com/blog/products/serverless/cloud-run-gpus-are-now-generally-available">Cloud Run GPU</a>，用戶可直接在Cloud Run服務啟用Nvidia L4 GPU，無需申請配額。此功能使開發團隊能彈性部署生成式人工智慧、深度學習推論與批次運算等工作負載，同時降低資源閒置帶來的成本，提升運算彈性。</p>
-<p>Cloud Run採無伺服器運作模式，支援自動擴展、彈性部署與簡化管理。本次新增GPU支援後，開發者可透過指令或控制臺選項啟用GPU加速。</p>
-<p>系統提供按秒計費及自動縮減至零的調度能力，有助於降低閒置資源的費用並提升使用效益。根據Google官方測試，Cloud Run GPU服務在冷啟動時約5秒內可完成GPU與驅動程式啟動。以Gemma 3:4b模型推論為例，從冷啟動至產生第一個Token約需19秒，具支援互動性應用的能力。</p>
-<p>在服務可靠性方面，Cloud Run GPU納入Cloud Run既有SLA，並提供分區備援與彈性部署。企業可根據營運需求部署於多個區域以提升可用性，或選擇關閉分區備援以調整資源配置。Cloud Run GPU目前已於美國、歐洲及亞洲多個區域上線，供企業在全球市場部署應用，減少跨區延遲。</p>
-<p>Cloud Run Jobs現也已支援GPU，開發者可用於模型微調、批次推論、影片轉檔與圖像處理等非同步運算任務。開發者可根據需求啟動、執行與釋放GPU資源，無需自建基礎設施，即可執行彈性運算任務。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/2_srvmwli.max-1600x1600.jpg?itok=H7uSOwfx" width="960" height="420" alt=""><p>Google正式發布<a href="https://cloud.google.com/blog/products/serverless/cloud-run-gpus-are-now-generally-available">Cloud Run GPU</a>，用戶可直接在Cloud Run服務啟用Nvidia L4 GPU，無需申請配額。此功能使開發團隊能彈性部署生成式人工智慧、深度學習推論與批次運算等工作負載，同時降低資源閒置帶來的成本，提升運算彈性。</p>
-<p>Cloud Run採無伺服器運作模式，支援自動擴展、彈性部署與簡化管理。本次新增GPU支援後，開發者可透過指令或控制臺選項啟用GPU加速。</p>
-<p>系統提供按秒計費及自動縮減至零的調度能力，有助於降低閒置資源的費用並提升使用效益。根據Google官方測試，Cloud Run GPU服務在冷啟動時約5秒內可完成GPU與驅動程式啟動。以Gemma 3:4b模型推論為例，從冷啟動至產生第一個Token約需19秒，具支援互動性應用的能力。</p>
-<p>在服務可靠性方面，Cloud Run GPU納入Cloud Run既有SLA，並提供分區備援與彈性部署。企業可根據營運需求部署於多個區域以提升可用性，或選擇關閉分區備援以調整資源配置。Cloud Run GPU目前已於美國、歐洲及亞洲多個區域上線，供企業在全球市場部署應用，減少跨區延遲。</p>
-<p>Cloud Run Jobs現也已支援GPU，開發者可用於模型微調、批次推論、影片轉檔與圖像處理等非同步運算任務。開發者可根據需求啟動、執行與釋放GPU資源，無需自建基礎設施，即可執行彈性運算任務。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/2_srvmwli.max-1600x1600.jpg?itok=H7uSOwfx" width="960" height="420" alt=""><p>Google正式發布<a href="https://cloud.google.com/blog/products/serverless/cloud-run-gpus-are-now-generally-available">Cloud Run GPU</a>，用戶可直接在Cloud Run服務啟用Nvidia L4 GPU，無需申請配額。此功能使開發團隊能彈性部署生成式人工智慧、深度學習推論與批次運算等工作負載，同時降低資源閒置帶來的成本，提升運算彈性。</p>
-<p>Cloud Run採無伺服器運作模式，支援自動擴展、彈性部署與簡化管理。本次新增GPU支援後，開發者可透過指令或控制臺選項啟用GPU加速。</p>
-<p>系統提供按秒計費及自動縮減至零的調度能力，有助於降低閒置資源的費用並提升使用效益。根據Google官方測試，Cloud Run GPU服務在冷啟動時約5秒內可完成GPU與驅動程式啟動。以Gemma 3:4b模型推論為例，從冷啟動至產生第一個Token約需19秒，具支援互動性應用的能力。</p>
-<p>在服務可靠性方面，Cloud Run GPU納入Cloud Run既有SLA，並提供分區備援與彈性部署。企業可根據營運需求部署於多個區域以提升可用性，或選擇關閉分區備援以調整資源配置。Cloud Run GPU目前已於美國、歐洲及亞洲多個區域上線，供企業在全球市場部署應用，減少跨區延遲。</p>
-<p>Cloud Run Jobs現也已支援GPU，開發者可用於模型微調、批次推論、影片轉檔與圖像處理等非同步運算任務。開發者可根據需求啟動、執行與釋放GPU資源，無需自建基礎設施，即可執行彈性運算任務。</p>]]></content:encoded>
-    
-    <pubDate>2025-06-09  08:06:04</pubDate>
-  </item><item>
-    <title><![CDATA[新光人壽導入模組化數位保險平臺，預計下半年在越南推出首波數位保險產品]]></title>
-    <link>https://ithome.com.tw/news/169414</link>
-    <itunes:title><![CDATA[新光人壽導入模組化數位保險平臺，預計下半年在越南推出首波數位保險產品]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/tu_1_xin_guang_da_lou_tu_pian_lai_yuan_xin_guang_jin_kong__0.jpg?itok=PMmihC7S" width="960" height="420" alt=""><p>為了推動越南數位保險市場發展，新光人壽近日導入具備模組化架構的數位保險平臺，來加強結合新光在越南的在地通路和營運實力。</p>
-<p>新光人壽預計今年下半年在越南推出首批數位保險產品，透過和越南石油保險公司合作，推出車險、旅平險，和健康保障等保險產品。</p>
-<p>新光人壽此次導入的數位保險平臺具備模組化的保險產品模板和流程，支援彈性介接，和具備自動化服務引擎，能在一季內快速建立數位投保頁面。</p>
-<p>除了在今年下半年推出車險、旅平險等產品，未來新光也預計透過保險平臺推出更多產品，例如商業險產品，和臺資企業員工團體保險。越南新光未來也預計和日本第一生命公司越南分公司展開進一步合作。</p>
-<h3>金融科技創新園區媒合企業合作</h3>
-<p style="text-align: justify;">新光人壽此次計劃，是透過金融科技創新園區媒合園區進駐企業AIFT而成。透過園區導師制，雙方企業發展出金融科技發展的合作藍圖，目標以臺資企業為起點，逐步拓展越南當地與東南亞市場。</p>
-<p>其實，近期金管會也正在積極推動金融科技創新園區的企業輔導機制。金管會昨日發布「金融科技創新園區2.0」計畫，透過導入分級輔導機制，為新創業者量身提供輔導及資源。金管會計畫將新創業者區分成初創期、成長期、成熟期共三階段，依不同階段打造資源與輔導機制。他們希望每年新增至少十家新創團隊進駐，整合創投與資本市場資源，打造從創業到上市的完整金融科技生態鏈。</p>
-<p>金融科技創新園區自2018年成立，到今年5月底，累計招募了186家新創團隊進駐。但過往園區提供的資源較為一致，並未明確依據業者條件打造輔導路徑。</p>
-<p><!-- notionvc: d0d306cc-eb6a-46bc-846a-0c2206a007a1 --></p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/tu_1_xin_guang_da_lou_tu_pian_lai_yuan_xin_guang_jin_kong__0.jpg?itok=PMmihC7S" width="960" height="420" alt=""><p>為了推動越南數位保險市場發展，新光人壽近日導入具備模組化架構的數位保險平臺，來加強結合新光在越南的在地通路和營運實力。</p>
-<p>新光人壽預計今年下半年在越南推出首批數位保險產品，透過和越南石油保險公司合作，推出車險、旅平險，和健康保障等保險產品。</p>
-<p>新光人壽此次導入的數位保險平臺具備模組化的保險產品模板和流程，支援彈性介接，和具備自動化服務引擎，能在一季內快速建立數位投保頁面。</p>
-<p>除了在今年下半年推出車險、旅平險等產品，未來新光也預計透過保險平臺推出更多產品，例如商業險產品，和臺資企業員工團體保險。越南新光未來也預計和日本第一生命公司越南分公司展開進一步合作。</p>
-<h3>金融科技創新園區媒合企業合作</h3>
-<p style="text-align: justify;">新光人壽此次計劃，是透過金融科技創新園區媒合園區進駐企業AIFT而成。透過園區導師制，雙方企業發展出金融科技發展的合作藍圖，目標以臺資企業為起點，逐步拓展越南當地與東南亞市場。</p>
-<p>其實，近期金管會也正在積極推動金融科技創新園區的企業輔導機制。金管會昨日發布「金融科技創新園區2.0」計畫，透過導入分級輔導機制，為新創業者量身提供輔導及資源。金管會計畫將新創業者區分成初創期、成長期、成熟期共三階段，依不同階段打造資源與輔導機制。他們希望每年新增至少十家新創團隊進駐，整合創投與資本市場資源，打造從創業到上市的完整金融科技生態鏈。</p>
-<p>金融科技創新園區自2018年成立，到今年5月底，累計招募了186家新創團隊進駐。但過往園區提供的資源較為一致，並未明確依據業者條件打造輔導路徑。</p>
-<p><!-- notionvc: d0d306cc-eb6a-46bc-846a-0c2206a007a1 --></p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/tu_1_xin_guang_da_lou_tu_pian_lai_yuan_xin_guang_jin_kong__0.jpg?itok=PMmihC7S" width="960" height="420" alt=""><p>為了推動越南數位保險市場發展，新光人壽近日導入具備模組化架構的數位保險平臺，來加強結合新光在越南的在地通路和營運實力。</p>
-<p>新光人壽預計今年下半年在越南推出首批數位保險產品，透過和越南石油保險公司合作，推出車險、旅平險，和健康保障等保險產品。</p>
-<p>新光人壽此次導入的數位保險平臺具備模組化的保險產品模板和流程，支援彈性介接，和具備自動化服務引擎，能在一季內快速建立數位投保頁面。</p>
-<p>除了在今年下半年推出車險、旅平險等產品，未來新光也預計透過保險平臺推出更多產品，例如商業險產品，和臺資企業員工團體保險。越南新光未來也預計和日本第一生命公司越南分公司展開進一步合作。</p>
-<h3>金融科技創新園區媒合企業合作</h3>
-<p style="text-align: justify;">新光人壽此次計劃，是透過金融科技創新園區媒合園區進駐企業AIFT而成。透過園區導師制，雙方企業發展出金融科技發展的合作藍圖，目標以臺資企業為起點，逐步拓展越南當地與東南亞市場。</p>
-<p>其實，近期金管會也正在積極推動金融科技創新園區的企業輔導機制。金管會昨日發布「金融科技創新園區2.0」計畫，透過導入分級輔導機制，為新創業者量身提供輔導及資源。金管會計畫將新創業者區分成初創期、成長期、成熟期共三階段，依不同階段打造資源與輔導機制。他們希望每年新增至少十家新創團隊進駐，整合創投與資本市場資源，打造從創業到上市的完整金融科技生態鏈。</p>
-<p>金融科技創新園區自2018年成立，到今年5月底，累計招募了186家新創團隊進駐。但過往園區提供的資源較為一致，並未明確依據業者條件打造輔導路徑。</p>
-<p><!-- notionvc: d0d306cc-eb6a-46bc-846a-0c2206a007a1 --></p>]]></content:encoded>
-    
-    <pubDate>2025-06-06  05:06:46</pubDate>
-  </item><item>
-    <title><![CDATA[正視習以為常的缺失]]></title>
-    <link>https://ithome.com.tw/voice/169413</link>
-    <itunes:title><![CDATA[正視習以為常的缺失]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<a href="/news/169318"><img src="https://s4.itho.me/sites/default/files/styles/square_thumbnail/public/field/image/1_68.jpg?itok=m8WvmlTe" width="180" height="180" alt=""></a><p>今年端午節有三天連假，放假前一天（5月29日）發生銀行行員到分行附近的大型醫院收款，因為保管不慎，鉅款遭人揀走，遺失／遭竊金額高達387萬元，引發大家關注這麼嚴重的問題原因。</p>
-<p>據媒體報導，我們注意到幾個奇怪的地方。首先，行員收完款（醫院前一日掛號總收入，現金387萬元），進入地下街商場辦公室收取地下街商場前一日的營業收入，他卻未將裝有這筆現金的袋子帶入，而是留置在辦公室門口地上，等到兩三分鐘後走出辦公室之後，發現袋子不見了、遭人撿走；其次，由一位行員獨自收取如此鉅款，相當危險，為何無人隨行？有媒體報導提到，該銀行的內部收款安全作業規範要求：行員收取超過300萬元現鈔，需2人以上護鈔隨行，令人好奇這位行員為何違反規定？第三，案發地點距離該行員所屬分行只有幾百公尺，依照Google地圖估算，步行只需5分鐘，是否因為兩地距離很短，所以相關規定疏於落實？</p>
-<p>第四，這位負責收款的行員今年64歲，一年後即將退休，而且在該家銀行任職超過20年，獲得公司長官的信任，不免令人質疑是否可能串通外部人員，但有媒體報導問到銀行同業推估行員退休金高於被竊款項387萬元，以及其資歷之深，不應犯下基本疏失；第五，一度被外界誤以為事發後3小時才報案，該行後續發布聲明表示，案發當天上午11時55分即通報醫院駐衛警，致電管區分局報案請求協助，下午2點21分完成報案筆錄。</p>
-<p>關於這起事件，媒體報導也持續關注取走鉅款的犯嫌行蹤。警方已調閱相關監視器畫面了解此人移動狀態，像是身穿黑衣黑褲與連身帽、戴口罩，並且利用公車、步行、計程車等方式移動（均以現金付款），行跡涵蓋5個都會行政區，過程中並未使用手機，而且隨身攜帶超過三套衣物變裝、更換鞋子，而在案發前警方也看到犯嫌多次前往醫院（應是事後透過監視器畫面得知），疑似勘查地形與觀察現場出入狀況，而這似乎也呼應稍早媒體推測行員被「盯梢」的可能性。</p>
-<p>得知這項重大案件之後，暫時不論是否有「內神通外鬼」的狀況，單就資深員工而言，我們是否必須重新反思該如何看待他們的工作狀況，IT人員也不例外。</p>
-<p>第一，「人非聖賢，孰能無過」，就算是職場老手，也會犯低級錯誤，而作為主管與同事的我們，可能因為對其非常熟悉與信任，而過度授權，並且放鬆、縱容應有的監督與管制。</p>
-<p>換個角度來看，當我們是任職多年，可能也以為自己經年累月重複執行某些工作，對自己負責的業務駕輕就熟，而可能在不自覺的情況下，偶而會以不夠謹慎的方式在部分工作環節便宜行事，然而，可能又因為當下已無其他同事可幫忙照看（或別人知道你有此問題，但不敢或懶得跟你說），而讓這樣的缺失無法及時改正，最終可能因為有心人士的窺伺而得知這個可乘之機，最後釀成難以挽回的大禍。</p>
-<p>另一個反思是「給人方便，卻可能被對方當隨便」獲得信任不是一件容易的事，但得到信任之後，於公於私，我們真的足夠重視這份囑托嗎？就像下列幾句諺語「親近生侮慢」、「親則生狎，近則不遜」、「Familiarity breeds contempt」一旦熟悉、親近某事某人之後，可能不自覺地怠慢了，我們可曾想過：一時疏忽，可能徹底敗壞別人對自己的信任嗎？當例行工作步入軌道，甚至規律到一成不變的地步，我們是否還能時時刻刻緊盯流程、避免可能出錯的因素？</p>
-<p>應該以這起鉅額收款竊案為師，我們要認知到：嚴守紀律、標準作業流程，是為了對得起自己手上的這份工作、單位與同仁的信任，同時也是為了保護自己，敵人可能正在看不見的角落，正在尋找你任何可能出錯的地方，因此，我們不僅要秉持本身的職業道德要求，謹慎行事，同時，也必須要借助其他人的良知良能，請他們盡可能提醒我們即將或已經出錯的地方，以免類似的憾事再度發生。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<a href="/news/169318"><img src="https://s4.itho.me/sites/default/files/styles/square_thumbnail/public/field/image/1_68.jpg?itok=m8WvmlTe" width="180" height="180" alt=""></a><p>今年端午節有三天連假，放假前一天（5月29日）發生銀行行員到分行附近的大型醫院收款，因為保管不慎，鉅款遭人揀走，遺失／遭竊金額高達387萬元，引發大家關注這麼嚴重的問題原因。</p>
-<p>據媒體報導，我們注意到幾個奇怪的地方。首先，行員收完款（醫院前一日掛號總收入，現金387萬元），進入地下街商場辦公室收取地下街商場前一日的營業收入，他卻未將裝有這筆現金的袋子帶入，而是留置在辦公室門口地上，等到兩三分鐘後走出辦公室之後，發現袋子不見了、遭人撿走；其次，由一位行員獨自收取如此鉅款，相當危險，為何無人隨行？有媒體報導提到，該銀行的內部收款安全作業規範要求：行員收取超過300萬元現鈔，需2人以上護鈔隨行，令人好奇這位行員為何違反規定？第三，案發地點距離該行員所屬分行只有幾百公尺，依照Google地圖估算，步行只需5分鐘，是否因為兩地距離很短，所以相關規定疏於落實？</p>
-<p>第四，這位負責收款的行員今年64歲，一年後即將退休，而且在該家銀行任職超過20年，獲得公司長官的信任，不免令人質疑是否可能串通外部人員，但有媒體報導問到銀行同業推估行員退休金高於被竊款項387萬元，以及其資歷之深，不應犯下基本疏失；第五，一度被外界誤以為事發後3小時才報案，該行後續發布聲明表示，案發當天上午11時55分即通報醫院駐衛警，致電管區分局報案請求協助，下午2點21分完成報案筆錄。</p>
-<p>關於這起事件，媒體報導也持續關注取走鉅款的犯嫌行蹤。警方已調閱相關監視器畫面了解此人移動狀態，像是身穿黑衣黑褲與連身帽、戴口罩，並且利用公車、步行、計程車等方式移動（均以現金付款），行跡涵蓋5個都會行政區，過程中並未使用手機，而且隨身攜帶超過三套衣物變裝、更換鞋子，而在案發前警方也看到犯嫌多次前往醫院（應是事後透過監視器畫面得知），疑似勘查地形與觀察現場出入狀況，而這似乎也呼應稍早媒體推測行員被「盯梢」的可能性。</p>
-<p>得知這項重大案件之後，暫時不論是否有「內神通外鬼」的狀況，單就資深員工而言，我們是否必須重新反思該如何看待他們的工作狀況，IT人員也不例外。</p>
-<p>第一，「人非聖賢，孰能無過」，就算是職場老手，也會犯低級錯誤，而作為主管與同事的我們，可能因為對其非常熟悉與信任，而過度授權，並且放鬆、縱容應有的監督與管制。</p>
-<p>換個角度來看，當我們是任職多年，可能也以為自己經年累月重複執行某些工作，對自己負責的業務駕輕就熟，而可能在不自覺的情況下，偶而會以不夠謹慎的方式在部分工作環節便宜行事，然而，可能又因為當下已無其他同事可幫忙照看（或別人知道你有此問題，但不敢或懶得跟你說），而讓這樣的缺失無法及時改正，最終可能因為有心人士的窺伺而得知這個可乘之機，最後釀成難以挽回的大禍。</p>
-<p>另一個反思是「給人方便，卻可能被對方當隨便」獲得信任不是一件容易的事，但得到信任之後，於公於私，我們真的足夠重視這份囑托嗎？就像下列幾句諺語「親近生侮慢」、「親則生狎，近則不遜」、「Familiarity breeds contempt」一旦熟悉、親近某事某人之後，可能不自覺地怠慢了，我們可曾想過：一時疏忽，可能徹底敗壞別人對自己的信任嗎？當例行工作步入軌道，甚至規律到一成不變的地步，我們是否還能時時刻刻緊盯流程、避免可能出錯的因素？</p>
-<p>應該以這起鉅額收款竊案為師，我們要認知到：嚴守紀律、標準作業流程，是為了對得起自己手上的這份工作、單位與同仁的信任，同時也是為了保護自己，敵人可能正在看不見的角落，正在尋找你任何可能出錯的地方，因此，我們不僅要秉持本身的職業道德要求，謹慎行事，同時，也必須要借助其他人的良知良能，請他們盡可能提醒我們即將或已經出錯的地方，以免類似的憾事再度發生。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<a href="/news/169318"><img src="https://s4.itho.me/sites/default/files/styles/square_thumbnail/public/field/image/1_68.jpg?itok=m8WvmlTe" width="180" height="180" alt=""></a><p>今年端午節有三天連假，放假前一天（5月29日）發生銀行行員到分行附近的大型醫院收款，因為保管不慎，鉅款遭人揀走，遺失／遭竊金額高達387萬元，引發大家關注這麼嚴重的問題原因。</p>
-<p>據媒體報導，我們注意到幾個奇怪的地方。首先，行員收完款（醫院前一日掛號總收入，現金387萬元），進入地下街商場辦公室收取地下街商場前一日的營業收入，他卻未將裝有這筆現金的袋子帶入，而是留置在辦公室門口地上，等到兩三分鐘後走出辦公室之後，發現袋子不見了、遭人撿走；其次，由一位行員獨自收取如此鉅款，相當危險，為何無人隨行？有媒體報導提到，該銀行的內部收款安全作業規範要求：行員收取超過300萬元現鈔，需2人以上護鈔隨行，令人好奇這位行員為何違反規定？第三，案發地點距離該行員所屬分行只有幾百公尺，依照Google地圖估算，步行只需5分鐘，是否因為兩地距離很短，所以相關規定疏於落實？</p>
-<p>第四，這位負責收款的行員今年64歲，一年後即將退休，而且在該家銀行任職超過20年，獲得公司長官的信任，不免令人質疑是否可能串通外部人員，但有媒體報導問到銀行同業推估行員退休金高於被竊款項387萬元，以及其資歷之深，不應犯下基本疏失；第五，一度被外界誤以為事發後3小時才報案，該行後續發布聲明表示，案發當天上午11時55分即通報醫院駐衛警，致電管區分局報案請求協助，下午2點21分完成報案筆錄。</p>
-<p>關於這起事件，媒體報導也持續關注取走鉅款的犯嫌行蹤。警方已調閱相關監視器畫面了解此人移動狀態，像是身穿黑衣黑褲與連身帽、戴口罩，並且利用公車、步行、計程車等方式移動（均以現金付款），行跡涵蓋5個都會行政區，過程中並未使用手機，而且隨身攜帶超過三套衣物變裝、更換鞋子，而在案發前警方也看到犯嫌多次前往醫院（應是事後透過監視器畫面得知），疑似勘查地形與觀察現場出入狀況，而這似乎也呼應稍早媒體推測行員被「盯梢」的可能性。</p>
-<p>得知這項重大案件之後，暫時不論是否有「內神通外鬼」的狀況，單就資深員工而言，我們是否必須重新反思該如何看待他們的工作狀況，IT人員也不例外。</p>
-<p>第一，「人非聖賢，孰能無過」，就算是職場老手，也會犯低級錯誤，而作為主管與同事的我們，可能因為對其非常熟悉與信任，而過度授權，並且放鬆、縱容應有的監督與管制。</p>
-<p>換個角度來看，當我們是任職多年，可能也以為自己經年累月重複執行某些工作，對自己負責的業務駕輕就熟，而可能在不自覺的情況下，偶而會以不夠謹慎的方式在部分工作環節便宜行事，然而，可能又因為當下已無其他同事可幫忙照看（或別人知道你有此問題，但不敢或懶得跟你說），而讓這樣的缺失無法及時改正，最終可能因為有心人士的窺伺而得知這個可乘之機，最後釀成難以挽回的大禍。</p>
-<p>另一個反思是「給人方便，卻可能被對方當隨便」獲得信任不是一件容易的事，但得到信任之後，於公於私，我們真的足夠重視這份囑托嗎？就像下列幾句諺語「親近生侮慢」、「親則生狎，近則不遜」、「Familiarity breeds contempt」一旦熟悉、親近某事某人之後，可能不自覺地怠慢了，我們可曾想過：一時疏忽，可能徹底敗壞別人對自己的信任嗎？當例行工作步入軌道，甚至規律到一成不變的地步，我們是否還能時時刻刻緊盯流程、避免可能出錯的因素？</p>
-<p>應該以這起鉅額收款竊案為師，我們要認知到：嚴守紀律、標準作業流程，是為了對得起自己手上的這份工作、單位與同仁的信任，同時也是為了保護自己，敵人可能正在看不見的角落，正在尋找你任何可能出錯的地方，因此，我們不僅要秉持本身的職業道德要求，謹慎行事，同時，也必須要借助其他人的良知良能，請他們盡可能提醒我們即將或已經出錯的地方，以免類似的憾事再度發生。</p>]]></content:encoded>
-    
-    <pubDate>2025-06-06  04:06:47</pubDate>
-  </item><item>
-    <title><![CDATA[紅帽的GenAI逆襲]]></title>
-    <link>https://ithome.com.tw/article/169412</link>
-    <itunes:title><![CDATA[紅帽的GenAI逆襲]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1237-feng_mian_p1-dou_zi_-open-960x420_kao_bei_0.jpg?itok=Ss4z5qIo" width="960" height="420" alt=""><p>看好企業大規模生成式AI應用需求，如何善用十年混合雲布局，發揮作業系統供應鏈優勢， 紅帽堅持不做自己的大型語言模型，而是要走一條不一樣的GenAI競爭路</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1237-feng_mian_p1-dou_zi_-open-960x420_kao_bei_0.jpg?itok=Ss4z5qIo" width="960" height="420" alt=""><p>看好企業大規模生成式AI應用需求，如何善用十年混合雲布局，發揮作業系統供應鏈優勢， 紅帽堅持不做自己的大型語言模型，而是要走一條不一樣的GenAI競爭路</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1237-feng_mian_p1-dou_zi_-open-960x420_kao_bei_0.jpg?itok=Ss4z5qIo" width="960" height="420" alt=""><p>看好企業大規模生成式AI應用需求，如何善用十年混合雲布局，發揮作業系統供應鏈優勢， 紅帽堅持不做自己的大型語言模型，而是要走一條不一樣的GenAI競爭路</p>]]></content:encoded>
-    
-    <pubDate>2025-06-06  04:06:34</pubDate>
-  </item><item>
-    <title><![CDATA[【雙方技術長對談未來願景】兩大IT自動化平臺Terraform和Ansible未來如何整合？]]></title>
-    <link>https://ithome.com.tw/news/169411</link>
-    <itunes:title><![CDATA[【雙方技術長對談未來願景】兩大IT自動化平臺Terraform和Ansible未來如何整合？]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1237-feng_mian_-ping_tai_zheng_he_-960.jpg?itok=SIe5wyER" width="960" height="420" alt="" title="IBM完成HashiCorp收購案後，兩大IT自動化平臺HashiCorp的Terraform和紅帽Ansible將進一步整合，管理範圍可以跨IT基礎架構生命周期全程，涵蓋Day0、Day1到Day2。（圖片來源／紅帽）"><p><strong><span style="color:#FFFFFF;"><span style="background-color:#B22222;">【波士頓現場直擊】</span></span></strong></p>
-<p>今年3月，獲得英國主管機關的核准後，IBM終於完成了對雲端基礎架構工具業者HashiCorp的收購案，HashiCorp旗下混合雲管理自動化工具Terraform，和紅帽旗下DevOps圈愛用的IT自動化工具Ansible，都成為IBM旗下產品。</p>
-<p>紅帽產品長Ashesh Badani在年會中宣布，未來將與HashiCorp將有更深度合作，因為許多紅帽的企業用戶，同時使用HashiCorp的Terraform和Vault產品，及紅帽OpenShift平臺和Ansible工具。</p>
-<p>Ansible擅長應用程式配置程式碼化管理，而是Terraform則是基礎架構程式碼化的主流，不少企業的IT團隊，習慣混合運用這兩款IT自動化工具，來部署應用程式和所需要的基礎架構資源。彼此各有擅長，也各有重複的自動化管理能力，企業IT得學會兩套不同的自動化做法，自己判斷何時適合用哪一種。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>兩大工具整合後，可以涵蓋完整基礎架構的管理</strong></span></span></p>
-<p>Ashesh Badani表示，Terraform和Ansible兩款自動化工具可以互補，提供涵蓋基礎架構管理生命周期，更完整、端到端的自動化管理，從開發設計階段（Day 0）、上線部署（Day 1）到後續維運（Day 2）的階段。</p>
-<p>他舉例說明，紅帽在Ansible工作流程中，整合了許多的Terraform的工作流程指令「計畫」命令，使用者可以直接在Ansible工作流程中，選擇要啟用哪些 Terraform計畫。這些工作流程同時可透過Ansible和Terraform觸發後續步驟。</p>
-<p>「 AI運作也需要自動化，尤其是事件驅動的自動化能力是關鍵， 」 Ashesh Badani 表示，未來幾個月的整合目標，要先提高產品對產品的整合度，特別是跨兩大平臺的整合，來打造相關機制。</p>
-<p>在IBM宣布要併購HashiCorp之後，兩家公司也收到很多客戶的詢問，尤其彼此同質性產品的整合和發展。所以，兩家公司的技術長，紅帽技術長Chris Wright和HashiCorp創辦人兼技術長Armon Dadgar展開一場對談，進一步說明兩家公司整合後的發展方向和願景。</p>
-<p>紅帽技術長Chris Wright先強調，兩家公司的混合雲願景非常契合，很早就開始討論如何合作。IBM宣布收購HashiCorp的消息後，人們最常問他的問題是Red Hat怎麼辦？其次是容器環境的秘密管理未來發展。另一個較少人提到，他很有興趣的議題是，Vault 和Ansible對憑證普及化的整合潛力。</p>
-<p>HashiCorp技術長Armon Dadgar則指出，從生命周期角度來看，第一步是建立雲端帳戶，部署VPC環境等，Terraform對Day 0和Day 1的基礎架構配置的表現非常好，但建立一個VM運作環境後，需要執行配置管理，來符合應用程式的需求，後續第二天、第三天長期運作上，不只VM需要修補，也需要升級應用程式，甚至應用程式有壽命，如測試環境的程式在任務完成後需要銷毀。Terraform建立環境後，可以交接給Ansible。不過，清理VM後可以自動將測試版本從AP服務管理清單中註銷，得手動處理。這就AP生命週期中，需要Ansible和Terraform實現更好整合的例子。他的願景是基礎架構程式碼完全自動化，從第零天到運作的最後一天。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>指導性整合建議，而非強制性整併</strong></span></span></p>
-<p>Chris認為，每一個工具都是整體中的不同部分，如何讓它看起來像是單一平臺、緊密整合的工具。未來願景是，找出更好的組合，描繪一個從基礎設施開始，到應用程式結束的生命周期是什麼樣的樣貌。這樣的整合，是一種指導性的建議，而非強制。企業不想因為有更好的功能而得有很大的改變。因應市場需求，兩家公司都需要保持各自工具的靈活性，雙方的社群也有很大的不同。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>打造集中式的秘密管理機制</strong></span></span></p>
-<p>人們常說OpenShift就等於K8s，但Armo認為，OpenShift涵蓋範圍更大，甚至可以視為CNCF容器生態系統，遠不只是K8s。不過，想要串接整套流程，在OpenShift 發行版中，有38個需要另外整合其他工具或機制的接觸點，像是在CI/CD流程、GitOps流程，應用程式都需要金鑰、憑證來運作。如何簽發憑證，後續如何更換，都是麻煩。</p>
-<p>如何確保整體如預期般的運作，甚至確保機密，需要一個以安全為預設的平台，集中式的秘密管理機制、密鑰管理機制和憑證管理機制。只要在OpenShift平臺打開一個預設選項，就能讓整個流程和環境，協同運作，甚至隨著新版本更新而自動更新，這是一個未來可以整合的機會。</p>
-<p>Chris表示，如何用同一套秘密管理來處理整合，如何延伸到所有的管理功能中，這種功能應該做到，開箱即用就能做對的事情。「沒有什麼事情比簡單更複雜的挑戰了。」</p>
-<p>Armon觀察，許多組織的挑戰是，在基礎架構環境中用Vault集中管理金鑰，但要如何將金鑰派發給應用程式，能不能在部署應用程式緊密整合 Vault，是一大需求。像這類的最後一哩路，將是未來整合的巨大機會。像是部署建立同時交付秘密金鑰，更新和修補時，也將憑證更換列入維運生命週期管理的一環，可以對金鑰集中管理、加密、權杖化，也進行最後一哩的交付，這會是未來改善體驗的重點。還有一個顧客常見的需求，能不能用單一個混合雲的管理API，就能同時部署和管理Terraform和Ansible，這是雙方討論重點之一。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>目標打通基礎架構管理和AP交付</strong></span></span></p>
-<p>「這不只是Ansible和Terraform成為可以協同運作的工具，而是真正打通基礎設施的管理，以及應用程式的交付。」Chris強調。</p>
-<p>Armon補充，各自有所不足，聯手就可以創造新的共同機會。幾乎所有企業的挑戰是，他們將擁有多個公雲和私雲，如何跨越這些環境來操作是一大挑戰，對開發人員來說，只想寫出程式碼，不在乎這些程式如何執行，在哪裡執行等運作細節。如何能夠提供單一視圖和單一的雲端管理平臺，任開發人員專注於他們所關心的目標，這是我認為的正確方向。</p>
-<p>「如何找到一套黃金模式、黃金工作流程，又能在混合環境中靈活運作。」Armon強調，我們考慮在OpenShift平臺上，將各種元件打包，提供更高層次的開發者抽象層，提供一個可以跨環境進行工作流程自動化的平臺，這正是Waypoint開發者入口網站想要實現的事。目前開始思考，需要什麼樣的開發者可視化，如何讓維運者也有一致的模式，提供跨環境的一致化操作方式，這是我最終想要達到的目的地。讓開發人員跨越不同環境，從營運角度來確保該有的安全風險配置，「這還需要很多工作，但我很有信心。」Armon表示。</p>
-<p>Chris強調，如何在背後整合成本、複雜性和合規性，讓整套平臺總是合規而且預設安全，還能提供成本管理。從複雜性的角度來看，優化必須內建，不過，該如何隱藏，並將其打包，來確保一致性，不用讓每一家企業反覆遇到同樣的問題，這是我們的關鍵課題。</p>
-<p><a href="https://www.ithome.com.tw/article/169412" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1237-feng_mian_p1-dou_zi_-open-960x420_kao_bei_0.jpg?itok=Ss4z5qIo" style="width: 550px;"></a></p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1237-feng_mian_-ping_tai_zheng_he_-960.jpg?itok=SIe5wyER" width="960" height="420" alt="" title="IBM完成HashiCorp收購案後，兩大IT自動化平臺HashiCorp的Terraform和紅帽Ansible將進一步整合，管理範圍可以跨IT基礎架構生命周期全程，涵蓋Day0、Day1到Day2。（圖片來源／紅帽）"><p><strong><span style="color:#FFFFFF;"><span style="background-color:#B22222;">【波士頓現場直擊】</span></span></strong></p>
-<p>今年3月，獲得英國主管機關的核准後，IBM終於完成了對雲端基礎架構工具業者HashiCorp的收購案，HashiCorp旗下混合雲管理自動化工具Terraform，和紅帽旗下DevOps圈愛用的IT自動化工具Ansible，都成為IBM旗下產品。</p>
-<p>紅帽產品長Ashesh Badani在年會中宣布，未來將與HashiCorp將有更深度合作，因為許多紅帽的企業用戶，同時使用HashiCorp的Terraform和Vault產品，及紅帽OpenShift平臺和Ansible工具。</p>
-<p>Ansible擅長應用程式配置程式碼化管理，而是Terraform則是基礎架構程式碼化的主流，不少企業的IT團隊，習慣混合運用這兩款IT自動化工具，來部署應用程式和所需要的基礎架構資源。彼此各有擅長，也各有重複的自動化管理能力，企業IT得學會兩套不同的自動化做法，自己判斷何時適合用哪一種。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>兩大工具整合後，可以涵蓋完整基礎架構的管理</strong></span></span></p>
-<p>Ashesh Badani表示，Terraform和Ansible兩款自動化工具可以互補，提供涵蓋基礎架構管理生命周期，更完整、端到端的自動化管理，從開發設計階段（Day 0）、上線部署（Day 1）到後續維運（Day 2）的階段。</p>
-<p>他舉例說明，紅帽在Ansible工作流程中，整合了許多的Terraform的工作流程指令「計畫」命令，使用者可以直接在Ansible工作流程中，選擇要啟用哪些 Terraform計畫。這些工作流程同時可透過Ansible和Terraform觸發後續步驟。</p>
-<p>「 AI運作也需要自動化，尤其是事件驅動的自動化能力是關鍵， 」 Ashesh Badani 表示，未來幾個月的整合目標，要先提高產品對產品的整合度，特別是跨兩大平臺的整合，來打造相關機制。</p>
-<p>在IBM宣布要併購HashiCorp之後，兩家公司也收到很多客戶的詢問，尤其彼此同質性產品的整合和發展。所以，兩家公司的技術長，紅帽技術長Chris Wright和HashiCorp創辦人兼技術長Armon Dadgar展開一場對談，進一步說明兩家公司整合後的發展方向和願景。</p>
-<p>紅帽技術長Chris Wright先強調，兩家公司的混合雲願景非常契合，很早就開始討論如何合作。IBM宣布收購HashiCorp的消息後，人們最常問他的問題是Red Hat怎麼辦？其次是容器環境的秘密管理未來發展。另一個較少人提到，他很有興趣的議題是，Vault 和Ansible對憑證普及化的整合潛力。</p>
-<p>HashiCorp技術長Armon Dadgar則指出，從生命周期角度來看，第一步是建立雲端帳戶，部署VPC環境等，Terraform對Day 0和Day 1的基礎架構配置的表現非常好，但建立一個VM運作環境後，需要執行配置管理，來符合應用程式的需求，後續第二天、第三天長期運作上，不只VM需要修補，也需要升級應用程式，甚至應用程式有壽命，如測試環境的程式在任務完成後需要銷毀。Terraform建立環境後，可以交接給Ansible。不過，清理VM後可以自動將測試版本從AP服務管理清單中註銷，得手動處理。這就AP生命週期中，需要Ansible和Terraform實現更好整合的例子。他的願景是基礎架構程式碼完全自動化，從第零天到運作的最後一天。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>指導性整合建議，而非強制性整併</strong></span></span></p>
-<p>Chris認為，每一個工具都是整體中的不同部分，如何讓它看起來像是單一平臺、緊密整合的工具。未來願景是，找出更好的組合，描繪一個從基礎設施開始，到應用程式結束的生命周期是什麼樣的樣貌。這樣的整合，是一種指導性的建議，而非強制。企業不想因為有更好的功能而得有很大的改變。因應市場需求，兩家公司都需要保持各自工具的靈活性，雙方的社群也有很大的不同。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>打造集中式的秘密管理機制</strong></span></span></p>
-<p>人們常說OpenShift就等於K8s，但Armo認為，OpenShift涵蓋範圍更大，甚至可以視為CNCF容器生態系統，遠不只是K8s。不過，想要串接整套流程，在OpenShift 發行版中，有38個需要另外整合其他工具或機制的接觸點，像是在CI/CD流程、GitOps流程，應用程式都需要金鑰、憑證來運作。如何簽發憑證，後續如何更換，都是麻煩。</p>
-<p>如何確保整體如預期般的運作，甚至確保機密，需要一個以安全為預設的平台，集中式的秘密管理機制、密鑰管理機制和憑證管理機制。只要在OpenShift平臺打開一個預設選項，就能讓整個流程和環境，協同運作，甚至隨著新版本更新而自動更新，這是一個未來可以整合的機會。</p>
-<p>Chris表示，如何用同一套秘密管理來處理整合，如何延伸到所有的管理功能中，這種功能應該做到，開箱即用就能做對的事情。「沒有什麼事情比簡單更複雜的挑戰了。」</p>
-<p>Armon觀察，許多組織的挑戰是，在基礎架構環境中用Vault集中管理金鑰，但要如何將金鑰派發給應用程式，能不能在部署應用程式緊密整合 Vault，是一大需求。像這類的最後一哩路，將是未來整合的巨大機會。像是部署建立同時交付秘密金鑰，更新和修補時，也將憑證更換列入維運生命週期管理的一環，可以對金鑰集中管理、加密、權杖化，也進行最後一哩的交付，這會是未來改善體驗的重點。還有一個顧客常見的需求，能不能用單一個混合雲的管理API，就能同時部署和管理Terraform和Ansible，這是雙方討論重點之一。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>目標打通基礎架構管理和AP交付</strong></span></span></p>
-<p>「這不只是Ansible和Terraform成為可以協同運作的工具，而是真正打通基礎設施的管理，以及應用程式的交付。」Chris強調。</p>
-<p>Armon補充，各自有所不足，聯手就可以創造新的共同機會。幾乎所有企業的挑戰是，他們將擁有多個公雲和私雲，如何跨越這些環境來操作是一大挑戰，對開發人員來說，只想寫出程式碼，不在乎這些程式如何執行，在哪裡執行等運作細節。如何能夠提供單一視圖和單一的雲端管理平臺，任開發人員專注於他們所關心的目標，這是我認為的正確方向。</p>
-<p>「如何找到一套黃金模式、黃金工作流程，又能在混合環境中靈活運作。」Armon強調，我們考慮在OpenShift平臺上，將各種元件打包，提供更高層次的開發者抽象層，提供一個可以跨環境進行工作流程自動化的平臺，這正是Waypoint開發者入口網站想要實現的事。目前開始思考，需要什麼樣的開發者可視化，如何讓維運者也有一致的模式，提供跨環境的一致化操作方式，這是我最終想要達到的目的地。讓開發人員跨越不同環境，從營運角度來確保該有的安全風險配置，「這還需要很多工作，但我很有信心。」Armon表示。</p>
-<p>Chris強調，如何在背後整合成本、複雜性和合規性，讓整套平臺總是合規而且預設安全，還能提供成本管理。從複雜性的角度來看，優化必須內建，不過，該如何隱藏，並將其打包，來確保一致性，不用讓每一家企業反覆遇到同樣的問題，這是我們的關鍵課題。</p>
-<p><a href="https://www.ithome.com.tw/article/169412" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1237-feng_mian_p1-dou_zi_-open-960x420_kao_bei_0.jpg?itok=Ss4z5qIo" style="width: 550px;"></a></p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/1237-feng_mian_-ping_tai_zheng_he_-960.jpg?itok=SIe5wyER" width="960" height="420" alt="" title="IBM完成HashiCorp收購案後，兩大IT自動化平臺HashiCorp的Terraform和紅帽Ansible將進一步整合，管理範圍可以跨IT基礎架構生命周期全程，涵蓋Day0、Day1到Day2。（圖片來源／紅帽）"><p><strong><span style="color:#FFFFFF;"><span style="background-color:#B22222;">【波士頓現場直擊】</span></span></strong></p>
-<p>今年3月，獲得英國主管機關的核准後，IBM終於完成了對雲端基礎架構工具業者HashiCorp的收購案，HashiCorp旗下混合雲管理自動化工具Terraform，和紅帽旗下DevOps圈愛用的IT自動化工具Ansible，都成為IBM旗下產品。</p>
-<p>紅帽產品長Ashesh Badani在年會中宣布，未來將與HashiCorp將有更深度合作，因為許多紅帽的企業用戶，同時使用HashiCorp的Terraform和Vault產品，及紅帽OpenShift平臺和Ansible工具。</p>
-<p>Ansible擅長應用程式配置程式碼化管理，而是Terraform則是基礎架構程式碼化的主流，不少企業的IT團隊，習慣混合運用這兩款IT自動化工具，來部署應用程式和所需要的基礎架構資源。彼此各有擅長，也各有重複的自動化管理能力，企業IT得學會兩套不同的自動化做法，自己判斷何時適合用哪一種。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>兩大工具整合後，可以涵蓋完整基礎架構的管理</strong></span></span></p>
-<p>Ashesh Badani表示，Terraform和Ansible兩款自動化工具可以互補，提供涵蓋基礎架構管理生命周期，更完整、端到端的自動化管理，從開發設計階段（Day 0）、上線部署（Day 1）到後續維運（Day 2）的階段。</p>
-<p>他舉例說明，紅帽在Ansible工作流程中，整合了許多的Terraform的工作流程指令「計畫」命令，使用者可以直接在Ansible工作流程中，選擇要啟用哪些 Terraform計畫。這些工作流程同時可透過Ansible和Terraform觸發後續步驟。</p>
-<p>「 AI運作也需要自動化，尤其是事件驅動的自動化能力是關鍵， 」 Ashesh Badani 表示，未來幾個月的整合目標，要先提高產品對產品的整合度，特別是跨兩大平臺的整合，來打造相關機制。</p>
-<p>在IBM宣布要併購HashiCorp之後，兩家公司也收到很多客戶的詢問，尤其彼此同質性產品的整合和發展。所以，兩家公司的技術長，紅帽技術長Chris Wright和HashiCorp創辦人兼技術長Armon Dadgar展開一場對談，進一步說明兩家公司整合後的發展方向和願景。</p>
-<p>紅帽技術長Chris Wright先強調，兩家公司的混合雲願景非常契合，很早就開始討論如何合作。IBM宣布收購HashiCorp的消息後，人們最常問他的問題是Red Hat怎麼辦？其次是容器環境的秘密管理未來發展。另一個較少人提到，他很有興趣的議題是，Vault 和Ansible對憑證普及化的整合潛力。</p>
-<p>HashiCorp技術長Armon Dadgar則指出，從生命周期角度來看，第一步是建立雲端帳戶，部署VPC環境等，Terraform對Day 0和Day 1的基礎架構配置的表現非常好，但建立一個VM運作環境後，需要執行配置管理，來符合應用程式的需求，後續第二天、第三天長期運作上，不只VM需要修補，也需要升級應用程式，甚至應用程式有壽命，如測試環境的程式在任務完成後需要銷毀。Terraform建立環境後，可以交接給Ansible。不過，清理VM後可以自動將測試版本從AP服務管理清單中註銷，得手動處理。這就AP生命週期中，需要Ansible和Terraform實現更好整合的例子。他的願景是基礎架構程式碼完全自動化，從第零天到運作的最後一天。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>指導性整合建議，而非強制性整併</strong></span></span></p>
-<p>Chris認為，每一個工具都是整體中的不同部分，如何讓它看起來像是單一平臺、緊密整合的工具。未來願景是，找出更好的組合，描繪一個從基礎設施開始，到應用程式結束的生命周期是什麼樣的樣貌。這樣的整合，是一種指導性的建議，而非強制。企業不想因為有更好的功能而得有很大的改變。因應市場需求，兩家公司都需要保持各自工具的靈活性，雙方的社群也有很大的不同。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>打造集中式的秘密管理機制</strong></span></span></p>
-<p>人們常說OpenShift就等於K8s，但Armo認為，OpenShift涵蓋範圍更大，甚至可以視為CNCF容器生態系統，遠不只是K8s。不過，想要串接整套流程，在OpenShift 發行版中，有38個需要另外整合其他工具或機制的接觸點，像是在CI/CD流程、GitOps流程，應用程式都需要金鑰、憑證來運作。如何簽發憑證，後續如何更換，都是麻煩。</p>
-<p>如何確保整體如預期般的運作，甚至確保機密，需要一個以安全為預設的平台，集中式的秘密管理機制、密鑰管理機制和憑證管理機制。只要在OpenShift平臺打開一個預設選項，就能讓整個流程和環境，協同運作，甚至隨著新版本更新而自動更新，這是一個未來可以整合的機會。</p>
-<p>Chris表示，如何用同一套秘密管理來處理整合，如何延伸到所有的管理功能中，這種功能應該做到，開箱即用就能做對的事情。「沒有什麼事情比簡單更複雜的挑戰了。」</p>
-<p>Armon觀察，許多組織的挑戰是，在基礎架構環境中用Vault集中管理金鑰，但要如何將金鑰派發給應用程式，能不能在部署應用程式緊密整合 Vault，是一大需求。像這類的最後一哩路，將是未來整合的巨大機會。像是部署建立同時交付秘密金鑰，更新和修補時，也將憑證更換列入維運生命週期管理的一環，可以對金鑰集中管理、加密、權杖化，也進行最後一哩的交付，這會是未來改善體驗的重點。還有一個顧客常見的需求，能不能用單一個混合雲的管理API，就能同時部署和管理Terraform和Ansible，這是雙方討論重點之一。</p>
-<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>目標打通基礎架構管理和AP交付</strong></span></span></p>
-<p>「這不只是Ansible和Terraform成為可以協同運作的工具，而是真正打通基礎設施的管理，以及應用程式的交付。」Chris強調。</p>
-<p>Armon補充，各自有所不足，聯手就可以創造新的共同機會。幾乎所有企業的挑戰是，他們將擁有多個公雲和私雲，如何跨越這些環境來操作是一大挑戰，對開發人員來說，只想寫出程式碼，不在乎這些程式如何執行，在哪裡執行等運作細節。如何能夠提供單一視圖和單一的雲端管理平臺，任開發人員專注於他們所關心的目標，這是我認為的正確方向。</p>
-<p>「如何找到一套黃金模式、黃金工作流程，又能在混合環境中靈活運作。」Armon強調，我們考慮在OpenShift平臺上，將各種元件打包，提供更高層次的開發者抽象層，提供一個可以跨環境進行工作流程自動化的平臺，這正是Waypoint開發者入口網站想要實現的事。目前開始思考，需要什麼樣的開發者可視化，如何讓維運者也有一致的模式，提供跨環境的一致化操作方式，這是我最終想要達到的目的地。讓開發人員跨越不同環境，從營運角度來確保該有的安全風險配置，「這還需要很多工作，但我很有信心。」Armon表示。</p>
-<p>Chris強調，如何在背後整合成本、複雜性和合規性，讓整套平臺總是合規而且預設安全，還能提供成本管理。從複雜性的角度來看，優化必須內建，不過，該如何隱藏，並將其打包，來確保一致性，不用讓每一家企業反覆遇到同樣的問題，這是我們的關鍵課題。</p>
-<p><a href="https://www.ithome.com.tw/article/169412" target="_blank"><img alt="" src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/1237-feng_mian_p1-dou_zi_-open-960x420_kao_bei_0.jpg?itok=Ss4z5qIo" style="width: 550px;"></a></p>]]></content:encoded>
-    
-    <pubDate>2025-06-06  04:06:57</pubDate>
   </item></channel>
 </rss>
