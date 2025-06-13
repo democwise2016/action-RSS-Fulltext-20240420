@@ -3,7 +3,7 @@
     <title><![CDATA[iThome 3C新聞[RSS+]]]></title>
     <link>https://ithome.com.tw/rss</link>
     <image>
-      <url>https://fastly.picsum.photos/id/607/800/800.jpg?hmac=Y0qQSxGXMaew-eBaD_1IGgvHwrD_UgYNGq3-dmmg9ok</url>
+      <url>https://fastly.picsum.photos/id/1067/800/800.jpg?hmac=p8XSwlHVVeX5NMErfCYCB7cB9HXDC8yhHqq5jkmA4cc</url>
       <title>iThome 3C新聞[RSS+]</title>
       <link>https://ithome.com.tw/rss</link>
     </image>
@@ -28,7 +28,7 @@
     <itunes:owner>
       <itunes:name><![CDATA[iThome 3C新聞[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/607/800/800.jpg?hmac=Y0qQSxGXMaew-eBaD_1IGgvHwrD_UgYNGq3-dmmg9ok"/>
+    <itunes:image href="https://fastly.picsum.photos/id/1067/800/800.jpg?hmac=p8XSwlHVVeX5NMErfCYCB7cB9HXDC8yhHqq5jkmA4cc"/>
 <item>
     <title><![CDATA[【美國AMD全球發表會直擊】蘇姿丰：AMD將建立以開放、開發者優先的AI生態系發展]]></title>
     <link>https://ithome.com.tw/news/169555</link>
@@ -372,6 +372,158 @@ Walmart介紹自家運用生成式AI維護數十億筆商品資料的做法</str
 <p><!-- notionvc: f3c93539-f08f-42d8-af41-50631f1cb0e0 --></p>]]></content:encoded>
     
     <pubDate>2025-06-13  05:06:12</pubDate>
+  </item><item>
+    <title><![CDATA[重構的入門之道]]></title>
+    <link>https://ithome.com.tw/article/169557</link>
+    <itunes:title><![CDATA[重構的入門之道]]></itunes:title>
+    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/itshu_zhai_-xian_zheng_li_yi_xia_-960.jpg" width="960" height="420" alt=""><p>在重構逐漸被接受多年之後的今天，程式設計環境針對重構這件事，還是很缺乏自動化支援，這點實在很讓人難以理解。但好吧。希望你已經很習慣一次只邁出一小步，一點一滴持續不斷的進行軟體設計。整理可以說就是重構的入門之道。</p>
+<p>我們將會討論如何把整理這件事，納入到個人開發工作流程中：</p>
+<p><strong>• 什麼時候要開始做整理？</strong></p>
+<p><strong>• 什麼時候要停止做整理？</strong></p>
+<p><strong>• 如何把整理、改變程式碼結構、改變系統行為這三件事結合起來？</strong></p>
+<p>我們一開始可以先來討論一下，整理這件事，如何與「拉取請求」（PR；pull request）和「程式碼審查」（code review）這兩個工作流程互相搭配起來。</p>
+<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>把整理工作切分出來</strong></span></span></p>
+<p>我們暫時假設，你在寫程式的時候，採用的是拉取請求（PR）/程式碼審查的開發模式。你會把整理這件事，放在哪個位置呢？</p>
+<p>下面就是一個「追著尾巴跑」（tail chasing）的醜陋做法：</p>
+<p>1. 我把整理工作與行為上的改變混在一起。</p>
+<p>2. 審查者向我抱怨，說我的PR拖得太長了。</p>
+<p>3. 我把整理工作切分出來，讓它擁有自己的PR，然後把它放在行為改變的前面（這種情況居多）或後面。</p>
+<p>4. 審查者向我抱怨說，這種整理類PR根本就沒意義。</p>
+<p>5. 回到1。</p>
+<p>整理這件事總要有個地方去做，要不然就是完全不做。究竟應該在哪裡做呢？直接跳到結論的話，就是：放到獨立的PR中，然後每個PR所做的整理盡量越少越好。</p>
+<p>我們就來深入探討一下其中的取捨。剛開始學習如何做整理的人，好像都會經歷好幾個可預期的不同階段。在第一個階段，我們只懂得做出各種改變，而且一開始這一大堆的改變，並沒有什麼特別的區別。</p>
+<p>假設我們正在修正一個if語句，修到一半發現有個名稱錯了，於是就順手把它修正過來，然後再回頭繼續修正這個if語句。在這個階段，改變就只是改變而已。</p>
+<p>學會整理的做法之後，感覺就好像顯微鏡底下的圖片焦點變清楚了。其中有一些改變，改變的是程式的行為屬性，也就是程式執行過程中可以觀察到的一些改變。另外還有一些改變，改變的是程式的結構。像這樣的改變，只有直接去查看程式碼才能看得出來。</p>
+<p>在這個階段，我們對行為上的改變和結構上的改變，還沒有什麼特別的想法和做法—我們只是意識到，可以把改變分成兩種而已。</p>
+<p>經過一段時間之後，我們就可以開始察覺出一些共通的流程。如果先把程式碼切成一塊一塊的，接下來經常就可以提取出一些具有解釋效果的輔助函式，再接下來我們就會更容易去做出行為上的改變。如此一來程式設計這件事，就變得更像是下一盤西洋棋，你可能在好幾步之前，就可以猜出整盤棋大概會怎麼發展了。</p>
+<p>請注意，這時候我們還只是用了一個很大的PR，把所有改變全都包在一起。目前我們還只是處在「追著尾巴跑」這個循環的第1步而已。我們所做的每個行動都有其目的，要不是為了做出某個簡單的改變，要不就是為了更容易做出改變。不過，把所有這些全都混在一起，實在有點亂。審查者會抱怨，也是很正常的事。</p>
+<p>於是，我們開始嘗試把改變區分成兩種獨立的PR。一系列的整理（甚至只是一次小小的整理），會被放進一個獨立的PR。行為上的改變，也會放進一個獨立的PR。每次在「整理」和「行為改變」之間進行切換時，我們都會開一個新的 PR。</p>
+<p>PR應該如何整併或拆分，這也是一件需要權衡取捨的事情。你可以從動機的角度來思考。一個比較大的、包羅萬象的PR，可以呈現出比較完整的情況，但對審查者來說，其中所包含的改變可能太多了，這樣就很難提供真正有用的回饋意見。比較小的PR則可以讓回饋意見限縮在比較小的範圍，但是也有可能讓審查者陷入瑣碎的枝末細節中。</p>
+<p>審查過程如果拖得比較長，也會影響到大家的動機。如果程式碼審查的速度很快，就等於是鼓勵你多去建立一些更小的PR。這種更有針對性的PR也會鼓勵審查者加快審查。同樣的道理，這個循環也可能反過來：比較慢的審查速度，只會鼓勵PR變得更大，而更大的PR，也會拖慢後續的審查。</p>
+<p>如果你可以做出讓人很放心的整理，懂得用小小的步驟去進行整理，而且會用絕對安全的方式進行整理，這樣我就會鼓勵你去嘗試，讓這種整理類的PR不再需要進行審查。這樣就可以進一步降低延遲的影響，從而激勵大家多去提交一些比較小的整理類PR。</p>
+<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>連鎖效應</strong></span></span></p>
+<p>整理就像洋芋片。你吃了一片，就想再吃一片。控制住想要做整理的衝動，其實是一個很關鍵的整理技巧。你才剛剛整理過；還應該再多整理一下嗎？這其實要看情況。</p>
+<p>你想要踏出多大的步伐，由你自己決定，不過我還是要鼓勵你，整理時盡量保持小小的步伐。然後盡可能去優化每一步。表面上來看，你好像在奔跑，但你知道自己其實就像蜈蚣一樣，實際上是邁出了許多小小的步伐。</p>
+<p>整理就像是下一盤棋，你多多少少都可以預見接下來幾步的發展。我們就來看看各種整理的做法，如何進一步帶動其他整理的做法：</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;守衛語句&nbsp; </span></strong></span>一旦你採用守衛語句的寫法，判斷條件可能就會變簡單，讓你可以提取出某個具有解釋效果的輔助函式，或是提取出某些具有解釋效果的變數。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;沒用到的死程式碼&nbsp;</span></strong></span> &nbsp;一旦刪除掉一堆亂七八糟的死程式碼，也許你就可以看得出來，如何根據閱讀順序或內聚順序，來重新排列程式碼。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;用同樣的寫法做同樣的事&nbsp;</span></strong></span>&nbsp;&nbsp;如果你確實可以做到，同樣的工作都用同樣的程式碼來實現，不同的工作就用不同的程式碼來實現，這樣你就可以把一些邏輯意義上平行對等的程式碼，按照閱讀順序來進行分組。舉個例子，有一次我在處理一個檔案，其中包含了好幾個Web入口點。由於程式碼看起來都很相似，所以我很自然就把它們分組放在檔案的最前面，變成了其餘程式碼的一個目錄。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;舊的實作方式搭配新介面&nbsp;</span></strong></span> 一旦你有了一個閃亮的新介面，你一定想好好善用它。如果你沒有好用的自動重構工具，去針對所有呼叫到新介面的地方進行轉換，你就只好一個一個進行人工轉換。這是我們第一次見識到所謂的扇出（fanout）的威力—一個整理動作，導致了更多的整理需求，而每個整理需求，又會導致更多的整理需求。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;閱讀順序&nbsp;</span></strong></span> 建立好閱讀順序之後，你可能就會看到一些機會，可以讓同樣的事，全都採用同樣的寫法。因為之前各個元素相隔的距離比較遠，以至於你看不到其中的相似之處。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;內聚順序&nbsp;</span></strong></span> 根據內聚順序把元素放到一起之後，下一步或許就可以考慮把它們提取到一個子元素中。舉例來說，你可以建立一個輔助物件（helper object），不過這樣的做法，已經超出整理的範疇了。話雖如此，但如果你在整理過程中很自在、很有自信，你很自然就可以看出更大規模的設計變更做法，進一步讓行為上的改變變得更加容易。</p>
+<p>你可能會開始把許多整理做法串聯起來，對程式碼結構做出比較大的改變。請務必小心留意，不要做出太多、太快的改變。一連串成功的整理，抵不過一次有問題的、成本昂貴的整理。這就像是在練習每個音階的音符，請好好練習怎麼做好整理這件事。等你能夠輕鬆俐落處理好各種不同的音符，你就能編寫出美妙的旋律了。<strong>（本文摘錄整理自《先整理一下？｜個人層面的軟體設計考量》，碁峰資訊出版提供）</strong></p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/IT%E6%9B%B8%E6%91%98-%E5%85%88%E6%95%B4%E7%90%86%E4%B8%80%E4%B8%8B-600.jpg" style="width: 600px;"></p>
+<p><span style="font-size:14px;"><span style="color:#696969;">圖片來源_碁峰資訊</span></span></p>
+<p><strong><span style="color:#FFFFFF;"><span style="background-color:#3399ff;">&nbsp;書名&nbsp;</span></span> <span style="color:#3399ff;">先整理一下？｜個人層面的軟體設計考量（Tidy First?: A Personal Exercise in Empirical Software Design）</span></strong></p>
+<p>Kent Beck／著；藍子軒／譯</p>
+<p>碁峰資訊出版</p>
+<p>定價：480元</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/IT%E6%9B%B8%E6%91%98_%E5%85%88%E6%95%B4%E7%90%86%E4%B8%80%E4%B8%8B_%E5%9C%962_%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90_Kent%20Beck.png" style="width: 130px;"></p>
+<p><a href="https://kentbeck.com/" target="_blank"><span style="color:#696969;"><span style="font-size:14px;">圖片來源_Kent Beck</span></span></a></p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3399ff;">&nbsp;作者簡介&nbsp;</span></strong></span></p>
+<p><strong>Kent Beck</strong></p>
+<p>Kent Beck 是「極限程式設計」（Extreme Programming）的創建者，同時也是軟體模式的先驅、JUnit的共同作者、測試驅動開發（Test-Driven Development）的重新發現者，以及3X： Explore/Expand/Extract（探索/擴展/提取）的觀察家。他也是《敏捷宣言（Agile Manifesto）的第一位簽署者（按照字母順序）。Kent住在加州舊金山，擔任Mechanical Orchard的首席科學家，他經常會傳授一些技能，協助極客們能夠在這個世界上感覺到更加安心。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<img src="https://s4.itho.me/sites/default/files/itshu_zhai_-xian_zheng_li_yi_xia_-960.jpg" width="960" height="420" alt=""><p>在重構逐漸被接受多年之後的今天，程式設計環境針對重構這件事，還是很缺乏自動化支援，這點實在很讓人難以理解。但好吧。希望你已經很習慣一次只邁出一小步，一點一滴持續不斷的進行軟體設計。整理可以說就是重構的入門之道。</p>
+<p>我們將會討論如何把整理這件事，納入到個人開發工作流程中：</p>
+<p><strong>• 什麼時候要開始做整理？</strong></p>
+<p><strong>• 什麼時候要停止做整理？</strong></p>
+<p><strong>• 如何把整理、改變程式碼結構、改變系統行為這三件事結合起來？</strong></p>
+<p>我們一開始可以先來討論一下，整理這件事，如何與「拉取請求」（PR；pull request）和「程式碼審查」（code review）這兩個工作流程互相搭配起來。</p>
+<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>把整理工作切分出來</strong></span></span></p>
+<p>我們暫時假設，你在寫程式的時候，採用的是拉取請求（PR）/程式碼審查的開發模式。你會把整理這件事，放在哪個位置呢？</p>
+<p>下面就是一個「追著尾巴跑」（tail chasing）的醜陋做法：</p>
+<p>1. 我把整理工作與行為上的改變混在一起。</p>
+<p>2. 審查者向我抱怨，說我的PR拖得太長了。</p>
+<p>3. 我把整理工作切分出來，讓它擁有自己的PR，然後把它放在行為改變的前面（這種情況居多）或後面。</p>
+<p>4. 審查者向我抱怨說，這種整理類PR根本就沒意義。</p>
+<p>5. 回到1。</p>
+<p>整理這件事總要有個地方去做，要不然就是完全不做。究竟應該在哪裡做呢？直接跳到結論的話，就是：放到獨立的PR中，然後每個PR所做的整理盡量越少越好。</p>
+<p>我們就來深入探討一下其中的取捨。剛開始學習如何做整理的人，好像都會經歷好幾個可預期的不同階段。在第一個階段，我們只懂得做出各種改變，而且一開始這一大堆的改變，並沒有什麼特別的區別。</p>
+<p>假設我們正在修正一個if語句，修到一半發現有個名稱錯了，於是就順手把它修正過來，然後再回頭繼續修正這個if語句。在這個階段，改變就只是改變而已。</p>
+<p>學會整理的做法之後，感覺就好像顯微鏡底下的圖片焦點變清楚了。其中有一些改變，改變的是程式的行為屬性，也就是程式執行過程中可以觀察到的一些改變。另外還有一些改變，改變的是程式的結構。像這樣的改變，只有直接去查看程式碼才能看得出來。</p>
+<p>在這個階段，我們對行為上的改變和結構上的改變，還沒有什麼特別的想法和做法—我們只是意識到，可以把改變分成兩種而已。</p>
+<p>經過一段時間之後，我們就可以開始察覺出一些共通的流程。如果先把程式碼切成一塊一塊的，接下來經常就可以提取出一些具有解釋效果的輔助函式，再接下來我們就會更容易去做出行為上的改變。如此一來程式設計這件事，就變得更像是下一盤西洋棋，你可能在好幾步之前，就可以猜出整盤棋大概會怎麼發展了。</p>
+<p>請注意，這時候我們還只是用了一個很大的PR，把所有改變全都包在一起。目前我們還只是處在「追著尾巴跑」這個循環的第1步而已。我們所做的每個行動都有其目的，要不是為了做出某個簡單的改變，要不就是為了更容易做出改變。不過，把所有這些全都混在一起，實在有點亂。審查者會抱怨，也是很正常的事。</p>
+<p>於是，我們開始嘗試把改變區分成兩種獨立的PR。一系列的整理（甚至只是一次小小的整理），會被放進一個獨立的PR。行為上的改變，也會放進一個獨立的PR。每次在「整理」和「行為改變」之間進行切換時，我們都會開一個新的 PR。</p>
+<p>PR應該如何整併或拆分，這也是一件需要權衡取捨的事情。你可以從動機的角度來思考。一個比較大的、包羅萬象的PR，可以呈現出比較完整的情況，但對審查者來說，其中所包含的改變可能太多了，這樣就很難提供真正有用的回饋意見。比較小的PR則可以讓回饋意見限縮在比較小的範圍，但是也有可能讓審查者陷入瑣碎的枝末細節中。</p>
+<p>審查過程如果拖得比較長，也會影響到大家的動機。如果程式碼審查的速度很快，就等於是鼓勵你多去建立一些更小的PR。這種更有針對性的PR也會鼓勵審查者加快審查。同樣的道理，這個循環也可能反過來：比較慢的審查速度，只會鼓勵PR變得更大，而更大的PR，也會拖慢後續的審查。</p>
+<p>如果你可以做出讓人很放心的整理，懂得用小小的步驟去進行整理，而且會用絕對安全的方式進行整理，這樣我就會鼓勵你去嘗試，讓這種整理類的PR不再需要進行審查。這樣就可以進一步降低延遲的影響，從而激勵大家多去提交一些比較小的整理類PR。</p>
+<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>連鎖效應</strong></span></span></p>
+<p>整理就像洋芋片。你吃了一片，就想再吃一片。控制住想要做整理的衝動，其實是一個很關鍵的整理技巧。你才剛剛整理過；還應該再多整理一下嗎？這其實要看情況。</p>
+<p>你想要踏出多大的步伐，由你自己決定，不過我還是要鼓勵你，整理時盡量保持小小的步伐。然後盡可能去優化每一步。表面上來看，你好像在奔跑，但你知道自己其實就像蜈蚣一樣，實際上是邁出了許多小小的步伐。</p>
+<p>整理就像是下一盤棋，你多多少少都可以預見接下來幾步的發展。我們就來看看各種整理的做法，如何進一步帶動其他整理的做法：</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;守衛語句&nbsp; </span></strong></span>一旦你採用守衛語句的寫法，判斷條件可能就會變簡單，讓你可以提取出某個具有解釋效果的輔助函式，或是提取出某些具有解釋效果的變數。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;沒用到的死程式碼&nbsp;</span></strong></span> &nbsp;一旦刪除掉一堆亂七八糟的死程式碼，也許你就可以看得出來，如何根據閱讀順序或內聚順序，來重新排列程式碼。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;用同樣的寫法做同樣的事&nbsp;</span></strong></span>&nbsp;&nbsp;如果你確實可以做到，同樣的工作都用同樣的程式碼來實現，不同的工作就用不同的程式碼來實現，這樣你就可以把一些邏輯意義上平行對等的程式碼，按照閱讀順序來進行分組。舉個例子，有一次我在處理一個檔案，其中包含了好幾個Web入口點。由於程式碼看起來都很相似，所以我很自然就把它們分組放在檔案的最前面，變成了其餘程式碼的一個目錄。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;舊的實作方式搭配新介面&nbsp;</span></strong></span> 一旦你有了一個閃亮的新介面，你一定想好好善用它。如果你沒有好用的自動重構工具，去針對所有呼叫到新介面的地方進行轉換，你就只好一個一個進行人工轉換。這是我們第一次見識到所謂的扇出（fanout）的威力—一個整理動作，導致了更多的整理需求，而每個整理需求，又會導致更多的整理需求。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;閱讀順序&nbsp;</span></strong></span> 建立好閱讀順序之後，你可能就會看到一些機會，可以讓同樣的事，全都採用同樣的寫法。因為之前各個元素相隔的距離比較遠，以至於你看不到其中的相似之處。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;內聚順序&nbsp;</span></strong></span> 根據內聚順序把元素放到一起之後，下一步或許就可以考慮把它們提取到一個子元素中。舉例來說，你可以建立一個輔助物件（helper object），不過這樣的做法，已經超出整理的範疇了。話雖如此，但如果你在整理過程中很自在、很有自信，你很自然就可以看出更大規模的設計變更做法，進一步讓行為上的改變變得更加容易。</p>
+<p>你可能會開始把許多整理做法串聯起來，對程式碼結構做出比較大的改變。請務必小心留意，不要做出太多、太快的改變。一連串成功的整理，抵不過一次有問題的、成本昂貴的整理。這就像是在練習每個音階的音符，請好好練習怎麼做好整理這件事。等你能夠輕鬆俐落處理好各種不同的音符，你就能編寫出美妙的旋律了。<strong>（本文摘錄整理自《先整理一下？｜個人層面的軟體設計考量》，碁峰資訊出版提供）</strong></p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/IT%E6%9B%B8%E6%91%98-%E5%85%88%E6%95%B4%E7%90%86%E4%B8%80%E4%B8%8B-600.jpg" style="width: 600px;"></p>
+<p><span style="font-size:14px;"><span style="color:#696969;">圖片來源_碁峰資訊</span></span></p>
+<p><strong><span style="color:#FFFFFF;"><span style="background-color:#3399ff;">&nbsp;書名&nbsp;</span></span> <span style="color:#3399ff;">先整理一下？｜個人層面的軟體設計考量（Tidy First?: A Personal Exercise in Empirical Software Design）</span></strong></p>
+<p>Kent Beck／著；藍子軒／譯</p>
+<p>碁峰資訊出版</p>
+<p>定價：480元</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/IT%E6%9B%B8%E6%91%98_%E5%85%88%E6%95%B4%E7%90%86%E4%B8%80%E4%B8%8B_%E5%9C%962_%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90_Kent%20Beck.png" style="width: 130px;"></p>
+<p><a href="https://kentbeck.com/" target="_blank"><span style="color:#696969;"><span style="font-size:14px;">圖片來源_Kent Beck</span></span></a></p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3399ff;">&nbsp;作者簡介&nbsp;</span></strong></span></p>
+<p><strong>Kent Beck</strong></p>
+<p>Kent Beck 是「極限程式設計」（Extreme Programming）的創建者，同時也是軟體模式的先驅、JUnit的共同作者、測試驅動開發（Test-Driven Development）的重新發現者，以及3X： Explore/Expand/Extract（探索/擴展/提取）的觀察家。他也是《敏捷宣言（Agile Manifesto）的第一位簽署者（按照字母順序）。Kent住在加州舊金山，擔任Mechanical Orchard的首席科學家，他經常會傳授一些技能，協助極客們能夠在這個世界上感覺到更加安心。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/itshu_zhai_-xian_zheng_li_yi_xia_-960.jpg" width="960" height="420" alt=""><p>在重構逐漸被接受多年之後的今天，程式設計環境針對重構這件事，還是很缺乏自動化支援，這點實在很讓人難以理解。但好吧。希望你已經很習慣一次只邁出一小步，一點一滴持續不斷的進行軟體設計。整理可以說就是重構的入門之道。</p>
+<p>我們將會討論如何把整理這件事，納入到個人開發工作流程中：</p>
+<p><strong>• 什麼時候要開始做整理？</strong></p>
+<p><strong>• 什麼時候要停止做整理？</strong></p>
+<p><strong>• 如何把整理、改變程式碼結構、改變系統行為這三件事結合起來？</strong></p>
+<p>我們一開始可以先來討論一下，整理這件事，如何與「拉取請求」（PR；pull request）和「程式碼審查」（code review）這兩個工作流程互相搭配起來。</p>
+<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>把整理工作切分出來</strong></span></span></p>
+<p>我們暫時假設，你在寫程式的時候，採用的是拉取請求（PR）/程式碼審查的開發模式。你會把整理這件事，放在哪個位置呢？</p>
+<p>下面就是一個「追著尾巴跑」（tail chasing）的醜陋做法：</p>
+<p>1. 我把整理工作與行為上的改變混在一起。</p>
+<p>2. 審查者向我抱怨，說我的PR拖得太長了。</p>
+<p>3. 我把整理工作切分出來，讓它擁有自己的PR，然後把它放在行為改變的前面（這種情況居多）或後面。</p>
+<p>4. 審查者向我抱怨說，這種整理類PR根本就沒意義。</p>
+<p>5. 回到1。</p>
+<p>整理這件事總要有個地方去做，要不然就是完全不做。究竟應該在哪裡做呢？直接跳到結論的話，就是：放到獨立的PR中，然後每個PR所做的整理盡量越少越好。</p>
+<p>我們就來深入探討一下其中的取捨。剛開始學習如何做整理的人，好像都會經歷好幾個可預期的不同階段。在第一個階段，我們只懂得做出各種改變，而且一開始這一大堆的改變，並沒有什麼特別的區別。</p>
+<p>假設我們正在修正一個if語句，修到一半發現有個名稱錯了，於是就順手把它修正過來，然後再回頭繼續修正這個if語句。在這個階段，改變就只是改變而已。</p>
+<p>學會整理的做法之後，感覺就好像顯微鏡底下的圖片焦點變清楚了。其中有一些改變，改變的是程式的行為屬性，也就是程式執行過程中可以觀察到的一些改變。另外還有一些改變，改變的是程式的結構。像這樣的改變，只有直接去查看程式碼才能看得出來。</p>
+<p>在這個階段，我們對行為上的改變和結構上的改變，還沒有什麼特別的想法和做法—我們只是意識到，可以把改變分成兩種而已。</p>
+<p>經過一段時間之後，我們就可以開始察覺出一些共通的流程。如果先把程式碼切成一塊一塊的，接下來經常就可以提取出一些具有解釋效果的輔助函式，再接下來我們就會更容易去做出行為上的改變。如此一來程式設計這件事，就變得更像是下一盤西洋棋，你可能在好幾步之前，就可以猜出整盤棋大概會怎麼發展了。</p>
+<p>請注意，這時候我們還只是用了一個很大的PR，把所有改變全都包在一起。目前我們還只是處在「追著尾巴跑」這個循環的第1步而已。我們所做的每個行動都有其目的，要不是為了做出某個簡單的改變，要不就是為了更容易做出改變。不過，把所有這些全都混在一起，實在有點亂。審查者會抱怨，也是很正常的事。</p>
+<p>於是，我們開始嘗試把改變區分成兩種獨立的PR。一系列的整理（甚至只是一次小小的整理），會被放進一個獨立的PR。行為上的改變，也會放進一個獨立的PR。每次在「整理」和「行為改變」之間進行切換時，我們都會開一個新的 PR。</p>
+<p>PR應該如何整併或拆分，這也是一件需要權衡取捨的事情。你可以從動機的角度來思考。一個比較大的、包羅萬象的PR，可以呈現出比較完整的情況，但對審查者來說，其中所包含的改變可能太多了，這樣就很難提供真正有用的回饋意見。比較小的PR則可以讓回饋意見限縮在比較小的範圍，但是也有可能讓審查者陷入瑣碎的枝末細節中。</p>
+<p>審查過程如果拖得比較長，也會影響到大家的動機。如果程式碼審查的速度很快，就等於是鼓勵你多去建立一些更小的PR。這種更有針對性的PR也會鼓勵審查者加快審查。同樣的道理，這個循環也可能反過來：比較慢的審查速度，只會鼓勵PR變得更大，而更大的PR，也會拖慢後續的審查。</p>
+<p>如果你可以做出讓人很放心的整理，懂得用小小的步驟去進行整理，而且會用絕對安全的方式進行整理，這樣我就會鼓勵你去嘗試，讓這種整理類的PR不再需要進行審查。這樣就可以進一步降低延遲的影響，從而激勵大家多去提交一些比較小的整理類PR。</p>
+<p><span style="color:#B22222;"><span style="font-size:28px;"><strong>連鎖效應</strong></span></span></p>
+<p>整理就像洋芋片。你吃了一片，就想再吃一片。控制住想要做整理的衝動，其實是一個很關鍵的整理技巧。你才剛剛整理過；還應該再多整理一下嗎？這其實要看情況。</p>
+<p>你想要踏出多大的步伐，由你自己決定，不過我還是要鼓勵你，整理時盡量保持小小的步伐。然後盡可能去優化每一步。表面上來看，你好像在奔跑，但你知道自己其實就像蜈蚣一樣，實際上是邁出了許多小小的步伐。</p>
+<p>整理就像是下一盤棋，你多多少少都可以預見接下來幾步的發展。我們就來看看各種整理的做法，如何進一步帶動其他整理的做法：</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;守衛語句&nbsp; </span></strong></span>一旦你採用守衛語句的寫法，判斷條件可能就會變簡單，讓你可以提取出某個具有解釋效果的輔助函式，或是提取出某些具有解釋效果的變數。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;沒用到的死程式碼&nbsp;</span></strong></span> &nbsp;一旦刪除掉一堆亂七八糟的死程式碼，也許你就可以看得出來，如何根據閱讀順序或內聚順序，來重新排列程式碼。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;用同樣的寫法做同樣的事&nbsp;</span></strong></span>&nbsp;&nbsp;如果你確實可以做到，同樣的工作都用同樣的程式碼來實現，不同的工作就用不同的程式碼來實現，這樣你就可以把一些邏輯意義上平行對等的程式碼，按照閱讀順序來進行分組。舉個例子，有一次我在處理一個檔案，其中包含了好幾個Web入口點。由於程式碼看起來都很相似，所以我很自然就把它們分組放在檔案的最前面，變成了其餘程式碼的一個目錄。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;舊的實作方式搭配新介面&nbsp;</span></strong></span> 一旦你有了一個閃亮的新介面，你一定想好好善用它。如果你沒有好用的自動重構工具，去針對所有呼叫到新介面的地方進行轉換，你就只好一個一個進行人工轉換。這是我們第一次見識到所謂的扇出（fanout）的威力—一個整理動作，導致了更多的整理需求，而每個整理需求，又會導致更多的整理需求。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;閱讀順序&nbsp;</span></strong></span> 建立好閱讀順序之後，你可能就會看到一些機會，可以讓同樣的事，全都採用同樣的寫法。因為之前各個元素相隔的距離比較遠，以至於你看不到其中的相似之處。</p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3366ff;">&nbsp;內聚順序&nbsp;</span></strong></span> 根據內聚順序把元素放到一起之後，下一步或許就可以考慮把它們提取到一個子元素中。舉例來說，你可以建立一個輔助物件（helper object），不過這樣的做法，已經超出整理的範疇了。話雖如此，但如果你在整理過程中很自在、很有自信，你很自然就可以看出更大規模的設計變更做法，進一步讓行為上的改變變得更加容易。</p>
+<p>你可能會開始把許多整理做法串聯起來，對程式碼結構做出比較大的改變。請務必小心留意，不要做出太多、太快的改變。一連串成功的整理，抵不過一次有問題的、成本昂貴的整理。這就像是在練習每個音階的音符，請好好練習怎麼做好整理這件事。等你能夠輕鬆俐落處理好各種不同的音符，你就能編寫出美妙的旋律了。<strong>（本文摘錄整理自《先整理一下？｜個人層面的軟體設計考量》，碁峰資訊出版提供）</strong></p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/IT%E6%9B%B8%E6%91%98-%E5%85%88%E6%95%B4%E7%90%86%E4%B8%80%E4%B8%8B-600.jpg" style="width: 600px;"></p>
+<p><span style="font-size:14px;"><span style="color:#696969;">圖片來源_碁峰資訊</span></span></p>
+<p><strong><span style="color:#FFFFFF;"><span style="background-color:#3399ff;">&nbsp;書名&nbsp;</span></span> <span style="color:#3399ff;">先整理一下？｜個人層面的軟體設計考量（Tidy First?: A Personal Exercise in Empirical Software Design）</span></strong></p>
+<p>Kent Beck／著；藍子軒／譯</p>
+<p>碁峰資訊出版</p>
+<p>定價：480元</p>
+<p><img alt="" src="https://s4.itho.me/sites/default/files/images/IT%E6%9B%B8%E6%91%98_%E5%85%88%E6%95%B4%E7%90%86%E4%B8%80%E4%B8%8B_%E5%9C%962_%E5%9C%96%E7%89%87%E4%BE%86%E6%BA%90_Kent%20Beck.png" style="width: 130px;"></p>
+<p><a href="https://kentbeck.com/" target="_blank"><span style="color:#696969;"><span style="font-size:14px;">圖片來源_Kent Beck</span></span></a></p>
+<p><span style="color:#FFFFFF;"><strong><span style="background-color:#3399ff;">&nbsp;作者簡介&nbsp;</span></strong></span></p>
+<p><strong>Kent Beck</strong></p>
+<p>Kent Beck 是「極限程式設計」（Extreme Programming）的創建者，同時也是軟體模式的先驅、JUnit的共同作者、測試驅動開發（Test-Driven Development）的重新發現者，以及3X： Explore/Expand/Extract（探索/擴展/提取）的觀察家。他也是《敏捷宣言（Agile Manifesto）的第一位簽署者（按照字母順序）。Kent住在加州舊金山，擔任Mechanical Orchard的首席科學家，他經常會傳授一些技能，協助極客們能夠在這個世界上感覺到更加安心。</p>]]></content:encoded>
+    
+    <pubDate>2025-06-13  05:06:00</pubDate>
   </item><item>
     <title><![CDATA[Google發表Weather Lab互動網站以預測熱帶氣旋]]></title>
     <link>https://ithome.com.tw/news/169547</link>
@@ -1899,40 +2051,5 @@ Walmart介紹自家運用生成式AI維護數十億筆商品資料的做法</str
 <p>Midjourney則尚未對此一訴訟案作出回應。</p>]]></content:encoded>
     
     <pubDate>2025-06-12  03:06:56</pubDate>
-  </item><item>
-    <title><![CDATA[惡意軟體Myth Stealer同時鎖定Chrome、Firefox用戶而來，藉由冒牌遊戲網站散布]]></title>
-    <link>https://ithome.com.tw/news/169501</link>
-    <itunes:title><![CDATA[惡意軟體Myth Stealer同時鎖定Chrome、Firefox用戶而來，藉由冒牌遊戲網站散布]]></itunes:title>
-    <itunes:author><![CDATA[iThome 3C新聞[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/demystifying-myth-stealer-5-156.jpg?itok=pU2H2unF" width="960" height="420" alt=""><p>為了改善軟體開發安全，近年來有許多軟體改以程式語言<a href="https://www.ithome.com.tw/tags/rust">Rust</a>開發，例如Google於Chrome採用<a href="https://www.ithome.com.tw/news/167975">新的字型渲染程式庫Skrifa</a>，就是以這種程式語言撰寫而成。然而，攻擊者也開始跟進，採用這種程式語言打造惡意程式。</p>
-<p>例如，最近資安業者Trellix揭露的<a href="https://www.trellix.com/en-in/blogs/research/demystifying-myth-stealer-a-rust-based-infostealer/">Myth Stealer</a>，就是典型的例子。研究人員從去年12月下旬看到開發者於Telegram頻道宣傳、銷售，初期提供免費試用，後來開發團隊以租用的型式牟利。</p>
-<p>研究人員持續進行追蹤和調查後指出，駭客主要透過假的遊戲網站散布Myth Stealer，一旦使用者下載、執行，此惡意軟體會顯示假的視窗，轉移使用者的注意力，但實際上，駭客於後臺透過XOR運算或AES演算法解開先前被加密的惡意程式碼，並予以執行。此竊資軟體同時針對Chrome與Firefox兩大陣營的瀏覽器而來，搜括密碼、Cookie，以及自動填入的資訊。附帶一提的是，經營Myth Stealer的團隊不光銷售竊資軟體，他們還提供買家出售竊得資料的管道：該團隊建名為Myth Vouches &amp; Marketplace的頻道供買家運用。</p>
-<p>值得留意的是，駭客為了迴避防毒軟體的偵測，也不斷加入相關的機制，除了上述提及的程式碼混淆手法，他們也透過檢查受害電腦的使用者名稱及檔案，來確認不是在研究人員的沙箱環境執行。此外，駭客也頻繁更新竊資軟體，以確保惡意軟體檢測平臺VirusTotal所有的防毒引擎無法察覺異狀。</p>
-<p>針對攻擊發動的流程，研究人員指出駭客將竊資軟體偽裝成與遊戲相關的檔案，通常會聲稱是少見的檔案並受到密碼保護，或是含有如何執行遊戲說明資料的ZIP壓縮檔，此外，他們也看到駭客以單一的EXE檔案散布，或是將竊資軟體與遊戲相關檔案打包成RAR壓縮檔的情況。</p>
-<p>附帶一提的是，他們也看到駭客聲稱提供遊戲作弊工具為幌子的手法，為了取信受害者，駭客還提供VirusTotal的連結，表示所有防毒引擎分析皆為無害。</p>
-<p>此竊資軟體引起研究人員注意的原因在於，駭客同時採用多種反分析機制（Anti-analysis techniques），其中包括運用Rust套件obfstr進行字串混淆、並檢查受害電腦是否具有特定的使用者名稱與檔案，來判定自身是否處於沙箱環境，而根據研究人員列出的檔案名稱來判斷，這些檔案與VMware Tools、VirtualBox Guest Additions等虛擬機公用程式有關。</p>
-<p>一旦確認在真實電腦執行，Myth Stealer就會終止與瀏覽器有關的處理程序，然後從特定的應用程式挖掘密碼、Cookie、自動填入資料、信用卡資訊。為了解開瀏覽器存放的Cookie內容，駭客使用了遠端除錯功能，並透過Windows內建的API試圖取得管理員帳號的特殊權限。此外，駭客後續替這款竊資軟體加入新功能，其中包括挾持剪貼簿、螢幕截圖，使得此竊資軟體更加無孔不入。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/demystifying-myth-stealer-5-156.jpg?itok=pU2H2unF" width="960" height="420" alt=""><p>為了改善軟體開發安全，近年來有許多軟體改以程式語言<a href="https://www.ithome.com.tw/tags/rust">Rust</a>開發，例如Google於Chrome採用<a href="https://www.ithome.com.tw/news/167975">新的字型渲染程式庫Skrifa</a>，就是以這種程式語言撰寫而成。然而，攻擊者也開始跟進，採用這種程式語言打造惡意程式。</p>
-<p>例如，最近資安業者Trellix揭露的<a href="https://www.trellix.com/en-in/blogs/research/demystifying-myth-stealer-a-rust-based-infostealer/">Myth Stealer</a>，就是典型的例子。研究人員從去年12月下旬看到開發者於Telegram頻道宣傳、銷售，初期提供免費試用，後來開發團隊以租用的型式牟利。</p>
-<p>研究人員持續進行追蹤和調查後指出，駭客主要透過假的遊戲網站散布Myth Stealer，一旦使用者下載、執行，此惡意軟體會顯示假的視窗，轉移使用者的注意力，但實際上，駭客於後臺透過XOR運算或AES演算法解開先前被加密的惡意程式碼，並予以執行。此竊資軟體同時針對Chrome與Firefox兩大陣營的瀏覽器而來，搜括密碼、Cookie，以及自動填入的資訊。附帶一提的是，經營Myth Stealer的團隊不光銷售竊資軟體，他們還提供買家出售竊得資料的管道：該團隊建名為Myth Vouches &amp; Marketplace的頻道供買家運用。</p>
-<p>值得留意的是，駭客為了迴避防毒軟體的偵測，也不斷加入相關的機制，除了上述提及的程式碼混淆手法，他們也透過檢查受害電腦的使用者名稱及檔案，來確認不是在研究人員的沙箱環境執行。此外，駭客也頻繁更新竊資軟體，以確保惡意軟體檢測平臺VirusTotal所有的防毒引擎無法察覺異狀。</p>
-<p>針對攻擊發動的流程，研究人員指出駭客將竊資軟體偽裝成與遊戲相關的檔案，通常會聲稱是少見的檔案並受到密碼保護，或是含有如何執行遊戲說明資料的ZIP壓縮檔，此外，他們也看到駭客以單一的EXE檔案散布，或是將竊資軟體與遊戲相關檔案打包成RAR壓縮檔的情況。</p>
-<p>附帶一提的是，他們也看到駭客聲稱提供遊戲作弊工具為幌子的手法，為了取信受害者，駭客還提供VirusTotal的連結，表示所有防毒引擎分析皆為無害。</p>
-<p>此竊資軟體引起研究人員注意的原因在於，駭客同時採用多種反分析機制（Anti-analysis techniques），其中包括運用Rust套件obfstr進行字串混淆、並檢查受害電腦是否具有特定的使用者名稱與檔案，來判定自身是否處於沙箱環境，而根據研究人員列出的檔案名稱來判斷，這些檔案與VMware Tools、VirtualBox Guest Additions等虛擬機公用程式有關。</p>
-<p>一旦確認在真實電腦執行，Myth Stealer就會終止與瀏覽器有關的處理程序，然後從特定的應用程式挖掘密碼、Cookie、自動填入資料、信用卡資訊。為了解開瀏覽器存放的Cookie內容，駭客使用了遠端除錯功能，並透過Windows內建的API試圖取得管理員帳號的特殊權限。此外，駭客後續替這款竊資軟體加入新功能，其中包括挾持剪貼簿、螢幕截圖，使得此竊資軟體更加無孔不入。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<img src="https://s4.itho.me/sites/default/files/styles/picture_size_large/public/field/image/demystifying-myth-stealer-5-156.jpg?itok=pU2H2unF" width="960" height="420" alt=""><p>為了改善軟體開發安全，近年來有許多軟體改以程式語言<a href="https://www.ithome.com.tw/tags/rust">Rust</a>開發，例如Google於Chrome採用<a href="https://www.ithome.com.tw/news/167975">新的字型渲染程式庫Skrifa</a>，就是以這種程式語言撰寫而成。然而，攻擊者也開始跟進，採用這種程式語言打造惡意程式。</p>
-<p>例如，最近資安業者Trellix揭露的<a href="https://www.trellix.com/en-in/blogs/research/demystifying-myth-stealer-a-rust-based-infostealer/">Myth Stealer</a>，就是典型的例子。研究人員從去年12月下旬看到開發者於Telegram頻道宣傳、銷售，初期提供免費試用，後來開發團隊以租用的型式牟利。</p>
-<p>研究人員持續進行追蹤和調查後指出，駭客主要透過假的遊戲網站散布Myth Stealer，一旦使用者下載、執行，此惡意軟體會顯示假的視窗，轉移使用者的注意力，但實際上，駭客於後臺透過XOR運算或AES演算法解開先前被加密的惡意程式碼，並予以執行。此竊資軟體同時針對Chrome與Firefox兩大陣營的瀏覽器而來，搜括密碼、Cookie，以及自動填入的資訊。附帶一提的是，經營Myth Stealer的團隊不光銷售竊資軟體，他們還提供買家出售竊得資料的管道：該團隊建名為Myth Vouches &amp; Marketplace的頻道供買家運用。</p>
-<p>值得留意的是，駭客為了迴避防毒軟體的偵測，也不斷加入相關的機制，除了上述提及的程式碼混淆手法，他們也透過檢查受害電腦的使用者名稱及檔案，來確認不是在研究人員的沙箱環境執行。此外，駭客也頻繁更新竊資軟體，以確保惡意軟體檢測平臺VirusTotal所有的防毒引擎無法察覺異狀。</p>
-<p>針對攻擊發動的流程，研究人員指出駭客將竊資軟體偽裝成與遊戲相關的檔案，通常會聲稱是少見的檔案並受到密碼保護，或是含有如何執行遊戲說明資料的ZIP壓縮檔，此外，他們也看到駭客以單一的EXE檔案散布，或是將竊資軟體與遊戲相關檔案打包成RAR壓縮檔的情況。</p>
-<p>附帶一提的是，他們也看到駭客聲稱提供遊戲作弊工具為幌子的手法，為了取信受害者，駭客還提供VirusTotal的連結，表示所有防毒引擎分析皆為無害。</p>
-<p>此竊資軟體引起研究人員注意的原因在於，駭客同時採用多種反分析機制（Anti-analysis techniques），其中包括運用Rust套件obfstr進行字串混淆、並檢查受害電腦是否具有特定的使用者名稱與檔案，來判定自身是否處於沙箱環境，而根據研究人員列出的檔案名稱來判斷，這些檔案與VMware Tools、VirtualBox Guest Additions等虛擬機公用程式有關。</p>
-<p>一旦確認在真實電腦執行，Myth Stealer就會終止與瀏覽器有關的處理程序，然後從特定的應用程式挖掘密碼、Cookie、自動填入資料、信用卡資訊。為了解開瀏覽器存放的Cookie內容，駭客使用了遠端除錯功能，並透過Windows內建的API試圖取得管理員帳號的特殊權限。此外，駭客後續替這款竊資軟體加入新功能，其中包括挾持剪貼簿、螢幕截圖，使得此竊資軟體更加無孔不入。</p>]]></content:encoded>
-    
-    <pubDate>2025-06-12  02:06:28</pubDate>
   </item></channel>
 </rss>
