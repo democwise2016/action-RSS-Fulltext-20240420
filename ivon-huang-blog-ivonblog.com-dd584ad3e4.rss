@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/935/800/800.jpg?hmac=ogwrzknFLiYJ_4E9O5GfXYnQtMixbzcrIsNmIPm9WVk</url>
+      <url>https://fastly.picsum.photos/id/815/800/800.jpg?hmac=sUwYCPcLU5S-oyteTWKT_41ezKTMtS02wwofnyb6yto</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,230 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/935/800/800.jpg?hmac=ogwrzknFLiYJ_4E9O5GfXYnQtMixbzcrIsNmIPm9WVk"/>
+    <itunes:image href="https://fastly.picsum.photos/id/815/800/800.jpg?hmac=sUwYCPcLU5S-oyteTWKT_41ezKTMtS02wwofnyb6yto"/>
 <item>
+    <title><![CDATA[Linux暫時停用部份字型，解決字型裝太多lag的問題（fontconfig rejectfont功能解說）]]></title>
+    <link>https://ivonblog.com/posts/fontconfig-disable-fonts/</link>
+    <itunes:title><![CDATA[Linux暫時停用部份字型，解決字型裝太多lag的問題（fontconfig rejectfont功能解說）]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/fontconfig-disable-fonts/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3856a5354f.webp"></a></p>
+<p>Disabling some fonts temporarily on Linux desktop to solve the issue of having too many fonts installed.</p><p>一直以來我都有這個問題，要是Linux系統安裝太多字型（字體），在文書以及美工軟體的選單就會顯得落落長。</p><p>例如Ubuntu一旦用APT安裝「Noto Sans」字型套件，就會將各國語言都拉進來，導致LibreOffice的字型列表變得超～級～長，捲動還會lag。GIMP和Krita同樣會遇到這個問題。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cb09eec050.webp"><p>如果說要解決這個問題，最直觀的想法就是用APT解除安裝字型套件了吧？光<code>fonts-noto-core</code>這個套件就有200種字型！但日後要使用又要重裝，很是麻煩！</p><p>所幸，Linux桌面常用的字型設定工具fontconfig有「rejectfont」的功能，可以將字型加入黑名單，「暫時」停用字型，這樣其他軟體就看不到這些字型。日後有需要再重新啟用就好了！不需要動到APT指令！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-473e307867.webp"><p>註：如果你遇到的問題是安裝特定字型（例如標楷體）導致界面字型強制跟著變成標楷體，那麼停用字型不是解決之道。你應該使用<a href="https://ivonblog.com/posts/linux-fontconfig/" target="_blank">fontconfig優先級</a>方式來糾正。</p><h2>1. 圖形界面設定法<span><a href="#1-%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2%E8%A8%AD%E5%AE%9A%E6%B3%95" aria-label="定位點">#</a></span></h2><p>只有KDE Plasma桌面有這個功能，GNOME桌面請裝<a href="https://github.com/FontManager/font-manager" target="_blank">Font Manager</a>，或者手寫fontconfig設定檔。</p><p>註：KDE Plasma修改的是全域系統<code>/etc/fonts/disabledfonts.xml</code>設定，而非<code>~/.config/fontconfig/fonts.conf</code>。</p><p>開啟KDE Plasma系統設定 → 字型管理，這裡可以暫時停用特定字型。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0095432485.webp"><p>譬如針對Noto Sans字型家族，按Shitft多選，全部停用</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7886252950.webp"><p>然後再留下需要的中文字型就夠了</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-10f1e449fa.webp"><p>停用字型後，重新啟動軟體，那個字型應該就會從列表消失了。軟體不能再用那個字型顯示文字了。</p><h2>2. 手寫fontconfig設定檔<span><a href="#2-%E6%89%8B%E5%AF%ABfontconfig%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><ol><li><p>Linux的字型多半會安裝到<code>/usr/share/fonts/</code>。Noto Sans字型應位於<code>/usr/share/fonts/truetype/noto/</code>，Noto Sans CJK位於<code>/usr/share/fonts/opentype/noto/</code></p></li><li><p>使用<code>fc-list</code>指令列出可用的字型。</p></li><li><p>新增fontconfig設定檔，只對目前使用者有效。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p ~/.config/fontconfig/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/fontconfig/fonts.conf
+</span></span></code></pre></div><ol start="3"><li><p><code>&lt;selectfont&gt;</code>裡面的<code>&lt;rejectfont&gt;&lt;/rejectfont&gt;</code>用於定義要停用（黑名單）的字型，<code>&lt;acceptfont&gt;&lt;/acceptfont&gt;</code>則是啟用（白名單）的字型，不過後者通常不用寫，因為你在rejectfont排除掉之後，剩下的字型就是還啟用的字型。</p></li><li><p>如果要停用單一字型，就這樣寫，一行一個<code>&lt;glob&gt;&lt;/glob&gt;</code>，寫上字型的具體路徑。後面加上星號用作萬用字元。譬如<code>NotoSansArabic*</code>就是選取以<code>NotoSansArabic</code>名稱為首的所有字型。</p></li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>	<span>&lt;rejectfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoSansArabic*<span>&lt;/glob&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoSansLao*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><p>另一種寫法：使用字型家族下去篩選。先使用指令<code>fc-list : family</code>列出所有字型家族，然後再於<code>&lt;pattern&gt;&lt;/pattern&gt;</code>填入字型家族名稱。</p><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>	<span>&lt;rejectfont&gt;</span>
+</span></span><span><span>		<span>&lt;pattern&gt;</span>
+</span></span><span><span>			<span>&lt;patelt</span> <span>name=</span><span>"family"</span> <span>&gt;</span>
+</span></span><span><span>				<span>&lt;string&gt;</span>Noto Sans Lao<span>&lt;/string&gt;</span>
+</span></span><span><span>			<span>&lt;/patelt&gt;</span>
+</span></span><span><span>			<span>&lt;patelt</span> <span>name=</span><span>"family"</span> <span>&gt;</span>
+</span></span><span><span>				<span>&lt;string&gt;</span>Noto Sans Arabic<span>&lt;/string&gt;</span>
+</span></span><span><span>			<span>&lt;/patelt&gt;</span>
+</span></span><span><span>		<span>&lt;/pattern&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="5"><li>如果要停用的字型家族太多，不妨使用這個篩選邏輯：先將所有該字型家族加入黑名單，然後再白名單要用的字型。譬如，針對字型超多的Noto Sans，就先將其全部加入<code>&lt;rejectfont&gt;&lt;/rejectfont&gt;</code>停用，然後再用<code>&lt;acceptfont&gt;&lt;/&lt;acceptfont&gt;</code>篩選出要用的字型即可。這裡的範例是停用所有Noto Sans字型，只啟用裡面的Emoji字型。</li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>    <span>&lt;rejectfont&gt;</span>
+</span></span><span><span>        <span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/Noto*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span>    <span>&lt;acceptfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoColorEmoji*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/acceptfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="6"><li>停用字型後，執行以下指令更新快取</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fc-cache -fv
+</span></span></code></pre></div><ol start="7"><li>使用fc-list指令查看Noto Sans字型是否有停用成功，列表項目應該會減少許多：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fc-list <span>|</span> grep noto
+</span></span></code></pre></div><ol start="8"><li><p>重新啟動軟體，那個字型應該就會從列表消失了。軟體也不能再用那個字型顯示文字了。</p></li><li><p>Flatpak軟體需開放讀取fontconfig權限，但不知為何無效。可能要把停用的字型改成寫到<code>/etc/fonts/disabledfonts.xml</code>才有作用。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>flatpak --user override --filesystem<span>=</span>xdg-config/fontconfig:ro
+</span></span></code></pre></div><h2>3. 針對單一軟體停用字型<span><a href="#3-%E9%87%9D%E5%B0%8D%E5%96%AE%E4%B8%80%E8%BB%9F%E9%AB%94%E5%81%9C%E7%94%A8%E5%AD%97%E5%9E%8B" aria-label="定位點">#</a></span></h2><p>理論上是可以這樣做，不過嘛寫規則太複雜了，不如全域停用要好！</p><p>這有兩種作法，一種是在fonts.conf裡面定義具體的二進位檔名稱，另一種是用環境變數<code>FONTCONFIG_FILE</code>，我覺得後者比較靈活！</p><ol><li>新增一個專門用於停用字型的fontconfig設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p ~/.config/fontconfig/conf.d/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/fontconfig/conf.d/libreoffice.conf
+</span></span></code></pre></div><ol start="2"><li>填入停用規則</li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>    <span>&lt;rejectfont&gt;</span>
+</span></span><span><span>        <span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/Noto*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span>    <span>&lt;acceptfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoColorEmoji*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/acceptfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>在啟動程式的時候，加上環境變數，指定fontconfig的路徑</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>FONTCONFIG_FILE</span><span>=</span>~/.config/fontconfig/conf.d/libreoffice.conf libreoffice
+</span></span></code></pre></div><ol start="4"><li>雖說如此，不過我測試了好像沒用😛</li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/Font_configuration/Examples" target="_blank">Font configuration/Examples - Arch Wiki</a></li><li><a href="https://askubuntu.com/questions/1140030/how-to-disable-unused-asiatic-fonts" target="_blank">How to disable unused asiatic fonts? - AskUbuntu</a></li><li><a href="https://www.reddit.com/r/archlinux/comments/dim7dt/fontconfig_can_i_disable_a_specific_font_for_an/" target="_blank">Fontconfig - Can I disable a specific font for an application only - r/archlinux Reddit</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/fontconfig-disable-fonts/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3856a5354f.webp"></a></p>
+<p>Disabling some fonts temporarily on Linux desktop to solve the issue of having too many fonts installed.</p><p>一直以來我都有這個問題，要是Linux系統安裝太多字型（字體），在文書以及美工軟體的選單就會顯得落落長。</p><p>例如Ubuntu一旦用APT安裝「Noto Sans」字型套件，就會將各國語言都拉進來，導致LibreOffice的字型列表變得超～級～長，捲動還會lag。GIMP和Krita同樣會遇到這個問題。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cb09eec050.webp"><p>如果說要解決這個問題，最直觀的想法就是用APT解除安裝字型套件了吧？光<code>fonts-noto-core</code>這個套件就有200種字型！但日後要使用又要重裝，很是麻煩！</p><p>所幸，Linux桌面常用的字型設定工具fontconfig有「rejectfont」的功能，可以將字型加入黑名單，「暫時」停用字型，這樣其他軟體就看不到這些字型。日後有需要再重新啟用就好了！不需要動到APT指令！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-473e307867.webp"><p>註：如果你遇到的問題是安裝特定字型（例如標楷體）導致界面字型強制跟著變成標楷體，那麼停用字型不是解決之道。你應該使用<a href="https://ivonblog.com/posts/linux-fontconfig/" target="_blank">fontconfig優先級</a>方式來糾正。</p><h2>1. 圖形界面設定法<span><a href="#1-%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2%E8%A8%AD%E5%AE%9A%E6%B3%95" aria-label="定位點">#</a></span></h2><p>只有KDE Plasma桌面有這個功能，GNOME桌面請裝<a href="https://github.com/FontManager/font-manager" target="_blank">Font Manager</a>，或者手寫fontconfig設定檔。</p><p>註：KDE Plasma修改的是全域系統<code>/etc/fonts/disabledfonts.xml</code>設定，而非<code>~/.config/fontconfig/fonts.conf</code>。</p><p>開啟KDE Plasma系統設定 → 字型管理，這裡可以暫時停用特定字型。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0095432485.webp"><p>譬如針對Noto Sans字型家族，按Shitft多選，全部停用</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7886252950.webp"><p>然後再留下需要的中文字型就夠了</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-10f1e449fa.webp"><p>停用字型後，重新啟動軟體，那個字型應該就會從列表消失了。軟體不能再用那個字型顯示文字了。</p><h2>2. 手寫fontconfig設定檔<span><a href="#2-%E6%89%8B%E5%AF%ABfontconfig%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><ol><li><p>Linux的字型多半會安裝到<code>/usr/share/fonts/</code>。Noto Sans字型應位於<code>/usr/share/fonts/truetype/noto/</code>，Noto Sans CJK位於<code>/usr/share/fonts/opentype/noto/</code></p></li><li><p>使用<code>fc-list</code>指令列出可用的字型。</p></li><li><p>新增fontconfig設定檔，只對目前使用者有效。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p ~/.config/fontconfig/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/fontconfig/fonts.conf
+</span></span></code></pre></div><ol start="3"><li><p><code>&lt;selectfont&gt;</code>裡面的<code>&lt;rejectfont&gt;&lt;/rejectfont&gt;</code>用於定義要停用（黑名單）的字型，<code>&lt;acceptfont&gt;&lt;/acceptfont&gt;</code>則是啟用（白名單）的字型，不過後者通常不用寫，因為你在rejectfont排除掉之後，剩下的字型就是還啟用的字型。</p></li><li><p>如果要停用單一字型，就這樣寫，一行一個<code>&lt;glob&gt;&lt;/glob&gt;</code>，寫上字型的具體路徑。後面加上星號用作萬用字元。譬如<code>NotoSansArabic*</code>就是選取以<code>NotoSansArabic</code>名稱為首的所有字型。</p></li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>	<span>&lt;rejectfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoSansArabic*<span>&lt;/glob&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoSansLao*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><p>另一種寫法：使用字型家族下去篩選。先使用指令<code>fc-list : family</code>列出所有字型家族，然後再於<code>&lt;pattern&gt;&lt;/pattern&gt;</code>填入字型家族名稱。</p><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>	<span>&lt;rejectfont&gt;</span>
+</span></span><span><span>		<span>&lt;pattern&gt;</span>
+</span></span><span><span>			<span>&lt;patelt</span> <span>name=</span><span>"family"</span> <span>&gt;</span>
+</span></span><span><span>				<span>&lt;string&gt;</span>Noto Sans Lao<span>&lt;/string&gt;</span>
+</span></span><span><span>			<span>&lt;/patelt&gt;</span>
+</span></span><span><span>			<span>&lt;patelt</span> <span>name=</span><span>"family"</span> <span>&gt;</span>
+</span></span><span><span>				<span>&lt;string&gt;</span>Noto Sans Arabic<span>&lt;/string&gt;</span>
+</span></span><span><span>			<span>&lt;/patelt&gt;</span>
+</span></span><span><span>		<span>&lt;/pattern&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="5"><li>如果要停用的字型家族太多，不妨使用這個篩選邏輯：先將所有該字型家族加入黑名單，然後再白名單要用的字型。譬如，針對字型超多的Noto Sans，就先將其全部加入<code>&lt;rejectfont&gt;&lt;/rejectfont&gt;</code>停用，然後再用<code>&lt;acceptfont&gt;&lt;/&lt;acceptfont&gt;</code>篩選出要用的字型即可。這裡的範例是停用所有Noto Sans字型，只啟用裡面的Emoji字型。</li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>    <span>&lt;rejectfont&gt;</span>
+</span></span><span><span>        <span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/Noto*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span>    <span>&lt;acceptfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoColorEmoji*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/acceptfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="6"><li>停用字型後，執行以下指令更新快取</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fc-cache -fv
+</span></span></code></pre></div><ol start="7"><li>使用fc-list指令查看Noto Sans字型是否有停用成功，列表項目應該會減少許多：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fc-list <span>|</span> grep noto
+</span></span></code></pre></div><ol start="8"><li><p>重新啟動軟體，那個字型應該就會從列表消失了。軟體也不能再用那個字型顯示文字了。</p></li><li><p>Flatpak軟體需開放讀取fontconfig權限，但不知為何無效。可能要把停用的字型改成寫到<code>/etc/fonts/disabledfonts.xml</code>才有作用。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>flatpak --user override --filesystem<span>=</span>xdg-config/fontconfig:ro
+</span></span></code></pre></div><h2>3. 針對單一軟體停用字型<span><a href="#3-%E9%87%9D%E5%B0%8D%E5%96%AE%E4%B8%80%E8%BB%9F%E9%AB%94%E5%81%9C%E7%94%A8%E5%AD%97%E5%9E%8B" aria-label="定位點">#</a></span></h2><p>理論上是可以這樣做，不過嘛寫規則太複雜了，不如全域停用要好！</p><p>這有兩種作法，一種是在fonts.conf裡面定義具體的二進位檔名稱，另一種是用環境變數<code>FONTCONFIG_FILE</code>，我覺得後者比較靈活！</p><ol><li>新增一個專門用於停用字型的fontconfig設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p ~/.config/fontconfig/conf.d/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/fontconfig/conf.d/libreoffice.conf
+</span></span></code></pre></div><ol start="2"><li>填入停用規則</li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>    <span>&lt;rejectfont&gt;</span>
+</span></span><span><span>        <span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/Noto*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span>    <span>&lt;acceptfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoColorEmoji*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/acceptfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>在啟動程式的時候，加上環境變數，指定fontconfig的路徑</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>FONTCONFIG_FILE</span><span>=</span>~/.config/fontconfig/conf.d/libreoffice.conf libreoffice
+</span></span></code></pre></div><ol start="4"><li>雖說如此，不過我測試了好像沒用😛</li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/Font_configuration/Examples" target="_blank">Font configuration/Examples - Arch Wiki</a></li><li><a href="https://askubuntu.com/questions/1140030/how-to-disable-unused-asiatic-fonts" target="_blank">How to disable unused asiatic fonts? - AskUbuntu</a></li><li><a href="https://www.reddit.com/r/archlinux/comments/dim7dt/fontconfig_can_i_disable_a_specific_font_for_an/" target="_blank">Fontconfig - Can I disable a specific font for an application only - r/archlinux Reddit</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/fontconfig-disable-fonts/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3856a5354f.webp"></a></p>
+<p>Disabling some fonts temporarily on Linux desktop to solve the issue of having too many fonts installed.</p><p>一直以來我都有這個問題，要是Linux系統安裝太多字型（字體），在文書以及美工軟體的選單就會顯得落落長。</p><p>例如Ubuntu一旦用APT安裝「Noto Sans」字型套件，就會將各國語言都拉進來，導致LibreOffice的字型列表變得超～級～長，捲動還會lag。GIMP和Krita同樣會遇到這個問題。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cb09eec050.webp"><p>如果說要解決這個問題，最直觀的想法就是用APT解除安裝字型套件了吧？光<code>fonts-noto-core</code>這個套件就有200種字型！但日後要使用又要重裝，很是麻煩！</p><p>所幸，Linux桌面常用的字型設定工具fontconfig有「rejectfont」的功能，可以將字型加入黑名單，「暫時」停用字型，這樣其他軟體就看不到這些字型。日後有需要再重新啟用就好了！不需要動到APT指令！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-473e307867.webp"><p>註：如果你遇到的問題是安裝特定字型（例如標楷體）導致界面字型強制跟著變成標楷體，那麼停用字型不是解決之道。你應該使用<a href="https://ivonblog.com/posts/linux-fontconfig/" target="_blank">fontconfig優先級</a>方式來糾正。</p><h2>1. 圖形界面設定法<span><a href="#1-%E5%9C%96%E5%BD%A2%E7%95%8C%E9%9D%A2%E8%A8%AD%E5%AE%9A%E6%B3%95" aria-label="定位點">#</a></span></h2><p>只有KDE Plasma桌面有這個功能，GNOME桌面請裝<a href="https://github.com/FontManager/font-manager" target="_blank">Font Manager</a>，或者手寫fontconfig設定檔。</p><p>註：KDE Plasma修改的是全域系統<code>/etc/fonts/disabledfonts.xml</code>設定，而非<code>~/.config/fontconfig/fonts.conf</code>。</p><p>開啟KDE Plasma系統設定 → 字型管理，這裡可以暫時停用特定字型。</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0095432485.webp"><p>譬如針對Noto Sans字型家族，按Shitft多選，全部停用</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7886252950.webp"><p>然後再留下需要的中文字型就夠了</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-10f1e449fa.webp"><p>停用字型後，重新啟動軟體，那個字型應該就會從列表消失了。軟體不能再用那個字型顯示文字了。</p><h2>2. 手寫fontconfig設定檔<span><a href="#2-%E6%89%8B%E5%AF%ABfontconfig%E8%A8%AD%E5%AE%9A%E6%AA%94" aria-label="定位點">#</a></span></h2><ol><li><p>Linux的字型多半會安裝到<code>/usr/share/fonts/</code>。Noto Sans字型應位於<code>/usr/share/fonts/truetype/noto/</code>，Noto Sans CJK位於<code>/usr/share/fonts/opentype/noto/</code></p></li><li><p>使用<code>fc-list</code>指令列出可用的字型。</p></li><li><p>新增fontconfig設定檔，只對目前使用者有效。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p ~/.config/fontconfig/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/fontconfig/fonts.conf
+</span></span></code></pre></div><ol start="3"><li><p><code>&lt;selectfont&gt;</code>裡面的<code>&lt;rejectfont&gt;&lt;/rejectfont&gt;</code>用於定義要停用（黑名單）的字型，<code>&lt;acceptfont&gt;&lt;/acceptfont&gt;</code>則是啟用（白名單）的字型，不過後者通常不用寫，因為你在rejectfont排除掉之後，剩下的字型就是還啟用的字型。</p></li><li><p>如果要停用單一字型，就這樣寫，一行一個<code>&lt;glob&gt;&lt;/glob&gt;</code>，寫上字型的具體路徑。後面加上星號用作萬用字元。譬如<code>NotoSansArabic*</code>就是選取以<code>NotoSansArabic</code>名稱為首的所有字型。</p></li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>	<span>&lt;rejectfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoSansArabic*<span>&lt;/glob&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoSansLao*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><p>另一種寫法：使用字型家族下去篩選。先使用指令<code>fc-list : family</code>列出所有字型家族，然後再於<code>&lt;pattern&gt;&lt;/pattern&gt;</code>填入字型家族名稱。</p><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>	<span>&lt;rejectfont&gt;</span>
+</span></span><span><span>		<span>&lt;pattern&gt;</span>
+</span></span><span><span>			<span>&lt;patelt</span> <span>name=</span><span>"family"</span> <span>&gt;</span>
+</span></span><span><span>				<span>&lt;string&gt;</span>Noto Sans Lao<span>&lt;/string&gt;</span>
+</span></span><span><span>			<span>&lt;/patelt&gt;</span>
+</span></span><span><span>			<span>&lt;patelt</span> <span>name=</span><span>"family"</span> <span>&gt;</span>
+</span></span><span><span>				<span>&lt;string&gt;</span>Noto Sans Arabic<span>&lt;/string&gt;</span>
+</span></span><span><span>			<span>&lt;/patelt&gt;</span>
+</span></span><span><span>		<span>&lt;/pattern&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="5"><li>如果要停用的字型家族太多，不妨使用這個篩選邏輯：先將所有該字型家族加入黑名單，然後再白名單要用的字型。譬如，針對字型超多的Noto Sans，就先將其全部加入<code>&lt;rejectfont&gt;&lt;/rejectfont&gt;</code>停用，然後再用<code>&lt;acceptfont&gt;&lt;/&lt;acceptfont&gt;</code>篩選出要用的字型即可。這裡的範例是停用所有Noto Sans字型，只啟用裡面的Emoji字型。</li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>    <span>&lt;rejectfont&gt;</span>
+</span></span><span><span>        <span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/Noto*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span>    <span>&lt;acceptfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoColorEmoji*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/acceptfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="6"><li>停用字型後，執行以下指令更新快取</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fc-cache -fv
+</span></span></code></pre></div><ol start="7"><li>使用fc-list指令查看Noto Sans字型是否有停用成功，列表項目應該會減少許多：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>fc-list <span>|</span> grep noto
+</span></span></code></pre></div><ol start="8"><li><p>重新啟動軟體，那個字型應該就會從列表消失了。軟體也不能再用那個字型顯示文字了。</p></li><li><p>Flatpak軟體需開放讀取fontconfig權限，但不知為何無效。可能要把停用的字型改成寫到<code>/etc/fonts/disabledfonts.xml</code>才有作用。</p></li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>flatpak --user override --filesystem<span>=</span>xdg-config/fontconfig:ro
+</span></span></code></pre></div><h2>3. 針對單一軟體停用字型<span><a href="#3-%E9%87%9D%E5%B0%8D%E5%96%AE%E4%B8%80%E8%BB%9F%E9%AB%94%E5%81%9C%E7%94%A8%E5%AD%97%E5%9E%8B" aria-label="定位點">#</a></span></h2><p>理論上是可以這樣做，不過嘛寫規則太複雜了，不如全域停用要好！</p><p>這有兩種作法，一種是在fonts.conf裡面定義具體的二進位檔名稱，另一種是用環境變數<code>FONTCONFIG_FILE</code>，我覺得後者比較靈活！</p><ol><li>新增一個專門用於停用字型的fontconfig設定檔</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>mkdir -p ~/.config/fontconfig/conf.d/
+</span></span><span><span>
+</span></span><span><span>vim ~/.config/fontconfig/conf.d/libreoffice.conf
+</span></span></code></pre></div><ol start="2"><li>填入停用規則</li></ol><div><pre tabindex="0"><code data-lang="xml"><span><span><span>&lt;?xml version='1.0'?&gt;</span>
+</span></span><span><span><span>&lt;!DOCTYPE fontconfig SYSTEM 'fonts.dtd'&gt;</span>
+</span></span><span><span><span>&lt;fontconfig&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;selectfont&gt;</span>
+</span></span><span><span>    <span>&lt;rejectfont&gt;</span>
+</span></span><span><span>        <span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/Noto*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/rejectfont&gt;</span>
+</span></span><span><span>    <span>&lt;acceptfont&gt;</span>
+</span></span><span><span>		<span>&lt;glob&gt;</span>/usr/share/fonts/truetype/noto/NotoColorEmoji*<span>&lt;/glob&gt;</span>
+</span></span><span><span>    <span>&lt;/acceptfont&gt;</span>
+</span></span><span><span><span>&lt;/selectfont&gt;</span>
+</span></span><span><span>
+</span></span><span><span><span>&lt;/fontconfig&gt;</span>
+</span></span></code></pre></div><ol start="3"><li>在啟動程式的時候，加上環境變數，指定fontconfig的路徑</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span><span>FONTCONFIG_FILE</span><span>=</span>~/.config/fontconfig/conf.d/libreoffice.conf libreoffice
+</span></span></code></pre></div><ol start="4"><li>雖說如此，不過我測試了好像沒用😛</li></ol><h2>參考資料<span><a href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99" aria-label="定位點">#</a></span></h2><ul><li><a href="https://wiki.archlinux.org/title/Font_configuration/Examples" target="_blank">Font configuration/Examples - Arch Wiki</a></li><li><a href="https://askubuntu.com/questions/1140030/how-to-disable-unused-asiatic-fonts" target="_blank">How to disable unused asiatic fonts? - AskUbuntu</a></li><li><a href="https://www.reddit.com/r/archlinux/comments/dim7dt/fontconfig_can_i_disable_a_specific_font_for_an/" target="_blank">Fontconfig - Can I disable a specific font for an application only - r/archlinux Reddit</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3856a5354f.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3856a5354f.webp" medium="image"/>
+    <pubDate>Fri, 13 Jun 2025 11:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[MangoHud教學：在Linux螢幕顯示CPU、GPU、FPS、溫度、RAM使用量的遊戲輔助軟體]]></title>
     <link>https://ivonblog.com/posts/linux-mangohud-usage/</link>
     <itunes:title><![CDATA[MangoHud教學：在Linux螢幕顯示CPU、GPU、FPS、溫度、RAM使用量的遊戲輔助軟體]]></itunes:title>
@@ -1028,26 +1250,5 @@ otepad++.exe"</span>
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-808d5b8a32.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-808d5b8a32.webp" medium="image"/>
     <pubDate>Fri, 16 May 2025 17:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Pink Floyd - Meddle專輯的「Echoes」分析，一首長達20分鐘的搖滾樂，一場曼妙的太空生命之旅]]></title>
-    <link>https://ivonblog.com/posts/pink-floyd-meddle-review/</link>
-    <itunes:title><![CDATA[Pink Floyd - Meddle專輯的「Echoes」分析，一首長達20分鐘的搖滾樂，一場曼妙的太空生命之旅]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/pink-floyd-meddle-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-635a66c07e.webp"></a></p>
-<p>Pink Floyd知名的作品很多，如果對他們有進一步興趣，那麼一定要聽聽早期的作品。我認為《Meddle》專輯是必聽之經典，太空搖滾融合前衛音樂。</p><blockquote><p>The echo of a distant time</p><p>Comes willowing across the sand</p></blockquote><p>聽這張專輯的數位版十幾年了，後來才想到要買實體版。2022年我購入了《Meddle》，當初在拍賣網站買的時候以為這是黑膠，結果就買了，想說怎麼那麼便宜…好吧原來是日本版的CD。這也好，Echoes就是要聽高音質的版本，CDrip也方便數位化收藏。</p><p>這張專輯內附歌詞本，還有1971年四人的帥照，從左到右分別是Roger Waters、Nick Mason、David Gilmour、Richard Wright。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a1ae691a0.webp"></p><p>註：本文討論的是1971年出版的專輯《Meddle》，並非2001年的精選輯《Pink Floyd Echoes: The Best Of Pink Floyd》</p><h2>1. Meddle專輯簡介<span><a href="#1-meddle%E5%B0%88%E8%BC%AF%E7%B0%A1%E4%BB%8B" aria-label="定位點">#</a></span></h2><p>在推出經典的《The Darkside of the Moon》專輯之前，Pink Floyd經過很長一段時間的實驗摸索期。1968年Pink Floyd發表迷幻要素濃厚的《The Piper at the Gates of Dawn》專輯之後，找了新的團員David Gilmour進來，卻失去了核心人物Syd Barrett，剩餘的四人經過了幾年的音樂實驗探索。那段時期他們的音樂晦澀難懂，而且普遍難聽，譬如《Ummagumma》專輯。但不知為何這些歌曲《Live at Pompeii》紀錄片重錄的版本就好很多，後面我會討論到這個。</p><p>在經過幾年磨練後終於推出了好作品，1970年《Atom Heart Mother》是好的開始，雖然團員普遍不喜歡這張專輯，裡面的歌曲都很詭異。</p><p>然後最神的就是1971年《Meddle》了，中文名稱可以翻為「平克·佛洛伊德 - 干涉」。</p><p>專輯封面由Storm Thorgerson設計，乍看之下好像是水的波紋，彼此相交之後產生干涉現象</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5d5d60b346.webp"><p>但如果把專輯攤開來看，就會發現是一隻泡在水下的耳朵！這個或許能夠反映聲波干涉，人與人之間連結的主題吧！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5c63af81b5.webp"><p>專輯共收錄六首歌，前五首普普通通，反映了早期Pink Floyd的精神狀態（X）實驗精神（O）。甚至有一首歌是用狗叫錄音製成的呢！</p><p>我想把內容專注在分享〈Echoes〉這首歌上，所以這邊就簡單帶過前五首。</p><p>第一首〈One of These Days〉使用大量失真音效演出，塑造出一種狂風呼嘯的感覺。整首歌的歌詞只有Nick Mason的一句「總有一天我要把你大卸八塊」。聽來怪爽的！電影導演Ian Emes根據這首歌製作了名為French Windows的MV動畫，看起來同樣帶感。</p><div><iframe src="https://www.youtube.com/embed/L2WDB6tpIYM" allowfullscreen="" frameborder="0"></iframe></div><p>第二首〈A Pillow of Winds〉是一首曲風緩和的抒情歌曲。</p><p>第三首〈Fearless〉反映了積極向上的主題。最後面的群眾歌聲是在利物浦晏菲路球場錄製的。</p><p>第四首〈San Tropez〉講述了到法國同名城市的風景景象。</p><p>第五首〈Seamus〉找來了一條狗唱歌，Seamus就是狗狗的名字，跟之後《Live at Pompeii》紀錄片所用的是不同隻的狗狗。塑造一種在家做家事，外面的狗在鬼叫的真實場景。許多歌迷認為這是Pink Floyd的最爛歌曲之一，不過有趣的是如果願意繼續聽下去，就會聽到第六首神曲的到來，突然有反差極大的驚豔之感。</p><h2>2. Echoes的個人內容分析<span><a href="#2-echoes%E7%9A%84%E5%80%8B%E4%BA%BA%E5%85%A7%E5%AE%B9%E5%88%86%E6%9E%90" aria-label="定位點">#</a></span></h2><p>重頭戲就是第六首〈Echoes〉了，長達20分鐘，在過去黑膠唱片時代就佔掉了一整面。</p><div><iframe src="https://www.youtube.com/embed/53N99Nim6WE" allowfullscreen="" frameborder="0"></iframe></div><p>整首歌曲大致可以分為三個段落，前10分鐘是慢慢上揚到最高潮的部份，中間10分鐘經過了一段詭譎音樂的時期，他們不知道用了什麼奇特的合成器才做出那種在荒涼的洞穴的恐怖音效。最後面是整體氣氛重新復甦。</p><p>關於Echoes歌詞中文翻譯，我認為William.Echoes大大翻譯的很好：<a href="https://swospam0418.pixnet.net/blog/post/460087405" target="_blank">Pink Floyd (平克佛洛伊德) — Echoes - Echoes of a Distant Tide</a> 他的文章解釋了Roger Waters可能引用了哪些古典英文文學的來源。總體來說，Echoes的歌詞帶有一種希望人們之間可以建立聯繫的朦朧意象。歌詞透露出了Roger Waters的人性關懷，加上變幻莫測的旋律，頗有漫遊宇宙，追隨生命起源之感。</p><p>這真的是令人記憶猶新的一首歌，平克佛洛伊德的回音，聽了很久了還是我心中的第一名搖滾神作。其中蘊含的哲理太多，光看《Meddle》專輯封面的耳朵水紋有點抽象，「干涉」究竟是什麼意思呢？難道除了物理的波傳遞之外，還暗示了人與人之間的交流嗎？</p><p>看歌詞翻譯，然後用心去感受…嗚，好像還是不夠。聽這首歌真的要讀一些解釋，如果有畫面能體驗歌曲意境就更好了吧！</p><p>有網友發現，Pink Floyd的〈Echoes〉非常適合搭配庫柏力克電影《2001太空漫遊》的最後一幕「木星與那遙遠彼方」觀看，比原作的古典配樂還要精彩。Youtube上有將這首歌搭配2001太空漫遊電影最後一段「木星與那遙遠彼方」結合的MV，而且意外的神同步，我覺得那就是很好的感受歌曲內容的方式。</p><p>Pink Floyd Echoes &amp; 2001 A Space Odyssey</p><div><iframe src="https://www.youtube.com/embed/rn7MmS3vazU" allowfullscreen="" frameborder="0"></iframe></div><p>傳聞說庫柏力克有接洽Pink Floyd請他們做音樂（Pink Floyd曾當過二次的電影配樂打工仔，產出了《More》和《Obscured By Clouds》這二張較冷門的專輯），但這個傳聞很不合理，因為專輯發行時間是1971年，遠遠在電影上映後的1968年，所以只能說二者的頻率是不約而同的合拍罷了。</p><p>我個人認為這首歌還可以有其他解釋方向，原本〈Echoes〉的歌詞似乎是想告訴我們人與人之間信任與互相幫助的重要，像是：</p><blockquote><p>Strangers passing in the street. By chance, two separate glances meet.</p></blockquote><p>你我之間在路上奇妙的對到眼，講的是人的緣份之間的奇妙連結吧！</p><p>不過將歌詞套用到解釋「陸生生物演化」也說得通對吧，這裡要用到一點地球科學知識！聽到歌曲開幕第一聲「叮」的迴聲響起，就讓人回到46億年前，地球天地初開的那個時候的畫面，所有生命都在水中漫遊。歌曲第一段的歌詞「And everything is green and submarine」，似乎就在敘說這種游離不定的狀態。「Starts to climb toward the light」好像在說明，動物爬上陸地，追逐更多生存空間的樣貌啊！在那之後就是一連串生命的演化，中間經歷了一段詭譎音樂的時期，彷若呼應各個時代的都反覆出現的黑暗時期 ——— 大滅絕事件，中間會有許多物種消失，大地荒涼。不過生命是有找到出路的能力的，在一陣陣鼓聲的高揚旋律後，生命又再次復甦了，重新開始了物種之間的交流。</p><p>所以人性的描寫，以及生命科幻宇宙就這樣完美結合在一首歌裡面了，從哪個角度去理解都是對的。聽這首歌曲彷彿經歷過一個太空創生之旅，中間有陰暗的迷茫探索，直到後來獲得拯救，進化後獲得人性，最後一切歸於無形。</p><p>啊，太美了。</p><p>這個第三方製作的太空漫遊MV我看了不下10次，歌曲本體聽了20次以上還是覺得新奇！</p><p>這是一首適合在夜深人靜的漆黑房間放著感受，作夢，太空漫遊的音樂。</p><h2>3. 在龐貝城演奏Echoes<span><a href="#3-%E5%9C%A8%E9%BE%90%E8%B2%9D%E5%9F%8E%E6%BC%94%E5%A5%8Fechoes" aria-label="定位點">#</a></span></h2><p>Pink Floyd後來有在龐貝城拍紀錄片，裡面同樣有演出〈Echoes〉，不過我覺得Live版沒有專輯版好聽，是另一番風味。</p><p>1972年，Pink Floyd應導演Adrian Maben之邀，來到義大利被火山灰掩蓋的龐貝古城遺跡，拍攝《Live at Pompeii》紀錄片，讓他們在現場露天演出過去的經典歌曲。</p><p>我覺得《Ummagumma》專輯的詭異歌曲，在這裡重新演繹之後突然變得還能接受了，包括〈Careful with That Axe, Eugene〉〈A Saucerful of Secrets〉〈Set the Controls for the Heart of the Sun〉這些曲子，也許是這個地方的歷史因素加成。</p><p>《Live at Pompeii》紀錄片有推出許多版本。這部片子裡面〈Echoes〉是分開成兩段錄製的，中間穿插其他歌曲，旋律有稍微變化，速度稍微加快。聽起來少了許多太空搖滾的要素，反而是跟這個地方的歷史背景契合在一起了。</p><div><iframe src="https://www.youtube.com/embed/73Bpyta8vOs" allowfullscreen="" frameborder="0"></iframe></div><p>距今一千多年前的羅馬帝國時代，曾經輝煌的龐貝城因為維蘇威火山爆發，全城許多人慘遭火山灰活埋的命運。Pink Floyd在這裡演奏可以說是在唱給死人聽吧XD 我說了此處曲風有所改變，在這裡，回音就便成了更具體一點的對象了，彷彿那些聲音都是來自以前人類的呼聲，然後Pink Floyd的任務就是把他們的聲音透過音樂表現出來，呈現「The echo of a distant time…」表現人們的聲音，中間片段穿插樂團成員走過火山冒煙地帶的景象，還有龐貝城死狀悽慘人們的面部表情，這地方的歷史悲慘之命運，無不從這歌曲中一點一滴的流露出來了。這也是為何演奏會變得這麼急躁的原因的吧。</p><p>總之這首歌搭配具體的歷史景象，就給了人不同的聽感，這亦表示〈Echoes〉了這首歌曲從多方面解釋都說得通。只是要能夠聽到迴音的地方，就有Pink Floyd想表達的靈魂所在。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/pink-floyd-meddle-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-635a66c07e.webp"></a></p>
-<p>Pink Floyd知名的作品很多，如果對他們有進一步興趣，那麼一定要聽聽早期的作品。我認為《Meddle》專輯是必聽之經典，太空搖滾融合前衛音樂。</p><blockquote><p>The echo of a distant time</p><p>Comes willowing across the sand</p></blockquote><p>聽這張專輯的數位版十幾年了，後來才想到要買實體版。2022年我購入了《Meddle》，當初在拍賣網站買的時候以為這是黑膠，結果就買了，想說怎麼那麼便宜…好吧原來是日本版的CD。這也好，Echoes就是要聽高音質的版本，CDrip也方便數位化收藏。</p><p>這張專輯內附歌詞本，還有1971年四人的帥照，從左到右分別是Roger Waters、Nick Mason、David Gilmour、Richard Wright。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a1ae691a0.webp"></p><p>註：本文討論的是1971年出版的專輯《Meddle》，並非2001年的精選輯《Pink Floyd Echoes: The Best Of Pink Floyd》</p><h2>1. Meddle專輯簡介<span><a href="#1-meddle%E5%B0%88%E8%BC%AF%E7%B0%A1%E4%BB%8B" aria-label="定位點">#</a></span></h2><p>在推出經典的《The Darkside of the Moon》專輯之前，Pink Floyd經過很長一段時間的實驗摸索期。1968年Pink Floyd發表迷幻要素濃厚的《The Piper at the Gates of Dawn》專輯之後，找了新的團員David Gilmour進來，卻失去了核心人物Syd Barrett，剩餘的四人經過了幾年的音樂實驗探索。那段時期他們的音樂晦澀難懂，而且普遍難聽，譬如《Ummagumma》專輯。但不知為何這些歌曲《Live at Pompeii》紀錄片重錄的版本就好很多，後面我會討論到這個。</p><p>在經過幾年磨練後終於推出了好作品，1970年《Atom Heart Mother》是好的開始，雖然團員普遍不喜歡這張專輯，裡面的歌曲都很詭異。</p><p>然後最神的就是1971年《Meddle》了，中文名稱可以翻為「平克·佛洛伊德 - 干涉」。</p><p>專輯封面由Storm Thorgerson設計，乍看之下好像是水的波紋，彼此相交之後產生干涉現象</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5d5d60b346.webp"><p>但如果把專輯攤開來看，就會發現是一隻泡在水下的耳朵！這個或許能夠反映聲波干涉，人與人之間連結的主題吧！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5c63af81b5.webp"><p>專輯共收錄六首歌，前五首普普通通，反映了早期Pink Floyd的精神狀態（X）實驗精神（O）。甚至有一首歌是用狗叫錄音製成的呢！</p><p>我想把內容專注在分享〈Echoes〉這首歌上，所以這邊就簡單帶過前五首。</p><p>第一首〈One of These Days〉使用大量失真音效演出，塑造出一種狂風呼嘯的感覺。整首歌的歌詞只有Nick Mason的一句「總有一天我要把你大卸八塊」。聽來怪爽的！電影導演Ian Emes根據這首歌製作了名為French Windows的MV動畫，看起來同樣帶感。</p><div><iframe src="https://www.youtube.com/embed/L2WDB6tpIYM" allowfullscreen="" frameborder="0"></iframe></div><p>第二首〈A Pillow of Winds〉是一首曲風緩和的抒情歌曲。</p><p>第三首〈Fearless〉反映了積極向上的主題。最後面的群眾歌聲是在利物浦晏菲路球場錄製的。</p><p>第四首〈San Tropez〉講述了到法國同名城市的風景景象。</p><p>第五首〈Seamus〉找來了一條狗唱歌，Seamus就是狗狗的名字，跟之後《Live at Pompeii》紀錄片所用的是不同隻的狗狗。塑造一種在家做家事，外面的狗在鬼叫的真實場景。許多歌迷認為這是Pink Floyd的最爛歌曲之一，不過有趣的是如果願意繼續聽下去，就會聽到第六首神曲的到來，突然有反差極大的驚豔之感。</p><h2>2. Echoes的個人內容分析<span><a href="#2-echoes%E7%9A%84%E5%80%8B%E4%BA%BA%E5%85%A7%E5%AE%B9%E5%88%86%E6%9E%90" aria-label="定位點">#</a></span></h2><p>重頭戲就是第六首〈Echoes〉了，長達20分鐘，在過去黑膠唱片時代就佔掉了一整面。</p><div><iframe src="https://www.youtube.com/embed/53N99Nim6WE" allowfullscreen="" frameborder="0"></iframe></div><p>整首歌曲大致可以分為三個段落，前10分鐘是慢慢上揚到最高潮的部份，中間10分鐘經過了一段詭譎音樂的時期，他們不知道用了什麼奇特的合成器才做出那種在荒涼的洞穴的恐怖音效。最後面是整體氣氛重新復甦。</p><p>關於Echoes歌詞中文翻譯，我認為William.Echoes大大翻譯的很好：<a href="https://swospam0418.pixnet.net/blog/post/460087405" target="_blank">Pink Floyd (平克佛洛伊德) — Echoes - Echoes of a Distant Tide</a> 他的文章解釋了Roger Waters可能引用了哪些古典英文文學的來源。總體來說，Echoes的歌詞帶有一種希望人們之間可以建立聯繫的朦朧意象。歌詞透露出了Roger Waters的人性關懷，加上變幻莫測的旋律，頗有漫遊宇宙，追隨生命起源之感。</p><p>這真的是令人記憶猶新的一首歌，平克佛洛伊德的回音，聽了很久了還是我心中的第一名搖滾神作。其中蘊含的哲理太多，光看《Meddle》專輯封面的耳朵水紋有點抽象，「干涉」究竟是什麼意思呢？難道除了物理的波傳遞之外，還暗示了人與人之間的交流嗎？</p><p>看歌詞翻譯，然後用心去感受…嗚，好像還是不夠。聽這首歌真的要讀一些解釋，如果有畫面能體驗歌曲意境就更好了吧！</p><p>有網友發現，Pink Floyd的〈Echoes〉非常適合搭配庫柏力克電影《2001太空漫遊》的最後一幕「木星與那遙遠彼方」觀看，比原作的古典配樂還要精彩。Youtube上有將這首歌搭配2001太空漫遊電影最後一段「木星與那遙遠彼方」結合的MV，而且意外的神同步，我覺得那就是很好的感受歌曲內容的方式。</p><p>Pink Floyd Echoes &amp; 2001 A Space Odyssey</p><div><iframe src="https://www.youtube.com/embed/rn7MmS3vazU" allowfullscreen="" frameborder="0"></iframe></div><p>傳聞說庫柏力克有接洽Pink Floyd請他們做音樂（Pink Floyd曾當過二次的電影配樂打工仔，產出了《More》和《Obscured By Clouds》這二張較冷門的專輯），但這個傳聞很不合理，因為專輯發行時間是1971年，遠遠在電影上映後的1968年，所以只能說二者的頻率是不約而同的合拍罷了。</p><p>我個人認為這首歌還可以有其他解釋方向，原本〈Echoes〉的歌詞似乎是想告訴我們人與人之間信任與互相幫助的重要，像是：</p><blockquote><p>Strangers passing in the street. By chance, two separate glances meet.</p></blockquote><p>你我之間在路上奇妙的對到眼，講的是人的緣份之間的奇妙連結吧！</p><p>不過將歌詞套用到解釋「陸生生物演化」也說得通對吧，這裡要用到一點地球科學知識！聽到歌曲開幕第一聲「叮」的迴聲響起，就讓人回到46億年前，地球天地初開的那個時候的畫面，所有生命都在水中漫遊。歌曲第一段的歌詞「And everything is green and submarine」，似乎就在敘說這種游離不定的狀態。「Starts to climb toward the light」好像在說明，動物爬上陸地，追逐更多生存空間的樣貌啊！在那之後就是一連串生命的演化，中間經歷了一段詭譎音樂的時期，彷若呼應各個時代的都反覆出現的黑暗時期 ——— 大滅絕事件，中間會有許多物種消失，大地荒涼。不過生命是有找到出路的能力的，在一陣陣鼓聲的高揚旋律後，生命又再次復甦了，重新開始了物種之間的交流。</p><p>所以人性的描寫，以及生命科幻宇宙就這樣完美結合在一首歌裡面了，從哪個角度去理解都是對的。聽這首歌曲彷彿經歷過一個太空創生之旅，中間有陰暗的迷茫探索，直到後來獲得拯救，進化後獲得人性，最後一切歸於無形。</p><p>啊，太美了。</p><p>這個第三方製作的太空漫遊MV我看了不下10次，歌曲本體聽了20次以上還是覺得新奇！</p><p>這是一首適合在夜深人靜的漆黑房間放著感受，作夢，太空漫遊的音樂。</p><h2>3. 在龐貝城演奏Echoes<span><a href="#3-%E5%9C%A8%E9%BE%90%E8%B2%9D%E5%9F%8E%E6%BC%94%E5%A5%8Fechoes" aria-label="定位點">#</a></span></h2><p>Pink Floyd後來有在龐貝城拍紀錄片，裡面同樣有演出〈Echoes〉，不過我覺得Live版沒有專輯版好聽，是另一番風味。</p><p>1972年，Pink Floyd應導演Adrian Maben之邀，來到義大利被火山灰掩蓋的龐貝古城遺跡，拍攝《Live at Pompeii》紀錄片，讓他們在現場露天演出過去的經典歌曲。</p><p>我覺得《Ummagumma》專輯的詭異歌曲，在這裡重新演繹之後突然變得還能接受了，包括〈Careful with That Axe, Eugene〉〈A Saucerful of Secrets〉〈Set the Controls for the Heart of the Sun〉這些曲子，也許是這個地方的歷史因素加成。</p><p>《Live at Pompeii》紀錄片有推出許多版本。這部片子裡面〈Echoes〉是分開成兩段錄製的，中間穿插其他歌曲，旋律有稍微變化，速度稍微加快。聽起來少了許多太空搖滾的要素，反而是跟這個地方的歷史背景契合在一起了。</p><div><iframe src="https://www.youtube.com/embed/73Bpyta8vOs" allowfullscreen="" frameborder="0"></iframe></div><p>距今一千多年前的羅馬帝國時代，曾經輝煌的龐貝城因為維蘇威火山爆發，全城許多人慘遭火山灰活埋的命運。Pink Floyd在這裡演奏可以說是在唱給死人聽吧XD 我說了此處曲風有所改變，在這裡，回音就便成了更具體一點的對象了，彷彿那些聲音都是來自以前人類的呼聲，然後Pink Floyd的任務就是把他們的聲音透過音樂表現出來，呈現「The echo of a distant time…」表現人們的聲音，中間片段穿插樂團成員走過火山冒煙地帶的景象，還有龐貝城死狀悽慘人們的面部表情，這地方的歷史悲慘之命運，無不從這歌曲中一點一滴的流露出來了。這也是為何演奏會變得這麼急躁的原因的吧。</p><p>總之這首歌搭配具體的歷史景象，就給了人不同的聽感，這亦表示〈Echoes〉了這首歌曲從多方面解釋都說得通。只是要能夠聽到迴音的地方，就有Pink Floyd想表達的靈魂所在。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/pink-floyd-meddle-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-635a66c07e.webp"></a></p>
-<p>Pink Floyd知名的作品很多，如果對他們有進一步興趣，那麼一定要聽聽早期的作品。我認為《Meddle》專輯是必聽之經典，太空搖滾融合前衛音樂。</p><blockquote><p>The echo of a distant time</p><p>Comes willowing across the sand</p></blockquote><p>聽這張專輯的數位版十幾年了，後來才想到要買實體版。2022年我購入了《Meddle》，當初在拍賣網站買的時候以為這是黑膠，結果就買了，想說怎麼那麼便宜…好吧原來是日本版的CD。這也好，Echoes就是要聽高音質的版本，CDrip也方便數位化收藏。</p><p>這張專輯內附歌詞本，還有1971年四人的帥照，從左到右分別是Roger Waters、Nick Mason、David Gilmour、Richard Wright。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a1ae691a0.webp"></p><p>註：本文討論的是1971年出版的專輯《Meddle》，並非2001年的精選輯《Pink Floyd Echoes: The Best Of Pink Floyd》</p><h2>1. Meddle專輯簡介<span><a href="#1-meddle%E5%B0%88%E8%BC%AF%E7%B0%A1%E4%BB%8B" aria-label="定位點">#</a></span></h2><p>在推出經典的《The Darkside of the Moon》專輯之前，Pink Floyd經過很長一段時間的實驗摸索期。1968年Pink Floyd發表迷幻要素濃厚的《The Piper at the Gates of Dawn》專輯之後，找了新的團員David Gilmour進來，卻失去了核心人物Syd Barrett，剩餘的四人經過了幾年的音樂實驗探索。那段時期他們的音樂晦澀難懂，而且普遍難聽，譬如《Ummagumma》專輯。但不知為何這些歌曲《Live at Pompeii》紀錄片重錄的版本就好很多，後面我會討論到這個。</p><p>在經過幾年磨練後終於推出了好作品，1970年《Atom Heart Mother》是好的開始，雖然團員普遍不喜歡這張專輯，裡面的歌曲都很詭異。</p><p>然後最神的就是1971年《Meddle》了，中文名稱可以翻為「平克·佛洛伊德 - 干涉」。</p><p>專輯封面由Storm Thorgerson設計，乍看之下好像是水的波紋，彼此相交之後產生干涉現象</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5d5d60b346.webp"><p>但如果把專輯攤開來看，就會發現是一隻泡在水下的耳朵！這個或許能夠反映聲波干涉，人與人之間連結的主題吧！</p><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5c63af81b5.webp"><p>專輯共收錄六首歌，前五首普普通通，反映了早期Pink Floyd的精神狀態（X）實驗精神（O）。甚至有一首歌是用狗叫錄音製成的呢！</p><p>我想把內容專注在分享〈Echoes〉這首歌上，所以這邊就簡單帶過前五首。</p><p>第一首〈One of These Days〉使用大量失真音效演出，塑造出一種狂風呼嘯的感覺。整首歌的歌詞只有Nick Mason的一句「總有一天我要把你大卸八塊」。聽來怪爽的！電影導演Ian Emes根據這首歌製作了名為French Windows的MV動畫，看起來同樣帶感。</p><div><iframe src="https://www.youtube.com/embed/L2WDB6tpIYM" allowfullscreen="" frameborder="0"></iframe></div><p>第二首〈A Pillow of Winds〉是一首曲風緩和的抒情歌曲。</p><p>第三首〈Fearless〉反映了積極向上的主題。最後面的群眾歌聲是在利物浦晏菲路球場錄製的。</p><p>第四首〈San Tropez〉講述了到法國同名城市的風景景象。</p><p>第五首〈Seamus〉找來了一條狗唱歌，Seamus就是狗狗的名字，跟之後《Live at Pompeii》紀錄片所用的是不同隻的狗狗。塑造一種在家做家事，外面的狗在鬼叫的真實場景。許多歌迷認為這是Pink Floyd的最爛歌曲之一，不過有趣的是如果願意繼續聽下去，就會聽到第六首神曲的到來，突然有反差極大的驚豔之感。</p><h2>2. Echoes的個人內容分析<span><a href="#2-echoes%E7%9A%84%E5%80%8B%E4%BA%BA%E5%85%A7%E5%AE%B9%E5%88%86%E6%9E%90" aria-label="定位點">#</a></span></h2><p>重頭戲就是第六首〈Echoes〉了，長達20分鐘，在過去黑膠唱片時代就佔掉了一整面。</p><div><iframe src="https://www.youtube.com/embed/53N99Nim6WE" allowfullscreen="" frameborder="0"></iframe></div><p>整首歌曲大致可以分為三個段落，前10分鐘是慢慢上揚到最高潮的部份，中間10分鐘經過了一段詭譎音樂的時期，他們不知道用了什麼奇特的合成器才做出那種在荒涼的洞穴的恐怖音效。最後面是整體氣氛重新復甦。</p><p>關於Echoes歌詞中文翻譯，我認為William.Echoes大大翻譯的很好：<a href="https://swospam0418.pixnet.net/blog/post/460087405" target="_blank">Pink Floyd (平克佛洛伊德) — Echoes - Echoes of a Distant Tide</a> 他的文章解釋了Roger Waters可能引用了哪些古典英文文學的來源。總體來說，Echoes的歌詞帶有一種希望人們之間可以建立聯繫的朦朧意象。歌詞透露出了Roger Waters的人性關懷，加上變幻莫測的旋律，頗有漫遊宇宙，追隨生命起源之感。</p><p>這真的是令人記憶猶新的一首歌，平克佛洛伊德的回音，聽了很久了還是我心中的第一名搖滾神作。其中蘊含的哲理太多，光看《Meddle》專輯封面的耳朵水紋有點抽象，「干涉」究竟是什麼意思呢？難道除了物理的波傳遞之外，還暗示了人與人之間的交流嗎？</p><p>看歌詞翻譯，然後用心去感受…嗚，好像還是不夠。聽這首歌真的要讀一些解釋，如果有畫面能體驗歌曲意境就更好了吧！</p><p>有網友發現，Pink Floyd的〈Echoes〉非常適合搭配庫柏力克電影《2001太空漫遊》的最後一幕「木星與那遙遠彼方」觀看，比原作的古典配樂還要精彩。Youtube上有將這首歌搭配2001太空漫遊電影最後一段「木星與那遙遠彼方」結合的MV，而且意外的神同步，我覺得那就是很好的感受歌曲內容的方式。</p><p>Pink Floyd Echoes &amp; 2001 A Space Odyssey</p><div><iframe src="https://www.youtube.com/embed/rn7MmS3vazU" allowfullscreen="" frameborder="0"></iframe></div><p>傳聞說庫柏力克有接洽Pink Floyd請他們做音樂（Pink Floyd曾當過二次的電影配樂打工仔，產出了《More》和《Obscured By Clouds》這二張較冷門的專輯），但這個傳聞很不合理，因為專輯發行時間是1971年，遠遠在電影上映後的1968年，所以只能說二者的頻率是不約而同的合拍罷了。</p><p>我個人認為這首歌還可以有其他解釋方向，原本〈Echoes〉的歌詞似乎是想告訴我們人與人之間信任與互相幫助的重要，像是：</p><blockquote><p>Strangers passing in the street. By chance, two separate glances meet.</p></blockquote><p>你我之間在路上奇妙的對到眼，講的是人的緣份之間的奇妙連結吧！</p><p>不過將歌詞套用到解釋「陸生生物演化」也說得通對吧，這裡要用到一點地球科學知識！聽到歌曲開幕第一聲「叮」的迴聲響起，就讓人回到46億年前，地球天地初開的那個時候的畫面，所有生命都在水中漫遊。歌曲第一段的歌詞「And everything is green and submarine」，似乎就在敘說這種游離不定的狀態。「Starts to climb toward the light」好像在說明，動物爬上陸地，追逐更多生存空間的樣貌啊！在那之後就是一連串生命的演化，中間經歷了一段詭譎音樂的時期，彷若呼應各個時代的都反覆出現的黑暗時期 ——— 大滅絕事件，中間會有許多物種消失，大地荒涼。不過生命是有找到出路的能力的，在一陣陣鼓聲的高揚旋律後，生命又再次復甦了，重新開始了物種之間的交流。</p><p>所以人性的描寫，以及生命科幻宇宙就這樣完美結合在一首歌裡面了，從哪個角度去理解都是對的。聽這首歌曲彷彿經歷過一個太空創生之旅，中間有陰暗的迷茫探索，直到後來獲得拯救，進化後獲得人性，最後一切歸於無形。</p><p>啊，太美了。</p><p>這個第三方製作的太空漫遊MV我看了不下10次，歌曲本體聽了20次以上還是覺得新奇！</p><p>這是一首適合在夜深人靜的漆黑房間放著感受，作夢，太空漫遊的音樂。</p><h2>3. 在龐貝城演奏Echoes<span><a href="#3-%E5%9C%A8%E9%BE%90%E8%B2%9D%E5%9F%8E%E6%BC%94%E5%A5%8Fechoes" aria-label="定位點">#</a></span></h2><p>Pink Floyd後來有在龐貝城拍紀錄片，裡面同樣有演出〈Echoes〉，不過我覺得Live版沒有專輯版好聽，是另一番風味。</p><p>1972年，Pink Floyd應導演Adrian Maben之邀，來到義大利被火山灰掩蓋的龐貝古城遺跡，拍攝《Live at Pompeii》紀錄片，讓他們在現場露天演出過去的經典歌曲。</p><p>我覺得《Ummagumma》專輯的詭異歌曲，在這裡重新演繹之後突然變得還能接受了，包括〈Careful with That Axe, Eugene〉〈A Saucerful of Secrets〉〈Set the Controls for the Heart of the Sun〉這些曲子，也許是這個地方的歷史因素加成。</p><p>《Live at Pompeii》紀錄片有推出許多版本。這部片子裡面〈Echoes〉是分開成兩段錄製的，中間穿插其他歌曲，旋律有稍微變化，速度稍微加快。聽起來少了許多太空搖滾的要素，反而是跟這個地方的歷史背景契合在一起了。</p><div><iframe src="https://www.youtube.com/embed/73Bpyta8vOs" allowfullscreen="" frameborder="0"></iframe></div><p>距今一千多年前的羅馬帝國時代，曾經輝煌的龐貝城因為維蘇威火山爆發，全城許多人慘遭火山灰活埋的命運。Pink Floyd在這裡演奏可以說是在唱給死人聽吧XD 我說了此處曲風有所改變，在這裡，回音就便成了更具體一點的對象了，彷彿那些聲音都是來自以前人類的呼聲，然後Pink Floyd的任務就是把他們的聲音透過音樂表現出來，呈現「The echo of a distant time…」表現人們的聲音，中間片段穿插樂團成員走過火山冒煙地帶的景象，還有龐貝城死狀悽慘人們的面部表情，這地方的歷史悲慘之命運，無不從這歌曲中一點一滴的流露出來了。這也是為何演奏會變得這麼急躁的原因的吧。</p><p>總之這首歌搭配具體的歷史景象，就給了人不同的聽感，這亦表示〈Echoes〉了這首歌曲從多方面解釋都說得通。只是要能夠聽到迴音的地方，就有Pink Floyd想表達的靈魂所在。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-635a66c07e.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-635a66c07e.webp" medium="image"/>
-    <pubDate>Fri, 16 May 2025 15:00:00 +0800</pubDate>
   </item></channel>
 </rss>
