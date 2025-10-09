@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/474/800/800.jpg?hmac=1t6ANZkJPEIz841pOYKoHBwLFwpchlLydoSanhnOwJw</url>
+      <url>https://fastly.picsum.photos/id/1002/800/800.jpg?hmac=w5WYkd_hKLk97oPLg9mQmLOevuYbTjwuhq61OnTBDV0</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,7 +28,7 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/474/800/800.jpg?hmac=1t6ANZkJPEIz841pOYKoHBwLFwpchlLydoSanhnOwJw"/>
+    <itunes:image href="https://fastly.picsum.photos/id/1002/800/800.jpg?hmac=w5WYkd_hKLk97oPLg9mQmLOevuYbTjwuhq61OnTBDV0"/>
 <item>
     <title><![CDATA[Lutris使用教學，安裝與管理Linux的遊戲收藏]]></title>
     <link>https://ivonblog.com/posts/lutris-game-manager/</link>
@@ -108,9 +108,9 @@
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-adf4371d03.webp" medium="image"/>
     <pubDate>Wed, 08 Oct 2025 12:00:00 +0800</pubDate>
   </item><item>
-    <title><![CDATA[Virt Manager直通Linux的硬碟給Windows虛擬機，替代共享資料夾]]></title>
+    <title><![CDATA[Virt Manager直通Linux的硬碟給Windows虛擬機，替代共享資料夾（Raw Disk Passthrough）]]></title>
     <link>https://ivonblog.com/posts/libvirt-raw-disk-passthrough/</link>
-    <itunes:title><![CDATA[Virt Manager直通Linux的硬碟給Windows虛擬機，替代共享資料夾]]></itunes:title>
+    <itunes:title><![CDATA[Virt Manager直通Linux的硬碟給Windows虛擬機，替代共享資料夾（Raw Disk Passthrough）]]></itunes:title>
     <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
     <itunes:summary>
       <![CDATA[<p>動機：我之前寫過一篇<a href="https://ivonblog.com/posts/sharing-steam-game-library-between-linux-and-windows/" target="_blank">在Linux與Windows雙重開機的電腦共享Steam收藏庫</a>的操作，兩個系統之間能共享大部分遊戲檔案，不需要重新下載。</p><p>事實上，這不一定是物理上的雙重開機，實體機搭配虛擬機也是可行的。</p><p>大部分時候我都在Linux Host玩Steam遊戲，但是遇到怎麼樣都不能用Proton轉譯的遊戲的時候，我就會用Windows虛擬機玩。然後就會遇到如何與虛擬機分享遊戲目錄的問題。</p><p>從效能方面考慮，我肯定不會同意網路檔案系統，不論是NFS、SSHFS、SMB都是太慢了。</p><p>不像Virtual Bix，Virt Manager沒有好的共享資料夾方案。</p><p>雖然說，目前有一個很有潛力的方案叫做<a href="https://ivonblog.com/posts/libvirt-virtiofs/" target="_blank">virtio-fs</a>能夠共享資料夾，讓兩個系統同時存取硬碟，不過實務上我測試這不是很穩定的方案，exe放在共享的資料夾直接執行很容易出錯。</p><p>所以我只好直通硬碟了。把Steam收藏庫放在一個獨立的硬碟。</p><p>嚴格來說這不是直通啦，因為虛擬機裡面的作業系統依然是透過QEMU提供的驅動與硬碟互動，並非是完全將硬碟的控制器直通進去。所以應該稱作raw disk passthrough比較正確。</p><h2>1. 硬碟掛載的設定<span><a href="#1-%E7%A1%AC%E7%A2%9F%E6%8E%9B%E8%BC%89%E7%9A%84%E8%A8%AD%E5%AE%9A" aria-label="定位點">#</a></span></h2><p>我的想法是，讓硬碟能夠自由被Linux或Windows虛擬機掛載，所以開機不要自動掛載。確保要使用的硬碟不在<code>/etc/fstab</code>裡面。</p><p>使用桌面環境的時候，通常檔案管理員允許點一下重新掛載硬碟。</p><p>另外，關於檔案系統問題，如果是偏向Windows的話當然是把硬碟格式化為NTFS比較好。</p><p>如果檔案系統為EXT4或BTRFS，Windows需要另外裝驅動才能讀取。例如裝<a href="https://ivonblog.com/posts/winbtrfs-usage/" target="_blank">WinBtrfs</a>讀BTRFS。</p><h2>2. Virt Manager直通實體硬碟給虛擬機<span><a href="#2-virt-manager%E7%9B%B4%E9%80%9A%E5%AF%A6%E9%AB%94%E7%A1%AC%E7%A2%9F%E7%B5%A6%E8%99%9B%E6%93%AC%E6%A9%9F" aria-label="定位點">#</a></span></h2><ol><li>Linux需要先取消掛載硬碟：</li></ol><div><pre tabindex="0"><code data-lang="bash"><span><span>lsblk
