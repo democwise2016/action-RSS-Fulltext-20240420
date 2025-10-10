@@ -30,6 +30,465 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[手捏支援 Vue v-model 的可清除文字輸入框]]></title>
+    <link>https://blog.darkthread.net/blog/cust-html-input-element-w-v-model/</link>
+    <itunes:title><![CDATA[手捏支援 Vue v-model 的可清除文字輸入框]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>自從 IE 登出，Trident 版 Edge 被放生，瀏覽器重回大一統時代。有別於前次的 IE 王朝，當今主宰前端的 Chromium 配備的 HTML / JavaScript / CSS 規格完備，功能與二十年前不可同日而語，且會自動更新不用太擔心支援問題，現在寫前端輕鬆許多。</p> <p>2016 加入的<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂 HTML 元素</a>功能深得我心，自訂元素這檔事幾乎所有前端框架都有自己的玩法，我玩過 <a href="/blog/ko-component/">knockout.js</a>、<a href="/blog/angular-notes-23/">AngularJS</a>、<a href="https://vuejs.org/guide/essentials/component-basics">Vue.js</a>，每個都有，甚至早在 IE6 時代，微軟也有自家的網頁元件技術 - .htc <a href="https://learn.microsoft.com/en-us/openspecs/ie_standards/ms-html401e/36bd9386-cd5f-4bfe-8dec-5efc865a689c?WT.mc_id=DOP-MVP-37580">HTML Component</a>。自訂網頁元件，易於設計維護擴充重用，就像在前端 UI 實踐物件導向設計，好處很多。如今瀏覽器原生支援自訂網頁元素，不需依賴任何框架，效能更佳，運用起來更靈活。</p> <p>UI 元素行為封裝成自訂 HTML 元素，最大好處是享受物件導向設計的低耦合與觀注點分離，大大提高程式碼可重用性及可維護性。原生 HTML 自訂元素之前曾玩過一回，做了<a href="/blog/js-rolling-dice/">會滾動的骰子</a>，這回遇到另一個小需求，我想寫過自帶 X 鈕可清空內容的文字輸入框。</p> <p>要做個帶 X 鈕的文字輸入框不難，一個 <code>&lt;input type="text"&gt;</code> 配上用 CSS 排版及自動隱藏的 <code>&lt;button&gt;</code> 就可以搞定，但我有個額外需求是想支援 Vue.js 的 v-model 繫結，讓它可以當成一般的 <code>&lt;input type="text"&gt;</code> 使用。</p> <p>先展示成果：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;自帶清除鈕文字欄位 Web Component (支援 Vue v-model)&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.js"&gt;&lt;/script&gt;
+&lt;script src="textInputWithClearBtn.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+body {
+font-family: Arial, sans-serif;
+margin: 20px;
+}
+h2 {
+color: #444;
+}
+input-with-clear-button {
+margin-bottom: 10px;
+display: block;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h2&gt;自帶清除鈕文字欄位&lt;/h2&gt;
+&lt;input-with-clear-button id="t1" placeholder="Type something..."&gt;&lt;/input-with-clear-button&gt;
+&lt;input-with-clear-button id="t2" value="Hello World"&gt;&lt;/input-with-clear-button&gt;
+&lt;button onclick="showValues()"&gt;Check Values&lt;/button&gt;
+&lt;pre id="results"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+function showValues() {
+document.getElementById('results').textContent =
+`t1: "${document.getElementById('t1').value}"
+t2: "${document.getElementById('t2').value}"`;
+}
+&lt;/script&gt;
+&lt;hr&gt;
+&lt;div id="app"&gt;
+&lt;h2&gt;配合 Vue3 v-model 使用&lt;/h2&gt;
+&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;&lt;/input-with-clear-button&gt;
+&lt;p&gt;Vue Data Value: {{ searchText }}&lt;/p&gt;
+&lt;button @click="searchText = 'Hello Vue3'"&gt;Set Value&lt;/button&gt;
+&lt;button @click="searchText = ''"&gt;Clear&lt;/button&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const { createApp } = Vue;
+createApp({
+data() {
+return {
+searchText: 'Init Value'
+}
+}
+}).mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>以上網頁展示單獨使用 <code>&lt;input-with-clear-button&gt;</code>，使用 <code>document.getElementById('t1').value</code> 取值，以及 <code>&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;</code> 以 v-model 整合 Vue.js MVVM，兩種玩法都支援：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif"></p> <p><code>&lt;input-with-clear-button&gt;</code> 定義我寫在獨立 textInputWithClearBtn.js，補充幾個小細節：</p> <ul><li>用 <a href="https://developer.mozilla.org/zh-TW/docs/Glossary/IIFE">IIFE</a> 把定義元件的邏輯包起來，可避免其變數名稱跟其他程式打架。</li> <li>最早我想到的做法是在 HTML 模版內嵌 <code>&lt;style&gt;</code>指定樣式，缺點是每次產生元件 HTML 會重複一次樣式宣告，累贅又沒效率。改用 new CSSStyleSheet()、.replaceSync() 定義 CSS 樣式，HTML 元件透過 adoptedStyleSheets() 共用樣式，優雅多了。</li> <li>observedAttributes() 配合 attributeChangedCallback(name, oldValue, newValue) 可在 Attribute 異動時觸發處理邏輯。</li> <li>實測實作 get value() / set value() 後，<code>&lt;input type="text"&gt;</code> 的按鍵動作便會觸發 Vue v-model 繫結，但按清除鈕 input.value = '' 時需另外呼叫 <code>this.dispatchEvent(new Event('input', { bubbles: true }));</code> 模擬 input 事件。</li></ul> <pre><code>(function() {
+// 建立共用的 CSSStyleSheet
+const sharedStyles = new CSSStyleSheet();
+sharedStyles.replaceSync(`
+.text-input-w-clr-btn {
+position: relative;
+display: inline-block;
+margin: 10px 0;
+input {
+padding: 8px 30px 8px 10px;
+font-size: 14px;
+border: 1px solid #ccc;
+border-radius: 4px;
+outline: none;
+min-width: 250px;
+&amp;:focus { border-color: #4CAF50; }
+&amp;:not(:placeholder-shown)~.clear-btn {
+display: block;
+}
+}
+.clear-btn {
+position: absolute;
+right: 8px;
+top: 50%;
+transform: translateY(-50%);
+background: none;
+border: none;
+cursor: pointer;
+color: #999;
+font-size: 18px;
+padding: 0;
+width: 20px;
+height: 20px;
+line-height: 20px;
+text-align: center;
+display: none;
+&amp;:hover { color: #333;}
+}
+}
+`);
+class CustomInput extends HTMLElement {
+// 宣告要監聽的屬性
+static get observedAttributes() {
+return ['value'];
+}
+constructor() {
+super();
+this.attachShadow({ mode: 'open' });
+this.shadowRoot.adoptedStyleSheets = [sharedStyles];
+}
+// 元素插入 DOM 時觸發
+connectedCallback() {
+// 取得 placeholder 屬性值，若無則使用預設值
+const placeholder = this.getAttribute('placeholder') || 'Enter text...';
+const initialValue = this.getAttribute('value') || '';
+// 產生元件 HTML
+this.shadowRoot.innerHTML = `
+&lt;div class="text-input-w-clr-btn"&gt;
+&lt;input type="text" placeholder="${placeholder}" value="${initialValue}"&gt;
+&lt;button class="clear-btn" type="button"&gt;×&lt;/button&gt;
+&lt;/div&gt;
+`;
+const input = this.shadowRoot.querySelector('input');
+const clearBtn = this.shadowRoot.querySelector('.clear-btn');
+clearBtn.addEventListener('click', () =&gt; {
+input.value = '';
+input.focus();
+this.dispatchEvent(new Event('input', { bubbles: true }));
+});
+}
+// 元素從 DOM 移除時觸發
+disconnectedCallback() {
+}
+// 當屬性變更時同步更新 input 值
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value' &amp;&amp; this.shadowRoot) {
+const input = this.shadowRoot.querySelector('input');
+if (input &amp;&amp; input.value !== newValue) {
+input.value = newValue || '';
+}
+}
+}
+// 提供 value 的 getter/setter 供 Vue3 使用
+get value() {
+return this.shadowRoot?.querySelector('input')?.value || '';
+}
+set value(val) {
+const input = this.shadowRoot?.querySelector('input');
+input &amp;&amp; (input.value = val || '');
+}
+}
+customElements.define('input-with-clear-button', CustomInput);
+})();
+</code></pre> <p>附上<a href="https://darkthread.github.io/comp-terms/web-com-demo.html">線上展示</a></p> <p>註：用原生自訂 HTML 元素跟 Vue 整合，訴求是彈性，可單獨使用不一定綁死 Vue；但若開發環境確定有 Vue 且元件行為跟 Vue 緊密融合，則建議用 Vue 寫自訂元件比較省力。</p> <p data-slug="cust-html-input-element-w-v-model" data-title-en="Native custom HTML input element supporting Vue v-model" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/20/34/potter-2793345_960_720.jpg#1280#851">Showcases a native custom HTML input element with a clear (X) button, supporting both standalone use and Vue v-model binding for better reusability and maintainability.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>自從 IE 登出，Trident 版 Edge 被放生，瀏覽器重回大一統時代。有別於前次的 IE 王朝，當今主宰前端的 Chromium 配備的 HTML / JavaScript / CSS 規格完備，功能與二十年前不可同日而語，且會自動更新不用太擔心支援問題，現在寫前端輕鬆許多。</p> <p>2016 加入的<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂 HTML 元素</a>功能深得我心，自訂元素這檔事幾乎所有前端框架都有自己的玩法，我玩過 <a href="/blog/ko-component/">knockout.js</a>、<a href="/blog/angular-notes-23/">AngularJS</a>、<a href="https://vuejs.org/guide/essentials/component-basics">Vue.js</a>，每個都有，甚至早在 IE6 時代，微軟也有自家的網頁元件技術 - .htc <a href="https://learn.microsoft.com/en-us/openspecs/ie_standards/ms-html401e/36bd9386-cd5f-4bfe-8dec-5efc865a689c?WT.mc_id=DOP-MVP-37580">HTML Component</a>。自訂網頁元件，易於設計維護擴充重用，就像在前端 UI 實踐物件導向設計，好處很多。如今瀏覽器原生支援自訂網頁元素，不需依賴任何框架，效能更佳，運用起來更靈活。</p> <p>UI 元素行為封裝成自訂 HTML 元素，最大好處是享受物件導向設計的低耦合與觀注點分離，大大提高程式碼可重用性及可維護性。原生 HTML 自訂元素之前曾玩過一回，做了<a href="/blog/js-rolling-dice/">會滾動的骰子</a>，這回遇到另一個小需求，我想寫過自帶 X 鈕可清空內容的文字輸入框。</p> <p>要做個帶 X 鈕的文字輸入框不難，一個 <code>&lt;input type="text"&gt;</code> 配上用 CSS 排版及自動隱藏的 <code>&lt;button&gt;</code> 就可以搞定，但我有個額外需求是想支援 Vue.js 的 v-model 繫結，讓它可以當成一般的 <code>&lt;input type="text"&gt;</code> 使用。</p> <p>先展示成果：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;自帶清除鈕文字欄位 Web Component (支援 Vue v-model)&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.js"&gt;&lt;/script&gt;
+&lt;script src="textInputWithClearBtn.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+body {
+font-family: Arial, sans-serif;
+margin: 20px;
+}
+h2 {
+color: #444;
+}
+input-with-clear-button {
+margin-bottom: 10px;
+display: block;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h2&gt;自帶清除鈕文字欄位&lt;/h2&gt;
+&lt;input-with-clear-button id="t1" placeholder="Type something..."&gt;&lt;/input-with-clear-button&gt;
+&lt;input-with-clear-button id="t2" value="Hello World"&gt;&lt;/input-with-clear-button&gt;
+&lt;button onclick="showValues()"&gt;Check Values&lt;/button&gt;
+&lt;pre id="results"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+function showValues() {
+document.getElementById('results').textContent =
+`t1: "${document.getElementById('t1').value}"
+t2: "${document.getElementById('t2').value}"`;
+}
+&lt;/script&gt;
+&lt;hr&gt;
+&lt;div id="app"&gt;
+&lt;h2&gt;配合 Vue3 v-model 使用&lt;/h2&gt;
+&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;&lt;/input-with-clear-button&gt;
+&lt;p&gt;Vue Data Value: {{ searchText }}&lt;/p&gt;
+&lt;button @click="searchText = 'Hello Vue3'"&gt;Set Value&lt;/button&gt;
+&lt;button @click="searchText = ''"&gt;Clear&lt;/button&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const { createApp } = Vue;
+createApp({
+data() {
+return {
+searchText: 'Init Value'
+}
+}
+}).mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>以上網頁展示單獨使用 <code>&lt;input-with-clear-button&gt;</code>，使用 <code>document.getElementById('t1').value</code> 取值，以及 <code>&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;</code> 以 v-model 整合 Vue.js MVVM，兩種玩法都支援：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif"></p> <p><code>&lt;input-with-clear-button&gt;</code> 定義我寫在獨立 textInputWithClearBtn.js，補充幾個小細節：</p> <ul><li>用 <a href="https://developer.mozilla.org/zh-TW/docs/Glossary/IIFE">IIFE</a> 把定義元件的邏輯包起來，可避免其變數名稱跟其他程式打架。</li> <li>最早我想到的做法是在 HTML 模版內嵌 <code>&lt;style&gt;</code>指定樣式，缺點是每次產生元件 HTML 會重複一次樣式宣告，累贅又沒效率。改用 new CSSStyleSheet()、.replaceSync() 定義 CSS 樣式，HTML 元件透過 adoptedStyleSheets() 共用樣式，優雅多了。</li> <li>observedAttributes() 配合 attributeChangedCallback(name, oldValue, newValue) 可在 Attribute 異動時觸發處理邏輯。</li> <li>實測實作 get value() / set value() 後，<code>&lt;input type="text"&gt;</code> 的按鍵動作便會觸發 Vue v-model 繫結，但按清除鈕 input.value = '' 時需另外呼叫 <code>this.dispatchEvent(new Event('input', { bubbles: true }));</code> 模擬 input 事件。</li></ul> <pre><code>(function() {
+// 建立共用的 CSSStyleSheet
+const sharedStyles = new CSSStyleSheet();
+sharedStyles.replaceSync(`
+.text-input-w-clr-btn {
+position: relative;
+display: inline-block;
+margin: 10px 0;
+input {
+padding: 8px 30px 8px 10px;
+font-size: 14px;
+border: 1px solid #ccc;
+border-radius: 4px;
+outline: none;
+min-width: 250px;
+&amp;:focus { border-color: #4CAF50; }
+&amp;:not(:placeholder-shown)~.clear-btn {
+display: block;
+}
+}
+.clear-btn {
+position: absolute;
+right: 8px;
+top: 50%;
+transform: translateY(-50%);
+background: none;
+border: none;
+cursor: pointer;
+color: #999;
+font-size: 18px;
+padding: 0;
+width: 20px;
+height: 20px;
+line-height: 20px;
+text-align: center;
+display: none;
+&amp;:hover { color: #333;}
+}
+}
+`);
+class CustomInput extends HTMLElement {
+// 宣告要監聽的屬性
+static get observedAttributes() {
+return ['value'];
+}
+constructor() {
+super();
+this.attachShadow({ mode: 'open' });
+this.shadowRoot.adoptedStyleSheets = [sharedStyles];
+}
+// 元素插入 DOM 時觸發
+connectedCallback() {
+// 取得 placeholder 屬性值，若無則使用預設值
+const placeholder = this.getAttribute('placeholder') || 'Enter text...';
+const initialValue = this.getAttribute('value') || '';
+// 產生元件 HTML
+this.shadowRoot.innerHTML = `
+&lt;div class="text-input-w-clr-btn"&gt;
+&lt;input type="text" placeholder="${placeholder}" value="${initialValue}"&gt;
+&lt;button class="clear-btn" type="button"&gt;×&lt;/button&gt;
+&lt;/div&gt;
+`;
+const input = this.shadowRoot.querySelector('input');
+const clearBtn = this.shadowRoot.querySelector('.clear-btn');
+clearBtn.addEventListener('click', () =&gt; {
+input.value = '';
+input.focus();
+this.dispatchEvent(new Event('input', { bubbles: true }));
+});
+}
+// 元素從 DOM 移除時觸發
+disconnectedCallback() {
+}
+// 當屬性變更時同步更新 input 值
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value' &amp;&amp; this.shadowRoot) {
+const input = this.shadowRoot.querySelector('input');
+if (input &amp;&amp; input.value !== newValue) {
+input.value = newValue || '';
+}
+}
+}
+// 提供 value 的 getter/setter 供 Vue3 使用
+get value() {
+return this.shadowRoot?.querySelector('input')?.value || '';
+}
+set value(val) {
+const input = this.shadowRoot?.querySelector('input');
+input &amp;&amp; (input.value = val || '');
+}
+}
+customElements.define('input-with-clear-button', CustomInput);
+})();
+</code></pre> <p>附上<a href="https://darkthread.github.io/comp-terms/web-com-demo.html">線上展示</a></p> <p>註：用原生自訂 HTML 元素跟 Vue 整合，訴求是彈性，可單獨使用不一定綁死 Vue；但若開發環境確定有 Vue 且元件行為跟 Vue 緊密融合，則建議用 Vue 寫自訂元件比較省力。</p> <p data-slug="cust-html-input-element-w-v-model" data-title-en="Native custom HTML input element supporting Vue v-model" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/20/34/potter-2793345_960_720.jpg#1280#851">Showcases a native custom HTML input element with a clear (X) button, supporting both standalone use and Vue v-model binding for better reusability and maintainability.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>自從 IE 登出，Trident 版 Edge 被放生，瀏覽器重回大一統時代。有別於前次的 IE 王朝，當今主宰前端的 Chromium 配備的 HTML / JavaScript / CSS 規格完備，功能與二十年前不可同日而語，且會自動更新不用太擔心支援問題，現在寫前端輕鬆許多。</p> <p>2016 加入的<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂 HTML 元素</a>功能深得我心，自訂元素這檔事幾乎所有前端框架都有自己的玩法，我玩過 <a href="/blog/ko-component/">knockout.js</a>、<a href="/blog/angular-notes-23/">AngularJS</a>、<a href="https://vuejs.org/guide/essentials/component-basics">Vue.js</a>，每個都有，甚至早在 IE6 時代，微軟也有自家的網頁元件技術 - .htc <a href="https://learn.microsoft.com/en-us/openspecs/ie_standards/ms-html401e/36bd9386-cd5f-4bfe-8dec-5efc865a689c?WT.mc_id=DOP-MVP-37580">HTML Component</a>。自訂網頁元件，易於設計維護擴充重用，就像在前端 UI 實踐物件導向設計，好處很多。如今瀏覽器原生支援自訂網頁元素，不需依賴任何框架，效能更佳，運用起來更靈活。</p> <p>UI 元素行為封裝成自訂 HTML 元素，最大好處是享受物件導向設計的低耦合與觀注點分離，大大提高程式碼可重用性及可維護性。原生 HTML 自訂元素之前曾玩過一回，做了<a href="/blog/js-rolling-dice/">會滾動的骰子</a>，這回遇到另一個小需求，我想寫過自帶 X 鈕可清空內容的文字輸入框。</p> <p>要做個帶 X 鈕的文字輸入框不難，一個 <code>&lt;input type="text"&gt;</code> 配上用 CSS 排版及自動隱藏的 <code>&lt;button&gt;</code> 就可以搞定，但我有個額外需求是想支援 Vue.js 的 v-model 繫結，讓它可以當成一般的 <code>&lt;input type="text"&gt;</code> 使用。</p> <p>先展示成果：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;自帶清除鈕文字欄位 Web Component (支援 Vue v-model)&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.js"&gt;&lt;/script&gt;
+&lt;script src="textInputWithClearBtn.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+body {
+font-family: Arial, sans-serif;
+margin: 20px;
+}
+h2 {
+color: #444;
+}
+input-with-clear-button {
+margin-bottom: 10px;
+display: block;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h2&gt;自帶清除鈕文字欄位&lt;/h2&gt;
+&lt;input-with-clear-button id="t1" placeholder="Type something..."&gt;&lt;/input-with-clear-button&gt;
+&lt;input-with-clear-button id="t2" value="Hello World"&gt;&lt;/input-with-clear-button&gt;
+&lt;button onclick="showValues()"&gt;Check Values&lt;/button&gt;
+&lt;pre id="results"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+function showValues() {
+document.getElementById('results').textContent =
+`t1: "${document.getElementById('t1').value}"
+t2: "${document.getElementById('t2').value}"`;
+}
+&lt;/script&gt;
+&lt;hr&gt;
+&lt;div id="app"&gt;
+&lt;h2&gt;配合 Vue3 v-model 使用&lt;/h2&gt;
+&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;&lt;/input-with-clear-button&gt;
+&lt;p&gt;Vue Data Value: {{ searchText }}&lt;/p&gt;
+&lt;button @click="searchText = 'Hello Vue3'"&gt;Set Value&lt;/button&gt;
+&lt;button @click="searchText = ''"&gt;Clear&lt;/button&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const { createApp } = Vue;
+createApp({
+data() {
+return {
+searchText: 'Init Value'
+}
+}
+}).mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>以上網頁展示單獨使用 <code>&lt;input-with-clear-button&gt;</code>，使用 <code>document.getElementById('t1').value</code> 取值，以及 <code>&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;</code> 以 v-model 整合 Vue.js MVVM，兩種玩法都支援：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif"></p> <p><code>&lt;input-with-clear-button&gt;</code> 定義我寫在獨立 textInputWithClearBtn.js，補充幾個小細節：</p> <ul><li>用 <a href="https://developer.mozilla.org/zh-TW/docs/Glossary/IIFE">IIFE</a> 把定義元件的邏輯包起來，可避免其變數名稱跟其他程式打架。</li> <li>最早我想到的做法是在 HTML 模版內嵌 <code>&lt;style&gt;</code>指定樣式，缺點是每次產生元件 HTML 會重複一次樣式宣告，累贅又沒效率。改用 new CSSStyleSheet()、.replaceSync() 定義 CSS 樣式，HTML 元件透過 adoptedStyleSheets() 共用樣式，優雅多了。</li> <li>observedAttributes() 配合 attributeChangedCallback(name, oldValue, newValue) 可在 Attribute 異動時觸發處理邏輯。</li> <li>實測實作 get value() / set value() 後，<code>&lt;input type="text"&gt;</code> 的按鍵動作便會觸發 Vue v-model 繫結，但按清除鈕 input.value = '' 時需另外呼叫 <code>this.dispatchEvent(new Event('input', { bubbles: true }));</code> 模擬 input 事件。</li></ul> <pre><code>(function() {
+// 建立共用的 CSSStyleSheet
+const sharedStyles = new CSSStyleSheet();
+sharedStyles.replaceSync(`
+.text-input-w-clr-btn {
+position: relative;
+display: inline-block;
+margin: 10px 0;
+input {
+padding: 8px 30px 8px 10px;
+font-size: 14px;
+border: 1px solid #ccc;
+border-radius: 4px;
+outline: none;
+min-width: 250px;
+&amp;:focus { border-color: #4CAF50; }
+&amp;:not(:placeholder-shown)~.clear-btn {
+display: block;
+}
+}
+.clear-btn {
+position: absolute;
+right: 8px;
+top: 50%;
+transform: translateY(-50%);
+background: none;
+border: none;
+cursor: pointer;
+color: #999;
+font-size: 18px;
+padding: 0;
+width: 20px;
+height: 20px;
+line-height: 20px;
+text-align: center;
+display: none;
+&amp;:hover { color: #333;}
+}
+}
+`);
+class CustomInput extends HTMLElement {
+// 宣告要監聽的屬性
+static get observedAttributes() {
+return ['value'];
+}
+constructor() {
+super();
+this.attachShadow({ mode: 'open' });
+this.shadowRoot.adoptedStyleSheets = [sharedStyles];
+}
+// 元素插入 DOM 時觸發
+connectedCallback() {
+// 取得 placeholder 屬性值，若無則使用預設值
+const placeholder = this.getAttribute('placeholder') || 'Enter text...';
+const initialValue = this.getAttribute('value') || '';
+// 產生元件 HTML
+this.shadowRoot.innerHTML = `
+&lt;div class="text-input-w-clr-btn"&gt;
+&lt;input type="text" placeholder="${placeholder}" value="${initialValue}"&gt;
+&lt;button class="clear-btn" type="button"&gt;×&lt;/button&gt;
+&lt;/div&gt;
+`;
+const input = this.shadowRoot.querySelector('input');
+const clearBtn = this.shadowRoot.querySelector('.clear-btn');
+clearBtn.addEventListener('click', () =&gt; {
+input.value = '';
+input.focus();
+this.dispatchEvent(new Event('input', { bubbles: true }));
+});
+}
+// 元素從 DOM 移除時觸發
+disconnectedCallback() {
+}
+// 當屬性變更時同步更新 input 值
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value' &amp;&amp; this.shadowRoot) {
+const input = this.shadowRoot.querySelector('input');
+if (input &amp;&amp; input.value !== newValue) {
+input.value = newValue || '';
+}
+}
+}
+// 提供 value 的 getter/setter 供 Vue3 使用
+get value() {
+return this.shadowRoot?.querySelector('input')?.value || '';
+}
+set value(val) {
+const input = this.shadowRoot?.querySelector('input');
+input &amp;&amp; (input.value = val || '');
+}
+}
+customElements.define('input-with-clear-button', CustomInput);
+})();
+</code></pre> <p>附上<a href="https://darkthread.github.io/comp-terms/web-com-demo.html">線上展示</a></p> <p>註：用原生自訂 HTML 元素跟 Vue 整合，訴求是彈性，可單獨使用不一定綁死 Vue；但若開發環境確定有 Vue 且元件行為跟 Vue 緊密融合，則建議用 Vue 寫自訂元件比較省力。</p> <p data-slug="cust-html-input-element-w-v-model" data-title-en="Native custom HTML input element supporting Vue v-model" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/20/34/potter-2793345_960_720.jpg#1280#851">Showcases a native custom HTML input element with a clear (X) button, supporting both standalone use and Vue v-model binding for better reusability and maintainability.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif" medium="image"/>
+    <pubDate>Fri, 10 Oct 2025 07:21:07 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Debian 設定自動校時 (原來 Github Copilot 連這也會)]]></title>
     <link>https://blog.darkthread.net/blog/set-timesyncd-for-debian12/</link>
     <itunes:title><![CDATA[Debian 設定自動校時 (原來 Github Copilot 連這也會)]]></itunes:title>
@@ -490,20 +949,5 @@ exec "/home/jeffrey/.pyenv/libexec/pyenv" exec "$program" "$@"
     <content:encoded><![CDATA[<p>今天我 FB 上的洗版消息，莫過於某 Vibe Coding 講師，沒仔細檢查就將 AI 生成作品分享給大家，導致荷包大失血。</p> <p>程式雖然有設計了要使用者輸入自己 Gemini API Key 的介面，但 AI 生成的程式碼實際用的卻是寫在程式碼裡(依保哥的說法，也可能設在 Cloud Run) 的 API Key，結果作者不但分享了自己的程式，還慷慨地捐出 API 額度給大家用，導致 20 天燒掉一萬多塊，心疼荷包之餘，作者痛罵 Google 奸詐!</p> <p>程式寫久，鬼故事看得也多，我是很早就養成習慣 - 永遠不要把 API Key 或帳密寫進專案資料夾內的設定檔，存在環境變數、Key Vault、Registry 或其他資料夾都好，以免哪天失手不小心讓程式跟設定檔一起流出去。甚至資安偏執發作，我連環境變數都<a href="/blog/secure-apikey-for-console-app/">硬要用 Windows DPAPI 加密才安心</a>，這樣子，即使有人弄到加密版 API Key，不在我的電腦登入我的帳號也解不開。</p> <p>程式初學者犯錯很很常見的事，我年輕時犯過的錯多不勝數(當年在研討會聽到 SQL Injection 後冷汗直冒坐立難安，直想衝回公司改程式的記憶猶新。延伸閱讀：<a href="/blog/my-1st-sql-injection-project/">黑歷史 - 我的 SQL Injection 首部曲</a>)，程式 Bug 可大可小，若一旦跟資安有關，甚至可能讓人身敗名裂家破人亡。(歷史上還真的有因資安事件而死的悲慘案例: 軟體公司 LxLabs 的老板因公司產品內含SQL Injection漏洞導致 10 萬個網站被摧毁，承受不了壓力，選擇在家中懸樑自盡，延伸閱讀：<a href="/blog/info-sec-notes-20111222/">資安新聞筆記 - 開發網站前該知道的二三事</a>)</p> <p>因此，設計程式時本來就該如履薄冰，謹慎檢查程式碼，防範任何失誤可能造成的風險。不過，隨著 LLM 寫程式的能力日益強大，許多人沈浸在不用學程式也能寫程式的歡愉裡。現在的氣圍有點偏向：<a href="https://www.facebook.com/share/p/17dw1KhQpV/">有 Vibe Coding 誰都能寫程式，程式設計師都要失業惹，花時間學程式的人是傻子。</a></p> <p>謝謝這個案例，在 Vibe Coding 的一片歡樂中小小敲了一聲警鐘，適時提醒大家仍然要留意讓 AI 寫程式的風險。如果可以，能看懂 AI 生成的程式碼是最好的（自己檢查過還出事也就認了，好過死得不明不白），不然就別把它用在重要、影響重大的事情上。</p> <p>在鼓吹 Vibe Coding 多美好的同時，我想是該時候比照基金廣告的那段連珠砲(「投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書」)，建議每次宣講結束都要加註一段警語：「Vibe Coding 一定有風險，生成結果可能出錯，發佈前應詳閱程式碼」。</p> <p data-slug="vibe-coding-risk" data-fbimg="https://i.postimg.cc/rzXrVjLC/image.png#1080#540"> </p>]]></content:encoded>
     
     <pubDate>Fri, 26 Sep 2025 11:54:06 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【維修雜記】錯怪鼓包電池]]></title>
-    <link>https://blog.darkthread.net/blog/bad-phone-charger/</link>
-    <itunes:title><![CDATA[【維修雜記】錯怪鼓包電池]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>影片中的人體感應小夜燈，便宜又好用。一個不到 30 元，內建鋰電池可用 USB 充電，背後有磁吸，在黑暗中感應到人經過會自動點亮。我買了好幾個在家裡四處放，晚上熄燈後走到哪亮到哪，不用急著找電燈開關，很是方便。</p> <p><a href="https://www.youtube.com/watch?v=jXqfPkcttfA">故障人體感應小夜燈</a></p> <p>內建鋰電池容量不大，但 LED 耗電不多且夜間感應才亮燈，充一次電可以撐蠻久的，但如果就近充電的地點我還會會直接插上充電頭，把久久拿下來充電的工夫都省了。唯一的小問題是用個幾年鋰電池可能提前陣亡，有時還會導致小夜燈功能異常，但把電池拆掉還是可以繼續用。</p> <p>早上出門前，發現客廳的小夜燈持續一閃一閃且無法感應亮燈，依據過往經驗猜想是電池掛了，把握出門前十分鐘想來個快速維修，拆開發現電池有輕微鼓包證實我的推測，便手起刀落把電池拆了，沒想到燈還是一閃一閃... 登楞!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg" alt="thumbnail"></p> <p>原來不是電池問題啊，此時我心中的嫌疑犯依序是 [1] 供電晶片 [2] 人體紅外線傳感器(PIR) [3] 控制晶片，但這三者任一個要換，先別說找不找得到零件了，光零件錢就比買新的還貴。</p> <p>此時眼角餘光瞄到它用的充電頭(照片中左側白色方塊)，來自某支雜牌玩具手機，且年代有點久遠，決定換顆充電頭試試... 幹! 原來是它壞了，原本換個充電頭就能解決的小事，我瞎忙一場。</p> <p>記取教訓，下回排查問題別太快用刻版印象下判斷，請從成本低廉的維修程序開始~</p> <p data-slug="bad-phone-charger" data-fbimg="https://i.postimg.cc/wMfjD0bQ/image.png"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>影片中的人體感應小夜燈，便宜又好用。一個不到 30 元，內建鋰電池可用 USB 充電，背後有磁吸，在黑暗中感應到人經過會自動點亮。我買了好幾個在家裡四處放，晚上熄燈後走到哪亮到哪，不用急著找電燈開關，很是方便。</p> <p><a href="https://www.youtube.com/watch?v=jXqfPkcttfA">故障人體感應小夜燈</a></p> <p>內建鋰電池容量不大，但 LED 耗電不多且夜間感應才亮燈，充一次電可以撐蠻久的，但如果就近充電的地點我還會會直接插上充電頭，把久久拿下來充電的工夫都省了。唯一的小問題是用個幾年鋰電池可能提前陣亡，有時還會導致小夜燈功能異常，但把電池拆掉還是可以繼續用。</p> <p>早上出門前，發現客廳的小夜燈持續一閃一閃且無法感應亮燈，依據過往經驗猜想是電池掛了，把握出門前十分鐘想來個快速維修，拆開發現電池有輕微鼓包證實我的推測，便手起刀落把電池拆了，沒想到燈還是一閃一閃... 登楞!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg" alt="thumbnail"></p> <p>原來不是電池問題啊，此時我心中的嫌疑犯依序是 [1] 供電晶片 [2] 人體紅外線傳感器(PIR) [3] 控制晶片，但這三者任一個要換，先別說找不找得到零件了，光零件錢就比買新的還貴。</p> <p>此時眼角餘光瞄到它用的充電頭(照片中左側白色方塊)，來自某支雜牌玩具手機，且年代有點久遠，決定換顆充電頭試試... 幹! 原來是它壞了，原本換個充電頭就能解決的小事，我瞎忙一場。</p> <p>記取教訓，下回排查問題別太快用刻版印象下判斷，請從成本低廉的維修程序開始~</p> <p data-slug="bad-phone-charger" data-fbimg="https://i.postimg.cc/wMfjD0bQ/image.png"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>影片中的人體感應小夜燈，便宜又好用。一個不到 30 元，內建鋰電池可用 USB 充電，背後有磁吸，在黑暗中感應到人經過會自動點亮。我買了好幾個在家裡四處放，晚上熄燈後走到哪亮到哪，不用急著找電燈開關，很是方便。</p> <p><a href="https://www.youtube.com/watch?v=jXqfPkcttfA">故障人體感應小夜燈</a></p> <p>內建鋰電池容量不大，但 LED 耗電不多且夜間感應才亮燈，充一次電可以撐蠻久的，但如果就近充電的地點我還會會直接插上充電頭，把久久拿下來充電的工夫都省了。唯一的小問題是用個幾年鋰電池可能提前陣亡，有時還會導致小夜燈功能異常，但把電池拆掉還是可以繼續用。</p> <p>早上出門前，發現客廳的小夜燈持續一閃一閃且無法感應亮燈，依據過往經驗猜想是電池掛了，把握出門前十分鐘想來個快速維修，拆開發現電池有輕微鼓包證實我的推測，便手起刀落把電池拆了，沒想到燈還是一閃一閃... 登楞!!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg" alt="thumbnail"></p> <p>原來不是電池問題啊，此時我心中的嫌疑犯依序是 [1] 供電晶片 [2] 人體紅外線傳感器(PIR) [3] 控制晶片，但這三者任一個要換，先別說找不找得到零件了，光零件錢就比買新的還貴。</p> <p>此時眼角餘光瞄到它用的充電頭(照片中左側白色方塊)，來自某支雜牌玩具手機，且年代有點久遠，決定換顆充電頭試試... 幹! 原來是它壞了，原本換個充電頭就能解決的小事，我瞎忙一場。</p> <p>記取教訓，下回排查問題別太快用刻版印象下判斷，請從成本低廉的維修程序開始~</p> <p data-slug="bad-phone-charger" data-fbimg="https://i.postimg.cc/wMfjD0bQ/image.png"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638944823004492694.jpg" medium="image"/>
-    <pubDate>Fri, 26 Sep 2025 11:16:08 GMT</pubDate>
   </item></channel>
 </rss>
