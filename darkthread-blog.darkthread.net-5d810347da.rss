@@ -1,0 +1,1101 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[黑暗執行緒[RSS+]]]></title>
+    <link>undefined</link>
+    <image>
+      <url>https://blog.darkthread.net/img/icon512x512.png</url>
+      <title>黑暗執行緒[RSS+]</title>
+      <link>undefined</link>
+    </image>
+    <language>en-us</language>
+    <atom:link href="https://blog.darkthread.net/feed/rss/" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[黑暗執行緒[RSS+]]]></copyright>
+    <itunes:author><![CDATA[黑暗執行緒[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[黑暗執行緒[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
+<item>
+    <title><![CDATA[當超寬表格遇上手機直式螢幕]]></title>
+    <link>https://blog.darkthread.net/blog/wide-table-rwd/</link>
+    <itunes:title><![CDATA[當超寬表格遇上手機直式螢幕]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前天跟大家分享了<a href="/blog/chinese-it-term-translation-instant-lookup/">我養的牛牛</a>，很快就接到網友 ycs77 回饋，提到現有介面用手機直式顯示時排版會亂掉且不易閱讀，還幫忙微調樣式發了 PR，好一位充滿行動力的熱血同學，RESPECT!</p> <p>這些年來，行動裝置客戶端的比例逐年上升，連我部落格這種以工作參考為主的網站，理論上最大客源來自上班遇到茶包爬文(話說，自後 LLM 興起部落格流量也跟著一路下滑 Orz 問 AI 直接有答案，誰還開網站？)，但近年來桌機仍是最大宗，但行動裝置的比例也常維持在 30% ~ 40% 之間，成為不可忽視的一群。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638959640315157964.png"></p> <p>實際用手機測了一下，目前的介面完全沒考量到行動裝置直式螢幕，標題與關鍵字欄位跑版不說，結果表格寬度超出螢幕，需要上下左右滑，一整個不專業。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638959640318920496.jpg" alt="thumbnail"></p> <p>我不想為手機版另外設計一套排版，希望依據寬度切換樣式就能輕鬆搞定，但我的前端技能只有半調子，對 RWD 也沒啥研究... 以前走到這步通常要卡關卡很久，但現在有 Github Copilot 在手，相當於有精通前端設計的神隊友，這樣還搞砸神仙難救!</p> <p>Copilot 給了三種建議：改為卡片式佈局(Card Layout)、加上水平捲軸、隱藏次要欄位縮短寬度，在我的經驗裡卡片式佈局應是最專業最常見的設計方式，也是 Copilot 最推薦的做法。</p> <p>然後，用點小技巧，TABLD/TR/TD 結構可以完全不用動。主要原理是使用 <code>@media (max-width: 768px)</code> 針對寬度 768px 以下改用另一組樣式，有幾個重點：</p> <ul><li>上方標題及文字欄位改用 flex 直式排列</li> <li>將 table, tr, td 都改成 display: block</li> <li>tbody 設定 <code>display: grid</code>，讓 tr 以網格排列，配合 <code>grid-template-columns: repeat(2, 1fr);</code> (重複兩次，每次 1 fraction unit) 設定兩欄</li> <li>英文改藍字、字型加大、粗體</li> <li>英文以外的中文 td，設定 <code>td::before</code> 在前方用 <code>content: attr(data-label)</code> 顯示 data-label Attribute 值 (zh-tw|zh-cn|zh-hk|zh-sg|zh-mo|zh-my)</li> <li>zh-tw/zh-cn 以外的中文 td 用 Vue <code>:class="{'empty': !term.hk}"</code> 設定沒有內容時加上 empty 樣式，再將 .empty 設成 display: none 隱藏</li></ul> <pre><code>/* 寬度小於 768px 時啟用卡片式佈局 */
+@media (max-width: 768px) {
+header {
+/* 改為直向排列 */
+flex-direction: column;
+align-items: flex-start;
+gap: 10px;
+h1 {
+font-size: 1.3em;
+margin: 0;
+}
+/* 說明連結改為右上角 */
+.doc {
+position: absolute;
+top: 6px;
+right: 12px;
+z-index: 100;
+}
+}
+/* 參照來源位置微調 */
+.content .ref {
+margin-top: 12px;
+text-align: left;
+font-size: 80%;
+}
+/* 隱藏表格標題列 */
+table thead {
+display: none;
+}
+/* 將表格、列與欄都轉換為 Block 排版 */
+table {
+display: block;
+tbody, tr, td {
+display: block;
+}
+}
+/* tr 使用 Grid 佈局，並設定成兩欄顯示 */
+table tbody {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 12px;
+}
+/* tr 樣式設計成一張卡片 */
+table tr {
+margin-bottom: 0;
+border: 2px solid #ddd;
+border-radius: 8px;
+padding: 12px;
+background: white;
+box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+table td {
+border: none;
+padding: 2px 0;
+text-align: left;
+position: relative;
+padding-left: 64px;
+min-height: 1.2em;
+}
+/* 在每個儲存格前顯示欄位標籤 */
+table td::before {
+content: attr(data-label);
+position: absolute;
+left: 0;
+width: 64px;
+font-weight: bold;
+color: #666;
+font-size: 0.9em;
+}
+/* 英文欄位：藍色、字體放大、粗體 */
+table td.en {
+font-size: 1.1em;
+font-weight: bold;
+padding-left: 0;
+padding-bottom: 8px;
+margin-bottom: 8px;
+border-bottom: 1px solid #eee;
+/* 前方不需標籤 */
+&amp;::before {
+display: none;
+}
+}
+/* 針對相同值樣式調整 */
+table tr.same td.tw,
+table tr.same td.cn {
+opacity: 0.5;
+font-style: italic;
+}
+/* 隱藏空白欄位(zh-hk...) */
+table td.empty {
+display: none;
+}
+}
+</code></pre> <p>嗯，不能跟專業設計比，但比表格好看好用多了。 <a href="https://darkthread.github.io/comp-terms/">中文計算機術語速查工具</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638959640322515830.jpg"></p> <p data-slug="wide-table-rwd" data-title-en="Showing wide table on mobile screen" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2016/11/22/23/40/hands-1851218_1280.jpg#1280#720">Improved the Chinese IT term lookup tool’s mobile layout with responsive card-style design using CSS media queries, enhancing readability and usability on smartphones.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前天跟大家分享了<a href="/blog/chinese-it-term-translation-instant-lookup/">我養的牛牛</a>，很快就接到網友 ycs77 回饋，提到現有介面用手機直式顯示時排版會亂掉且不易閱讀，還幫忙微調樣式發了 PR，好一位充滿行動力的熱血同學，RESPECT!</p> <p>這些年來，行動裝置客戶端的比例逐年上升，連我部落格這種以工作參考為主的網站，理論上最大客源來自上班遇到茶包爬文(話說，自後 LLM 興起部落格流量也跟著一路下滑 Orz 問 AI 直接有答案，誰還開網站？)，但近年來桌機仍是最大宗，但行動裝置的比例也常維持在 30% ~ 40% 之間，成為不可忽視的一群。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638959640315157964.png"></p> <p>實際用手機測了一下，目前的介面完全沒考量到行動裝置直式螢幕，標題與關鍵字欄位跑版不說，結果表格寬度超出螢幕，需要上下左右滑，一整個不專業。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638959640318920496.jpg" alt="thumbnail"></p> <p>我不想為手機版另外設計一套排版，希望依據寬度切換樣式就能輕鬆搞定，但我的前端技能只有半調子，對 RWD 也沒啥研究... 以前走到這步通常要卡關卡很久，但現在有 Github Copilot 在手，相當於有精通前端設計的神隊友，這樣還搞砸神仙難救!</p> <p>Copilot 給了三種建議：改為卡片式佈局(Card Layout)、加上水平捲軸、隱藏次要欄位縮短寬度，在我的經驗裡卡片式佈局應是最專業最常見的設計方式，也是 Copilot 最推薦的做法。</p> <p>然後，用點小技巧，TABLD/TR/TD 結構可以完全不用動。主要原理是使用 <code>@media (max-width: 768px)</code> 針對寬度 768px 以下改用另一組樣式，有幾個重點：</p> <ul><li>上方標題及文字欄位改用 flex 直式排列</li> <li>將 table, tr, td 都改成 display: block</li> <li>tbody 設定 <code>display: grid</code>，讓 tr 以網格排列，配合 <code>grid-template-columns: repeat(2, 1fr);</code> (重複兩次，每次 1 fraction unit) 設定兩欄</li> <li>英文改藍字、字型加大、粗體</li> <li>英文以外的中文 td，設定 <code>td::before</code> 在前方用 <code>content: attr(data-label)</code> 顯示 data-label Attribute 值 (zh-tw|zh-cn|zh-hk|zh-sg|zh-mo|zh-my)</li> <li>zh-tw/zh-cn 以外的中文 td 用 Vue <code>:class="{'empty': !term.hk}"</code> 設定沒有內容時加上 empty 樣式，再將 .empty 設成 display: none 隱藏</li></ul> <pre><code>/* 寬度小於 768px 時啟用卡片式佈局 */
+@media (max-width: 768px) {
+header {
+/* 改為直向排列 */
+flex-direction: column;
+align-items: flex-start;
+gap: 10px;
+h1 {
+font-size: 1.3em;
+margin: 0;
+}
+/* 說明連結改為右上角 */
+.doc {
+position: absolute;
+top: 6px;
+right: 12px;
+z-index: 100;
+}
+}
+/* 參照來源位置微調 */
+.content .ref {
+margin-top: 12px;
+text-align: left;
+font-size: 80%;
+}
+/* 隱藏表格標題列 */
+table thead {
+display: none;
+}
+/* 將表格、列與欄都轉換為 Block 排版 */
+table {
+display: block;
+tbody, tr, td {
+display: block;
+}
+}
+/* tr 使用 Grid 佈局，並設定成兩欄顯示 */
+table tbody {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 12px;
+}
+/* tr 樣式設計成一張卡片 */
+table tr {
+margin-bottom: 0;
+border: 2px solid #ddd;
+border-radius: 8px;
+padding: 12px;
+background: white;
+box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+table td {
+border: none;
+padding: 2px 0;
+text-align: left;
+position: relative;
+padding-left: 64px;
+min-height: 1.2em;
+}
+/* 在每個儲存格前顯示欄位標籤 */
+table td::before {
+content: attr(data-label);
+position: absolute;
+left: 0;
+width: 64px;
+font-weight: bold;
+color: #666;
+font-size: 0.9em;
+}
+/* 英文欄位：藍色、字體放大、粗體 */
+table td.en {
+font-size: 1.1em;
+font-weight: bold;
+padding-left: 0;
+padding-bottom: 8px;
+margin-bottom: 8px;
+border-bottom: 1px solid #eee;
+/* 前方不需標籤 */
+&amp;::before {
+display: none;
+}
+}
+/* 針對相同值樣式調整 */
+table tr.same td.tw,
+table tr.same td.cn {
+opacity: 0.5;
+font-style: italic;
+}
+/* 隱藏空白欄位(zh-hk...) */
+table td.empty {
+display: none;
+}
+}
+</code></pre> <p>嗯，不能跟專業設計比，但比表格好看好用多了。 <a href="https://darkthread.github.io/comp-terms/">中文計算機術語速查工具</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638959640322515830.jpg"></p> <p data-slug="wide-table-rwd" data-title-en="Showing wide table on mobile screen" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2016/11/22/23/40/hands-1851218_1280.jpg#1280#720">Improved the Chinese IT term lookup tool’s mobile layout with responsive card-style design using CSS media queries, enhancing readability and usability on smartphones.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前天跟大家分享了<a href="/blog/chinese-it-term-translation-instant-lookup/">我養的牛牛</a>，很快就接到網友 ycs77 回饋，提到現有介面用手機直式顯示時排版會亂掉且不易閱讀，還幫忙微調樣式發了 PR，好一位充滿行動力的熱血同學，RESPECT!</p> <p>這些年來，行動裝置客戶端的比例逐年上升，連我部落格這種以工作參考為主的網站，理論上最大客源來自上班遇到茶包爬文(話說，自後 LLM 興起部落格流量也跟著一路下滑 Orz 問 AI 直接有答案，誰還開網站？)，但近年來桌機仍是最大宗，但行動裝置的比例也常維持在 30% ~ 40% 之間，成為不可忽視的一群。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638959640315157964.png"></p> <p>實際用手機測了一下，目前的介面完全沒考量到行動裝置直式螢幕，標題與關鍵字欄位跑版不說，結果表格寬度超出螢幕，需要上下左右滑，一整個不專業。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638959640318920496.jpg" alt="thumbnail"></p> <p>我不想為手機版另外設計一套排版，希望依據寬度切換樣式就能輕鬆搞定，但我的前端技能只有半調子，對 RWD 也沒啥研究... 以前走到這步通常要卡關卡很久，但現在有 Github Copilot 在手，相當於有精通前端設計的神隊友，這樣還搞砸神仙難救!</p> <p>Copilot 給了三種建議：改為卡片式佈局(Card Layout)、加上水平捲軸、隱藏次要欄位縮短寬度，在我的經驗裡卡片式佈局應是最專業最常見的設計方式，也是 Copilot 最推薦的做法。</p> <p>然後，用點小技巧，TABLD/TR/TD 結構可以完全不用動。主要原理是使用 <code>@media (max-width: 768px)</code> 針對寬度 768px 以下改用另一組樣式，有幾個重點：</p> <ul><li>上方標題及文字欄位改用 flex 直式排列</li> <li>將 table, tr, td 都改成 display: block</li> <li>tbody 設定 <code>display: grid</code>，讓 tr 以網格排列，配合 <code>grid-template-columns: repeat(2, 1fr);</code> (重複兩次，每次 1 fraction unit) 設定兩欄</li> <li>英文改藍字、字型加大、粗體</li> <li>英文以外的中文 td，設定 <code>td::before</code> 在前方用 <code>content: attr(data-label)</code> 顯示 data-label Attribute 值 (zh-tw|zh-cn|zh-hk|zh-sg|zh-mo|zh-my)</li> <li>zh-tw/zh-cn 以外的中文 td 用 Vue <code>:class="{'empty': !term.hk}"</code> 設定沒有內容時加上 empty 樣式，再將 .empty 設成 display: none 隱藏</li></ul> <pre><code>/* 寬度小於 768px 時啟用卡片式佈局 */
+@media (max-width: 768px) {
+header {
+/* 改為直向排列 */
+flex-direction: column;
+align-items: flex-start;
+gap: 10px;
+h1 {
+font-size: 1.3em;
+margin: 0;
+}
+/* 說明連結改為右上角 */
+.doc {
+position: absolute;
+top: 6px;
+right: 12px;
+z-index: 100;
+}
+}
+/* 參照來源位置微調 */
+.content .ref {
+margin-top: 12px;
+text-align: left;
+font-size: 80%;
+}
+/* 隱藏表格標題列 */
+table thead {
+display: none;
+}
+/* 將表格、列與欄都轉換為 Block 排版 */
+table {
+display: block;
+tbody, tr, td {
+display: block;
+}
+}
+/* tr 使用 Grid 佈局，並設定成兩欄顯示 */
+table tbody {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 12px;
+}
+/* tr 樣式設計成一張卡片 */
+table tr {
+margin-bottom: 0;
+border: 2px solid #ddd;
+border-radius: 8px;
+padding: 12px;
+background: white;
+box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+table td {
+border: none;
+padding: 2px 0;
+text-align: left;
+position: relative;
+padding-left: 64px;
+min-height: 1.2em;
+}
+/* 在每個儲存格前顯示欄位標籤 */
+table td::before {
+content: attr(data-label);
+position: absolute;
+left: 0;
+width: 64px;
+font-weight: bold;
+color: #666;
+font-size: 0.9em;
+}
+/* 英文欄位：藍色、字體放大、粗體 */
+table td.en {
+font-size: 1.1em;
+font-weight: bold;
+padding-left: 0;
+padding-bottom: 8px;
+margin-bottom: 8px;
+border-bottom: 1px solid #eee;
+/* 前方不需標籤 */
+&amp;::before {
+display: none;
+}
+}
+/* 針對相同值樣式調整 */
+table tr.same td.tw,
+table tr.same td.cn {
+opacity: 0.5;
+font-style: italic;
+}
+/* 隱藏空白欄位(zh-hk...) */
+table td.empty {
+display: none;
+}
+}
+</code></pre> <p>嗯，不能跟專業設計比，但比表格好看好用多了。 <a href="https://darkthread.github.io/comp-terms/">中文計算機術語速查工具</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638959640322515830.jpg"></p> <p data-slug="wide-table-rwd" data-title-en="Showing wide table on mobile screen" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2016/11/22/23/40/hands-1851218_1280.jpg#1280#720">Improved the Chinese IT term lookup tool’s mobile layout with responsive card-style design using CSS media queries, enhancing readability and usability on smartphones.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig2_638959640315157964.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig2_638959640315157964.png" medium="image"/>
+    <pubDate>Mon, 13 Oct 2025 14:52:31 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Github Copilot 聊天視窗指令整理]]></title>
+    <link>https://blog.darkthread.net/blog/copilot-chat-cheatsheet/</link>
+    <itunes:title><![CDATA[Github Copilot 聊天視窗指令整理]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>使用 VSCode Github Copilot Chat 視窗跟副駕駛聊天時，善用一些特殊指令語法可讓你事半功倍，我老記不住(另一方面也因為人老了更記不住)，寫篇筆記備忘。</p> <p>【主要參考資料】</p> <ul><li><a href="https://docs.github.com/en/copilot/reference/cheat-sheet">GitHub Copilot Chat cheat sheet</a></li> <li><a href="https://code.visualstudio.com/docs/copilot/chat/copilot-chat-context">Github Copilot Chat / Chat / Manage context for AI</a></li></ul> <h2>聊天參與者（Chat Participants）</h2> <p>拉入聊天參與者，內建專家能提供特定領域的協助。使用 <code>@</code> 可指定參與者名稱。</p> <ul><li><code>@azure</code> | 提供 Azure 服務相關使用、部署與管理協助（目前為公開預覽）</li> <li><code>@github</code> | 使用 GitHub 專屬 Copilot 技能</li> <li><code>@terminal</code> | 提供 VS Code 終端機指令相關協助</li> <li><code>@vscode</code> | 提供 VS Code 指令與功能相關協助</li> <li><code>@workspace</code> | 根據工作區程式碼提供結構、互動與設計模式建議</li></ul> <h2>斜線指令（Slash Commands）</h2> <p><code>/</code> 指令可快速執行指定動作，有些指令可能多個參與者都有提供(例如：/explain @workspace 跟 @terminal 都有)，使用時可在前方加註。</p> <ul><li><code>/clear</code> | 清空視窗現有對話，重新開始新的聊天對話</li> <li><code>/explain</code> | 解釋目前編輯器中的程式碼 (小技巧: <code>/explain in zh-tw</code> 可要求 Copilot 說中文)<br> 例：<code>@workspace /explain 金鑰長度在哪裡決定</code> 解釋目前使用中編輯視窗的程式碼、<code>@terminal /explain 錯誤訊息是什麼意思？</code> 讀終端機(Terminal )視窗的文字進行解釋</li> <li><code>/fix</code> | 提出選取程式碼的修正建議</li> <li><code>/fixTestFailure</code> | 找出並修正失敗的測試</li> <li><code>/help</code> | 顯示 Copilot 基本使用說明</li> <li><code>/new</code> | 建立新專案或新檔案<br> 例：<code>/new README.md</code> (會自動補上 @workspace)、<code>/new python django 網站</code> 依要求試著建立專案，可先預覽生成結果<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638958406470543004.png"></li> <li><code>/newNotebook</code> | 建立 Jupyter Notebook</li> <li><code>/tests</code> | 為選取程式碼產生單元測試</li> <li><code>/setupTests</code> | 為專案產生自動測試</li> <li><code>/search</code> | 用自然語言描述要找什麼，Copilot 幫你想在 VSCode 搜尋的關鍵字</li> <li><code>/startDebugging</code> | 產生 launch.json、tasks.json 等設定檔以進行偵錯</li> <li><code>/list</code> | 列出可用的 Copilot 工具(可供 Copilot 呼叫完成任務)</li></ul> <h2>聊天變數（Chat Variables）</h2> <p>Copilot Chat 輸入欄會自動帶入你正在編輯的檔案、選取的行數範圍，旁邊有 【Add Context...】 鈕可以選取增加，但有時更快的做法是用 <code>#</code> 變數在提示中加入特定上下文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638958406472210243.png"></p> <p>一些常用的 # 變數如下：</p> <ul><li><code>#block</code> | 包含目前程式碼區塊</li> <li><code>#class</code> | 包含目前類別</li> <li><code>#comment</code> | 包含目前註解</li> <li><code>#&lt;file_name&gt;</code> | #直接加檔名，把檔案內容包含進來(若程式檔太大，Copilot 會彙總成函式清單及說明，若還是放不下就放棄) 例如：<code>Add a login button and style it based on #styles.css</code></li> <li><code>#&lt;symbol_name&gt;</code> | #也可用來指定方法、函式或變數名稱，配合 #usages 可以搜尋它在工作區被引用的位置<br> 例如：<code>Where is #getUser used? #usages</code></li> <li><code>#line</code> | 包含目前程式碼行</li> <li><code>#project</code> | 包含專案上下文</li> <li><code>#selection</code> | 包含目前選取文字</li> <li><code>#changes</code> | 包含目前的 Git Changes</li> <li><code>#codebase</code> | 執行完整程式碼庫搜尋，自動找到相關檔案和符號</li> <li><code>#editor</code> | 包含目前編輯器的上下文資訊</li> <li><code>#problems</code> | 引用 Problems 面板(如下圖)中的問題作為上下文<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638958406473924269.png"></li> <li><code>#testFailure</code> | 引用測試失敗的相關資訊</li> <li><code>#terminal</code> | 包含終端機輸出或相關內容</li> <li><code>#fetch</code> | 從指定網頁下載內容作為上下文 例如：<code>#fetch https://petstore.swagger.io/#/ 產生 PUT /pet 範例</code> (連網前會先徵求同意)</li> <li><code>#githubRepo</code> | 在指定的 GitHub 儲存庫中執行程式碼搜尋<br> <code>Build an API endpoint to fetch address info, use the template from #githubRepo contoso/api-templates"</code></li></ul> <p data-slug="copilot-chat-cheatsheet" data-fbimg="https://i.postimg.cc/YSRhHLkS/image.png#1248#702"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>使用 VSCode Github Copilot Chat 視窗跟副駕駛聊天時，善用一些特殊指令語法可讓你事半功倍，我老記不住(另一方面也因為人老了更記不住)，寫篇筆記備忘。</p> <p>【主要參考資料】</p> <ul><li><a href="https://docs.github.com/en/copilot/reference/cheat-sheet">GitHub Copilot Chat cheat sheet</a></li> <li><a href="https://code.visualstudio.com/docs/copilot/chat/copilot-chat-context">Github Copilot Chat / Chat / Manage context for AI</a></li></ul> <h2>聊天參與者（Chat Participants）</h2> <p>拉入聊天參與者，內建專家能提供特定領域的協助。使用 <code>@</code> 可指定參與者名稱。</p> <ul><li><code>@azure</code> | 提供 Azure 服務相關使用、部署與管理協助（目前為公開預覽）</li> <li><code>@github</code> | 使用 GitHub 專屬 Copilot 技能</li> <li><code>@terminal</code> | 提供 VS Code 終端機指令相關協助</li> <li><code>@vscode</code> | 提供 VS Code 指令與功能相關協助</li> <li><code>@workspace</code> | 根據工作區程式碼提供結構、互動與設計模式建議</li></ul> <h2>斜線指令（Slash Commands）</h2> <p><code>/</code> 指令可快速執行指定動作，有些指令可能多個參與者都有提供(例如：/explain @workspace 跟 @terminal 都有)，使用時可在前方加註。</p> <ul><li><code>/clear</code> | 清空視窗現有對話，重新開始新的聊天對話</li> <li><code>/explain</code> | 解釋目前編輯器中的程式碼 (小技巧: <code>/explain in zh-tw</code> 可要求 Copilot 說中文)<br> 例：<code>@workspace /explain 金鑰長度在哪裡決定</code> 解釋目前使用中編輯視窗的程式碼、<code>@terminal /explain 錯誤訊息是什麼意思？</code> 讀終端機(Terminal )視窗的文字進行解釋</li> <li><code>/fix</code> | 提出選取程式碼的修正建議</li> <li><code>/fixTestFailure</code> | 找出並修正失敗的測試</li> <li><code>/help</code> | 顯示 Copilot 基本使用說明</li> <li><code>/new</code> | 建立新專案或新檔案<br> 例：<code>/new README.md</code> (會自動補上 @workspace)、<code>/new python django 網站</code> 依要求試著建立專案，可先預覽生成結果<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638958406470543004.png"></li> <li><code>/newNotebook</code> | 建立 Jupyter Notebook</li> <li><code>/tests</code> | 為選取程式碼產生單元測試</li> <li><code>/setupTests</code> | 為專案產生自動測試</li> <li><code>/search</code> | 用自然語言描述要找什麼，Copilot 幫你想在 VSCode 搜尋的關鍵字</li> <li><code>/startDebugging</code> | 產生 launch.json、tasks.json 等設定檔以進行偵錯</li> <li><code>/list</code> | 列出可用的 Copilot 工具(可供 Copilot 呼叫完成任務)</li></ul> <h2>聊天變數（Chat Variables）</h2> <p>Copilot Chat 輸入欄會自動帶入你正在編輯的檔案、選取的行數範圍，旁邊有 【Add Context...】 鈕可以選取增加，但有時更快的做法是用 <code>#</code> 變數在提示中加入特定上下文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638958406472210243.png"></p> <p>一些常用的 # 變數如下：</p> <ul><li><code>#block</code> | 包含目前程式碼區塊</li> <li><code>#class</code> | 包含目前類別</li> <li><code>#comment</code> | 包含目前註解</li> <li><code>#&lt;file_name&gt;</code> | #直接加檔名，把檔案內容包含進來(若程式檔太大，Copilot 會彙總成函式清單及說明，若還是放不下就放棄) 例如：<code>Add a login button and style it based on #styles.css</code></li> <li><code>#&lt;symbol_name&gt;</code> | #也可用來指定方法、函式或變數名稱，配合 #usages 可以搜尋它在工作區被引用的位置<br> 例如：<code>Where is #getUser used? #usages</code></li> <li><code>#line</code> | 包含目前程式碼行</li> <li><code>#project</code> | 包含專案上下文</li> <li><code>#selection</code> | 包含目前選取文字</li> <li><code>#changes</code> | 包含目前的 Git Changes</li> <li><code>#codebase</code> | 執行完整程式碼庫搜尋，自動找到相關檔案和符號</li> <li><code>#editor</code> | 包含目前編輯器的上下文資訊</li> <li><code>#problems</code> | 引用 Problems 面板(如下圖)中的問題作為上下文<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638958406473924269.png"></li> <li><code>#testFailure</code> | 引用測試失敗的相關資訊</li> <li><code>#terminal</code> | 包含終端機輸出或相關內容</li> <li><code>#fetch</code> | 從指定網頁下載內容作為上下文 例如：<code>#fetch https://petstore.swagger.io/#/ 產生 PUT /pet 範例</code> (連網前會先徵求同意)</li> <li><code>#githubRepo</code> | 在指定的 GitHub 儲存庫中執行程式碼搜尋<br> <code>Build an API endpoint to fetch address info, use the template from #githubRepo contoso/api-templates"</code></li></ul> <p data-slug="copilot-chat-cheatsheet" data-fbimg="https://i.postimg.cc/YSRhHLkS/image.png#1248#702"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>使用 VSCode Github Copilot Chat 視窗跟副駕駛聊天時，善用一些特殊指令語法可讓你事半功倍，我老記不住(另一方面也因為人老了更記不住)，寫篇筆記備忘。</p> <p>【主要參考資料】</p> <ul><li><a href="https://docs.github.com/en/copilot/reference/cheat-sheet">GitHub Copilot Chat cheat sheet</a></li> <li><a href="https://code.visualstudio.com/docs/copilot/chat/copilot-chat-context">Github Copilot Chat / Chat / Manage context for AI</a></li></ul> <h2>聊天參與者（Chat Participants）</h2> <p>拉入聊天參與者，內建專家能提供特定領域的協助。使用 <code>@</code> 可指定參與者名稱。</p> <ul><li><code>@azure</code> | 提供 Azure 服務相關使用、部署與管理協助（目前為公開預覽）</li> <li><code>@github</code> | 使用 GitHub 專屬 Copilot 技能</li> <li><code>@terminal</code> | 提供 VS Code 終端機指令相關協助</li> <li><code>@vscode</code> | 提供 VS Code 指令與功能相關協助</li> <li><code>@workspace</code> | 根據工作區程式碼提供結構、互動與設計模式建議</li></ul> <h2>斜線指令（Slash Commands）</h2> <p><code>/</code> 指令可快速執行指定動作，有些指令可能多個參與者都有提供(例如：/explain @workspace 跟 @terminal 都有)，使用時可在前方加註。</p> <ul><li><code>/clear</code> | 清空視窗現有對話，重新開始新的聊天對話</li> <li><code>/explain</code> | 解釋目前編輯器中的程式碼 (小技巧: <code>/explain in zh-tw</code> 可要求 Copilot 說中文)<br> 例：<code>@workspace /explain 金鑰長度在哪裡決定</code> 解釋目前使用中編輯視窗的程式碼、<code>@terminal /explain 錯誤訊息是什麼意思？</code> 讀終端機(Terminal )視窗的文字進行解釋</li> <li><code>/fix</code> | 提出選取程式碼的修正建議</li> <li><code>/fixTestFailure</code> | 找出並修正失敗的測試</li> <li><code>/help</code> | 顯示 Copilot 基本使用說明</li> <li><code>/new</code> | 建立新專案或新檔案<br> 例：<code>/new README.md</code> (會自動補上 @workspace)、<code>/new python django 網站</code> 依要求試著建立專案，可先預覽生成結果<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638958406470543004.png"></li> <li><code>/newNotebook</code> | 建立 Jupyter Notebook</li> <li><code>/tests</code> | 為選取程式碼產生單元測試</li> <li><code>/setupTests</code> | 為專案產生自動測試</li> <li><code>/search</code> | 用自然語言描述要找什麼，Copilot 幫你想在 VSCode 搜尋的關鍵字</li> <li><code>/startDebugging</code> | 產生 launch.json、tasks.json 等設定檔以進行偵錯</li> <li><code>/list</code> | 列出可用的 Copilot 工具(可供 Copilot 呼叫完成任務)</li></ul> <h2>聊天變數（Chat Variables）</h2> <p>Copilot Chat 輸入欄會自動帶入你正在編輯的檔案、選取的行數範圍，旁邊有 【Add Context...】 鈕可以選取增加，但有時更快的做法是用 <code>#</code> 變數在提示中加入特定上下文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638958406472210243.png"></p> <p>一些常用的 # 變數如下：</p> <ul><li><code>#block</code> | 包含目前程式碼區塊</li> <li><code>#class</code> | 包含目前類別</li> <li><code>#comment</code> | 包含目前註解</li> <li><code>#&lt;file_name&gt;</code> | #直接加檔名，把檔案內容包含進來(若程式檔太大，Copilot 會彙總成函式清單及說明，若還是放不下就放棄) 例如：<code>Add a login button and style it based on #styles.css</code></li> <li><code>#&lt;symbol_name&gt;</code> | #也可用來指定方法、函式或變數名稱，配合 #usages 可以搜尋它在工作區被引用的位置<br> 例如：<code>Where is #getUser used? #usages</code></li> <li><code>#line</code> | 包含目前程式碼行</li> <li><code>#project</code> | 包含專案上下文</li> <li><code>#selection</code> | 包含目前選取文字</li> <li><code>#changes</code> | 包含目前的 Git Changes</li> <li><code>#codebase</code> | 執行完整程式碼庫搜尋，自動找到相關檔案和符號</li> <li><code>#editor</code> | 包含目前編輯器的上下文資訊</li> <li><code>#problems</code> | 引用 Problems 面板(如下圖)中的問題作為上下文<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638958406473924269.png"></li> <li><code>#testFailure</code> | 引用測試失敗的相關資訊</li> <li><code>#terminal</code> | 包含終端機輸出或相關內容</li> <li><code>#fetch</code> | 從指定網頁下載內容作為上下文 例如：<code>#fetch https://petstore.swagger.io/#/ 產生 PUT /pet 範例</code> (連網前會先徵求同意)</li> <li><code>#githubRepo</code> | 在指定的 GitHub 儲存庫中執行程式碼搜尋<br> <code>Build an API endpoint to fetch address info, use the template from #githubRepo contoso/api-templates"</code></li></ul> <p data-slug="copilot-chat-cheatsheet" data-fbimg="https://i.postimg.cc/YSRhHLkS/image.png#1248#702"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638958406470543004.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638958406470543004.png" medium="image"/>
+    <pubDate>Sun, 12 Oct 2025 04:30:21 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[「中文計算機術語速查工具」上線啦~]]></title>
+    <link>https://blog.darkthread.net/blog/chinese-it-term-translation-instant-lookup/</link>
+    <itunes:title><![CDATA[「中文計算機術語速查工具」上線啦~]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這大概是為了喝牛奶養一頭牛的典型案例吧... (笑)</p> <p>許多計算機相關術語，繁體與簡體翻譯及慣用說法不同，有些不難識別，像是記憶體/內存、陣列/數組、影片/視頻... 大家耳熟能詳，但有些如外掛/插件、繫結/綁定、死結/死鎖、回饋/反饋就不是那麼一望便知。至於「行」與「列」則是進入一個「你的列是我的行、你的行是我的列」的奇妙境界... XD (延伸閱讀：<a href="/blog/row-column-translation/">直行橫列？直列橫行？</a>)</p> <p>在我的觀念，語言是溝通工具，用字遣詞讓雙方能懂不生誤會就好，我不會堅持一定得用標準說法。不過有時還是會好奇某個電腦術語在台灣的正確翻譯，最近一個例子是 <a href="/blog/fp-vs-oop/">Functional Programming 是否會取代 OOP</a> 文章提到 High Concurrency，我至少看過三種講法：「高併發」、「高並發」、「高並行」。依據國語辭典，<a href="https://dict.revised.moe.edu.tw/dictView.jsp?ID=19762&amp;la=0&amp;powerMode=0">並行</a> (並排行走/同時進行)、<a href="https://dict.revised.moe.edu.tw/dictView.jsp?ID=19706&amp;q=1&amp;word=%E4%B8%A6%E7%99%BC"></a> (同時發生)應該都講得通，而「高並發」可能是直翻簡體「高并发」，國語辭典查不到「並發」這種寫法。(「<a href="https://dict.concised.moe.edu.tw/dictView.jsp?ID=1801&amp;la=0&amp;powerMode=0">并</a>」字通「併」也通「並」)</p> <p>為了求證，我查了幾個來源：</p> <ul><li><a href="https://zh.wikibooks.org/zh-tw/%E5%A4%A7%E9%99%86%E5%8F%B0%E6%B9%BE%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%9C%AF%E8%AF%AD%E5%AF%B9%E7%85%A7%E8%A1%A8">維基教科書：大陸台灣計算機術語對照表</a> Concurrency = 並行性，並行</li> <li><a href="http://www.iicm.org.tw/term/termb_C.htm">電腦名詞譯名</a> concurrency = 同作；並行</li> <li><a href="https://zh.wikipedia.org/wiki/Module:CGroup/IT">維基百科/資訊科技公共轉換組</a> concurrency = 並行</li></ul> <p>3:0，正確答案揭曉：Concurrency 公認的正統台灣翻譯應為「並行」。</p> <p>類似需求都要這樣查或丟給 LLM 翻譯有點沒效率，於是我想寫個能用關鍵字快速查詢的網頁介面，像是這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638957873486756323.png"></p> <p>研究了一下，維基百科的字詞轉換處理/公共轉換組資料感覺是不錯的來源。第一是維基百科本身具備一定權威性，翻譯出錯會有社群機制修正，而其相關詞庫涵蓋 IT、遊戲、Apple/Microsoft 作業系統、電子、通訊... 等，超過 1400 條挺豐富完整，除了 zh-tw、zh-cn、zh-hk，甚至還有少量 zh-sg (新加坡)、zh-mo (澳門)、zh-my (馬來西亞)，還是中文翻釋的大總匯，再加上它提供接近結構化資料的原始碼格式，處理難度最低，就決定是它了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638957873489935591.png"></p> <p>不過我很快發現公共轉換組少了一些很基本的計算機術語，例如：Copy、Domain、Pseudo Code... 就再花了一點時間把「大陸台灣計算機術語對照表」的四百多條也整合進去(這類匯入工具是適合 Vibe Coding 的經典應用，我順勢享受泡杯茶等 Copilot 把程式改到好的神奇體驗，如下圖)，用不高的成本捏出一個勉強及格的計算機相關中文術語庫。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638957873493101988.png" alt="thumbnail"></p> <p>程式不複雜，只要有心不難用 AI 刻一個，就不花篇幅貼原始碼了，查詢網頁我已放上 Github Page - <a href="https://darkthread.github.io/comp-terms/">中文計算機術語速查工具</a>，需要牛奶的朋友請自取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638957873495650411.png"></p> <p>至對養牛有興趣的同學，以下是我覺得值得分享的技術細節，並一併附上<a href="https://github.com/darkthread/darkthread.github.io/blob/master/comp-terms/index.html">原始碼</a>：</p> <ul><li>介面我是用 Vue.js MVVM 寫法，但採輕前端風格，不用 TypeScript，不需要 npm，不必編譯，HTML <code>&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;</code> 載入 Vue.js 程式庫，寫幾行 JavaScript 搞定，這是我目前最愛的前端開發方式，適合無暇投入大多時間鑽究前端的全端攻城獅。<br> 參考：<a href="/blog/vue-mvvm-tutorial/">體驗美妙的輕前端 MVVM - Vue.js 入門教學資源</a></li> <li>輸入關鍵字元即時顯示查詢結果的範例我寫過很多，它的操作體驗比打完按 Enter 查好很多，但易有輸入過程顯示大量非查詢對象及畫面過度閃動問題，我是使用 Debounce 技巧克服。<br> 參考：<a href="/blog/vue-model-debounce/">Vue 練習：關鍵字即時查詢之去抖動(Debounce)處理</a></li> <li>Vue 顯示表格遇筆數過多時易有卡頓、畫面短暫空白問題，本次的案例不到 1500 筆，卡頓空白情況還算輕微，就不搬出虛擬捲動 (Virtual Scrolling) 這把牛刀了。<br> 參考：<a href="/blog/virtual-scrolling/">前端練習 - 讓數十萬筆的超大表格也能流暢捲動</a></li> <li>關鍵字輸入欄位自帶 X 鈕可清空輸入文字，用的是昨天提到自己捏的原生客製 HTML 元素，支援 Vue v-model 資料繫結。<br> 參考：<a href="/blog/cust-html-input-element-w-v-model/">手捏支援 Vue v-model 的可清除文字輸入框</a></li> <li>我寫了 PowerShell，使用 Regular Expression 從 ‵Item('computer', '电子计算机=&gt;zh-sg:电脑; 电子计算机=&gt;zh-my:电脑; 电子计算机=&gt;zh-tw:電腦; 电子计算机=&gt;zh-hk:電腦; 电子计算机=&gt;zh-mo:電腦;'),` 取出各語系的對應翻譯，有些詞條只有 zh-hant 及 zh-hans，我的做法是將其視為 zh-tw 及 zh-cn。同一英文出現多次時，先去取重複者再使用 ; 合併。</li> <li>匯入的維基詞條我人工做了簡單篩選，拿掉一些公司或機關名稱，以及 drive - D drive / 本機磁碟(D) 這類瑣碎名詞，但篩得很隨興，不保證品質。</li></ul> <p data-slug="chinese-it-term-translation-instant-lookup" data-title-en="Chinese IT terminology translation" data-catg="Web Development" data-fbimg="">Introduced a quick search tool for Chinese IT terminology translations, leveraging Wikipedia’s public conversion data and Vue.js for a lightweight, instant lookup interface.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這大概是為了喝牛奶養一頭牛的典型案例吧... (笑)</p> <p>許多計算機相關術語，繁體與簡體翻譯及慣用說法不同，有些不難識別，像是記憶體/內存、陣列/數組、影片/視頻... 大家耳熟能詳，但有些如外掛/插件、繫結/綁定、死結/死鎖、回饋/反饋就不是那麼一望便知。至於「行」與「列」則是進入一個「你的列是我的行、你的行是我的列」的奇妙境界... XD (延伸閱讀：<a href="/blog/row-column-translation/">直行橫列？直列橫行？</a>)</p> <p>在我的觀念，語言是溝通工具，用字遣詞讓雙方能懂不生誤會就好，我不會堅持一定得用標準說法。不過有時還是會好奇某個電腦術語在台灣的正確翻譯，最近一個例子是 <a href="/blog/fp-vs-oop/">Functional Programming 是否會取代 OOP</a> 文章提到 High Concurrency，我至少看過三種講法：「高併發」、「高並發」、「高並行」。依據國語辭典，<a href="https://dict.revised.moe.edu.tw/dictView.jsp?ID=19762&amp;la=0&amp;powerMode=0">並行</a> (並排行走/同時進行)、<a href="https://dict.revised.moe.edu.tw/dictView.jsp?ID=19706&amp;q=1&amp;word=%E4%B8%A6%E7%99%BC"></a> (同時發生)應該都講得通，而「高並發」可能是直翻簡體「高并发」，國語辭典查不到「並發」這種寫法。(「<a href="https://dict.concised.moe.edu.tw/dictView.jsp?ID=1801&amp;la=0&amp;powerMode=0">并</a>」字通「併」也通「並」)</p> <p>為了求證，我查了幾個來源：</p> <ul><li><a href="https://zh.wikibooks.org/zh-tw/%E5%A4%A7%E9%99%86%E5%8F%B0%E6%B9%BE%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%9C%AF%E8%AF%AD%E5%AF%B9%E7%85%A7%E8%A1%A8">維基教科書：大陸台灣計算機術語對照表</a> Concurrency = 並行性，並行</li> <li><a href="http://www.iicm.org.tw/term/termb_C.htm">電腦名詞譯名</a> concurrency = 同作；並行</li> <li><a href="https://zh.wikipedia.org/wiki/Module:CGroup/IT">維基百科/資訊科技公共轉換組</a> concurrency = 並行</li></ul> <p>3:0，正確答案揭曉：Concurrency 公認的正統台灣翻譯應為「並行」。</p> <p>類似需求都要這樣查或丟給 LLM 翻譯有點沒效率，於是我想寫個能用關鍵字快速查詢的網頁介面，像是這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638957873486756323.png"></p> <p>研究了一下，維基百科的字詞轉換處理/公共轉換組資料感覺是不錯的來源。第一是維基百科本身具備一定權威性，翻譯出錯會有社群機制修正，而其相關詞庫涵蓋 IT、遊戲、Apple/Microsoft 作業系統、電子、通訊... 等，超過 1400 條挺豐富完整，除了 zh-tw、zh-cn、zh-hk，甚至還有少量 zh-sg (新加坡)、zh-mo (澳門)、zh-my (馬來西亞)，還是中文翻釋的大總匯，再加上它提供接近結構化資料的原始碼格式，處理難度最低，就決定是它了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638957873489935591.png"></p> <p>不過我很快發現公共轉換組少了一些很基本的計算機術語，例如：Copy、Domain、Pseudo Code... 就再花了一點時間把「大陸台灣計算機術語對照表」的四百多條也整合進去(這類匯入工具是適合 Vibe Coding 的經典應用，我順勢享受泡杯茶等 Copilot 把程式改到好的神奇體驗，如下圖)，用不高的成本捏出一個勉強及格的計算機相關中文術語庫。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638957873493101988.png" alt="thumbnail"></p> <p>程式不複雜，只要有心不難用 AI 刻一個，就不花篇幅貼原始碼了，查詢網頁我已放上 Github Page - <a href="https://darkthread.github.io/comp-terms/">中文計算機術語速查工具</a>，需要牛奶的朋友請自取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638957873495650411.png"></p> <p>至對養牛有興趣的同學，以下是我覺得值得分享的技術細節，並一併附上<a href="https://github.com/darkthread/darkthread.github.io/blob/master/comp-terms/index.html">原始碼</a>：</p> <ul><li>介面我是用 Vue.js MVVM 寫法，但採輕前端風格，不用 TypeScript，不需要 npm，不必編譯，HTML <code>&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;</code> 載入 Vue.js 程式庫，寫幾行 JavaScript 搞定，這是我目前最愛的前端開發方式，適合無暇投入大多時間鑽究前端的全端攻城獅。<br> 參考：<a href="/blog/vue-mvvm-tutorial/">體驗美妙的輕前端 MVVM - Vue.js 入門教學資源</a></li> <li>輸入關鍵字元即時顯示查詢結果的範例我寫過很多，它的操作體驗比打完按 Enter 查好很多，但易有輸入過程顯示大量非查詢對象及畫面過度閃動問題，我是使用 Debounce 技巧克服。<br> 參考：<a href="/blog/vue-model-debounce/">Vue 練習：關鍵字即時查詢之去抖動(Debounce)處理</a></li> <li>Vue 顯示表格遇筆數過多時易有卡頓、畫面短暫空白問題，本次的案例不到 1500 筆，卡頓空白情況還算輕微，就不搬出虛擬捲動 (Virtual Scrolling) 這把牛刀了。<br> 參考：<a href="/blog/virtual-scrolling/">前端練習 - 讓數十萬筆的超大表格也能流暢捲動</a></li> <li>關鍵字輸入欄位自帶 X 鈕可清空輸入文字，用的是昨天提到自己捏的原生客製 HTML 元素，支援 Vue v-model 資料繫結。<br> 參考：<a href="/blog/cust-html-input-element-w-v-model/">手捏支援 Vue v-model 的可清除文字輸入框</a></li> <li>我寫了 PowerShell，使用 Regular Expression 從 ‵Item('computer', '电子计算机=&gt;zh-sg:电脑; 电子计算机=&gt;zh-my:电脑; 电子计算机=&gt;zh-tw:電腦; 电子计算机=&gt;zh-hk:電腦; 电子计算机=&gt;zh-mo:電腦;'),` 取出各語系的對應翻譯，有些詞條只有 zh-hant 及 zh-hans，我的做法是將其視為 zh-tw 及 zh-cn。同一英文出現多次時，先去取重複者再使用 ; 合併。</li> <li>匯入的維基詞條我人工做了簡單篩選，拿掉一些公司或機關名稱，以及 drive - D drive / 本機磁碟(D) 這類瑣碎名詞，但篩得很隨興，不保證品質。</li></ul> <p data-slug="chinese-it-term-translation-instant-lookup" data-title-en="Chinese IT terminology translation" data-catg="Web Development" data-fbimg="">Introduced a quick search tool for Chinese IT terminology translations, leveraging Wikipedia’s public conversion data and Vue.js for a lightweight, instant lookup interface.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這大概是為了喝牛奶養一頭牛的典型案例吧... (笑)</p> <p>許多計算機相關術語，繁體與簡體翻譯及慣用說法不同，有些不難識別，像是記憶體/內存、陣列/數組、影片/視頻... 大家耳熟能詳，但有些如外掛/插件、繫結/綁定、死結/死鎖、回饋/反饋就不是那麼一望便知。至於「行」與「列」則是進入一個「你的列是我的行、你的行是我的列」的奇妙境界... XD (延伸閱讀：<a href="/blog/row-column-translation/">直行橫列？直列橫行？</a>)</p> <p>在我的觀念，語言是溝通工具，用字遣詞讓雙方能懂不生誤會就好，我不會堅持一定得用標準說法。不過有時還是會好奇某個電腦術語在台灣的正確翻譯，最近一個例子是 <a href="/blog/fp-vs-oop/">Functional Programming 是否會取代 OOP</a> 文章提到 High Concurrency，我至少看過三種講法：「高併發」、「高並發」、「高並行」。依據國語辭典，<a href="https://dict.revised.moe.edu.tw/dictView.jsp?ID=19762&amp;la=0&amp;powerMode=0">並行</a> (並排行走/同時進行)、<a href="https://dict.revised.moe.edu.tw/dictView.jsp?ID=19706&amp;q=1&amp;word=%E4%B8%A6%E7%99%BC"></a> (同時發生)應該都講得通，而「高並發」可能是直翻簡體「高并发」，國語辭典查不到「並發」這種寫法。(「<a href="https://dict.concised.moe.edu.tw/dictView.jsp?ID=1801&amp;la=0&amp;powerMode=0">并</a>」字通「併」也通「並」)</p> <p>為了求證，我查了幾個來源：</p> <ul><li><a href="https://zh.wikibooks.org/zh-tw/%E5%A4%A7%E9%99%86%E5%8F%B0%E6%B9%BE%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%9C%AF%E8%AF%AD%E5%AF%B9%E7%85%A7%E8%A1%A8">維基教科書：大陸台灣計算機術語對照表</a> Concurrency = 並行性，並行</li> <li><a href="http://www.iicm.org.tw/term/termb_C.htm">電腦名詞譯名</a> concurrency = 同作；並行</li> <li><a href="https://zh.wikipedia.org/wiki/Module:CGroup/IT">維基百科/資訊科技公共轉換組</a> concurrency = 並行</li></ul> <p>3:0，正確答案揭曉：Concurrency 公認的正統台灣翻譯應為「並行」。</p> <p>類似需求都要這樣查或丟給 LLM 翻譯有點沒效率，於是我想寫個能用關鍵字快速查詢的網頁介面，像是這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638957873486756323.png"></p> <p>研究了一下，維基百科的字詞轉換處理/公共轉換組資料感覺是不錯的來源。第一是維基百科本身具備一定權威性，翻譯出錯會有社群機制修正，而其相關詞庫涵蓋 IT、遊戲、Apple/Microsoft 作業系統、電子、通訊... 等，超過 1400 條挺豐富完整，除了 zh-tw、zh-cn、zh-hk，甚至還有少量 zh-sg (新加坡)、zh-mo (澳門)、zh-my (馬來西亞)，還是中文翻釋的大總匯，再加上它提供接近結構化資料的原始碼格式，處理難度最低，就決定是它了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638957873489935591.png"></p> <p>不過我很快發現公共轉換組少了一些很基本的計算機術語，例如：Copy、Domain、Pseudo Code... 就再花了一點時間把「大陸台灣計算機術語對照表」的四百多條也整合進去(這類匯入工具是適合 Vibe Coding 的經典應用，我順勢享受泡杯茶等 Copilot 把程式改到好的神奇體驗，如下圖)，用不高的成本捏出一個勉強及格的計算機相關中文術語庫。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638957873493101988.png" alt="thumbnail"></p> <p>程式不複雜，只要有心不難用 AI 刻一個，就不花篇幅貼原始碼了，查詢網頁我已放上 Github Page - <a href="https://darkthread.github.io/comp-terms/">中文計算機術語速查工具</a>，需要牛奶的朋友請自取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638957873495650411.png"></p> <p>至對養牛有興趣的同學，以下是我覺得值得分享的技術細節，並一併附上<a href="https://github.com/darkthread/darkthread.github.io/blob/master/comp-terms/index.html">原始碼</a>：</p> <ul><li>介面我是用 Vue.js MVVM 寫法，但採輕前端風格，不用 TypeScript，不需要 npm，不必編譯，HTML <code>&lt;script src="https://unpkg.com/vue@3"&gt;&lt;/script&gt;</code> 載入 Vue.js 程式庫，寫幾行 JavaScript 搞定，這是我目前最愛的前端開發方式，適合無暇投入大多時間鑽究前端的全端攻城獅。<br> 參考：<a href="/blog/vue-mvvm-tutorial/">體驗美妙的輕前端 MVVM - Vue.js 入門教學資源</a></li> <li>輸入關鍵字元即時顯示查詢結果的範例我寫過很多，它的操作體驗比打完按 Enter 查好很多，但易有輸入過程顯示大量非查詢對象及畫面過度閃動問題，我是使用 Debounce 技巧克服。<br> 參考：<a href="/blog/vue-model-debounce/">Vue 練習：關鍵字即時查詢之去抖動(Debounce)處理</a></li> <li>Vue 顯示表格遇筆數過多時易有卡頓、畫面短暫空白問題，本次的案例不到 1500 筆，卡頓空白情況還算輕微，就不搬出虛擬捲動 (Virtual Scrolling) 這把牛刀了。<br> 參考：<a href="/blog/virtual-scrolling/">前端練習 - 讓數十萬筆的超大表格也能流暢捲動</a></li> <li>關鍵字輸入欄位自帶 X 鈕可清空輸入文字，用的是昨天提到自己捏的原生客製 HTML 元素，支援 Vue v-model 資料繫結。<br> 參考：<a href="/blog/cust-html-input-element-w-v-model/">手捏支援 Vue v-model 的可清除文字輸入框</a></li> <li>我寫了 PowerShell，使用 Regular Expression 從 ‵Item('computer', '电子计算机=&gt;zh-sg:电脑; 电子计算机=&gt;zh-my:电脑; 电子计算机=&gt;zh-tw:電腦; 电子计算机=&gt;zh-hk:電腦; 电子计算机=&gt;zh-mo:電腦;'),` 取出各語系的對應翻譯，有些詞條只有 zh-hant 及 zh-hans，我的做法是將其視為 zh-tw 及 zh-cn。同一英文出現多次時，先去取重複者再使用 ; 合併。</li> <li>匯入的維基詞條我人工做了簡單篩選，拿掉一些公司或機關名稱，以及 drive - D drive / 本機磁碟(D) 這類瑣碎名詞，但篩得很隨興，不保證品質。</li></ul> <p data-slug="chinese-it-term-translation-instant-lookup" data-title-en="Chinese IT terminology translation" data-catg="Web Development" data-fbimg="">Introduced a quick search tool for Chinese IT terminology translations, leveraging Wikipedia’s public conversion data and Vue.js for a lightweight, instant lookup interface.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638957873486756323.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638957873486756323.png" medium="image"/>
+    <pubDate>Sat, 11 Oct 2025 14:28:32 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[手捏支援 Vue v-model 的可清除文字輸入框]]></title>
+    <link>https://blog.darkthread.net/blog/cust-html-input-element-w-v-model/</link>
+    <itunes:title><![CDATA[手捏支援 Vue v-model 的可清除文字輸入框]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>自從 IE 登出，Trident 版 Edge 被放生，瀏覽器重回大一統時代。有別於前次的 IE 王朝，當今主宰前端的 Chromium 配備的 HTML / JavaScript / CSS 規格完備，功能與二十年前不可同日而語，且會自動更新不用太擔心支援問題，現在寫前端輕鬆許多。</p> <p>2016 加入的<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂 HTML 元素</a>功能深得我心，自訂元素這檔事幾乎所有前端框架都有自己的玩法，我玩過 <a href="/blog/ko-component/">knockout.js</a>、<a href="/blog/angular-notes-23/">AngularJS</a>、<a href="https://vuejs.org/guide/essentials/component-basics">Vue.js</a>，每個都有，甚至早在 IE6 時代，微軟也有自家的網頁元件技術 - .htc <a href="https://learn.microsoft.com/en-us/openspecs/ie_standards/ms-html401e/36bd9386-cd5f-4bfe-8dec-5efc865a689c?WT.mc_id=DOP-MVP-37580">HTML Component</a>。自訂網頁元件，易於設計維護擴充重用，就像在前端 UI 實踐物件導向設計，好處很多。如今瀏覽器原生支援自訂網頁元素，不需依賴任何框架，效能更佳，運用起來更靈活。</p> <p>UI 元素行為封裝成自訂 HTML 元素，最大好處是享受物件導向設計的低耦合與觀注點分離，大大提高程式碼可重用性及可維護性。原生 HTML 自訂元素之前曾玩過一回，做了<a href="/blog/js-rolling-dice/">會滾動的骰子</a>，這回遇到另一個小需求，我想寫過自帶 X 鈕可清空內容的文字輸入框。</p> <p>要做個帶 X 鈕的文字輸入框不難，一個 <code>&lt;input type="text"&gt;</code> 配上用 CSS 排版及自動隱藏的 <code>&lt;button&gt;</code> 就可以搞定，但我有個額外需求是想支援 Vue.js 的 v-model 繫結，讓它可以當成一般的 <code>&lt;input type="text"&gt;</code> 使用。</p> <p>先展示成果：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;自帶清除鈕文字欄位 Web Component (支援 Vue v-model)&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.js"&gt;&lt;/script&gt;
+&lt;script src="textInputWithClearBtn.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+body {
+font-family: Arial, sans-serif;
+margin: 20px;
+}
+h2 {
+color: #444;
+}
+input-with-clear-button {
+margin-bottom: 10px;
+display: block;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h2&gt;自帶清除鈕文字欄位&lt;/h2&gt;
+&lt;input-with-clear-button id="t1" placeholder="Type something..."&gt;&lt;/input-with-clear-button&gt;
+&lt;input-with-clear-button id="t2" value="Hello World"&gt;&lt;/input-with-clear-button&gt;
+&lt;button onclick="showValues()"&gt;Check Values&lt;/button&gt;
+&lt;pre id="results"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+function showValues() {
+document.getElementById('results').textContent =
+`t1: "${document.getElementById('t1').value}"
+t2: "${document.getElementById('t2').value}"`;
+}
+&lt;/script&gt;
+&lt;hr&gt;
+&lt;div id="app"&gt;
+&lt;h2&gt;配合 Vue3 v-model 使用&lt;/h2&gt;
+&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;&lt;/input-with-clear-button&gt;
+&lt;p&gt;Vue Data Value: {{ searchText }}&lt;/p&gt;
+&lt;button @click="searchText = 'Hello Vue3'"&gt;Set Value&lt;/button&gt;
+&lt;button @click="searchText = ''"&gt;Clear&lt;/button&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const { createApp } = Vue;
+createApp({
+data() {
+return {
+searchText: 'Init Value'
+}
+}
+}).mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>以上網頁展示單獨使用 <code>&lt;input-with-clear-button&gt;</code>，使用 <code>document.getElementById('t1').value</code> 取值，以及 <code>&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;</code> 以 v-model 整合 Vue.js MVVM，兩種玩法都支援：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif"></p> <p><code>&lt;input-with-clear-button&gt;</code> 定義我寫在獨立 textInputWithClearBtn.js，補充幾個小細節：</p> <ul><li>用 <a href="https://developer.mozilla.org/zh-TW/docs/Glossary/IIFE">IIFE</a> 把定義元件的邏輯包起來，可避免其變數名稱跟其他程式打架。</li> <li>最早我想到的做法是在 HTML 模版內嵌 <code>&lt;style&gt;</code>指定樣式，缺點是每次產生元件 HTML 會重複一次樣式宣告，累贅又沒效率。改用 new CSSStyleSheet()、.replaceSync() 定義 CSS 樣式，HTML 元件透過 adoptedStyleSheets() 共用樣式，優雅多了。</li> <li>observedAttributes() 配合 attributeChangedCallback(name, oldValue, newValue) 可在 Attribute 異動時觸發處理邏輯。</li> <li>實測實作 get value() / set value() 後，<code>&lt;input type="text"&gt;</code> 的按鍵動作便會觸發 Vue v-model 繫結，但按清除鈕 input.value = '' 時需另外呼叫 <code>this.dispatchEvent(new Event('input', { bubbles: true }));</code> 模擬 input 事件。</li></ul> <pre><code>(function() {
+// 建立共用的 CSSStyleSheet
+const sharedStyles = new CSSStyleSheet();
+sharedStyles.replaceSync(`
+.text-input-w-clr-btn {
+position: relative;
+display: inline-block;
+margin: 10px 0;
+input {
+padding: 8px 30px 8px 10px;
+font-size: 14px;
+border: 1px solid #ccc;
+border-radius: 4px;
+outline: none;
+min-width: 250px;
+&amp;:focus { border-color: #4CAF50; }
+&amp;:not(:placeholder-shown)~.clear-btn {
+display: block;
+}
+}
+.clear-btn {
+position: absolute;
+right: 8px;
+top: 50%;
+transform: translateY(-50%);
+background: none;
+border: none;
+cursor: pointer;
+color: #999;
+font-size: 18px;
+padding: 0;
+width: 20px;
+height: 20px;
+line-height: 20px;
+text-align: center;
+display: none;
+&amp;:hover { color: #333;}
+}
+}
+`);
+class CustomInput extends HTMLElement {
+// 宣告要監聽的屬性
+static get observedAttributes() {
+return ['value'];
+}
+constructor() {
+super();
+this.attachShadow({ mode: 'open' });
+this.shadowRoot.adoptedStyleSheets = [sharedStyles];
+}
+// 元素插入 DOM 時觸發
+connectedCallback() {
+// 取得 placeholder 屬性值，若無則使用預設值
+const placeholder = this.getAttribute('placeholder') || 'Enter text...';
+const initialValue = this.getAttribute('value') || '';
+// 產生元件 HTML
+this.shadowRoot.innerHTML = `
+&lt;div class="text-input-w-clr-btn"&gt;
+&lt;input type="text" placeholder="${placeholder}" value="${initialValue}"&gt;
+&lt;button class="clear-btn" type="button"&gt;×&lt;/button&gt;
+&lt;/div&gt;
+`;
+const input = this.shadowRoot.querySelector('input');
+const clearBtn = this.shadowRoot.querySelector('.clear-btn');
+clearBtn.addEventListener('click', () =&gt; {
+input.value = '';
+input.focus();
+this.dispatchEvent(new Event('input', { bubbles: true }));
+});
+}
+// 元素從 DOM 移除時觸發
+disconnectedCallback() {
+}
+// 當屬性變更時同步更新 input 值
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value' &amp;&amp; this.shadowRoot) {
+const input = this.shadowRoot.querySelector('input');
+if (input &amp;&amp; input.value !== newValue) {
+input.value = newValue || '';
+}
+}
+}
+// 提供 value 的 getter/setter 供 Vue3 使用
+get value() {
+return this.shadowRoot?.querySelector('input')?.value || '';
+}
+set value(val) {
+const input = this.shadowRoot?.querySelector('input');
+input &amp;&amp; (input.value = val || '');
+}
+}
+customElements.define('input-with-clear-button', CustomInput);
+})();
+</code></pre> <p>附上<a href="https://darkthread.github.io/comp-terms/web-com-demo.html">線上展示</a></p> <p>註：用原生自訂 HTML 元素跟 Vue 整合，訴求是彈性，可單獨使用不一定綁死 Vue；但若開發環境確定有 Vue 且元件行為跟 Vue 緊密融合，則建議用 Vue 寫自訂元件比較省力。</p> <p data-slug="cust-html-input-element-w-v-model" data-title-en="Native custom HTML input element supporting Vue v-model" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/20/34/potter-2793345_960_720.jpg#1280#851">Showcases a native custom HTML input element with a clear (X) button, supporting both standalone use and Vue v-model binding for better reusability and maintainability.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>自從 IE 登出，Trident 版 Edge 被放生，瀏覽器重回大一統時代。有別於前次的 IE 王朝，當今主宰前端的 Chromium 配備的 HTML / JavaScript / CSS 規格完備，功能與二十年前不可同日而語，且會自動更新不用太擔心支援問題，現在寫前端輕鬆許多。</p> <p>2016 加入的<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂 HTML 元素</a>功能深得我心，自訂元素這檔事幾乎所有前端框架都有自己的玩法，我玩過 <a href="/blog/ko-component/">knockout.js</a>、<a href="/blog/angular-notes-23/">AngularJS</a>、<a href="https://vuejs.org/guide/essentials/component-basics">Vue.js</a>，每個都有，甚至早在 IE6 時代，微軟也有自家的網頁元件技術 - .htc <a href="https://learn.microsoft.com/en-us/openspecs/ie_standards/ms-html401e/36bd9386-cd5f-4bfe-8dec-5efc865a689c?WT.mc_id=DOP-MVP-37580">HTML Component</a>。自訂網頁元件，易於設計維護擴充重用，就像在前端 UI 實踐物件導向設計，好處很多。如今瀏覽器原生支援自訂網頁元素，不需依賴任何框架，效能更佳，運用起來更靈活。</p> <p>UI 元素行為封裝成自訂 HTML 元素，最大好處是享受物件導向設計的低耦合與觀注點分離，大大提高程式碼可重用性及可維護性。原生 HTML 自訂元素之前曾玩過一回，做了<a href="/blog/js-rolling-dice/">會滾動的骰子</a>，這回遇到另一個小需求，我想寫過自帶 X 鈕可清空內容的文字輸入框。</p> <p>要做個帶 X 鈕的文字輸入框不難，一個 <code>&lt;input type="text"&gt;</code> 配上用 CSS 排版及自動隱藏的 <code>&lt;button&gt;</code> 就可以搞定，但我有個額外需求是想支援 Vue.js 的 v-model 繫結，讓它可以當成一般的 <code>&lt;input type="text"&gt;</code> 使用。</p> <p>先展示成果：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;自帶清除鈕文字欄位 Web Component (支援 Vue v-model)&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.js"&gt;&lt;/script&gt;
+&lt;script src="textInputWithClearBtn.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+body {
+font-family: Arial, sans-serif;
+margin: 20px;
+}
+h2 {
+color: #444;
+}
+input-with-clear-button {
+margin-bottom: 10px;
+display: block;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h2&gt;自帶清除鈕文字欄位&lt;/h2&gt;
+&lt;input-with-clear-button id="t1" placeholder="Type something..."&gt;&lt;/input-with-clear-button&gt;
+&lt;input-with-clear-button id="t2" value="Hello World"&gt;&lt;/input-with-clear-button&gt;
+&lt;button onclick="showValues()"&gt;Check Values&lt;/button&gt;
+&lt;pre id="results"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+function showValues() {
+document.getElementById('results').textContent =
+`t1: "${document.getElementById('t1').value}"
+t2: "${document.getElementById('t2').value}"`;
+}
+&lt;/script&gt;
+&lt;hr&gt;
+&lt;div id="app"&gt;
+&lt;h2&gt;配合 Vue3 v-model 使用&lt;/h2&gt;
+&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;&lt;/input-with-clear-button&gt;
+&lt;p&gt;Vue Data Value: {{ searchText }}&lt;/p&gt;
+&lt;button @click="searchText = 'Hello Vue3'"&gt;Set Value&lt;/button&gt;
+&lt;button @click="searchText = ''"&gt;Clear&lt;/button&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const { createApp } = Vue;
+createApp({
+data() {
+return {
+searchText: 'Init Value'
+}
+}
+}).mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>以上網頁展示單獨使用 <code>&lt;input-with-clear-button&gt;</code>，使用 <code>document.getElementById('t1').value</code> 取值，以及 <code>&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;</code> 以 v-model 整合 Vue.js MVVM，兩種玩法都支援：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif"></p> <p><code>&lt;input-with-clear-button&gt;</code> 定義我寫在獨立 textInputWithClearBtn.js，補充幾個小細節：</p> <ul><li>用 <a href="https://developer.mozilla.org/zh-TW/docs/Glossary/IIFE">IIFE</a> 把定義元件的邏輯包起來，可避免其變數名稱跟其他程式打架。</li> <li>最早我想到的做法是在 HTML 模版內嵌 <code>&lt;style&gt;</code>指定樣式，缺點是每次產生元件 HTML 會重複一次樣式宣告，累贅又沒效率。改用 new CSSStyleSheet()、.replaceSync() 定義 CSS 樣式，HTML 元件透過 adoptedStyleSheets() 共用樣式，優雅多了。</li> <li>observedAttributes() 配合 attributeChangedCallback(name, oldValue, newValue) 可在 Attribute 異動時觸發處理邏輯。</li> <li>實測實作 get value() / set value() 後，<code>&lt;input type="text"&gt;</code> 的按鍵動作便會觸發 Vue v-model 繫結，但按清除鈕 input.value = '' 時需另外呼叫 <code>this.dispatchEvent(new Event('input', { bubbles: true }));</code> 模擬 input 事件。</li></ul> <pre><code>(function() {
+// 建立共用的 CSSStyleSheet
+const sharedStyles = new CSSStyleSheet();
+sharedStyles.replaceSync(`
+.text-input-w-clr-btn {
+position: relative;
+display: inline-block;
+margin: 10px 0;
+input {
+padding: 8px 30px 8px 10px;
+font-size: 14px;
+border: 1px solid #ccc;
+border-radius: 4px;
+outline: none;
+min-width: 250px;
+&amp;:focus { border-color: #4CAF50; }
+&amp;:not(:placeholder-shown)~.clear-btn {
+display: block;
+}
+}
+.clear-btn {
+position: absolute;
+right: 8px;
+top: 50%;
+transform: translateY(-50%);
+background: none;
+border: none;
+cursor: pointer;
+color: #999;
+font-size: 18px;
+padding: 0;
+width: 20px;
+height: 20px;
+line-height: 20px;
+text-align: center;
+display: none;
+&amp;:hover { color: #333;}
+}
+}
+`);
+class CustomInput extends HTMLElement {
+// 宣告要監聽的屬性
+static get observedAttributes() {
+return ['value'];
+}
+constructor() {
+super();
+this.attachShadow({ mode: 'open' });
+this.shadowRoot.adoptedStyleSheets = [sharedStyles];
+}
+// 元素插入 DOM 時觸發
+connectedCallback() {
+// 取得 placeholder 屬性值，若無則使用預設值
+const placeholder = this.getAttribute('placeholder') || 'Enter text...';
+const initialValue = this.getAttribute('value') || '';
+// 產生元件 HTML
+this.shadowRoot.innerHTML = `
+&lt;div class="text-input-w-clr-btn"&gt;
+&lt;input type="text" placeholder="${placeholder}" value="${initialValue}"&gt;
+&lt;button class="clear-btn" type="button"&gt;×&lt;/button&gt;
+&lt;/div&gt;
+`;
+const input = this.shadowRoot.querySelector('input');
+const clearBtn = this.shadowRoot.querySelector('.clear-btn');
+clearBtn.addEventListener('click', () =&gt; {
+input.value = '';
+input.focus();
+this.dispatchEvent(new Event('input', { bubbles: true }));
+});
+}
+// 元素從 DOM 移除時觸發
+disconnectedCallback() {
+}
+// 當屬性變更時同步更新 input 值
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value' &amp;&amp; this.shadowRoot) {
+const input = this.shadowRoot.querySelector('input');
+if (input &amp;&amp; input.value !== newValue) {
+input.value = newValue || '';
+}
+}
+}
+// 提供 value 的 getter/setter 供 Vue3 使用
+get value() {
+return this.shadowRoot?.querySelector('input')?.value || '';
+}
+set value(val) {
+const input = this.shadowRoot?.querySelector('input');
+input &amp;&amp; (input.value = val || '');
+}
+}
+customElements.define('input-with-clear-button', CustomInput);
+})();
+</code></pre> <p>附上<a href="https://darkthread.github.io/comp-terms/web-com-demo.html">線上展示</a></p> <p>註：用原生自訂 HTML 元素跟 Vue 整合，訴求是彈性，可單獨使用不一定綁死 Vue；但若開發環境確定有 Vue 且元件行為跟 Vue 緊密融合，則建議用 Vue 寫自訂元件比較省力。</p> <p data-slug="cust-html-input-element-w-v-model" data-title-en="Native custom HTML input element supporting Vue v-model" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/20/34/potter-2793345_960_720.jpg#1280#851">Showcases a native custom HTML input element with a clear (X) button, supporting both standalone use and Vue v-model binding for better reusability and maintainability.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>自從 IE 登出，Trident 版 Edge 被放生，瀏覽器重回大一統時代。有別於前次的 IE 王朝，當今主宰前端的 Chromium 配備的 HTML / JavaScript / CSS 規格完備，功能與二十年前不可同日而語，且會自動更新不用太擔心支援問題，現在寫前端輕鬆許多。</p> <p>2016 加入的<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements">自訂 HTML 元素</a>功能深得我心，自訂元素這檔事幾乎所有前端框架都有自己的玩法，我玩過 <a href="/blog/ko-component/">knockout.js</a>、<a href="/blog/angular-notes-23/">AngularJS</a>、<a href="https://vuejs.org/guide/essentials/component-basics">Vue.js</a>，每個都有，甚至早在 IE6 時代，微軟也有自家的網頁元件技術 - .htc <a href="https://learn.microsoft.com/en-us/openspecs/ie_standards/ms-html401e/36bd9386-cd5f-4bfe-8dec-5efc865a689c?WT.mc_id=DOP-MVP-37580">HTML Component</a>。自訂網頁元件，易於設計維護擴充重用，就像在前端 UI 實踐物件導向設計，好處很多。如今瀏覽器原生支援自訂網頁元素，不需依賴任何框架，效能更佳，運用起來更靈活。</p> <p>UI 元素行為封裝成自訂 HTML 元素，最大好處是享受物件導向設計的低耦合與觀注點分離，大大提高程式碼可重用性及可維護性。原生 HTML 自訂元素之前曾玩過一回，做了<a href="/blog/js-rolling-dice/">會滾動的骰子</a>，這回遇到另一個小需求，我想寫過自帶 X 鈕可清空內容的文字輸入框。</p> <p>要做個帶 X 鈕的文字輸入框不難，一個 <code>&lt;input type="text"&gt;</code> 配上用 CSS 排版及自動隱藏的 <code>&lt;button&gt;</code> 就可以搞定，但我有個額外需求是想支援 Vue.js 的 v-model 繫結，讓它可以當成一般的 <code>&lt;input type="text"&gt;</code> 使用。</p> <p>先展示成果：</p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;自帶清除鈕文字欄位 Web Component (支援 Vue v-model)&lt;/title&gt;
+&lt;script src="https://unpkg.com/vue@3/dist/vue.global.js"&gt;&lt;/script&gt;
+&lt;script src="textInputWithClearBtn.js"&gt;&lt;/script&gt;
+&lt;style&gt;
+body {
+font-family: Arial, sans-serif;
+margin: 20px;
+}
+h2 {
+color: #444;
+}
+input-with-clear-button {
+margin-bottom: 10px;
+display: block;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h2&gt;自帶清除鈕文字欄位&lt;/h2&gt;
+&lt;input-with-clear-button id="t1" placeholder="Type something..."&gt;&lt;/input-with-clear-button&gt;
+&lt;input-with-clear-button id="t2" value="Hello World"&gt;&lt;/input-with-clear-button&gt;
+&lt;button onclick="showValues()"&gt;Check Values&lt;/button&gt;
+&lt;pre id="results"&gt;
+&lt;/pre&gt;
+&lt;script&gt;
+function showValues() {
+document.getElementById('results').textContent =
+`t1: "${document.getElementById('t1').value}"
+t2: "${document.getElementById('t2').value}"`;
+}
+&lt;/script&gt;
+&lt;hr&gt;
+&lt;div id="app"&gt;
+&lt;h2&gt;配合 Vue3 v-model 使用&lt;/h2&gt;
+&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;&lt;/input-with-clear-button&gt;
+&lt;p&gt;Vue Data Value: {{ searchText }}&lt;/p&gt;
+&lt;button @click="searchText = 'Hello Vue3'"&gt;Set Value&lt;/button&gt;
+&lt;button @click="searchText = ''"&gt;Clear&lt;/button&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const { createApp } = Vue;
+createApp({
+data() {
+return {
+searchText: 'Init Value'
+}
+}
+}).mount('#app');
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p>以上網頁展示單獨使用 <code>&lt;input-with-clear-button&gt;</code>，使用 <code>document.getElementById('t1').value</code> 取值，以及 <code>&lt;input-with-clear-button v-model="searchText" placeholder="Search..."&gt;</code> 以 v-model 整合 Vue.js MVVM，兩種玩法都支援：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif"></p> <p><code>&lt;input-with-clear-button&gt;</code> 定義我寫在獨立 textInputWithClearBtn.js，補充幾個小細節：</p> <ul><li>用 <a href="https://developer.mozilla.org/zh-TW/docs/Glossary/IIFE">IIFE</a> 把定義元件的邏輯包起來，可避免其變數名稱跟其他程式打架。</li> <li>最早我想到的做法是在 HTML 模版內嵌 <code>&lt;style&gt;</code>指定樣式，缺點是每次產生元件 HTML 會重複一次樣式宣告，累贅又沒效率。改用 new CSSStyleSheet()、.replaceSync() 定義 CSS 樣式，HTML 元件透過 adoptedStyleSheets() 共用樣式，優雅多了。</li> <li>observedAttributes() 配合 attributeChangedCallback(name, oldValue, newValue) 可在 Attribute 異動時觸發處理邏輯。</li> <li>實測實作 get value() / set value() 後，<code>&lt;input type="text"&gt;</code> 的按鍵動作便會觸發 Vue v-model 繫結，但按清除鈕 input.value = '' 時需另外呼叫 <code>this.dispatchEvent(new Event('input', { bubbles: true }));</code> 模擬 input 事件。</li></ul> <pre><code>(function() {
+// 建立共用的 CSSStyleSheet
+const sharedStyles = new CSSStyleSheet();
+sharedStyles.replaceSync(`
+.text-input-w-clr-btn {
+position: relative;
+display: inline-block;
+margin: 10px 0;
+input {
+padding: 8px 30px 8px 10px;
+font-size: 14px;
+border: 1px solid #ccc;
+border-radius: 4px;
+outline: none;
+min-width: 250px;
+&amp;:focus { border-color: #4CAF50; }
+&amp;:not(:placeholder-shown)~.clear-btn {
+display: block;
+}
+}
+.clear-btn {
+position: absolute;
+right: 8px;
+top: 50%;
+transform: translateY(-50%);
+background: none;
+border: none;
+cursor: pointer;
+color: #999;
+font-size: 18px;
+padding: 0;
+width: 20px;
+height: 20px;
+line-height: 20px;
+text-align: center;
+display: none;
+&amp;:hover { color: #333;}
+}
+}
+`);
+class CustomInput extends HTMLElement {
+// 宣告要監聽的屬性
+static get observedAttributes() {
+return ['value'];
+}
+constructor() {
+super();
+this.attachShadow({ mode: 'open' });
+this.shadowRoot.adoptedStyleSheets = [sharedStyles];
+}
+// 元素插入 DOM 時觸發
+connectedCallback() {
+// 取得 placeholder 屬性值，若無則使用預設值
+const placeholder = this.getAttribute('placeholder') || 'Enter text...';
+const initialValue = this.getAttribute('value') || '';
+// 產生元件 HTML
+this.shadowRoot.innerHTML = `
+&lt;div class="text-input-w-clr-btn"&gt;
+&lt;input type="text" placeholder="${placeholder}" value="${initialValue}"&gt;
+&lt;button class="clear-btn" type="button"&gt;×&lt;/button&gt;
+&lt;/div&gt;
+`;
+const input = this.shadowRoot.querySelector('input');
+const clearBtn = this.shadowRoot.querySelector('.clear-btn');
+clearBtn.addEventListener('click', () =&gt; {
+input.value = '';
+input.focus();
+this.dispatchEvent(new Event('input', { bubbles: true }));
+});
+}
+// 元素從 DOM 移除時觸發
+disconnectedCallback() {
+}
+// 當屬性變更時同步更新 input 值
+attributeChangedCallback(name, oldValue, newValue) {
+if (name === 'value' &amp;&amp; this.shadowRoot) {
+const input = this.shadowRoot.querySelector('input');
+if (input &amp;&amp; input.value !== newValue) {
+input.value = newValue || '';
+}
+}
+}
+// 提供 value 的 getter/setter 供 Vue3 使用
+get value() {
+return this.shadowRoot?.querySelector('input')?.value || '';
+}
+set value(val) {
+const input = this.shadowRoot?.querySelector('input');
+input &amp;&amp; (input.value = val || '');
+}
+}
+customElements.define('input-with-clear-button', CustomInput);
+})();
+</code></pre> <p>附上<a href="https://darkthread.github.io/comp-terms/web-com-demo.html">線上展示</a></p> <p>註：用原生自訂 HTML 元素跟 Vue 整合，訴求是彈性，可單獨使用不一定綁死 Vue；但若開發環境確定有 Vue 且元件行為跟 Vue 緊密融合，則建議用 Vue 寫自訂元件比較省力。</p> <p data-slug="cust-html-input-element-w-v-model" data-title-en="Native custom HTML input element supporting Vue v-model" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2017/09/27/20/34/potter-2793345_960_720.jpg#1280#851">Showcases a native custom HTML input element with a clear (X) button, supporting both standalone use and Vue v-model binding for better reusability and maintainability.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638956780844114351.gif" medium="image"/>
+    <pubDate>Fri, 10 Oct 2025 07:21:07 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Debian 設定自動校時 (原來 Github Copilot 連這也會)]]></title>
+    <link>https://blog.darkthread.net/blog/set-timesyncd-for-debian12/</link>
+    <itunes:title><![CDATA[Debian 設定自動校時 (原來 Github Copilot 連這也會)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>家用迷你伺服器自從<a href="/blog/centos7-debian12-migrate/">升級 Debian 12</a>後又變得好玩起來，不再因 OS 版本太舊這個不能裝那個不能用，我又開始玩一堆有的沒的。</p> <p>上回學會<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">用 bash 發資安事件通知給 Slack </a>，這回我弄了一個定期狀態檢查，用 cron 每小時傳一次統計到 Slack，但發現一個小問題，排程設每小時的 30 分執行，但實際執行時間卻是 31 分。</p> <p>我是<a href="/blog/vscode-remote-ssh/">用 VSCode 連上 Debian 遠端寫 Code</a>，二話不說直接在 Github Copilot Chat 發問，Copilot 教我可以用 <code>timedatectl status</code> 檢查。查詢結果，Debian 時間果然慢了一分鐘，而且沒設 <a href="/blog/ptp/">NTP</a> ，照著 Copilot 教學用 <code>sudo timedatectl set-ntp true</code> 想設定自動校則會出錯。</p> <pre><code>jeffrey@debian12:~/$ timedatectl status
+Local time: 四 2025-10-09 20:26:52 CST
+Universal time: 四 2025-10-09 12:26:52 UTC
+RTC time: 四 2025-10-09 12:26:53
+Time zone: Asia/Taipei (CST, +0800)
+System clock synchronized: no
+NTP service: n/a
+RTC in local TZ: no
+jeffrey@debian12:~/$ sudo timedatectl set-ntp true
+Failed to set ntp: NTP not supported
+</code></pre> <p>有趣的部分來了，這回我沒爬文找教學，一時興起切到 Copilot Agent 模式問 Copilot 為什麼會遇到 <code>Failed to set ntp: NTP not supported</code> 錯誤，Copilot 說應該是因為 systemd-timesyncd 沒有安裝或被停用了，<strong>問我要不要讓它接手檢查並修復</strong>？</p> <p>好啊! 看看 Copilot 有什麼本事也好。</p> <p>Copilot 新開了一個專屬 bash 終端機視窗(下圖箭頭所指)，可以傳指令過去執行並取回執行結果檢查，而每次執行指令前都會徵求我的同意，我的習慣也是每個指令都會看過才放行，一來審查二則學習。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638956128354912368.png"></p> <p>一套組合拳下來，Copilot 先跑了 <code>systemctl status systemd-timesyncd</code>、<code>dpkg -l | grep -E 'ntp|chrony|timesyncd'</code> 確認主機真的沒有裝任何校時服務，接著 <code>sudo apt update</code>、<code>sudo apt install -y systemd-timesyncd</code>、<code>sudo timedatectl set-ntp true</code> 安裝設定一氣喝成，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956128358198355.png"></p> <p>原來不只寫程式，這年頭連系統管理 AI 都能代勞惹!</p> <p>不過，我的原則是「事情 AI 可以搶去做，但知識必須留下」，以下是 Debian 設定自動校時的背景知識整理。</p> <ul><li>Debian 12 安裝後預設未啟用自動校時，需自行設定。</li> <li>systemd 是現代 Linux 發行版廣泛採用的系統與服務管理程序，取代了傳統 SysV init 系統。它負責系統啟動流程、服務啟動停止管理、硬體與登錄檔監控，以及日誌收集等，透過一致化機制簡化系統管理。<br> 常用指令包含 <code>systemctl</code>(服務管理)、<code>journalctl</code>(系統日誌查詢)、<code>timedatectl</code>(時間與時區管理)、<code>hostnamectl</code>(主機名稱與作業系統資訊)。<br> (註：systemd 的歷史不算久，但 2010 年推出後很快席捲各大 Linux 發行版本，成為內建核心組件。難怪這些年沒看過有人再提 /etc/init.d ...)</li> <li><code>timedatectl status</code> 能一次查詢時間與 NTP 同步設定，超方便。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638956128359810834.png"></li> <li>systemd-timesyncd 是 systemd 套件提供的輕量級 NTP 客戶端，負責與遠端時間伺服器同步本地系統時鐘。與 ntpd、chrony 等傳統服務相比，它設計簡潔、整合度高，是時間同步方案。</li> <li><code>dpkg -l | grep -E 'ntp|chrony|timesyncd'</code> 這招可以檢查是否有裝任何時間同步服務首選。</li> <li><code>timedatectl set-ntp true</code> 背後會執行 <code>systemctl enable systemd-timesyncd.service</code>、<code>systemctl start systemd-timesyncd.service</code>，啟用 systemd-timesyncd 並設為開機後自動執行。</li></ul> <p data-slug="set-timesyncd-for-debian12" data-fbimg="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Melbourne_sundial_at_Flagstaff_Gardens.JPG/1080px-Melbourne_sundial_at_Flagstaff_Gardens.JPG#1080#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>家用迷你伺服器自從<a href="/blog/centos7-debian12-migrate/">升級 Debian 12</a>後又變得好玩起來，不再因 OS 版本太舊這個不能裝那個不能用，我又開始玩一堆有的沒的。</p> <p>上回學會<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">用 bash 發資安事件通知給 Slack </a>，這回我弄了一個定期狀態檢查，用 cron 每小時傳一次統計到 Slack，但發現一個小問題，排程設每小時的 30 分執行，但實際執行時間卻是 31 分。</p> <p>我是<a href="/blog/vscode-remote-ssh/">用 VSCode 連上 Debian 遠端寫 Code</a>，二話不說直接在 Github Copilot Chat 發問，Copilot 教我可以用 <code>timedatectl status</code> 檢查。查詢結果，Debian 時間果然慢了一分鐘，而且沒設 <a href="/blog/ptp/">NTP</a> ，照著 Copilot 教學用 <code>sudo timedatectl set-ntp true</code> 想設定自動校則會出錯。</p> <pre><code>jeffrey@debian12:~/$ timedatectl status
+Local time: 四 2025-10-09 20:26:52 CST
+Universal time: 四 2025-10-09 12:26:52 UTC
+RTC time: 四 2025-10-09 12:26:53
+Time zone: Asia/Taipei (CST, +0800)
+System clock synchronized: no
+NTP service: n/a
+RTC in local TZ: no
+jeffrey@debian12:~/$ sudo timedatectl set-ntp true
+Failed to set ntp: NTP not supported
+</code></pre> <p>有趣的部分來了，這回我沒爬文找教學，一時興起切到 Copilot Agent 模式問 Copilot 為什麼會遇到 <code>Failed to set ntp: NTP not supported</code> 錯誤，Copilot 說應該是因為 systemd-timesyncd 沒有安裝或被停用了，<strong>問我要不要讓它接手檢查並修復</strong>？</p> <p>好啊! 看看 Copilot 有什麼本事也好。</p> <p>Copilot 新開了一個專屬 bash 終端機視窗(下圖箭頭所指)，可以傳指令過去執行並取回執行結果檢查，而每次執行指令前都會徵求我的同意，我的習慣也是每個指令都會看過才放行，一來審查二則學習。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638956128354912368.png"></p> <p>一套組合拳下來，Copilot 先跑了 <code>systemctl status systemd-timesyncd</code>、<code>dpkg -l | grep -E 'ntp|chrony|timesyncd'</code> 確認主機真的沒有裝任何校時服務，接著 <code>sudo apt update</code>、<code>sudo apt install -y systemd-timesyncd</code>、<code>sudo timedatectl set-ntp true</code> 安裝設定一氣喝成，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956128358198355.png"></p> <p>原來不只寫程式，這年頭連系統管理 AI 都能代勞惹!</p> <p>不過，我的原則是「事情 AI 可以搶去做，但知識必須留下」，以下是 Debian 設定自動校時的背景知識整理。</p> <ul><li>Debian 12 安裝後預設未啟用自動校時，需自行設定。</li> <li>systemd 是現代 Linux 發行版廣泛採用的系統與服務管理程序，取代了傳統 SysV init 系統。它負責系統啟動流程、服務啟動停止管理、硬體與登錄檔監控，以及日誌收集等，透過一致化機制簡化系統管理。<br> 常用指令包含 <code>systemctl</code>(服務管理)、<code>journalctl</code>(系統日誌查詢)、<code>timedatectl</code>(時間與時區管理)、<code>hostnamectl</code>(主機名稱與作業系統資訊)。<br> (註：systemd 的歷史不算久，但 2010 年推出後很快席捲各大 Linux 發行版本，成為內建核心組件。難怪這些年沒看過有人再提 /etc/init.d ...)</li> <li><code>timedatectl status</code> 能一次查詢時間與 NTP 同步設定，超方便。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638956128359810834.png"></li> <li>systemd-timesyncd 是 systemd 套件提供的輕量級 NTP 客戶端，負責與遠端時間伺服器同步本地系統時鐘。與 ntpd、chrony 等傳統服務相比，它設計簡潔、整合度高，是時間同步方案。</li> <li><code>dpkg -l | grep -E 'ntp|chrony|timesyncd'</code> 這招可以檢查是否有裝任何時間同步服務首選。</li> <li><code>timedatectl set-ntp true</code> 背後會執行 <code>systemctl enable systemd-timesyncd.service</code>、<code>systemctl start systemd-timesyncd.service</code>，啟用 systemd-timesyncd 並設為開機後自動執行。</li></ul> <p data-slug="set-timesyncd-for-debian12" data-fbimg="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Melbourne_sundial_at_Flagstaff_Gardens.JPG/1080px-Melbourne_sundial_at_Flagstaff_Gardens.JPG#1080#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>家用迷你伺服器自從<a href="/blog/centos7-debian12-migrate/">升級 Debian 12</a>後又變得好玩起來，不再因 OS 版本太舊這個不能裝那個不能用，我又開始玩一堆有的沒的。</p> <p>上回學會<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">用 bash 發資安事件通知給 Slack </a>，這回我弄了一個定期狀態檢查，用 cron 每小時傳一次統計到 Slack，但發現一個小問題，排程設每小時的 30 分執行，但實際執行時間卻是 31 分。</p> <p>我是<a href="/blog/vscode-remote-ssh/">用 VSCode 連上 Debian 遠端寫 Code</a>，二話不說直接在 Github Copilot Chat 發問，Copilot 教我可以用 <code>timedatectl status</code> 檢查。查詢結果，Debian 時間果然慢了一分鐘，而且沒設 <a href="/blog/ptp/">NTP</a> ，照著 Copilot 教學用 <code>sudo timedatectl set-ntp true</code> 想設定自動校則會出錯。</p> <pre><code>jeffrey@debian12:~/$ timedatectl status
+Local time: 四 2025-10-09 20:26:52 CST
+Universal time: 四 2025-10-09 12:26:52 UTC
+RTC time: 四 2025-10-09 12:26:53
+Time zone: Asia/Taipei (CST, +0800)
+System clock synchronized: no
+NTP service: n/a
+RTC in local TZ: no
+jeffrey@debian12:~/$ sudo timedatectl set-ntp true
+Failed to set ntp: NTP not supported
+</code></pre> <p>有趣的部分來了，這回我沒爬文找教學，一時興起切到 Copilot Agent 模式問 Copilot 為什麼會遇到 <code>Failed to set ntp: NTP not supported</code> 錯誤，Copilot 說應該是因為 systemd-timesyncd 沒有安裝或被停用了，<strong>問我要不要讓它接手檢查並修復</strong>？</p> <p>好啊! 看看 Copilot 有什麼本事也好。</p> <p>Copilot 新開了一個專屬 bash 終端機視窗(下圖箭頭所指)，可以傳指令過去執行並取回執行結果檢查，而每次執行指令前都會徵求我的同意，我的習慣也是每個指令都會看過才放行，一來審查二則學習。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638956128354912368.png"></p> <p>一套組合拳下來，Copilot 先跑了 <code>systemctl status systemd-timesyncd</code>、<code>dpkg -l | grep -E 'ntp|chrony|timesyncd'</code> 確認主機真的沒有裝任何校時服務，接著 <code>sudo apt update</code>、<code>sudo apt install -y systemd-timesyncd</code>、<code>sudo timedatectl set-ntp true</code> 安裝設定一氣喝成，</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638956128358198355.png"></p> <p>原來不只寫程式，這年頭連系統管理 AI 都能代勞惹!</p> <p>不過，我的原則是「事情 AI 可以搶去做，但知識必須留下」，以下是 Debian 設定自動校時的背景知識整理。</p> <ul><li>Debian 12 安裝後預設未啟用自動校時，需自行設定。</li> <li>systemd 是現代 Linux 發行版廣泛採用的系統與服務管理程序，取代了傳統 SysV init 系統。它負責系統啟動流程、服務啟動停止管理、硬體與登錄檔監控，以及日誌收集等，透過一致化機制簡化系統管理。<br> 常用指令包含 <code>systemctl</code>(服務管理)、<code>journalctl</code>(系統日誌查詢)、<code>timedatectl</code>(時間與時區管理)、<code>hostnamectl</code>(主機名稱與作業系統資訊)。<br> (註：systemd 的歷史不算久，但 2010 年推出後很快席捲各大 Linux 發行版本，成為內建核心組件。難怪這些年沒看過有人再提 /etc/init.d ...)</li> <li><code>timedatectl status</code> 能一次查詢時間與 NTP 同步設定，超方便。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638956128359810834.png"></li> <li>systemd-timesyncd 是 systemd 套件提供的輕量級 NTP 客戶端，負責與遠端時間伺服器同步本地系統時鐘。與 ntpd、chrony 等傳統服務相比，它設計簡潔、整合度高，是時間同步方案。</li> <li><code>dpkg -l | grep -E 'ntp|chrony|timesyncd'</code> 這招可以檢查是否有裝任何時間同步服務首選。</li> <li><code>timedatectl set-ntp true</code> 背後會執行 <code>systemctl enable systemd-timesyncd.service</code>、<code>systemctl start systemd-timesyncd.service</code>，啟用 systemd-timesyncd 並設為開機後自動執行。</li></ul> <p data-slug="set-timesyncd-for-debian12" data-fbimg="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Melbourne_sundial_at_Flagstaff_Gardens.JPG/1080px-Melbourne_sundial_at_Flagstaff_Gardens.JPG#1080#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig2_638956128354912368.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig2_638956128354912368.png" medium="image"/>
+    <pubDate>Thu, 09 Oct 2025 13:20:14 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[該選 .NET Framework 4.8 還是 .NET Framework 4.8.1？]]></title>
+    <link>https://blog.darkthread.net/blog/netfx-48-or-481/</link>
+    <itunes:title><![CDATA[該選 .NET Framework 4.8 還是 .NET Framework 4.8.1？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>安裝 Visual Studio 時，我們可以選擇要安裝哪些版本 .NET Framework ：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638955276014073226.png"></p> <p>註：SDK 與目標套件差在哪裡？SDK 包含編譯器整合、設計工具、參考組件、專案範本與建置支援，必須要安裝才能在 Visual Studio 建立及編輯該版本的 .NET Framework 應用程式專案(例如 WinForms/WPF)；至於目標套件(Targeting Pack) 僅包含特定 .NET Framework 版本的參考組件與目標檔案，讓專案可以將 Target Framework 設為該版本並成功編譯，不提供設計工具與額外範本。<a href="https://learn.microsoft.com/en-us/dotnet/framework/install/guide-for-developers?WT.mc_id=DOP-MVP-37580#to-install-the-net-framework-developer-pack-or-targeting-pack">參考</a></p> <p>在 .NET Framework 專案設定視窗，我們可以選擇編譯成有安裝目標套件的 .NET Framework 版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638955276015786136.png"></p> <p>補充隱藏觀念：.NET 4.X 採「就地更新」(In-Place Update)政策，.NET 4.X 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名但置換成新版本。故安裝 .NET 4.8 後， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是使用 .NET 4.8 版的 Runtime，選取 Target Framework 可讓程式執行時向下相容，模擬舊版本行為。 延伸閱讀：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>、<a href="/blog/httruntime-targetframework/">認識 web.config compilation 與 httpRuntime 的 targetFramework</a></p> <p>針對 .NET Framework 專案，我們可以選擇編譯成 .NET 4.6.2、.NET 4.7.2、...、.NET 4.8、.NET 4.8.1，依據新版會修掉一些 Bug、版本愈新可以用愈久(愈晚面對 EOS)... 等慣例，所以我們該義無反顧選 .NET 4.8.1？</p> <p>錯!</p> <p>依據 <a href="https://learn.microsoft.com/zh-tw/lifecycle/faq/dotnet-framework?WT.mc_id=DOP-MVP-37580#-----net-framework---------------">官方文件</a>，.NET 4.8 將以 Windows 元件形式提供，其支援週期與 Windows 看齊，也就是 Windows 用多久，.NET 4.8 就能用多久，不須擔心提早 EOS。而微軟也建議客戶升級至 .NET Framework 4.8 以獲得最高層級的效能、可靠性和安全性。(依據 Windows Server 2025 內建 .NET 4.8.1 推算，.NET Framework 4.8 至少能再戰個十年以上吧)</p> <p>微軟在 2019-04-18 推出 .NET 4.8，.NET Framework 發展就封頂了，.NET 路線改較由 .NET 5/6/7/8... 傳承下去。兩年多後 (2022-08-09) 推出的 .NET 4.8.1 只做了很微小的強化，主要是加入對 Arm64 CPU 的支援、強化 Windows Forms/ WPF 的 WCGA2.1 無障礙標準支援，應用程式未必會用到。但 4.8.1 較大的問題是一些舊版作業系統不支援，像是 Windows 7 SP1、Windows 8.1、Windows 10 2004/1909/1903、Windows Server 2019/2016/2012 R2/2012... 等。其中 Windows Server 2016 到 <a href="https://learn.microsoft.com/zh-tw/lifecycle/products/windows-server-2016?WT.mc_id=DOP-MVP-37580">2027-01-12 才 EOS</a>，2019 則是 <a href="https://learn.microsoft.com/zh-tw/lifecycle/products/windows-server-2019?WT.mc_id=DOP-MVP-37580">2029-01-09</a>，因此若程式會部署到 Window Server 2022 之前的伺服器，就必須留意作業系統不支援的問題。</p> <p>評估之後，若沒有 Arm64 及 Windows Form/WPF 無障礙需求，.NET 4.8 應是相容性更高的好選擇，結案。</p> <p data-slug="netfx-48-or-481" data-title-en="Should I choose .NET 4.8.1 or 4.8?" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/04/11/08/59/rails-3309912_1280.jpg#1280#720">Choose .NET Framework 4.8 over 4.8.1 for broader OS compatibility unless Arm64 or accessibility features are required; support aligns with Windows lifecycle.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>安裝 Visual Studio 時，我們可以選擇要安裝哪些版本 .NET Framework ：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638955276014073226.png"></p> <p>註：SDK 與目標套件差在哪裡？SDK 包含編譯器整合、設計工具、參考組件、專案範本與建置支援，必須要安裝才能在 Visual Studio 建立及編輯該版本的 .NET Framework 應用程式專案(例如 WinForms/WPF)；至於目標套件(Targeting Pack) 僅包含特定 .NET Framework 版本的參考組件與目標檔案，讓專案可以將 Target Framework 設為該版本並成功編譯，不提供設計工具與額外範本。<a href="https://learn.microsoft.com/en-us/dotnet/framework/install/guide-for-developers?WT.mc_id=DOP-MVP-37580#to-install-the-net-framework-developer-pack-or-targeting-pack">參考</a></p> <p>在 .NET Framework 專案設定視窗，我們可以選擇編譯成有安裝目標套件的 .NET Framework 版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638955276015786136.png"></p> <p>補充隱藏觀念：.NET 4.X 採「就地更新」(In-Place Update)政策，.NET 4.X 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名但置換成新版本。故安裝 .NET 4.8 後， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是使用 .NET 4.8 版的 Runtime，選取 Target Framework 可讓程式執行時向下相容，模擬舊版本行為。 延伸閱讀：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>、<a href="/blog/httruntime-targetframework/">認識 web.config compilation 與 httpRuntime 的 targetFramework</a></p> <p>針對 .NET Framework 專案，我們可以選擇編譯成 .NET 4.6.2、.NET 4.7.2、...、.NET 4.8、.NET 4.8.1，依據新版會修掉一些 Bug、版本愈新可以用愈久(愈晚面對 EOS)... 等慣例，所以我們該義無反顧選 .NET 4.8.1？</p> <p>錯!</p> <p>依據 <a href="https://learn.microsoft.com/zh-tw/lifecycle/faq/dotnet-framework?WT.mc_id=DOP-MVP-37580#-----net-framework---------------">官方文件</a>，.NET 4.8 將以 Windows 元件形式提供，其支援週期與 Windows 看齊，也就是 Windows 用多久，.NET 4.8 就能用多久，不須擔心提早 EOS。而微軟也建議客戶升級至 .NET Framework 4.8 以獲得最高層級的效能、可靠性和安全性。(依據 Windows Server 2025 內建 .NET 4.8.1 推算，.NET Framework 4.8 至少能再戰個十年以上吧)</p> <p>微軟在 2019-04-18 推出 .NET 4.8，.NET Framework 發展就封頂了，.NET 路線改較由 .NET 5/6/7/8... 傳承下去。兩年多後 (2022-08-09) 推出的 .NET 4.8.1 只做了很微小的強化，主要是加入對 Arm64 CPU 的支援、強化 Windows Forms/ WPF 的 WCGA2.1 無障礙標準支援，應用程式未必會用到。但 4.8.1 較大的問題是一些舊版作業系統不支援，像是 Windows 7 SP1、Windows 8.1、Windows 10 2004/1909/1903、Windows Server 2019/2016/2012 R2/2012... 等。其中 Windows Server 2016 到 <a href="https://learn.microsoft.com/zh-tw/lifecycle/products/windows-server-2016?WT.mc_id=DOP-MVP-37580">2027-01-12 才 EOS</a>，2019 則是 <a href="https://learn.microsoft.com/zh-tw/lifecycle/products/windows-server-2019?WT.mc_id=DOP-MVP-37580">2029-01-09</a>，因此若程式會部署到 Window Server 2022 之前的伺服器，就必須留意作業系統不支援的問題。</p> <p>評估之後，若沒有 Arm64 及 Windows Form/WPF 無障礙需求，.NET 4.8 應是相容性更高的好選擇，結案。</p> <p data-slug="netfx-48-or-481" data-title-en="Should I choose .NET 4.8.1 or 4.8?" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/04/11/08/59/rails-3309912_1280.jpg#1280#720">Choose .NET Framework 4.8 over 4.8.1 for broader OS compatibility unless Arm64 or accessibility features are required; support aligns with Windows lifecycle.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>安裝 Visual Studio 時，我們可以選擇要安裝哪些版本 .NET Framework ：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638955276014073226.png"></p> <p>註：SDK 與目標套件差在哪裡？SDK 包含編譯器整合、設計工具、參考組件、專案範本與建置支援，必須要安裝才能在 Visual Studio 建立及編輯該版本的 .NET Framework 應用程式專案(例如 WinForms/WPF)；至於目標套件(Targeting Pack) 僅包含特定 .NET Framework 版本的參考組件與目標檔案，讓專案可以將 Target Framework 設為該版本並成功編譯，不提供設計工具與額外範本。<a href="https://learn.microsoft.com/en-us/dotnet/framework/install/guide-for-developers?WT.mc_id=DOP-MVP-37580#to-install-the-net-framework-developer-pack-or-targeting-pack">參考</a></p> <p>在 .NET Framework 專案設定視窗，我們可以選擇編譯成有安裝目標套件的 .NET Framework 版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638955276015786136.png"></p> <p>補充隱藏觀念：.NET 4.X 採「就地更新」(In-Place Update)政策，.NET 4.X 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名但置換成新版本。故安裝 .NET 4.8 後， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是使用 .NET 4.8 版的 Runtime，選取 Target Framework 可讓程式執行時向下相容，模擬舊版本行為。 延伸閱讀：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>、<a href="/blog/httruntime-targetframework/">認識 web.config compilation 與 httpRuntime 的 targetFramework</a></p> <p>針對 .NET Framework 專案，我們可以選擇編譯成 .NET 4.6.2、.NET 4.7.2、...、.NET 4.8、.NET 4.8.1，依據新版會修掉一些 Bug、版本愈新可以用愈久(愈晚面對 EOS)... 等慣例，所以我們該義無反顧選 .NET 4.8.1？</p> <p>錯!</p> <p>依據 <a href="https://learn.microsoft.com/zh-tw/lifecycle/faq/dotnet-framework?WT.mc_id=DOP-MVP-37580#-----net-framework---------------">官方文件</a>，.NET 4.8 將以 Windows 元件形式提供，其支援週期與 Windows 看齊，也就是 Windows 用多久，.NET 4.8 就能用多久，不須擔心提早 EOS。而微軟也建議客戶升級至 .NET Framework 4.8 以獲得最高層級的效能、可靠性和安全性。(依據 Windows Server 2025 內建 .NET 4.8.1 推算，.NET Framework 4.8 至少能再戰個十年以上吧)</p> <p>微軟在 2019-04-18 推出 .NET 4.8，.NET Framework 發展就封頂了，.NET 路線改較由 .NET 5/6/7/8... 傳承下去。兩年多後 (2022-08-09) 推出的 .NET 4.8.1 只做了很微小的強化，主要是加入對 Arm64 CPU 的支援、強化 Windows Forms/ WPF 的 WCGA2.1 無障礙標準支援，應用程式未必會用到。但 4.8.1 較大的問題是一些舊版作業系統不支援，像是 Windows 7 SP1、Windows 8.1、Windows 10 2004/1909/1903、Windows Server 2019/2016/2012 R2/2012... 等。其中 Windows Server 2016 到 <a href="https://learn.microsoft.com/zh-tw/lifecycle/products/windows-server-2016?WT.mc_id=DOP-MVP-37580">2027-01-12 才 EOS</a>，2019 則是 <a href="https://learn.microsoft.com/zh-tw/lifecycle/products/windows-server-2019?WT.mc_id=DOP-MVP-37580">2029-01-09</a>，因此若程式會部署到 Window Server 2022 之前的伺服器，就必須留意作業系統不支援的問題。</p> <p>評估之後，若沒有 Arm64 及 Windows Form/WPF 無障礙需求，.NET 4.8 應是相容性更高的好選擇，結案。</p> <p data-slug="netfx-48-or-481" data-title-en="Should I choose .NET 4.8.1 or 4.8?" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/04/11/08/59/rails-3309912_1280.jpg#1280#720">Choose .NET Framework 4.8 over 4.8.1 for broader OS compatibility unless Arm64 or accessibility features are required; support aligns with Windows lifecycle.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638955276014073226.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638955276014073226.png" medium="image"/>
+    <pubDate>Wed, 08 Oct 2025 13:31:10 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[閒聊：Functional Programming 崛起，OOP 物件導向開發正在失寵？]]></title>
+    <link>https://blog.darkthread.net/blog/fp-vs-oop/</link>
+    <itunes:title><![CDATA[閒聊：Functional Programming 崛起，OOP 物件導向開發正在失寵？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這些年來，Functional Programming (FP，函數式程式設計) 受到愈來愈多開發者青睞，成為不少新世代程式設計的首選，OOP (Object Oriented Programming 物件導向程式開發) 稱霸的榮景不再。</p> <p>最震驚的莫過於 C++/Java/C# 開發者們，打從程式語言學步階段就不斷被灌輸：要以物件為中心，貫徹封裝、抽象、繼承與多型精神，實現高模組化、可重用與可擴展的程式結構，才能做出偉大的系統。結果幾十年過去，一眨眼世界變了，彷彿 FP 才是王道。</p> <p>在 Java 領域有 Scala、在 .NET 則有 F#，加上這些年被呼籲用以取代 C/C++，講求速度與安全的 Rust，都是原生支援 FP 的代表。而即使是 Python/C#/JavaScript/Java 等傳統偏向 OOP 的程式語言，也紛紛加入 FP 思維的設計，例如: Lambda Expression、map/reduce/filter、不可變容器... FP 已成顯學。</p> <p>練拳一輩子的老武師，猛一抬頭，發現大家都在踢跆拳道... 登楞!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638954411988526483.jpg" alt="thumbnail"></p> <p>為了解答這個疑問，我花了點時間研究這股趨勢的成因，試著了解為何 FP 會被狂推。</p> <p>FP 之所以能取代 OOP，自然是瞄準了 OOP 的痛點，會如此發展則與時代演進有關。</p> <p>其實 FP 語言的歷史很早，1930年代數學家 Alonzo Church 提出了 λ 演算（Lambda Calculus），是一種用「函數抽象與套用」來表達計算的純數學模型(所以 Lambda 這個名字是這麼來的，長知識了)。1950–60 年代電腦出現後，數學家試著把 λ 演算思想變成程式語言，LISP (1958)是第一個成功的函數式語言，但後來命令式 / 結構化程式設計 (如 C、Pascal、Fortran) 因為更符合 CPU 的運算特性，成為程式語言的主流，此段時間 FP 只能默默發展，期間出現 ML (1973)、Scheme (1975)、Miranda (1985) 等語言，學界推出的 Haskell (1990) 成為「純函數式語言」的代表。</p> <p>1990 年後展開 Internet、雲端時代，軟體系統日益複雜，為應付高流量情境需要大量並行運算，傳統命令式的 OOP 設計，在多執行緒環境需解決資料存取衝突問題，開發難度驟增。另一方面，企業級與雲端系統講求可測試、可組合、可推理性，使用 OOP 實踐也會遇上不少困難。</p> <p>OOP 主打封裝資料及行為，保存狀態並集中商業邏輯，藉此降低耦合度與提升可維護性，有利於大型專案分工與邊界定義。然而，隨著分散式架構、多核平行運算成為日常，共享可變狀態在高並行情境很容易衍生同步化與 Race Codition 問題，常需複雜的額外鎖定與協議控制克服。在高並行情境，處理這類問題的複雜度常超乎想像，於是講求資料不可變的 FP 成了解藥。</p> <p>FP 的主要特色如下：(註：我試著補上 C# 的 FP 實踐範例方便理解)</p> <ul><li>純函數(Pure Functions)：效法數學函式 (例如：f(x) = x * 2) 精神，相同輸入必得相同輸出，不產生任何副作用(不修改外部狀態、不做 I/O 動作)，易於推理與測試。<br> 例：<code>Func&lt;int, int, int&gt; add = (a, b) =&gt; a + b;</code>，add(1, 2) 只會等於 3，沒有其他可能。</li> <li>不可變(Immutability)：要求資料不可變，不共享可變狀態，如此能大幅降低並行情境的 Race Condition 與同步成本。<br> <a href="/blog/csharp-9-features/">C# 9</a>推出了 Record 用來封裝不可變資料(Immutable Data)，主要也在呼應 FP 應用。</li> <li>高階函數(Higher-Order)：函數是一等公民，可作為參數或回傳值，支持組合應用與抽象化。<br> Lambda 當參數用在 LINQ 已是日常：<code>Func&lt;int, bool&gt; ge5 = (i) =&gt; i &gt;= 5; (new [] { 1,2,3,4,5,6,7 }).Where(ge5);</code>。</li> <li>遞迴與組合(Recursion &amp; Composition)：以小函數組合大功能，透過函數串接合成取代命令式流程控制。<br> LINQ 寫法是最簡單的實例：<code>collection.Where(o =&gt; o.Count &gt; 3).OrderBy(o =&gt; o.Price)...</code>。</li> <li>強型別與型別推導(Type Systems)：使用嚴謹強型別系統與推導，在編譯期即可攔截型別錯誤。</li> <li>宣告式(Declarative)：描述要算什麼而非怎麼算，貼近數學定義，便於等式推導與重構。<br> <code>var add = int (int a, int b) =&gt; a + b;</code>(<a href="/blog/csharp-10-features/">C# 10+</a> Lambda 可明確宣告傳回型別，用 var 取代 Func&lt;int, int, int&gt;)，運算邏輯類似數學函式，一望便知。</li> <li>惰性求值(Lazy Evaluation)：要用到時才評估計算，提高效率並方便彈性組合。<br> <a href="/blog/linq-deferred-exec/">LINQ 的延遲執行</a>便是一例，忘記了小心踩坑。</li></ul> <p>而這帶來一些好處：</p> <ul><li>適合平行處理：由於不共享可變狀態，不用擔心平行處理時程式打架，Thread-Safe 渾然天成!</li> <li>測試超級好寫：純函數保證輸入傳什麼不可變資料一定得到什麼輸出，自動測試不需動用複雜 Mocking 模擬物件行為及狀態。</li> <li>易於了解推理：宣告式特性讓邏輯透明，重構與驗證行為更直觀。</li></ul> <p>在講求高並行性大量平行處理的場景，FP 的特色與好處格外珍貴，於是在金融、電信、雲原生、大數據、人工智慧等領域，許多人會選擇 FP 語言取代傳統 OOP 架構。</p> <p>至此，我們對 OOP 的缺點與 FP 的好處已有粗淺認識。不過，OOP 與 FP 倒也不是非黑即白漢賊不兩位。傳統 OOP 語言如 Python、C#、JavaScript/TypeScript、Java 在傳統 OOP 主軸外，也開始支援 FP 概念 (最簡單鑑別方法可看是否支援 Lambda 寫法)，把程式寫成 FP 風格絕對沒問題。而以 FP 為主的 Scala/Kotlin/F#/OCaml/Swift/Rust 也加減能支援 OOP 的部分特性(不過對於「繼承」，有些語言倒是傾向不支援，例如：Rust、Golang)。</p> <p>從學術一點的角度來看，OOP 或 FP 可視為程式設計的兩種<a href="https://zh.wikipedia.org/zh-tw/%E8%8C%83%E5%BC%8F">典範(Paradigm)</a>，而所謂的 Paradigm（典範/範式）指的是一個特定時期內，一個群體(如科學社群、學術領域)所認同的基本世界觀、信念、價值觀或方法論，為該領域的成員提供一個共同遵循的模式和模型，一套被廣泛接受的思維方式或研究框架，指導人們如何觀察、思考、提問和解決問題。</p> <p>科學哲學家托馬斯·S·庫恩提出「典範轉移(Paradigm Shift)」的概念，指一個舊典範不再能解釋現有現象或被新發現取代時，會發生一種根本性的變革或科學革命，整個研究群體的思維方式和方法論隨之改變。例如，從地平說走向地圓說。</p> <p>在程式設計領域，從最早一路到底的程序式寫法到結構化設計，從結構化到 OOP，再從 OOP 到 FP，這些演進涉及對問題解決方式的重新思考，例如，從以動作為中心轉為以物件為中心，便可視為一種典範轉移。FP 強調不可變性、純函數與數學函數評估，而 OOP 著重封裝、繼承與多型，兩種方法對於狀態管理、程式結構有著截然不同的設計哲學，絕對也是一種典範轉移。</p> <p>不過程式開發領域的典範轉移，不同於庫恩聚焦的單一性典範(例如：地平說與地圓說只能二選一)，「多典範共存」是常態。OOP 物件邊界清晰，能直覺化映對領域實體，易於思考設計，繼承、多型與介面則有利於結構化重用與替換，在複雜領域模型、長生命周期、替換與擴展需求強烈情境仍有壓倒性優勢。當可維護擴充性比高並行、可測試性更重要，堅持用 FP 硬幹便不是個好主意。目前的發展也走向二者共存，像是大部分 OOP 語言都能實現 FP (寫過 LINQ 就等於有在用 FP 了)，而 FP 語言也會實做部分 OOP 功能。</p> <p>一個可行策略是「大範圍 OOP，小範圍 FP」的混合策略，在高層次介面使用物件導向設計維持低耦合易於維護擴充，邏輯實作則視需求採用函數技術滿足高並行需求，OOP 與 FP 摻在一起做成瀨尿牛丸，應該是最好的做法吧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638954411990266099.jpg" alt="thumbnail"></p> <p>【延伸閱讀 for .NET 開發者】</p> <ul><li><a href="https://learn.microsoft.com/en-us/shows/visual-studio-toolbox/functional-programming-in-csharp?WT.mc_id=DOP-MVP-37580">Functional Programming in C# (影片)</a></li> <li><a href="https://old-oomusou.goodjack.tw/fp/intro/">Functional Programming 簡介 by 點燈坊</a></li> <li><a href="https://www.telerik.com/campaigns/devcraft/functional-programming-with-csharp-cheat-sheet">The Essential Cheat Sheet: Functional Programming with C# 7.1</a></li></ul> <p data-slug="fp-vs-oop" data-title-en="Function programming in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/01/09/11/23/formula-594149_1280.jpg#1280#720">This article explain why functional programming offers safer concurrency and easier testing by emphasizing immutability, pure functions, and declarative code—making it popular for modern, scalable systems beyond OOP with C# exmaples.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這些年來，Functional Programming (FP，函數式程式設計) 受到愈來愈多開發者青睞，成為不少新世代程式設計的首選，OOP (Object Oriented Programming 物件導向程式開發) 稱霸的榮景不再。</p> <p>最震驚的莫過於 C++/Java/C# 開發者們，打從程式語言學步階段就不斷被灌輸：要以物件為中心，貫徹封裝、抽象、繼承與多型精神，實現高模組化、可重用與可擴展的程式結構，才能做出偉大的系統。結果幾十年過去，一眨眼世界變了，彷彿 FP 才是王道。</p> <p>在 Java 領域有 Scala、在 .NET 則有 F#，加上這些年被呼籲用以取代 C/C++，講求速度與安全的 Rust，都是原生支援 FP 的代表。而即使是 Python/C#/JavaScript/Java 等傳統偏向 OOP 的程式語言，也紛紛加入 FP 思維的設計，例如: Lambda Expression、map/reduce/filter、不可變容器... FP 已成顯學。</p> <p>練拳一輩子的老武師，猛一抬頭，發現大家都在踢跆拳道... 登楞!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638954411988526483.jpg" alt="thumbnail"></p> <p>為了解答這個疑問，我花了點時間研究這股趨勢的成因，試著了解為何 FP 會被狂推。</p> <p>FP 之所以能取代 OOP，自然是瞄準了 OOP 的痛點，會如此發展則與時代演進有關。</p> <p>其實 FP 語言的歷史很早，1930年代數學家 Alonzo Church 提出了 λ 演算（Lambda Calculus），是一種用「函數抽象與套用」來表達計算的純數學模型(所以 Lambda 這個名字是這麼來的，長知識了)。1950–60 年代電腦出現後，數學家試著把 λ 演算思想變成程式語言，LISP (1958)是第一個成功的函數式語言，但後來命令式 / 結構化程式設計 (如 C、Pascal、Fortran) 因為更符合 CPU 的運算特性，成為程式語言的主流，此段時間 FP 只能默默發展，期間出現 ML (1973)、Scheme (1975)、Miranda (1985) 等語言，學界推出的 Haskell (1990) 成為「純函數式語言」的代表。</p> <p>1990 年後展開 Internet、雲端時代，軟體系統日益複雜，為應付高流量情境需要大量並行運算，傳統命令式的 OOP 設計，在多執行緒環境需解決資料存取衝突問題，開發難度驟增。另一方面，企業級與雲端系統講求可測試、可組合、可推理性，使用 OOP 實踐也會遇上不少困難。</p> <p>OOP 主打封裝資料及行為，保存狀態並集中商業邏輯，藉此降低耦合度與提升可維護性，有利於大型專案分工與邊界定義。然而，隨著分散式架構、多核平行運算成為日常，共享可變狀態在高並行情境很容易衍生同步化與 Race Codition 問題，常需複雜的額外鎖定與協議控制克服。在高並行情境，處理這類問題的複雜度常超乎想像，於是講求資料不可變的 FP 成了解藥。</p> <p>FP 的主要特色如下：(註：我試著補上 C# 的 FP 實踐範例方便理解)</p> <ul><li>純函數(Pure Functions)：效法數學函式 (例如：f(x) = x * 2) 精神，相同輸入必得相同輸出，不產生任何副作用(不修改外部狀態、不做 I/O 動作)，易於推理與測試。<br> 例：<code>Func&lt;int, int, int&gt; add = (a, b) =&gt; a + b;</code>，add(1, 2) 只會等於 3，沒有其他可能。</li> <li>不可變(Immutability)：要求資料不可變，不共享可變狀態，如此能大幅降低並行情境的 Race Condition 與同步成本。<br> <a href="/blog/csharp-9-features/">C# 9</a>推出了 Record 用來封裝不可變資料(Immutable Data)，主要也在呼應 FP 應用。</li> <li>高階函數(Higher-Order)：函數是一等公民，可作為參數或回傳值，支持組合應用與抽象化。<br> Lambda 當參數用在 LINQ 已是日常：<code>Func&lt;int, bool&gt; ge5 = (i) =&gt; i &gt;= 5; (new [] { 1,2,3,4,5,6,7 }).Where(ge5);</code>。</li> <li>遞迴與組合(Recursion &amp; Composition)：以小函數組合大功能，透過函數串接合成取代命令式流程控制。<br> LINQ 寫法是最簡單的實例：<code>collection.Where(o =&gt; o.Count &gt; 3).OrderBy(o =&gt; o.Price)...</code>。</li> <li>強型別與型別推導(Type Systems)：使用嚴謹強型別系統與推導，在編譯期即可攔截型別錯誤。</li> <li>宣告式(Declarative)：描述要算什麼而非怎麼算，貼近數學定義，便於等式推導與重構。<br> <code>var add = int (int a, int b) =&gt; a + b;</code>(<a href="/blog/csharp-10-features/">C# 10+</a> Lambda 可明確宣告傳回型別，用 var 取代 Func&lt;int, int, int&gt;)，運算邏輯類似數學函式，一望便知。</li> <li>惰性求值(Lazy Evaluation)：要用到時才評估計算，提高效率並方便彈性組合。<br> <a href="/blog/linq-deferred-exec/">LINQ 的延遲執行</a>便是一例，忘記了小心踩坑。</li></ul> <p>而這帶來一些好處：</p> <ul><li>適合平行處理：由於不共享可變狀態，不用擔心平行處理時程式打架，Thread-Safe 渾然天成!</li> <li>測試超級好寫：純函數保證輸入傳什麼不可變資料一定得到什麼輸出，自動測試不需動用複雜 Mocking 模擬物件行為及狀態。</li> <li>易於了解推理：宣告式特性讓邏輯透明，重構與驗證行為更直觀。</li></ul> <p>在講求高並行性大量平行處理的場景，FP 的特色與好處格外珍貴，於是在金融、電信、雲原生、大數據、人工智慧等領域，許多人會選擇 FP 語言取代傳統 OOP 架構。</p> <p>至此，我們對 OOP 的缺點與 FP 的好處已有粗淺認識。不過，OOP 與 FP 倒也不是非黑即白漢賊不兩位。傳統 OOP 語言如 Python、C#、JavaScript/TypeScript、Java 在傳統 OOP 主軸外，也開始支援 FP 概念 (最簡單鑑別方法可看是否支援 Lambda 寫法)，把程式寫成 FP 風格絕對沒問題。而以 FP 為主的 Scala/Kotlin/F#/OCaml/Swift/Rust 也加減能支援 OOP 的部分特性(不過對於「繼承」，有些語言倒是傾向不支援，例如：Rust、Golang)。</p> <p>從學術一點的角度來看，OOP 或 FP 可視為程式設計的兩種<a href="https://zh.wikipedia.org/zh-tw/%E8%8C%83%E5%BC%8F">典範(Paradigm)</a>，而所謂的 Paradigm（典範/範式）指的是一個特定時期內，一個群體(如科學社群、學術領域)所認同的基本世界觀、信念、價值觀或方法論，為該領域的成員提供一個共同遵循的模式和模型，一套被廣泛接受的思維方式或研究框架，指導人們如何觀察、思考、提問和解決問題。</p> <p>科學哲學家托馬斯·S·庫恩提出「典範轉移(Paradigm Shift)」的概念，指一個舊典範不再能解釋現有現象或被新發現取代時，會發生一種根本性的變革或科學革命，整個研究群體的思維方式和方法論隨之改變。例如，從地平說走向地圓說。</p> <p>在程式設計領域，從最早一路到底的程序式寫法到結構化設計，從結構化到 OOP，再從 OOP 到 FP，這些演進涉及對問題解決方式的重新思考，例如，從以動作為中心轉為以物件為中心，便可視為一種典範轉移。FP 強調不可變性、純函數與數學函數評估，而 OOP 著重封裝、繼承與多型，兩種方法對於狀態管理、程式結構有著截然不同的設計哲學，絕對也是一種典範轉移。</p> <p>不過程式開發領域的典範轉移，不同於庫恩聚焦的單一性典範(例如：地平說與地圓說只能二選一)，「多典範共存」是常態。OOP 物件邊界清晰，能直覺化映對領域實體，易於思考設計，繼承、多型與介面則有利於結構化重用與替換，在複雜領域模型、長生命周期、替換與擴展需求強烈情境仍有壓倒性優勢。當可維護擴充性比高並行、可測試性更重要，堅持用 FP 硬幹便不是個好主意。目前的發展也走向二者共存，像是大部分 OOP 語言都能實現 FP (寫過 LINQ 就等於有在用 FP 了)，而 FP 語言也會實做部分 OOP 功能。</p> <p>一個可行策略是「大範圍 OOP，小範圍 FP」的混合策略，在高層次介面使用物件導向設計維持低耦合易於維護擴充，邏輯實作則視需求採用函數技術滿足高並行需求，OOP 與 FP 摻在一起做成瀨尿牛丸，應該是最好的做法吧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638954411990266099.jpg" alt="thumbnail"></p> <p>【延伸閱讀 for .NET 開發者】</p> <ul><li><a href="https://learn.microsoft.com/en-us/shows/visual-studio-toolbox/functional-programming-in-csharp?WT.mc_id=DOP-MVP-37580">Functional Programming in C# (影片)</a></li> <li><a href="https://old-oomusou.goodjack.tw/fp/intro/">Functional Programming 簡介 by 點燈坊</a></li> <li><a href="https://www.telerik.com/campaigns/devcraft/functional-programming-with-csharp-cheat-sheet">The Essential Cheat Sheet: Functional Programming with C# 7.1</a></li></ul> <p data-slug="fp-vs-oop" data-title-en="Function programming in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/01/09/11/23/formula-594149_1280.jpg#1280#720">This article explain why functional programming offers safer concurrency and easier testing by emphasizing immutability, pure functions, and declarative code—making it popular for modern, scalable systems beyond OOP with C# exmaples.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這些年來，Functional Programming (FP，函數式程式設計) 受到愈來愈多開發者青睞，成為不少新世代程式設計的首選，OOP (Object Oriented Programming 物件導向程式開發) 稱霸的榮景不再。</p> <p>最震驚的莫過於 C++/Java/C# 開發者們，打從程式語言學步階段就不斷被灌輸：要以物件為中心，貫徹封裝、抽象、繼承與多型精神，實現高模組化、可重用與可擴展的程式結構，才能做出偉大的系統。結果幾十年過去，一眨眼世界變了，彷彿 FP 才是王道。</p> <p>在 Java 領域有 Scala、在 .NET 則有 F#，加上這些年被呼籲用以取代 C/C++，講求速度與安全的 Rust，都是原生支援 FP 的代表。而即使是 Python/C#/JavaScript/Java 等傳統偏向 OOP 的程式語言，也紛紛加入 FP 思維的設計，例如: Lambda Expression、map/reduce/filter、不可變容器... FP 已成顯學。</p> <p>練拳一輩子的老武師，猛一抬頭，發現大家都在踢跆拳道... 登楞!</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638954411988526483.jpg" alt="thumbnail"></p> <p>為了解答這個疑問，我花了點時間研究這股趨勢的成因，試著了解為何 FP 會被狂推。</p> <p>FP 之所以能取代 OOP，自然是瞄準了 OOP 的痛點，會如此發展則與時代演進有關。</p> <p>其實 FP 語言的歷史很早，1930年代數學家 Alonzo Church 提出了 λ 演算（Lambda Calculus），是一種用「函數抽象與套用」來表達計算的純數學模型(所以 Lambda 這個名字是這麼來的，長知識了)。1950–60 年代電腦出現後，數學家試著把 λ 演算思想變成程式語言，LISP (1958)是第一個成功的函數式語言，但後來命令式 / 結構化程式設計 (如 C、Pascal、Fortran) 因為更符合 CPU 的運算特性，成為程式語言的主流，此段時間 FP 只能默默發展，期間出現 ML (1973)、Scheme (1975)、Miranda (1985) 等語言，學界推出的 Haskell (1990) 成為「純函數式語言」的代表。</p> <p>1990 年後展開 Internet、雲端時代，軟體系統日益複雜，為應付高流量情境需要大量並行運算，傳統命令式的 OOP 設計，在多執行緒環境需解決資料存取衝突問題，開發難度驟增。另一方面，企業級與雲端系統講求可測試、可組合、可推理性，使用 OOP 實踐也會遇上不少困難。</p> <p>OOP 主打封裝資料及行為，保存狀態並集中商業邏輯，藉此降低耦合度與提升可維護性，有利於大型專案分工與邊界定義。然而，隨著分散式架構、多核平行運算成為日常，共享可變狀態在高並行情境很容易衍生同步化與 Race Codition 問題，常需複雜的額外鎖定與協議控制克服。在高並行情境，處理這類問題的複雜度常超乎想像，於是講求資料不可變的 FP 成了解藥。</p> <p>FP 的主要特色如下：(註：我試著補上 C# 的 FP 實踐範例方便理解)</p> <ul><li>純函數(Pure Functions)：效法數學函式 (例如：f(x) = x * 2) 精神，相同輸入必得相同輸出，不產生任何副作用(不修改外部狀態、不做 I/O 動作)，易於推理與測試。<br> 例：<code>Func&lt;int, int, int&gt; add = (a, b) =&gt; a + b;</code>，add(1, 2) 只會等於 3，沒有其他可能。</li> <li>不可變(Immutability)：要求資料不可變，不共享可變狀態，如此能大幅降低並行情境的 Race Condition 與同步成本。<br> <a href="/blog/csharp-9-features/">C# 9</a>推出了 Record 用來封裝不可變資料(Immutable Data)，主要也在呼應 FP 應用。</li> <li>高階函數(Higher-Order)：函數是一等公民，可作為參數或回傳值，支持組合應用與抽象化。<br> Lambda 當參數用在 LINQ 已是日常：<code>Func&lt;int, bool&gt; ge5 = (i) =&gt; i &gt;= 5; (new [] { 1,2,3,4,5,6,7 }).Where(ge5);</code>。</li> <li>遞迴與組合(Recursion &amp; Composition)：以小函數組合大功能，透過函數串接合成取代命令式流程控制。<br> LINQ 寫法是最簡單的實例：<code>collection.Where(o =&gt; o.Count &gt; 3).OrderBy(o =&gt; o.Price)...</code>。</li> <li>強型別與型別推導(Type Systems)：使用嚴謹強型別系統與推導，在編譯期即可攔截型別錯誤。</li> <li>宣告式(Declarative)：描述要算什麼而非怎麼算，貼近數學定義，便於等式推導與重構。<br> <code>var add = int (int a, int b) =&gt; a + b;</code>(<a href="/blog/csharp-10-features/">C# 10+</a> Lambda 可明確宣告傳回型別，用 var 取代 Func&lt;int, int, int&gt;)，運算邏輯類似數學函式，一望便知。</li> <li>惰性求值(Lazy Evaluation)：要用到時才評估計算，提高效率並方便彈性組合。<br> <a href="/blog/linq-deferred-exec/">LINQ 的延遲執行</a>便是一例，忘記了小心踩坑。</li></ul> <p>而這帶來一些好處：</p> <ul><li>適合平行處理：由於不共享可變狀態，不用擔心平行處理時程式打架，Thread-Safe 渾然天成!</li> <li>測試超級好寫：純函數保證輸入傳什麼不可變資料一定得到什麼輸出，自動測試不需動用複雜 Mocking 模擬物件行為及狀態。</li> <li>易於了解推理：宣告式特性讓邏輯透明，重構與驗證行為更直觀。</li></ul> <p>在講求高並行性大量平行處理的場景，FP 的特色與好處格外珍貴，於是在金融、電信、雲原生、大數據、人工智慧等領域，許多人會選擇 FP 語言取代傳統 OOP 架構。</p> <p>至此，我們對 OOP 的缺點與 FP 的好處已有粗淺認識。不過，OOP 與 FP 倒也不是非黑即白漢賊不兩位。傳統 OOP 語言如 Python、C#、JavaScript/TypeScript、Java 在傳統 OOP 主軸外，也開始支援 FP 概念 (最簡單鑑別方法可看是否支援 Lambda 寫法)，把程式寫成 FP 風格絕對沒問題。而以 FP 為主的 Scala/Kotlin/F#/OCaml/Swift/Rust 也加減能支援 OOP 的部分特性(不過對於「繼承」，有些語言倒是傾向不支援，例如：Rust、Golang)。</p> <p>從學術一點的角度來看，OOP 或 FP 可視為程式設計的兩種<a href="https://zh.wikipedia.org/zh-tw/%E8%8C%83%E5%BC%8F">典範(Paradigm)</a>，而所謂的 Paradigm（典範/範式）指的是一個特定時期內，一個群體(如科學社群、學術領域)所認同的基本世界觀、信念、價值觀或方法論，為該領域的成員提供一個共同遵循的模式和模型，一套被廣泛接受的思維方式或研究框架，指導人們如何觀察、思考、提問和解決問題。</p> <p>科學哲學家托馬斯·S·庫恩提出「典範轉移(Paradigm Shift)」的概念，指一個舊典範不再能解釋現有現象或被新發現取代時，會發生一種根本性的變革或科學革命，整個研究群體的思維方式和方法論隨之改變。例如，從地平說走向地圓說。</p> <p>在程式設計領域，從最早一路到底的程序式寫法到結構化設計，從結構化到 OOP，再從 OOP 到 FP，這些演進涉及對問題解決方式的重新思考，例如，從以動作為中心轉為以物件為中心，便可視為一種典範轉移。FP 強調不可變性、純函數與數學函數評估，而 OOP 著重封裝、繼承與多型，兩種方法對於狀態管理、程式結構有著截然不同的設計哲學，絕對也是一種典範轉移。</p> <p>不過程式開發領域的典範轉移，不同於庫恩聚焦的單一性典範(例如：地平說與地圓說只能二選一)，「多典範共存」是常態。OOP 物件邊界清晰，能直覺化映對領域實體，易於思考設計，繼承、多型與介面則有利於結構化重用與替換，在複雜領域模型、長生命周期、替換與擴展需求強烈情境仍有壓倒性優勢。當可維護擴充性比高並行、可測試性更重要，堅持用 FP 硬幹便不是個好主意。目前的發展也走向二者共存，像是大部分 OOP 語言都能實現 FP (寫過 LINQ 就等於有在用 FP 了)，而 FP 語言也會實做部分 OOP 功能。</p> <p>一個可行策略是「大範圍 OOP，小範圍 FP」的混合策略，在高層次介面使用物件導向設計維持低耦合易於維護擴充，邏輯實作則視需求採用函數技術滿足高並行需求，OOP 與 FP 摻在一起做成瀨尿牛丸，應該是最好的做法吧。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638954411990266099.jpg" alt="thumbnail"></p> <p>【延伸閱讀 for .NET 開發者】</p> <ul><li><a href="https://learn.microsoft.com/en-us/shows/visual-studio-toolbox/functional-programming-in-csharp?WT.mc_id=DOP-MVP-37580">Functional Programming in C# (影片)</a></li> <li><a href="https://old-oomusou.goodjack.tw/fp/intro/">Functional Programming 簡介 by 點燈坊</a></li> <li><a href="https://www.telerik.com/campaigns/devcraft/functional-programming-with-csharp-cheat-sheet">The Essential Cheat Sheet: Functional Programming with C# 7.1</a></li></ul> <p data-slug="fp-vs-oop" data-title-en="Function programming in C#" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/01/09/11/23/formula-594149_1280.jpg#1280#720">This article explain why functional programming offers safer concurrency and easier testing by emphasizing immutability, pure functions, and declarative code—making it popular for modern, scalable systems beyond OOP with C# exmaples.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638954411988526483.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638954411988526483.jpg" medium="image"/>
+    <pubDate>Tue, 07 Oct 2025 13:38:22 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【茶包射手日記】認識 web.config compilation 與 httpRuntime 的 targetFramework]]></title>
+    <link>https://blog.darkthread.net/blog/httruntime-targetframework/</link>
+    <itunes:title><![CDATA[【茶包射手日記】認識 web.config compilation 與 httpRuntime 的 targetFramework]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>處理一枚 TLS 1.2 茶包，藉此釐清了一些 .NET Framework 版本觀念，筆記備忘。</p> <p>故事是有個 ASP.NET MVC / .NET Framework 4.5.2 網站，WebClient 連某個 HTTPS 網址時出現典型的 <code>基礎連接已關閉: 接收時發生未預期的錯誤 / 客戶端與伺服器無法溝通，因為它們沒有公用的演算法 (The client and server cannot communicate, because they do not possess a common algorithm)</code> 錯誤。很明顯是網站只支援 TLS 1.2，而 .NET 4.6+ 才預設使用 TLS 1.2 連線，解法有三種：</p> <ol><li>升級到 .NET Framework 4.6 以上版本 <a href="/blog/disable-tls-1-0-issues/">參考</a></li> <li>在程式碼加上 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12</li> <li>設定 SystemDefaultTlsVersions、SchUseStrongCrypto Registry <a href="/blog/net35-tls12-issue/">參考</a></li></ol> <p>我選擇第一種做法，將 ASP.NET MVC 網站升級到 4.8，重跑程式，卻照樣彈出「沒有公用的演算法」錯誤... 登楞! 莫非「.NET 4.6+ 預設改用 TLS 1.2」 的說法有誤，我還錯信了<a href="/blog/disable-tls-1-0-issues/">八年</a>?</p> <p>開了個全新 .NET 4.5.2 Console Application 測試以下程式，成功重現 TLS 連線錯誤；將版本改成 4.8 重新編譯執行都可成功，印證先前的認知並沒有錯!</p> <pre><code>static void Main(string[] args)
+{
+var attr = (TargetFrameworkAttribute)Attribute.GetCustomAttribute(
+typeof(Program).Assembly, typeof(TargetFrameworkAttribute));
+Console.WriteLine($"Target Framework: {attr?.FrameworkName ?? "Unknown"}");
+try
+{
+var wc = new WebClient();
+var resp = wc.DownloadString("https://owasp.org/");
+Console.WriteLine("HTTPS Request Succeeded.");
+}
+catch (Exception ex)
+{
+Console.WriteLine($"Error: {ex.Message}");
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"></p> <p>那為什麼 ASP.NET MVC 已升級 4.8，卻沒有如預期預設改用 TLS 1.2?</p> <p>首先，複習幾個觀念：(參考資料：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>)</p> <ul><li>.NET 4.X 採「就地更新」(In-Place Update)政策，在安裝 .NET 4.8 的環境， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是在 .NET 4.8 版 Runtime 執行。</li> <li>.NET 4.5 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名，置換成新版本。因此，安裝 .NET 4.5 後，即使是以 .NET 4 為目標編譯的程式，使用的也會是 .NET 4.5 版 Runtime 及系統組件。而 .NET 4.5.X、4.6.X、4.7.X、4.8 的升級也是依循相同模式。</li></ul> <p>所以，不管我是編譯成 .NET 4.8 或 4.5.2，其實使用的都是 4.8 的 Runtime 與系統套件。而我們在 Visual Studio 選取不同的 Target Framework，它會修改 .csproj 的 <code>&lt;TargetFrameworkVersion&gt;</code> 以及 app.config 的 supportRuntime sku Attribute：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638953117035287827.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638953117038459856.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638953117040070270.png"></p> <p>Visual Studio 在編譯時會依據 app.config 在執行檔加上 <code>[assembly: TargetFramework(".NETFramework,Version=v4.X", FrameworkDisplayName = ".NET Framework 4.X")]</code>，程式在執行時便會向下相容，模擬舊版本的行為。</p> <p>至於 ASP.NET Core 沒有 supportRuntime 可參照，所以會依據 web.config 的 compilation 及 httpRuntime 而定，問題主機的二者呈現衝突狀態，compilation 寫 4.8、但 httpRuntime 寫 4.5.2：</p> <pre><code>&lt;system.web&gt;
+&lt;compilation targetFramework="4.8" /&gt;
+&lt;httpRuntime targetFramework="4.5.2" /&gt;
+&lt;/system.web&gt;
+</code></pre> <p>compilation 的 targetFramework 決定 ASP.NET 動態編譯時的 .NET Framework 版本依據，設定 4.0，遇到 4.5+ 才支援的語法將會出錯。</p> <p>httpRuntime 的 targetFramework 則決定執行時期的 .NET 版本行為 (CLR 的 Quirks Mode 行為)，設定成 4.5.2 便會恢復 ServicePointManager.SecurityProtocol 預設舊版 SSL (非 TLS 1.2) 的行為，導致雖然 DLL 已升級成 4.8，在 ASP.NET 執行卻無法連上 TLS 1.2 網站的錯誤，結案!</p> <p>關於這部分的詳細介紹，推薦 .NET 部落格這篇文章：<a href="https://devblogs.microsoft.com/dotnet/all-about-httpruntime-targetframework/?WT.mc_id=DOP-MVP-37580">All about httpRuntime targetFramework by levibroderick / .NET Blog</a>。</p> <p data-slug="httruntime-targetframework" data-title-en="web.config httpRuntime targetFrramework" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/772689/pexels-photo-772689.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#750#1260">.NET Framework TLS 1.2 defaults depend on both runtime and httpRuntime targetFramework. Upgrading DLLs isn’t enough—httpRuntime must also target 4.6+ for default TLS 1.2 behavior.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>處理一枚 TLS 1.2 茶包，藉此釐清了一些 .NET Framework 版本觀念，筆記備忘。</p> <p>故事是有個 ASP.NET MVC / .NET Framework 4.5.2 網站，WebClient 連某個 HTTPS 網址時出現典型的 <code>基礎連接已關閉: 接收時發生未預期的錯誤 / 客戶端與伺服器無法溝通，因為它們沒有公用的演算法 (The client and server cannot communicate, because they do not possess a common algorithm)</code> 錯誤。很明顯是網站只支援 TLS 1.2，而 .NET 4.6+ 才預設使用 TLS 1.2 連線，解法有三種：</p> <ol><li>升級到 .NET Framework 4.6 以上版本 <a href="/blog/disable-tls-1-0-issues/">參考</a></li> <li>在程式碼加上 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12</li> <li>設定 SystemDefaultTlsVersions、SchUseStrongCrypto Registry <a href="/blog/net35-tls12-issue/">參考</a></li></ol> <p>我選擇第一種做法，將 ASP.NET MVC 網站升級到 4.8，重跑程式，卻照樣彈出「沒有公用的演算法」錯誤... 登楞! 莫非「.NET 4.6+ 預設改用 TLS 1.2」 的說法有誤，我還錯信了<a href="/blog/disable-tls-1-0-issues/">八年</a>?</p> <p>開了個全新 .NET 4.5.2 Console Application 測試以下程式，成功重現 TLS 連線錯誤；將版本改成 4.8 重新編譯執行都可成功，印證先前的認知並沒有錯!</p> <pre><code>static void Main(string[] args)
+{
+var attr = (TargetFrameworkAttribute)Attribute.GetCustomAttribute(
+typeof(Program).Assembly, typeof(TargetFrameworkAttribute));
+Console.WriteLine($"Target Framework: {attr?.FrameworkName ?? "Unknown"}");
+try
+{
+var wc = new WebClient();
+var resp = wc.DownloadString("https://owasp.org/");
+Console.WriteLine("HTTPS Request Succeeded.");
+}
+catch (Exception ex)
+{
+Console.WriteLine($"Error: {ex.Message}");
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"></p> <p>那為什麼 ASP.NET MVC 已升級 4.8，卻沒有如預期預設改用 TLS 1.2?</p> <p>首先，複習幾個觀念：(參考資料：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>)</p> <ul><li>.NET 4.X 採「就地更新」(In-Place Update)政策，在安裝 .NET 4.8 的環境， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是在 .NET 4.8 版 Runtime 執行。</li> <li>.NET 4.5 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名，置換成新版本。因此，安裝 .NET 4.5 後，即使是以 .NET 4 為目標編譯的程式，使用的也會是 .NET 4.5 版 Runtime 及系統組件。而 .NET 4.5.X、4.6.X、4.7.X、4.8 的升級也是依循相同模式。</li></ul> <p>所以，不管我是編譯成 .NET 4.8 或 4.5.2，其實使用的都是 4.8 的 Runtime 與系統套件。而我們在 Visual Studio 選取不同的 Target Framework，它會修改 .csproj 的 <code>&lt;TargetFrameworkVersion&gt;</code> 以及 app.config 的 supportRuntime sku Attribute：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638953117035287827.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638953117038459856.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638953117040070270.png"></p> <p>Visual Studio 在編譯時會依據 app.config 在執行檔加上 <code>[assembly: TargetFramework(".NETFramework,Version=v4.X", FrameworkDisplayName = ".NET Framework 4.X")]</code>，程式在執行時便會向下相容，模擬舊版本的行為。</p> <p>至於 ASP.NET Core 沒有 supportRuntime 可參照，所以會依據 web.config 的 compilation 及 httpRuntime 而定，問題主機的二者呈現衝突狀態，compilation 寫 4.8、但 httpRuntime 寫 4.5.2：</p> <pre><code>&lt;system.web&gt;
+&lt;compilation targetFramework="4.8" /&gt;
+&lt;httpRuntime targetFramework="4.5.2" /&gt;
+&lt;/system.web&gt;
+</code></pre> <p>compilation 的 targetFramework 決定 ASP.NET 動態編譯時的 .NET Framework 版本依據，設定 4.0，遇到 4.5+ 才支援的語法將會出錯。</p> <p>httpRuntime 的 targetFramework 則決定執行時期的 .NET 版本行為 (CLR 的 Quirks Mode 行為)，設定成 4.5.2 便會恢復 ServicePointManager.SecurityProtocol 預設舊版 SSL (非 TLS 1.2) 的行為，導致雖然 DLL 已升級成 4.8，在 ASP.NET 執行卻無法連上 TLS 1.2 網站的錯誤，結案!</p> <p>關於這部分的詳細介紹，推薦 .NET 部落格這篇文章：<a href="https://devblogs.microsoft.com/dotnet/all-about-httpruntime-targetframework/?WT.mc_id=DOP-MVP-37580">All about httpRuntime targetFramework by levibroderick / .NET Blog</a>。</p> <p data-slug="httruntime-targetframework" data-title-en="web.config httpRuntime targetFrramework" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/772689/pexels-photo-772689.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#750#1260">.NET Framework TLS 1.2 defaults depend on both runtime and httpRuntime targetFramework. Upgrading DLLs isn’t enough—httpRuntime must also target 4.6+ for default TLS 1.2 behavior.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>處理一枚 TLS 1.2 茶包，藉此釐清了一些 .NET Framework 版本觀念，筆記備忘。</p> <p>故事是有個 ASP.NET MVC / .NET Framework 4.5.2 網站，WebClient 連某個 HTTPS 網址時出現典型的 <code>基礎連接已關閉: 接收時發生未預期的錯誤 / 客戶端與伺服器無法溝通，因為它們沒有公用的演算法 (The client and server cannot communicate, because they do not possess a common algorithm)</code> 錯誤。很明顯是網站只支援 TLS 1.2，而 .NET 4.6+ 才預設使用 TLS 1.2 連線，解法有三種：</p> <ol><li>升級到 .NET Framework 4.6 以上版本 <a href="/blog/disable-tls-1-0-issues/">參考</a></li> <li>在程式碼加上 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12</li> <li>設定 SystemDefaultTlsVersions、SchUseStrongCrypto Registry <a href="/blog/net35-tls12-issue/">參考</a></li></ol> <p>我選擇第一種做法，將 ASP.NET MVC 網站升級到 4.8，重跑程式，卻照樣彈出「沒有公用的演算法」錯誤... 登楞! 莫非「.NET 4.6+ 預設改用 TLS 1.2」 的說法有誤，我還錯信了<a href="/blog/disable-tls-1-0-issues/">八年</a>?</p> <p>開了個全新 .NET 4.5.2 Console Application 測試以下程式，成功重現 TLS 連線錯誤；將版本改成 4.8 重新編譯執行都可成功，印證先前的認知並沒有錯!</p> <pre><code>static void Main(string[] args)
+{
+var attr = (TargetFrameworkAttribute)Attribute.GetCustomAttribute(
+typeof(Program).Assembly, typeof(TargetFrameworkAttribute));
+Console.WriteLine($"Target Framework: {attr?.FrameworkName ?? "Unknown"}");
+try
+{
+var wc = new WebClient();
+var resp = wc.DownloadString("https://owasp.org/");
+Console.WriteLine("HTTPS Request Succeeded.");
+}
+catch (Exception ex)
+{
+Console.WriteLine($"Error: {ex.Message}");
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"></p> <p>那為什麼 ASP.NET MVC 已升級 4.8，卻沒有如預期預設改用 TLS 1.2?</p> <p>首先，複習幾個觀念：(參考資料：<a href="/blog/ref-higher-netfx-ver-dll/">.NET 4.6 專案可以參照及使用 .NET 4.8 編譯的程式庫嗎？</a>)</p> <ul><li>.NET 4.X 採「就地更新」(In-Place Update)政策，在安裝 .NET 4.8 的環境， 以 .NET 4.0、4.5、4.6、4.7、4.8 為目標編譯的程式都是在 .NET 4.8 版 Runtime 執行。</li> <li>.NET 4.5 安裝時會覆寫換掉 \Windows.NET Framework\V4.0.30319 的 .NET 4 舊版 dll，沿用相同目錄同樣檔名，置換成新版本。因此，安裝 .NET 4.5 後，即使是以 .NET 4 為目標編譯的程式，使用的也會是 .NET 4.5 版 Runtime 及系統組件。而 .NET 4.5.X、4.6.X、4.7.X、4.8 的升級也是依循相同模式。</li></ul> <p>所以，不管我是編譯成 .NET 4.8 或 4.5.2，其實使用的都是 4.8 的 Runtime 與系統套件。而我們在 Visual Studio 選取不同的 Target Framework，它會修改 .csproj 的 <code>&lt;TargetFrameworkVersion&gt;</code> 以及 app.config 的 supportRuntime sku Attribute：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638953117035287827.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638953117038459856.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638953117040070270.png"></p> <p>Visual Studio 在編譯時會依據 app.config 在執行檔加上 <code>[assembly: TargetFramework(".NETFramework,Version=v4.X", FrameworkDisplayName = ".NET Framework 4.X")]</code>，程式在執行時便會向下相容，模擬舊版本的行為。</p> <p>至於 ASP.NET Core 沒有 supportRuntime 可參照，所以會依據 web.config 的 compilation 及 httpRuntime 而定，問題主機的二者呈現衝突狀態，compilation 寫 4.8、但 httpRuntime 寫 4.5.2：</p> <pre><code>&lt;system.web&gt;
+&lt;compilation targetFramework="4.8" /&gt;
+&lt;httpRuntime targetFramework="4.5.2" /&gt;
+&lt;/system.web&gt;
+</code></pre> <p>compilation 的 targetFramework 決定 ASP.NET 動態編譯時的 .NET Framework 版本依據，設定 4.0，遇到 4.5+ 才支援的語法將會出錯。</p> <p>httpRuntime 的 targetFramework 則決定執行時期的 .NET 版本行為 (CLR 的 Quirks Mode 行為)，設定成 4.5.2 便會恢復 ServicePointManager.SecurityProtocol 預設舊版 SSL (非 TLS 1.2) 的行為，導致雖然 DLL 已升級成 4.8，在 ASP.NET 執行卻無法連上 TLS 1.2 網站的錯誤，結案!</p> <p>關於這部分的詳細介紹，推薦 .NET 部落格這篇文章：<a href="https://devblogs.microsoft.com/dotnet/all-about-httpruntime-targetframework/?WT.mc_id=DOP-MVP-37580">All about httpRuntime targetFramework by levibroderick / .NET Blog</a>。</p> <p data-slug="httruntime-targetframework" data-title-en="web.config httpRuntime targetFrramework" data-catg="Web Development" data-fbimg="https://images.pexels.com/photos/772689/pexels-photo-772689.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#750#1260">.NET Framework TLS 1.2 defaults depend on both runtime and httpRuntime targetFramework. Upgrading DLLs isn’t enough—httpRuntime must also target 4.6+ for default TLS 1.2 behavior.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png" medium="image"/>
+    <pubDate>Mon, 06 Oct 2025 01:40:07 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[一次搞定 Python 版本管理/套件安裝/虛擬環境的極速神器 - uv]]></title>
+    <link>https://blog.darkthread.net/blog/uv/</link>
+    <itunes:title><![CDATA[一次搞定 Python 版本管理/套件安裝/虛擬環境的極速神器 - uv]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
+uv run test.py "arg1" "arg2"
+# bash
+echo 'print("hello world!")' | uv run -
+uv run - &lt;&lt;EOF
+print("hello world!")
+EOF
+# cmd
+echo print("hello world!") | uv run -
+# PowerShell
+@"
+print("hello world!")
+"@ | uv run -
+</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
+print("Hello, world!")
+</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
+import time
+from rich.progress import track
+for i in track(range(20), description="For example:"):
+time.sleep(0.05)
+# 執行
+uv run --with rich exmaple.py
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
+# requires-python = "&gt;=3.12"
+# dependencies = []
+# ///
+# Use some syntax added in Python 3.12
+type Point = tuple[float, float]
+print(Point)
+</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
+uv venv --python 3.11 # 指定 Python 版本
+uv pip install ruff # 在虛擬環境安裝套件
+source .venv/bin/activate # 啟用虛擬環境
+# .venv\Scripts\activate # Windows
+deactivate # 退出虛擬環境
+</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
+uv run test.py "arg1" "arg2"
+# bash
+echo 'print("hello world!")' | uv run -
+uv run - &lt;&lt;EOF
+print("hello world!")
+EOF
+# cmd
+echo print("hello world!") | uv run -
+# PowerShell
+@"
+print("hello world!")
+"@ | uv run -
+</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
+print("Hello, world!")
+</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
+import time
+from rich.progress import track
+for i in track(range(20), description="For example:"):
+time.sleep(0.05)
+# 執行
+uv run --with rich exmaple.py
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
+# requires-python = "&gt;=3.12"
+# dependencies = []
+# ///
+# Use some syntax added in Python 3.12
+type Point = tuple[float, float]
+print(Point)
+</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
+uv venv --python 3.11 # 指定 Python 版本
+uv pip install ruff # 在虛擬環境安裝套件
+source .venv/bin/activate # 啟用虛擬環境
+# .venv\Scripts\activate # Windows
+deactivate # 退出虛擬環境
+</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
+uv run test.py "arg1" "arg2"
+# bash
+echo 'print("hello world!")' | uv run -
+uv run - &lt;&lt;EOF
+print("hello world!")
+EOF
+# cmd
+echo print("hello world!") | uv run -
+# PowerShell
+@"
+print("hello world!")
+"@ | uv run -
+</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
+print("Hello, world!")
+</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
+import time
+from rich.progress import track
+for i in track(range(20), description="For example:"):
+time.sleep(0.05)
+# 執行
+uv run --with rich exmaple.py
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
+# requires-python = "&gt;=3.12"
+# dependencies = []
+# ///
+# Use some syntax added in Python 3.12
+type Point = tuple[float, float]
+print(Point)
+</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
+uv venv --python 3.11 # 指定 Python 版本
+uv pip install ruff # 在虛擬環境安裝套件
+source .venv/bin/activate # 啟用虛擬環境
+# .venv\Scripts\activate # Windows
+deactivate # 退出虛擬環境
+</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" medium="image"/>
+    <pubDate>Tue, 30 Sep 2025 15:20:58 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Web Fuzzing 攻擊實例分析]]></title>
+    <link>https://blog.darkthread.net/blog/web-fuzzing-attack-case-study/</link>
+    <itunes:title><![CDATA[Web Fuzzing 攻擊實例分析]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在外吃飯，手機接到<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">土砲 SIEM</a> 傳來一連串警示，顯示有個 IP 正在對某對外網站嘗試各式各樣的無效 URL，研判是惡意機器人正在探索漏洞準備攻擊。(總不會是公益團體在幫人免費做滲透測試吧？)</p> <p>這種事在網路每天都在上演，網站只要 IP 對外就絕對會遇到。攻擊者會放出機器人在 Internet 四處亂槍打鳥，發現網站後把所有想到的漏洞 URL 全部掃一次，反正成本不高，就算 999 個失敗，只要有一個成功就挖到寶了。</p> <p>這種對同一網站遍歷所有漏洞 URL 的手法，有個專有名詞叫 Web Fuzzying (模糊測試) 攻擊，是一種針對 Web 應用程式常見的自動化安全測試與攻擊技術，其原理是大量產生並輸入隨機、半隨機或精心設計的資料至 Web 服務的各種輸入點，觀察應用程式行為，進而發掘潛在的安全漏洞如 SQL Injection、XSS、目錄遍歷、檔案上傳等。攻擊者通常利用 fuzzer 工具如 ffuf、wfuzz、Burp Suite、JBroFuzz 等，使用 HTTP 的 GET/POST 參數進行模糊測試。</p> <p>事後整理 Nginx log，大約知道整起事件是某個 IP 在六分鐘裡對主機發動了 11 萬次 GET/POST (還包含 34 個 PUT 及 9 個 DELETE)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png"></p> <p>來源 IP 不例外地在 <a href="/blog/abuseipdb/">AbusedIPDB</a> 已被通報為惡意來源，至此事件應可以「惡意機器人的隨機式無差別攻擊」簽結。</p> <p>不過難得能拿到完整 Web Fuzzing 攻擊樣本，又正好<a href="/blog/copilot-cli-on-wsl/">在玩 Github Copilot CLI</a>，就順手請 Copilot CLI 整理排序得到大約三千條樣本(原始筆數 11 萬筆，但機器人對同一 URL 會用不同 User Agent 各試一次[註]，故有大量重複)，再丟給 NotebookLM、Perplexity、ChatGPT、Claude、Genimi 歸納分析，藉此機增廣見聞，觀摩惡意程式的手法與攻擊武器有哪些，再回推有哪些錯誤千萬不能犯跟如何做好自我保護。<br> 註：許多站台會依 User-Agent 切換行為(例如行動版/桌面版、舊IE兼容分支、App WebView專屬路徑)，不同分支常有不同模板、參數處理或中介層，對同一 URL 用多種UA能觸發更多後端程式碼路徑，提升撞到邏輯缺陷或漏洞的機率。另外一方面，部分服務會把 User-Agent 當作爬蟲辨識或白名單/黑名單條件，例如對特定爬蟲或內部監測 User-Agent 放寬速率限制或回傳更多診斷細節。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638947110463838369.jpg" alt="thumbnail"></p> <p>綜合各家 LLM 的分析結果，我整理成自己版本的筆記，分類說明：</p> <ol><li><h3>路徑遍歷與任意檔案讀取 (Path Traversal / Arbitrary File Read)</h3> <p>這是非常常見的攻擊類型，攻擊者會嘗試用 ../ 找上層目錄，試圖拿到網站目錄範圍外的系統敏感檔案。<br> 攻擊者主要會嘗試以 ../、百分比編碼、多次編碼或混合斜線、NULL-byte、Unicode 等技巧來繞過過濾，例如：%2e%2e%2f、%252e%252e%252f(雙重編碼) 並混合使用不同分隔符號(例如：../、..\、..%5c)，試圖取得系統敏感檔案，例如 /etc/passwd、windows/win.ini、wp-config.php、.env、SSH 私鑰 (.ssh/id_rsa)、AWS 憑證 (.aws/credentials)、docker/ssh/credentials... 等等，Java 網站常見的目標則有 WEB-INF/web.xml 或 WEB-INF/weblogic.xml，其中包含 Java 應用程式的結構、Servlet 配置和潛在的敏感資訊。<br> 樣本中遍歷深度最多達到 18 層，其中 5 層遍歷最為常見。以下是一些範例：</p> <ul><li>基本遍歷： <code>GET /../../../../../../etc/passwd</code></li> <li>用 URL 編碼繞過： <code>GET /api/2.0/mlflow-artifacts/artifacts/%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252Fetc%252fpasswd</code> 這裡的 %252E 是 %2E 的雙重編碼，. 的 URL 編碼是 %2e，/ 是 %2f。<br> 攻擊者利用多層編碼來繞過簡單的資安防護規則。</li> <li>參數注入： <code>GET /ACSServer/WebServlet?act=getMapImg_acs2&amp;filename=../../../../../../../etc/passwd</code> 攻擊者將遍歷路徑作為 filename 參數的值傳入，試圖讓後端程式讀取並返回任意檔案。</li> <li>針對特定平台： <code>GET /public/plugins/grafana-clock-panel/../../../../../conf/defaults.ini</code> 這個請求明確針對 Grafana 平台，嘗試利用插件路徑進行路徑遍歷，讀取 Grafana 的預設設定檔。</li></ul> </li> <li><h3>Remote Code Execution（RCE）或 OGNL injection（特別針對 Apache Struts）</h3> <p>利用框架內的表達式語言或遠端範本注入及執行系統命令。例如樣本中就有大量 index.action?...%23context...Runtime.getRuntime().exec(...) 的 Payload。(說著說著就出現了 <a href="/blog/whats-payload/">【打破砂鍋】資訊、資安常在說的 Payload 到底是什麼?</a>)</p> <ul><li>利用 OGNL (Object-Graph Navigation Library) 表達式注入漏洞來執行命令 - <code>GET /%24%7B%28%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23a%3D@java.lang.Runtime@getRuntime%28%29.exec%28%27cat%20/etc/passwd%27%29...%7D/actionChain1.action</code> 透過 OGNL 表達式呼叫 Java 的 Runtime.getRuntime().exec() 方法來執行 cat /etc/passwd 命令，並試圖將結果輸出到網頁上，另一個變體是執行 whoami。</li> <li>利用 PHP 函式漏洞或特性（如 system()、shell_exec()）執行命令 - <code>GET /__debugging_center_utils___.php?log=;echo%20cekurzpqyhikfdufobsffhkblpjobpti%20|%20id</code> 攻擊者在 log 參數後方用分號 ; 結束前一個指令，然後注入 id 或 ipconfig 命令，並將結果輸出。</li> <li>許多舊式或嵌入式設備的 CGI 程式存在漏洞，允許直接將命令注入到 URL 參數中，例如：<br> <code>GET /cgi-bin/mainfunction.cgi/apmcfgupload?session=...cat${IFS}/etc/passwd</code> 利用 ShellShock (Bash 漏洞) 嘗試將命令注入到環境變數中執行。<br> <code>GET /cgi-bin/account_mgr.cgi?cmd=cgi_user_add&amp;group=%27;id;%27</code> 在 group 參數中注入 ;id; 命令，試圖利用應用程式拼接系統命令時的漏洞來執行 id。</li></ul> </li> <li><h3>SQL 注入 (SQL Injection, SQLi)</h3> <p>SQL Injection 是老梗中的老梗，但仍是最受駭客歡迎兼最常出現的漏洞，歷久不衰。攻擊者會在輸入參數插入惡意 SQL 程式碼，若程式犯下低級錯誤 - 用參數組裝 SQL 語法，就能對後端資料庫執行非預期的任意操作，常用於竊取資料、繞過認證、拖延系統反應，破壞資料庫、植入木馬... 等等，危險度破表。</p> <ul><li>攻擊對象不限資料庫不限平台，由樣本發現攻擊者對 MySQL (md5())、SQL Server (<code>substring(sys.fn_sqlvarbasetostr(HASHBYTES('MD5',...)))</code>)、PostgreSQL (<code>pg_sleep()</code>) 都做了嘗試。另外也有大量大量 SQLi 攻擊都針對 WordPress 的 rest_route API 或各種插件的參數。</li> <li>時間盲注攻擊(Time-based Blind Injection) - <code>GET /?rest_route=/lms/stm-lms/order/items&amp;author_id=1&amp;user=1)+AND+%28SELECT+3493+FROM+%28SELECT%28SLEEP%286%29%29%29sauT%29+AND+%283071%3D3071</code>，注入 SLEEP(6) 語句，如果伺服器回應慢了 6 秒，可驗證此處存在 SQL 注入漏洞。</li> <li>聯合查詢 (UNION-based/MD5 Fingerprint) - <code>GET /admin/manage_user.php?id=-1%20union%20select%201,md5(999999999),3,4,5--+</code> 攻擊者使用 UNION SELECT 語句，試圖將 md5('999999999') (b7a5779c9384b6f13a07ef41c11e74f1) 塞到 HTML 回應，若在 HTML 發現該內容即代表有漏洞。</li> <li>錯誤注入 (Error-based) - <code>GET /a/sys/user/resetPassword?mobile=...%27and%20(updatexml(1,concat(0x7e,(select%20md5(999999999)),0x7e),1))%23</code> 故意在 updatexml 函式觸發資料庫錯誤，並將 md5() 包含在錯誤訊息中回傳，若出現就代表有 SQLi。</li></ul> </li> <li><h3>敏感資訊與路徑洩漏 (Sensitive Information &amp; Path Disclosure)</h3> <p>目的在發現伺服器上未受保護的敏感檔案、備份檔、設定檔或管理介面，攻擊者常透過字典檔暴力猜測常見的路徑和檔名。</p> <ul><li>樣本中有大量請求針對 WordPress wp-config.php 及其各種備份形式（如 wp-config.php.bak, wp-config.old 等）的嘗試，wp-admin/ 和 wp-login.php 也是常見目標。</li> <li>通用的 Web 伺服器目標包含 .env、.git/config、.svn/entries 等版本控制系統的殘留檔案，以及各種 config.json、database.yml 等設定檔。</li> <li>針對管理後台與 API 端點的攻擊 - 例如：大量請求嘗試訪問 /admin/、/login、/api/users 等常見的管理介面或 API 路徑。</li> <li>雲端平台 Metadata，如 <code>GET http://169.254.169.254/latest/meta-data/</code> 嘗試訪問 AWS EC2 的 Metadata 服務，試圖利用 SSRF (Server-Side Request Forgery) 漏洞來竊取雲端主機的臨時憑證。樣本中也發有有針對其他雲平台（如 Google Cloud, Azure, Alibaba Cloud）Metadata 資料服務的嘗試。</li></ul> </li> <li><h3>檔案上傳漏洞 (File Upload Vulnerabilities)</h3> <p>攻擊者試圖尋找允許上傳檔案的功能，並上傳惡意的 Web Shell (通常是 PHP 或 JSP 檔案)，以獲得伺服器的控制權。</p> <ul><li>尋找 PHP upload.php 或類似功能的端點，直接上傳 Webshell <code>POST /Upload/upload_file.php?l=test</code>，POST 主體很可能包含惡意的 PHP 程式碼，隨後再嘗試讀取上傳檔名(如 <code>GET /Upload/test/33GXVIW1wGVkjgrvdjv48KeQTAf.php</code>)確認是否成功。</li> <li>嘗試在 WordPress admin-ajax 建立/寫入 PHP，如 <code>POST /wp-admin/admin-ajax.php?+config-create+/&amp;/&lt;?=base64_decode($_GET[0])?&gt;+/tmp/33GXVLqZmI04wSu...php</code> 之後再用 GET 驗證。</li> <li><code>GET /Uploads/33GXVFaEfezRt7gMXCYpyePTpII.php7</code> 包含繞過檔案類型限制的手法，使用 .php7 這樣的非標準副檔名可繞過僅檢查 .php 副檔名的上傳限制，如果伺服器設定不當，仍可能將其作為 PHP 腳本執行。</li> <li>尋找允許上傳 .jsp 檔案的漏洞 - 針對特定應用漏洞： <code>POST /WebReport/ReportServer?op=svginit&amp;cmd=design_save_svg&amp;filePath=chartmapsvg/../../../../WebReport/KCFy2ZpF.jsp</code> 此請求利用了 FineReport 的一個漏洞，透過目錄遍歷將任意內容（Webshell）寫入到一個 .jsp 檔案中，從而實現遠端控制。</li></ul> </li></ol> <h3>被瞄準的應用程式 / 平台</h3> <p>瞄準的 CMS、Web 應用、框架和語言包羅萬象，許多我聽都沒聽過</p> <ul><li>WordPress（wp-admin、admin-ajax、wp-json、uploads、wp-file-manager、wp-time-capsule） —— 大量 plugin 路徑與 uploads/webshell 掃描。</li> <li>Confluence：如 /pages/createpage-entervariables.action。</li> <li>Joomla/PrestaShop：外掛上傳如 com_gmapfp、modules/appagebuilder。</li> <li>Pandora FMS：如 /pandora_console/ajax.php。</li> <li>Apache Struts / Java Webapps（index.action, WEB-INF, weblogic.xml） —— OGNL RCE payload 明顯針對 Struts 類漏洞。</li> <li>Nacos / Spring Boot actuator / Airflow / SolarWinds / Geoserver / phpMyAdmin / Nagios / OpenAM / Minio —— 掃描管理 API / 未受保護的 endpoints。</li> <li>各種 PHP 應用與 plugin（elfinder、uploadify、file-manager、simple-file-list、wp-file-manager 等） —— 上傳漏洞和不當的檔案處理。</li> <li>.NET/ASP：如 human.aspx、WidgetHandler.ashx。</li></ul> <p>一些企業或管理工具軟體</p> <ul><li>Nacos：如 /nacos/v1/auth/users/ (配置管理)。</li> <li>Seeyon OA：如 /seeyon/thirdpartyController.do (中國 OA 系統)。</li> <li>Oracle E-Business Suite：如 /OA_HTML/ibeCAcpSSOReg.jsp。</li> <li>SolarWinds Orion：如 /SolarWinds/InformationService/v3/Json/Query。</li></ul> <p>路由器/裝置/資安相關產品</p> <ul><li>Cisco：如 /+CSCOU+/../+CSCOE+/files/file_list.json。</li> <li>Fortinet：如 /ssl-vpn/hipreport.esp。</li> <li>Zabbix/Nagios：如 /zabbix/index.php、nagiosxi/login.php。</li> <li>iDRAC/Supermicro：如 /redfish/v1/SessionService/Sessions/。</li></ul> <p>其他平台</p> <ul><li>MinIO：如 /minio/bootstrap/v1/verify (物件儲存)。</li> <li>GeoServer：如 /geoserver/wms。</li> <li>Docker/Kubernetes：如 /kubepi/api/v1/users。</li></ul> <h3>攻擊者常用的自動化與偵測特徵</h3> <p>由樣本的 Pattern，可整理出一些明顯特徵，這部分可做為設計 IDS 或 WAF 規則的參考：</p> <ul><li>大量同類 payload 的快速連續請求（fuzzing）— 檢測同一來源在短時間大量 ..、%00、/etc/passwd、wp-admin/admin-ajax.php?action= 等請求。</li> <li>對 Known paths 的字典掃描（.env、wp-config.php、jwt/private.pem、private.key 等）。</li> <li>Time-based SQLi 的慢查詢（SLEEP payload）或回顯試探（md5(999999999)）。</li></ul> <p data-slug="web-fuzzing-attack-case-study" data-fbimg="https://i.postimg.cc/2yCyTyYn/image.png#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在外吃飯，手機接到<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">土砲 SIEM</a> 傳來一連串警示，顯示有個 IP 正在對某對外網站嘗試各式各樣的無效 URL，研判是惡意機器人正在探索漏洞準備攻擊。(總不會是公益團體在幫人免費做滲透測試吧？)</p> <p>這種事在網路每天都在上演，網站只要 IP 對外就絕對會遇到。攻擊者會放出機器人在 Internet 四處亂槍打鳥，發現網站後把所有想到的漏洞 URL 全部掃一次，反正成本不高，就算 999 個失敗，只要有一個成功就挖到寶了。</p> <p>這種對同一網站遍歷所有漏洞 URL 的手法，有個專有名詞叫 Web Fuzzying (模糊測試) 攻擊，是一種針對 Web 應用程式常見的自動化安全測試與攻擊技術，其原理是大量產生並輸入隨機、半隨機或精心設計的資料至 Web 服務的各種輸入點，觀察應用程式行為，進而發掘潛在的安全漏洞如 SQL Injection、XSS、目錄遍歷、檔案上傳等。攻擊者通常利用 fuzzer 工具如 ffuf、wfuzz、Burp Suite、JBroFuzz 等，使用 HTTP 的 GET/POST 參數進行模糊測試。</p> <p>事後整理 Nginx log，大約知道整起事件是某個 IP 在六分鐘裡對主機發動了 11 萬次 GET/POST (還包含 34 個 PUT 及 9 個 DELETE)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png"></p> <p>來源 IP 不例外地在 <a href="/blog/abuseipdb/">AbusedIPDB</a> 已被通報為惡意來源，至此事件應可以「惡意機器人的隨機式無差別攻擊」簽結。</p> <p>不過難得能拿到完整 Web Fuzzing 攻擊樣本，又正好<a href="/blog/copilot-cli-on-wsl/">在玩 Github Copilot CLI</a>，就順手請 Copilot CLI 整理排序得到大約三千條樣本(原始筆數 11 萬筆，但機器人對同一 URL 會用不同 User Agent 各試一次[註]，故有大量重複)，再丟給 NotebookLM、Perplexity、ChatGPT、Claude、Genimi 歸納分析，藉此機增廣見聞，觀摩惡意程式的手法與攻擊武器有哪些，再回推有哪些錯誤千萬不能犯跟如何做好自我保護。<br> 註：許多站台會依 User-Agent 切換行為(例如行動版/桌面版、舊IE兼容分支、App WebView專屬路徑)，不同分支常有不同模板、參數處理或中介層，對同一 URL 用多種UA能觸發更多後端程式碼路徑，提升撞到邏輯缺陷或漏洞的機率。另外一方面，部分服務會把 User-Agent 當作爬蟲辨識或白名單/黑名單條件，例如對特定爬蟲或內部監測 User-Agent 放寬速率限制或回傳更多診斷細節。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638947110463838369.jpg" alt="thumbnail"></p> <p>綜合各家 LLM 的分析結果，我整理成自己版本的筆記，分類說明：</p> <ol><li><h3>路徑遍歷與任意檔案讀取 (Path Traversal / Arbitrary File Read)</h3> <p>這是非常常見的攻擊類型，攻擊者會嘗試用 ../ 找上層目錄，試圖拿到網站目錄範圍外的系統敏感檔案。<br> 攻擊者主要會嘗試以 ../、百分比編碼、多次編碼或混合斜線、NULL-byte、Unicode 等技巧來繞過過濾，例如：%2e%2e%2f、%252e%252e%252f(雙重編碼) 並混合使用不同分隔符號(例如：../、..\、..%5c)，試圖取得系統敏感檔案，例如 /etc/passwd、windows/win.ini、wp-config.php、.env、SSH 私鑰 (.ssh/id_rsa)、AWS 憑證 (.aws/credentials)、docker/ssh/credentials... 等等，Java 網站常見的目標則有 WEB-INF/web.xml 或 WEB-INF/weblogic.xml，其中包含 Java 應用程式的結構、Servlet 配置和潛在的敏感資訊。<br> 樣本中遍歷深度最多達到 18 層，其中 5 層遍歷最為常見。以下是一些範例：</p> <ul><li>基本遍歷： <code>GET /../../../../../../etc/passwd</code></li> <li>用 URL 編碼繞過： <code>GET /api/2.0/mlflow-artifacts/artifacts/%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252Fetc%252fpasswd</code> 這裡的 %252E 是 %2E 的雙重編碼，. 的 URL 編碼是 %2e，/ 是 %2f。<br> 攻擊者利用多層編碼來繞過簡單的資安防護規則。</li> <li>參數注入： <code>GET /ACSServer/WebServlet?act=getMapImg_acs2&amp;filename=../../../../../../../etc/passwd</code> 攻擊者將遍歷路徑作為 filename 參數的值傳入，試圖讓後端程式讀取並返回任意檔案。</li> <li>針對特定平台： <code>GET /public/plugins/grafana-clock-panel/../../../../../conf/defaults.ini</code> 這個請求明確針對 Grafana 平台，嘗試利用插件路徑進行路徑遍歷，讀取 Grafana 的預設設定檔。</li></ul> </li> <li><h3>Remote Code Execution（RCE）或 OGNL injection（特別針對 Apache Struts）</h3> <p>利用框架內的表達式語言或遠端範本注入及執行系統命令。例如樣本中就有大量 index.action?...%23context...Runtime.getRuntime().exec(...) 的 Payload。(說著說著就出現了 <a href="/blog/whats-payload/">【打破砂鍋】資訊、資安常在說的 Payload 到底是什麼?</a>)</p> <ul><li>利用 OGNL (Object-Graph Navigation Library) 表達式注入漏洞來執行命令 - <code>GET /%24%7B%28%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23a%3D@java.lang.Runtime@getRuntime%28%29.exec%28%27cat%20/etc/passwd%27%29...%7D/actionChain1.action</code> 透過 OGNL 表達式呼叫 Java 的 Runtime.getRuntime().exec() 方法來執行 cat /etc/passwd 命令，並試圖將結果輸出到網頁上，另一個變體是執行 whoami。</li> <li>利用 PHP 函式漏洞或特性（如 system()、shell_exec()）執行命令 - <code>GET /__debugging_center_utils___.php?log=;echo%20cekurzpqyhikfdufobsffhkblpjobpti%20|%20id</code> 攻擊者在 log 參數後方用分號 ; 結束前一個指令，然後注入 id 或 ipconfig 命令，並將結果輸出。</li> <li>許多舊式或嵌入式設備的 CGI 程式存在漏洞，允許直接將命令注入到 URL 參數中，例如：<br> <code>GET /cgi-bin/mainfunction.cgi/apmcfgupload?session=...cat${IFS}/etc/passwd</code> 利用 ShellShock (Bash 漏洞) 嘗試將命令注入到環境變數中執行。<br> <code>GET /cgi-bin/account_mgr.cgi?cmd=cgi_user_add&amp;group=%27;id;%27</code> 在 group 參數中注入 ;id; 命令，試圖利用應用程式拼接系統命令時的漏洞來執行 id。</li></ul> </li> <li><h3>SQL 注入 (SQL Injection, SQLi)</h3> <p>SQL Injection 是老梗中的老梗，但仍是最受駭客歡迎兼最常出現的漏洞，歷久不衰。攻擊者會在輸入參數插入惡意 SQL 程式碼，若程式犯下低級錯誤 - 用參數組裝 SQL 語法，就能對後端資料庫執行非預期的任意操作，常用於竊取資料、繞過認證、拖延系統反應，破壞資料庫、植入木馬... 等等，危險度破表。</p> <ul><li>攻擊對象不限資料庫不限平台，由樣本發現攻擊者對 MySQL (md5())、SQL Server (<code>substring(sys.fn_sqlvarbasetostr(HASHBYTES('MD5',...)))</code>)、PostgreSQL (<code>pg_sleep()</code>) 都做了嘗試。另外也有大量大量 SQLi 攻擊都針對 WordPress 的 rest_route API 或各種插件的參數。</li> <li>時間盲注攻擊(Time-based Blind Injection) - <code>GET /?rest_route=/lms/stm-lms/order/items&amp;author_id=1&amp;user=1)+AND+%28SELECT+3493+FROM+%28SELECT%28SLEEP%286%29%29%29sauT%29+AND+%283071%3D3071</code>，注入 SLEEP(6) 語句，如果伺服器回應慢了 6 秒，可驗證此處存在 SQL 注入漏洞。</li> <li>聯合查詢 (UNION-based/MD5 Fingerprint) - <code>GET /admin/manage_user.php?id=-1%20union%20select%201,md5(999999999),3,4,5--+</code> 攻擊者使用 UNION SELECT 語句，試圖將 md5('999999999') (b7a5779c9384b6f13a07ef41c11e74f1) 塞到 HTML 回應，若在 HTML 發現該內容即代表有漏洞。</li> <li>錯誤注入 (Error-based) - <code>GET /a/sys/user/resetPassword?mobile=...%27and%20(updatexml(1,concat(0x7e,(select%20md5(999999999)),0x7e),1))%23</code> 故意在 updatexml 函式觸發資料庫錯誤，並將 md5() 包含在錯誤訊息中回傳，若出現就代表有 SQLi。</li></ul> </li> <li><h3>敏感資訊與路徑洩漏 (Sensitive Information &amp; Path Disclosure)</h3> <p>目的在發現伺服器上未受保護的敏感檔案、備份檔、設定檔或管理介面，攻擊者常透過字典檔暴力猜測常見的路徑和檔名。</p> <ul><li>樣本中有大量請求針對 WordPress wp-config.php 及其各種備份形式（如 wp-config.php.bak, wp-config.old 等）的嘗試，wp-admin/ 和 wp-login.php 也是常見目標。</li> <li>通用的 Web 伺服器目標包含 .env、.git/config、.svn/entries 等版本控制系統的殘留檔案，以及各種 config.json、database.yml 等設定檔。</li> <li>針對管理後台與 API 端點的攻擊 - 例如：大量請求嘗試訪問 /admin/、/login、/api/users 等常見的管理介面或 API 路徑。</li> <li>雲端平台 Metadata，如 <code>GET http://169.254.169.254/latest/meta-data/</code> 嘗試訪問 AWS EC2 的 Metadata 服務，試圖利用 SSRF (Server-Side Request Forgery) 漏洞來竊取雲端主機的臨時憑證。樣本中也發有有針對其他雲平台（如 Google Cloud, Azure, Alibaba Cloud）Metadata 資料服務的嘗試。</li></ul> </li> <li><h3>檔案上傳漏洞 (File Upload Vulnerabilities)</h3> <p>攻擊者試圖尋找允許上傳檔案的功能，並上傳惡意的 Web Shell (通常是 PHP 或 JSP 檔案)，以獲得伺服器的控制權。</p> <ul><li>尋找 PHP upload.php 或類似功能的端點，直接上傳 Webshell <code>POST /Upload/upload_file.php?l=test</code>，POST 主體很可能包含惡意的 PHP 程式碼，隨後再嘗試讀取上傳檔名(如 <code>GET /Upload/test/33GXVIW1wGVkjgrvdjv48KeQTAf.php</code>)確認是否成功。</li> <li>嘗試在 WordPress admin-ajax 建立/寫入 PHP，如 <code>POST /wp-admin/admin-ajax.php?+config-create+/&amp;/&lt;?=base64_decode($_GET[0])?&gt;+/tmp/33GXVLqZmI04wSu...php</code> 之後再用 GET 驗證。</li> <li><code>GET /Uploads/33GXVFaEfezRt7gMXCYpyePTpII.php7</code> 包含繞過檔案類型限制的手法，使用 .php7 這樣的非標準副檔名可繞過僅檢查 .php 副檔名的上傳限制，如果伺服器設定不當，仍可能將其作為 PHP 腳本執行。</li> <li>尋找允許上傳 .jsp 檔案的漏洞 - 針對特定應用漏洞： <code>POST /WebReport/ReportServer?op=svginit&amp;cmd=design_save_svg&amp;filePath=chartmapsvg/../../../../WebReport/KCFy2ZpF.jsp</code> 此請求利用了 FineReport 的一個漏洞，透過目錄遍歷將任意內容（Webshell）寫入到一個 .jsp 檔案中，從而實現遠端控制。</li></ul> </li></ol> <h3>被瞄準的應用程式 / 平台</h3> <p>瞄準的 CMS、Web 應用、框架和語言包羅萬象，許多我聽都沒聽過</p> <ul><li>WordPress（wp-admin、admin-ajax、wp-json、uploads、wp-file-manager、wp-time-capsule） —— 大量 plugin 路徑與 uploads/webshell 掃描。</li> <li>Confluence：如 /pages/createpage-entervariables.action。</li> <li>Joomla/PrestaShop：外掛上傳如 com_gmapfp、modules/appagebuilder。</li> <li>Pandora FMS：如 /pandora_console/ajax.php。</li> <li>Apache Struts / Java Webapps（index.action, WEB-INF, weblogic.xml） —— OGNL RCE payload 明顯針對 Struts 類漏洞。</li> <li>Nacos / Spring Boot actuator / Airflow / SolarWinds / Geoserver / phpMyAdmin / Nagios / OpenAM / Minio —— 掃描管理 API / 未受保護的 endpoints。</li> <li>各種 PHP 應用與 plugin（elfinder、uploadify、file-manager、simple-file-list、wp-file-manager 等） —— 上傳漏洞和不當的檔案處理。</li> <li>.NET/ASP：如 human.aspx、WidgetHandler.ashx。</li></ul> <p>一些企業或管理工具軟體</p> <ul><li>Nacos：如 /nacos/v1/auth/users/ (配置管理)。</li> <li>Seeyon OA：如 /seeyon/thirdpartyController.do (中國 OA 系統)。</li> <li>Oracle E-Business Suite：如 /OA_HTML/ibeCAcpSSOReg.jsp。</li> <li>SolarWinds Orion：如 /SolarWinds/InformationService/v3/Json/Query。</li></ul> <p>路由器/裝置/資安相關產品</p> <ul><li>Cisco：如 /+CSCOU+/../+CSCOE+/files/file_list.json。</li> <li>Fortinet：如 /ssl-vpn/hipreport.esp。</li> <li>Zabbix/Nagios：如 /zabbix/index.php、nagiosxi/login.php。</li> <li>iDRAC/Supermicro：如 /redfish/v1/SessionService/Sessions/。</li></ul> <p>其他平台</p> <ul><li>MinIO：如 /minio/bootstrap/v1/verify (物件儲存)。</li> <li>GeoServer：如 /geoserver/wms。</li> <li>Docker/Kubernetes：如 /kubepi/api/v1/users。</li></ul> <h3>攻擊者常用的自動化與偵測特徵</h3> <p>由樣本的 Pattern，可整理出一些明顯特徵，這部分可做為設計 IDS 或 WAF 規則的參考：</p> <ul><li>大量同類 payload 的快速連續請求（fuzzing）— 檢測同一來源在短時間大量 ..、%00、/etc/passwd、wp-admin/admin-ajax.php?action= 等請求。</li> <li>對 Known paths 的字典掃描（.env、wp-config.php、jwt/private.pem、private.key 等）。</li> <li>Time-based SQLi 的慢查詢（SLEEP payload）或回顯試探（md5(999999999)）。</li></ul> <p data-slug="web-fuzzing-attack-case-study" data-fbimg="https://i.postimg.cc/2yCyTyYn/image.png#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在外吃飯，手機接到<a href="/blog/homebrew-siem-for-openvpn-connection-alert/">土砲 SIEM</a> 傳來一連串警示，顯示有個 IP 正在對某對外網站嘗試各式各樣的無效 URL，研判是惡意機器人正在探索漏洞準備攻擊。(總不會是公益團體在幫人免費做滲透測試吧？)</p> <p>這種事在網路每天都在上演，網站只要 IP 對外就絕對會遇到。攻擊者會放出機器人在 Internet 四處亂槍打鳥，發現網站後把所有想到的漏洞 URL 全部掃一次，反正成本不高，就算 999 個失敗，只要有一個成功就挖到寶了。</p> <p>這種對同一網站遍歷所有漏洞 URL 的手法，有個專有名詞叫 Web Fuzzying (模糊測試) 攻擊，是一種針對 Web 應用程式常見的自動化安全測試與攻擊技術，其原理是大量產生並輸入隨機、半隨機或精心設計的資料至 Web 服務的各種輸入點，觀察應用程式行為，進而發掘潛在的安全漏洞如 SQL Injection、XSS、目錄遍歷、檔案上傳等。攻擊者通常利用 fuzzer 工具如 ffuf、wfuzz、Burp Suite、JBroFuzz 等，使用 HTTP 的 GET/POST 參數進行模糊測試。</p> <p>事後整理 Nginx log，大約知道整起事件是某個 IP 在六分鐘裡對主機發動了 11 萬次 GET/POST (還包含 34 個 PUT 及 9 個 DELETE)：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png"></p> <p>來源 IP 不例外地在 <a href="/blog/abuseipdb/">AbusedIPDB</a> 已被通報為惡意來源，至此事件應可以「惡意機器人的隨機式無差別攻擊」簽結。</p> <p>不過難得能拿到完整 Web Fuzzing 攻擊樣本，又正好<a href="/blog/copilot-cli-on-wsl/">在玩 Github Copilot CLI</a>，就順手請 Copilot CLI 整理排序得到大約三千條樣本(原始筆數 11 萬筆，但機器人對同一 URL 會用不同 User Agent 各試一次[註]，故有大量重複)，再丟給 NotebookLM、Perplexity、ChatGPT、Claude、Genimi 歸納分析，藉此機增廣見聞，觀摩惡意程式的手法與攻擊武器有哪些，再回推有哪些錯誤千萬不能犯跟如何做好自我保護。<br> 註：許多站台會依 User-Agent 切換行為(例如行動版/桌面版、舊IE兼容分支、App WebView專屬路徑)，不同分支常有不同模板、參數處理或中介層，對同一 URL 用多種UA能觸發更多後端程式碼路徑，提升撞到邏輯缺陷或漏洞的機率。另外一方面，部分服務會把 User-Agent 當作爬蟲辨識或白名單/黑名單條件，例如對特定爬蟲或內部監測 User-Agent 放寬速率限制或回傳更多診斷細節。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638947110463838369.jpg" alt="thumbnail"></p> <p>綜合各家 LLM 的分析結果，我整理成自己版本的筆記，分類說明：</p> <ol><li><h3>路徑遍歷與任意檔案讀取 (Path Traversal / Arbitrary File Read)</h3> <p>這是非常常見的攻擊類型，攻擊者會嘗試用 ../ 找上層目錄，試圖拿到網站目錄範圍外的系統敏感檔案。<br> 攻擊者主要會嘗試以 ../、百分比編碼、多次編碼或混合斜線、NULL-byte、Unicode 等技巧來繞過過濾，例如：%2e%2e%2f、%252e%252e%252f(雙重編碼) 並混合使用不同分隔符號(例如：../、..\、..%5c)，試圖取得系統敏感檔案，例如 /etc/passwd、windows/win.ini、wp-config.php、.env、SSH 私鑰 (.ssh/id_rsa)、AWS 憑證 (.aws/credentials)、docker/ssh/credentials... 等等，Java 網站常見的目標則有 WEB-INF/web.xml 或 WEB-INF/weblogic.xml，其中包含 Java 應用程式的結構、Servlet 配置和潛在的敏感資訊。<br> 樣本中遍歷深度最多達到 18 層，其中 5 層遍歷最為常見。以下是一些範例：</p> <ul><li>基本遍歷： <code>GET /../../../../../../etc/passwd</code></li> <li>用 URL 編碼繞過： <code>GET /api/2.0/mlflow-artifacts/artifacts/%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252Fetc%252fpasswd</code> 這裡的 %252E 是 %2E 的雙重編碼，. 的 URL 編碼是 %2e，/ 是 %2f。<br> 攻擊者利用多層編碼來繞過簡單的資安防護規則。</li> <li>參數注入： <code>GET /ACSServer/WebServlet?act=getMapImg_acs2&amp;filename=../../../../../../../etc/passwd</code> 攻擊者將遍歷路徑作為 filename 參數的值傳入，試圖讓後端程式讀取並返回任意檔案。</li> <li>針對特定平台： <code>GET /public/plugins/grafana-clock-panel/../../../../../conf/defaults.ini</code> 這個請求明確針對 Grafana 平台，嘗試利用插件路徑進行路徑遍歷，讀取 Grafana 的預設設定檔。</li></ul> </li> <li><h3>Remote Code Execution（RCE）或 OGNL injection（特別針對 Apache Struts）</h3> <p>利用框架內的表達式語言或遠端範本注入及執行系統命令。例如樣本中就有大量 index.action?...%23context...Runtime.getRuntime().exec(...) 的 Payload。(說著說著就出現了 <a href="/blog/whats-payload/">【打破砂鍋】資訊、資安常在說的 Payload 到底是什麼?</a>)</p> <ul><li>利用 OGNL (Object-Graph Navigation Library) 表達式注入漏洞來執行命令 - <code>GET /%24%7B%28%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23a%3D@java.lang.Runtime@getRuntime%28%29.exec%28%27cat%20/etc/passwd%27%29...%7D/actionChain1.action</code> 透過 OGNL 表達式呼叫 Java 的 Runtime.getRuntime().exec() 方法來執行 cat /etc/passwd 命令，並試圖將結果輸出到網頁上，另一個變體是執行 whoami。</li> <li>利用 PHP 函式漏洞或特性（如 system()、shell_exec()）執行命令 - <code>GET /__debugging_center_utils___.php?log=;echo%20cekurzpqyhikfdufobsffhkblpjobpti%20|%20id</code> 攻擊者在 log 參數後方用分號 ; 結束前一個指令，然後注入 id 或 ipconfig 命令，並將結果輸出。</li> <li>許多舊式或嵌入式設備的 CGI 程式存在漏洞，允許直接將命令注入到 URL 參數中，例如：<br> <code>GET /cgi-bin/mainfunction.cgi/apmcfgupload?session=...cat${IFS}/etc/passwd</code> 利用 ShellShock (Bash 漏洞) 嘗試將命令注入到環境變數中執行。<br> <code>GET /cgi-bin/account_mgr.cgi?cmd=cgi_user_add&amp;group=%27;id;%27</code> 在 group 參數中注入 ;id; 命令，試圖利用應用程式拼接系統命令時的漏洞來執行 id。</li></ul> </li> <li><h3>SQL 注入 (SQL Injection, SQLi)</h3> <p>SQL Injection 是老梗中的老梗，但仍是最受駭客歡迎兼最常出現的漏洞，歷久不衰。攻擊者會在輸入參數插入惡意 SQL 程式碼，若程式犯下低級錯誤 - 用參數組裝 SQL 語法，就能對後端資料庫執行非預期的任意操作，常用於竊取資料、繞過認證、拖延系統反應，破壞資料庫、植入木馬... 等等，危險度破表。</p> <ul><li>攻擊對象不限資料庫不限平台，由樣本發現攻擊者對 MySQL (md5())、SQL Server (<code>substring(sys.fn_sqlvarbasetostr(HASHBYTES('MD5',...)))</code>)、PostgreSQL (<code>pg_sleep()</code>) 都做了嘗試。另外也有大量大量 SQLi 攻擊都針對 WordPress 的 rest_route API 或各種插件的參數。</li> <li>時間盲注攻擊(Time-based Blind Injection) - <code>GET /?rest_route=/lms/stm-lms/order/items&amp;author_id=1&amp;user=1)+AND+%28SELECT+3493+FROM+%28SELECT%28SLEEP%286%29%29%29sauT%29+AND+%283071%3D3071</code>，注入 SLEEP(6) 語句，如果伺服器回應慢了 6 秒，可驗證此處存在 SQL 注入漏洞。</li> <li>聯合查詢 (UNION-based/MD5 Fingerprint) - <code>GET /admin/manage_user.php?id=-1%20union%20select%201,md5(999999999),3,4,5--+</code> 攻擊者使用 UNION SELECT 語句，試圖將 md5('999999999') (b7a5779c9384b6f13a07ef41c11e74f1) 塞到 HTML 回應，若在 HTML 發現該內容即代表有漏洞。</li> <li>錯誤注入 (Error-based) - <code>GET /a/sys/user/resetPassword?mobile=...%27and%20(updatexml(1,concat(0x7e,(select%20md5(999999999)),0x7e),1))%23</code> 故意在 updatexml 函式觸發資料庫錯誤，並將 md5() 包含在錯誤訊息中回傳，若出現就代表有 SQLi。</li></ul> </li> <li><h3>敏感資訊與路徑洩漏 (Sensitive Information &amp; Path Disclosure)</h3> <p>目的在發現伺服器上未受保護的敏感檔案、備份檔、設定檔或管理介面，攻擊者常透過字典檔暴力猜測常見的路徑和檔名。</p> <ul><li>樣本中有大量請求針對 WordPress wp-config.php 及其各種備份形式（如 wp-config.php.bak, wp-config.old 等）的嘗試，wp-admin/ 和 wp-login.php 也是常見目標。</li> <li>通用的 Web 伺服器目標包含 .env、.git/config、.svn/entries 等版本控制系統的殘留檔案，以及各種 config.json、database.yml 等設定檔。</li> <li>針對管理後台與 API 端點的攻擊 - 例如：大量請求嘗試訪問 /admin/、/login、/api/users 等常見的管理介面或 API 路徑。</li> <li>雲端平台 Metadata，如 <code>GET http://169.254.169.254/latest/meta-data/</code> 嘗試訪問 AWS EC2 的 Metadata 服務，試圖利用 SSRF (Server-Side Request Forgery) 漏洞來竊取雲端主機的臨時憑證。樣本中也發有有針對其他雲平台（如 Google Cloud, Azure, Alibaba Cloud）Metadata 資料服務的嘗試。</li></ul> </li> <li><h3>檔案上傳漏洞 (File Upload Vulnerabilities)</h3> <p>攻擊者試圖尋找允許上傳檔案的功能，並上傳惡意的 Web Shell (通常是 PHP 或 JSP 檔案)，以獲得伺服器的控制權。</p> <ul><li>尋找 PHP upload.php 或類似功能的端點，直接上傳 Webshell <code>POST /Upload/upload_file.php?l=test</code>，POST 主體很可能包含惡意的 PHP 程式碼，隨後再嘗試讀取上傳檔名(如 <code>GET /Upload/test/33GXVIW1wGVkjgrvdjv48KeQTAf.php</code>)確認是否成功。</li> <li>嘗試在 WordPress admin-ajax 建立/寫入 PHP，如 <code>POST /wp-admin/admin-ajax.php?+config-create+/&amp;/&lt;?=base64_decode($_GET[0])?&gt;+/tmp/33GXVLqZmI04wSu...php</code> 之後再用 GET 驗證。</li> <li><code>GET /Uploads/33GXVFaEfezRt7gMXCYpyePTpII.php7</code> 包含繞過檔案類型限制的手法，使用 .php7 這樣的非標準副檔名可繞過僅檢查 .php 副檔名的上傳限制，如果伺服器設定不當，仍可能將其作為 PHP 腳本執行。</li> <li>尋找允許上傳 .jsp 檔案的漏洞 - 針對特定應用漏洞： <code>POST /WebReport/ReportServer?op=svginit&amp;cmd=design_save_svg&amp;filePath=chartmapsvg/../../../../WebReport/KCFy2ZpF.jsp</code> 此請求利用了 FineReport 的一個漏洞，透過目錄遍歷將任意內容（Webshell）寫入到一個 .jsp 檔案中，從而實現遠端控制。</li></ul> </li></ol> <h3>被瞄準的應用程式 / 平台</h3> <p>瞄準的 CMS、Web 應用、框架和語言包羅萬象，許多我聽都沒聽過</p> <ul><li>WordPress（wp-admin、admin-ajax、wp-json、uploads、wp-file-manager、wp-time-capsule） —— 大量 plugin 路徑與 uploads/webshell 掃描。</li> <li>Confluence：如 /pages/createpage-entervariables.action。</li> <li>Joomla/PrestaShop：外掛上傳如 com_gmapfp、modules/appagebuilder。</li> <li>Pandora FMS：如 /pandora_console/ajax.php。</li> <li>Apache Struts / Java Webapps（index.action, WEB-INF, weblogic.xml） —— OGNL RCE payload 明顯針對 Struts 類漏洞。</li> <li>Nacos / Spring Boot actuator / Airflow / SolarWinds / Geoserver / phpMyAdmin / Nagios / OpenAM / Minio —— 掃描管理 API / 未受保護的 endpoints。</li> <li>各種 PHP 應用與 plugin（elfinder、uploadify、file-manager、simple-file-list、wp-file-manager 等） —— 上傳漏洞和不當的檔案處理。</li> <li>.NET/ASP：如 human.aspx、WidgetHandler.ashx。</li></ul> <p>一些企業或管理工具軟體</p> <ul><li>Nacos：如 /nacos/v1/auth/users/ (配置管理)。</li> <li>Seeyon OA：如 /seeyon/thirdpartyController.do (中國 OA 系統)。</li> <li>Oracle E-Business Suite：如 /OA_HTML/ibeCAcpSSOReg.jsp。</li> <li>SolarWinds Orion：如 /SolarWinds/InformationService/v3/Json/Query。</li></ul> <p>路由器/裝置/資安相關產品</p> <ul><li>Cisco：如 /+CSCOU+/../+CSCOE+/files/file_list.json。</li> <li>Fortinet：如 /ssl-vpn/hipreport.esp。</li> <li>Zabbix/Nagios：如 /zabbix/index.php、nagiosxi/login.php。</li> <li>iDRAC/Supermicro：如 /redfish/v1/SessionService/Sessions/。</li></ul> <p>其他平台</p> <ul><li>MinIO：如 /minio/bootstrap/v1/verify (物件儲存)。</li> <li>GeoServer：如 /geoserver/wms。</li> <li>Docker/Kubernetes：如 /kubepi/api/v1/users。</li></ul> <h3>攻擊者常用的自動化與偵測特徵</h3> <p>由樣本的 Pattern，可整理出一些明顯特徵，這部分可做為設計 IDS 或 WAF 規則的參考：</p> <ul><li>大量同類 payload 的快速連續請求（fuzzing）— 檢測同一來源在短時間大量 ..、%00、/etc/passwd、wp-admin/admin-ajax.php?action= 等請求。</li> <li>對 Known paths 的字典掃描（.env、wp-config.php、jwt/private.pem、private.key 等）。</li> <li>Time-based SQLi 的慢查詢（SLEEP payload）或回顯試探（md5(999999999)）。</li></ul> <p data-slug="web-fuzzing-attack-case-study" data-fbimg="https://i.postimg.cc/2yCyTyYn/image.png#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638947105228697676.png" medium="image"/>
+    <pubDate>Mon, 29 Sep 2025 02:42:05 GMT</pubDate>
+  </item></channel>
+</rss>
