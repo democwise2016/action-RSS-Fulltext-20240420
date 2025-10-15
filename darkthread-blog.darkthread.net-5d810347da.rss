@@ -30,6 +30,303 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[7-Zip 安全漏洞通報與版本盤點工具]]></title>
+    <link>https://blog.darkthread.net/blog/7z-vulnerabilities-n-scan-tool/</link>
+    <itunes:title><![CDATA[7-Zip 安全漏洞通報與版本盤點工具]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>7-Zip 最近<a href="https://www.facebook.com/will.fans/posts/7-zip-%E5%A3%93%E7%B8%AE%E5%B7%A5%E5%85%B7%E7%99%BC%E7%8F%BE%E5%85%A9%E5%80%8B-cvss-score-%E9%AB%98%E9%81%94-7-%E5%88%86%E7%9A%84-cve-2025-11001-%E8%88%87-cve-2025-11002-%E6%BC%8F%E6%B4%9E-7-zip-%E4%B8%AD%E5%AD%98%E5%9C%A8%E4%B8%80%E5%80%8B/1249133997240687/">被發現兩個安全漏洞：CVE-2025-11001 及 CVE-2025-11002</a>，問題源於 7-Zip 解壓縮時對符號連結（Symbolic Link）與目錄穿越（Directory Traversal）的處理邏輯不夠周全，導致攻擊者可在 ZIP 檔刻意放入特殊的符號連結以「繞出」預期目錄，將惡意檔案覆蓋或寫入到系統敏感位置。一個可行的攻擊途徑是攻擊者設法將惡意 ZIP 檔送到使用者手上並誘騙其進行解壓縮，藉由漏洞將系統服務或使用者常用執行檔換成植入惡意程式的版本，一但加料版被執行即可完成攻擊。<br> 延伸閱讀：</p> <ul><li><a href="https://cybersecuritynews.com/7-zip-vulnerabilities/">7-Zip Vulnerabilities Let Attackers Execute Arbitrary Code Remotely</a></li></ul> <p>7-Zip 的<a href="https://github.com/ip7z/7zip/releases/tag/25.01">最新版本 25.01</a>已修正這個兩個漏洞，建議大家盡快更新。<br> (題外話：以 7-Zip 的輕巧穩定，執行速度快，功能又完整，Windows 真該把它收為內建工具並自動更新。)</p> <p>為確保修補作業沒有遺漏，我決定寫個 PowerShell 腳本掃瞄資料夾，找出所有 7z.exe/7z.dll 並檢查版本，確保都有更新到最新版。</p> <pre><code>param (
+[Parameter(Mandatory = $true)]
+[string]$Path,
+[string]$CsvPath
+)
+function CheckVersion($filePath) {
+$version = '?'
+try {
+$version = (Get-Item $filePath).VersionInfo.ProductVersion
+$majorVersion = [int]::Parse($version.Split('.')[0])
+$passed = $majorVersion -ge 25
+$status = if ($passed) { "PASS" } else { "FAIL" }
+}
+catch {
+$status = "ERROR"
+}
+return [PSCustomObject]@{
+Path    = $filePath
+Version = $version
+Status  = $status
+}
+}
+function ShowResult($result) {
+$color = if ($result.Status -eq 'PASS') { 'Green' } elseif ($result.Status -eq 'FAIL') { 'Red' } else { 'Cyan' }
+Write-Host "$($result.Status)`t$($result.Version)`t$($result.Path)" -ForegroundColor $color
+}
+$gciErrors = $null
+# -File to ensure we only get files, not directories
+# -Force to include hidden/system directories/files
+# -ErrorAction SilentlyContinue to suppress errors (e.g., access denied)
+# -ErrorVariable gciErrors to capture any errors for later reporting
+$results = @()
+if ($Path.EndsWith('.csv')) {
+$csvPaths = @()
+try {
+$csvPaths = Import-Csv -Path $Path | ForEach-Object { $_.Path } | Where-Object { Test-Path $_ }
+}
+catch {
+Write-Host "Error reading CSV file: $_" -ForegroundColor Red
+exit 1
+}
+Write-Host "Verifying paths from [$Path]..." -ForegroundColor Yellow
+foreach ($csvPath in $csvPaths) {
+if (Test-Path $csvPath) {
+$result = CheckVersion -filePath $csvPath
+ShowResult -result $result
+$results += $result
+}
+else {
+$reulst = ([PSCustomObject]@{
+Path    = $csvPath
+Version = '?'
+Status  = '404'
+})
+ShowResult -result $result
+$results += $result
+}
+}
+$CsvPath = $Path
+Write-Host "`nUpdating results to [$CsvPath]..." -ForegroundColor Yellow
+$results | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8
+}
+else {
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+Write-Host "Scanning path [$Path] for 7z.exe and 7z.dll files..." -ForegroundColor Yellow
+$sw.Start()
+Get-ChildItem -Path $Path -Recurse -Filter '7z.*' -File -Force -ErrorAction SilentlyContinue -ErrorVariable gciErrors |
+Where-Object { $_.Name -ieq '7z.exe' -or $_.Name -like '7z.dll' } |
+ForEach-Object {
+$result = CheckVersion -filePath $_.FullName
+ShowResult -result $result
+$results += $result
+}
+$sw.Stop()
+Write-Host "`nScan completed in $($sw.Elapsed.TotalSeconds.ToString('n0')) seconds." -ForegroundColor Yellow
+# Generate default output CSV path
+if (-not $CsvPath) {
+$CsvPath = Join-Path -Path (Get-Location) -ChildPath "7zip_Scan_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+}
+Write-Host "`nExporting results to [$CsvPath]..." -ForegroundColor Yellow
+$results | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8
+if ($gciErrors) {
+$displayErrors = Read-Host "`n$($gciErrors.Count) IO Errors, display? (Y/N)"
+if ($displayErrors -ieq 'Y') {
+$sb = New-Object -TypeName System.Text.StringBuilder
+foreach ($err in $gciErrors) {
+$sb.AppendLine($err.Exception.Message) | Out-Null
+}
+$tempPath = [System.IO.Path]::GetTempFileName() + ".txt"
+$sb.ToString() | Out-File -FilePath $tempPath -Encoding UTF8
+Start-Process -FilePath $tempPath
+}
+}
+}
+</code></pre> <p>使用方法很簡單 <code>Atk-Scan7zipVersion.ps1 D:\</code> 即可找出 D 槽所有的 7z.exe 及 7z.dll 的版本，大於 25.X 的顯示綠色，否則紅色 (無法判斷版號顯示灰色，理論上不會發生)，並將結果存成 CSV。CSV 檔會依日期時間自動命名，或者也可自行指定，例如：<code>Atk-Scan7zipVersion.ps1 D:\ -CsvPath E:\results.csv</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638961338754718290.png"></p> <p>掃瞄時建議使用管理者權限，但實務上仍可能有些系統目錄會無法存取或找不到路徑，這類存取錯誤訊息會另存暫時目錄，若有需要可以查看。</p> <p>如圖所示，掃瞄一次可能耗時數分鐘，掃瞄結果會存成 CSV 方便後續修補及複核版本是否更新完成。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638961338756548573.png"></p> <p>如要複核版本狀態，可帶入 CSV 路徑，直接依據清單上的路徑逐一檢查，並將結果更新回 CSV 檔，如此可省下重新掃瞄的時間，在幾秒內完成，。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638961338758944660.png"></p> <p>至於修補原則，實際掃瞄會發現很多軟體都依賴 7z.exe 解壓縮，例如範例中的 Chocolatey、Visual Studio Xamarin 擴充套件... 等，這類 7z.exe 解壓對象多侷限應用程式自身的套件、更新檔等，不會被用來解壓其他檔案。由於這次的攻擊需使用者互動（如開啟特定惡意 ZIP 檔）才能完成，故風險較高的是使用者日常使用的 7-Zip 程式，至於這類軟體自帶的 7z 程式或程式庫，要被拿來作惡不是那麼容易(BUT，資安有張無敵鬼牌：萬一萬一又萬一)，加上強制置換軟體所屬檔案可能會有副作用，要不要也都更新？就留給大家自行拿捏了。</p> <p data-slug="7z-vulnerabilities-n-scan-tool" data-title-en="7-Zip vulnerabilities warning and version scan tool by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/09/25/20/04/fire-alarm-8275941_1280.jpg#1280#720">Discusses 7-Zip vulnerabilities and shares a PowerShell script to scan, verify, and update 7z.exe/7z.dll versions for enhanced security.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>7-Zip 最近<a href="https://www.facebook.com/will.fans/posts/7-zip-%E5%A3%93%E7%B8%AE%E5%B7%A5%E5%85%B7%E7%99%BC%E7%8F%BE%E5%85%A9%E5%80%8B-cvss-score-%E9%AB%98%E9%81%94-7-%E5%88%86%E7%9A%84-cve-2025-11001-%E8%88%87-cve-2025-11002-%E6%BC%8F%E6%B4%9E-7-zip-%E4%B8%AD%E5%AD%98%E5%9C%A8%E4%B8%80%E5%80%8B/1249133997240687/">被發現兩個安全漏洞：CVE-2025-11001 及 CVE-2025-11002</a>，問題源於 7-Zip 解壓縮時對符號連結（Symbolic Link）與目錄穿越（Directory Traversal）的處理邏輯不夠周全，導致攻擊者可在 ZIP 檔刻意放入特殊的符號連結以「繞出」預期目錄，將惡意檔案覆蓋或寫入到系統敏感位置。一個可行的攻擊途徑是攻擊者設法將惡意 ZIP 檔送到使用者手上並誘騙其進行解壓縮，藉由漏洞將系統服務或使用者常用執行檔換成植入惡意程式的版本，一但加料版被執行即可完成攻擊。<br> 延伸閱讀：</p> <ul><li><a href="https://cybersecuritynews.com/7-zip-vulnerabilities/">7-Zip Vulnerabilities Let Attackers Execute Arbitrary Code Remotely</a></li></ul> <p>7-Zip 的<a href="https://github.com/ip7z/7zip/releases/tag/25.01">最新版本 25.01</a>已修正這個兩個漏洞，建議大家盡快更新。<br> (題外話：以 7-Zip 的輕巧穩定，執行速度快，功能又完整，Windows 真該把它收為內建工具並自動更新。)</p> <p>為確保修補作業沒有遺漏，我決定寫個 PowerShell 腳本掃瞄資料夾，找出所有 7z.exe/7z.dll 並檢查版本，確保都有更新到最新版。</p> <pre><code>param (
+[Parameter(Mandatory = $true)]
+[string]$Path,
+[string]$CsvPath
+)
+function CheckVersion($filePath) {
+$version = '?'
+try {
+$version = (Get-Item $filePath).VersionInfo.ProductVersion
+$majorVersion = [int]::Parse($version.Split('.')[0])
+$passed = $majorVersion -ge 25
+$status = if ($passed) { "PASS" } else { "FAIL" }
+}
+catch {
+$status = "ERROR"
+}
+return [PSCustomObject]@{
+Path    = $filePath
+Version = $version
+Status  = $status
+}
+}
+function ShowResult($result) {
+$color = if ($result.Status -eq 'PASS') { 'Green' } elseif ($result.Status -eq 'FAIL') { 'Red' } else { 'Cyan' }
+Write-Host "$($result.Status)`t$($result.Version)`t$($result.Path)" -ForegroundColor $color
+}
+$gciErrors = $null
+# -File to ensure we only get files, not directories
+# -Force to include hidden/system directories/files
+# -ErrorAction SilentlyContinue to suppress errors (e.g., access denied)
+# -ErrorVariable gciErrors to capture any errors for later reporting
+$results = @()
+if ($Path.EndsWith('.csv')) {
+$csvPaths = @()
+try {
+$csvPaths = Import-Csv -Path $Path | ForEach-Object { $_.Path } | Where-Object { Test-Path $_ }
+}
+catch {
+Write-Host "Error reading CSV file: $_" -ForegroundColor Red
+exit 1
+}
+Write-Host "Verifying paths from [$Path]..." -ForegroundColor Yellow
+foreach ($csvPath in $csvPaths) {
+if (Test-Path $csvPath) {
+$result = CheckVersion -filePath $csvPath
+ShowResult -result $result
+$results += $result
+}
+else {
+$reulst = ([PSCustomObject]@{
+Path    = $csvPath
+Version = '?'
+Status  = '404'
+})
+ShowResult -result $result
+$results += $result
+}
+}
+$CsvPath = $Path
+Write-Host "`nUpdating results to [$CsvPath]..." -ForegroundColor Yellow
+$results | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8
+}
+else {
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+Write-Host "Scanning path [$Path] for 7z.exe and 7z.dll files..." -ForegroundColor Yellow
+$sw.Start()
+Get-ChildItem -Path $Path -Recurse -Filter '7z.*' -File -Force -ErrorAction SilentlyContinue -ErrorVariable gciErrors |
+Where-Object { $_.Name -ieq '7z.exe' -or $_.Name -like '7z.dll' } |
+ForEach-Object {
+$result = CheckVersion -filePath $_.FullName
+ShowResult -result $result
+$results += $result
+}
+$sw.Stop()
+Write-Host "`nScan completed in $($sw.Elapsed.TotalSeconds.ToString('n0')) seconds." -ForegroundColor Yellow
+# Generate default output CSV path
+if (-not $CsvPath) {
+$CsvPath = Join-Path -Path (Get-Location) -ChildPath "7zip_Scan_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+}
+Write-Host "`nExporting results to [$CsvPath]..." -ForegroundColor Yellow
+$results | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8
+if ($gciErrors) {
+$displayErrors = Read-Host "`n$($gciErrors.Count) IO Errors, display? (Y/N)"
+if ($displayErrors -ieq 'Y') {
+$sb = New-Object -TypeName System.Text.StringBuilder
+foreach ($err in $gciErrors) {
+$sb.AppendLine($err.Exception.Message) | Out-Null
+}
+$tempPath = [System.IO.Path]::GetTempFileName() + ".txt"
+$sb.ToString() | Out-File -FilePath $tempPath -Encoding UTF8
+Start-Process -FilePath $tempPath
+}
+}
+}
+</code></pre> <p>使用方法很簡單 <code>Atk-Scan7zipVersion.ps1 D:\</code> 即可找出 D 槽所有的 7z.exe 及 7z.dll 的版本，大於 25.X 的顯示綠色，否則紅色 (無法判斷版號顯示灰色，理論上不會發生)，並將結果存成 CSV。CSV 檔會依日期時間自動命名，或者也可自行指定，例如：<code>Atk-Scan7zipVersion.ps1 D:\ -CsvPath E:\results.csv</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638961338754718290.png"></p> <p>掃瞄時建議使用管理者權限，但實務上仍可能有些系統目錄會無法存取或找不到路徑，這類存取錯誤訊息會另存暫時目錄，若有需要可以查看。</p> <p>如圖所示，掃瞄一次可能耗時數分鐘，掃瞄結果會存成 CSV 方便後續修補及複核版本是否更新完成。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638961338756548573.png"></p> <p>如要複核版本狀態，可帶入 CSV 路徑，直接依據清單上的路徑逐一檢查，並將結果更新回 CSV 檔，如此可省下重新掃瞄的時間，在幾秒內完成，。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638961338758944660.png"></p> <p>至於修補原則，實際掃瞄會發現很多軟體都依賴 7z.exe 解壓縮，例如範例中的 Chocolatey、Visual Studio Xamarin 擴充套件... 等，這類 7z.exe 解壓對象多侷限應用程式自身的套件、更新檔等，不會被用來解壓其他檔案。由於這次的攻擊需使用者互動（如開啟特定惡意 ZIP 檔）才能完成，故風險較高的是使用者日常使用的 7-Zip 程式，至於這類軟體自帶的 7z 程式或程式庫，要被拿來作惡不是那麼容易(BUT，資安有張無敵鬼牌：萬一萬一又萬一)，加上強制置換軟體所屬檔案可能會有副作用，要不要也都更新？就留給大家自行拿捏了。</p> <p data-slug="7z-vulnerabilities-n-scan-tool" data-title-en="7-Zip vulnerabilities warning and version scan tool by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/09/25/20/04/fire-alarm-8275941_1280.jpg#1280#720">Discusses 7-Zip vulnerabilities and shares a PowerShell script to scan, verify, and update 7z.exe/7z.dll versions for enhanced security.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>7-Zip 最近<a href="https://www.facebook.com/will.fans/posts/7-zip-%E5%A3%93%E7%B8%AE%E5%B7%A5%E5%85%B7%E7%99%BC%E7%8F%BE%E5%85%A9%E5%80%8B-cvss-score-%E9%AB%98%E9%81%94-7-%E5%88%86%E7%9A%84-cve-2025-11001-%E8%88%87-cve-2025-11002-%E6%BC%8F%E6%B4%9E-7-zip-%E4%B8%AD%E5%AD%98%E5%9C%A8%E4%B8%80%E5%80%8B/1249133997240687/">被發現兩個安全漏洞：CVE-2025-11001 及 CVE-2025-11002</a>，問題源於 7-Zip 解壓縮時對符號連結（Symbolic Link）與目錄穿越（Directory Traversal）的處理邏輯不夠周全，導致攻擊者可在 ZIP 檔刻意放入特殊的符號連結以「繞出」預期目錄，將惡意檔案覆蓋或寫入到系統敏感位置。一個可行的攻擊途徑是攻擊者設法將惡意 ZIP 檔送到使用者手上並誘騙其進行解壓縮，藉由漏洞將系統服務或使用者常用執行檔換成植入惡意程式的版本，一但加料版被執行即可完成攻擊。<br> 延伸閱讀：</p> <ul><li><a href="https://cybersecuritynews.com/7-zip-vulnerabilities/">7-Zip Vulnerabilities Let Attackers Execute Arbitrary Code Remotely</a></li></ul> <p>7-Zip 的<a href="https://github.com/ip7z/7zip/releases/tag/25.01">最新版本 25.01</a>已修正這個兩個漏洞，建議大家盡快更新。<br> (題外話：以 7-Zip 的輕巧穩定，執行速度快，功能又完整，Windows 真該把它收為內建工具並自動更新。)</p> <p>為確保修補作業沒有遺漏，我決定寫個 PowerShell 腳本掃瞄資料夾，找出所有 7z.exe/7z.dll 並檢查版本，確保都有更新到最新版。</p> <pre><code>param (
+[Parameter(Mandatory = $true)]
+[string]$Path,
+[string]$CsvPath
+)
+function CheckVersion($filePath) {
+$version = '?'
+try {
+$version = (Get-Item $filePath).VersionInfo.ProductVersion
+$majorVersion = [int]::Parse($version.Split('.')[0])
+$passed = $majorVersion -ge 25
+$status = if ($passed) { "PASS" } else { "FAIL" }
+}
+catch {
+$status = "ERROR"
+}
+return [PSCustomObject]@{
+Path    = $filePath
+Version = $version
+Status  = $status
+}
+}
+function ShowResult($result) {
+$color = if ($result.Status -eq 'PASS') { 'Green' } elseif ($result.Status -eq 'FAIL') { 'Red' } else { 'Cyan' }
+Write-Host "$($result.Status)`t$($result.Version)`t$($result.Path)" -ForegroundColor $color
+}
+$gciErrors = $null
+# -File to ensure we only get files, not directories
+# -Force to include hidden/system directories/files
+# -ErrorAction SilentlyContinue to suppress errors (e.g., access denied)
+# -ErrorVariable gciErrors to capture any errors for later reporting
+$results = @()
+if ($Path.EndsWith('.csv')) {
+$csvPaths = @()
+try {
+$csvPaths = Import-Csv -Path $Path | ForEach-Object { $_.Path } | Where-Object { Test-Path $_ }
+}
+catch {
+Write-Host "Error reading CSV file: $_" -ForegroundColor Red
+exit 1
+}
+Write-Host "Verifying paths from [$Path]..." -ForegroundColor Yellow
+foreach ($csvPath in $csvPaths) {
+if (Test-Path $csvPath) {
+$result = CheckVersion -filePath $csvPath
+ShowResult -result $result
+$results += $result
+}
+else {
+$reulst = ([PSCustomObject]@{
+Path    = $csvPath
+Version = '?'
+Status  = '404'
+})
+ShowResult -result $result
+$results += $result
+}
+}
+$CsvPath = $Path
+Write-Host "`nUpdating results to [$CsvPath]..." -ForegroundColor Yellow
+$results | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8
+}
+else {
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+Write-Host "Scanning path [$Path] for 7z.exe and 7z.dll files..." -ForegroundColor Yellow
+$sw.Start()
+Get-ChildItem -Path $Path -Recurse -Filter '7z.*' -File -Force -ErrorAction SilentlyContinue -ErrorVariable gciErrors |
+Where-Object { $_.Name -ieq '7z.exe' -or $_.Name -like '7z.dll' } |
+ForEach-Object {
+$result = CheckVersion -filePath $_.FullName
+ShowResult -result $result
+$results += $result
+}
+$sw.Stop()
+Write-Host "`nScan completed in $($sw.Elapsed.TotalSeconds.ToString('n0')) seconds." -ForegroundColor Yellow
+# Generate default output CSV path
+if (-not $CsvPath) {
+$CsvPath = Join-Path -Path (Get-Location) -ChildPath "7zip_Scan_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
+}
+Write-Host "`nExporting results to [$CsvPath]..." -ForegroundColor Yellow
+$results | Export-Csv -Path $CsvPath -NoTypeInformation -Encoding UTF8
+if ($gciErrors) {
+$displayErrors = Read-Host "`n$($gciErrors.Count) IO Errors, display? (Y/N)"
+if ($displayErrors -ieq 'Y') {
+$sb = New-Object -TypeName System.Text.StringBuilder
+foreach ($err in $gciErrors) {
+$sb.AppendLine($err.Exception.Message) | Out-Null
+}
+$tempPath = [System.IO.Path]::GetTempFileName() + ".txt"
+$sb.ToString() | Out-File -FilePath $tempPath -Encoding UTF8
+Start-Process -FilePath $tempPath
+}
+}
+}
+</code></pre> <p>使用方法很簡單 <code>Atk-Scan7zipVersion.ps1 D:\</code> 即可找出 D 槽所有的 7z.exe 及 7z.dll 的版本，大於 25.X 的顯示綠色，否則紅色 (無法判斷版號顯示灰色，理論上不會發生)，並將結果存成 CSV。CSV 檔會依日期時間自動命名，或者也可自行指定，例如：<code>Atk-Scan7zipVersion.ps1 D:\ -CsvPath E:\results.csv</code>。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638961338754718290.png"></p> <p>掃瞄時建議使用管理者權限，但實務上仍可能有些系統目錄會無法存取或找不到路徑，這類存取錯誤訊息會另存暫時目錄，若有需要可以查看。</p> <p>如圖所示，掃瞄一次可能耗時數分鐘，掃瞄結果會存成 CSV 方便後續修補及複核版本是否更新完成。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638961338756548573.png"></p> <p>如要複核版本狀態，可帶入 CSV 路徑，直接依據清單上的路徑逐一檢查，並將結果更新回 CSV 檔，如此可省下重新掃瞄的時間，在幾秒內完成，。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638961338758944660.png"></p> <p>至於修補原則，實際掃瞄會發現很多軟體都依賴 7z.exe 解壓縮，例如範例中的 Chocolatey、Visual Studio Xamarin 擴充套件... 等，這類 7z.exe 解壓對象多侷限應用程式自身的套件、更新檔等，不會被用來解壓其他檔案。由於這次的攻擊需使用者互動（如開啟特定惡意 ZIP 檔）才能完成，故風險較高的是使用者日常使用的 7-Zip 程式，至於這類軟體自帶的 7z 程式或程式庫，要被拿來作惡不是那麼容易(BUT，資安有張無敵鬼牌：萬一萬一又萬一)，加上強制置換軟體所屬檔案可能會有副作用，要不要也都更新？就留給大家自行拿捏了。</p> <p data-slug="7z-vulnerabilities-n-scan-tool" data-title-en="7-Zip vulnerabilities warning and version scan tool by PowerShell" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/09/25/20/04/fire-alarm-8275941_1280.jpg#1280#720">Discusses 7-Zip vulnerabilities and shares a PowerShell script to scan, verify, and update 7z.exe/7z.dll versions for enhanced security.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638961338754718290.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638961338754718290.png" medium="image"/>
+    <pubDate>Wed, 15 Oct 2025 14:01:37 GMT</pubDate>
+  </item><item>
     <title><![CDATA[再談單一網域名稱 (FQDN) 對映多 IP]]></title>
     <link>https://blog.darkthread.net/blog/multi-ip-for-fqdn/</link>
     <itunes:title><![CDATA[再談單一網域名稱 (FQDN) 對映多 IP]]></itunes:title>
@@ -977,125 +1274,5 @@ Console.WriteLine($"Error: {ex.Message}");
     <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig1_638953117033265747.png" medium="image"/>
     <pubDate>Mon, 06 Oct 2025 01:40:07 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[一次搞定 Python 版本管理/套件安裝/虛擬環境的極速神器 - uv]]></title>
-    <link>https://blog.darkthread.net/blog/uv/</link>
-    <itunes:title><![CDATA[一次搞定 Python 版本管理/套件安裝/虛擬環境的極速神器 - uv]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
-uv run test.py "arg1" "arg2"
-# bash
-echo 'print("hello world!")' | uv run -
-uv run - &lt;&lt;EOF
-print("hello world!")
-EOF
-# cmd
-echo print("hello world!") | uv run -
-# PowerShell
-@"
-print("hello world!")
-"@ | uv run -
-</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
-print("Hello, world!")
-</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
-import time
-from rich.progress import track
-for i in track(range(20), description="For example:"):
-time.sleep(0.05)
-# 執行
-uv run --with rich exmaple.py
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
-# requires-python = "&gt;=3.12"
-# dependencies = []
-# ///
-# Use some syntax added in Python 3.12
-type Point = tuple[float, float]
-print(Point)
-</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
-uv venv --python 3.11 # 指定 Python 版本
-uv pip install ruff # 在虛擬環境安裝套件
-source .venv/bin/activate # 啟用虛擬環境
-# .venv\Scripts\activate # Windows
-deactivate # 退出虛擬環境
-</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
-uv run test.py "arg1" "arg2"
-# bash
-echo 'print("hello world!")' | uv run -
-uv run - &lt;&lt;EOF
-print("hello world!")
-EOF
-# cmd
-echo print("hello world!") | uv run -
-# PowerShell
-@"
-print("hello world!")
-"@ | uv run -
-</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
-print("Hello, world!")
-</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
-import time
-from rich.progress import track
-for i in track(range(20), description="For example:"):
-time.sleep(0.05)
-# 執行
-uv run --with rich exmaple.py
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
-# requires-python = "&gt;=3.12"
-# dependencies = []
-# ///
-# Use some syntax added in Python 3.12
-type Point = tuple[float, float]
-print(Point)
-</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
-uv venv --python 3.11 # 指定 Python 版本
-uv pip install ruff # 在虛擬環境安裝套件
-source .venv/bin/activate # 啟用虛擬環境
-# .venv\Scripts\activate # Windows
-deactivate # 退出虛擬環境
-</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>前幾天分享 <a href="/blog/pyenv-win-n-wsl/">Windows 與 WSL 的 pyenv 衝突</a>的事，結果臉書跟部落格的留言區，大家排山倒海地強推 uv! (感謝大家推薦，此處就不一一言謝了)</p> <p>這狀況似曾相識，上回是<a href="/blog/k6-load-testing/">介紹完 JMeter 後被網友大推 K6</a>，一試之後果真如沐春風，相見恨晚... 這回我有預感，我也馬上就要愛上 uv 了~</p> <p><a href="https://docs.astral.sh/uv/">uv</a> 是一款由 Astral 團隊用 Rust 語言開發的現代化 Python 套件管理及專案管理工具。</p> <p>題外話：其實光是 Rust 開發這點就叫我心動了 (延伸閱讀：<a href="/blog/rust-in-js-ecosystem/">Rust 程式語言在 JavaScript 生態圈的角色</a>)，Rust 是強大又安全的程式語言，效能趨近 C/C++ 卻有防彈等級的記憶體安全性。但 Rust 的學習曲線偏陡峭，開發時必須與編譯器不斷鬥智鬥勇，需投入可觀時間精力方能上手，具備一定聰慧、決心與毅力才能駕御，特別吸引追求自我實現的開發者，只留給願意爬過天堂路享受特種部隊榮耀的那群人。也因為成為 Rust 開發者條件嚴苛，至今看過的 Rust 作品在效能與品質上都不曾讓人失望，因此讓我對 Rust 開發的軟體特別有好感。</p> <p>uv 的定位與之前學過的 pyenv、pip、venv 有點不同，它不只解決版本管理或套件安裝的單一需求，而是要打造出全方位的解決方案，一次取代 pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv 等眾多工具。uv 整合了套件安裝、依賴管理、虛擬環境管理以及 Python 版本管理等功能，相較於傳統工具，uv 的套件安裝和依賴解析速度加快了 10 到 100 倍，而支援跨平台使用（macOS、Linux、Windows）當然也不在話下。</p> <p>uv 安裝套件之所以能快如閃電的關鍵，源自 Rust 語言的高效率、並行處理與智慧化快取，以及對打包格式與解析流程的低階最佳化。以下簡要說明：</p> <ol><li>Rust 採單一靜態執行檔，比反覆啟動 Python 解譯器快 N 倍，延遲能從數百 ms 降到 µs。</li> <li>下載、解壓與中繼資料擷取採分層並行，比起循序處理能省下超可觀的等待。</li> <li>透過全域快取，uv 會沿用已下載與已建置好的分發檔，在暖快取(之前下載過)情境能加快百倍，冷快取(從未下載過)時也能快 8-10 倍。<br> (註：此點深得我心，每個虛擬環境 pip install 重新下載安裝多複製一份，對時間跟空間都是浪費)</li> <li>針對 wheel 檔，會先讀取中央目錄、檔案表取得 dist-info/metadata，與快取現況比較，只下載短缺部分不需整檔下載，大幅減少網路傳輸量與等待時間。<br> (註：Wheel 檔是 Python 的標準二進位散布格式，是帶有特定命名與中繼資料結構的 ZIP 檔，安裝時可直接解壓到 site-packages 而不需現場編譯)</li> <li>建立虛擬環境與安裝檔案時會運用 Hard Link 與複製時寫入 (Copy-on-Write) 等技術，降低磁碟 I/O 與空間重複，並以原子方式更新確保一致性。</li> <li>直接以檔案系統底層機制操作管理 venv，避免中間層成本並可提升建立/切換速度，比透過 Python 的 venv 模組更有效率。</li> <li>採用 PubGrub 的 Rust 實作 (pubgrub-rs) 擔任版本求解器，具增量、決定性與偏好自鎖檔版本的策略，在解析過程中可預取相關套件中繼資料，消除網路延遲。</li></ol> <p>整理完 uv 特色讓我熱血沸騰，接著來實際用看看。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" alt="thumbnail"></p> <h3>安裝 uv</h3> <p>安裝超簡單，macOS/Liunx <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>、Windows <code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code> (也可用 winget/scoop ) 都是一行搞定。</p> <p>我在 WSL 測試，安裝速度很快，不到三秒完成。裝完重新登入或 <code>source $HOME/.local/bin/env</code> 即可使用 uv CLI。</p> <h3>安裝 Python</h3> <p>開始前先 <code>uv python install</code> 安裝最新版 Python，只花了 5.5s... 快到我有點不習慣。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig1_638948424621465463.png"></p> <p>註：以上安裝方法只會安裝 python3.13，若要將不帶版號的別名 (python、python3) 指向該版本，可加上參數 <code>uv python install --default</code>。</p> <h3>執行 Python 程式</h3> <p>執行程式不再是用 <code>python &lt;py-file-path&gt; &lt;args...&gt;</code>，要改用 <code>uv run &lt;py-file-path&gt; &lt;args...&gt;</code></p> <pre><code>uv run test.py
-uv run test.py "arg1" "arg2"
-# bash
-echo 'print("hello world!")' | uv run -
-uv run - &lt;&lt;EOF
-print("hello world!")
-EOF
-# cmd
-echo print("hello world!") | uv run -
-# PowerShell
-@"
-print("hello world!")
-"@ | uv run -
-</code></pre> <p>有個小技巧是可以直接把 Python 程式寫成腳本，例如新增一個 greet 文字檔，寫入以下內容再 <code>chmod u+x greet</code>：</p> <pre><code>#!/usr/bin/env -S uv run --script
-print("Hello, world!")
-</code></pre> <p>greet 便可以比照 bash 腳本直接執行，很酷。</p> <h3>下載套件</h3> <p>對於複雜應用，<a href="https://blog.kyomind.tw/pyproject-toml/">pyproject.toml 專案檔</a> 可定義 Python 專案，uv 將依據它下載依賴的套件。對於單一 .py 檔，我們可以透過 --with 參數指定要下載的依賴套件。</p> <pre><code># example.py
-import time
-from rich.progress import track
-for i in track(range(20), description="For example:"):
-time.sleep(0.05)
-# 執行
-uv run --with rich exmaple.py
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig2_638948424623089676.png"></p> <p>另一個更方便的做法是用 --script 在 .py 開頭加入宣告，例如 <code>uv add --script example.py 'requests&lt;3' 'rich'</code>，程式最前方會有一段註刪起來的宣告語法，之後不用加 --with 參數 uv 也會依據這段宣告自動下載安裝依賴的套件：</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig3_638948424624769221.png"></p> <p>另外，在宣告區也可指定需要的 Python 版本：</p> <pre><code># /// script
-# requires-python = "&gt;=3.12"
-# dependencies = []
-# ///
-# Use some syntax added in Python 3.12
-type Point = tuple[float, float]
-print(Point)
-</code></pre> <h3>虛擬環境 (venv)</h3> <p>uv 也支援虛擬環境，但做法更先進，它會利用 Hard-Link 取代下載及複製重複的檔案到每個虛擬環境資料夾，節省寶貴空間。</p> <pre><code>uv venv # 用 .venv 資料夾建立虛擬環境
-uv venv --python 3.11 # 指定 Python 版本
-uv pip install ruff # 在虛擬環境安裝套件
-source .venv/bin/activate # 啟用虛擬環境
-# .venv\Scripts\activate # Windows
-deactivate # 退出虛擬環境
-</code></pre> <h3>快如閃電的套件安裝</h3> <p>接下來仔細說說 uv 讓套件安裝部署又快又好的祕密。我對這段格外好奇，便花了點時研究。</p> <p><img src="https://blog.darkthread.net/Posts/files/2025/Fig4_638948424626434283.png"><br> 安裝 pandas 及 numpy 只花 51ms!!!</p> <ol><li>Hard Link 重複使用<br> uv 會將 wheel 等套件內容集中放在全域快取目錄 (例如 ~/.cache/uv)，在虛擬環境安裝 pip install 套件時不複製檔案，而是以硬連結把快取中的檔案「連結」到虛擬環境的 site-packages，因此多個環境都共用一份實體資料，不重複下載、不複製資料、不佔磁碟空間。<br> 以 numpy 的 __init__.pyi 為例，用 ls -il 多顯示 inode 編號，可發現 <code>~/uv-lab/.venv/lib64/python3.13/site-packages/numpy/__init__.pyi</code> 與 <code>~/.cache/uv/archive-v0/vLaE7thhKt3kchyCXSCl3/numpy/__init__.pyi</code> 的 inode 編號相同都是 47044，代表這兩個檔案指向同一磁碟位址，實際上只有一份資料。而用 <code>find ~/ -xdev -inum 47044</code> 反查，一樣能證明兩個路徑都指向同一份檔案內容。<br> <img src="https://blog.darkthread.net/Posts/files/2025/Fig5_638948424628103424.png"><br> 註：Hard-Link 限定同一磁碟分割，若虛擬環境與快取位於不同磁碟，uv 將退回複製檔案之傳統做法並提出警示： <img src="Fig6.png"> 延伸閱讀：<a href="https://blog.miniasp.com/post/2025/01/02/symbolic-link-hard-link-directory-junction">理解 Symbolic Link、Hard Link 與 Directory Junction 的差異之處 by 保哥</a></li> <li>原子化部署<br> uv 進行安裝/同步時，能像資料庫 Transaction 一樣，做到要嘛全部成功，要嘛失敗全部復原，不會出現下載一半或複製一半的情況。<br> 其做法是先在臨時位置完成檔案展開與結構寫入，待驗證完成後再以整批移動或替換目標路徑，確保過程中如遇中斷不會留下半成品或破壞既有可用環境。<br> 而這個設計也跟 uv 的平行處理與快取機制有關，由於檔案可能多人多處共用，故要先在隔離的臨時區並行完成解壓、連結與索引更新，再一次切換，有效降低 I/O 衝突及部分安裝的風險，確保使用者不會看到一半已更新、一半未更新的狀況。</li></ol> <p>必須說，這真是精巧的設計，使用者看不到，只會感受到又快又穩定。</p> <h3>結論</h3> <p>不用說，我被圈粉了! 今天起應該就會逐步改用 uv 取代原有的 Python 開發方式。</p> <p>而現在我也已加入推坑行列：uv 真的好好用，不試看看嗎？</p> <p data-slug="uv" data-title-en="Fast Python package and project manager - uv" data-catg="Python" data-fbimg="https://cdn.pixabay.com/photo/2015/09/08/21/02/superbike-930715_960_720.jpg#960#720">Introducing uv: a lightning-fast, Rust-based Python package and environment manager. Installs, manages, and runs projects efficiently, replacing many traditional tools.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2025/Fig6_638948424619862659.jpg" medium="image"/>
-    <pubDate>Tue, 30 Sep 2025 15:20:58 GMT</pubDate>
   </item></channel>
 </rss>
