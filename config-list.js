@@ -79,6 +79,7 @@ let feedList = [
       selector: 'article > [itemprop="articleBody"]'
     }
   },
+  /*
   { // <outline type="rss" text="黑暗執行緒++" title="黑暗執行緒++" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/http%3A%2F%2Fblog.darkthread.net%2Fblogs%2Fdarkthreadtw%2Frss.aspx" htmlUrl="https://blog.darkthread.net/"/>
     title: '黑暗執行緒',
     feedID: 'darkthread',
@@ -92,6 +93,7 @@ let feedList = [
       selector: 'article > [itemprop="articleBody mainEntityOfPage"]'
     }
   },
+  */
   { // <outline type="rss" text="异次元软件世界++" title="异次元软件世界++" xmlUrl="http://pulipuli.myqnapcloud.com/304/fc/http%3A%2F%2Ffeed.iplaysoft.com%2F" htmlUrl="https://www.iplaysoft.com"/>
     title: '异次元软件世界',
     feedID: 'iplaysoft',
