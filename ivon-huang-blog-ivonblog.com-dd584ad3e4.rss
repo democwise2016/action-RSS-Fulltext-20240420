@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/382/800/800.jpg?hmac=CUcl9a-iDabVYoNX0vJ9ZhRPYeo7k1rJwEvfstfcS7U</url>
+      <url>https://fastly.picsum.photos/id/413/800/800.jpg?hmac=uwqSLoomLe3exkX6rSLcgA1jCX2YAxxBfGfR9s1I4dc</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,274 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/382/800/800.jpg?hmac=CUcl9a-iDabVYoNX0vJ9ZhRPYeo7k1rJwEvfstfcS7U"/>
+    <itunes:image href="https://fastly.picsum.photos/id/413/800/800.jpg?hmac=uwqSLoomLe3exkX6rSLcgA1jCX2YAxxBfGfR9s1I4dc"/>
 <item>
+    <title><![CDATA[如何用systemd-homed管理Linux使用者的家目錄]]></title>
+    <link>https://ivonblog.com/posts/systemd-homed-usage/</link>
+    <itunes:title><![CDATA[如何用systemd-homed管理Linux使用者的家目錄]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>Systemd-homed是Systemd v245加入的一個功能，提供一種不依賴Linux主機的機制，來管理使用者帳號與家目錄的資料。正是所謂的重新定義Home管理流程。</p><p>解說systemd-home的優勢，並討論如何在Ubuntu使用這個功能。</p><h2>1. systemd-homed優勢<span><a href="#1-systemd-homed%e5%84%aa%e5%8b%a2" aria-label="定位點">#</a></span></h2><p>傳統上Linux系統行之有年的方式，是透過<code>useradd</code>指令新增使用者，<code>usermod</code>調整群組，再搭配<code>/etc/passwd</code>管理密碼。</p><p>systemd-homed將這個過程大幅簡化。</p><p>systemd-homed與傳統Linux管理使用者的機制如下圖所示：</p><img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7215419f00.webp"><img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-75bb619d7c.webp"><p>systemd-homed將使用者家目錄變成映像檔管理，開機登入後才會動態掛載，登出後取消掛載，增加安全性。</p><p>systemd-homed還能將使用者的家目錄用LUKS / fscrypt / cifs / btrfs加密保護，外人即使拿到硬碟也難以讀取。</p><p>透過<code>homectl</code>指令，可以新增或刪除使用者，編輯使用者的基本資料，設定容量限制等等操作。</p><p>會跟systemd-homed一起用的，還有<code>systemd-userdbd</code>。這個服務負責紀錄使用者資料和群組資訊。systemd-userdbd裡面會以JSON欄位紀錄使用者的Email、姓名、年齡等資訊。部份欄位是一般使用者可以自己填寫的內容，其他欄位則是需要系統管理員權限才能修改。</p><p>順帶一提，如果你不想依賴sudo來提昇使用者權限，那麼可以使用<code>systemd-run0</code>當作替代工具。</p><p>Systemd-homed可以讓遷移多個使用者的家目錄變得更簡單。過去，如果我們要遷移家目錄到其他硬碟，都得手動用<code>rsync</code>複製到新的目的地，然後編輯<code>/etc/fstab</code>掛載，還要注意GID和UID的問題。要是把它都丟給systemd-homed管的話，就不用煩惱這些問題了。</p><h2>2. 實際在Ubuntu使用systemd-homed<span><a href="#2-%e5%af%a6%e9%9a%9b%e5%9c%a8ubuntu%e4%bd%bf%e7%94%a8systemd-homed" aria-label="定位點">#</a></span></h2><p>Systemd-homed這個工具存在很久了，但綜觀各大Linux發行版，到2026年只有SteamOS 3.0預設啟用<code>systemd-homed</code>管理使用者帳號的樣子。</p><p>使用者可以手動遷移家目錄給Systemd-homed管理。並且systemd-homed可以與現有的useradd所新增的家目錄使用者共存。</p><p>縱然systemd-homed的<code>homectl --image-path</code>指令擁有任意指定使用者家目錄掛載位置的能力，但是將現有的<code>/home</code>轉為systemd-homed的這個過程有點複雜，還可能因為操作失誤導致無法登入。因此，若要在現有的系統使用systemd-homed，還是新增一個使用者為好。</p><hr><ol><li>例如我是用Ubuntu 24.04，使用以下指令安裝systemd-homed與相關組件：</li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install systemd-homed systemd-userdb
+</span></span><span><span>
+</span></span><span><span>sudo systemctl <span>enable</span> --now systemd-homed
+</span></span><span><span>
+</span></span><span><span>sudo systemctl <span>enable</span> --now systemd-userdb</span></span></code></pre></div></div><ol start="2"><li>使用以下指令新增一個使用者<code>user1</code>，指定家目錄映像檔位置（LUKS加密需以.home結尾），新增使用者群組到wheel允許使用sudo，指定使用bash shell，使用LUKS加密，設定磁碟空間20GB</li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo homectl create user1 <span>\
+</span></span></span><span><span>--image-path<span>=</span>/home/user1.home <span>\
+</span></span></span><span><span>--member-of<span>=</span>wheel,video,audio <span>\
+</span></span></span><span><span>--shell<span>=</span>/bin/bash <span>\
+</span></span></span><span><span>--storage<span>=</span>luks <span>\
+</span></span></span><span><span>--disk-size<span>=</span>20G</span></span></code></pre></div></div><ol start="3"><li><p>依照畫面指示設定該使用者的密碼。LUKS會使用該密碼加密。使用者資料會以數位簽章的方式保存在家目錄的<code>~/.identity</code>。</p></li><li><p>透過<code>ls -al /home/user1/</code>指令可以得知，在尚未登入該使用者前，<code>/home/user1/</code>的內容是空的，此時的狀態是inactive。需要使用<code>su user1</code>切換使用者，systemd-homed才會掛載家目錄內容，此時可以用<code>lsblk</code>確認掛載點。該名使用者的狀態變成active。</p></li><li><p>之後該名使用者資料可以使用<code>homectl</code>和<code>userdbctl</code>操作。</p></li><li><p>例如：<code>sudo homectl inspect user1</code>檢視使用者資料與帳號登入紀錄。</p></li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 範例輸出</span>
+</span></span><span><span>   User name: user1
+</span></span><span><span>       State: active
+</span></span><span><span> Disposition: regular
+</span></span><span><span> Last Change: Thu 2026-04-02 17:55:25 CST
+</span></span><span><span> Last Passw.: Thu 2026-04-02 17:35:03 CST
+</span></span><span><span>    Login OK: yes
+</span></span><span><span> Password OK: yes
+</span></span><span><span>         UID: <span>60486</span>
+</span></span><span><span>         GID: <span>60486</span> <span>(</span>user1<span>)</span>
+</span></span><span><span> Aux. Groups: audio
+</span></span><span><span>              video
+</span></span><span><span>              wheel
+</span></span><span><span>   Directory: / <span>(</span>fallback<span>)</span>
+</span></span><span><span>   Blob Dir.: /var/cache/systemd/home/user1
+</span></span><span><span>     Storage: luks <span>(</span>strong encryption<span>)</span>
+</span></span><span><span>  Image Path: /home/user1.home
+</span></span><span><span>   Removable: no
+</span></span><span><span>       Shell: /usr/bin/systemd-home-fallback-shell <span>(</span>fallback<span>)</span>
+</span></span><span><span>LUKS Discard: <span>online</span><span>=</span>no <span>offline</span><span>=</span>yes
+</span></span><span><span>   LUKS UUID: afc2bbbe-0022-425a-8977-99afcc8cd287
+</span></span><span><span>   Part UUID: f5d33cc1-a707-4bca-95ee-2e2f7c0dde8d
+</span></span><span><span>     FS UUID: 78c1acb9-ac0a-4166-9654-b1af159e5975
+</span></span><span><span> File System: btrfs
+</span></span><span><span> LUKS Cipher: aes
+</span></span><span><span> Cipher Mode: xts-plain64
+</span></span><span><span>  Volume Key: 256bit
+</span></span><span><span> Mount Flags: nosuid nodev <span>exec</span>
+</span></span><span><span>   Disk Size: 568M
+</span></span><span><span>  Disk Floor: 256M
+</span></span><span><span>Disk Ceiling: 258.7G
+</span></span><span><span>  Good Auth.: <span>4</span>
+</span></span><span><span>   Last Good: Thu 2026-04-02 19:02:58 CST
+</span></span><span><span>   Bad Auth.: <span>3</span>
+</span></span><span><span>    Last Bad: Thu 2026-04-02 19:02:56 CST
+</span></span><span><span>    Next Try: anytime
+</span></span><span><span> Auth. Limit: <span>30</span> attempts per 1min
+</span></span><span><span> Passwd Pol.: no
+</span></span><span><span>   Rebalance: off
+</span></span><span><span>   Passwords: <span>1</span>
+</span></span><span><span>  Local Sig.: yes
+</span></span><span><span>     Service: io.systemd.Home
+</span></span><span><span> Self Modify: realName
+</span></span><span><span>              emailAddress
+</span></span><span><span>              iconName
+</span></span><span><span>              location
+</span></span><span><span>              shell
+</span></span><span><span>              <span>umask</span>
+</span></span><span><span>              environment
+</span></span><span><span>              timeZone
+</span></span><span><span>              preferredLanguage
+</span></span><span><span>              additionalLanguages
+</span></span><span><span>              preferredSessionLauncher
+</span></span><span><span>              preferredSessionType
+</span></span><span><span>              pkcs11TokenUri
+</span></span><span><span>              fido2HmacCredential
+</span></span><span><span>              recoveryKeyType
+</span></span><span><span>              lastChangeUSec
+</span></span><span><span>              lastPasswordChangeUSec
+</span></span><span><span>      <span>(</span>Blobs<span>)</span> avatar
+</span></span><span><span>              login-background
+</span></span><span><span> <span>(</span>Privileged<span>)</span> passwordHint
+</span></span><span><span>              hashedPassword
+</span></span><span><span>              pkcs11EncryptedKey
+</span></span><span><span>              fido2HmacSalt
+</span></span><span><span>              recoveryKey
+</span></span><span><span>              sshAuthorizedKeys</span></span></code></pre></div></div><ol start="7"><li><p>透過<code>sudo homectl update user1 --disk-size=60G</code>修改使用者的屬性，像這裡是修改所分配的磁碟空間。</p></li><li><p>如果使用其他具有sudo權限的使用者登入，可以使用<code>sudo homectl deactivate user1</code>暫時取消該名使用者目錄的掛載。</p></li></ol><h2>3. 備份與還原systemd-homed資料<span><a href="#3-%e5%82%99%e4%bb%bd%e8%88%87%e9%82%84%e5%8e%9fsystemd-homed%e8%b3%87%e6%96%99" aria-label="定位點">#</a></span></h2><ol><li><p>因為使用者家目錄的資料是以一個brtfs映像檔儲存，並使用金鑰加密，所以只要備份這兩個檔案就可以了。</p></li><li><p>以本文的例子來說，首先複製<code>/home/user1.home</code>到他處。</p></li><li><p>再複製<code>/var/lib/systemd/home/</code>下的<code>private.local</code>和<code>public.local</code>檔案。</p></li><li><p>在另外一台電腦，存入以上檔案到對應的位置，然後重新啟動systemd-homed服務：</p></li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl restart systemd-homed</span></span></code></pre></div></div><p>註：若其他電腦已經有使用systemd-homed建立使用者，那麼必須手動匯出.json檔案再匯入：</p><div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 電腦A</span>
+</span></span><span><span>sudo homectl --export-format<span>=</span>full -j &gt;&gt; user.json
+</span></span><span><span>
+</span></span><span><span><span># 電腦B</span>
+</span></span><span><span>sudo homectl create -i user.json</span></span></code></pre></div></div><h2>參考<span><a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a></span></h2><ul><li><a href="https://systemd.io/HOME_DIRECTORY/" target="_blank">Home Directories - Systemd</a></li><li><a href="https://wiki.gentoo.org/wiki/Systemd/systemd-homed" target="_blank">systemd/systemd-homed - Gentoo Wiki</a></li><li><a href="https://wiki.archlinux.org/title/Systemd-homed" target="_blank">systemd-homed - ArchWiki</a></li></ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>Systemd-homed是Systemd v245加入的一個功能，提供一種不依賴Linux主機的機制，來管理使用者帳號與家目錄的資料。正是所謂的重新定義Home管理流程。</p><p>解說systemd-home的優勢，並討論如何在Ubuntu使用這個功能。</p><h2>1. systemd-homed優勢<span><a href="#1-systemd-homed%e5%84%aa%e5%8b%a2" aria-label="定位點">#</a></span></h2><p>傳統上Linux系統行之有年的方式，是透過<code>useradd</code>指令新增使用者，<code>usermod</code>調整群組，再搭配<code>/etc/passwd</code>管理密碼。</p><p>systemd-homed將這個過程大幅簡化。</p><p>systemd-homed與傳統Linux管理使用者的機制如下圖所示：</p><img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7215419f00.webp"><img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-75bb619d7c.webp"><p>systemd-homed將使用者家目錄變成映像檔管理，開機登入後才會動態掛載，登出後取消掛載，增加安全性。</p><p>systemd-homed還能將使用者的家目錄用LUKS / fscrypt / cifs / btrfs加密保護，外人即使拿到硬碟也難以讀取。</p><p>透過<code>homectl</code>指令，可以新增或刪除使用者，編輯使用者的基本資料，設定容量限制等等操作。</p><p>會跟systemd-homed一起用的，還有<code>systemd-userdbd</code>。這個服務負責紀錄使用者資料和群組資訊。systemd-userdbd裡面會以JSON欄位紀錄使用者的Email、姓名、年齡等資訊。部份欄位是一般使用者可以自己填寫的內容，其他欄位則是需要系統管理員權限才能修改。</p><p>順帶一提，如果你不想依賴sudo來提昇使用者權限，那麼可以使用<code>systemd-run0</code>當作替代工具。</p><p>Systemd-homed可以讓遷移多個使用者的家目錄變得更簡單。過去，如果我們要遷移家目錄到其他硬碟，都得手動用<code>rsync</code>複製到新的目的地，然後編輯<code>/etc/fstab</code>掛載，還要注意GID和UID的問題。要是把它都丟給systemd-homed管的話，就不用煩惱這些問題了。</p><h2>2. 實際在Ubuntu使用systemd-homed<span><a href="#2-%e5%af%a6%e9%9a%9b%e5%9c%a8ubuntu%e4%bd%bf%e7%94%a8systemd-homed" aria-label="定位點">#</a></span></h2><p>Systemd-homed這個工具存在很久了，但綜觀各大Linux發行版，到2026年只有SteamOS 3.0預設啟用<code>systemd-homed</code>管理使用者帳號的樣子。</p><p>使用者可以手動遷移家目錄給Systemd-homed管理。並且systemd-homed可以與現有的useradd所新增的家目錄使用者共存。</p><p>縱然systemd-homed的<code>homectl --image-path</code>指令擁有任意指定使用者家目錄掛載位置的能力，但是將現有的<code>/home</code>轉為systemd-homed的這個過程有點複雜，還可能因為操作失誤導致無法登入。因此，若要在現有的系統使用systemd-homed，還是新增一個使用者為好。</p><hr><ol><li>例如我是用Ubuntu 24.04，使用以下指令安裝systemd-homed與相關組件：</li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install systemd-homed systemd-userdb
+</span></span><span><span>
+</span></span><span><span>sudo systemctl <span>enable</span> --now systemd-homed
+</span></span><span><span>
+</span></span><span><span>sudo systemctl <span>enable</span> --now systemd-userdb</span></span></code></pre></div></div><ol start="2"><li>使用以下指令新增一個使用者<code>user1</code>，指定家目錄映像檔位置（LUKS加密需以.home結尾），新增使用者群組到wheel允許使用sudo，指定使用bash shell，使用LUKS加密，設定磁碟空間20GB</li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo homectl create user1 <span>\
+</span></span></span><span><span>--image-path<span>=</span>/home/user1.home <span>\
+</span></span></span><span><span>--member-of<span>=</span>wheel,video,audio <span>\
+</span></span></span><span><span>--shell<span>=</span>/bin/bash <span>\
+</span></span></span><span><span>--storage<span>=</span>luks <span>\
+</span></span></span><span><span>--disk-size<span>=</span>20G</span></span></code></pre></div></div><ol start="3"><li><p>依照畫面指示設定該使用者的密碼。LUKS會使用該密碼加密。使用者資料會以數位簽章的方式保存在家目錄的<code>~/.identity</code>。</p></li><li><p>透過<code>ls -al /home/user1/</code>指令可以得知，在尚未登入該使用者前，<code>/home/user1/</code>的內容是空的，此時的狀態是inactive。需要使用<code>su user1</code>切換使用者，systemd-homed才會掛載家目錄內容，此時可以用<code>lsblk</code>確認掛載點。該名使用者的狀態變成active。</p></li><li><p>之後該名使用者資料可以使用<code>homectl</code>和<code>userdbctl</code>操作。</p></li><li><p>例如：<code>sudo homectl inspect user1</code>檢視使用者資料與帳號登入紀錄。</p></li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 範例輸出</span>
+</span></span><span><span>   User name: user1
+</span></span><span><span>       State: active
+</span></span><span><span> Disposition: regular
+</span></span><span><span> Last Change: Thu 2026-04-02 17:55:25 CST
+</span></span><span><span> Last Passw.: Thu 2026-04-02 17:35:03 CST
+</span></span><span><span>    Login OK: yes
+</span></span><span><span> Password OK: yes
+</span></span><span><span>         UID: <span>60486</span>
+</span></span><span><span>         GID: <span>60486</span> <span>(</span>user1<span>)</span>
+</span></span><span><span> Aux. Groups: audio
+</span></span><span><span>              video
+</span></span><span><span>              wheel
+</span></span><span><span>   Directory: / <span>(</span>fallback<span>)</span>
+</span></span><span><span>   Blob Dir.: /var/cache/systemd/home/user1
+</span></span><span><span>     Storage: luks <span>(</span>strong encryption<span>)</span>
+</span></span><span><span>  Image Path: /home/user1.home
+</span></span><span><span>   Removable: no
+</span></span><span><span>       Shell: /usr/bin/systemd-home-fallback-shell <span>(</span>fallback<span>)</span>
+</span></span><span><span>LUKS Discard: <span>online</span><span>=</span>no <span>offline</span><span>=</span>yes
+</span></span><span><span>   LUKS UUID: afc2bbbe-0022-425a-8977-99afcc8cd287
+</span></span><span><span>   Part UUID: f5d33cc1-a707-4bca-95ee-2e2f7c0dde8d
+</span></span><span><span>     FS UUID: 78c1acb9-ac0a-4166-9654-b1af159e5975
+</span></span><span><span> File System: btrfs
+</span></span><span><span> LUKS Cipher: aes
+</span></span><span><span> Cipher Mode: xts-plain64
+</span></span><span><span>  Volume Key: 256bit
+</span></span><span><span> Mount Flags: nosuid nodev <span>exec</span>
+</span></span><span><span>   Disk Size: 568M
+</span></span><span><span>  Disk Floor: 256M
+</span></span><span><span>Disk Ceiling: 258.7G
+</span></span><span><span>  Good Auth.: <span>4</span>
+</span></span><span><span>   Last Good: Thu 2026-04-02 19:02:58 CST
+</span></span><span><span>   Bad Auth.: <span>3</span>
+</span></span><span><span>    Last Bad: Thu 2026-04-02 19:02:56 CST
+</span></span><span><span>    Next Try: anytime
+</span></span><span><span> Auth. Limit: <span>30</span> attempts per 1min
+</span></span><span><span> Passwd Pol.: no
+</span></span><span><span>   Rebalance: off
+</span></span><span><span>   Passwords: <span>1</span>
+</span></span><span><span>  Local Sig.: yes
+</span></span><span><span>     Service: io.systemd.Home
+</span></span><span><span> Self Modify: realName
+</span></span><span><span>              emailAddress
+</span></span><span><span>              iconName
+</span></span><span><span>              location
+</span></span><span><span>              shell
+</span></span><span><span>              <span>umask</span>
+</span></span><span><span>              environment
+</span></span><span><span>              timeZone
+</span></span><span><span>              preferredLanguage
+</span></span><span><span>              additionalLanguages
+</span></span><span><span>              preferredSessionLauncher
+</span></span><span><span>              preferredSessionType
+</span></span><span><span>              pkcs11TokenUri
+</span></span><span><span>              fido2HmacCredential
+</span></span><span><span>              recoveryKeyType
+</span></span><span><span>              lastChangeUSec
+</span></span><span><span>              lastPasswordChangeUSec
+</span></span><span><span>      <span>(</span>Blobs<span>)</span> avatar
+</span></span><span><span>              login-background
+</span></span><span><span> <span>(</span>Privileged<span>)</span> passwordHint
+</span></span><span><span>              hashedPassword
+</span></span><span><span>              pkcs11EncryptedKey
+</span></span><span><span>              fido2HmacSalt
+</span></span><span><span>              recoveryKey
+</span></span><span><span>              sshAuthorizedKeys</span></span></code></pre></div></div><ol start="7"><li><p>透過<code>sudo homectl update user1 --disk-size=60G</code>修改使用者的屬性，像這裡是修改所分配的磁碟空間。</p></li><li><p>如果使用其他具有sudo權限的使用者登入，可以使用<code>sudo homectl deactivate user1</code>暫時取消該名使用者目錄的掛載。</p></li></ol><h2>3. 備份與還原systemd-homed資料<span><a href="#3-%e5%82%99%e4%bb%bd%e8%88%87%e9%82%84%e5%8e%9fsystemd-homed%e8%b3%87%e6%96%99" aria-label="定位點">#</a></span></h2><ol><li><p>因為使用者家目錄的資料是以一個brtfs映像檔儲存，並使用金鑰加密，所以只要備份這兩個檔案就可以了。</p></li><li><p>以本文的例子來說，首先複製<code>/home/user1.home</code>到他處。</p></li><li><p>再複製<code>/var/lib/systemd/home/</code>下的<code>private.local</code>和<code>public.local</code>檔案。</p></li><li><p>在另外一台電腦，存入以上檔案到對應的位置，然後重新啟動systemd-homed服務：</p></li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl restart systemd-homed</span></span></code></pre></div></div><p>註：若其他電腦已經有使用systemd-homed建立使用者，那麼必須手動匯出.json檔案再匯入：</p><div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 電腦A</span>
+</span></span><span><span>sudo homectl --export-format<span>=</span>full -j &gt;&gt; user.json
+</span></span><span><span>
+</span></span><span><span><span># 電腦B</span>
+</span></span><span><span>sudo homectl create -i user.json</span></span></code></pre></div></div><h2>參考<span><a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a></span></h2><ul><li><a href="https://systemd.io/HOME_DIRECTORY/" target="_blank">Home Directories - Systemd</a></li><li><a href="https://wiki.gentoo.org/wiki/Systemd/systemd-homed" target="_blank">systemd/systemd-homed - Gentoo Wiki</a></li><li><a href="https://wiki.archlinux.org/title/Systemd-homed" target="_blank">systemd-homed - ArchWiki</a></li></ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p>Systemd-homed是Systemd v245加入的一個功能，提供一種不依賴Linux主機的機制，來管理使用者帳號與家目錄的資料。正是所謂的重新定義Home管理流程。</p><p>解說systemd-home的優勢，並討論如何在Ubuntu使用這個功能。</p><h2>1. systemd-homed優勢<span><a href="#1-systemd-homed%e5%84%aa%e5%8b%a2" aria-label="定位點">#</a></span></h2><p>傳統上Linux系統行之有年的方式，是透過<code>useradd</code>指令新增使用者，<code>usermod</code>調整群組，再搭配<code>/etc/passwd</code>管理密碼。</p><p>systemd-homed將這個過程大幅簡化。</p><p>systemd-homed與傳統Linux管理使用者的機制如下圖所示：</p><img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7215419f00.webp"><img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-75bb619d7c.webp"><p>systemd-homed將使用者家目錄變成映像檔管理，開機登入後才會動態掛載，登出後取消掛載，增加安全性。</p><p>systemd-homed還能將使用者的家目錄用LUKS / fscrypt / cifs / btrfs加密保護，外人即使拿到硬碟也難以讀取。</p><p>透過<code>homectl</code>指令，可以新增或刪除使用者，編輯使用者的基本資料，設定容量限制等等操作。</p><p>會跟systemd-homed一起用的，還有<code>systemd-userdbd</code>。這個服務負責紀錄使用者資料和群組資訊。systemd-userdbd裡面會以JSON欄位紀錄使用者的Email、姓名、年齡等資訊。部份欄位是一般使用者可以自己填寫的內容，其他欄位則是需要系統管理員權限才能修改。</p><p>順帶一提，如果你不想依賴sudo來提昇使用者權限，那麼可以使用<code>systemd-run0</code>當作替代工具。</p><p>Systemd-homed可以讓遷移多個使用者的家目錄變得更簡單。過去，如果我們要遷移家目錄到其他硬碟，都得手動用<code>rsync</code>複製到新的目的地，然後編輯<code>/etc/fstab</code>掛載，還要注意GID和UID的問題。要是把它都丟給systemd-homed管的話，就不用煩惱這些問題了。</p><h2>2. 實際在Ubuntu使用systemd-homed<span><a href="#2-%e5%af%a6%e9%9a%9b%e5%9c%a8ubuntu%e4%bd%bf%e7%94%a8systemd-homed" aria-label="定位點">#</a></span></h2><p>Systemd-homed這個工具存在很久了，但綜觀各大Linux發行版，到2026年只有SteamOS 3.0預設啟用<code>systemd-homed</code>管理使用者帳號的樣子。</p><p>使用者可以手動遷移家目錄給Systemd-homed管理。並且systemd-homed可以與現有的useradd所新增的家目錄使用者共存。</p><p>縱然systemd-homed的<code>homectl --image-path</code>指令擁有任意指定使用者家目錄掛載位置的能力，但是將現有的<code>/home</code>轉為systemd-homed的這個過程有點複雜，還可能因為操作失誤導致無法登入。因此，若要在現有的系統使用systemd-homed，還是新增一個使用者為好。</p><hr><ol><li>例如我是用Ubuntu 24.04，使用以下指令安裝systemd-homed與相關組件：</li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install systemd-homed systemd-userdb
+</span></span><span><span>
+</span></span><span><span>sudo systemctl <span>enable</span> --now systemd-homed
+</span></span><span><span>
+</span></span><span><span>sudo systemctl <span>enable</span> --now systemd-userdb</span></span></code></pre></div></div><ol start="2"><li>使用以下指令新增一個使用者<code>user1</code>，指定家目錄映像檔位置（LUKS加密需以.home結尾），新增使用者群組到wheel允許使用sudo，指定使用bash shell，使用LUKS加密，設定磁碟空間20GB</li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo homectl create user1 <span>\
+</span></span></span><span><span>--image-path<span>=</span>/home/user1.home <span>\
+</span></span></span><span><span>--member-of<span>=</span>wheel,video,audio <span>\
+</span></span></span><span><span>--shell<span>=</span>/bin/bash <span>\
+</span></span></span><span><span>--storage<span>=</span>luks <span>\
+</span></span></span><span><span>--disk-size<span>=</span>20G</span></span></code></pre></div></div><ol start="3"><li><p>依照畫面指示設定該使用者的密碼。LUKS會使用該密碼加密。使用者資料會以數位簽章的方式保存在家目錄的<code>~/.identity</code>。</p></li><li><p>透過<code>ls -al /home/user1/</code>指令可以得知，在尚未登入該使用者前，<code>/home/user1/</code>的內容是空的，此時的狀態是inactive。需要使用<code>su user1</code>切換使用者，systemd-homed才會掛載家目錄內容，此時可以用<code>lsblk</code>確認掛載點。該名使用者的狀態變成active。</p></li><li><p>之後該名使用者資料可以使用<code>homectl</code>和<code>userdbctl</code>操作。</p></li><li><p>例如：<code>sudo homectl inspect user1</code>檢視使用者資料與帳號登入紀錄。</p></li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 範例輸出</span>
+</span></span><span><span>   User name: user1
+</span></span><span><span>       State: active
+</span></span><span><span> Disposition: regular
+</span></span><span><span> Last Change: Thu 2026-04-02 17:55:25 CST
+</span></span><span><span> Last Passw.: Thu 2026-04-02 17:35:03 CST
+</span></span><span><span>    Login OK: yes
+</span></span><span><span> Password OK: yes
+</span></span><span><span>         UID: <span>60486</span>
+</span></span><span><span>         GID: <span>60486</span> <span>(</span>user1<span>)</span>
+</span></span><span><span> Aux. Groups: audio
+</span></span><span><span>              video
+</span></span><span><span>              wheel
+</span></span><span><span>   Directory: / <span>(</span>fallback<span>)</span>
+</span></span><span><span>   Blob Dir.: /var/cache/systemd/home/user1
+</span></span><span><span>     Storage: luks <span>(</span>strong encryption<span>)</span>
+</span></span><span><span>  Image Path: /home/user1.home
+</span></span><span><span>   Removable: no
+</span></span><span><span>       Shell: /usr/bin/systemd-home-fallback-shell <span>(</span>fallback<span>)</span>
+</span></span><span><span>LUKS Discard: <span>online</span><span>=</span>no <span>offline</span><span>=</span>yes
+</span></span><span><span>   LUKS UUID: afc2bbbe-0022-425a-8977-99afcc8cd287
+</span></span><span><span>   Part UUID: f5d33cc1-a707-4bca-95ee-2e2f7c0dde8d
+</span></span><span><span>     FS UUID: 78c1acb9-ac0a-4166-9654-b1af159e5975
+</span></span><span><span> File System: btrfs
+</span></span><span><span> LUKS Cipher: aes
+</span></span><span><span> Cipher Mode: xts-plain64
+</span></span><span><span>  Volume Key: 256bit
+</span></span><span><span> Mount Flags: nosuid nodev <span>exec</span>
+</span></span><span><span>   Disk Size: 568M
+</span></span><span><span>  Disk Floor: 256M
+</span></span><span><span>Disk Ceiling: 258.7G
+</span></span><span><span>  Good Auth.: <span>4</span>
+</span></span><span><span>   Last Good: Thu 2026-04-02 19:02:58 CST
+</span></span><span><span>   Bad Auth.: <span>3</span>
+</span></span><span><span>    Last Bad: Thu 2026-04-02 19:02:56 CST
+</span></span><span><span>    Next Try: anytime
+</span></span><span><span> Auth. Limit: <span>30</span> attempts per 1min
+</span></span><span><span> Passwd Pol.: no
+</span></span><span><span>   Rebalance: off
+</span></span><span><span>   Passwords: <span>1</span>
+</span></span><span><span>  Local Sig.: yes
+</span></span><span><span>     Service: io.systemd.Home
+</span></span><span><span> Self Modify: realName
+</span></span><span><span>              emailAddress
+</span></span><span><span>              iconName
+</span></span><span><span>              location
+</span></span><span><span>              shell
+</span></span><span><span>              <span>umask</span>
+</span></span><span><span>              environment
+</span></span><span><span>              timeZone
+</span></span><span><span>              preferredLanguage
+</span></span><span><span>              additionalLanguages
+</span></span><span><span>              preferredSessionLauncher
+</span></span><span><span>              preferredSessionType
+</span></span><span><span>              pkcs11TokenUri
+</span></span><span><span>              fido2HmacCredential
+</span></span><span><span>              recoveryKeyType
+</span></span><span><span>              lastChangeUSec
+</span></span><span><span>              lastPasswordChangeUSec
+</span></span><span><span>      <span>(</span>Blobs<span>)</span> avatar
+</span></span><span><span>              login-background
+</span></span><span><span> <span>(</span>Privileged<span>)</span> passwordHint
+</span></span><span><span>              hashedPassword
+</span></span><span><span>              pkcs11EncryptedKey
+</span></span><span><span>              fido2HmacSalt
+</span></span><span><span>              recoveryKey
+</span></span><span><span>              sshAuthorizedKeys</span></span></code></pre></div></div><ol start="7"><li><p>透過<code>sudo homectl update user1 --disk-size=60G</code>修改使用者的屬性，像這裡是修改所分配的磁碟空間。</p></li><li><p>如果使用其他具有sudo權限的使用者登入，可以使用<code>sudo homectl deactivate user1</code>暫時取消該名使用者目錄的掛載。</p></li></ol><h2>3. 備份與還原systemd-homed資料<span><a href="#3-%e5%82%99%e4%bb%bd%e8%88%87%e9%82%84%e5%8e%9fsystemd-homed%e8%b3%87%e6%96%99" aria-label="定位點">#</a></span></h2><ol><li><p>因為使用者家目錄的資料是以一個brtfs映像檔儲存，並使用金鑰加密，所以只要備份這兩個檔案就可以了。</p></li><li><p>以本文的例子來說，首先複製<code>/home/user1.home</code>到他處。</p></li><li><p>再複製<code>/var/lib/systemd/home/</code>下的<code>private.local</code>和<code>public.local</code>檔案。</p></li><li><p>在另外一台電腦，存入以上檔案到對應的位置，然後重新啟動systemd-homed服務：</p></li></ol><div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo systemctl restart systemd-homed</span></span></code></pre></div></div><p>註：若其他電腦已經有使用systemd-homed建立使用者，那麼必須手動匯出.json檔案再匯入：</p><div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 電腦A</span>
+</span></span><span><span>sudo homectl --export-format<span>=</span>full -j &gt;&gt; user.json
+</span></span><span><span>
+</span></span><span><span><span># 電腦B</span>
+</span></span><span><span>sudo homectl create -i user.json</span></span></code></pre></div></div><h2>參考<span><a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a></span></h2><ul><li><a href="https://systemd.io/HOME_DIRECTORY/" target="_blank">Home Directories - Systemd</a></li><li><a href="https://wiki.gentoo.org/wiki/Systemd/systemd-homed" target="_blank">systemd/systemd-homed - Gentoo Wiki</a></li><li><a href="https://wiki.archlinux.org/title/Systemd-homed" target="_blank">systemd-homed - ArchWiki</a></li></ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7215419f00.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7215419f00.webp" medium="image"/>
+    <pubDate>Thu, 02 Apr 2026 17:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[淺述Arch Linux與SteamOS之異同]]></title>
+    <link>https://ivonblog.com/posts/arch-linux-vs-steamos/</link>
+    <itunes:title><![CDATA[淺述Arch Linux與SteamOS之異同]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>有必要糾正一下SteamOS與Arch Linux之間關係的迷思，這二者不能劃等號，用SteamOS不代表你就能說"I use Arch btw"了。</p><p>最近在Arch Linux玩旮旯给木，在幾乎同樣的測試條件下，Steam遊戲的Proton各種莫名崩潰被折磨到煩了，回去用Debian一切就好了，就來講講這這個問題。</p><p>依我愚見，Arch Linux &amp; CachyOS這種滾動發行版不適合玩遊戲，半滾動發行的Fedora ＆ Bazzite也不行，得要經過千錘百鍊的Debian Stable或Ubuntu LTS才值得信賴。我真不知道以前我怎麼敢用Arch Linux玩，但現在都用Debian了。</p><p>另外一個考慮的點是，在向<a href="https://www.protondb.com/" target="_blank">ProtonDB</a>回報遊戲相容性的時候，我希望用的是可以追蹤且穩定的系統版本。測試平台應當是穩定的，不是一直變化的系統。</p><hr><p>根據<a href="https://store.steampowered.com/steamos" target="_blank">SteamOS官網</a>資料，雖然說SteamOS 3.0之後確實是基於Arch Linux進行開發的。然而，SteamOS是immutable的系統，使用者不能，也不應該修改系統檔案。每次系統OTA更新都是下載新的image覆蓋舊版。還有SteamOS不是滾動發行版，系統更新的時程是由Valve這家商業公司決定的，並非Arch Linux的滾動更新。</p><p>Valve手上有自家的Steam Deck &amp; Steam Machine產品體驗要顧及，是要成為可以參考用的主機平台，因此不能更新的太激進。舉例來說2026年穩定版的SteamOS 3.7.8桌面模式的KDE桌面還在5.27版本，而Arch Linux的KDE 6.0早在2024年就發布了。SteamOS 3.8.0的KDE 6現在還在測試版當中。現在SteamOS的主畫面合成器：Gamescope的策略是用XWayland去跑X11遊戲，又可以享受到Wayland的HDR支援這種縫合的策略達成的。未來是否能走向純Wayland還要打個大大的問號。</p><p>Valve必須確保「整個」SteamOS系統和Steam客戶端穩定了才能釋出更新。</p><hr><p>另一方面，根據<a href="https://wiki.archlinux.org/title/System_maintenance" target="_blank">Arch Wiki</a>，Arch Linux的軟體更新時程不固定，每個軟體都有不同的維護者，由開源社群覺得穩定了就釋出，全民公測抓bug，測試時間不夠長。</p><p>這樣做的好處是有問題能很快發現並修正。壞處是沒人能保證目前的系統是不是完全穩定的，因為變數太多了。</p><p>Arch Linux剛安裝狀態是根本沒有圖形界面的，不存在所謂「預設值」，沒有一個「整體」，也就難以做到全面的測試再發布更新。可能一個小套件更新就會炸掉KDE桌面。</p><p>Steam客戶端在Arch Linux，是由開源社群根據Vavle釋出的安裝包修改而來的。即使Steam客戶端本身有自己的Runtime來滿足Proton的執行，儘量不依賴OS的library，可Arch Linux系統的組件還是會影響Steam客戶端，是會隨機出問題呀。</p><p>就發行模式來看，SteamOS還是比一眾滾動Linux發行版要穩定多的。很難有滾動發行版體驗逼近SteamOS又穩定的。</p><p>目前SteamOS還只支援特定的幾台硬體，要是以後真的釋出開源的通用x86映像檔，不知道他們Github issue ticket會不會多到爆表……。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>有必要糾正一下SteamOS與Arch Linux之間關係的迷思，這二者不能劃等號，用SteamOS不代表你就能說"I use Arch btw"了。</p><p>最近在Arch Linux玩旮旯给木，在幾乎同樣的測試條件下，Steam遊戲的Proton各種莫名崩潰被折磨到煩了，回去用Debian一切就好了，就來講講這這個問題。</p><p>依我愚見，Arch Linux &amp; CachyOS這種滾動發行版不適合玩遊戲，半滾動發行的Fedora ＆ Bazzite也不行，得要經過千錘百鍊的Debian Stable或Ubuntu LTS才值得信賴。我真不知道以前我怎麼敢用Arch Linux玩，但現在都用Debian了。</p><p>另外一個考慮的點是，在向<a href="https://www.protondb.com/" target="_blank">ProtonDB</a>回報遊戲相容性的時候，我希望用的是可以追蹤且穩定的系統版本。測試平台應當是穩定的，不是一直變化的系統。</p><hr><p>根據<a href="https://store.steampowered.com/steamos" target="_blank">SteamOS官網</a>資料，雖然說SteamOS 3.0之後確實是基於Arch Linux進行開發的。然而，SteamOS是immutable的系統，使用者不能，也不應該修改系統檔案。每次系統OTA更新都是下載新的image覆蓋舊版。還有SteamOS不是滾動發行版，系統更新的時程是由Valve這家商業公司決定的，並非Arch Linux的滾動更新。</p><p>Valve手上有自家的Steam Deck &amp; Steam Machine產品體驗要顧及，是要成為可以參考用的主機平台，因此不能更新的太激進。舉例來說2026年穩定版的SteamOS 3.7.8桌面模式的KDE桌面還在5.27版本，而Arch Linux的KDE 6.0早在2024年就發布了。SteamOS 3.8.0的KDE 6現在還在測試版當中。現在SteamOS的主畫面合成器：Gamescope的策略是用XWayland去跑X11遊戲，又可以享受到Wayland的HDR支援這種縫合的策略達成的。未來是否能走向純Wayland還要打個大大的問號。</p><p>Valve必須確保「整個」SteamOS系統和Steam客戶端穩定了才能釋出更新。</p><hr><p>另一方面，根據<a href="https://wiki.archlinux.org/title/System_maintenance" target="_blank">Arch Wiki</a>，Arch Linux的軟體更新時程不固定，每個軟體都有不同的維護者，由開源社群覺得穩定了就釋出，全民公測抓bug，測試時間不夠長。</p><p>這樣做的好處是有問題能很快發現並修正。壞處是沒人能保證目前的系統是不是完全穩定的，因為變數太多了。</p><p>Arch Linux剛安裝狀態是根本沒有圖形界面的，不存在所謂「預設值」，沒有一個「整體」，也就難以做到全面的測試再發布更新。可能一個小套件更新就會炸掉KDE桌面。</p><p>Steam客戶端在Arch Linux，是由開源社群根據Vavle釋出的安裝包修改而來的。即使Steam客戶端本身有自己的Runtime來滿足Proton的執行，儘量不依賴OS的library，可Arch Linux系統的組件還是會影響Steam客戶端，是會隨機出問題呀。</p><p>就發行模式來看，SteamOS還是比一眾滾動Linux發行版要穩定多的。很難有滾動發行版體驗逼近SteamOS又穩定的。</p><p>目前SteamOS還只支援特定的幾台硬體，要是以後真的釋出開源的通用x86映像檔，不知道他們Github issue ticket會不會多到爆表……。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>有必要糾正一下SteamOS與Arch Linux之間關係的迷思，這二者不能劃等號，用SteamOS不代表你就能說"I use Arch btw"了。</p><p>最近在Arch Linux玩旮旯给木，在幾乎同樣的測試條件下，Steam遊戲的Proton各種莫名崩潰被折磨到煩了，回去用Debian一切就好了，就來講講這這個問題。</p><p>依我愚見，Arch Linux &amp; CachyOS這種滾動發行版不適合玩遊戲，半滾動發行的Fedora ＆ Bazzite也不行，得要經過千錘百鍊的Debian Stable或Ubuntu LTS才值得信賴。我真不知道以前我怎麼敢用Arch Linux玩，但現在都用Debian了。</p><p>另外一個考慮的點是，在向<a href="https://www.protondb.com/" target="_blank">ProtonDB</a>回報遊戲相容性的時候，我希望用的是可以追蹤且穩定的系統版本。測試平台應當是穩定的，不是一直變化的系統。</p><hr><p>根據<a href="https://store.steampowered.com/steamos" target="_blank">SteamOS官網</a>資料，雖然說SteamOS 3.0之後確實是基於Arch Linux進行開發的。然而，SteamOS是immutable的系統，使用者不能，也不應該修改系統檔案。每次系統OTA更新都是下載新的image覆蓋舊版。還有SteamOS不是滾動發行版，系統更新的時程是由Valve這家商業公司決定的，並非Arch Linux的滾動更新。</p><p>Valve手上有自家的Steam Deck &amp; Steam Machine產品體驗要顧及，是要成為可以參考用的主機平台，因此不能更新的太激進。舉例來說2026年穩定版的SteamOS 3.7.8桌面模式的KDE桌面還在5.27版本，而Arch Linux的KDE 6.0早在2024年就發布了。SteamOS 3.8.0的KDE 6現在還在測試版當中。現在SteamOS的主畫面合成器：Gamescope的策略是用XWayland去跑X11遊戲，又可以享受到Wayland的HDR支援這種縫合的策略達成的。未來是否能走向純Wayland還要打個大大的問號。</p><p>Valve必須確保「整個」SteamOS系統和Steam客戶端穩定了才能釋出更新。</p><hr><p>另一方面，根據<a href="https://wiki.archlinux.org/title/System_maintenance" target="_blank">Arch Wiki</a>，Arch Linux的軟體更新時程不固定，每個軟體都有不同的維護者，由開源社群覺得穩定了就釋出，全民公測抓bug，測試時間不夠長。</p><p>這樣做的好處是有問題能很快發現並修正。壞處是沒人能保證目前的系統是不是完全穩定的，因為變數太多了。</p><p>Arch Linux剛安裝狀態是根本沒有圖形界面的，不存在所謂「預設值」，沒有一個「整體」，也就難以做到全面的測試再發布更新。可能一個小套件更新就會炸掉KDE桌面。</p><p>Steam客戶端在Arch Linux，是由開源社群根據Vavle釋出的安裝包修改而來的。即使Steam客戶端本身有自己的Runtime來滿足Proton的執行，儘量不依賴OS的library，可Arch Linux系統的組件還是會影響Steam客戶端，是會隨機出問題呀。</p><p>就發行模式來看，SteamOS還是比一眾滾動Linux發行版要穩定多的。很難有滾動發行版體驗逼近SteamOS又穩定的。</p><p>目前SteamOS還只支援特定的幾台硬體，要是以後真的釋出開源的通用x86映像檔，不知道他們Github issue ticket會不會多到爆表……。</p>]]></content:encoded>
+    
+    <pubDate>Thu, 02 Apr 2026 02:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Linux Mint 22實機安裝教學，基本操作＋中文輸入法，穩定好用的Linux發行版]]></title>
     <link>https://ivonblog.com/posts/install-linux-mint/</link>
     <itunes:title><![CDATA[Linux Mint 22實機安裝教學，基本操作＋中文輸入法，穩定好用的Linux發行版]]></itunes:title>
@@ -485,37 +751,5 @@
     <content:encoded><![CDATA[<p>這是我的<a href="https://alexhsu.com/perfect-days" target="_blank">BlogBlog 同樂會 - 2026 年 3 月</a>的投稿文章。本月主題是「理想的日常」，由Alex Hsu主持。如果你有自己的部落格，歡迎一起來參加！</p><hr><p>理想的日常是，不再為硬體是否能運作而煩惱。</p><p>吾人認識到，Boredom is good.</p><p>稍微改編胡適說的話：我們應該少談點主義，多談點主意。</p><p>我確切的認知到了，花太多時間去tweak硬體並非是好事。</p><p>長久以來，我一直在自由軟體與專有軟體之間擺蕩，堅持「自由軟體基本教義派」。</p><p>具體內容參見理查史托曼的短文集：<a href="https://fsfs-zh.readthedocs.io/" target="_blank">自由軟體，自由社會</a></p><p>總是會過多的懷疑作業系統「本質」的存在。認為在現實生活中對我們至關重要的數位裝置，其上運行的作業系統選擇，是跟人生哲學一樣重要的存在。</p><p>Debian is more stable than everyone I met.</p><p>發現我沉迷計算機技術和Linux開源相關是因為0和1是可以預測的。比起外部紛擾的世界，混沌的政治，一團糟的人生，混亂的自我，還有上下不定的情緒，這種掌控自我系統的感覺十分良好。</p><p>同理也可以套用在打遊戲逃避現實的人身上，但是自由開源的運動從更底層——不單單只是廉價的多巴胺快感——給我一種擁有掌控全局的感覺。</p><p>縱然FOSS世界也有很多drama，可是原始碼握在手上就可以確保自己的獨立性啊。</p><p>例如，iPad覺得不自由，想要換成其他系統的平板，如切換到GNU/Linux平板卻又經歷失敗。在教育現場的實務上根本無法發揮跟商業產品一樣的生產力。</p><p>用Android依然覺得不夠自由，搞DeGoogle運動，想要刷機為沒有GApps的完全自由的LineageOS系統。甚至改用Linux手機。可是發現軟體和硬體有諸多不便。</p><p>但是在這些嘗試的過程中，逐漸了解到，折騰是好玩，可是終究是好玩而已。</p><p>如果不能將其實際運用在生活中，就只是geek的妄想。</p><p>可能我是太閒才會煩惱這個。</p><p>但是如果我全心放在工作上的話，就會倒過來懷疑工作的本質了！</p><p>這會導致任何我能力所及的工作都做不下去。</p><p>因此臣服於日常的工作，已經是一種「日常」的工作了。</p><p>我並不特別喜歡目前的工作，但也沒有厭惡到做不下去</p><p>就只是認為，日子要過。接受現狀，等待時機。</p><p>那不如就繼續維持這種表象的日常，去懷疑那些不想也不會餓死的事情，不要真正切切的去懷疑自己實在的議題比較好。</p><p>所以，我逐漸削弱了主義至上的生活方向。</p>]]></content:encoded>
     
     <pubDate>Mon, 23 Mar 2026 11:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[KaLuG 2603開源聚會小記]]></title>
-    <link>https://ivonblog.com/posts/kalug-2603/</link>
-    <itunes:title><![CDATA[KaLuG 2603開源聚會小記]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>今天主題是延續lightning talk的形式。闊別了上次兩個月的聚會呀。</p><p>在雄校聯繼續以學生社團（迫真）的名義借了免費場地。</p><p>筆記放在<a href="https://hackmd.io/7cvOsyNDQi-nNQtfR1byaQ" target="_blank">HackMD</a>。</p><hr><p>首先由Shawn分享RedHat OpenShift的發展前景，說明OKD與OCD的上下游開發關係。理清一下Fedora與CentOS Stream與RHEL的關係，讓我了解到CentOS Stream並非那麼不穩定，他認為其定位接近Ubuntu LTS。CentOS Stream依然有大版本號，並且會鎖kernel版本。因為RedHat依然會向CentOS Stream送出修正，然後開源社群協助測試錯誤這樣。Shawn認為這樣能形成更健康的生態系。但我覺得與其這樣…那我就用Ubuntu LTS就好了吧。</p><p>並順便介紹了Fedora CoreOS的好處，大量採用bootc，以image-based方式部署系統。其中提到了時機成熟後，rpm-ostree未來可能會被composefs取代，它可以有效利用Linux kernel的erofs機制處理系統檔案。但是我就想問呀，現在已經有uBlue Bazzite這種以bootc實作的產品，他們最大的問題是很難讓使用者在本地手動安裝.rpm檔案，只能重新建立系統映像，謂之local layering，那composefs要如何解決這個問題？這問題我倆沒討論出一個滿意的解答，目前這技術也還沒定型。只能等未來怎麼看。老實說，我可不想每次要在系統安裝什麼額外套件，就得手動在雲端build一次映像檔再拉下來部署。</p><hr><p>然後才疏學淺的我，上台演示了Phosh，介紹了Linux手機生態系的發展過程，以及替代Android的可能性。簡報就用我幾月前做的<a href="https://ivonblog.com/posts/linux-phosh-de-introduction/" target="_blank">Phosh桌面簡介</a>。雖然在場的各位對我帶去的Poco F1 (postmarketOS) 和Pinetab 2 (Arch Linux ARM) 很感興趣，但身為被這些裝置折磨許久最後認命改用iPad的我是各種五味雜陳了…可以跑Linux的手機平板，這確實是很有趣的玩具，但也只是玩具罷了。</p><hr><p>中華民國軟體自由協會(SLAT)的許家俊，演示了Nextcloud Office的AI功能，他們早在2023年底就推出了類似Microsoft Office的Copilot輔助功能，主要靠串接外部語言模型API實現，例如ChatGPT。只是他提到這無法非同步處理，連跑個簡單文字翻譯都要等好久…看來rough edges還是甚多。這種網頁版的AI方案應該要像Google文件學習才是，這真的是懶人福音。</p><p>另外他講到了，台灣政府的數位發展部跟他的公司開發了「ODF文件處理套件」，也就是針對台灣用戶設計的在地化LibreOffice。許多公家機關已經逐漸採用。現在也推出網頁版了，可以自行到官網下載部署。我當場問了他說，他們公司是什麼天才想法，會把LibreOffice拆成10個.deb檔分發！？是要我用<code>apt install *.deb</code>一次全安裝嗎？LibreOffice官網都沒這樣做。最主要是這樣的打包方式很醜啦…我希望他們能學WPS Office提供Flatpak版或Docker映像檔，對個人用戶比較好部署。</p><p>還有，我幾年前用SLAT的Nextcloud Office就發現了，為什麼要刻意將LibreOffcie顏色染成跟Word一樣？今天終於得到了意料之內的回答：公務員比較好適應。唉。</p><hr><p>最後，Rick演示了Rust的新特性，使用zscript將類似shell script的程式可以讓cargo編譯執行，嘿，這可方便多了。還呼籲大家來裝ZeroClaw。這可是大幅度debloated的OpenClaw呢，可以用wasm寫Skill。</p><hr><p>會後，認識了<a href="https://yowlab.idv.tw/wordpress/" target="_blank">許仲佑</a>和許家俊，原來他們也都是SLAT成員，真是神奇，我以為一輩子不可能在身邊遇到加入這種邪教組織的人了。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>今天主題是延續lightning talk的形式。闊別了上次兩個月的聚會呀。</p><p>在雄校聯繼續以學生社團（迫真）的名義借了免費場地。</p><p>筆記放在<a href="https://hackmd.io/7cvOsyNDQi-nNQtfR1byaQ" target="_blank">HackMD</a>。</p><hr><p>首先由Shawn分享RedHat OpenShift的發展前景，說明OKD與OCD的上下游開發關係。理清一下Fedora與CentOS Stream與RHEL的關係，讓我了解到CentOS Stream並非那麼不穩定，他認為其定位接近Ubuntu LTS。CentOS Stream依然有大版本號，並且會鎖kernel版本。因為RedHat依然會向CentOS Stream送出修正，然後開源社群協助測試錯誤這樣。Shawn認為這樣能形成更健康的生態系。但我覺得與其這樣…那我就用Ubuntu LTS就好了吧。</p><p>並順便介紹了Fedora CoreOS的好處，大量採用bootc，以image-based方式部署系統。其中提到了時機成熟後，rpm-ostree未來可能會被composefs取代，它可以有效利用Linux kernel的erofs機制處理系統檔案。但是我就想問呀，現在已經有uBlue Bazzite這種以bootc實作的產品，他們最大的問題是很難讓使用者在本地手動安裝.rpm檔案，只能重新建立系統映像，謂之local layering，那composefs要如何解決這個問題？這問題我倆沒討論出一個滿意的解答，目前這技術也還沒定型。只能等未來怎麼看。老實說，我可不想每次要在系統安裝什麼額外套件，就得手動在雲端build一次映像檔再拉下來部署。</p><hr><p>然後才疏學淺的我，上台演示了Phosh，介紹了Linux手機生態系的發展過程，以及替代Android的可能性。簡報就用我幾月前做的<a href="https://ivonblog.com/posts/linux-phosh-de-introduction/" target="_blank">Phosh桌面簡介</a>。雖然在場的各位對我帶去的Poco F1 (postmarketOS) 和Pinetab 2 (Arch Linux ARM) 很感興趣，但身為被這些裝置折磨許久最後認命改用iPad的我是各種五味雜陳了…可以跑Linux的手機平板，這確實是很有趣的玩具，但也只是玩具罷了。</p><hr><p>中華民國軟體自由協會(SLAT)的許家俊，演示了Nextcloud Office的AI功能，他們早在2023年底就推出了類似Microsoft Office的Copilot輔助功能，主要靠串接外部語言模型API實現，例如ChatGPT。只是他提到這無法非同步處理，連跑個簡單文字翻譯都要等好久…看來rough edges還是甚多。這種網頁版的AI方案應該要像Google文件學習才是，這真的是懶人福音。</p><p>另外他講到了，台灣政府的數位發展部跟他的公司開發了「ODF文件處理套件」，也就是針對台灣用戶設計的在地化LibreOffice。許多公家機關已經逐漸採用。現在也推出網頁版了，可以自行到官網下載部署。我當場問了他說，他們公司是什麼天才想法，會把LibreOffice拆成10個.deb檔分發！？是要我用<code>apt install *.deb</code>一次全安裝嗎？LibreOffice官網都沒這樣做。最主要是這樣的打包方式很醜啦…我希望他們能學WPS Office提供Flatpak版或Docker映像檔，對個人用戶比較好部署。</p><p>還有，我幾年前用SLAT的Nextcloud Office就發現了，為什麼要刻意將LibreOffcie顏色染成跟Word一樣？今天終於得到了意料之內的回答：公務員比較好適應。唉。</p><hr><p>最後，Rick演示了Rust的新特性，使用zscript將類似shell script的程式可以讓cargo編譯執行，嘿，這可方便多了。還呼籲大家來裝ZeroClaw。這可是大幅度debloated的OpenClaw呢，可以用wasm寫Skill。</p><hr><p>會後，認識了<a href="https://yowlab.idv.tw/wordpress/" target="_blank">許仲佑</a>和許家俊，原來他們也都是SLAT成員，真是神奇，我以為一輩子不可能在身邊遇到加入這種邪教組織的人了。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>今天主題是延續lightning talk的形式。闊別了上次兩個月的聚會呀。</p><p>在雄校聯繼續以學生社團（迫真）的名義借了免費場地。</p><p>筆記放在<a href="https://hackmd.io/7cvOsyNDQi-nNQtfR1byaQ" target="_blank">HackMD</a>。</p><hr><p>首先由Shawn分享RedHat OpenShift的發展前景，說明OKD與OCD的上下游開發關係。理清一下Fedora與CentOS Stream與RHEL的關係，讓我了解到CentOS Stream並非那麼不穩定，他認為其定位接近Ubuntu LTS。CentOS Stream依然有大版本號，並且會鎖kernel版本。因為RedHat依然會向CentOS Stream送出修正，然後開源社群協助測試錯誤這樣。Shawn認為這樣能形成更健康的生態系。但我覺得與其這樣…那我就用Ubuntu LTS就好了吧。</p><p>並順便介紹了Fedora CoreOS的好處，大量採用bootc，以image-based方式部署系統。其中提到了時機成熟後，rpm-ostree未來可能會被composefs取代，它可以有效利用Linux kernel的erofs機制處理系統檔案。但是我就想問呀，現在已經有uBlue Bazzite這種以bootc實作的產品，他們最大的問題是很難讓使用者在本地手動安裝.rpm檔案，只能重新建立系統映像，謂之local layering，那composefs要如何解決這個問題？這問題我倆沒討論出一個滿意的解答，目前這技術也還沒定型。只能等未來怎麼看。老實說，我可不想每次要在系統安裝什麼額外套件，就得手動在雲端build一次映像檔再拉下來部署。</p><hr><p>然後才疏學淺的我，上台演示了Phosh，介紹了Linux手機生態系的發展過程，以及替代Android的可能性。簡報就用我幾月前做的<a href="https://ivonblog.com/posts/linux-phosh-de-introduction/" target="_blank">Phosh桌面簡介</a>。雖然在場的各位對我帶去的Poco F1 (postmarketOS) 和Pinetab 2 (Arch Linux ARM) 很感興趣，但身為被這些裝置折磨許久最後認命改用iPad的我是各種五味雜陳了…可以跑Linux的手機平板，這確實是很有趣的玩具，但也只是玩具罷了。</p><hr><p>中華民國軟體自由協會(SLAT)的許家俊，演示了Nextcloud Office的AI功能，他們早在2023年底就推出了類似Microsoft Office的Copilot輔助功能，主要靠串接外部語言模型API實現，例如ChatGPT。只是他提到這無法非同步處理，連跑個簡單文字翻譯都要等好久…看來rough edges還是甚多。這種網頁版的AI方案應該要像Google文件學習才是，這真的是懶人福音。</p><p>另外他講到了，台灣政府的數位發展部跟他的公司開發了「ODF文件處理套件」，也就是針對台灣用戶設計的在地化LibreOffice。許多公家機關已經逐漸採用。現在也推出網頁版了，可以自行到官網下載部署。我當場問了他說，他們公司是什麼天才想法，會把LibreOffice拆成10個.deb檔分發！？是要我用<code>apt install *.deb</code>一次全安裝嗎？LibreOffice官網都沒這樣做。最主要是這樣的打包方式很醜啦…我希望他們能學WPS Office提供Flatpak版或Docker映像檔，對個人用戶比較好部署。</p><p>還有，我幾年前用SLAT的Nextcloud Office就發現了，為什麼要刻意將LibreOffcie顏色染成跟Word一樣？今天終於得到了意料之內的回答：公務員比較好適應。唉。</p><hr><p>最後，Rick演示了Rust的新特性，使用zscript將類似shell script的程式可以讓cargo編譯執行，嘿，這可方便多了。還呼籲大家來裝ZeroClaw。這可是大幅度debloated的OpenClaw呢，可以用wasm寫Skill。</p><hr><p>會後，認識了<a href="https://yowlab.idv.tw/wordpress/" target="_blank">許仲佑</a>和許家俊，原來他們也都是SLAT成員，真是神奇，我以為一輩子不可能在身邊遇到加入這種邪教組織的人了。</p>]]></content:encoded>
-    
-    <pubDate>Sat, 21 Mar 2026 17:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[RK3588電視盒刷Linux，安裝Mali-G610驅動（Mekotronics R58 Mini PC開箱）]]></title>
-    <link>https://ivonblog.com/posts/rupa-rk3588-tv-box-review/</link>
-    <itunes:title><![CDATA[RK3588電視盒刷Linux，安裝Mali-G610驅動（Mekotronics R58 Mini PC開箱）]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/rupa-rk3588-tv-box-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7454de4576.webp"></a></p>
-<p>開箱搭載RK3588的電視盒，將其刷為Linux系統，並測試影片解碼、AI加速能力、玩Steam遊戲。</p><p>2024年我<a href="https://ivonblog.com/posts/raspberry-pi-5-review/" target="_blank">開箱Raspberry Pi 5</a>的時候就有注意到Rockchip推出的RK3588系列產品了。兩者處理器單核性能相當，RK3588在多核計算方面更勝一籌，有8核心8nm製程還有NPU，在開發板當中這是旗艦級的處理器了。可當時因為生態系支援問題我選了樹莓派。</p><p>RK3588的板子我看隨便一個都要五六千～！結果今天花Raspberry Pi Zero的價格就買到了搭載RK3588的電視盒。</p><p>最近有部落格讀者<a href="https://blog.dabinn.net/" target="_blank">大丙</a>看到我一些關於Linux的Facebook貼文，便向我說要提供RK3588電視盒供研究，因為這東西現階段對他來說沒什麼用了。我稱他為善心人士。原本善心人士說要直接送我。我說，不，我又不是super hacker，不夠格免費收下dev kit。因此就以賤價買下了。感謝他的慷慨饋贈。</p><h2>1. 開箱RK3588電視盒<span><a href="#1-%e9%96%8b%e7%ae%b1rk3588%e9%9b%bb%e8%a6%96%e7%9b%92" aria-label="定位點">#</a></span></h2><p>下面我簡稱RK3588電視盒。</p><p>這台是貼牌貨，表面上叫RUPA Mini PC RK3588，由中國廣視達(GUANGSHIDA)公司生產，在Amazon販售，大約2024年上市。</p><img fetchpriority="low" alt="rupa.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d88e9808dc.webp"><p>用一個簡單的紙盒包裝。</p><img fetchpriority="low" alt="u1.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-395ae0bb15.webp"><p>內附一個12V2A的24W充電器，一本像是機翻的英文說明書。</p><img fetchpriority="low" alt="u2.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a121f24f56.webp"><p>原價150美元，塑膠機身質感不怎麼樣，感覺成本都在處理器上了。</p><p>基本規格：</p><ul><li>Rockchip RK3588，4x Cortex-A76 + 4x Cortex-A55</li><li>ARM　Mali-G610 MP4 GPU</li><li>8GB RAM</li><li>64GB eMMC</li><li>USB-A x3</li><li>USB-C x1</li><li>HDMI x3，8K@60p輸出</li></ul><p>這不是開發板，是將RK3588處理器封裝為電視盒的產品。跟Radxa ROCK 5B、Orange Pi 5這類著名產品不一樣，嚴重缺乏社群支援。</p><p>根據善心人士的情報，其實這台RUPA Mini PC RK3588背後規格跟「Mekotronics R58 Mini PC」差不多，所以韌體是通用的。</p><img fetchpriority="low" alt="mekotronics.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-11c521eabb.webp"><p>這個RK3588電視盒系統支援依賴Mekotronics R58 Mini PC提供。原始的電視盒只有一個Android TV 12的系統，內建Play商店，純英文。對我來說沒什麼用處，RK3588性能這麼強當Android電視盒太浪費了，所以得刷成Linux才能發揮更多用處吧。</p><p>這個電視盒的外殼正好提供了一個簡易的伺服器機箱，讓我不用再另外買配件。雖然沒有風扇有點可惜。RK3588高性能也會容易帶來高熱，未來得自行改裝。</p><h2>2. RK3588電視盒刷入Linux系統<span><a href="#2-rk3588%e9%9b%bb%e8%a6%96%e7%9b%92%e5%88%b7%e5%85%a5linux%e7%b3%bb%e7%b5%b1" aria-label="定位點">#</a></span></h2><ol><li><p>根據<a href="https://www.mekotronics.com/h-nd-22.html" target="_blank">Mekotronics R58 firmware download links</a>，這裡的系統有Android、Debian、Buildroot、Armbian (Ubuntu)。這個軟體支援度真的參差不齊，我試了好幾個之後才找到勉強能用的版本。最主要是RK3588的GPU Mali G610的驅動無法開箱即用，也就是沒有包含在Mesa。ARM原廠的Mali驅動是閉源的，需要搭配特定版本的Rockchip Linux kernel與libmali userspace驅動，限定特定的Linux版本才能用，目前看來是kernel 5.1。可以安裝Panfork取得更好驅動支援。然而，一部分的GPU驅動已經開始upstream，加入Mesa，這包括Panfrost和Panthor兩種版本。</p></li><li><p>總之，我測試了各種映像檔之後，確認目前最好的版本是這個：<code>R58 mini Armbian with upstream mesa GPU drivers and latest BSP 6 rkr3 kernel</code>映像檔。Linux kernel 6.1，整合了包含上游最新GPU驅動的PPA，包括<a href="https://launchpad.net/~kisak/+archive/ubuntu/kisak-mesa" target="_blank">kisak/kisak-mesa fresh</a>與<a href="https://launchpad.net/~liujianfeng1994/+archive/ubuntu/rockchip-multimedia" target="_blank">liujianfeng1994/rockchip-multimedia</a>，不用手動安裝。安裝後可以使用OpenGL與Vulkan程式。</p></li><li><p>然後再下載<code>Armbian firmware upgrade tool</code>取得Bootloader檔案<code>rk3588_spl_loader_v1.08.111.bin</code>。裡面還有附刷機步驟的影片呢。</p></li><li><p>關於要如何刷入系統呢？這台RK3588電視盒沒有SD卡槽，只有內部eMMC。因此要用專門的開發工具RKDevTool刷入。討人厭的是RKDevTool只有Windows版本。Linux版<a href="https://github.com/rockchip-linux/" target="_blank">rkdeveloptool</a>，需要手動編譯，而且只有命令行。所以我只好開啟Windows電腦。</p></li><li><p>Mekotronics R58 Mini PC官網提供的RKDevTool有問題，在Windows 11會閃退。我到<a href="https://docs.radxa.com/zero/zero3/low-level-dev/rkdevtool" target="_blank">Radaxa網站</a>找了最新版RKDevTool v2.96</p></li><li><p>將RK3588電視盒關機。用Type-C線連到電腦。用針插入左邊開機鍵旁邊的Recovery按鈕，按著。再用另外一根針，戳一下右邊Reset。進入Loader Mode。</p></li><li><p>開啟RKDevTool，第一個Loader分區選<code>rk3588_spl_loader_v1.08.111.bin</code>，第二個Image分區選要刷入的系統映像.img檔，並勾選依照地址寫。</p><img fetchpriority="low" alt="rkdevtool.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-311da72517.webp"></li><li><p>點選開始，刷入。有時候刷入後重開機會進入Maskrom Mode。這個時候就再刷一次。</p></li><li><p>重開機，接上鍵盤滑鼠螢幕，依照畫面設定帳號密碼，連上Wifi，即會進入GNOME桌面。</p><img fetchpriority="low" alt="gnome.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-17186a2b6b.webp"></li><li><p>在系統設定查看目前是使用Wayland，且有顯示GPU型號為Mali，並非軟體渲染(llvmpipe)。</p><img fetchpriority="low" alt="system.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cae1e7c513.webp"></li><li><p>到系統設定關閉自動鎖定，停用自動suspend。</p></li><li><p>然後就可以改用SSH遠端登入了。</p></li></ol><h2>3. RK3588效能測試<span><a href="#3-rk3588%e6%95%88%e8%83%bd%e6%b8%ac%e8%a9%a6" aria-label="定位點">#</a></span></h2><p>純測試CPU性能，使用Unixbench跑分，多核，得出4433分。</p><img fetchpriority="low" alt="unixbench.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a694173aed.webp"><p>這個分數比Raspberry Pi 5的Broadcom BCM2712多核要高兩倍，畢竟有8核心 (4x Cortex-A76 + 4x Cortex-A55)。若以Android手機處理器來比較，大約是2025年中階機等級。</p><p>另外，確認Linux的GPU驅動有起來之後，播放影片就不是問題了。</p><p>透過<a href="https://github.com/ajokela/rktop" target="_blank">rktop</a>程式觀察GPU佔用，或者直接讀取：<code>cat /sys/class/devfreq/fb000000.gpu-panthor/load</code>。</p><p>在Chromium播放4K影片完全無壓力，核心使用率低。但是沒風扇的情況下，電視盒溫度可能會飆到80度。</p><p>順帶一提，想要針對大螢幕設計的Linux版Youtube客戶端，可以用VacuumTube這個Android TV界面的wrapper。</p><img fetchpriority="low" alt="youtube.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-55883af574.webp"><p>MPV可以使用GPU解碼H.265和AV1影片</p><img fetchpriority="low" alt="mpv.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ad0f3e66d1.webp"><p>要大螢幕看串流的話可以用Kodi或Jellyfin，可以用GPU加速影片轉碼。</p><img fetchpriority="low" alt="kodi.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19830ecf8a.webp"><p>RK3588有聊勝於無的AI性能，利用NPU加速推理運算。透過<a href="https://github.com/NotPunchnox/rkllama" target="_blank">rkllama</a>，勉強可以跑4B大小的LLM。不過這個程式bug有點多，再加上我這台的系統不完整。我沒能成功跑起來。</p><p>最後是透過FEX-Emu安裝Steam測試！確認RK3588能夠玩得動輕量的3D遊戲！惟GPU驅動不成熟因此容易卡卡。</p><img fetchpriority="low" alt="steam.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ee43062d64.webp"><p>我想這個RK3588的電視盒本身是很有潛力的，但就是我前面說的，這個軟體支援度很差勁。只能期望未來更多驅動進入mainline Linux kernel，就不用使用太多downstream patches。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/rupa-rk3588-tv-box-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7454de4576.webp"></a></p>
-<p>開箱搭載RK3588的電視盒，將其刷為Linux系統，並測試影片解碼、AI加速能力、玩Steam遊戲。</p><p>2024年我<a href="https://ivonblog.com/posts/raspberry-pi-5-review/" target="_blank">開箱Raspberry Pi 5</a>的時候就有注意到Rockchip推出的RK3588系列產品了。兩者處理器單核性能相當，RK3588在多核計算方面更勝一籌，有8核心8nm製程還有NPU，在開發板當中這是旗艦級的處理器了。可當時因為生態系支援問題我選了樹莓派。</p><p>RK3588的板子我看隨便一個都要五六千～！結果今天花Raspberry Pi Zero的價格就買到了搭載RK3588的電視盒。</p><p>最近有部落格讀者<a href="https://blog.dabinn.net/" target="_blank">大丙</a>看到我一些關於Linux的Facebook貼文，便向我說要提供RK3588電視盒供研究，因為這東西現階段對他來說沒什麼用了。我稱他為善心人士。原本善心人士說要直接送我。我說，不，我又不是super hacker，不夠格免費收下dev kit。因此就以賤價買下了。感謝他的慷慨饋贈。</p><h2>1. 開箱RK3588電視盒<span><a href="#1-%e9%96%8b%e7%ae%b1rk3588%e9%9b%bb%e8%a6%96%e7%9b%92" aria-label="定位點">#</a></span></h2><p>下面我簡稱RK3588電視盒。</p><p>這台是貼牌貨，表面上叫RUPA Mini PC RK3588，由中國廣視達(GUANGSHIDA)公司生產，在Amazon販售，大約2024年上市。</p><img fetchpriority="low" alt="rupa.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d88e9808dc.webp"><p>用一個簡單的紙盒包裝。</p><img fetchpriority="low" alt="u1.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-395ae0bb15.webp"><p>內附一個12V2A的24W充電器，一本像是機翻的英文說明書。</p><img fetchpriority="low" alt="u2.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a121f24f56.webp"><p>原價150美元，塑膠機身質感不怎麼樣，感覺成本都在處理器上了。</p><p>基本規格：</p><ul><li>Rockchip RK3588，4x Cortex-A76 + 4x Cortex-A55</li><li>ARM　Mali-G610 MP4 GPU</li><li>8GB RAM</li><li>64GB eMMC</li><li>USB-A x3</li><li>USB-C x1</li><li>HDMI x3，8K@60p輸出</li></ul><p>這不是開發板，是將RK3588處理器封裝為電視盒的產品。跟Radxa ROCK 5B、Orange Pi 5這類著名產品不一樣，嚴重缺乏社群支援。</p><p>根據善心人士的情報，其實這台RUPA Mini PC RK3588背後規格跟「Mekotronics R58 Mini PC」差不多，所以韌體是通用的。</p><img fetchpriority="low" alt="mekotronics.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-11c521eabb.webp"><p>這個RK3588電視盒系統支援依賴Mekotronics R58 Mini PC提供。原始的電視盒只有一個Android TV 12的系統，內建Play商店，純英文。對我來說沒什麼用處，RK3588性能這麼強當Android電視盒太浪費了，所以得刷成Linux才能發揮更多用處吧。</p><p>這個電視盒的外殼正好提供了一個簡易的伺服器機箱，讓我不用再另外買配件。雖然沒有風扇有點可惜。RK3588高性能也會容易帶來高熱，未來得自行改裝。</p><h2>2. RK3588電視盒刷入Linux系統<span><a href="#2-rk3588%e9%9b%bb%e8%a6%96%e7%9b%92%e5%88%b7%e5%85%a5linux%e7%b3%bb%e7%b5%b1" aria-label="定位點">#</a></span></h2><ol><li><p>根據<a href="https://www.mekotronics.com/h-nd-22.html" target="_blank">Mekotronics R58 firmware download links</a>，這裡的系統有Android、Debian、Buildroot、Armbian (Ubuntu)。這個軟體支援度真的參差不齊，我試了好幾個之後才找到勉強能用的版本。最主要是RK3588的GPU Mali G610的驅動無法開箱即用，也就是沒有包含在Mesa。ARM原廠的Mali驅動是閉源的，需要搭配特定版本的Rockchip Linux kernel與libmali userspace驅動，限定特定的Linux版本才能用，目前看來是kernel 5.1。可以安裝Panfork取得更好驅動支援。然而，一部分的GPU驅動已經開始upstream，加入Mesa，這包括Panfrost和Panthor兩種版本。</p></li><li><p>總之，我測試了各種映像檔之後，確認目前最好的版本是這個：<code>R58 mini Armbian with upstream mesa GPU drivers and latest BSP 6 rkr3 kernel</code>映像檔。Linux kernel 6.1，整合了包含上游最新GPU驅動的PPA，包括<a href="https://launchpad.net/~kisak/+archive/ubuntu/kisak-mesa" target="_blank">kisak/kisak-mesa fresh</a>與<a href="https://launchpad.net/~liujianfeng1994/+archive/ubuntu/rockchip-multimedia" target="_blank">liujianfeng1994/rockchip-multimedia</a>，不用手動安裝。安裝後可以使用OpenGL與Vulkan程式。</p></li><li><p>然後再下載<code>Armbian firmware upgrade tool</code>取得Bootloader檔案<code>rk3588_spl_loader_v1.08.111.bin</code>。裡面還有附刷機步驟的影片呢。</p></li><li><p>關於要如何刷入系統呢？這台RK3588電視盒沒有SD卡槽，只有內部eMMC。因此要用專門的開發工具RKDevTool刷入。討人厭的是RKDevTool只有Windows版本。Linux版<a href="https://github.com/rockchip-linux/" target="_blank">rkdeveloptool</a>，需要手動編譯，而且只有命令行。所以我只好開啟Windows電腦。</p></li><li><p>Mekotronics R58 Mini PC官網提供的RKDevTool有問題，在Windows 11會閃退。我到<a href="https://docs.radxa.com/zero/zero3/low-level-dev/rkdevtool" target="_blank">Radaxa網站</a>找了最新版RKDevTool v2.96</p></li><li><p>將RK3588電視盒關機。用Type-C線連到電腦。用針插入左邊開機鍵旁邊的Recovery按鈕，按著。再用另外一根針，戳一下右邊Reset。進入Loader Mode。</p></li><li><p>開啟RKDevTool，第一個Loader分區選<code>rk3588_spl_loader_v1.08.111.bin</code>，第二個Image分區選要刷入的系統映像.img檔，並勾選依照地址寫。</p><img fetchpriority="low" alt="rkdevtool.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-311da72517.webp"></li><li><p>點選開始，刷入。有時候刷入後重開機會進入Maskrom Mode。這個時候就再刷一次。</p></li><li><p>重開機，接上鍵盤滑鼠螢幕，依照畫面設定帳號密碼，連上Wifi，即會進入GNOME桌面。</p><img fetchpriority="low" alt="gnome.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-17186a2b6b.webp"></li><li><p>在系統設定查看目前是使用Wayland，且有顯示GPU型號為Mali，並非軟體渲染(llvmpipe)。</p><img fetchpriority="low" alt="system.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cae1e7c513.webp"></li><li><p>到系統設定關閉自動鎖定，停用自動suspend。</p></li><li><p>然後就可以改用SSH遠端登入了。</p></li></ol><h2>3. RK3588效能測試<span><a href="#3-rk3588%e6%95%88%e8%83%bd%e6%b8%ac%e8%a9%a6" aria-label="定位點">#</a></span></h2><p>純測試CPU性能，使用Unixbench跑分，多核，得出4433分。</p><img fetchpriority="low" alt="unixbench.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a694173aed.webp"><p>這個分數比Raspberry Pi 5的Broadcom BCM2712多核要高兩倍，畢竟有8核心 (4x Cortex-A76 + 4x Cortex-A55)。若以Android手機處理器來比較，大約是2025年中階機等級。</p><p>另外，確認Linux的GPU驅動有起來之後，播放影片就不是問題了。</p><p>透過<a href="https://github.com/ajokela/rktop" target="_blank">rktop</a>程式觀察GPU佔用，或者直接讀取：<code>cat /sys/class/devfreq/fb000000.gpu-panthor/load</code>。</p><p>在Chromium播放4K影片完全無壓力，核心使用率低。但是沒風扇的情況下，電視盒溫度可能會飆到80度。</p><p>順帶一提，想要針對大螢幕設計的Linux版Youtube客戶端，可以用VacuumTube這個Android TV界面的wrapper。</p><img fetchpriority="low" alt="youtube.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-55883af574.webp"><p>MPV可以使用GPU解碼H.265和AV1影片</p><img fetchpriority="low" alt="mpv.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ad0f3e66d1.webp"><p>要大螢幕看串流的話可以用Kodi或Jellyfin，可以用GPU加速影片轉碼。</p><img fetchpriority="low" alt="kodi.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19830ecf8a.webp"><p>RK3588有聊勝於無的AI性能，利用NPU加速推理運算。透過<a href="https://github.com/NotPunchnox/rkllama" target="_blank">rkllama</a>，勉強可以跑4B大小的LLM。不過這個程式bug有點多，再加上我這台的系統不完整。我沒能成功跑起來。</p><p>最後是透過FEX-Emu安裝Steam測試！確認RK3588能夠玩得動輕量的3D遊戲！惟GPU驅動不成熟因此容易卡卡。</p><img fetchpriority="low" alt="steam.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ee43062d64.webp"><p>我想這個RK3588的電視盒本身是很有潛力的，但就是我前面說的，這個軟體支援度很差勁。只能期望未來更多驅動進入mainline Linux kernel，就不用使用太多downstream patches。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/rupa-rk3588-tv-box-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7454de4576.webp"></a></p>
-<p>開箱搭載RK3588的電視盒，將其刷為Linux系統，並測試影片解碼、AI加速能力、玩Steam遊戲。</p><p>2024年我<a href="https://ivonblog.com/posts/raspberry-pi-5-review/" target="_blank">開箱Raspberry Pi 5</a>的時候就有注意到Rockchip推出的RK3588系列產品了。兩者處理器單核性能相當，RK3588在多核計算方面更勝一籌，有8核心8nm製程還有NPU，在開發板當中這是旗艦級的處理器了。可當時因為生態系支援問題我選了樹莓派。</p><p>RK3588的板子我看隨便一個都要五六千～！結果今天花Raspberry Pi Zero的價格就買到了搭載RK3588的電視盒。</p><p>最近有部落格讀者<a href="https://blog.dabinn.net/" target="_blank">大丙</a>看到我一些關於Linux的Facebook貼文，便向我說要提供RK3588電視盒供研究，因為這東西現階段對他來說沒什麼用了。我稱他為善心人士。原本善心人士說要直接送我。我說，不，我又不是super hacker，不夠格免費收下dev kit。因此就以賤價買下了。感謝他的慷慨饋贈。</p><h2>1. 開箱RK3588電視盒<span><a href="#1-%e9%96%8b%e7%ae%b1rk3588%e9%9b%bb%e8%a6%96%e7%9b%92" aria-label="定位點">#</a></span></h2><p>下面我簡稱RK3588電視盒。</p><p>這台是貼牌貨，表面上叫RUPA Mini PC RK3588，由中國廣視達(GUANGSHIDA)公司生產，在Amazon販售，大約2024年上市。</p><img fetchpriority="low" alt="rupa.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d88e9808dc.webp"><p>用一個簡單的紙盒包裝。</p><img fetchpriority="low" alt="u1.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-395ae0bb15.webp"><p>內附一個12V2A的24W充電器，一本像是機翻的英文說明書。</p><img fetchpriority="low" alt="u2.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a121f24f56.webp"><p>原價150美元，塑膠機身質感不怎麼樣，感覺成本都在處理器上了。</p><p>基本規格：</p><ul><li>Rockchip RK3588，4x Cortex-A76 + 4x Cortex-A55</li><li>ARM　Mali-G610 MP4 GPU</li><li>8GB RAM</li><li>64GB eMMC</li><li>USB-A x3</li><li>USB-C x1</li><li>HDMI x3，8K@60p輸出</li></ul><p>這不是開發板，是將RK3588處理器封裝為電視盒的產品。跟Radxa ROCK 5B、Orange Pi 5這類著名產品不一樣，嚴重缺乏社群支援。</p><p>根據善心人士的情報，其實這台RUPA Mini PC RK3588背後規格跟「Mekotronics R58 Mini PC」差不多，所以韌體是通用的。</p><img fetchpriority="low" alt="mekotronics.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-11c521eabb.webp"><p>這個RK3588電視盒系統支援依賴Mekotronics R58 Mini PC提供。原始的電視盒只有一個Android TV 12的系統，內建Play商店，純英文。對我來說沒什麼用處，RK3588性能這麼強當Android電視盒太浪費了，所以得刷成Linux才能發揮更多用處吧。</p><p>這個電視盒的外殼正好提供了一個簡易的伺服器機箱，讓我不用再另外買配件。雖然沒有風扇有點可惜。RK3588高性能也會容易帶來高熱，未來得自行改裝。</p><h2>2. RK3588電視盒刷入Linux系統<span><a href="#2-rk3588%e9%9b%bb%e8%a6%96%e7%9b%92%e5%88%b7%e5%85%a5linux%e7%b3%bb%e7%b5%b1" aria-label="定位點">#</a></span></h2><ol><li><p>根據<a href="https://www.mekotronics.com/h-nd-22.html" target="_blank">Mekotronics R58 firmware download links</a>，這裡的系統有Android、Debian、Buildroot、Armbian (Ubuntu)。這個軟體支援度真的參差不齊，我試了好幾個之後才找到勉強能用的版本。最主要是RK3588的GPU Mali G610的驅動無法開箱即用，也就是沒有包含在Mesa。ARM原廠的Mali驅動是閉源的，需要搭配特定版本的Rockchip Linux kernel與libmali userspace驅動，限定特定的Linux版本才能用，目前看來是kernel 5.1。可以安裝Panfork取得更好驅動支援。然而，一部分的GPU驅動已經開始upstream，加入Mesa，這包括Panfrost和Panthor兩種版本。</p></li><li><p>總之，我測試了各種映像檔之後，確認目前最好的版本是這個：<code>R58 mini Armbian with upstream mesa GPU drivers and latest BSP 6 rkr3 kernel</code>映像檔。Linux kernel 6.1，整合了包含上游最新GPU驅動的PPA，包括<a href="https://launchpad.net/~kisak/+archive/ubuntu/kisak-mesa" target="_blank">kisak/kisak-mesa fresh</a>與<a href="https://launchpad.net/~liujianfeng1994/+archive/ubuntu/rockchip-multimedia" target="_blank">liujianfeng1994/rockchip-multimedia</a>，不用手動安裝。安裝後可以使用OpenGL與Vulkan程式。</p></li><li><p>然後再下載<code>Armbian firmware upgrade tool</code>取得Bootloader檔案<code>rk3588_spl_loader_v1.08.111.bin</code>。裡面還有附刷機步驟的影片呢。</p></li><li><p>關於要如何刷入系統呢？這台RK3588電視盒沒有SD卡槽，只有內部eMMC。因此要用專門的開發工具RKDevTool刷入。討人厭的是RKDevTool只有Windows版本。Linux版<a href="https://github.com/rockchip-linux/" target="_blank">rkdeveloptool</a>，需要手動編譯，而且只有命令行。所以我只好開啟Windows電腦。</p></li><li><p>Mekotronics R58 Mini PC官網提供的RKDevTool有問題，在Windows 11會閃退。我到<a href="https://docs.radxa.com/zero/zero3/low-level-dev/rkdevtool" target="_blank">Radaxa網站</a>找了最新版RKDevTool v2.96</p></li><li><p>將RK3588電視盒關機。用Type-C線連到電腦。用針插入左邊開機鍵旁邊的Recovery按鈕，按著。再用另外一根針，戳一下右邊Reset。進入Loader Mode。</p></li><li><p>開啟RKDevTool，第一個Loader分區選<code>rk3588_spl_loader_v1.08.111.bin</code>，第二個Image分區選要刷入的系統映像.img檔，並勾選依照地址寫。</p><img fetchpriority="low" alt="rkdevtool.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-311da72517.webp"></li><li><p>點選開始，刷入。有時候刷入後重開機會進入Maskrom Mode。這個時候就再刷一次。</p></li><li><p>重開機，接上鍵盤滑鼠螢幕，依照畫面設定帳號密碼，連上Wifi，即會進入GNOME桌面。</p><img fetchpriority="low" alt="gnome.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-17186a2b6b.webp"></li><li><p>在系統設定查看目前是使用Wayland，且有顯示GPU型號為Mali，並非軟體渲染(llvmpipe)。</p><img fetchpriority="low" alt="system.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cae1e7c513.webp"></li><li><p>到系統設定關閉自動鎖定，停用自動suspend。</p></li><li><p>然後就可以改用SSH遠端登入了。</p></li></ol><h2>3. RK3588效能測試<span><a href="#3-rk3588%e6%95%88%e8%83%bd%e6%b8%ac%e8%a9%a6" aria-label="定位點">#</a></span></h2><p>純測試CPU性能，使用Unixbench跑分，多核，得出4433分。</p><img fetchpriority="low" alt="unixbench.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a694173aed.webp"><p>這個分數比Raspberry Pi 5的Broadcom BCM2712多核要高兩倍，畢竟有8核心 (4x Cortex-A76 + 4x Cortex-A55)。若以Android手機處理器來比較，大約是2025年中階機等級。</p><p>另外，確認Linux的GPU驅動有起來之後，播放影片就不是問題了。</p><p>透過<a href="https://github.com/ajokela/rktop" target="_blank">rktop</a>程式觀察GPU佔用，或者直接讀取：<code>cat /sys/class/devfreq/fb000000.gpu-panthor/load</code>。</p><p>在Chromium播放4K影片完全無壓力，核心使用率低。但是沒風扇的情況下，電視盒溫度可能會飆到80度。</p><p>順帶一提，想要針對大螢幕設計的Linux版Youtube客戶端，可以用VacuumTube這個Android TV界面的wrapper。</p><img fetchpriority="low" alt="youtube.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-55883af574.webp"><p>MPV可以使用GPU解碼H.265和AV1影片</p><img fetchpriority="low" alt="mpv.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ad0f3e66d1.webp"><p>要大螢幕看串流的話可以用Kodi或Jellyfin，可以用GPU加速影片轉碼。</p><img fetchpriority="low" alt="kodi.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19830ecf8a.webp"><p>RK3588有聊勝於無的AI性能，利用NPU加速推理運算。透過<a href="https://github.com/NotPunchnox/rkllama" target="_blank">rkllama</a>，勉強可以跑4B大小的LLM。不過這個程式bug有點多，再加上我這台的系統不完整。我沒能成功跑起來。</p><p>最後是透過FEX-Emu安裝Steam測試！確認RK3588能夠玩得動輕量的3D遊戲！惟GPU驅動不成熟因此容易卡卡。</p><img fetchpriority="low" alt="steam.webp" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ee43062d64.webp"><p>我想這個RK3588的電視盒本身是很有潛力的，但就是我前面說的，這個軟體支援度很差勁。只能期望未來更多驅動進入mainline Linux kernel，就不用使用太多downstream patches。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7454de4576.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7454de4576.webp" medium="image"/>
-    <pubDate>Fri, 20 Mar 2026 17:00:00 +0800</pubDate>
   </item></channel>
 </rss>
