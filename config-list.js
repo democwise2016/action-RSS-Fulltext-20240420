@@ -373,14 +373,14 @@ let feedList = [
       coverSelector: '.post-container .post-img .img-holder'
     }
   },
-  {
-    title: 'iThome 3C新聞',
-    feedID: 'ithome-tech',
-    feedURL: 'https://ithome.com.tw/rss',
-    itemFilters: [
-      ItemFilters['sites'].ItemFilterIThome,
-    ],
-  },
+  // {
+  //   title: 'iThome 3C新聞',
+  //   feedID: 'ithome-tech',
+  //   feedURL: 'https://ithome.com.tw/rss',
+  //   itemFilters: [
+  //     ItemFilters['sites'].ItemFilterIThome,
+  //   ],
+  // },
   {
     title: '巴哈姆特 GNN 新聞網',
     feedID: 'gnn-news',
