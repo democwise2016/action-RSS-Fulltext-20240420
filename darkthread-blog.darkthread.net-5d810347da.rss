@@ -1,0 +1,723 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[黑暗執行緒[RSS+]]]></title>
+    <link>undefined</link>
+    <image>
+      <url>https://blog.darkthread.net/img/icon512x512.png</url>
+      <title>黑暗執行緒[RSS+]</title>
+      <link>undefined</link>
+    </image>
+    <language>en-us</language>
+    <atom:link href="https://blog.darkthread.net/feed/rss/" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[黑暗執行緒[RSS+]]]></copyright>
+    <itunes:author><![CDATA[黑暗執行緒[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[黑暗執行緒[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
+<item>
+    <title><![CDATA[Token 經濟學 - 電報式提示詞]]></title>
+    <link>https://blog.darkthread.net/blog/telegraph-prompting/</link>
+    <itunes:title><![CDATA[Token 經濟學 - 電報式提示詞]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>6/1 起 Github Copilot 將全面改為以 Token 計費，GPT/Claude/Gemini 等各家各家模型紛紛緊縮 Token 額度或提高費率，恣意揮霍 Token 的時代已然結束...</p> <p>LLM 大語言模型處理資料與生成內容的單位是 Token (延伸閱讀：<a href="/blog/conv-gpt-token/">文字轉 ChatGPT Token 之實驗與觀察</a>、<a href="/blog/tikcount-go/">Go 小工具 - CLI 版 Token 計數器</a>)，除了與模型使用計費有關，也攸關 AI 生成結果的品質。LLM 模型有所謂的<a href="https://zh.wikipedia.org/zh-tw/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3">上下文窗口 (Context Window)</a>，不同模型上限各異：</p> <table><thead><tr><th>模型系列&nbsp;</th><th>最大上下文窗口 (Tokens)</th><th>最大輸出 (Tokens)</th></tr></thead><tbody><tr><td>GPT-5.4 / 5.4-pro</td><td>1M</td><td>128K</td></tr><tr><td>GPT-5.4-mini / nano</td><td>400K (輸入上限 272K)</td><td>128K</td></tr><tr><td>GPT-4.1</td><td>1KK</td><td>128K</td></tr><tr><td>Claude Sonnet 4.6 / Opus 4.6</td><td>1KK</td><td>128K</td></tr><tr><td>o3 / o4-mini</td><td>200K</td><td>128K</td></tr><tr><td>GPT-4o</td><td>128K</td><td>4,096</td></tr><tr><td>DeepSeek-R1</td><td>128K</td><td>32,768</td></tr><tr><td>Mistral Large 2</td><td>128K</td><td>128K</td></tr></tbody></table> <p>雖然各家新一代模型的上下文窗口長度不斷突破，已可達到 1M 的水準，但過長易導致注意力稀釋以及幻覺問題，可能導致模型出現重複字詞、語意不連貫或邏輯混亂等「上下文腐化（Context Rot）」現象。總而言之，能實現相同結果，使用的 Token 數愈少不但能節省成本，生成品質也會更好。</p> <p>回到 AI Coding 上，我們在 Github Copilot / Claude / Codex 聊天視窗輸入提示詞時，也適用這個原則。如何用更少的 Token 精準有效地表達我們的意圖，獲得預期結果，是講求 Token 經濟學的新時代的新課題。(什麼？你有十個 MAX 訂閱，沒操心過 Token 額度？咳，以您的<a href="https://www.facebook.com/share/p/1Dr7oq49E3/">模力值</a>不必跟我們研究這些，全程放大絕就可以囉)</p> <p>總之，我花了點時間查了資料，研究讓 AI 提示詞「一字千金」的小技巧。</p> <p>首先，依<a href="https://www.facebook.com/share/p/1BLNABvbDM/">「語言稅」理論</a>，使用中文在 GPT、Claude、Gemini 等模型上會比英文耗用更多 Token ，因此除非是用 Qwen、DeepSeek、Kimi 等中文模型，直接用英文寫提示詞是更好的選擇。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639152331098240613.jpg"></p> <p>再來，前陣子有個可安裝在 Codex、Gemini、Cursor、Windsurf、Copilot 的<a href="https://github.com/juliusbrussee/caveman">山頂洞人(Caveman) Skill</a> 受到觀注(Github 專案已 6.4 萬顆星星)，號稱可以節省 75% Token，做法超級簡單，在 <a href="https://github.com/JuliusBrussee/caveman/blob/main/skills/caveman/SKILL.md">SKILL.md</a> 中要求 Agent 像原始人一樣說話，移除冠詞、填充詞、客套話... 但完整保留術語關鍵字，程式碼區塊等，藉此讓模型的輸出變得簡短、無廢話。</p> <p>而同樣概念應用在下提示詞，則有種相關概念的做法 - 用打電報的方式下提示詞。電話還沒出現的古老年代，遠距即時通訊只能靠摩斯電碼傳送電報文字，以字數與距離收費，故發訊息的人必須絞盡腦汁，用最少字數表達意思，跟現在壓低 Token 數以降低成本提升品質異曲同工。</p> <p>Telegraphic Prompting 技巧 (電報式提示，有時也稱為 Prompt Compression 或 Token Optimization) 是指刪除提示詞中的助動詞、冠詞、標點符號或多餘客套話，僅保留核心意義的關鍵字，像發電報一樣簡潔。如：<code>Refactor: improve readability, O(n) complexity, TypeScript.</code> 這樣就夠了。電報風格不用管主副詞介係詞，不必花時間把組成文法正確、辭藻優美的句子，除了減少 Token 量還能節省大腦，但我覺得寫久了，英文寫與說的能力會退化就是了 😄</p> <p>以下是我找到一些寫電報式提示的零碎技巧：(我的日常應用以 AI Coding 為大宗，故技巧會偏程式一些，但有些在非程式情境也適用)</p> <h3>別說請謝謝對不起，交待 AI 任務禮貌是多餘的</h3> <p>有<a href="https://arxiv.org/abs/2312.16171">研究</a>提示的 26 提示詞原則中的第一條原則便是「不需要對 LLM 保持禮貌 (如說 Please, Thank you)，直接講重點」，實驗證明，過多的社交辭令不僅浪費 Token，有時反而會干擾 AI 對核心指令的注意力。<br> ❌ <code>Could you please write a Python function to sort a list?</code><br> ✅ <code>Write Python list sort function.</code></p> <h3>定義角色取代長串定義描述</h3> <p>直接指定 AI 扮演角色(如：<code>Act as a senior Go Dev.</code>)跟 <code>I want you to act as a senior software engineer specialized in Google's Go programming language</code> 效果相近，但可省下 80% Token。</p> <h3>限制無效輸出</h3> <p>AI 很能聊，答案之外常會補充解釋說明，分享心路歷程，若我們只要結果，這些額外內容全是多餘的，且會浪費寶貴輸出 Token (輸出 Token 通常比輸入貴好幾倍)。有一些常用的簡寫可以有效阻止 AI 模型錦上添花畫蛇添足：</p> <ul><li><code>Code only.</code>/<code>Pure code.</code> 給我程式，其餘免談</li> <li><code>No prose.</code> prose 是散文的意思，指說重點別寫作文</li> <li><code>No preamble.</code> preamble 指前言或開場白</li> <li><code>No postamble.</code> 去掉程式碼後面的總結與提醒</li> <li><code>No yapping.</code> 別廢話。超兇! 我喜歡</li> <li><code>No comments.</code> 不用註解</li> <li><code>Self-documenting code only.</code> 要求程式碼本身清晰易讀，減少對註解的依賴</li> <li><code>Docstring only.</code> 只生成標準的函式文件註釋 (如 Javadoc, TSDoc, PyDoc)，不要解釋邏輯</li> <li><code>Bullet points.</code> 解釋時使用條列式，不要寫大段文字</li></ul> <h3>言簡意賅的約束指令</h3> <p>希望生成內容或程式碼簡潔、正統，有一些好用的約束詞：</p> <ul><li><code>Concise.</code> 力求簡潔</li> <li><code>Idiomatic.</code> 使用符合最佳實踐、哲學與設計模式的寫法</li> <li><code>Explain briefly.</code> 簡短解釋</li> <li>`Dry. (Don't Repeat Yourself) 避免重複邏輯，提取公用函式</li> <li><code>Solid.</code> 遵循 SOLID 原則，寫出易於維護與擴展的物件導向程式</li> <li><code>Clean.</code> 要求符合「Clean Code」原則，注重變數命名與邏輯清晰度</li> <li><code>Production-ready.</code> 要求考慮生產環境所需細節(如錯誤處理、日誌、穩定性)</li> <li><code>Modern.</code> 使用該語言最新的語法特性(例如 Python 3.12+, Java 21+, ES6+)</li> <li><code>Standard lib only.</code> 禁止使用第三方程式庫，只使用語言內建 API</li> <li><code>Performant.</code> 效能優先，減少不必要的資源消耗</li> <li><code>Memory-efficient.</code> 記憶體效率優先，避免記憶體洩漏或過度分配</li> <li><code>O(n).</code> / <code>O(1).</code> 指定時間複雜度上限 <code></code>Thread-safe.` 要求注意多執行緒環境的 Race Condition 問題</li> <li><code>Scalable.</code> 要求架構要考慮到未來擴展性</li> <li><code>Step-by-step.</code> 要求循序漸進拆解，方便理解學習</li> <li><code>One-liner.</code> 將邏輯寫成單行(常見於 Bash 指令或簡單的 Python 邏輯)</li> <li>‵1-sentence summary` 一句話總結</li> <li><code>Raw.</code> 回傳原始格式，不需 Markdown 標籤</li> <li><code>Diff.</code> 傳回像 Git 一樣的差異對照</li> <li><code>Naive implementation.</code> 只需要最簡單、不考慮優化的雛型，不要過度設計</li> <li><code>Sanitized.</code> 特別指處理輸入防止 SQL Injection、XSS 等攻擊</li> <li><code>Hardened.</code> 加強抗攻擊與安全防護</li> <li>‵Graceful degradation.` 某些功能失敗時，系統仍能以有限功能運作</li> <li><code>Skeleton only.</code> 只生成類別與函式的定義，只做骨架不要實作細節</li></ul> <h3>指定輸出格式</h3> <p>若需要特定格式(如 JSON, Diff)，直說即可，如：<code>Output: pure JSON.</code>, <code>Format: git diff.</code>。</p> <h3>提供程式片段即可</h3> <p>若想跟模型交待要處理的部分，不用貼上全部內容，提供相關函式或類別定義就好了，必要時可用 <code>//...</code> 表示省略不相關部分。</p> <h3>善用 Markdown 等結構化表示</h3> <p>使用 <code>#</code> <code>##</code> 區分章節，用 ```...``` 、"""...""" 包夾區塊內容，用 `code...`、&lt;code...&gt; 標示指令，能讓模型快速且有效率地理解你的意圖。</p> <h3>範例</h3> <p>以下是一些高效提示詞範例：</p> <ul><li>重構程式碼：<code>Refactor for performance: {code}</code></li> <li>撰寫測試：<code>Write xunit tests. Focus on edge cases. Code only.</code></li> <li>除錯：<code>Debug: {error message}. Fix and explain briefly.</code></li> <li>轉換語言：<code>Convert this Python to Rust. Idiomatic.</code></li> <li>生成文檔：<code>Generate TSDoc for this function. Concise.</code></li> <li>程式碼審查：<code>Code review. List 3 critical improvements.</code></li></ul> <p>應用上，想成跟 AI 用黑話或行話溝通就對了，像生活中的"北車南三，七點"、"，"top tp 30, play safe"、<del>"大奶微微"</del>... 我們可能做出這樣的例子。 <code>Refactor this. Clean. Dry. Modern. Code only.</code>、<code>Explain this. Bullet points. 1-sentence summary. No yapping.</code></p> <p>另外有個小技巧是這些執行要點建議可放在提示詢結尾，因為模型對最後一段的注意力通常較長 (Recency Bias)。</p> <h3>效益考證</h3> <p>關於電報式提示詞，我有找到幾年前的相關研究，但沒有針對最新模型的權威性實證或心得分享：</p> <ul><li><a href="https://floeproject.org/news/2024-03-19-bag-of-words-with-bliss/">Bliss, Bag of Words, and Telegraphic Prompting of LLMs</a><br> Bag of Words提示法，僅提供少量關鍵詞給 LLM，再由模型生成完整句子</li> <li>微軟研究的 Prompt 壓縮演算法 <a href="https://huggingface.co/spaces/microsoft/LLMLingua">LLMLingua</a><br> 使用便宜模型壓縮長篇提示，結果為精簡文字，但不到電報程度</li> <li>論文：<a href="https://arxiv.org/abs/2505.00019">An Empirical Study on Prompt Compression for Large Language Models</a><br> 提示壓縮不僅能降低成本，還可能在長上下文中提升效能，但可能帶來幻覺風險</li> <li>論文：<a href="https://arxiv.org/abs/2304.12102">Unlocking Context Constraints of LLMs: Enhancing Context Efficiency of LLMs with Self-Information-Based Content Filtering</a><br> 移除冗餘內容後，模型在總結與問答任務中的表現並未顯著衰減</li></ul> <p>雖然沒有鐵證支持，簡單測試，改用電報文確實石達成相同效果，而其運作原理合情合理，直覺會是有效的。而研究到後來，感覺節省 Token 之外，濃縮精簡輸入文字的更大好處是可降低打字成本，加快輸入速度，效益更明顯。總之，我決定開始在日常 AI Coding 試行看看，過陣子再來分享實戰心得。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639152331104092366.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639152331108761398.png"></p> <p>【後記】最近在做一個串接 GPT 模型的 Windows 語音輸入法 Side Project，概念是把先前 <a href="/blog/telegram-transcribe-bot/">GPT 模型口語轉譯服務</a>改裝為作業系統可用的輸入法，「整合電報式提示哲學，將口述中文轉成英語電報文」感覺有點搞頭，就來試試。</p> <p data-slug="telegraph-prompting" data-title-en="Token economics - Telegraph Prompting" data-catg=".NET" data-fbimg="https://images2.imgbox.com/60/6b/XKBG0VPv_o.png#1024#559">Explores token-efficient AI prompting for coding, explaining rising token costs, context limits, “language tax,” caveman style, and telegraphic prompts. Shares practical techniques to reduce input/output tokens while keeping prompts precise, structured, and effective.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>6/1 起 Github Copilot 將全面改為以 Token 計費，GPT/Claude/Gemini 等各家各家模型紛紛緊縮 Token 額度或提高費率，恣意揮霍 Token 的時代已然結束...</p> <p>LLM 大語言模型處理資料與生成內容的單位是 Token (延伸閱讀：<a href="/blog/conv-gpt-token/">文字轉 ChatGPT Token 之實驗與觀察</a>、<a href="/blog/tikcount-go/">Go 小工具 - CLI 版 Token 計數器</a>)，除了與模型使用計費有關，也攸關 AI 生成結果的品質。LLM 模型有所謂的<a href="https://zh.wikipedia.org/zh-tw/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3">上下文窗口 (Context Window)</a>，不同模型上限各異：</p> <table><thead><tr><th>模型系列&nbsp;</th><th>最大上下文窗口 (Tokens)</th><th>最大輸出 (Tokens)</th></tr></thead><tbody><tr><td>GPT-5.4 / 5.4-pro</td><td>1M</td><td>128K</td></tr><tr><td>GPT-5.4-mini / nano</td><td>400K (輸入上限 272K)</td><td>128K</td></tr><tr><td>GPT-4.1</td><td>1KK</td><td>128K</td></tr><tr><td>Claude Sonnet 4.6 / Opus 4.6</td><td>1KK</td><td>128K</td></tr><tr><td>o3 / o4-mini</td><td>200K</td><td>128K</td></tr><tr><td>GPT-4o</td><td>128K</td><td>4,096</td></tr><tr><td>DeepSeek-R1</td><td>128K</td><td>32,768</td></tr><tr><td>Mistral Large 2</td><td>128K</td><td>128K</td></tr></tbody></table> <p>雖然各家新一代模型的上下文窗口長度不斷突破，已可達到 1M 的水準，但過長易導致注意力稀釋以及幻覺問題，可能導致模型出現重複字詞、語意不連貫或邏輯混亂等「上下文腐化（Context Rot）」現象。總而言之，能實現相同結果，使用的 Token 數愈少不但能節省成本，生成品質也會更好。</p> <p>回到 AI Coding 上，我們在 Github Copilot / Claude / Codex 聊天視窗輸入提示詞時，也適用這個原則。如何用更少的 Token 精準有效地表達我們的意圖，獲得預期結果，是講求 Token 經濟學的新時代的新課題。(什麼？你有十個 MAX 訂閱，沒操心過 Token 額度？咳，以您的<a href="https://www.facebook.com/share/p/1Dr7oq49E3/">模力值</a>不必跟我們研究這些，全程放大絕就可以囉)</p> <p>總之，我花了點時間查了資料，研究讓 AI 提示詞「一字千金」的小技巧。</p> <p>首先，依<a href="https://www.facebook.com/share/p/1BLNABvbDM/">「語言稅」理論</a>，使用中文在 GPT、Claude、Gemini 等模型上會比英文耗用更多 Token ，因此除非是用 Qwen、DeepSeek、Kimi 等中文模型，直接用英文寫提示詞是更好的選擇。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639152331098240613.jpg"></p> <p>再來，前陣子有個可安裝在 Codex、Gemini、Cursor、Windsurf、Copilot 的<a href="https://github.com/juliusbrussee/caveman">山頂洞人(Caveman) Skill</a> 受到觀注(Github 專案已 6.4 萬顆星星)，號稱可以節省 75% Token，做法超級簡單，在 <a href="https://github.com/JuliusBrussee/caveman/blob/main/skills/caveman/SKILL.md">SKILL.md</a> 中要求 Agent 像原始人一樣說話，移除冠詞、填充詞、客套話... 但完整保留術語關鍵字，程式碼區塊等，藉此讓模型的輸出變得簡短、無廢話。</p> <p>而同樣概念應用在下提示詞，則有種相關概念的做法 - 用打電報的方式下提示詞。電話還沒出現的古老年代，遠距即時通訊只能靠摩斯電碼傳送電報文字，以字數與距離收費，故發訊息的人必須絞盡腦汁，用最少字數表達意思，跟現在壓低 Token 數以降低成本提升品質異曲同工。</p> <p>Telegraphic Prompting 技巧 (電報式提示，有時也稱為 Prompt Compression 或 Token Optimization) 是指刪除提示詞中的助動詞、冠詞、標點符號或多餘客套話，僅保留核心意義的關鍵字，像發電報一樣簡潔。如：<code>Refactor: improve readability, O(n) complexity, TypeScript.</code> 這樣就夠了。電報風格不用管主副詞介係詞，不必花時間把組成文法正確、辭藻優美的句子，除了減少 Token 量還能節省大腦，但我覺得寫久了，英文寫與說的能力會退化就是了 😄</p> <p>以下是我找到一些寫電報式提示的零碎技巧：(我的日常應用以 AI Coding 為大宗，故技巧會偏程式一些，但有些在非程式情境也適用)</p> <h3>別說請謝謝對不起，交待 AI 任務禮貌是多餘的</h3> <p>有<a href="https://arxiv.org/abs/2312.16171">研究</a>提示的 26 提示詞原則中的第一條原則便是「不需要對 LLM 保持禮貌 (如說 Please, Thank you)，直接講重點」，實驗證明，過多的社交辭令不僅浪費 Token，有時反而會干擾 AI 對核心指令的注意力。<br> ❌ <code>Could you please write a Python function to sort a list?</code><br> ✅ <code>Write Python list sort function.</code></p> <h3>定義角色取代長串定義描述</h3> <p>直接指定 AI 扮演角色(如：<code>Act as a senior Go Dev.</code>)跟 <code>I want you to act as a senior software engineer specialized in Google's Go programming language</code> 效果相近，但可省下 80% Token。</p> <h3>限制無效輸出</h3> <p>AI 很能聊，答案之外常會補充解釋說明，分享心路歷程，若我們只要結果，這些額外內容全是多餘的，且會浪費寶貴輸出 Token (輸出 Token 通常比輸入貴好幾倍)。有一些常用的簡寫可以有效阻止 AI 模型錦上添花畫蛇添足：</p> <ul><li><code>Code only.</code>/<code>Pure code.</code> 給我程式，其餘免談</li> <li><code>No prose.</code> prose 是散文的意思，指說重點別寫作文</li> <li><code>No preamble.</code> preamble 指前言或開場白</li> <li><code>No postamble.</code> 去掉程式碼後面的總結與提醒</li> <li><code>No yapping.</code> 別廢話。超兇! 我喜歡</li> <li><code>No comments.</code> 不用註解</li> <li><code>Self-documenting code only.</code> 要求程式碼本身清晰易讀，減少對註解的依賴</li> <li><code>Docstring only.</code> 只生成標準的函式文件註釋 (如 Javadoc, TSDoc, PyDoc)，不要解釋邏輯</li> <li><code>Bullet points.</code> 解釋時使用條列式，不要寫大段文字</li></ul> <h3>言簡意賅的約束指令</h3> <p>希望生成內容或程式碼簡潔、正統，有一些好用的約束詞：</p> <ul><li><code>Concise.</code> 力求簡潔</li> <li><code>Idiomatic.</code> 使用符合最佳實踐、哲學與設計模式的寫法</li> <li><code>Explain briefly.</code> 簡短解釋</li> <li>`Dry. (Don't Repeat Yourself) 避免重複邏輯，提取公用函式</li> <li><code>Solid.</code> 遵循 SOLID 原則，寫出易於維護與擴展的物件導向程式</li> <li><code>Clean.</code> 要求符合「Clean Code」原則，注重變數命名與邏輯清晰度</li> <li><code>Production-ready.</code> 要求考慮生產環境所需細節(如錯誤處理、日誌、穩定性)</li> <li><code>Modern.</code> 使用該語言最新的語法特性(例如 Python 3.12+, Java 21+, ES6+)</li> <li><code>Standard lib only.</code> 禁止使用第三方程式庫，只使用語言內建 API</li> <li><code>Performant.</code> 效能優先，減少不必要的資源消耗</li> <li><code>Memory-efficient.</code> 記憶體效率優先，避免記憶體洩漏或過度分配</li> <li><code>O(n).</code> / <code>O(1).</code> 指定時間複雜度上限 <code></code>Thread-safe.` 要求注意多執行緒環境的 Race Condition 問題</li> <li><code>Scalable.</code> 要求架構要考慮到未來擴展性</li> <li><code>Step-by-step.</code> 要求循序漸進拆解，方便理解學習</li> <li><code>One-liner.</code> 將邏輯寫成單行(常見於 Bash 指令或簡單的 Python 邏輯)</li> <li>‵1-sentence summary` 一句話總結</li> <li><code>Raw.</code> 回傳原始格式，不需 Markdown 標籤</li> <li><code>Diff.</code> 傳回像 Git 一樣的差異對照</li> <li><code>Naive implementation.</code> 只需要最簡單、不考慮優化的雛型，不要過度設計</li> <li><code>Sanitized.</code> 特別指處理輸入防止 SQL Injection、XSS 等攻擊</li> <li><code>Hardened.</code> 加強抗攻擊與安全防護</li> <li>‵Graceful degradation.` 某些功能失敗時，系統仍能以有限功能運作</li> <li><code>Skeleton only.</code> 只生成類別與函式的定義，只做骨架不要實作細節</li></ul> <h3>指定輸出格式</h3> <p>若需要特定格式(如 JSON, Diff)，直說即可，如：<code>Output: pure JSON.</code>, <code>Format: git diff.</code>。</p> <h3>提供程式片段即可</h3> <p>若想跟模型交待要處理的部分，不用貼上全部內容，提供相關函式或類別定義就好了，必要時可用 <code>//...</code> 表示省略不相關部分。</p> <h3>善用 Markdown 等結構化表示</h3> <p>使用 <code>#</code> <code>##</code> 區分章節，用 ```...``` 、"""...""" 包夾區塊內容，用 `code...`、&lt;code...&gt; 標示指令，能讓模型快速且有效率地理解你的意圖。</p> <h3>範例</h3> <p>以下是一些高效提示詞範例：</p> <ul><li>重構程式碼：<code>Refactor for performance: {code}</code></li> <li>撰寫測試：<code>Write xunit tests. Focus on edge cases. Code only.</code></li> <li>除錯：<code>Debug: {error message}. Fix and explain briefly.</code></li> <li>轉換語言：<code>Convert this Python to Rust. Idiomatic.</code></li> <li>生成文檔：<code>Generate TSDoc for this function. Concise.</code></li> <li>程式碼審查：<code>Code review. List 3 critical improvements.</code></li></ul> <p>應用上，想成跟 AI 用黑話或行話溝通就對了，像生活中的"北車南三，七點"、"，"top tp 30, play safe"、<del>"大奶微微"</del>... 我們可能做出這樣的例子。 <code>Refactor this. Clean. Dry. Modern. Code only.</code>、<code>Explain this. Bullet points. 1-sentence summary. No yapping.</code></p> <p>另外有個小技巧是這些執行要點建議可放在提示詢結尾，因為模型對最後一段的注意力通常較長 (Recency Bias)。</p> <h3>效益考證</h3> <p>關於電報式提示詞，我有找到幾年前的相關研究，但沒有針對最新模型的權威性實證或心得分享：</p> <ul><li><a href="https://floeproject.org/news/2024-03-19-bag-of-words-with-bliss/">Bliss, Bag of Words, and Telegraphic Prompting of LLMs</a><br> Bag of Words提示法，僅提供少量關鍵詞給 LLM，再由模型生成完整句子</li> <li>微軟研究的 Prompt 壓縮演算法 <a href="https://huggingface.co/spaces/microsoft/LLMLingua">LLMLingua</a><br> 使用便宜模型壓縮長篇提示，結果為精簡文字，但不到電報程度</li> <li>論文：<a href="https://arxiv.org/abs/2505.00019">An Empirical Study on Prompt Compression for Large Language Models</a><br> 提示壓縮不僅能降低成本，還可能在長上下文中提升效能，但可能帶來幻覺風險</li> <li>論文：<a href="https://arxiv.org/abs/2304.12102">Unlocking Context Constraints of LLMs: Enhancing Context Efficiency of LLMs with Self-Information-Based Content Filtering</a><br> 移除冗餘內容後，模型在總結與問答任務中的表現並未顯著衰減</li></ul> <p>雖然沒有鐵證支持，簡單測試，改用電報文確實石達成相同效果，而其運作原理合情合理，直覺會是有效的。而研究到後來，感覺節省 Token 之外，濃縮精簡輸入文字的更大好處是可降低打字成本，加快輸入速度，效益更明顯。總之，我決定開始在日常 AI Coding 試行看看，過陣子再來分享實戰心得。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639152331104092366.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639152331108761398.png"></p> <p>【後記】最近在做一個串接 GPT 模型的 Windows 語音輸入法 Side Project，概念是把先前 <a href="/blog/telegram-transcribe-bot/">GPT 模型口語轉譯服務</a>改裝為作業系統可用的輸入法，「整合電報式提示哲學，將口述中文轉成英語電報文」感覺有點搞頭，就來試試。</p> <p data-slug="telegraph-prompting" data-title-en="Token economics - Telegraph Prompting" data-catg=".NET" data-fbimg="https://images2.imgbox.com/60/6b/XKBG0VPv_o.png#1024#559">Explores token-efficient AI prompting for coding, explaining rising token costs, context limits, “language tax,” caveman style, and telegraphic prompts. Shares practical techniques to reduce input/output tokens while keeping prompts precise, structured, and effective.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>6/1 起 Github Copilot 將全面改為以 Token 計費，GPT/Claude/Gemini 等各家各家模型紛紛緊縮 Token 額度或提高費率，恣意揮霍 Token 的時代已然結束...</p> <p>LLM 大語言模型處理資料與生成內容的單位是 Token (延伸閱讀：<a href="/blog/conv-gpt-token/">文字轉 ChatGPT Token 之實驗與觀察</a>、<a href="/blog/tikcount-go/">Go 小工具 - CLI 版 Token 計數器</a>)，除了與模型使用計費有關，也攸關 AI 生成結果的品質。LLM 模型有所謂的<a href="https://zh.wikipedia.org/zh-tw/%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AA%97%E5%8F%A3">上下文窗口 (Context Window)</a>，不同模型上限各異：</p> <table><thead><tr><th>模型系列&nbsp;</th><th>最大上下文窗口 (Tokens)</th><th>最大輸出 (Tokens)</th></tr></thead><tbody><tr><td>GPT-5.4 / 5.4-pro</td><td>1M</td><td>128K</td></tr><tr><td>GPT-5.4-mini / nano</td><td>400K (輸入上限 272K)</td><td>128K</td></tr><tr><td>GPT-4.1</td><td>1KK</td><td>128K</td></tr><tr><td>Claude Sonnet 4.6 / Opus 4.6</td><td>1KK</td><td>128K</td></tr><tr><td>o3 / o4-mini</td><td>200K</td><td>128K</td></tr><tr><td>GPT-4o</td><td>128K</td><td>4,096</td></tr><tr><td>DeepSeek-R1</td><td>128K</td><td>32,768</td></tr><tr><td>Mistral Large 2</td><td>128K</td><td>128K</td></tr></tbody></table> <p>雖然各家新一代模型的上下文窗口長度不斷突破，已可達到 1M 的水準，但過長易導致注意力稀釋以及幻覺問題，可能導致模型出現重複字詞、語意不連貫或邏輯混亂等「上下文腐化（Context Rot）」現象。總而言之，能實現相同結果，使用的 Token 數愈少不但能節省成本，生成品質也會更好。</p> <p>回到 AI Coding 上，我們在 Github Copilot / Claude / Codex 聊天視窗輸入提示詞時，也適用這個原則。如何用更少的 Token 精準有效地表達我們的意圖，獲得預期結果，是講求 Token 經濟學的新時代的新課題。(什麼？你有十個 MAX 訂閱，沒操心過 Token 額度？咳，以您的<a href="https://www.facebook.com/share/p/1Dr7oq49E3/">模力值</a>不必跟我們研究這些，全程放大絕就可以囉)</p> <p>總之，我花了點時間查了資料，研究讓 AI 提示詞「一字千金」的小技巧。</p> <p>首先，依<a href="https://www.facebook.com/share/p/1BLNABvbDM/">「語言稅」理論</a>，使用中文在 GPT、Claude、Gemini 等模型上會比英文耗用更多 Token ，因此除非是用 Qwen、DeepSeek、Kimi 等中文模型，直接用英文寫提示詞是更好的選擇。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639152331098240613.jpg"></p> <p>再來，前陣子有個可安裝在 Codex、Gemini、Cursor、Windsurf、Copilot 的<a href="https://github.com/juliusbrussee/caveman">山頂洞人(Caveman) Skill</a> 受到觀注(Github 專案已 6.4 萬顆星星)，號稱可以節省 75% Token，做法超級簡單，在 <a href="https://github.com/JuliusBrussee/caveman/blob/main/skills/caveman/SKILL.md">SKILL.md</a> 中要求 Agent 像原始人一樣說話，移除冠詞、填充詞、客套話... 但完整保留術語關鍵字，程式碼區塊等，藉此讓模型的輸出變得簡短、無廢話。</p> <p>而同樣概念應用在下提示詞，則有種相關概念的做法 - 用打電報的方式下提示詞。電話還沒出現的古老年代，遠距即時通訊只能靠摩斯電碼傳送電報文字，以字數與距離收費，故發訊息的人必須絞盡腦汁，用最少字數表達意思，跟現在壓低 Token 數以降低成本提升品質異曲同工。</p> <p>Telegraphic Prompting 技巧 (電報式提示，有時也稱為 Prompt Compression 或 Token Optimization) 是指刪除提示詞中的助動詞、冠詞、標點符號或多餘客套話，僅保留核心意義的關鍵字，像發電報一樣簡潔。如：<code>Refactor: improve readability, O(n) complexity, TypeScript.</code> 這樣就夠了。電報風格不用管主副詞介係詞，不必花時間把組成文法正確、辭藻優美的句子，除了減少 Token 量還能節省大腦，但我覺得寫久了，英文寫與說的能力會退化就是了 😄</p> <p>以下是我找到一些寫電報式提示的零碎技巧：(我的日常應用以 AI Coding 為大宗，故技巧會偏程式一些，但有些在非程式情境也適用)</p> <h3>別說請謝謝對不起，交待 AI 任務禮貌是多餘的</h3> <p>有<a href="https://arxiv.org/abs/2312.16171">研究</a>提示的 26 提示詞原則中的第一條原則便是「不需要對 LLM 保持禮貌 (如說 Please, Thank you)，直接講重點」，實驗證明，過多的社交辭令不僅浪費 Token，有時反而會干擾 AI 對核心指令的注意力。<br> ❌ <code>Could you please write a Python function to sort a list?</code><br> ✅ <code>Write Python list sort function.</code></p> <h3>定義角色取代長串定義描述</h3> <p>直接指定 AI 扮演角色(如：<code>Act as a senior Go Dev.</code>)跟 <code>I want you to act as a senior software engineer specialized in Google's Go programming language</code> 效果相近，但可省下 80% Token。</p> <h3>限制無效輸出</h3> <p>AI 很能聊，答案之外常會補充解釋說明，分享心路歷程，若我們只要結果，這些額外內容全是多餘的，且會浪費寶貴輸出 Token (輸出 Token 通常比輸入貴好幾倍)。有一些常用的簡寫可以有效阻止 AI 模型錦上添花畫蛇添足：</p> <ul><li><code>Code only.</code>/<code>Pure code.</code> 給我程式，其餘免談</li> <li><code>No prose.</code> prose 是散文的意思，指說重點別寫作文</li> <li><code>No preamble.</code> preamble 指前言或開場白</li> <li><code>No postamble.</code> 去掉程式碼後面的總結與提醒</li> <li><code>No yapping.</code> 別廢話。超兇! 我喜歡</li> <li><code>No comments.</code> 不用註解</li> <li><code>Self-documenting code only.</code> 要求程式碼本身清晰易讀，減少對註解的依賴</li> <li><code>Docstring only.</code> 只生成標準的函式文件註釋 (如 Javadoc, TSDoc, PyDoc)，不要解釋邏輯</li> <li><code>Bullet points.</code> 解釋時使用條列式，不要寫大段文字</li></ul> <h3>言簡意賅的約束指令</h3> <p>希望生成內容或程式碼簡潔、正統，有一些好用的約束詞：</p> <ul><li><code>Concise.</code> 力求簡潔</li> <li><code>Idiomatic.</code> 使用符合最佳實踐、哲學與設計模式的寫法</li> <li><code>Explain briefly.</code> 簡短解釋</li> <li>`Dry. (Don't Repeat Yourself) 避免重複邏輯，提取公用函式</li> <li><code>Solid.</code> 遵循 SOLID 原則，寫出易於維護與擴展的物件導向程式</li> <li><code>Clean.</code> 要求符合「Clean Code」原則，注重變數命名與邏輯清晰度</li> <li><code>Production-ready.</code> 要求考慮生產環境所需細節(如錯誤處理、日誌、穩定性)</li> <li><code>Modern.</code> 使用該語言最新的語法特性(例如 Python 3.12+, Java 21+, ES6+)</li> <li><code>Standard lib only.</code> 禁止使用第三方程式庫，只使用語言內建 API</li> <li><code>Performant.</code> 效能優先，減少不必要的資源消耗</li> <li><code>Memory-efficient.</code> 記憶體效率優先，避免記憶體洩漏或過度分配</li> <li><code>O(n).</code> / <code>O(1).</code> 指定時間複雜度上限 <code></code>Thread-safe.` 要求注意多執行緒環境的 Race Condition 問題</li> <li><code>Scalable.</code> 要求架構要考慮到未來擴展性</li> <li><code>Step-by-step.</code> 要求循序漸進拆解，方便理解學習</li> <li><code>One-liner.</code> 將邏輯寫成單行(常見於 Bash 指令或簡單的 Python 邏輯)</li> <li>‵1-sentence summary` 一句話總結</li> <li><code>Raw.</code> 回傳原始格式，不需 Markdown 標籤</li> <li><code>Diff.</code> 傳回像 Git 一樣的差異對照</li> <li><code>Naive implementation.</code> 只需要最簡單、不考慮優化的雛型，不要過度設計</li> <li><code>Sanitized.</code> 特別指處理輸入防止 SQL Injection、XSS 等攻擊</li> <li><code>Hardened.</code> 加強抗攻擊與安全防護</li> <li>‵Graceful degradation.` 某些功能失敗時，系統仍能以有限功能運作</li> <li><code>Skeleton only.</code> 只生成類別與函式的定義，只做骨架不要實作細節</li></ul> <h3>指定輸出格式</h3> <p>若需要特定格式(如 JSON, Diff)，直說即可，如：<code>Output: pure JSON.</code>, <code>Format: git diff.</code>。</p> <h3>提供程式片段即可</h3> <p>若想跟模型交待要處理的部分，不用貼上全部內容，提供相關函式或類別定義就好了，必要時可用 <code>//...</code> 表示省略不相關部分。</p> <h3>善用 Markdown 等結構化表示</h3> <p>使用 <code>#</code> <code>##</code> 區分章節，用 ```...``` 、"""...""" 包夾區塊內容，用 `code...`、&lt;code...&gt; 標示指令，能讓模型快速且有效率地理解你的意圖。</p> <h3>範例</h3> <p>以下是一些高效提示詞範例：</p> <ul><li>重構程式碼：<code>Refactor for performance: {code}</code></li> <li>撰寫測試：<code>Write xunit tests. Focus on edge cases. Code only.</code></li> <li>除錯：<code>Debug: {error message}. Fix and explain briefly.</code></li> <li>轉換語言：<code>Convert this Python to Rust. Idiomatic.</code></li> <li>生成文檔：<code>Generate TSDoc for this function. Concise.</code></li> <li>程式碼審查：<code>Code review. List 3 critical improvements.</code></li></ul> <p>應用上，想成跟 AI 用黑話或行話溝通就對了，像生活中的"北車南三，七點"、"，"top tp 30, play safe"、<del>"大奶微微"</del>... 我們可能做出這樣的例子。 <code>Refactor this. Clean. Dry. Modern. Code only.</code>、<code>Explain this. Bullet points. 1-sentence summary. No yapping.</code></p> <p>另外有個小技巧是這些執行要點建議可放在提示詢結尾，因為模型對最後一段的注意力通常較長 (Recency Bias)。</p> <h3>效益考證</h3> <p>關於電報式提示詞，我有找到幾年前的相關研究，但沒有針對最新模型的權威性實證或心得分享：</p> <ul><li><a href="https://floeproject.org/news/2024-03-19-bag-of-words-with-bliss/">Bliss, Bag of Words, and Telegraphic Prompting of LLMs</a><br> Bag of Words提示法，僅提供少量關鍵詞給 LLM，再由模型生成完整句子</li> <li>微軟研究的 Prompt 壓縮演算法 <a href="https://huggingface.co/spaces/microsoft/LLMLingua">LLMLingua</a><br> 使用便宜模型壓縮長篇提示，結果為精簡文字，但不到電報程度</li> <li>論文：<a href="https://arxiv.org/abs/2505.00019">An Empirical Study on Prompt Compression for Large Language Models</a><br> 提示壓縮不僅能降低成本，還可能在長上下文中提升效能，但可能帶來幻覺風險</li> <li>論文：<a href="https://arxiv.org/abs/2304.12102">Unlocking Context Constraints of LLMs: Enhancing Context Efficiency of LLMs with Self-Information-Based Content Filtering</a><br> 移除冗餘內容後，模型在總結與問答任務中的表現並未顯著衰減</li></ul> <p>雖然沒有鐵證支持，簡單測試，改用電報文確實石達成相同效果，而其運作原理合情合理，直覺會是有效的。而研究到後來，感覺節省 Token 之外，濃縮精簡輸入文字的更大好處是可降低打字成本，加快輸入速度，效益更明顯。總之，我決定開始在日常 AI Coding 試行看看，過陣子再來分享實戰心得。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639152331104092366.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639152331108761398.png"></p> <p>【後記】最近在做一個串接 GPT 模型的 Windows 語音輸入法 Side Project，概念是把先前 <a href="/blog/telegram-transcribe-bot/">GPT 模型口語轉譯服務</a>改裝為作業系統可用的輸入法，「整合電報式提示哲學，將口述中文轉成英語電報文」感覺有點搞頭，就來試試。</p> <p data-slug="telegraph-prompting" data-title-en="Token economics - Telegraph Prompting" data-catg=".NET" data-fbimg="https://images2.imgbox.com/60/6b/XKBG0VPv_o.png#1024#559">Explores token-efficient AI prompting for coding, explaining rising token costs, context limits, “language tax,” caveman style, and telegraphic prompts. Shares practical techniques to reduce input/output tokens while keeping prompts precise, structured, and effective.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig2_639152331098240613.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig2_639152331098240613.jpg" medium="image"/>
+    <pubDate>Sun, 24 May 2026 15:10:44 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[使用 Gitea 容器映像註冊服務 (Container Image Registry)]]></title>
+    <link>https://blog.darkthread.net/blog/gitea-container-registry/</link>
+    <itunes:title><![CDATA[使用 Gitea 容器映像註冊服務 (Container Image Registry)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前面分享過<a href="/blog/msbuild-target-in-csproj/">用 MSBuild Target 處理</a> Docker 編譯、將映像檔另存 tar、scp 上傳 Linux 端、ssh 執行指令載入映象檔等一連串作業的組合拳，這篇打算再朝 CI/CD 前進一小步 - 改用 Container Image Registry 管理映像檔。</p> <p>如果 GitHub 上的專案，Github 有自己的容器映像註冊服務 - GHCR (GitHub Container Registry)，免費用戶可存放 500MB (月傳輸量 1GB)、Pro 訂閱則有 2GB (月傳輸量 1GB)，GHCR 與 GitHub Repository、Actions、權限系統高度整合，是很好的選擇。若是企業組織，<a href="https://azure.microsoft.com/zh-tw/products/devops/server?WT.mc_id=DOP-MVP-37580">Azure DevOps Server (原 TFS Server)</a>有整套的 CI/CD 解決方案，還能做到全地端跟 AD 無縫整合，加上為商用軟體有廠商支援，應該是許多公司的首選。</p> <p>不過，這篇的討論情境是我的居家服務 Side Project，有一堆私人專案使用<a href="/blog/gitea/">自架 Gitea 伺服器</a> 做版控，想將程式碼或容器映像檔完全封閉在內網，與 Github、Docker Hub 這些雲端方案無緣，映象註冊服務也得自己架設。</p> <p>之前<a href="/blog/private-docker-registry/">自架過 Docker Regisry</a>，因 Docker 程式預設只接受 HTTPS 安全連線，記得當時光自簽憑證就費了不少手腳。前陣子花點小錢買了個 DNS 網域名稱，<a href="/blog/acme-sh/">結合 Cloudflare DNS API 走 DNS-01 取得萬用字元 TLS 憑證</a>，憑證管理成本瞬間歸零，哈! 但，這回要繼續用 <a href="https://hub.docker.com/_/registry">Docker 官方 Registry</a>嗎？</p> <p>查了一下，發現 Gitea 本身就<a href="https://docs.gitea.com/usage/packages/container">內建容器註冊服務 (Container Registry)</a>，其遵循 OCI 標準，也支援 Docker。我的版控主機是用 Gitea，直接用它內建的容器註冊服務自然是首選。</p> <p>整理使用 Gitea 管理容器映像的步驟：</p> <ol><li>建立專用 Token<br> 在 User Settings / Applications / Manage Access Tokens 輸入 Token 名稱，只開啟 Package 的讀寫權限，如此，即便 Token 不幸外洩，風險範圍可縮小到只有 Package (Container Image)：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639150521055410039.png"><br> 建立 Token 後，記下十六進位數字的 Token 值備用(紅箭頭處，只會顯示這一次，要抄好)：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639150521059030955.png"></li> <li>使用 <code>docker login gitea.domain-name.net -u &lt;username&gt;</code> 登入，密碼用剛才產生的 Token 值</li> <li>若有用 nginx 當 Reverse Proxy，建議在 config 加上 <code>client_max_body_size 512M;</code> 放大上傳長度限制以免 push 時出現 HTTP 413</li> <li>在本機先建置好 Docker 映像，為映像加上 tag，格式為 <code>gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code>，為方便後續使用，建議同時建立數字版號及 latest Tag</li> <li>使用指令 <code>docker push gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code> 推送到 Gitea，大功告成!<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639150521063863412.png"></li></ol> <p>接著，進入 <code>https://gitea.domain-name.net/&lt;username&gt;</code> 個人頁，點選 Packages 就能看到剛才上傳的容器映像檔囉!</p> <p>至於 Linux 端，我在 Debian 跑 docker login 時收到警告說我的密碼是用明碼儲存不安全：</p> <pre><code>~$docker login gitea.my-domain.net -u jeffrey
+Password:
+WARNING! Your credentials are stored unencrypted in '/home/jeffrey/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+Login Succeeded
+</code></pre> <p>坦白說，這裡可以牙一咬「明碼就明碼，駭客都能登進來，還有什麼好防？」，睜隻眼閉隻眼就算了。不過，我還是把握機會，學習在 Linux 安全地保存密碼 (結果在這段花的時間是 Gitea 部分的三倍，噗)。</p> <p>Linux 保存密碼的選擇蠻多，但許多需配合 GNOME 等桌面環境，我的應用場景主要是 ssh 操作與自動部署，故選擇 CLI 類的解決方案。以下是我測試成功的做法：</p> <pre><code>sudo apt update
+sudo apt install -y pass gnupg2 golang-docker-credential-helpers
+which docker-credential-pass # 顯示 /usr/bin/docker-credential-pass
+# 建立 GPG key
+gpg --full-generate-key
+# 列出 Key
+gpg --list-secret-keys --keyid-format LONG
+</code></pre> <p>AI 及一些教學建議用 RSA，但依先前的研究心得(<a href="/blog/gpg-gen-key-n-encrypt/">GPG 筆記 - 產生 ECC 金鑰及加解密檔案</a>)，我選擇用預設選項 ECC。 --list-secret-keys 列出的結果範例如下，找出 <code>sec ed25519/0123456789ABCDEF</code> 的 0123456789ABCDEF 部分：</p> <pre><code>gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+/home/jeffrey/.gnupg/pubring.kbx
+--------------------------------
+sec   ed25519/0123456789ABCDEF 2026-05-19 [SC]
+E33AB706BB79C199ED30775ABA445A7B6F36192F
+uid                 [ultimate] jeffrey &lt;<a href="/cdn-cgi/l/email-protection" data-cfemail="147e71727266716d54716c75796478713a777b79">[email&nbsp;protected]</a>&gt;
+ssb   cv25519/FEDCBA987654321 2026-05-19 [E]
+</code></pre> <p>執行 <code>pass init 0123456789ABCDEF</code> 建立 Password Store：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639150521066684671.png"></p> <p>修改 <code>~/.docker/config.json</code> 把內容置換成 <code>{ "credsStore": "pass" }</code> 後，重新執行 <code>docker login gitea.my-domain.net -u jeffrey</code> 登入，用 <code>pass ls</code> 查詢可看到己存入資料：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639150521069573312.png"></p> <p>之後測試 <code>docker pull gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code> 若順利下載就成功了~</p> <p>這裡有個小眉角是 git pull / push 時可能會冒出以下錯誤 <code>error getting credentials - err: exit status 1, out: exit status 2: gpg: public key decryption failed: No such file or directory gpg: decryption failed: No such file or directory</code>，Docker 使用 pass（GPG 的密碼管理器）後，當 GPG agent 鑰匙圈過期或鎖定時就會出現這類錯誤。</p> <p>解法 1 手動輸入密碼</p> <p>隨意對一段文字做簽章觸發密碼輸入，之後密碼會 Cache 一陣子，再執行 <code>git pull</code> 便會成功。</p> <pre><code>export GPG_TTY=$(tty) # 指定由 TTY 輸入密碼，可設在 ~/.bashrc
+echo "plain" | gpg --clearsign &gt; /dev/null
+</code></pre> <p>解法 2 自動化腳本時改明碼輸入</p> <p>GPG 的密碼輸入故意隔離在獨立程式 pinentry (pinentry-gnome, pinentry-curses, pinetry-tty)，不讓主程式直接碰觸密碼以提高安全性，但不適用無人參與的自動化腳本情境。</p> <p>要以明碼密碼解鎖 GPG 解密 Token 程序挺複雜的。先要設定 <code>~/.gnupg/gpg-agent.conf</code>，加入 <code>allow-loopback-pinentry</code>；設定 '~/.gnupg/gpg.conf' 加入 <code>pinentry-mode loopback</code>，修改後 <code>gpgconf --kill gpg-agent</code> 重啟 gpg-agent。</p> <p>docker pull/push 前用以下程式解鎖 gpg-agent 的加密 subkey cache，之後便可用記憶的密碼完成 Gitea 登入，呼~</p> <pre><code>echo "&lt;gpg-password&gt;" | gpg \
+--batch \
+--passphrase-fd 0 \        # 從 fd 0（stdin）讀取密碼
+--pinentry-mode loopback \ # 使用 loopback（不叫 pinentry）
+-d ~/.password-store/docker-credential-helpers/Z2...lu/jeffrey.gpg 2&gt;&amp;1 /dev/null
+# gpg-agent 有解密金鑰 Cache，可取出 Gitea 密碼完成登入
+docker compose pull
+</code></pre> <p>總之，使用 Gitea Push 及 Pull 容器技能習得，下一步就可以來研究實現 git push 後容器自動換版的自動化流程囉~</p> <p data-slug="gitea-container-registry" data-title-en="Using Gitea container image registry" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">Explains using Gitea’s built-in Container Registry for private Docker image management, including token setup, push/pull workflow, nginx limits, secure Docker credential storage with pass and GPG, and handling GPG agent issues for automated deployment.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前面分享過<a href="/blog/msbuild-target-in-csproj/">用 MSBuild Target 處理</a> Docker 編譯、將映像檔另存 tar、scp 上傳 Linux 端、ssh 執行指令載入映象檔等一連串作業的組合拳，這篇打算再朝 CI/CD 前進一小步 - 改用 Container Image Registry 管理映像檔。</p> <p>如果 GitHub 上的專案，Github 有自己的容器映像註冊服務 - GHCR (GitHub Container Registry)，免費用戶可存放 500MB (月傳輸量 1GB)、Pro 訂閱則有 2GB (月傳輸量 1GB)，GHCR 與 GitHub Repository、Actions、權限系統高度整合，是很好的選擇。若是企業組織，<a href="https://azure.microsoft.com/zh-tw/products/devops/server?WT.mc_id=DOP-MVP-37580">Azure DevOps Server (原 TFS Server)</a>有整套的 CI/CD 解決方案，還能做到全地端跟 AD 無縫整合，加上為商用軟體有廠商支援，應該是許多公司的首選。</p> <p>不過，這篇的討論情境是我的居家服務 Side Project，有一堆私人專案使用<a href="/blog/gitea/">自架 Gitea 伺服器</a> 做版控，想將程式碼或容器映像檔完全封閉在內網，與 Github、Docker Hub 這些雲端方案無緣，映象註冊服務也得自己架設。</p> <p>之前<a href="/blog/private-docker-registry/">自架過 Docker Regisry</a>，因 Docker 程式預設只接受 HTTPS 安全連線，記得當時光自簽憑證就費了不少手腳。前陣子花點小錢買了個 DNS 網域名稱，<a href="/blog/acme-sh/">結合 Cloudflare DNS API 走 DNS-01 取得萬用字元 TLS 憑證</a>，憑證管理成本瞬間歸零，哈! 但，這回要繼續用 <a href="https://hub.docker.com/_/registry">Docker 官方 Registry</a>嗎？</p> <p>查了一下，發現 Gitea 本身就<a href="https://docs.gitea.com/usage/packages/container">內建容器註冊服務 (Container Registry)</a>，其遵循 OCI 標準，也支援 Docker。我的版控主機是用 Gitea，直接用它內建的容器註冊服務自然是首選。</p> <p>整理使用 Gitea 管理容器映像的步驟：</p> <ol><li>建立專用 Token<br> 在 User Settings / Applications / Manage Access Tokens 輸入 Token 名稱，只開啟 Package 的讀寫權限，如此，即便 Token 不幸外洩，風險範圍可縮小到只有 Package (Container Image)：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639150521055410039.png"><br> 建立 Token 後，記下十六進位數字的 Token 值備用(紅箭頭處，只會顯示這一次，要抄好)：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639150521059030955.png"></li> <li>使用 <code>docker login gitea.domain-name.net -u &lt;username&gt;</code> 登入，密碼用剛才產生的 Token 值</li> <li>若有用 nginx 當 Reverse Proxy，建議在 config 加上 <code>client_max_body_size 512M;</code> 放大上傳長度限制以免 push 時出現 HTTP 413</li> <li>在本機先建置好 Docker 映像，為映像加上 tag，格式為 <code>gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code>，為方便後續使用，建議同時建立數字版號及 latest Tag</li> <li>使用指令 <code>docker push gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code> 推送到 Gitea，大功告成!<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639150521063863412.png"></li></ol> <p>接著，進入 <code>https://gitea.domain-name.net/&lt;username&gt;</code> 個人頁，點選 Packages 就能看到剛才上傳的容器映像檔囉!</p> <p>至於 Linux 端，我在 Debian 跑 docker login 時收到警告說我的密碼是用明碼儲存不安全：</p> <pre><code>~$docker login gitea.my-domain.net -u jeffrey
+Password:
+WARNING! Your credentials are stored unencrypted in '/home/jeffrey/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+Login Succeeded
+</code></pre> <p>坦白說，這裡可以牙一咬「明碼就明碼，駭客都能登進來，還有什麼好防？」，睜隻眼閉隻眼就算了。不過，我還是把握機會，學習在 Linux 安全地保存密碼 (結果在這段花的時間是 Gitea 部分的三倍，噗)。</p> <p>Linux 保存密碼的選擇蠻多，但許多需配合 GNOME 等桌面環境，我的應用場景主要是 ssh 操作與自動部署，故選擇 CLI 類的解決方案。以下是我測試成功的做法：</p> <pre><code>sudo apt update
+sudo apt install -y pass gnupg2 golang-docker-credential-helpers
+which docker-credential-pass # 顯示 /usr/bin/docker-credential-pass
+# 建立 GPG key
+gpg --full-generate-key
+# 列出 Key
+gpg --list-secret-keys --keyid-format LONG
+</code></pre> <p>AI 及一些教學建議用 RSA，但依先前的研究心得(<a href="/blog/gpg-gen-key-n-encrypt/">GPG 筆記 - 產生 ECC 金鑰及加解密檔案</a>)，我選擇用預設選項 ECC。 --list-secret-keys 列出的結果範例如下，找出 <code>sec ed25519/0123456789ABCDEF</code> 的 0123456789ABCDEF 部分：</p> <pre><code>gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+/home/jeffrey/.gnupg/pubring.kbx
+--------------------------------
+sec   ed25519/0123456789ABCDEF 2026-05-19 [SC]
+E33AB706BB79C199ED30775ABA445A7B6F36192F
+uid                 [ultimate] jeffrey &lt;<a href="/cdn-cgi/l/email-protection" data-cfemail="147e71727266716d54716c75796478713a777b79">[email&nbsp;protected]</a>&gt;
+ssb   cv25519/FEDCBA987654321 2026-05-19 [E]
+</code></pre> <p>執行 <code>pass init 0123456789ABCDEF</code> 建立 Password Store：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639150521066684671.png"></p> <p>修改 <code>~/.docker/config.json</code> 把內容置換成 <code>{ "credsStore": "pass" }</code> 後，重新執行 <code>docker login gitea.my-domain.net -u jeffrey</code> 登入，用 <code>pass ls</code> 查詢可看到己存入資料：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639150521069573312.png"></p> <p>之後測試 <code>docker pull gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code> 若順利下載就成功了~</p> <p>這裡有個小眉角是 git pull / push 時可能會冒出以下錯誤 <code>error getting credentials - err: exit status 1, out: exit status 2: gpg: public key decryption failed: No such file or directory gpg: decryption failed: No such file or directory</code>，Docker 使用 pass（GPG 的密碼管理器）後，當 GPG agent 鑰匙圈過期或鎖定時就會出現這類錯誤。</p> <p>解法 1 手動輸入密碼</p> <p>隨意對一段文字做簽章觸發密碼輸入，之後密碼會 Cache 一陣子，再執行 <code>git pull</code> 便會成功。</p> <pre><code>export GPG_TTY=$(tty) # 指定由 TTY 輸入密碼，可設在 ~/.bashrc
+echo "plain" | gpg --clearsign &gt; /dev/null
+</code></pre> <p>解法 2 自動化腳本時改明碼輸入</p> <p>GPG 的密碼輸入故意隔離在獨立程式 pinentry (pinentry-gnome, pinentry-curses, pinetry-tty)，不讓主程式直接碰觸密碼以提高安全性，但不適用無人參與的自動化腳本情境。</p> <p>要以明碼密碼解鎖 GPG 解密 Token 程序挺複雜的。先要設定 <code>~/.gnupg/gpg-agent.conf</code>，加入 <code>allow-loopback-pinentry</code>；設定 '~/.gnupg/gpg.conf' 加入 <code>pinentry-mode loopback</code>，修改後 <code>gpgconf --kill gpg-agent</code> 重啟 gpg-agent。</p> <p>docker pull/push 前用以下程式解鎖 gpg-agent 的加密 subkey cache，之後便可用記憶的密碼完成 Gitea 登入，呼~</p> <pre><code>echo "&lt;gpg-password&gt;" | gpg \
+--batch \
+--passphrase-fd 0 \        # 從 fd 0（stdin）讀取密碼
+--pinentry-mode loopback \ # 使用 loopback（不叫 pinentry）
+-d ~/.password-store/docker-credential-helpers/Z2...lu/jeffrey.gpg 2&gt;&amp;1 /dev/null
+# gpg-agent 有解密金鑰 Cache，可取出 Gitea 密碼完成登入
+docker compose pull
+</code></pre> <p>總之，使用 Gitea Push 及 Pull 容器技能習得，下一步就可以來研究實現 git push 後容器自動換版的自動化流程囉~</p> <p data-slug="gitea-container-registry" data-title-en="Using Gitea container image registry" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">Explains using Gitea’s built-in Container Registry for private Docker image management, including token setup, push/pull workflow, nginx limits, secure Docker credential storage with pass and GPG, and handling GPG agent issues for automated deployment.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前面分享過<a href="/blog/msbuild-target-in-csproj/">用 MSBuild Target 處理</a> Docker 編譯、將映像檔另存 tar、scp 上傳 Linux 端、ssh 執行指令載入映象檔等一連串作業的組合拳，這篇打算再朝 CI/CD 前進一小步 - 改用 Container Image Registry 管理映像檔。</p> <p>如果 GitHub 上的專案，Github 有自己的容器映像註冊服務 - GHCR (GitHub Container Registry)，免費用戶可存放 500MB (月傳輸量 1GB)、Pro 訂閱則有 2GB (月傳輸量 1GB)，GHCR 與 GitHub Repository、Actions、權限系統高度整合，是很好的選擇。若是企業組織，<a href="https://azure.microsoft.com/zh-tw/products/devops/server?WT.mc_id=DOP-MVP-37580">Azure DevOps Server (原 TFS Server)</a>有整套的 CI/CD 解決方案，還能做到全地端跟 AD 無縫整合，加上為商用軟體有廠商支援，應該是許多公司的首選。</p> <p>不過，這篇的討論情境是我的居家服務 Side Project，有一堆私人專案使用<a href="/blog/gitea/">自架 Gitea 伺服器</a> 做版控，想將程式碼或容器映像檔完全封閉在內網，與 Github、Docker Hub 這些雲端方案無緣，映象註冊服務也得自己架設。</p> <p>之前<a href="/blog/private-docker-registry/">自架過 Docker Regisry</a>，因 Docker 程式預設只接受 HTTPS 安全連線，記得當時光自簽憑證就費了不少手腳。前陣子花點小錢買了個 DNS 網域名稱，<a href="/blog/acme-sh/">結合 Cloudflare DNS API 走 DNS-01 取得萬用字元 TLS 憑證</a>，憑證管理成本瞬間歸零，哈! 但，這回要繼續用 <a href="https://hub.docker.com/_/registry">Docker 官方 Registry</a>嗎？</p> <p>查了一下，發現 Gitea 本身就<a href="https://docs.gitea.com/usage/packages/container">內建容器註冊服務 (Container Registry)</a>，其遵循 OCI 標準，也支援 Docker。我的版控主機是用 Gitea，直接用它內建的容器註冊服務自然是首選。</p> <p>整理使用 Gitea 管理容器映像的步驟：</p> <ol><li>建立專用 Token<br> 在 User Settings / Applications / Manage Access Tokens 輸入 Token 名稱，只開啟 Package 的讀寫權限，如此，即便 Token 不幸外洩，風險範圍可縮小到只有 Package (Container Image)：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639150521055410039.png"><br> 建立 Token 後，記下十六進位數字的 Token 值備用(紅箭頭處，只會顯示這一次，要抄好)：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639150521059030955.png"></li> <li>使用 <code>docker login gitea.domain-name.net -u &lt;username&gt;</code> 登入，密碼用剛才產生的 Token 值</li> <li>若有用 nginx 當 Reverse Proxy，建議在 config 加上 <code>client_max_body_size 512M;</code> 放大上傳長度限制以免 push 時出現 HTTP 413</li> <li>在本機先建置好 Docker 映像，為映像加上 tag，格式為 <code>gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code>，為方便後續使用，建議同時建立數字版號及 latest Tag</li> <li>使用指令 <code>docker push gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code> 推送到 Gitea，大功告成!<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639150521063863412.png"></li></ol> <p>接著，進入 <code>https://gitea.domain-name.net/&lt;username&gt;</code> 個人頁，點選 Packages 就能看到剛才上傳的容器映像檔囉!</p> <p>至於 Linux 端，我在 Debian 跑 docker login 時收到警告說我的密碼是用明碼儲存不安全：</p> <pre><code>~$docker login gitea.my-domain.net -u jeffrey
+Password:
+WARNING! Your credentials are stored unencrypted in '/home/jeffrey/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+Login Succeeded
+</code></pre> <p>坦白說，這裡可以牙一咬「明碼就明碼，駭客都能登進來，還有什麼好防？」，睜隻眼閉隻眼就算了。不過，我還是把握機會，學習在 Linux 安全地保存密碼 (結果在這段花的時間是 Gitea 部分的三倍，噗)。</p> <p>Linux 保存密碼的選擇蠻多，但許多需配合 GNOME 等桌面環境，我的應用場景主要是 ssh 操作與自動部署，故選擇 CLI 類的解決方案。以下是我測試成功的做法：</p> <pre><code>sudo apt update
+sudo apt install -y pass gnupg2 golang-docker-credential-helpers
+which docker-credential-pass # 顯示 /usr/bin/docker-credential-pass
+# 建立 GPG key
+gpg --full-generate-key
+# 列出 Key
+gpg --list-secret-keys --keyid-format LONG
+</code></pre> <p>AI 及一些教學建議用 RSA，但依先前的研究心得(<a href="/blog/gpg-gen-key-n-encrypt/">GPG 筆記 - 產生 ECC 金鑰及加解密檔案</a>)，我選擇用預設選項 ECC。 --list-secret-keys 列出的結果範例如下，找出 <code>sec ed25519/0123456789ABCDEF</code> 的 0123456789ABCDEF 部分：</p> <pre><code>gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+/home/jeffrey/.gnupg/pubring.kbx
+--------------------------------
+sec   ed25519/0123456789ABCDEF 2026-05-19 [SC]
+E33AB706BB79C199ED30775ABA445A7B6F36192F
+uid                 [ultimate] jeffrey &lt;<a href="/cdn-cgi/l/email-protection" data-cfemail="147e71727266716d54716c75796478713a777b79">[email&nbsp;protected]</a>&gt;
+ssb   cv25519/FEDCBA987654321 2026-05-19 [E]
+</code></pre> <p>執行 <code>pass init 0123456789ABCDEF</code> 建立 Password Store：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639150521066684671.png"></p> <p>修改 <code>~/.docker/config.json</code> 把內容置換成 <code>{ "credsStore": "pass" }</code> 後，重新執行 <code>docker login gitea.my-domain.net -u jeffrey</code> 登入，用 <code>pass ls</code> 查詢可看到己存入資料：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639150521069573312.png"></p> <p>之後測試 <code>docker pull gitea.domain-name.net/&lt;username&gt;/&lt;img-name&gt;:&lt;verion&gt;</code> 若順利下載就成功了~</p> <p>這裡有個小眉角是 git pull / push 時可能會冒出以下錯誤 <code>error getting credentials - err: exit status 1, out: exit status 2: gpg: public key decryption failed: No such file or directory gpg: decryption failed: No such file or directory</code>，Docker 使用 pass（GPG 的密碼管理器）後，當 GPG agent 鑰匙圈過期或鎖定時就會出現這類錯誤。</p> <p>解法 1 手動輸入密碼</p> <p>隨意對一段文字做簽章觸發密碼輸入，之後密碼會 Cache 一陣子，再執行 <code>git pull</code> 便會成功。</p> <pre><code>export GPG_TTY=$(tty) # 指定由 TTY 輸入密碼，可設在 ~/.bashrc
+echo "plain" | gpg --clearsign &gt; /dev/null
+</code></pre> <p>解法 2 自動化腳本時改明碼輸入</p> <p>GPG 的密碼輸入故意隔離在獨立程式 pinentry (pinentry-gnome, pinentry-curses, pinetry-tty)，不讓主程式直接碰觸密碼以提高安全性，但不適用無人參與的自動化腳本情境。</p> <p>要以明碼密碼解鎖 GPG 解密 Token 程序挺複雜的。先要設定 <code>~/.gnupg/gpg-agent.conf</code>，加入 <code>allow-loopback-pinentry</code>；設定 '~/.gnupg/gpg.conf' 加入 <code>pinentry-mode loopback</code>，修改後 <code>gpgconf --kill gpg-agent</code> 重啟 gpg-agent。</p> <p>docker pull/push 前用以下程式解鎖 gpg-agent 的加密 subkey cache，之後便可用記憶的密碼完成 Gitea 登入，呼~</p> <pre><code>echo "&lt;gpg-password&gt;" | gpg \
+--batch \
+--passphrase-fd 0 \        # 從 fd 0（stdin）讀取密碼
+--pinentry-mode loopback \ # 使用 loopback（不叫 pinentry）
+-d ~/.password-store/docker-credential-helpers/Z2...lu/jeffrey.gpg 2&gt;&amp;1 /dev/null
+# gpg-agent 有解密金鑰 Cache，可取出 Gitea 密碼完成登入
+docker compose pull
+</code></pre> <p>總之，使用 Gitea Push 及 Pull 容器技能習得，下一步就可以來研究實現 git push 後容器自動換版的自動化流程囉~</p> <p data-slug="gitea-container-registry" data-title-en="Using Gitea container image registry" data-catg="Web Development" data-fbimg="https://cdn.pixabay.com/photo/2018/12/06/12/02/container-3859710_960_720.jpg#960#720">Explains using Gitea’s built-in Container Registry for private Docker image management, including token setup, push/pull workflow, nginx limits, secure Docker credential storage with pass and GPG, and handling GPG agent issues for automated deployment.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639150521055410039.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639150521055410039.png" medium="image"/>
+    <pubDate>Fri, 22 May 2026 12:55:52 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Gemini 不肯上網？用 Google AI Studio 就對了]]></title>
+    <link>https://blog.darkthread.net/blog/ai-studio-tools/</link>
+    <itunes:title><![CDATA[Gemini 不肯上網？用 Google AI Studio 就對了]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="/blog/anythingllm-web-browsing/">上篇文章</a>提到 Gemini 打死不讀網頁的困擾，發文沒多久，上官大人現身開示，指引我一條明路...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639149736473990355.jpg"></p> <p>坦白說，我沒有很認真研究各種 AI 工具，不怎麼看教學跟文件，都是憑直覺胡亂摸索到能做事就好。(就跟 MIS 眼中典型 End User 一個樣，好孩子不要學) 先前有聽過 AI Studio，剛訂閱 AI Pro 時有試了一下，但當時 Nano Banana 生圖要用 Gemini 網頁，我後來就都是用 Gemini；加上我主要是玩 AOAI 用 GPT 模型，沒什麼動機與機會深入 AI Studio。</p> <p>今天重新看了 <a href="https://aistudio.google.com/">Google AI Studio</a>，它的操作概念類似 Gemini 網頁，一樣是輸入提示，上傳檔案，送出後請 AI 執行回傳結果。但 AI Studio 像是工程模式的 Gemini，可以指定溫度、設定思考深度，有一整套儀表板式的工具開關，並能指定安全限制、Top P，就是一堆普通使用者看了頭昏、工程師見了興奮的玩意兒。</p> <p>其中有兩個我在意的重要選項：</p> <ol><li>Grounding with Google Search<br> 可使用強大的 Google 搜尋引擎爬文 (這點狂勝 AnythingLLM + DuckDuckGo )<br> 註：啟用後不能使用 Structed outputs、Code execution 及 Function calling</li> <li>URL Context<br> 可閱讀你提供的特定網頁、PDF 或技術文件</li></ol> <p>不囉嗦，直接用上篇文章提到的三個 Case 實測。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639149736482958820.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639149736488901453.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639149736496744971.png"></p> <p>就不多做解釋了，AI Studio 的表現非常接近我的期望，若有差距我相信也能透過調整 Prompt 改善。</p> <p>所以結論是：我一直用錯工具了，哈! 嚴格來說，Gemini WebUI 的介面更直覺易用，更接近一般使用者的習慣，而 AI Stuiod 介面就很工程師風格，連 Playground 命名都擺明是做實驗跟研究的地方，但啟用工具後根本開啟了桃花源，我決定以後會常來這裡玩。</p> <p data-slug="ai-studio-tools" data-fbimg="https://images2.imgbox.com/71/29/af7SjZzW_o.png#1024#562"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="/blog/anythingllm-web-browsing/">上篇文章</a>提到 Gemini 打死不讀網頁的困擾，發文沒多久，上官大人現身開示，指引我一條明路...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639149736473990355.jpg"></p> <p>坦白說，我沒有很認真研究各種 AI 工具，不怎麼看教學跟文件，都是憑直覺胡亂摸索到能做事就好。(就跟 MIS 眼中典型 End User 一個樣，好孩子不要學) 先前有聽過 AI Studio，剛訂閱 AI Pro 時有試了一下，但當時 Nano Banana 生圖要用 Gemini 網頁，我後來就都是用 Gemini；加上我主要是玩 AOAI 用 GPT 模型，沒什麼動機與機會深入 AI Studio。</p> <p>今天重新看了 <a href="https://aistudio.google.com/">Google AI Studio</a>，它的操作概念類似 Gemini 網頁，一樣是輸入提示，上傳檔案，送出後請 AI 執行回傳結果。但 AI Studio 像是工程模式的 Gemini，可以指定溫度、設定思考深度，有一整套儀表板式的工具開關，並能指定安全限制、Top P，就是一堆普通使用者看了頭昏、工程師見了興奮的玩意兒。</p> <p>其中有兩個我在意的重要選項：</p> <ol><li>Grounding with Google Search<br> 可使用強大的 Google 搜尋引擎爬文 (這點狂勝 AnythingLLM + DuckDuckGo )<br> 註：啟用後不能使用 Structed outputs、Code execution 及 Function calling</li> <li>URL Context<br> 可閱讀你提供的特定網頁、PDF 或技術文件</li></ol> <p>不囉嗦，直接用上篇文章提到的三個 Case 實測。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639149736482958820.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639149736488901453.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639149736496744971.png"></p> <p>就不多做解釋了，AI Studio 的表現非常接近我的期望，若有差距我相信也能透過調整 Prompt 改善。</p> <p>所以結論是：我一直用錯工具了，哈! 嚴格來說，Gemini WebUI 的介面更直覺易用，更接近一般使用者的習慣，而 AI Stuiod 介面就很工程師風格，連 Playground 命名都擺明是做實驗跟研究的地方，但啟用工具後根本開啟了桃花源，我決定以後會常來這裡玩。</p> <p data-slug="ai-studio-tools" data-fbimg="https://images2.imgbox.com/71/29/af7SjZzW_o.png#1024#562"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="/blog/anythingllm-web-browsing/">上篇文章</a>提到 Gemini 打死不讀網頁的困擾，發文沒多久，上官大人現身開示，指引我一條明路...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639149736473990355.jpg"></p> <p>坦白說，我沒有很認真研究各種 AI 工具，不怎麼看教學跟文件，都是憑直覺胡亂摸索到能做事就好。(就跟 MIS 眼中典型 End User 一個樣，好孩子不要學) 先前有聽過 AI Studio，剛訂閱 AI Pro 時有試了一下，但當時 Nano Banana 生圖要用 Gemini 網頁，我後來就都是用 Gemini；加上我主要是玩 AOAI 用 GPT 模型，沒什麼動機與機會深入 AI Studio。</p> <p>今天重新看了 <a href="https://aistudio.google.com/">Google AI Studio</a>，它的操作概念類似 Gemini 網頁，一樣是輸入提示，上傳檔案，送出後請 AI 執行回傳結果。但 AI Studio 像是工程模式的 Gemini，可以指定溫度、設定思考深度，有一整套儀表板式的工具開關，並能指定安全限制、Top P，就是一堆普通使用者看了頭昏、工程師見了興奮的玩意兒。</p> <p>其中有兩個我在意的重要選項：</p> <ol><li>Grounding with Google Search<br> 可使用強大的 Google 搜尋引擎爬文 (這點狂勝 AnythingLLM + DuckDuckGo )<br> 註：啟用後不能使用 Structed outputs、Code execution 及 Function calling</li> <li>URL Context<br> 可閱讀你提供的特定網頁、PDF 或技術文件</li></ol> <p>不囉嗦，直接用上篇文章提到的三個 Case 實測。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639149736482958820.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639149736488901453.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639149736496744971.png"></p> <p>就不多做解釋了，AI Studio 的表現非常接近我的期望，若有差距我相信也能透過調整 Prompt 改善。</p> <p>所以結論是：我一直用錯工具了，哈! 嚴格來說，Gemini WebUI 的介面更直覺易用，更接近一般使用者的習慣，而 AI Stuiod 介面就很工程師風格，連 Playground 命名都擺明是做實驗跟研究的地方，但啟用工具後根本開啟了桃花源，我決定以後會常來這裡玩。</p> <p data-slug="ai-studio-tools" data-fbimg="https://images2.imgbox.com/71/29/af7SjZzW_o.png#1024#562"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639149736473990355.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639149736473990355.jpg" medium="image"/>
+    <pubDate>Thu, 21 May 2026 15:19:48 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[小試 AnythingLLM 使用自訂模型爬網查資料回答]]></title>
+    <link>https://blog.darkthread.net/blog/anythingllm-web-browsing/</link>
+    <itunes:title><![CDATA[小試 AnythingLLM 使用自訂模型爬網查資料回答]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>Perplexity 到期後沒續約，去年趁著優惠訂的 Google AI Pro 是我目前僅有的網頁介面 AI 訂閱，但Google 不知下了什麼封印導致 Gemini 極度自閉，即便給網址再三要求他讀取或上網查資料提供參考 URL，他就是不想上網，彷彿網路有毒似的 (其實就是)...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639149663432245777.png"></p> <p>記得在保哥 FB 看過一篇文章討論這個 (FB 的搜尋真是一言難盡，我找不到連結了)，當時有網友分享了一個神奇的 Prompt， 是我目前試過唯一可以解除封印的咒語，但也只限於給特定網址要求 Gemini 閱讀。總之，Gemini 像個被爸媽禁止上網的小孩，在應用即時網路資訊能力上遠遠輸給 GPT 跟 Grok。</p> <p>我想起了<a href="/blog/anything-llm/">包山包海的殺手級 LLM 整合平台 - Anything LLM</a>，2024 年安裝時有研究了一下，兩年時間，以 AI 發展時鐘差不多已歷經過三次冰河期恐龍滅絕棲息物種全換過一輪，AnythingLLM 的能力應不可同日而語，搭配 GPT 5.x 模型說不定能勝任爬網爬網查資料的任務。</p> <p>這篇是我這次嘗試的筆記。</p> <p>AnythingLLM 設定畫面有個<a href="https://docs.anythingllm.com/agent/setup">智慧代理人技能 (Agent Skills)</a> 設定區，在其中可以指定是否啟用 <a href="https://docs.anythingllm.com/agent/usage/rag-search">RAG 與長期記憶體</a>、<a href="https://docs.anythingllm.com/agent/usage/summarize-documents">檢視並摘要文件功能</a>、<a href="https://docs.anythingllm.com/agent/usage/web-browsing">擷取網站</a>、<a href="https://docs.anythingllm.com/agent/usage/file-system-agent">檔案系統存取</a>、<a href="https://docs.anythingllm.com/agent/usage/document-generation-agent">文件建立</a> (PowerPoint、Excel、Word 和 PDF)、<a href="https://docs.anythingllm.com/agent/usage/chart-generation">產生圖表</a>... 等功能。而網頁搜尋可以選擇要使用的網頁搜尋提供者，包含：</p> <ul><li>DuckDuckGo<br> 免費且注重隱私的網路搜尋引擎</li> <li>SerpApi<br> 可抓取 Google 及其他數個搜尋引擎的資料。每月提供 250 次免費搜尋，超出後需付費。</li> <li>SearchApi<br> 提供來自多個搜尋引擎的結構化資料。前 100 次查詢免費，隨後需付費。</li> <li>Serper.dev<br> 網路搜尋服務。免費帳戶內含 2,500 次呼叫額度，超出後需付費。</li> <li>Bing Search<br> 由 Bing Search API 驅動的網路搜尋 (付費服務)。</li></ul> <p>付費 API 需申請 API Key，我先用 <a href="https://duckduckgo.com/">DuckDuckGo</a> 嚐鮮 (品質無法跟 Google 相比，但強在免申請，零成本無門檻)。另外，有個 <a href="https://docs.anythingllm.com/agent/usage/sql-agent">SQL 連接器</a>可以串接 DB 查詢回答問題，也能自訂 Skill、連接 MCP，發展出各種進階花式玩法。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639149663440287250.png"></p> <p>要使用這堆 Agent 功能，需在提示最前面加上 <code>@agent</code>，如下圖，我接了 AOAI GPT 5.4 模型，詢問三星罷工的中文新聞，模型會使用 web-browsing 工具跟 DuckDuckGo 查詢新聞，整理成一份總結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639149663445659204.png"></p> <p>最下的來源可以展開成清單看到原始網址：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig7_639149663452797108.png"></p> <p>我也試了 GPT 5.5，整理的品質看起來比 5.4 好上一截，不過 5.5 的價格是 5.4 的兩倍 (輸入每百萬 Token 5 USD，輸出 30 USD)，如何選擇可自行拿捏：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639149663458735033.png"></p> <p>第二個測試，我給 GPT 一個類別文章網頁，其中有三篇文章連結，請 AI 幫我讀取文章，提供每篇各兩百字的總結，也成功達成任務：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639149663464549258.png"></p> <p>由推理過程記錄可以看到 Agent 先讀取清單頁面，從中找到三篇文章連結，再逐一讀取各文章，符合我們對聰明 AI 模型的期待：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639149663469316036.png"></p> <p>整個測試做完，AnythingLLM 的表現十分出色，內建 Agent 便以滿足一般需要用 AI 模型爬網查資料回答問題的應用情境。</p> <p>只需架設 AnythingLLM Docker 容器簡單設定，便可在資料受保護前題下用 AOAI 模型實現 ChatGPT 的查詢網路回答能力，若有夠好的地端模型，可以做到資料完全不上雲端且無 Token 費用，是個很值得考慮的 AI 整合選項。</p> <p>註：蒙上官大人開示，Gemini 被封印讀網頁能力的問題，可改用 AI Studio 開啟 Url Context 功能改善，實測可行。<a href="/blog/ai-studio-tools">參考</a></p> <p data-slug="anythingllm-web-browsing" data-fbimg="https://images2.imgbox.com/29/cb/FzqygAmO_o.png#1024#768"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>Perplexity 到期後沒續約，去年趁著優惠訂的 Google AI Pro 是我目前僅有的網頁介面 AI 訂閱，但Google 不知下了什麼封印導致 Gemini 極度自閉，即便給網址再三要求他讀取或上網查資料提供參考 URL，他就是不想上網，彷彿網路有毒似的 (其實就是)...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639149663432245777.png"></p> <p>記得在保哥 FB 看過一篇文章討論這個 (FB 的搜尋真是一言難盡，我找不到連結了)，當時有網友分享了一個神奇的 Prompt， 是我目前試過唯一可以解除封印的咒語，但也只限於給特定網址要求 Gemini 閱讀。總之，Gemini 像個被爸媽禁止上網的小孩，在應用即時網路資訊能力上遠遠輸給 GPT 跟 Grok。</p> <p>我想起了<a href="/blog/anything-llm/">包山包海的殺手級 LLM 整合平台 - Anything LLM</a>，2024 年安裝時有研究了一下，兩年時間，以 AI 發展時鐘差不多已歷經過三次冰河期恐龍滅絕棲息物種全換過一輪，AnythingLLM 的能力應不可同日而語，搭配 GPT 5.x 模型說不定能勝任爬網爬網查資料的任務。</p> <p>這篇是我這次嘗試的筆記。</p> <p>AnythingLLM 設定畫面有個<a href="https://docs.anythingllm.com/agent/setup">智慧代理人技能 (Agent Skills)</a> 設定區，在其中可以指定是否啟用 <a href="https://docs.anythingllm.com/agent/usage/rag-search">RAG 與長期記憶體</a>、<a href="https://docs.anythingllm.com/agent/usage/summarize-documents">檢視並摘要文件功能</a>、<a href="https://docs.anythingllm.com/agent/usage/web-browsing">擷取網站</a>、<a href="https://docs.anythingllm.com/agent/usage/file-system-agent">檔案系統存取</a>、<a href="https://docs.anythingllm.com/agent/usage/document-generation-agent">文件建立</a> (PowerPoint、Excel、Word 和 PDF)、<a href="https://docs.anythingllm.com/agent/usage/chart-generation">產生圖表</a>... 等功能。而網頁搜尋可以選擇要使用的網頁搜尋提供者，包含：</p> <ul><li>DuckDuckGo<br> 免費且注重隱私的網路搜尋引擎</li> <li>SerpApi<br> 可抓取 Google 及其他數個搜尋引擎的資料。每月提供 250 次免費搜尋，超出後需付費。</li> <li>SearchApi<br> 提供來自多個搜尋引擎的結構化資料。前 100 次查詢免費，隨後需付費。</li> <li>Serper.dev<br> 網路搜尋服務。免費帳戶內含 2,500 次呼叫額度，超出後需付費。</li> <li>Bing Search<br> 由 Bing Search API 驅動的網路搜尋 (付費服務)。</li></ul> <p>付費 API 需申請 API Key，我先用 <a href="https://duckduckgo.com/">DuckDuckGo</a> 嚐鮮 (品質無法跟 Google 相比，但強在免申請，零成本無門檻)。另外，有個 <a href="https://docs.anythingllm.com/agent/usage/sql-agent">SQL 連接器</a>可以串接 DB 查詢回答問題，也能自訂 Skill、連接 MCP，發展出各種進階花式玩法。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639149663440287250.png"></p> <p>要使用這堆 Agent 功能，需在提示最前面加上 <code>@agent</code>，如下圖，我接了 AOAI GPT 5.4 模型，詢問三星罷工的中文新聞，模型會使用 web-browsing 工具跟 DuckDuckGo 查詢新聞，整理成一份總結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639149663445659204.png"></p> <p>最下的來源可以展開成清單看到原始網址：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig7_639149663452797108.png"></p> <p>我也試了 GPT 5.5，整理的品質看起來比 5.4 好上一截，不過 5.5 的價格是 5.4 的兩倍 (輸入每百萬 Token 5 USD，輸出 30 USD)，如何選擇可自行拿捏：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639149663458735033.png"></p> <p>第二個測試，我給 GPT 一個類別文章網頁，其中有三篇文章連結，請 AI 幫我讀取文章，提供每篇各兩百字的總結，也成功達成任務：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639149663464549258.png"></p> <p>由推理過程記錄可以看到 Agent 先讀取清單頁面，從中找到三篇文章連結，再逐一讀取各文章，符合我們對聰明 AI 模型的期待：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639149663469316036.png"></p> <p>整個測試做完，AnythingLLM 的表現十分出色，內建 Agent 便以滿足一般需要用 AI 模型爬網查資料回答問題的應用情境。</p> <p>只需架設 AnythingLLM Docker 容器簡單設定，便可在資料受保護前題下用 AOAI 模型實現 ChatGPT 的查詢網路回答能力，若有夠好的地端模型，可以做到資料完全不上雲端且無 Token 費用，是個很值得考慮的 AI 整合選項。</p> <p>註：蒙上官大人開示，Gemini 被封印讀網頁能力的問題，可改用 AI Studio 開啟 Url Context 功能改善，實測可行。<a href="/blog/ai-studio-tools">參考</a></p> <p data-slug="anythingllm-web-browsing" data-fbimg="https://images2.imgbox.com/29/cb/FzqygAmO_o.png#1024#768"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>Perplexity 到期後沒續約，去年趁著優惠訂的 Google AI Pro 是我目前僅有的網頁介面 AI 訂閱，但Google 不知下了什麼封印導致 Gemini 極度自閉，即便給網址再三要求他讀取或上網查資料提供參考 URL，他就是不想上網，彷彿網路有毒似的 (其實就是)...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639149663432245777.png"></p> <p>記得在保哥 FB 看過一篇文章討論這個 (FB 的搜尋真是一言難盡，我找不到連結了)，當時有網友分享了一個神奇的 Prompt， 是我目前試過唯一可以解除封印的咒語，但也只限於給特定網址要求 Gemini 閱讀。總之，Gemini 像個被爸媽禁止上網的小孩，在應用即時網路資訊能力上遠遠輸給 GPT 跟 Grok。</p> <p>我想起了<a href="/blog/anything-llm/">包山包海的殺手級 LLM 整合平台 - Anything LLM</a>，2024 年安裝時有研究了一下，兩年時間，以 AI 發展時鐘差不多已歷經過三次冰河期恐龍滅絕棲息物種全換過一輪，AnythingLLM 的能力應不可同日而語，搭配 GPT 5.x 模型說不定能勝任爬網爬網查資料的任務。</p> <p>這篇是我這次嘗試的筆記。</p> <p>AnythingLLM 設定畫面有個<a href="https://docs.anythingllm.com/agent/setup">智慧代理人技能 (Agent Skills)</a> 設定區，在其中可以指定是否啟用 <a href="https://docs.anythingllm.com/agent/usage/rag-search">RAG 與長期記憶體</a>、<a href="https://docs.anythingllm.com/agent/usage/summarize-documents">檢視並摘要文件功能</a>、<a href="https://docs.anythingllm.com/agent/usage/web-browsing">擷取網站</a>、<a href="https://docs.anythingllm.com/agent/usage/file-system-agent">檔案系統存取</a>、<a href="https://docs.anythingllm.com/agent/usage/document-generation-agent">文件建立</a> (PowerPoint、Excel、Word 和 PDF)、<a href="https://docs.anythingllm.com/agent/usage/chart-generation">產生圖表</a>... 等功能。而網頁搜尋可以選擇要使用的網頁搜尋提供者，包含：</p> <ul><li>DuckDuckGo<br> 免費且注重隱私的網路搜尋引擎</li> <li>SerpApi<br> 可抓取 Google 及其他數個搜尋引擎的資料。每月提供 250 次免費搜尋，超出後需付費。</li> <li>SearchApi<br> 提供來自多個搜尋引擎的結構化資料。前 100 次查詢免費，隨後需付費。</li> <li>Serper.dev<br> 網路搜尋服務。免費帳戶內含 2,500 次呼叫額度，超出後需付費。</li> <li>Bing Search<br> 由 Bing Search API 驅動的網路搜尋 (付費服務)。</li></ul> <p>付費 API 需申請 API Key，我先用 <a href="https://duckduckgo.com/">DuckDuckGo</a> 嚐鮮 (品質無法跟 Google 相比，但強在免申請，零成本無門檻)。另外，有個 <a href="https://docs.anythingllm.com/agent/usage/sql-agent">SQL 連接器</a>可以串接 DB 查詢回答問題，也能自訂 Skill、連接 MCP，發展出各種進階花式玩法。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639149663440287250.png"></p> <p>要使用這堆 Agent 功能，需在提示最前面加上 <code>@agent</code>，如下圖，我接了 AOAI GPT 5.4 模型，詢問三星罷工的中文新聞，模型會使用 web-browsing 工具跟 DuckDuckGo 查詢新聞，整理成一份總結：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639149663445659204.png"></p> <p>最下的來源可以展開成清單看到原始網址：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig7_639149663452797108.png"></p> <p>我也試了 GPT 5.5，整理的品質看起來比 5.4 好上一截，不過 5.5 的價格是 5.4 的兩倍 (輸入每百萬 Token 5 USD，輸出 30 USD)，如何選擇可自行拿捏：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639149663458735033.png"></p> <p>第二個測試，我給 GPT 一個類別文章網頁，其中有三篇文章連結，請 AI 幫我讀取文章，提供每篇各兩百字的總結，也成功達成任務：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639149663464549258.png"></p> <p>由推理過程記錄可以看到 Agent 先讀取清單頁面，從中找到三篇文章連結，再逐一讀取各文章，符合我們對聰明 AI 模型的期待：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639149663469316036.png"></p> <p>整個測試做完，AnythingLLM 的表現十分出色，內建 Agent 便以滿足一般需要用 AI 模型爬網查資料回答問題的應用情境。</p> <p>只需架設 AnythingLLM Docker 容器簡單設定，便可在資料受保護前題下用 AOAI 模型實現 ChatGPT 的查詢網路回答能力，若有夠好的地端模型，可以做到資料完全不上雲端且無 Token 費用，是個很值得考慮的 AI 整合選項。</p> <p>註：蒙上官大人開示，Gemini 被封印讀網頁能力的問題，可改用 AI Studio 開啟 Url Context 功能改善，實測可行。<a href="/blog/ai-studio-tools">參考</a></p> <p data-slug="anythingllm-web-browsing" data-fbimg="https://images2.imgbox.com/29/cb/FzqygAmO_o.png#1024#768"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639149663432245777.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639149663432245777.png" medium="image"/>
+    <pubDate>Thu, 21 May 2026 00:57:20 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[.NET 小技巧 - 定義專案自訂作業實現部署半自動化]]></title>
+    <link>https://blog.darkthread.net/blog/msbuild-target-in-csproj/</link>
+    <itunes:title><![CDATA[.NET 小技巧 - 定義專案自訂作業實現部署半自動化]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>開發 .NET 專案時，編譯跟部署時常伴隨一些相關作業。</p> <p>我最近遇到的例子是修改 Telegram AI 機器人，修改測試 OK 後，下個動作是編譯 Docker Image，存成 tar 檔，scp 上傳到家裡的 Linux 主機，執行 docker load 更新再重啟容器。</p> <p>這類作業的最高境界是用 Github 或其他版控伺服器實現 CI/CD。當 Git 觸發 Push 或 PR 時，版控伺服器負責編譯 .NET 專案、打包成 Docker Image，並推送到 Container Registry。目的主機則執行 Watchtower 容器，定時檢查 Docker Image 是否有新版本，若有就自動拉取並重啟容器。</p> <p>CI/CD 是吾人該追求的完全體，而我目前的解法很拙劣 - 寫個 .bat 檔，在裡面跑 dotnet publish、docker build、docker save、scp 複製、ssh 遠端跑指令 docker load 及 docker compose up -d。現階段我打算先前進一步，找到比手刻 .bat 優雅一點的做法，累積一些基本功，未來再持續進化。</p> <p>評估後，在 .csproj 裡定義 <a href="https://learn.microsoft.com/zh-tw/visualstudio/msbuild/target-element-msbuild?view=visualstudio&amp;WT.mc_id=DOP-MVP-37580"><code>&lt;Target&gt;</code></a> 自訂任務是個不錯解法，將編譯、部署相關邏輯包進專案定義，比起另外帶一個 .bat/.ps1 拖油瓶優雅多了。</p> <p>分享手邊兩個應用實例。</p> <p>案例一，<a href="/blog/azure-cost-detail-report/">AI 模型成本報表</a>網站，原本靠筆記記指令跟寫 .bat 把一串動作包在一起。改良版變成在 .csproj 在新增 BuildDocker 與 DeployDocker 兩個 Task 後，用 <code>dotent msbuild -t:BuildDocker</code> 建置容器 Image，用 <code>dotnet msbuild -t:DeployDocker</code> 完成 Image 轉存 tar、scp 上傳 Linux、透過 ssh 在 Linux 上完成更新 Image 及重啟 Docker。(註：要先設好 <a href="/blog/ssh-key-auth/">金鑰免密碼登入 SSH/SCP</a>。延伸閱讀：<a href="/blog/deploy-ssh-pub-key/">免工具快速部署 SSH 金鑰到遠端 Linux 主機</a>、<a href="/blog/share-sshkey-between-win-n-wsl/">WSL 與 Windows 共用 SSH 金鑰登入遠端主機</a>)</p> <pre><code>&lt;Project Sdk="Microsoft.NET.Sdk.Web"&gt;
+&lt;PropertyGroup&gt;
+&lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+&lt;Nullable&gt;enable&lt;/Nullable&gt;
+&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+&lt;/PropertyGroup&gt;
+&lt;Target Name="BuildDocker"&gt;
+&lt;Exec Command="docker build -t aoai-cost-report:latest ." /&gt;
+&lt;/Target&gt;
+&lt;Target Name="DeployDocker"&gt;
+&lt;Exec Command="docker save aoai-cost-report:latest -o aoai-cost-report.tar" /&gt;
+&lt;Exec Command="scp aoai-cost-report.tar my-home-server:~/dockers/aoai-cost-report" /&gt;
+&lt;Exec Command="ssh my-home-server 'cd ~/dockers/aoai-cost-report &amp;amp;&amp;amp; docker load -i aoai-cost-report.tar &amp;amp;&amp;amp; docker compose up -d'" /&gt;
+&lt;/Target&gt;
+&lt;/Project&gt;
+</code></pre> <p>案例二，自己寫的桌面小工具，編譯的 .exe 檔要複製到 X:\Tools\Homebrew\Sidi 目錄下，我在 .csproj 加了一個 Target，指定每次 Publish 後該目錄下的 .exe 更新為新版本，另外為防止程式還在執行，檔案被鎖定無法覆寫，先使用 Taskkill 試著將已經在執行中的程序刪除。如此，每次下 <code>dotnet publish</code> 時便會自動更新。<br> 有個小眉角是需要加上 <code>dotnet publish -tl:off</code> 關掉 .NET SDK 的 <a href="https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/9.0/terminal-logger?WT.mc_id=DOP-MVP-37580">Terminal Logger</a>，用比較精簡美觀的格式顯示輸出，但會過濾掉 MSBuild 的 <message> 任務輸出； 加上 --tl:off 後會改用傳統的 MSBuild console logger，所有訊息(包含 <code>&lt;Message Importance="High"&gt;</code>）才會原樣顯示。另個替代做法是改寫成 <code>&lt;Exec Command="echo ..."&gt;</code>，如此不需顧慮 Terminal Logger，也是不錯選擇。</message></p><p> </p><pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+&lt;PropertyGroup&gt;
+&lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+&lt;TargetFramework&gt;net10.0-windows&lt;/TargetFramework&gt;
+&lt;Nullable&gt;enable&lt;/Nullable&gt;
+&lt;UseWindowsForms&gt;true&lt;/UseWindowsForms&gt;
+&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+&lt;AllowUnsafeBlocks&gt;true&lt;/AllowUnsafeBlocks&gt;
+&lt;ApplicationManifest&gt;app.manifest&lt;/ApplicationManifest&gt;
+&lt;PublishSingleFile&gt;true&lt;/PublishSingleFile&gt;
+&lt;/PropertyGroup&gt;
+&lt;Target Name="DeployFiles" AfterTargets="Publish"&gt;
+&lt;Exec Command="taskkill /IM Sidi.exe /F 2&amp;gt;nul" IgnoreExitCode="true" /&gt;
+&lt;Copy SourceFiles="$(PublishDir)Sidi.exe" DestinationFolder="X:\Toos\Homebrew\Sidi" /&gt;
+&lt;Message Text="X:\Toos\Homebrew\Sidi\Sidi.exe is updated" Importance="High" /&gt;
+&lt;/Target&gt;
+&lt;/Project&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639147913624702577.png"></p> <p data-slug="msbuild-target-in-csproj" data-title-en="Defining MSBuild targets in csproj" data-catg=".NET" data-fbimg="https://i.imgur.com/vz4wqO7.png#800#536">Explains using custom MSBuild Target tasks in .NET projects to automate build and deployment workflows. Shows examples for Docker image build/deploy and post-publish file updates, offering a cleaner alternative to batch scripts and a step toward future CI/CD.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>開發 .NET 專案時，編譯跟部署時常伴隨一些相關作業。</p> <p>我最近遇到的例子是修改 Telegram AI 機器人，修改測試 OK 後，下個動作是編譯 Docker Image，存成 tar 檔，scp 上傳到家裡的 Linux 主機，執行 docker load 更新再重啟容器。</p> <p>這類作業的最高境界是用 Github 或其他版控伺服器實現 CI/CD。當 Git 觸發 Push 或 PR 時，版控伺服器負責編譯 .NET 專案、打包成 Docker Image，並推送到 Container Registry。目的主機則執行 Watchtower 容器，定時檢查 Docker Image 是否有新版本，若有就自動拉取並重啟容器。</p> <p>CI/CD 是吾人該追求的完全體，而我目前的解法很拙劣 - 寫個 .bat 檔，在裡面跑 dotnet publish、docker build、docker save、scp 複製、ssh 遠端跑指令 docker load 及 docker compose up -d。現階段我打算先前進一步，找到比手刻 .bat 優雅一點的做法，累積一些基本功，未來再持續進化。</p> <p>評估後，在 .csproj 裡定義 <a href="https://learn.microsoft.com/zh-tw/visualstudio/msbuild/target-element-msbuild?view=visualstudio&amp;WT.mc_id=DOP-MVP-37580"><code>&lt;Target&gt;</code></a> 自訂任務是個不錯解法，將編譯、部署相關邏輯包進專案定義，比起另外帶一個 .bat/.ps1 拖油瓶優雅多了。</p> <p>分享手邊兩個應用實例。</p> <p>案例一，<a href="/blog/azure-cost-detail-report/">AI 模型成本報表</a>網站，原本靠筆記記指令跟寫 .bat 把一串動作包在一起。改良版變成在 .csproj 在新增 BuildDocker 與 DeployDocker 兩個 Task 後，用 <code>dotent msbuild -t:BuildDocker</code> 建置容器 Image，用 <code>dotnet msbuild -t:DeployDocker</code> 完成 Image 轉存 tar、scp 上傳 Linux、透過 ssh 在 Linux 上完成更新 Image 及重啟 Docker。(註：要先設好 <a href="/blog/ssh-key-auth/">金鑰免密碼登入 SSH/SCP</a>。延伸閱讀：<a href="/blog/deploy-ssh-pub-key/">免工具快速部署 SSH 金鑰到遠端 Linux 主機</a>、<a href="/blog/share-sshkey-between-win-n-wsl/">WSL 與 Windows 共用 SSH 金鑰登入遠端主機</a>)</p> <pre><code>&lt;Project Sdk="Microsoft.NET.Sdk.Web"&gt;
+&lt;PropertyGroup&gt;
+&lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+&lt;Nullable&gt;enable&lt;/Nullable&gt;
+&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+&lt;/PropertyGroup&gt;
+&lt;Target Name="BuildDocker"&gt;
+&lt;Exec Command="docker build -t aoai-cost-report:latest ." /&gt;
+&lt;/Target&gt;
+&lt;Target Name="DeployDocker"&gt;
+&lt;Exec Command="docker save aoai-cost-report:latest -o aoai-cost-report.tar" /&gt;
+&lt;Exec Command="scp aoai-cost-report.tar my-home-server:~/dockers/aoai-cost-report" /&gt;
+&lt;Exec Command="ssh my-home-server 'cd ~/dockers/aoai-cost-report &amp;amp;&amp;amp; docker load -i aoai-cost-report.tar &amp;amp;&amp;amp; docker compose up -d'" /&gt;
+&lt;/Target&gt;
+&lt;/Project&gt;
+</code></pre> <p>案例二，自己寫的桌面小工具，編譯的 .exe 檔要複製到 X:\Tools\Homebrew\Sidi 目錄下，我在 .csproj 加了一個 Target，指定每次 Publish 後該目錄下的 .exe 更新為新版本，另外為防止程式還在執行，檔案被鎖定無法覆寫，先使用 Taskkill 試著將已經在執行中的程序刪除。如此，每次下 <code>dotnet publish</code> 時便會自動更新。<br> 有個小眉角是需要加上 <code>dotnet publish -tl:off</code> 關掉 .NET SDK 的 <a href="https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/9.0/terminal-logger?WT.mc_id=DOP-MVP-37580">Terminal Logger</a>，用比較精簡美觀的格式顯示輸出，但會過濾掉 MSBuild 的 <message> 任務輸出； 加上 --tl:off 後會改用傳統的 MSBuild console logger，所有訊息(包含 <code>&lt;Message Importance="High"&gt;</code>）才會原樣顯示。另個替代做法是改寫成 <code>&lt;Exec Command="echo ..."&gt;</code>，如此不需顧慮 Terminal Logger，也是不錯選擇。</message></p><p> </p><pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+&lt;PropertyGroup&gt;
+&lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+&lt;TargetFramework&gt;net10.0-windows&lt;/TargetFramework&gt;
+&lt;Nullable&gt;enable&lt;/Nullable&gt;
+&lt;UseWindowsForms&gt;true&lt;/UseWindowsForms&gt;
+&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+&lt;AllowUnsafeBlocks&gt;true&lt;/AllowUnsafeBlocks&gt;
+&lt;ApplicationManifest&gt;app.manifest&lt;/ApplicationManifest&gt;
+&lt;PublishSingleFile&gt;true&lt;/PublishSingleFile&gt;
+&lt;/PropertyGroup&gt;
+&lt;Target Name="DeployFiles" AfterTargets="Publish"&gt;
+&lt;Exec Command="taskkill /IM Sidi.exe /F 2&amp;gt;nul" IgnoreExitCode="true" /&gt;
+&lt;Copy SourceFiles="$(PublishDir)Sidi.exe" DestinationFolder="X:\Toos\Homebrew\Sidi" /&gt;
+&lt;Message Text="X:\Toos\Homebrew\Sidi\Sidi.exe is updated" Importance="High" /&gt;
+&lt;/Target&gt;
+&lt;/Project&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639147913624702577.png"></p> <p data-slug="msbuild-target-in-csproj" data-title-en="Defining MSBuild targets in csproj" data-catg=".NET" data-fbimg="https://i.imgur.com/vz4wqO7.png#800#536">Explains using custom MSBuild Target tasks in .NET projects to automate build and deployment workflows. Shows examples for Docker image build/deploy and post-publish file updates, offering a cleaner alternative to batch scripts and a step toward future CI/CD.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>開發 .NET 專案時，編譯跟部署時常伴隨一些相關作業。</p> <p>我最近遇到的例子是修改 Telegram AI 機器人，修改測試 OK 後，下個動作是編譯 Docker Image，存成 tar 檔，scp 上傳到家裡的 Linux 主機，執行 docker load 更新再重啟容器。</p> <p>這類作業的最高境界是用 Github 或其他版控伺服器實現 CI/CD。當 Git 觸發 Push 或 PR 時，版控伺服器負責編譯 .NET 專案、打包成 Docker Image，並推送到 Container Registry。目的主機則執行 Watchtower 容器，定時檢查 Docker Image 是否有新版本，若有就自動拉取並重啟容器。</p> <p>CI/CD 是吾人該追求的完全體，而我目前的解法很拙劣 - 寫個 .bat 檔，在裡面跑 dotnet publish、docker build、docker save、scp 複製、ssh 遠端跑指令 docker load 及 docker compose up -d。現階段我打算先前進一步，找到比手刻 .bat 優雅一點的做法，累積一些基本功，未來再持續進化。</p> <p>評估後，在 .csproj 裡定義 <a href="https://learn.microsoft.com/zh-tw/visualstudio/msbuild/target-element-msbuild?view=visualstudio&amp;WT.mc_id=DOP-MVP-37580"><code>&lt;Target&gt;</code></a> 自訂任務是個不錯解法，將編譯、部署相關邏輯包進專案定義，比起另外帶一個 .bat/.ps1 拖油瓶優雅多了。</p> <p>分享手邊兩個應用實例。</p> <p>案例一，<a href="/blog/azure-cost-detail-report/">AI 模型成本報表</a>網站，原本靠筆記記指令跟寫 .bat 把一串動作包在一起。改良版變成在 .csproj 在新增 BuildDocker 與 DeployDocker 兩個 Task 後，用 <code>dotent msbuild -t:BuildDocker</code> 建置容器 Image，用 <code>dotnet msbuild -t:DeployDocker</code> 完成 Image 轉存 tar、scp 上傳 Linux、透過 ssh 在 Linux 上完成更新 Image 及重啟 Docker。(註：要先設好 <a href="/blog/ssh-key-auth/">金鑰免密碼登入 SSH/SCP</a>。延伸閱讀：<a href="/blog/deploy-ssh-pub-key/">免工具快速部署 SSH 金鑰到遠端 Linux 主機</a>、<a href="/blog/share-sshkey-between-win-n-wsl/">WSL 與 Windows 共用 SSH 金鑰登入遠端主機</a>)</p> <pre><code>&lt;Project Sdk="Microsoft.NET.Sdk.Web"&gt;
+&lt;PropertyGroup&gt;
+&lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+&lt;Nullable&gt;enable&lt;/Nullable&gt;
+&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+&lt;/PropertyGroup&gt;
+&lt;Target Name="BuildDocker"&gt;
+&lt;Exec Command="docker build -t aoai-cost-report:latest ." /&gt;
+&lt;/Target&gt;
+&lt;Target Name="DeployDocker"&gt;
+&lt;Exec Command="docker save aoai-cost-report:latest -o aoai-cost-report.tar" /&gt;
+&lt;Exec Command="scp aoai-cost-report.tar my-home-server:~/dockers/aoai-cost-report" /&gt;
+&lt;Exec Command="ssh my-home-server 'cd ~/dockers/aoai-cost-report &amp;amp;&amp;amp; docker load -i aoai-cost-report.tar &amp;amp;&amp;amp; docker compose up -d'" /&gt;
+&lt;/Target&gt;
+&lt;/Project&gt;
+</code></pre> <p>案例二，自己寫的桌面小工具，編譯的 .exe 檔要複製到 X:\Tools\Homebrew\Sidi 目錄下，我在 .csproj 加了一個 Target，指定每次 Publish 後該目錄下的 .exe 更新為新版本，另外為防止程式還在執行，檔案被鎖定無法覆寫，先使用 Taskkill 試著將已經在執行中的程序刪除。如此，每次下 <code>dotnet publish</code> 時便會自動更新。<br> 有個小眉角是需要加上 <code>dotnet publish -tl:off</code> 關掉 .NET SDK 的 <a href="https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/9.0/terminal-logger?WT.mc_id=DOP-MVP-37580">Terminal Logger</a>，用比較精簡美觀的格式顯示輸出，但會過濾掉 MSBuild 的 <message> 任務輸出； 加上 --tl:off 後會改用傳統的 MSBuild console logger，所有訊息(包含 <code>&lt;Message Importance="High"&gt;</code>）才會原樣顯示。另個替代做法是改寫成 <code>&lt;Exec Command="echo ..."&gt;</code>，如此不需顧慮 Terminal Logger，也是不錯選擇。</message></p><p> </p><pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+&lt;PropertyGroup&gt;
+&lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+&lt;TargetFramework&gt;net10.0-windows&lt;/TargetFramework&gt;
+&lt;Nullable&gt;enable&lt;/Nullable&gt;
+&lt;UseWindowsForms&gt;true&lt;/UseWindowsForms&gt;
+&lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+&lt;AllowUnsafeBlocks&gt;true&lt;/AllowUnsafeBlocks&gt;
+&lt;ApplicationManifest&gt;app.manifest&lt;/ApplicationManifest&gt;
+&lt;PublishSingleFile&gt;true&lt;/PublishSingleFile&gt;
+&lt;/PropertyGroup&gt;
+&lt;Target Name="DeployFiles" AfterTargets="Publish"&gt;
+&lt;Exec Command="taskkill /IM Sidi.exe /F 2&amp;gt;nul" IgnoreExitCode="true" /&gt;
+&lt;Copy SourceFiles="$(PublishDir)Sidi.exe" DestinationFolder="X:\Toos\Homebrew\Sidi" /&gt;
+&lt;Message Text="X:\Toos\Homebrew\Sidi\Sidi.exe is updated" Importance="High" /&gt;
+&lt;/Target&gt;
+&lt;/Project&gt;
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639147913624702577.png"></p> <p data-slug="msbuild-target-in-csproj" data-title-en="Defining MSBuild targets in csproj" data-catg=".NET" data-fbimg="https://i.imgur.com/vz4wqO7.png#800#536">Explains using custom MSBuild Target tasks in .NET projects to automate build and deployment workflows. Shows examples for Docker image build/deploy and post-publish file updates, offering a cleaner alternative to batch scripts and a step toward future CI/CD.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639147913624702577.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639147913624702577.png" medium="image"/>
+    <pubDate>Tue, 19 May 2026 12:25:23 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[用愛發電，卻扛下全球 90% 影片處理的 FFmpeg]]></title>
+    <link>https://blog.darkthread.net/blog/ffmpeg-story/</link>
+    <itunes:title><![CDATA[用愛發電，卻扛下全球 90% 影片處理的 FFmpeg]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>有寫程式或手工處理過影片，應該都知道 FFmpeg 這個萬用的影片格式轉換與編輯工具，這兩天大飛有部 <a href="https://www.youtube.com/watch?v=rbfM_yd4Gv0">Youtube 影片</a>在講 VideoLAN 開源社群，看完對這個開源專案有了更深認識，心中滿是尊敬!</p> <p>整理了一些你可能不知道的 FFmpeg、影片解碼器與 VLC 播放器的小知識：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639146283690383913.png"><br> (VLC 圖示是可愛的橘白交通錐，大家應該都看過吧)</p> <h3>FFmpeg 是全球最大的 CPU 消耗者之一</h3> <p>FFmpeg 參與了超過 90% 的線上和離線影片處理流程，YouTube 影片轉碼、Netflix 串流媒體傳送、Chrome 影片解碼，甚至智慧電視的媒體播放，都少不了它。</p> <p>FFmepg 是全球最全能的多媒體處理庫，囊括所有你想得到的影片處理功能：編解碼、<a href="https://zh.wikipedia.org/zh-tw/%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8">多工 (Multiplexing)</a>/解多工、濾鏡、媒體串流.. 等等。既是指令列工具，也是可供軟體呼叫的程式庫。FFmpeg 追求開源免費、人人平等，普通人的家庭錄影、科技巨頭的伺服器，用的是同一套 FFmpeg 程式碼，把原本價值百萬美元的專業多媒體設備能力，變成了人人可用的免費工具，催生了當代人人能在社群平台發影片當網紅的盛世。</p> <h3>影片編解碼器是什麼？</h3> <p>一般人容易把影片「容器」和「編解碼器」混為一談，MP4、MOV、MKV、AVI 是容器，負責把影片軌、音訊軌和字幕軌打包在一起；而 H.264 (AVC)、H.265 (HEVC)、AV1、VP9 是編解碼器，負責影片像素的資料壓縮和解壓縮。我們常說的 MP4 檔案，99% 是 H.264 影片 + AAC 音訊打包在 MP4 容器裡。</p> <p>未經壓縮的 1080P 30 幀影片，每秒資料量高達 1.5GB，故我們需要用編解碼器縮小資料量，在人眼幾乎看不出畫質損失的前題下把資料壓縮 100 到 1000 倍。壓縮的核心原理是消除冗餘(Redundency)，包括空間冗餘 (同一畫面裡重複的像素)、時間冗餘 (比如連續幀裡不變的內容)，再配合人眼感知。人眼對亮度敏感、對色彩敏感度低，故影片可將把色彩解析度降低，只保留高解析度的亮度資訊，靠這一步就能讓檔案體積減半。而解碼的挑戰在於 45% 的檔案無法用 GPU 硬體解碼，必須依賴軟體解碼，這需要極致程式碼優化，這也是 FFmpeg 的核心價值所在。</p> <h3>在幾十億裝置上跑的 FFmpeg 開發團隊不到 15 人</h3> <p>FFmpeg 開發團隊只有 10 到 15 人，全是無給職的志願者，白天上班、晚上貢獻程式碼，其開發社群有一個鐵律：只看程式碼品質，不看身份背景。不管貢獻者是頂尖軟體公司的工程師或 16 歲高中生，對程式碼審核標準都相同，對簡潔度、可維護性有極其嚴苛的要求。這與 Linux 核心管理哲學相近，因為 FFmpeg 程式會在全球幾十億台裝置上運行，一行程式有錯或效率不佳，影響難以估計。</p> <h3>FFmpeg 專案有 10 萬行純手寫組合語言</h3> <p>這是 FFmpeg 碾壓所有商用多媒體程式庫的致勝關鍵，惟有用組合語言純手工打造，才能做到每個 CPU 運算週期輜銖必較，榨乾每一絲效能。C 編譯器雖然也能提供自動優化，但和組合語言的最佳效能相差 10 到 62 倍，這是 FFmpeg 堅持效能關鍵邏輯一律手寫組合語言的理由。</p> <p>會不會改用 Rust？</p> <h3>FFmpeg 靠逆向工程所向無敵</h3> <p>全球有無數冷門、廢棄或無文件無原始碼的編解碼器，如早期的 GoToMeeting 會議編解碼器、Windows Media、RealMedia 的私有格式等，它們沒有官方文件也沒有程式碼，FFmpeg 社群的逆向工程師能僅憑二進位檔案還原出完整的編解碼邏輯。其中的傳奇的是烏克蘭開發者康斯坦丁·希什科夫 (Kostya Shishkov)，他逆向幾十 MB 的二進位機器指令和樣本檔案，只花了兩個寫出精確到位元 (Bit-Exact) 的解碼器，做到和官方解碼器完全一致的效果。(註：Bit-Exact 指所有解碼器必須輸出完全一致的像素資料，此為影片歸檔和專業處理的基本要求，早期 MPEG-2 編解碼器沒有執行精確到位元的標準，導致大量影片無法相容。</p> <h3>FFmpeg / VLC 播放器為每位使用者省下 200 歐元專利費用</h3> <p>多媒體領域處處是專利，像 MPEG 專利池擁有 H.264、H.265、H.266 等核心專利，企業要使用這些編解碼器，每年要支付數億美元授權費。谷歌、Netflix 推動 AV1 就是要擺脫專利綁架，讓影片技術回歸開源共享。</p> <p>VLC 與 FFmpeg 隸屬 VideoLAN 生態系，開發主體位於法國，靠著歐洲與法國的法律體系不承認多媒體軟體專利(認為數學和演算法不應被壟斷)，擺脫相關專利費用問題，若必須為 VLC 使用的多媒體專利付費，每個使用者需支付 200 歐元!</p> <p>順帶一提，隨著技術更新，AV1、AV2 逐漸成為新一代編解碼器的主流。AV1 由開放媒體聯盟 (AOMedia) 開發，谷歌、Netflix、亞馬遜、蘋果、VideoLAN 共同參與，是免專利費的開源編解碼器，比 H.264 的壓縮效率高 50%，比 H.265 高 30%，且沒有昂貴的專利授權費。而 AV2 作為下一代標準，將再提升 30% 的壓縮效率。延伸閱讀：<a href="/blog/youtube-video-formats/">看懂 YouTube 影音編碼規格</a></p> <h3>為愛發電開發者的困擾</h3> <p>像 FFmpeg / VLC 這類全球重度依賴的開源專案，核心維護者只有寥寥數人，他們拿著微薄的捐贈、甚至零收入，卻要面對大企業的需求、安全研究員的漏洞報告，以及用戶的批評，長期處於高壓的狀態，極容易陷入倦怠。例如 FFmpeg 就曾遇到谷歌用 AI 批量生成安全漏洞報告，不提前溝通就公告，將修復壓力全都丟給志願者；微軟 Teams 曾經在 FFmpeg 漏洞追蹤裡標註最高優先級，卻只願意支付幾千美元的一次性費用，完全無視志願者的付出。大型營利企業把開源專案當成免費供應商，卻不願為支撐自己業務的程式碼支付合理報酬；AI 生成的漏洞報告，本質是對開源開發者的 DoS，有些冷門遊戲編解碼器的漏洞根本不影響普通用戶，卻被標為高風險漏洞(資安研究員也要衝業績？)製造恐慌。但情況已有一些改善，Google 開始提交修補、設立漏洞修復獎勵，對 FFmpeg 的捐贈也大幅增加，但是依然遠不足以覆蓋一個全職開發者的成本。這也是開源世界的殘酷現實，支撐全球數位基建的程式碼，卻完全是由一群沒有保障的志願者守護著。</p> <h3>後記</h3> <p>整理完文章，同為想用程式碼改變世界的開發者 (雖然沒做出個毛，但確實有這個心)，為 VideoLAN 開發者的熱情與付出所感動，獻上我的 RESPECT 及微薄捐獻，哈~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639146283705358664.png"></p> <p data-slug="ffmpeg-story" data-fbimg="https://i.postimg.cc/PJ0jpDzH/thumbnail.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>有寫程式或手工處理過影片，應該都知道 FFmpeg 這個萬用的影片格式轉換與編輯工具，這兩天大飛有部 <a href="https://www.youtube.com/watch?v=rbfM_yd4Gv0">Youtube 影片</a>在講 VideoLAN 開源社群，看完對這個開源專案有了更深認識，心中滿是尊敬!</p> <p>整理了一些你可能不知道的 FFmpeg、影片解碼器與 VLC 播放器的小知識：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639146283690383913.png"><br> (VLC 圖示是可愛的橘白交通錐，大家應該都看過吧)</p> <h3>FFmpeg 是全球最大的 CPU 消耗者之一</h3> <p>FFmpeg 參與了超過 90% 的線上和離線影片處理流程，YouTube 影片轉碼、Netflix 串流媒體傳送、Chrome 影片解碼，甚至智慧電視的媒體播放，都少不了它。</p> <p>FFmepg 是全球最全能的多媒體處理庫，囊括所有你想得到的影片處理功能：編解碼、<a href="https://zh.wikipedia.org/zh-tw/%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8">多工 (Multiplexing)</a>/解多工、濾鏡、媒體串流.. 等等。既是指令列工具，也是可供軟體呼叫的程式庫。FFmpeg 追求開源免費、人人平等，普通人的家庭錄影、科技巨頭的伺服器，用的是同一套 FFmpeg 程式碼，把原本價值百萬美元的專業多媒體設備能力，變成了人人可用的免費工具，催生了當代人人能在社群平台發影片當網紅的盛世。</p> <h3>影片編解碼器是什麼？</h3> <p>一般人容易把影片「容器」和「編解碼器」混為一談，MP4、MOV、MKV、AVI 是容器，負責把影片軌、音訊軌和字幕軌打包在一起；而 H.264 (AVC)、H.265 (HEVC)、AV1、VP9 是編解碼器，負責影片像素的資料壓縮和解壓縮。我們常說的 MP4 檔案，99% 是 H.264 影片 + AAC 音訊打包在 MP4 容器裡。</p> <p>未經壓縮的 1080P 30 幀影片，每秒資料量高達 1.5GB，故我們需要用編解碼器縮小資料量，在人眼幾乎看不出畫質損失的前題下把資料壓縮 100 到 1000 倍。壓縮的核心原理是消除冗餘(Redundency)，包括空間冗餘 (同一畫面裡重複的像素)、時間冗餘 (比如連續幀裡不變的內容)，再配合人眼感知。人眼對亮度敏感、對色彩敏感度低，故影片可將把色彩解析度降低，只保留高解析度的亮度資訊，靠這一步就能讓檔案體積減半。而解碼的挑戰在於 45% 的檔案無法用 GPU 硬體解碼，必須依賴軟體解碼，這需要極致程式碼優化，這也是 FFmpeg 的核心價值所在。</p> <h3>在幾十億裝置上跑的 FFmpeg 開發團隊不到 15 人</h3> <p>FFmpeg 開發團隊只有 10 到 15 人，全是無給職的志願者，白天上班、晚上貢獻程式碼，其開發社群有一個鐵律：只看程式碼品質，不看身份背景。不管貢獻者是頂尖軟體公司的工程師或 16 歲高中生，對程式碼審核標準都相同，對簡潔度、可維護性有極其嚴苛的要求。這與 Linux 核心管理哲學相近，因為 FFmpeg 程式會在全球幾十億台裝置上運行，一行程式有錯或效率不佳，影響難以估計。</p> <h3>FFmpeg 專案有 10 萬行純手寫組合語言</h3> <p>這是 FFmpeg 碾壓所有商用多媒體程式庫的致勝關鍵，惟有用組合語言純手工打造，才能做到每個 CPU 運算週期輜銖必較，榨乾每一絲效能。C 編譯器雖然也能提供自動優化，但和組合語言的最佳效能相差 10 到 62 倍，這是 FFmpeg 堅持效能關鍵邏輯一律手寫組合語言的理由。</p> <p>會不會改用 Rust？</p> <h3>FFmpeg 靠逆向工程所向無敵</h3> <p>全球有無數冷門、廢棄或無文件無原始碼的編解碼器，如早期的 GoToMeeting 會議編解碼器、Windows Media、RealMedia 的私有格式等，它們沒有官方文件也沒有程式碼，FFmpeg 社群的逆向工程師能僅憑二進位檔案還原出完整的編解碼邏輯。其中的傳奇的是烏克蘭開發者康斯坦丁·希什科夫 (Kostya Shishkov)，他逆向幾十 MB 的二進位機器指令和樣本檔案，只花了兩個寫出精確到位元 (Bit-Exact) 的解碼器，做到和官方解碼器完全一致的效果。(註：Bit-Exact 指所有解碼器必須輸出完全一致的像素資料，此為影片歸檔和專業處理的基本要求，早期 MPEG-2 編解碼器沒有執行精確到位元的標準，導致大量影片無法相容。</p> <h3>FFmpeg / VLC 播放器為每位使用者省下 200 歐元專利費用</h3> <p>多媒體領域處處是專利，像 MPEG 專利池擁有 H.264、H.265、H.266 等核心專利，企業要使用這些編解碼器，每年要支付數億美元授權費。谷歌、Netflix 推動 AV1 就是要擺脫專利綁架，讓影片技術回歸開源共享。</p> <p>VLC 與 FFmpeg 隸屬 VideoLAN 生態系，開發主體位於法國，靠著歐洲與法國的法律體系不承認多媒體軟體專利(認為數學和演算法不應被壟斷)，擺脫相關專利費用問題，若必須為 VLC 使用的多媒體專利付費，每個使用者需支付 200 歐元!</p> <p>順帶一提，隨著技術更新，AV1、AV2 逐漸成為新一代編解碼器的主流。AV1 由開放媒體聯盟 (AOMedia) 開發，谷歌、Netflix、亞馬遜、蘋果、VideoLAN 共同參與，是免專利費的開源編解碼器，比 H.264 的壓縮效率高 50%，比 H.265 高 30%，且沒有昂貴的專利授權費。而 AV2 作為下一代標準，將再提升 30% 的壓縮效率。延伸閱讀：<a href="/blog/youtube-video-formats/">看懂 YouTube 影音編碼規格</a></p> <h3>為愛發電開發者的困擾</h3> <p>像 FFmpeg / VLC 這類全球重度依賴的開源專案，核心維護者只有寥寥數人，他們拿著微薄的捐贈、甚至零收入，卻要面對大企業的需求、安全研究員的漏洞報告，以及用戶的批評，長期處於高壓的狀態，極容易陷入倦怠。例如 FFmpeg 就曾遇到谷歌用 AI 批量生成安全漏洞報告，不提前溝通就公告，將修復壓力全都丟給志願者；微軟 Teams 曾經在 FFmpeg 漏洞追蹤裡標註最高優先級，卻只願意支付幾千美元的一次性費用，完全無視志願者的付出。大型營利企業把開源專案當成免費供應商，卻不願為支撐自己業務的程式碼支付合理報酬；AI 生成的漏洞報告，本質是對開源開發者的 DoS，有些冷門遊戲編解碼器的漏洞根本不影響普通用戶，卻被標為高風險漏洞(資安研究員也要衝業績？)製造恐慌。但情況已有一些改善，Google 開始提交修補、設立漏洞修復獎勵，對 FFmpeg 的捐贈也大幅增加，但是依然遠不足以覆蓋一個全職開發者的成本。這也是開源世界的殘酷現實，支撐全球數位基建的程式碼，卻完全是由一群沒有保障的志願者守護著。</p> <h3>後記</h3> <p>整理完文章，同為想用程式碼改變世界的開發者 (雖然沒做出個毛，但確實有這個心)，為 VideoLAN 開發者的熱情與付出所感動，獻上我的 RESPECT 及微薄捐獻，哈~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639146283705358664.png"></p> <p data-slug="ffmpeg-story" data-fbimg="https://i.postimg.cc/PJ0jpDzH/thumbnail.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>有寫程式或手工處理過影片，應該都知道 FFmpeg 這個萬用的影片格式轉換與編輯工具，這兩天大飛有部 <a href="https://www.youtube.com/watch?v=rbfM_yd4Gv0">Youtube 影片</a>在講 VideoLAN 開源社群，看完對這個開源專案有了更深認識，心中滿是尊敬!</p> <p>整理了一些你可能不知道的 FFmpeg、影片解碼器與 VLC 播放器的小知識：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639146283690383913.png"><br> (VLC 圖示是可愛的橘白交通錐，大家應該都看過吧)</p> <h3>FFmpeg 是全球最大的 CPU 消耗者之一</h3> <p>FFmpeg 參與了超過 90% 的線上和離線影片處理流程，YouTube 影片轉碼、Netflix 串流媒體傳送、Chrome 影片解碼，甚至智慧電視的媒體播放，都少不了它。</p> <p>FFmepg 是全球最全能的多媒體處理庫，囊括所有你想得到的影片處理功能：編解碼、<a href="https://zh.wikipedia.org/zh-tw/%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8">多工 (Multiplexing)</a>/解多工、濾鏡、媒體串流.. 等等。既是指令列工具，也是可供軟體呼叫的程式庫。FFmpeg 追求開源免費、人人平等，普通人的家庭錄影、科技巨頭的伺服器，用的是同一套 FFmpeg 程式碼，把原本價值百萬美元的專業多媒體設備能力，變成了人人可用的免費工具，催生了當代人人能在社群平台發影片當網紅的盛世。</p> <h3>影片編解碼器是什麼？</h3> <p>一般人容易把影片「容器」和「編解碼器」混為一談，MP4、MOV、MKV、AVI 是容器，負責把影片軌、音訊軌和字幕軌打包在一起；而 H.264 (AVC)、H.265 (HEVC)、AV1、VP9 是編解碼器，負責影片像素的資料壓縮和解壓縮。我們常說的 MP4 檔案，99% 是 H.264 影片 + AAC 音訊打包在 MP4 容器裡。</p> <p>未經壓縮的 1080P 30 幀影片，每秒資料量高達 1.5GB，故我們需要用編解碼器縮小資料量，在人眼幾乎看不出畫質損失的前題下把資料壓縮 100 到 1000 倍。壓縮的核心原理是消除冗餘(Redundency)，包括空間冗餘 (同一畫面裡重複的像素)、時間冗餘 (比如連續幀裡不變的內容)，再配合人眼感知。人眼對亮度敏感、對色彩敏感度低，故影片可將把色彩解析度降低，只保留高解析度的亮度資訊，靠這一步就能讓檔案體積減半。而解碼的挑戰在於 45% 的檔案無法用 GPU 硬體解碼，必須依賴軟體解碼，這需要極致程式碼優化，這也是 FFmpeg 的核心價值所在。</p> <h3>在幾十億裝置上跑的 FFmpeg 開發團隊不到 15 人</h3> <p>FFmpeg 開發團隊只有 10 到 15 人，全是無給職的志願者，白天上班、晚上貢獻程式碼，其開發社群有一個鐵律：只看程式碼品質，不看身份背景。不管貢獻者是頂尖軟體公司的工程師或 16 歲高中生，對程式碼審核標準都相同，對簡潔度、可維護性有極其嚴苛的要求。這與 Linux 核心管理哲學相近，因為 FFmpeg 程式會在全球幾十億台裝置上運行，一行程式有錯或效率不佳，影響難以估計。</p> <h3>FFmpeg 專案有 10 萬行純手寫組合語言</h3> <p>這是 FFmpeg 碾壓所有商用多媒體程式庫的致勝關鍵，惟有用組合語言純手工打造，才能做到每個 CPU 運算週期輜銖必較，榨乾每一絲效能。C 編譯器雖然也能提供自動優化，但和組合語言的最佳效能相差 10 到 62 倍，這是 FFmpeg 堅持效能關鍵邏輯一律手寫組合語言的理由。</p> <p>會不會改用 Rust？</p> <h3>FFmpeg 靠逆向工程所向無敵</h3> <p>全球有無數冷門、廢棄或無文件無原始碼的編解碼器，如早期的 GoToMeeting 會議編解碼器、Windows Media、RealMedia 的私有格式等，它們沒有官方文件也沒有程式碼，FFmpeg 社群的逆向工程師能僅憑二進位檔案還原出完整的編解碼邏輯。其中的傳奇的是烏克蘭開發者康斯坦丁·希什科夫 (Kostya Shishkov)，他逆向幾十 MB 的二進位機器指令和樣本檔案，只花了兩個寫出精確到位元 (Bit-Exact) 的解碼器，做到和官方解碼器完全一致的效果。(註：Bit-Exact 指所有解碼器必須輸出完全一致的像素資料，此為影片歸檔和專業處理的基本要求，早期 MPEG-2 編解碼器沒有執行精確到位元的標準，導致大量影片無法相容。</p> <h3>FFmpeg / VLC 播放器為每位使用者省下 200 歐元專利費用</h3> <p>多媒體領域處處是專利，像 MPEG 專利池擁有 H.264、H.265、H.266 等核心專利，企業要使用這些編解碼器，每年要支付數億美元授權費。谷歌、Netflix 推動 AV1 就是要擺脫專利綁架，讓影片技術回歸開源共享。</p> <p>VLC 與 FFmpeg 隸屬 VideoLAN 生態系，開發主體位於法國，靠著歐洲與法國的法律體系不承認多媒體軟體專利(認為數學和演算法不應被壟斷)，擺脫相關專利費用問題，若必須為 VLC 使用的多媒體專利付費，每個使用者需支付 200 歐元!</p> <p>順帶一提，隨著技術更新，AV1、AV2 逐漸成為新一代編解碼器的主流。AV1 由開放媒體聯盟 (AOMedia) 開發，谷歌、Netflix、亞馬遜、蘋果、VideoLAN 共同參與，是免專利費的開源編解碼器，比 H.264 的壓縮效率高 50%，比 H.265 高 30%，且沒有昂貴的專利授權費。而 AV2 作為下一代標準，將再提升 30% 的壓縮效率。延伸閱讀：<a href="/blog/youtube-video-formats/">看懂 YouTube 影音編碼規格</a></p> <h3>為愛發電開發者的困擾</h3> <p>像 FFmpeg / VLC 這類全球重度依賴的開源專案，核心維護者只有寥寥數人，他們拿著微薄的捐贈、甚至零收入，卻要面對大企業的需求、安全研究員的漏洞報告，以及用戶的批評，長期處於高壓的狀態，極容易陷入倦怠。例如 FFmpeg 就曾遇到谷歌用 AI 批量生成安全漏洞報告，不提前溝通就公告，將修復壓力全都丟給志願者；微軟 Teams 曾經在 FFmpeg 漏洞追蹤裡標註最高優先級，卻只願意支付幾千美元的一次性費用，完全無視志願者的付出。大型營利企業把開源專案當成免費供應商，卻不願為支撐自己業務的程式碼支付合理報酬；AI 生成的漏洞報告，本質是對開源開發者的 DoS，有些冷門遊戲編解碼器的漏洞根本不影響普通用戶，卻被標為高風險漏洞(資安研究員也要衝業績？)製造恐慌。但情況已有一些改善，Google 開始提交修補、設立漏洞修復獎勵，對 FFmpeg 的捐贈也大幅增加，但是依然遠不足以覆蓋一個全職開發者的成本。這也是開源世界的殘酷現實，支撐全球數位基建的程式碼，卻完全是由一群沒有保障的志願者守護著。</p> <h3>後記</h3> <p>整理完文章，同為想用程式碼改變世界的開發者 (雖然沒做出個毛，但確實有這個心)，為 VideoLAN 開發者的熱情與付出所感動，獻上我的 RESPECT 及微薄捐獻，哈~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639146283705358664.png"></p> <p data-slug="ffmpeg-story" data-fbimg="https://i.postimg.cc/PJ0jpDzH/thumbnail.jpg#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig2_639146283690383913.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig2_639146283690383913.png" medium="image"/>
+    <pubDate>Sun, 17 May 2026 15:17:08 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Telegram 隨身語音靈感簿]]></title>
+    <link>https://blog.darkthread.net/blog/telegram-transcribe-bot/</link>
+    <itunes:title><![CDATA[Telegram 隨身語音靈感簿]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>最近寫了個小程式實現想了很久的需求。</p> <p>我習慣跑步、通勤時想東想西，腦袋常會飄過各式各樣的新點子，想著程式可以怎麼改，可以寫個什麼功能，又或者有感而發想 PO 篇廢文，靈光乍現之際，便想快點記下來，生怕等下轉身就忘。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639145369376547801.jpg" alt="thumbnail"><br> (AI 模擬使用方式示意，但跑步時這樣拿手機，應該很快就要買新的)</p> <p>語音輸入技術發展了幾十年，但效果一直無法讓我滿意。神經網路(深度學習)出現後電腦語音識別能力原地起飛，Whisper 一登場便驚艷四座。前陣子試過 <a href="/blog/stt-tts-chat-2026/">gpt-4o-mini-transcribe</a>，其速度與精確率更是好到讓我讚嘆，而用 .NET 實作難度不高，成本又在可接受範圍(每分鐘語音約新台幣 0.1 元)，便興起為自己寫個小工具用手機隨身記靈感的念頭。</p> <p>我沒有手機 App 開發經驗又想早點拿到成品，故現在不是花時間學習與熟悉 App 開發的好時機，我挑了一條捷徑 - 直接寫成 Telegram 機器人，用 Telegram App 錄音，機器人識別後當成訊息回傳。</p> <p>之前<a href="/blog/telegram-cli-bot/">寫過 Telegram 機器人</a>，感覺良好。Telegram 機器人不像 Line 必須開對外網站提供 Callback URL，在內網連上 Telegram 伺服器就完成訊息收發，程式架構也算簡單好寫，深得我心。因此，這次決定就用它打造我的隨身語音靈感簿。</p> <p>核心邏輯不難，但需要學會接收口語錄音檔的小技巧。做法是識別訊息型別為 Telegram.Bot.Types.Enums.MessageType.Voice 後，取得 FileId，呼叫 bot.GetFile() 取得下載 URL，再用 bot.DownloadFile() 下載 .ogg 檔。.ogg 檔則需要先轉成 GPT 模型支援的 .mp3 格式再上傳 gpt-4o-mini-transcribe API 進行轉譯。</p> <p>媒體檔轉檔有個小眉角是要考慮跨平台問題，影音編碼器邏輯複雜，一般不會重新造輪子，多會借用著名的 C 程式庫，一開始用 AI 推薦的 NAudio.Lame 程式庫在 Windows 測試得很開心，包成 Docker 後遇到在 Linux 平台對應不到 Lame 程式庫的錯誤，撞壁幾回合後，毅然改用 ffmpeg 程式庫過關。為順利在容器使用 ffmpeg，Dockerfile 要記得加上 apt-get install -y ffmpeg 安裝指令：</p> <pre><code># Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY transcribe-bot.csproj .
+RUN dotnet restore
+COPY *.cs .
+RUN dotnet publish -c Release -o /app/publish
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+WORKDIR /app
+# 安裝 ffmpeg
+RUN apt-get update &amp;&amp; apt-get install -y ffmpeg &amp;&amp; rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "transcribe-bot.dll"]
+</code></pre> <p>完成轉檔，後續流程便是將 mp3 交給 gpt-4o-mini-transcribe 轉成文字，再呼叫 gpt-5.4-mini 或更便宜的模型對文字進行修飾，這些之前做過，都是可以想像的過程，此處不多花篇幅說明。</p> <p>此處還有個重點，要如何限定機器人只幫授權的對象服務？Telegram 機器人有個特性，只要知道 Bot 的 ID，任何人都可以跟機器人對話，交談對象是誰則可用 msg.Chat.Id 識別 (User Id 一串 ulong 數字)。我採取一個非常簡單但有效的方法管控權限，程式會在 data 資料夾保存使用者所有的語音檔與轉譯結果(一方面好調出上一則轉譯文字當上下文，再則可用於問題排除、研究 Prompt 與程式優化)，使用者必須在環境變數宣告以 User Id 為名的變數及指定個人資料夾，並在 data 建立個人專屬資料夾才會啟用轉譯功能。對於只有幾個人用的小服務，這樣的管控簡單有效也已經足夠。</p> <p>綜合以上說明，核心主流程會像這個樣子：</p> <pre><code>bot.OnMessage += async (msg, type) =&gt;
+{
+Func&lt;string, Task&gt; sendReply = async (text) =&gt;
+{
+if (string.IsNullOrEmpty(text)) text = "(無內容)";
+await bot.SendMessage(chatId: msg.Chat.Id, text: text, cancellationToken: cts.Token);
+};
+try
+{
+var userId = msg.Chat.Id;
+var authUserName = Environment.GetEnvironmentVariable($"USER_{userId}");
+if (string.IsNullOrEmpty(authUserName)) throw new Exception($"Unauthorized User [{userId}]");
+var userFolder = Path.Combine(dataFolder, authUserName);
+if (!Directory.Exists(userFolder)) Directory.CreateDirectory(userFolder);
+// 若為音訊檔案，先下載並轉錄，再將文字回覆給使用者
+if (msg.Type == Telegram.Bot.Types.Enums.MessageType.Voice)
+{
+var fileId = msg.Voice?.FileId ?? throw new Exception("Voice FileId is null");
+var filePath = await bot.GetFile(fileId, cts.Token);
+var localPath = Path.Combine(userFolder, $"{DateTime.Now:yyyyMMddhhmmss}.ogg");
+using (var memStream = new MemoryStream())
+{
+await bot.DownloadFile(filePath, memStream);
+File.WriteAllBytes(localPath, memStream.ToArray());
+var mp3Data = AudioHelper.ConvertOggToMp3(memStream.ToArray());
+File.WriteAllBytes(localPath.Replace(".ogg", ".mp3"), mp3Data);
+var transcription = await gpt.TranscribeAudioAsync(mp3Data, userFolder, cts.Token);
+var prev = string.Empty;
+if (transcription.StartsWith("繼續")) {
+prev = gpt.GetLatestTranscription(userFolder);
+}
+var polished = await gpt.PolishTranscriptionAsync(transcription, prev, userFolder, cts.Token);
+await sendReply($"{polished}");
+}
+}
+}
+catch (Exception ex)
+{
+await sendReply($"❌ 錯誤：{ex.Message}");
+Console.WriteLine($"處理訊息時發生錯誤：{ex.ToString()}");
+return;
+}
+};
+</code></pre> <p>實測效果相當不錯!! 準確率頗高，即便中英文交雜，也難不倒 GPT Transcribe 模型。如此，隨時想到好點子，開啟 Telegram 說上幾句，機器人會幫忙忠實記錄。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639145369427125249.jpg"></p> <p>又為自己寫了一個 AI 應用工具，朝 AI 改善生活的道路繼續前進~</p> <p data-slug="telegram-transcribe-bot" data-title-en="Building a personal Telegram transcribe bot" data-catg=".NET" data-fbimg="https://i.postimg.cc/h4msSrjp/thumbnail.jpg#1024#768">Describes building a personal Telegram bot to capture voice ideas on the go. Uses OpenAI speech-to-text, ffmpeg for cross-platform audio conversion, Docker deployment, and simple user authorization, creating a lightweight alternative to a mobile app.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>最近寫了個小程式實現想了很久的需求。</p> <p>我習慣跑步、通勤時想東想西，腦袋常會飄過各式各樣的新點子，想著程式可以怎麼改，可以寫個什麼功能，又或者有感而發想 PO 篇廢文，靈光乍現之際，便想快點記下來，生怕等下轉身就忘。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639145369376547801.jpg" alt="thumbnail"><br> (AI 模擬使用方式示意，但跑步時這樣拿手機，應該很快就要買新的)</p> <p>語音輸入技術發展了幾十年，但效果一直無法讓我滿意。神經網路(深度學習)出現後電腦語音識別能力原地起飛，Whisper 一登場便驚艷四座。前陣子試過 <a href="/blog/stt-tts-chat-2026/">gpt-4o-mini-transcribe</a>，其速度與精確率更是好到讓我讚嘆，而用 .NET 實作難度不高，成本又在可接受範圍(每分鐘語音約新台幣 0.1 元)，便興起為自己寫個小工具用手機隨身記靈感的念頭。</p> <p>我沒有手機 App 開發經驗又想早點拿到成品，故現在不是花時間學習與熟悉 App 開發的好時機，我挑了一條捷徑 - 直接寫成 Telegram 機器人，用 Telegram App 錄音，機器人識別後當成訊息回傳。</p> <p>之前<a href="/blog/telegram-cli-bot/">寫過 Telegram 機器人</a>，感覺良好。Telegram 機器人不像 Line 必須開對外網站提供 Callback URL，在內網連上 Telegram 伺服器就完成訊息收發，程式架構也算簡單好寫，深得我心。因此，這次決定就用它打造我的隨身語音靈感簿。</p> <p>核心邏輯不難，但需要學會接收口語錄音檔的小技巧。做法是識別訊息型別為 Telegram.Bot.Types.Enums.MessageType.Voice 後，取得 FileId，呼叫 bot.GetFile() 取得下載 URL，再用 bot.DownloadFile() 下載 .ogg 檔。.ogg 檔則需要先轉成 GPT 模型支援的 .mp3 格式再上傳 gpt-4o-mini-transcribe API 進行轉譯。</p> <p>媒體檔轉檔有個小眉角是要考慮跨平台問題，影音編碼器邏輯複雜，一般不會重新造輪子，多會借用著名的 C 程式庫，一開始用 AI 推薦的 NAudio.Lame 程式庫在 Windows 測試得很開心，包成 Docker 後遇到在 Linux 平台對應不到 Lame 程式庫的錯誤，撞壁幾回合後，毅然改用 ffmpeg 程式庫過關。為順利在容器使用 ffmpeg，Dockerfile 要記得加上 apt-get install -y ffmpeg 安裝指令：</p> <pre><code># Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY transcribe-bot.csproj .
+RUN dotnet restore
+COPY *.cs .
+RUN dotnet publish -c Release -o /app/publish
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+WORKDIR /app
+# 安裝 ffmpeg
+RUN apt-get update &amp;&amp; apt-get install -y ffmpeg &amp;&amp; rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "transcribe-bot.dll"]
+</code></pre> <p>完成轉檔，後續流程便是將 mp3 交給 gpt-4o-mini-transcribe 轉成文字，再呼叫 gpt-5.4-mini 或更便宜的模型對文字進行修飾，這些之前做過，都是可以想像的過程，此處不多花篇幅說明。</p> <p>此處還有個重點，要如何限定機器人只幫授權的對象服務？Telegram 機器人有個特性，只要知道 Bot 的 ID，任何人都可以跟機器人對話，交談對象是誰則可用 msg.Chat.Id 識別 (User Id 一串 ulong 數字)。我採取一個非常簡單但有效的方法管控權限，程式會在 data 資料夾保存使用者所有的語音檔與轉譯結果(一方面好調出上一則轉譯文字當上下文，再則可用於問題排除、研究 Prompt 與程式優化)，使用者必須在環境變數宣告以 User Id 為名的變數及指定個人資料夾，並在 data 建立個人專屬資料夾才會啟用轉譯功能。對於只有幾個人用的小服務，這樣的管控簡單有效也已經足夠。</p> <p>綜合以上說明，核心主流程會像這個樣子：</p> <pre><code>bot.OnMessage += async (msg, type) =&gt;
+{
+Func&lt;string, Task&gt; sendReply = async (text) =&gt;
+{
+if (string.IsNullOrEmpty(text)) text = "(無內容)";
+await bot.SendMessage(chatId: msg.Chat.Id, text: text, cancellationToken: cts.Token);
+};
+try
+{
+var userId = msg.Chat.Id;
+var authUserName = Environment.GetEnvironmentVariable($"USER_{userId}");
+if (string.IsNullOrEmpty(authUserName)) throw new Exception($"Unauthorized User [{userId}]");
+var userFolder = Path.Combine(dataFolder, authUserName);
+if (!Directory.Exists(userFolder)) Directory.CreateDirectory(userFolder);
+// 若為音訊檔案，先下載並轉錄，再將文字回覆給使用者
+if (msg.Type == Telegram.Bot.Types.Enums.MessageType.Voice)
+{
+var fileId = msg.Voice?.FileId ?? throw new Exception("Voice FileId is null");
+var filePath = await bot.GetFile(fileId, cts.Token);
+var localPath = Path.Combine(userFolder, $"{DateTime.Now:yyyyMMddhhmmss}.ogg");
+using (var memStream = new MemoryStream())
+{
+await bot.DownloadFile(filePath, memStream);
+File.WriteAllBytes(localPath, memStream.ToArray());
+var mp3Data = AudioHelper.ConvertOggToMp3(memStream.ToArray());
+File.WriteAllBytes(localPath.Replace(".ogg", ".mp3"), mp3Data);
+var transcription = await gpt.TranscribeAudioAsync(mp3Data, userFolder, cts.Token);
+var prev = string.Empty;
+if (transcription.StartsWith("繼續")) {
+prev = gpt.GetLatestTranscription(userFolder);
+}
+var polished = await gpt.PolishTranscriptionAsync(transcription, prev, userFolder, cts.Token);
+await sendReply($"{polished}");
+}
+}
+}
+catch (Exception ex)
+{
+await sendReply($"❌ 錯誤：{ex.Message}");
+Console.WriteLine($"處理訊息時發生錯誤：{ex.ToString()}");
+return;
+}
+};
+</code></pre> <p>實測效果相當不錯!! 準確率頗高，即便中英文交雜，也難不倒 GPT Transcribe 模型。如此，隨時想到好點子，開啟 Telegram 說上幾句，機器人會幫忙忠實記錄。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639145369427125249.jpg"></p> <p>又為自己寫了一個 AI 應用工具，朝 AI 改善生活的道路繼續前進~</p> <p data-slug="telegram-transcribe-bot" data-title-en="Building a personal Telegram transcribe bot" data-catg=".NET" data-fbimg="https://i.postimg.cc/h4msSrjp/thumbnail.jpg#1024#768">Describes building a personal Telegram bot to capture voice ideas on the go. Uses OpenAI speech-to-text, ffmpeg for cross-platform audio conversion, Docker deployment, and simple user authorization, creating a lightweight alternative to a mobile app.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>最近寫了個小程式實現想了很久的需求。</p> <p>我習慣跑步、通勤時想東想西，腦袋常會飄過各式各樣的新點子，想著程式可以怎麼改，可以寫個什麼功能，又或者有感而發想 PO 篇廢文，靈光乍現之際，便想快點記下來，生怕等下轉身就忘。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639145369376547801.jpg" alt="thumbnail"><br> (AI 模擬使用方式示意，但跑步時這樣拿手機，應該很快就要買新的)</p> <p>語音輸入技術發展了幾十年，但效果一直無法讓我滿意。神經網路(深度學習)出現後電腦語音識別能力原地起飛，Whisper 一登場便驚艷四座。前陣子試過 <a href="/blog/stt-tts-chat-2026/">gpt-4o-mini-transcribe</a>，其速度與精確率更是好到讓我讚嘆，而用 .NET 實作難度不高，成本又在可接受範圍(每分鐘語音約新台幣 0.1 元)，便興起為自己寫個小工具用手機隨身記靈感的念頭。</p> <p>我沒有手機 App 開發經驗又想早點拿到成品，故現在不是花時間學習與熟悉 App 開發的好時機，我挑了一條捷徑 - 直接寫成 Telegram 機器人，用 Telegram App 錄音，機器人識別後當成訊息回傳。</p> <p>之前<a href="/blog/telegram-cli-bot/">寫過 Telegram 機器人</a>，感覺良好。Telegram 機器人不像 Line 必須開對外網站提供 Callback URL，在內網連上 Telegram 伺服器就完成訊息收發，程式架構也算簡單好寫，深得我心。因此，這次決定就用它打造我的隨身語音靈感簿。</p> <p>核心邏輯不難，但需要學會接收口語錄音檔的小技巧。做法是識別訊息型別為 Telegram.Bot.Types.Enums.MessageType.Voice 後，取得 FileId，呼叫 bot.GetFile() 取得下載 URL，再用 bot.DownloadFile() 下載 .ogg 檔。.ogg 檔則需要先轉成 GPT 模型支援的 .mp3 格式再上傳 gpt-4o-mini-transcribe API 進行轉譯。</p> <p>媒體檔轉檔有個小眉角是要考慮跨平台問題，影音編碼器邏輯複雜，一般不會重新造輪子，多會借用著名的 C 程式庫，一開始用 AI 推薦的 NAudio.Lame 程式庫在 Windows 測試得很開心，包成 Docker 後遇到在 Linux 平台對應不到 Lame 程式庫的錯誤，撞壁幾回合後，毅然改用 ffmpeg 程式庫過關。為順利在容器使用 ffmpeg，Dockerfile 要記得加上 apt-get install -y ffmpeg 安裝指令：</p> <pre><code># Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY transcribe-bot.csproj .
+RUN dotnet restore
+COPY *.cs .
+RUN dotnet publish -c Release -o /app/publish
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+WORKDIR /app
+# 安裝 ffmpeg
+RUN apt-get update &amp;&amp; apt-get install -y ffmpeg &amp;&amp; rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "transcribe-bot.dll"]
+</code></pre> <p>完成轉檔，後續流程便是將 mp3 交給 gpt-4o-mini-transcribe 轉成文字，再呼叫 gpt-5.4-mini 或更便宜的模型對文字進行修飾，這些之前做過，都是可以想像的過程，此處不多花篇幅說明。</p> <p>此處還有個重點，要如何限定機器人只幫授權的對象服務？Telegram 機器人有個特性，只要知道 Bot 的 ID，任何人都可以跟機器人對話，交談對象是誰則可用 msg.Chat.Id 識別 (User Id 一串 ulong 數字)。我採取一個非常簡單但有效的方法管控權限，程式會在 data 資料夾保存使用者所有的語音檔與轉譯結果(一方面好調出上一則轉譯文字當上下文，再則可用於問題排除、研究 Prompt 與程式優化)，使用者必須在環境變數宣告以 User Id 為名的變數及指定個人資料夾，並在 data 建立個人專屬資料夾才會啟用轉譯功能。對於只有幾個人用的小服務，這樣的管控簡單有效也已經足夠。</p> <p>綜合以上說明，核心主流程會像這個樣子：</p> <pre><code>bot.OnMessage += async (msg, type) =&gt;
+{
+Func&lt;string, Task&gt; sendReply = async (text) =&gt;
+{
+if (string.IsNullOrEmpty(text)) text = "(無內容)";
+await bot.SendMessage(chatId: msg.Chat.Id, text: text, cancellationToken: cts.Token);
+};
+try
+{
+var userId = msg.Chat.Id;
+var authUserName = Environment.GetEnvironmentVariable($"USER_{userId}");
+if (string.IsNullOrEmpty(authUserName)) throw new Exception($"Unauthorized User [{userId}]");
+var userFolder = Path.Combine(dataFolder, authUserName);
+if (!Directory.Exists(userFolder)) Directory.CreateDirectory(userFolder);
+// 若為音訊檔案，先下載並轉錄，再將文字回覆給使用者
+if (msg.Type == Telegram.Bot.Types.Enums.MessageType.Voice)
+{
+var fileId = msg.Voice?.FileId ?? throw new Exception("Voice FileId is null");
+var filePath = await bot.GetFile(fileId, cts.Token);
+var localPath = Path.Combine(userFolder, $"{DateTime.Now:yyyyMMddhhmmss}.ogg");
+using (var memStream = new MemoryStream())
+{
+await bot.DownloadFile(filePath, memStream);
+File.WriteAllBytes(localPath, memStream.ToArray());
+var mp3Data = AudioHelper.ConvertOggToMp3(memStream.ToArray());
+File.WriteAllBytes(localPath.Replace(".ogg", ".mp3"), mp3Data);
+var transcription = await gpt.TranscribeAudioAsync(mp3Data, userFolder, cts.Token);
+var prev = string.Empty;
+if (transcription.StartsWith("繼續")) {
+prev = gpt.GetLatestTranscription(userFolder);
+}
+var polished = await gpt.PolishTranscriptionAsync(transcription, prev, userFolder, cts.Token);
+await sendReply($"{polished}");
+}
+}
+}
+catch (Exception ex)
+{
+await sendReply($"❌ 錯誤：{ex.Message}");
+Console.WriteLine($"處理訊息時發生錯誤：{ex.ToString()}");
+return;
+}
+};
+</code></pre> <p>實測效果相當不錯!! 準確率頗高，即便中英文交雜，也難不倒 GPT Transcribe 模型。如此，隨時想到好點子，開啟 Telegram 說上幾句，機器人會幫忙忠實記錄。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639145369427125249.jpg"></p> <p>又為自己寫了一個 AI 應用工具，朝 AI 改善生活的道路繼續前進~</p> <p data-slug="telegram-transcribe-bot" data-title-en="Building a personal Telegram transcribe bot" data-catg=".NET" data-fbimg="https://i.postimg.cc/h4msSrjp/thumbnail.jpg#1024#768">Describes building a personal Telegram bot to capture voice ideas on the go. Uses OpenAI speech-to-text, ffmpeg for cross-platform audio conversion, Docker deployment, and simple user authorization, creating a lightweight alternative to a mobile app.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig2_639145369376547801.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig2_639145369376547801.jpg" medium="image"/>
+    <pubDate>Sat, 16 May 2026 13:56:28 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[.lscache 檔是哪冒出來的？要一起 Commit 嗎？]]></title>
+    <link>https://blog.darkthread.net/blog/lscache/</link>
+    <itunes:title><![CDATA[.lscache 檔是哪冒出來的？要一起 Commit 嗎？]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這兩天，我發現 Commit 時 .csproj 會伴隨一個同名 .lscache，疑似是 C# Dev Kit 近期更新加入的新東西。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639144576599408647.png"></p> <p>追了一下，它是 C# Dev Kit 在用的輕量級快取文件，本質是個 TOML 格式文件，包含專案參照、結構等資訊(但不包含環境變數之類的敏感資料)。.lscache 是用來增加 C# Dev Kit 的啟動速度，依據<a href="https://github.com/microsoft/vscode-dotnettools/issues/2961">官方說法</a>，.lscache 可縮短 70% 的啟動時間，並能明顯減少記憶體使用。</p> <p>能改善 VSCode 的 .NET 專案開發體驗當然是好事，但煩人的是它經常變動，成為每次 Commit 的常客，有些礙眼。被納入 Commit 範圍是因為傳統 .gitignores 來不及排除還是刻意為之？答案是後者。理由如下：</p> <ol><li>分支切換時若快取可存在 Repository 一起取回，意味著切換分支後 C# Dev Kit 可立即使用該分支的快取數據，無需從頭開始重新建置。</li> <li>即便快取不是最新版，即然不夠精準仍有參考價值，並會在下次建置時更新。</li></ol> <p>雖然 C# Dev Kit 團隊建議大家把 .lscache 一起 Commit 到版控，但如果你真的不想，可以手動加入 .gitignores、或是修改 dotnet.projectsystem.cacheInProjectFolder 設定為 false，.lscache 將會改存專案以外的暫存區。但如上面提過的，將 .lscache 排除在版控外，將損失切換分支或跨機器開發時的加速效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639144576602724194.png"></p> <p>由 <a href="https://github.com/microsoft/vscode-dotnettools/issues/2961">Issue 討論串</a>來看，似乎大家不太能接受 Commit 項目中出現 Cache 性質的檔案，這有違祖訓，打破傳統上對 Cache 的認知，討論區一片反彈。</p> <p>這個實驗性質的嘗試最終會如何發展呢？我認為大部分開發者寧可浪費一些時間重建快取，也希望保有版控的純淨，Commit 內容就該聚焦在開發成果，只記錄修改異動，不該摻雜與專案本質無關的開發工具加速副產品。</p> <p>我猜在這場「大型社會實驗」後，C# Dev Kit 應會從善如流，將它排除在 Commit 範圍外。</p> <p data-slug="lscache" data-fbimg="https://i.postimg.cc/XvzbpJD9/image.png#845#521"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這兩天，我發現 Commit 時 .csproj 會伴隨一個同名 .lscache，疑似是 C# Dev Kit 近期更新加入的新東西。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639144576599408647.png"></p> <p>追了一下，它是 C# Dev Kit 在用的輕量級快取文件，本質是個 TOML 格式文件，包含專案參照、結構等資訊(但不包含環境變數之類的敏感資料)。.lscache 是用來增加 C# Dev Kit 的啟動速度，依據<a href="https://github.com/microsoft/vscode-dotnettools/issues/2961">官方說法</a>，.lscache 可縮短 70% 的啟動時間，並能明顯減少記憶體使用。</p> <p>能改善 VSCode 的 .NET 專案開發體驗當然是好事，但煩人的是它經常變動，成為每次 Commit 的常客，有些礙眼。被納入 Commit 範圍是因為傳統 .gitignores 來不及排除還是刻意為之？答案是後者。理由如下：</p> <ol><li>分支切換時若快取可存在 Repository 一起取回，意味著切換分支後 C# Dev Kit 可立即使用該分支的快取數據，無需從頭開始重新建置。</li> <li>即便快取不是最新版，即然不夠精準仍有參考價值，並會在下次建置時更新。</li></ol> <p>雖然 C# Dev Kit 團隊建議大家把 .lscache 一起 Commit 到版控，但如果你真的不想，可以手動加入 .gitignores、或是修改 dotnet.projectsystem.cacheInProjectFolder 設定為 false，.lscache 將會改存專案以外的暫存區。但如上面提過的，將 .lscache 排除在版控外，將損失切換分支或跨機器開發時的加速效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639144576602724194.png"></p> <p>由 <a href="https://github.com/microsoft/vscode-dotnettools/issues/2961">Issue 討論串</a>來看，似乎大家不太能接受 Commit 項目中出現 Cache 性質的檔案，這有違祖訓，打破傳統上對 Cache 的認知，討論區一片反彈。</p> <p>這個實驗性質的嘗試最終會如何發展呢？我認為大部分開發者寧可浪費一些時間重建快取，也希望保有版控的純淨，Commit 內容就該聚焦在開發成果，只記錄修改異動，不該摻雜與專案本質無關的開發工具加速副產品。</p> <p>我猜在這場「大型社會實驗」後，C# Dev Kit 應會從善如流，將它排除在 Commit 範圍外。</p> <p data-slug="lscache" data-fbimg="https://i.postimg.cc/XvzbpJD9/image.png#845#521"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這兩天，我發現 Commit 時 .csproj 會伴隨一個同名 .lscache，疑似是 C# Dev Kit 近期更新加入的新東西。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639144576599408647.png"></p> <p>追了一下，它是 C# Dev Kit 在用的輕量級快取文件，本質是個 TOML 格式文件，包含專案參照、結構等資訊(但不包含環境變數之類的敏感資料)。.lscache 是用來增加 C# Dev Kit 的啟動速度，依據<a href="https://github.com/microsoft/vscode-dotnettools/issues/2961">官方說法</a>，.lscache 可縮短 70% 的啟動時間，並能明顯減少記憶體使用。</p> <p>能改善 VSCode 的 .NET 專案開發體驗當然是好事，但煩人的是它經常變動，成為每次 Commit 的常客，有些礙眼。被納入 Commit 範圍是因為傳統 .gitignores 來不及排除還是刻意為之？答案是後者。理由如下：</p> <ol><li>分支切換時若快取可存在 Repository 一起取回，意味著切換分支後 C# Dev Kit 可立即使用該分支的快取數據，無需從頭開始重新建置。</li> <li>即便快取不是最新版，即然不夠精準仍有參考價值，並會在下次建置時更新。</li></ol> <p>雖然 C# Dev Kit 團隊建議大家把 .lscache 一起 Commit 到版控，但如果你真的不想，可以手動加入 .gitignores、或是修改 dotnet.projectsystem.cacheInProjectFolder 設定為 false，.lscache 將會改存專案以外的暫存區。但如上面提過的，將 .lscache 排除在版控外，將損失切換分支或跨機器開發時的加速效果。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639144576602724194.png"></p> <p>由 <a href="https://github.com/microsoft/vscode-dotnettools/issues/2961">Issue 討論串</a>來看，似乎大家不太能接受 Commit 項目中出現 Cache 性質的檔案，這有違祖訓，打破傳統上對 Cache 的認知，討論區一片反彈。</p> <p>這個實驗性質的嘗試最終會如何發展呢？我認為大部分開發者寧可浪費一些時間重建快取，也希望保有版控的純淨，Commit 內容就該聚焦在開發成果，只記錄修改異動，不該摻雜與專案本質無關的開發工具加速副產品。</p> <p>我猜在這場「大型社會實驗」後，C# Dev Kit 應會從善如流，將它排除在 Commit 範圍外。</p> <p data-slug="lscache" data-fbimg="https://i.postimg.cc/XvzbpJD9/image.png#845#521"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639144576599408647.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639144576599408647.png" medium="image"/>
+    <pubDate>Fri, 15 May 2026 16:00:37 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[吃米知米價 - 製作 AOAI (Foundry) 模型 Token 成本日報表]]></title>
+    <link>https://blog.darkthread.net/blog/azure-cost-detail-report/</link>
+    <itunes:title><![CDATA[吃米知米價 - 製作 AOAI (Foundry) 模型 Token 成本日報表]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>我的工作與生活愈來愈離不開 AI，可以想像，未來語言模型的 Token 費用也會跟水電瓦斯手機一樣，變成日常開銷的一部分。我對於「現在這種 AI 使用方式要花多少錢」特別興趣，想要培養「吃米知米價」的直覺，而我主要是玩 AOAI (Foundry) 模型，Azure Portal 的成本分析功能做得挺不錯，設好日期區間及篩選條件，可以簡單查到昨天模型使用量與費用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639144492652542131.png"></p> <p>但人工查詢步驟繁瑣、Azure 雖有內建報表訂閱功能但無法完全符合我的需求，想想，不如寫程式把明細資料抓回來，未來不管想怎麼查怎麼應用都行，例如：複合條件圖表分析、日報表... 等，類似以下這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639144492657079742.png"></p> <p>研究了一下，Azure 有個 RSET API <a href="https://learn.microsoft.com/en-us/rest/api/cost-management/generate-cost-details-report?view=rest-cost-management-2025-03-01&amp;WT.mc_id=DOP-MVP-37580">Generate Cost Details Report</a>，能產生極其詳細的明細資料，細到連 GPT 的輸入、輸出與 Cache 型輸入三種 Token 費用都分項列舉。由於執行時間較長，它採用做法是先送出請求拿到一個狀態查詢 URL，之後定期輪詢取得處理狀態直到 Compted 或 Failed 為止，若成功則可取得另一個 Blob URL，下載得到一個 CSV 檔，其中包含所有資源的每一筆費用明細。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639144492661846509.png"></p> <p>以下是查詢特定日期所有 Foundry 模型成本轉為 JSON 的 PowerShell 程式範例：</p> <pre><code>$ErrorActionPreference = "Stop"
+$subscriptionId = (az account show --query id -o tsv)
+$token = (az account get-access-token --query accessToken -o tsv)
+function GetModelCost([string]$date) {
+$headers = @{
+"Authorization" = "Bearer $token"
+"Content-Type"  = "application/json"
+}
+$body = @{
+metric     = "ActualCost"
+timePeriod = @{
+start = $date
+end   = $date
+}
+} | ConvertTo-Json -Compress
+# Step 1: 建立報告請求
+Write-Host "Requesting cost report for $date..."
+$postUrl = "https://management.azure.com/subscriptions/$subscriptionId/providers/Microsoft.CostManagement/generateCostDetailsReport?api-version=2024-08-01"
+$response = Invoke-WebRequest -Method POST -Uri $postUrl -Headers $headers -Body $body
+$pollUrl = $response.Headers["Location"][0]
+# Step 2: 輪詢直到完成
+do {
+Start-Sleep -Seconds 5
+$status = Invoke-RestMethod -Method GET -Uri $pollUrl -Headers $headers
+} while ($status.status -notin @("Completed", "Failed"))
+# Step 3: 下載 CSV
+$downloadUrl = $status.manifest.blobs[0].blobLink
+$tmpCsvFile = [System.IO.Path]::GetTempFileName()
+Invoke-WebRequest -Uri $downloadUrl -OutFile $tmpCsvFile
+$csv = Get-Content -Path $tmpCsvFile
+Remove-Item -Path $tmpCsvFile
+# Step 4: 解析 CSV 並過濾資料
+$data = $csv | ConvertFrom-Csv
+$data | Where-Object { $_.meterCategory -eq "Foundry Models" } |
+Sort-Object -Property resourceGroupName, meterName |
+ForEach-Object {
+$resGrp = $_.resourceGroupName
+$meter = $_.meterName
+$price = $_.effectivePrice + '/' + $_.unitOfMeasure
+[float]$qty = $_.quantity
+[float]$costUsd = $_.costInUsd
+[float]$costNtd = $_.costInBillingCurrency
+return [PSCustomObject]@{
+Group = $resGrp
+Meter        = $meter.Replace(" 1M Tokens", "")
+Price        = $price
+Quantity     = $qty.ToString('n4')
+CostUSD      = $costUsd.ToString('n4')
+CostNTD      = $costNtd.ToString('n2')
+}
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639144492664938246.png"></p> <p>利用這種方式，我們可以輕鬆取得原始明細，再複雜的統計分析需求都不用怕。</p> <p>最後分享實戰遇到的小問題：Azure REST API 有流量限制，呼叫太頻繁會噴出錯誤：Error 429，Too many requests. Please retry after [N] minute(s) and [N] second(s)。</p> <p>速率控管有兩層，第一層是 Azure Resource Management (ARM) 的[速率上限]](<a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling?WT.mc_id=DOP-MVP-37580#regional-throttling-and-token-bucket-algorithm">https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling#regional-throttling-and-token-bucket-algorithm</a>)，採 <a href="https://en.wikipedia.org/wiki/Token_bucket">Token Bucket 演算法</a>，依訂閱帳號及租用戶(Tenant)各有其上限：</p> <table><thead><tr><th>範圍</th><th>操作類型</th><th>Bucket 上限</th><th>每秒補充速率</th></tr></thead><tbody><tr><td>Subscription</td><td>Reads (GET)</td><td>250</td><td>25 req/sec</td></tr><tr><td>Subscription</td><td>Writes (PUT/POST)</td><td>200</td><td>10 req/sec</td></tr><tr><td>Subscription</td><td>Deletes</td><td>200</td><td>10 req/sec</td></tr><tr><td>Tenant</td><td>Reads</td><td>250</td><td>25 req/sec</td></tr><tr><td>Tenant</td><td>Writes</td><td>200</td><td>10 req/sec</td></tr><tr><td>Tenant</td><td>Deletes</td><td>200</td><td>10 req/sec</td></tr></tbody></table> <p>每秒查詢 25 次更新 10 次相當寬裕，非多人環境的報表查詢從幾乎不可能踩到上限，報表查詢多半會卡在第二層。generateCostDetailsReport 這種產生大型 CSV 檔案的非同步重量級操作，每次呼叫需消耗 <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/manage-automation?WT.mc_id=DOP-MVP-37580#query-api-query-processing-units">QPU</a>(Query Processing Unit)，日期區間愈大使用的 QPU 愈多，而每個 Tenant 的 QPU 消耗速率有以下限制：</p> <ul><li>2 QPU / 10 秒</li> <li>60 QPU / 分鐘</li> <li>600 QPU / 小時</li></ul> <p>一開始不知道，開發過程連測十來次，很快就收到 Error 429 告知我查太兇了，請冷靜 31 分鐘後再玩，哈。除此之外，就沒什麼特別的地方了，祝大家查帳單愉快。</p> <p data-slug="azure-cost-detail-report" data-title-en="Azure cost detail report API" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/12/22/23/01/credit-card-1104961_1280.jpg#1280#720">Shows how to programmatically analyze Azure OpenAI (Foundry) token costs using the Cost Management REST API. Automates detailed daily cost reports via PowerShell, enabling fine‑grained analysis while noting API throttling and QPU limits.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>我的工作與生活愈來愈離不開 AI，可以想像，未來語言模型的 Token 費用也會跟水電瓦斯手機一樣，變成日常開銷的一部分。我對於「現在這種 AI 使用方式要花多少錢」特別興趣，想要培養「吃米知米價」的直覺，而我主要是玩 AOAI (Foundry) 模型，Azure Portal 的成本分析功能做得挺不錯，設好日期區間及篩選條件，可以簡單查到昨天模型使用量與費用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639144492652542131.png"></p> <p>但人工查詢步驟繁瑣、Azure 雖有內建報表訂閱功能但無法完全符合我的需求，想想，不如寫程式把明細資料抓回來，未來不管想怎麼查怎麼應用都行，例如：複合條件圖表分析、日報表... 等，類似以下這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639144492657079742.png"></p> <p>研究了一下，Azure 有個 RSET API <a href="https://learn.microsoft.com/en-us/rest/api/cost-management/generate-cost-details-report?view=rest-cost-management-2025-03-01&amp;WT.mc_id=DOP-MVP-37580">Generate Cost Details Report</a>，能產生極其詳細的明細資料，細到連 GPT 的輸入、輸出與 Cache 型輸入三種 Token 費用都分項列舉。由於執行時間較長，它採用做法是先送出請求拿到一個狀態查詢 URL，之後定期輪詢取得處理狀態直到 Compted 或 Failed 為止，若成功則可取得另一個 Blob URL，下載得到一個 CSV 檔，其中包含所有資源的每一筆費用明細。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639144492661846509.png"></p> <p>以下是查詢特定日期所有 Foundry 模型成本轉為 JSON 的 PowerShell 程式範例：</p> <pre><code>$ErrorActionPreference = "Stop"
+$subscriptionId = (az account show --query id -o tsv)
+$token = (az account get-access-token --query accessToken -o tsv)
+function GetModelCost([string]$date) {
+$headers = @{
+"Authorization" = "Bearer $token"
+"Content-Type"  = "application/json"
+}
+$body = @{
+metric     = "ActualCost"
+timePeriod = @{
+start = $date
+end   = $date
+}
+} | ConvertTo-Json -Compress
+# Step 1: 建立報告請求
+Write-Host "Requesting cost report for $date..."
+$postUrl = "https://management.azure.com/subscriptions/$subscriptionId/providers/Microsoft.CostManagement/generateCostDetailsReport?api-version=2024-08-01"
+$response = Invoke-WebRequest -Method POST -Uri $postUrl -Headers $headers -Body $body
+$pollUrl = $response.Headers["Location"][0]
+# Step 2: 輪詢直到完成
+do {
+Start-Sleep -Seconds 5
+$status = Invoke-RestMethod -Method GET -Uri $pollUrl -Headers $headers
+} while ($status.status -notin @("Completed", "Failed"))
+# Step 3: 下載 CSV
+$downloadUrl = $status.manifest.blobs[0].blobLink
+$tmpCsvFile = [System.IO.Path]::GetTempFileName()
+Invoke-WebRequest -Uri $downloadUrl -OutFile $tmpCsvFile
+$csv = Get-Content -Path $tmpCsvFile
+Remove-Item -Path $tmpCsvFile
+# Step 4: 解析 CSV 並過濾資料
+$data = $csv | ConvertFrom-Csv
+$data | Where-Object { $_.meterCategory -eq "Foundry Models" } |
+Sort-Object -Property resourceGroupName, meterName |
+ForEach-Object {
+$resGrp = $_.resourceGroupName
+$meter = $_.meterName
+$price = $_.effectivePrice + '/' + $_.unitOfMeasure
+[float]$qty = $_.quantity
+[float]$costUsd = $_.costInUsd
+[float]$costNtd = $_.costInBillingCurrency
+return [PSCustomObject]@{
+Group = $resGrp
+Meter        = $meter.Replace(" 1M Tokens", "")
+Price        = $price
+Quantity     = $qty.ToString('n4')
+CostUSD      = $costUsd.ToString('n4')
+CostNTD      = $costNtd.ToString('n2')
+}
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639144492664938246.png"></p> <p>利用這種方式，我們可以輕鬆取得原始明細，再複雜的統計分析需求都不用怕。</p> <p>最後分享實戰遇到的小問題：Azure REST API 有流量限制，呼叫太頻繁會噴出錯誤：Error 429，Too many requests. Please retry after [N] minute(s) and [N] second(s)。</p> <p>速率控管有兩層，第一層是 Azure Resource Management (ARM) 的[速率上限]](<a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling?WT.mc_id=DOP-MVP-37580#regional-throttling-and-token-bucket-algorithm">https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling#regional-throttling-and-token-bucket-algorithm</a>)，採 <a href="https://en.wikipedia.org/wiki/Token_bucket">Token Bucket 演算法</a>，依訂閱帳號及租用戶(Tenant)各有其上限：</p> <table><thead><tr><th>範圍</th><th>操作類型</th><th>Bucket 上限</th><th>每秒補充速率</th></tr></thead><tbody><tr><td>Subscription</td><td>Reads (GET)</td><td>250</td><td>25 req/sec</td></tr><tr><td>Subscription</td><td>Writes (PUT/POST)</td><td>200</td><td>10 req/sec</td></tr><tr><td>Subscription</td><td>Deletes</td><td>200</td><td>10 req/sec</td></tr><tr><td>Tenant</td><td>Reads</td><td>250</td><td>25 req/sec</td></tr><tr><td>Tenant</td><td>Writes</td><td>200</td><td>10 req/sec</td></tr><tr><td>Tenant</td><td>Deletes</td><td>200</td><td>10 req/sec</td></tr></tbody></table> <p>每秒查詢 25 次更新 10 次相當寬裕，非多人環境的報表查詢從幾乎不可能踩到上限，報表查詢多半會卡在第二層。generateCostDetailsReport 這種產生大型 CSV 檔案的非同步重量級操作，每次呼叫需消耗 <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/manage-automation?WT.mc_id=DOP-MVP-37580#query-api-query-processing-units">QPU</a>(Query Processing Unit)，日期區間愈大使用的 QPU 愈多，而每個 Tenant 的 QPU 消耗速率有以下限制：</p> <ul><li>2 QPU / 10 秒</li> <li>60 QPU / 分鐘</li> <li>600 QPU / 小時</li></ul> <p>一開始不知道，開發過程連測十來次，很快就收到 Error 429 告知我查太兇了，請冷靜 31 分鐘後再玩，哈。除此之外，就沒什麼特別的地方了，祝大家查帳單愉快。</p> <p data-slug="azure-cost-detail-report" data-title-en="Azure cost detail report API" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/12/22/23/01/credit-card-1104961_1280.jpg#1280#720">Shows how to programmatically analyze Azure OpenAI (Foundry) token costs using the Cost Management REST API. Automates detailed daily cost reports via PowerShell, enabling fine‑grained analysis while noting API throttling and QPU limits.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>我的工作與生活愈來愈離不開 AI，可以想像，未來語言模型的 Token 費用也會跟水電瓦斯手機一樣，變成日常開銷的一部分。我對於「現在這種 AI 使用方式要花多少錢」特別興趣，想要培養「吃米知米價」的直覺，而我主要是玩 AOAI (Foundry) 模型，Azure Portal 的成本分析功能做得挺不錯，設好日期區間及篩選條件，可以簡單查到昨天模型使用量與費用：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639144492652542131.png"></p> <p>但人工查詢步驟繁瑣、Azure 雖有內建報表訂閱功能但無法完全符合我的需求，想想，不如寫程式把明細資料抓回來，未來不管想怎麼查怎麼應用都行，例如：複合條件圖表分析、日報表... 等，類似以下這樣：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639144492657079742.png"></p> <p>研究了一下，Azure 有個 RSET API <a href="https://learn.microsoft.com/en-us/rest/api/cost-management/generate-cost-details-report?view=rest-cost-management-2025-03-01&amp;WT.mc_id=DOP-MVP-37580">Generate Cost Details Report</a>，能產生極其詳細的明細資料，細到連 GPT 的輸入、輸出與 Cache 型輸入三種 Token 費用都分項列舉。由於執行時間較長，它採用做法是先送出請求拿到一個狀態查詢 URL，之後定期輪詢取得處理狀態直到 Compted 或 Failed 為止，若成功則可取得另一個 Blob URL，下載得到一個 CSV 檔，其中包含所有資源的每一筆費用明細。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639144492661846509.png"></p> <p>以下是查詢特定日期所有 Foundry 模型成本轉為 JSON 的 PowerShell 程式範例：</p> <pre><code>$ErrorActionPreference = "Stop"
+$subscriptionId = (az account show --query id -o tsv)
+$token = (az account get-access-token --query accessToken -o tsv)
+function GetModelCost([string]$date) {
+$headers = @{
+"Authorization" = "Bearer $token"
+"Content-Type"  = "application/json"
+}
+$body = @{
+metric     = "ActualCost"
+timePeriod = @{
+start = $date
+end   = $date
+}
+} | ConvertTo-Json -Compress
+# Step 1: 建立報告請求
+Write-Host "Requesting cost report for $date..."
+$postUrl = "https://management.azure.com/subscriptions/$subscriptionId/providers/Microsoft.CostManagement/generateCostDetailsReport?api-version=2024-08-01"
+$response = Invoke-WebRequest -Method POST -Uri $postUrl -Headers $headers -Body $body
+$pollUrl = $response.Headers["Location"][0]
+# Step 2: 輪詢直到完成
+do {
+Start-Sleep -Seconds 5
+$status = Invoke-RestMethod -Method GET -Uri $pollUrl -Headers $headers
+} while ($status.status -notin @("Completed", "Failed"))
+# Step 3: 下載 CSV
+$downloadUrl = $status.manifest.blobs[0].blobLink
+$tmpCsvFile = [System.IO.Path]::GetTempFileName()
+Invoke-WebRequest -Uri $downloadUrl -OutFile $tmpCsvFile
+$csv = Get-Content -Path $tmpCsvFile
+Remove-Item -Path $tmpCsvFile
+# Step 4: 解析 CSV 並過濾資料
+$data = $csv | ConvertFrom-Csv
+$data | Where-Object { $_.meterCategory -eq "Foundry Models" } |
+Sort-Object -Property resourceGroupName, meterName |
+ForEach-Object {
+$resGrp = $_.resourceGroupName
+$meter = $_.meterName
+$price = $_.effectivePrice + '/' + $_.unitOfMeasure
+[float]$qty = $_.quantity
+[float]$costUsd = $_.costInUsd
+[float]$costNtd = $_.costInBillingCurrency
+return [PSCustomObject]@{
+Group = $resGrp
+Meter        = $meter.Replace(" 1M Tokens", "")
+Price        = $price
+Quantity     = $qty.ToString('n4')
+CostUSD      = $costUsd.ToString('n4')
+CostNTD      = $costNtd.ToString('n2')
+}
+}
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639144492664938246.png"></p> <p>利用這種方式，我們可以輕鬆取得原始明細，再複雜的統計分析需求都不用怕。</p> <p>最後分享實戰遇到的小問題：Azure REST API 有流量限制，呼叫太頻繁會噴出錯誤：Error 429，Too many requests. Please retry after [N] minute(s) and [N] second(s)。</p> <p>速率控管有兩層，第一層是 Azure Resource Management (ARM) 的[速率上限]](<a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling?WT.mc_id=DOP-MVP-37580#regional-throttling-and-token-bucket-algorithm">https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling#regional-throttling-and-token-bucket-algorithm</a>)，採 <a href="https://en.wikipedia.org/wiki/Token_bucket">Token Bucket 演算法</a>，依訂閱帳號及租用戶(Tenant)各有其上限：</p> <table><thead><tr><th>範圍</th><th>操作類型</th><th>Bucket 上限</th><th>每秒補充速率</th></tr></thead><tbody><tr><td>Subscription</td><td>Reads (GET)</td><td>250</td><td>25 req/sec</td></tr><tr><td>Subscription</td><td>Writes (PUT/POST)</td><td>200</td><td>10 req/sec</td></tr><tr><td>Subscription</td><td>Deletes</td><td>200</td><td>10 req/sec</td></tr><tr><td>Tenant</td><td>Reads</td><td>250</td><td>25 req/sec</td></tr><tr><td>Tenant</td><td>Writes</td><td>200</td><td>10 req/sec</td></tr><tr><td>Tenant</td><td>Deletes</td><td>200</td><td>10 req/sec</td></tr></tbody></table> <p>每秒查詢 25 次更新 10 次相當寬裕，非多人環境的報表查詢從幾乎不可能踩到上限，報表查詢多半會卡在第二層。generateCostDetailsReport 這種產生大型 CSV 檔案的非同步重量級操作，每次呼叫需消耗 <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/manage-automation?WT.mc_id=DOP-MVP-37580#query-api-query-processing-units">QPU</a>(Query Processing Unit)，日期區間愈大使用的 QPU 愈多，而每個 Tenant 的 QPU 消耗速率有以下限制：</p> <ul><li>2 QPU / 10 秒</li> <li>60 QPU / 分鐘</li> <li>600 QPU / 小時</li></ul> <p>一開始不知道，開發過程連測十來次，很快就收到 Error 429 告知我查太兇了，請冷靜 31 分鐘後再玩，哈。除此之外，就沒什麼特別的地方了，祝大家查帳單愉快。</p> <p data-slug="azure-cost-detail-report" data-title-en="Azure cost detail report API" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2015/12/22/23/01/credit-card-1104961_1280.jpg#1280#720">Shows how to programmatically analyze Azure OpenAI (Foundry) token costs using the Cost Management REST API. Automates detailed daily cost reports via PowerShell, enabling fine‑grained analysis while noting API throttling and QPU limits.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639144492652542131.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639144492652542131.png" medium="image"/>
+    <pubDate>Fri, 15 May 2026 13:30:26 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[搶救 C 槽空間 - 遷移 WSL 虛擬硬碟]]></title>
+    <link>https://blog.darkthread.net/blog/move-wsl2-vhdx/</link>
+    <itunes:title><![CDATA[搶救 C 槽空間 - 遷移 WSL 虛擬硬碟]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>我的 <a href="/blog/deskmini-i5">i5 迷你工作機</a>當初買的是 2T SSD (記得好像六千入手，再看看現在的價格只能搖頭嘆氣)，我切了 500GB 給系統碟，心想應該綽綽有餘，但用著用著，前幾天剩餘空間降到 10%，空間百分比條變紅，我開始陷入焦慮...</p> <p>清 C 糟這檔事兒，我<a href="/blog/release-disk-c-space/">做了又做</a>，<a href="/blog/winsxs-cleanup/">做了還做</a>，2026 年繼續做，自己都覺得好笑。</p> <p>本次清空間依舊遵循古法，先開 WindirStat 掃描 C 槽，很快抓到一隻大肥貓 - WSL 的 vhdx (虛擬機硬碟) 44.3GB，用掉整顆 C 槽近 1/10 空間：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png"></p> <p>問 AI 找到解法，答案出奇簡單，不必下指令，Docker Desktop UI 操作介面有選項，重新選取存放位置，套用並重新啟動後，Docker Desktop 會在背後默默打包 Docker 容器，搬到新位置解開，再把舊檔刪除。過程要花點時間，而且很吃記憶體，我的 64G RAM 一度被用掉 90%，但全程不沾手，耐心等待即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639143597198082668.png"></p> <p>原始目錄 AppData\Local\Docker\wsl\data 搬家後 Docker Desktop 會改名 DockerDesktopWSL\data，無法沿用 wsl\data。但有清出空間就好，看到 C 槽剩餘空間回升到 20%，危機暫時解除，呼~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639143597200913504.png"></p> <p>空間清出來了，但留下疑問：WSL 的東西為什麼輪到 Docker Desktop 來處理，WSL 跟 Hyper-V 又有什麼關係？查了一下，故事是這樣的：</p> <p>我們現在說 WSL 指的通常是 WSL2，<a href="https://learn.microsoft.com/zh-tw/windows/wsl/compare-versions?WT.mc_id=DOP-MVP-37580">跟 WSL1 不同</a>，WSL2 本質上是一個「輕量化、與 Windows 深度整合的 VM」，WSL1 則是透過 Linux Syscall Translation 系統呼叫轉譯模擬，但 WSL2 有用到 Virtual Machine Platform (虛擬機平台) 技術 (Hyper-V 子集，與 Hyper-V 伺服器、VM 不同)，以 VM 方式執行 Linux Kernel，提供更高的相容性；而 Docker Desktop，便是建立在 WSL2 之上。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639144019360882815.png"></p> <p>Docker Desktop 在 WSL2 模式下會建立兩個隱藏 distro：docker-desktop、docker-desktop-data，前者是 Docker daemon/runtime，後者為 images/volumes/layers，需要儲存資料，而 C:\Users&lt;userName&gt;\AppData\Local\Docker\wsl\data\ext4.vhdx 便是 docker-desktop-data 的 WSL 虛擬磁碟。</p> <p>而 Docker Desktop GUI 提供的 vhdx 搬家功能，背後其實就是把一連串 CLI 包起來，故我們也可以選擇不用 GUI，用這串 CLI 指令完成搬家，使用這種做法目標資料夾便可完全自訂：</p> <pre><code># Stop Docker and WSL
+wsl --shutdown
+# Export Docker data distro
+wsl --export docker-desktop-data D:\docker-desktop-data.tar
+# Remove current registration
+wsl --unregister docker-desktop-data
+# Import into new location
+wsl --import docker-desktop-data D:\Docker\wsl\data D:\docker-desktop-data.tar --version 2
+</code></pre> <p>就醬，清 C 槽還多學了一些知識，收工。</p> <p>【補充】感謝讀者 Heresy、ChrisTorng 補充，新版 wsl (Windows 11 24H2+) 有提供更簡單的搬家指令：<code>wsl --manage Ubuntu --move S:\WSL\Ubuntu</code> <a href="https://kheresy.wordpress.com/2025/04/25/windows-11-24h2-move-wsl-vhdx/">參考</a>、<code>wsl --import-in-place</code> <a href="https://learn.microsoft.com/zh-tw/windows/wsl/basic-commands?WT.mc_id=DOP-MVP-37580">參考</a>。</p> <p data-slug="move-wsl2-vhdx" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>我的 <a href="/blog/deskmini-i5">i5 迷你工作機</a>當初買的是 2T SSD (記得好像六千入手，再看看現在的價格只能搖頭嘆氣)，我切了 500GB 給系統碟，心想應該綽綽有餘，但用著用著，前幾天剩餘空間降到 10%，空間百分比條變紅，我開始陷入焦慮...</p> <p>清 C 糟這檔事兒，我<a href="/blog/release-disk-c-space/">做了又做</a>，<a href="/blog/winsxs-cleanup/">做了還做</a>，2026 年繼續做，自己都覺得好笑。</p> <p>本次清空間依舊遵循古法，先開 WindirStat 掃描 C 槽，很快抓到一隻大肥貓 - WSL 的 vhdx (虛擬機硬碟) 44.3GB，用掉整顆 C 槽近 1/10 空間：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png"></p> <p>問 AI 找到解法，答案出奇簡單，不必下指令，Docker Desktop UI 操作介面有選項，重新選取存放位置，套用並重新啟動後，Docker Desktop 會在背後默默打包 Docker 容器，搬到新位置解開，再把舊檔刪除。過程要花點時間，而且很吃記憶體，我的 64G RAM 一度被用掉 90%，但全程不沾手，耐心等待即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639143597198082668.png"></p> <p>原始目錄 AppData\Local\Docker\wsl\data 搬家後 Docker Desktop 會改名 DockerDesktopWSL\data，無法沿用 wsl\data。但有清出空間就好，看到 C 槽剩餘空間回升到 20%，危機暫時解除，呼~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639143597200913504.png"></p> <p>空間清出來了，但留下疑問：WSL 的東西為什麼輪到 Docker Desktop 來處理，WSL 跟 Hyper-V 又有什麼關係？查了一下，故事是這樣的：</p> <p>我們現在說 WSL 指的通常是 WSL2，<a href="https://learn.microsoft.com/zh-tw/windows/wsl/compare-versions?WT.mc_id=DOP-MVP-37580">跟 WSL1 不同</a>，WSL2 本質上是一個「輕量化、與 Windows 深度整合的 VM」，WSL1 則是透過 Linux Syscall Translation 系統呼叫轉譯模擬，但 WSL2 有用到 Virtual Machine Platform (虛擬機平台) 技術 (Hyper-V 子集，與 Hyper-V 伺服器、VM 不同)，以 VM 方式執行 Linux Kernel，提供更高的相容性；而 Docker Desktop，便是建立在 WSL2 之上。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639144019360882815.png"></p> <p>Docker Desktop 在 WSL2 模式下會建立兩個隱藏 distro：docker-desktop、docker-desktop-data，前者是 Docker daemon/runtime，後者為 images/volumes/layers，需要儲存資料，而 C:\Users&lt;userName&gt;\AppData\Local\Docker\wsl\data\ext4.vhdx 便是 docker-desktop-data 的 WSL 虛擬磁碟。</p> <p>而 Docker Desktop GUI 提供的 vhdx 搬家功能，背後其實就是把一連串 CLI 包起來，故我們也可以選擇不用 GUI，用這串 CLI 指令完成搬家，使用這種做法目標資料夾便可完全自訂：</p> <pre><code># Stop Docker and WSL
+wsl --shutdown
+# Export Docker data distro
+wsl --export docker-desktop-data D:\docker-desktop-data.tar
+# Remove current registration
+wsl --unregister docker-desktop-data
+# Import into new location
+wsl --import docker-desktop-data D:\Docker\wsl\data D:\docker-desktop-data.tar --version 2
+</code></pre> <p>就醬，清 C 槽還多學了一些知識，收工。</p> <p>【補充】感謝讀者 Heresy、ChrisTorng 補充，新版 wsl (Windows 11 24H2+) 有提供更簡單的搬家指令：<code>wsl --manage Ubuntu --move S:\WSL\Ubuntu</code> <a href="https://kheresy.wordpress.com/2025/04/25/windows-11-24h2-move-wsl-vhdx/">參考</a>、<code>wsl --import-in-place</code> <a href="https://learn.microsoft.com/zh-tw/windows/wsl/basic-commands?WT.mc_id=DOP-MVP-37580">參考</a>。</p> <p data-slug="move-wsl2-vhdx" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>我的 <a href="/blog/deskmini-i5">i5 迷你工作機</a>當初買的是 2T SSD (記得好像六千入手，再看看現在的價格只能搖頭嘆氣)，我切了 500GB 給系統碟，心想應該綽綽有餘，但用著用著，前幾天剩餘空間降到 10%，空間百分比條變紅，我開始陷入焦慮...</p> <p>清 C 糟這檔事兒，我<a href="/blog/release-disk-c-space/">做了又做</a>，<a href="/blog/winsxs-cleanup/">做了還做</a>，2026 年繼續做，自己都覺得好笑。</p> <p>本次清空間依舊遵循古法，先開 WindirStat 掃描 C 槽，很快抓到一隻大肥貓 - WSL 的 vhdx (虛擬機硬碟) 44.3GB，用掉整顆 C 槽近 1/10 空間：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png"></p> <p>問 AI 找到解法，答案出奇簡單，不必下指令，Docker Desktop UI 操作介面有選項，重新選取存放位置，套用並重新啟動後，Docker Desktop 會在背後默默打包 Docker 容器，搬到新位置解開，再把舊檔刪除。過程要花點時間，而且很吃記憶體，我的 64G RAM 一度被用掉 90%，但全程不沾手，耐心等待即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639143597198082668.png"></p> <p>原始目錄 AppData\Local\Docker\wsl\data 搬家後 Docker Desktop 會改名 DockerDesktopWSL\data，無法沿用 wsl\data。但有清出空間就好，看到 C 槽剩餘空間回升到 20%，危機暫時解除，呼~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639143597200913504.png"></p> <p>空間清出來了，但留下疑問：WSL 的東西為什麼輪到 Docker Desktop 來處理，WSL 跟 Hyper-V 又有什麼關係？查了一下，故事是這樣的：</p> <p>我們現在說 WSL 指的通常是 WSL2，<a href="https://learn.microsoft.com/zh-tw/windows/wsl/compare-versions?WT.mc_id=DOP-MVP-37580">跟 WSL1 不同</a>，WSL2 本質上是一個「輕量化、與 Windows 深度整合的 VM」，WSL1 則是透過 Linux Syscall Translation 系統呼叫轉譯模擬，但 WSL2 有用到 Virtual Machine Platform (虛擬機平台) 技術 (Hyper-V 子集，與 Hyper-V 伺服器、VM 不同)，以 VM 方式執行 Linux Kernel，提供更高的相容性；而 Docker Desktop，便是建立在 WSL2 之上。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639144019360882815.png"></p> <p>Docker Desktop 在 WSL2 模式下會建立兩個隱藏 distro：docker-desktop、docker-desktop-data，前者是 Docker daemon/runtime，後者為 images/volumes/layers，需要儲存資料，而 C:\Users&lt;userName&gt;\AppData\Local\Docker\wsl\data\ext4.vhdx 便是 docker-desktop-data 的 WSL 虛擬磁碟。</p> <p>而 Docker Desktop GUI 提供的 vhdx 搬家功能，背後其實就是把一連串 CLI 包起來，故我們也可以選擇不用 GUI，用這串 CLI 指令完成搬家，使用這種做法目標資料夾便可完全自訂：</p> <pre><code># Stop Docker and WSL
+wsl --shutdown
+# Export Docker data distro
+wsl --export docker-desktop-data D:\docker-desktop-data.tar
+# Remove current registration
+wsl --unregister docker-desktop-data
+# Import into new location
+wsl --import docker-desktop-data D:\Docker\wsl\data D:\docker-desktop-data.tar --version 2
+</code></pre> <p>就醬，清 C 槽還多學了一些知識，收工。</p> <p>【補充】感謝讀者 Heresy、ChrisTorng 補充，新版 wsl (Windows 11 24H2+) 有提供更簡單的搬家指令：<code>wsl --manage Ubuntu --move S:\WSL\Ubuntu</code> <a href="https://kheresy.wordpress.com/2025/04/25/windows-11-24h2-move-wsl-vhdx/">參考</a>、<code>wsl --import-in-place</code> <a href="https://learn.microsoft.com/zh-tw/windows/wsl/basic-commands?WT.mc_id=DOP-MVP-37580">參考</a>。</p> <p data-slug="move-wsl2-vhdx" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png" medium="image"/>
+    <pubDate>Thu, 14 May 2026 12:39:10 GMT</pubDate>
+  </item></channel>
+</rss>
