@@ -3,7 +3,7 @@
     <title><![CDATA[XDA[RSS+]]]></title>
     <link>https://www.xda-developers.com/feed/</link>
     <image>
-      <url>https://fastly.picsum.photos/id/389/800/800.jpg?hmac=2rKqNqli9BbUmbXVAcciq6J3L0lMQcdiX4wGUrSF4D0</url>
+      <url>https://fastly.picsum.photos/id/482/800/800.jpg?hmac=EywA3rn1A6RTsI-4kz4OW1Q9g038RYeDvvsZ5LICSrg</url>
       <title>XDA[RSS+]</title>
       <link>https://www.xda-developers.com/feed/</link>
     </image>
@@ -28,8 +28,581 @@
     <itunes:owner>
       <itunes:name><![CDATA[XDA[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/389/800/800.jpg?hmac=2rKqNqli9BbUmbXVAcciq6J3L0lMQcdiX4wGUrSF4D0"/>
+    <itunes:image href="https://fastly.picsum.photos/id/482/800/800.jpg?hmac=EywA3rn1A6RTsI-4kz4OW1Q9g038RYeDvvsZ5LICSrg"/>
 <item>
+    <title><![CDATA[Replacing paid productivity apps with a self-hosted setup helped me save money, but I had to make some compromises]]></title>
+    <link>https://www.xda-developers.com/replacing-paid-apps-with-self-hosted-tools-involved-some-compromises/</link>
+    <itunes:title><![CDATA[Replacing paid productivity apps with a self-hosted setup helped me save money, but I had to make some compromises]]></itunes:title>
+    <itunes:author><![CDATA[XDA[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>As a hardcore member of the FOSS faction, I’ve migrated almost all essential services from cloud platforms to a self-hosted setup, and there were plenty of benefits with this approach. For starters, I don’t have to waste extra bucks on subscription fees or paid licenses just to unlock paywalled features. Likewise, since my data remains entirely on my local servers, I don’t have to worry about large corporations gaining access to private files and using them to train AI features that nobody asked for.</p>    <p>But leaving my complaints against enshittified tools aside, I must admit that a local-only FOSS arsenal lacks the sheer convenience of a cloud-based setup. In fact, I’ve even had to make a couple of compromises to ensure my FOSS stack remains operational at all times. </p>    <h2>
+Configuring a 3-2-1 backup pipeline became a necessity
+</h2>
+<h3>
+I used old hardware, so the upfront costs were fairly low
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-208269387" data-gallery-id="main-carousel-1-208269387" data-article-gallery="article-gallery-modal-1-208269387" data-gallery-lightbox="gallery-modal-1-208269387" data-gallery-thumbnail-img-class="gallery-thumbnails-1-208269387-img" data-gallery-type="">
+</div>
+</div>
+<p>Although moving everything to my local servers gave me complete ownership over my documents, I could no longer rely on cloud platforms and their robust storage services. And without proper backup provisions, I’d risk losing everything to a freak home lab accident. During my days as a fledgling tinkerer, I figured sending backups and snapshots of my containerized apps to a Network-Attached Storage system would be more than enough to keep my data safe. But all it took was one HDD ascending to the tech heaven for my immature self to realize relying on a single backup is a massive newbie trap. </p>    <p>So, the next step was to add redundancy to my NAS setup. The cheapest way to go about doing this would be cold backups, where I’d write important backups on spare HDDs and leave them in a safe place. Unfortunately, this adds two extra problems: there’d be no way to update my datasets without manually connecting my HDDs every few months. Not to mention, keeping the drives in my house would render my setups useless if a natural calamity were to strike my goblin cave.</p>    <p>This leaves a 3-2-1 backup workflow as the best solution. For the uninitiated, it involves keeping three sets of data across two systems, with one of them being an offshore rig. As a <a href="https://www.xda-developers.com/automated-myself-out-of-caring-about-my-home-lab/" target="_blank">home lab</a> addict, I often pick up cheap systems from flea markets, so all I had to do was flash TrueNAS onto an old machine, arm it with some HDDs, and my secondary server was ready. Thanks to TrueNAS’ rsync tasks and <a href="https://www.xda-developers.com/your-should-turn-on-snapshot-replication/" target="_blank">snapshot replication</a> functionality, creating automated backups was a piece of cake, and leaving it at my family’s home hundreds of miles from my goblin cave turned it into an offsite storage rig. But this brought yet another issue: I had to come up with a way to set up remote access on my nodes…</p>    <h2>
+I deployed Tailscale to enable remote access
+</h2>
+<h3>
+It’s safe to use and doesn’t need a paid subscription
+</h3>
+<div>
+<div>
+<img alt="The Tailscale VPN settings" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/04/opnsense-13.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>Even if I didn’t have my <a href="https://www.xda-developers.com/how-to-use-the-3-2-1-backup-rule-for-nas/" target="_blank">3-2-1 backup workflow</a>, I’d still need a way to connect remotely to my self-hosted services when I’m away from my tinkering lab. Unlike cloud platforms that I can just access as long as I have an Internet connection, I can’t just use my local IP addresses to connect to use my FOSS tools if my client devices aren’t hooked up to my home LAN. Port forwarding is the most straightforward method for setting up remote access on my home lab nodes, but since my network is afflicted by the curse of CGNAT, I had to look into other workarounds.</p>    <p>Paid VPNs are a no-no, as I don’t want to spend extra money on subscription fees, while their free counterparts aren’t very reliable when you care about privacy as much as I do. Since I didn’t want to rent a VPS for a self-hosted VPN either, I eventually went with Tailscale. Now that I’ve been using it for a few years, I’ve got nothing to complain about. I’ve already got an OPNsense router at the center of my home network, so configuring the subnet router functionality was fairly simple. </p>    <p>If you haven’t heard of a subnet router, it serves as a bridge that lets the devices on my tailnet access every system on my local network, even the ones that I haven’t armed with Tailscale. For my 3-2-1 backup operations, I spun up Tailscale as an app, added it to my tailnet, and gave it the permissions to connect to my home network. The best part? Despite relying on external servers, Tailscale is secure enough for home lab tasks and doesn’t hide essential features behind a paywall. </p>    <h2>
+The maintenance duty also falls on my shoulders
+</h2>
+<h3>
+I eventually migrated essential tools to a separate node
+</h3>
+<div>
+<div>
+<img alt="Running different LXCs and VMs on an Intel N100 system" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/12/proxmox-n100-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>As much as I adore gaining complete sovereignty over my productivity stack, it doesn’t change the fact that I’m responsible for ensuring mission-critical services remain operational 24/7. Sure, my backup pipeline can help my home lab recover from critical errors, but I’d still have to wait until the restoration tasks are complete. If things go south, I could end up marooned without essential FOSS services. </p>
+<div data-popup="false" data-sentinel-tracking="false" data-promotion-zone="TmV3c2xldHRlciBBcnRpY2xlIENvbnRlbnQgV2lkZ2V0" data-nosnippet="">
+<div data-style-path-url="https://static0.xdaimages.com/assets/promotions.37a609c0.css">
+<div data-guid="303388176nlp" data-nosnippet="">
+<div>
+<div>
+<h3>
+<i></i>
+Subscribe to the newsletter for reliable home-lab guides
+</h3>
+<div>
+<div>
+<input name="mailingList[]" type="checkbox" value="36" checked="" hidden="">
+<div>Get smarter about self-hosting: subscribe to the newsletter for clear, actionable how-tos on home labs, 3-2-1 backups, remote access with Tailscale, and concise setup tips that make FOSS tools easier to run.</div>
+</div>
+</div>
+<hr>
+<div>
+<div>
+<input maxlength="4000" name="email" placeholder="Email Address" required="" type="email">
+</div>
+<button name="SubmitButton" type="submit" value="Subscribe"><i></i><span>Get Updates</span></button>
+</div>
+<div>
+<div hidden=""></div>
+<input type="hidden" name="recaptcha_token">
+<div>By subscribing, you agree to receive newsletter and marketing emails, and accept our <a href="https://www.valnetinc.com/en/terms-of-use" target="_blank">Terms of Use</a> and <a href="https://www.valnetinc.com/en/privacy-policy" target="_blank">Privacy Policy</a>. You can unsubscribe anytime.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><p>My solution to this conundrum was hosting everything even remotely important on a separate node. My primary NAS handles all the storage-heavy media servers, while an N100 node is responsible for housing everything from reverse proxies and notification stations to smart home apps and monitoring dashboards. Considering that my wacky projects are the biggest threat to my home lab, I keep these nodes far away from my DIY misadventures.</p>    <h3>
+Self-hosting your own tools is a lot easier than it looks, though
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-2-857797775" data-gallery-id="main-carousel-2-857797775" data-article-gallery="article-gallery-modal-2-857797775" data-gallery-lightbox="gallery-modal-2-857797775" data-gallery-thumbnail-img-class="gallery-thumbnails-2-857797775-img" data-gallery-type="">
+</div>
+</div>
+<p>One of the biggest complaints I’ve heard about locally-hosted FOSS tools is that they’re too difficult to set up – and it’s something I just can’t agree on. Sure, running your own email server is pure agony. Likewise, it’s not a good idea to run something as complex as an SSO hub when you’re just starting out. However, containerization runtimes (especially Docker) have become a lot more beginner-friendly over the years, and with a little bit of practice, you can become an expert at running services on local hardware. The only caveat is that you need proper backup provisions, but if you’re not as against cloud platforms as I am, you can just as easily configure cloud sync tasks on your NAS and store encrypted snapshots on external servers. And I’d always recommend maintaining some documentation for your home lab, as these notes are really handy when an experiment fails and you need to restore your virtual guests. Yes, I speak from experience.</p>
+<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
+<div>
+<div>
+<div>
+<div data-stnl-group-once="vflhewq664">
+<div>
+<div>
+<img alt="docker-mark-blue" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2024/12/docker-mark-blue.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<h5>
+Docker
+</h5>
+</div>
+</div>
+</div>
+</div>
+<input type="checkbox" name="extra-content-f1d3-49e5-831c93f7f597">
+<div>
+<div>
+<a href="https://www.docker.com/" target="_blank">See at Docker</a>
+</div>
+</div>
+<div>
+<label for="extra-content-f1d3-49e5-831c93f7f597" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
+<span>Expand</span>
+<span>Collapse</span>
+</label>
+</div>
+</div>
+</div>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>As a hardcore member of the FOSS faction, I’ve migrated almost all essential services from cloud platforms to a self-hosted setup, and there were plenty of benefits with this approach. For starters, I don’t have to waste extra bucks on subscription fees or paid licenses just to unlock paywalled features. Likewise, since my data remains entirely on my local servers, I don’t have to worry about large corporations gaining access to private files and using them to train AI features that nobody asked for.</p>    <p>But leaving my complaints against enshittified tools aside, I must admit that a local-only FOSS arsenal lacks the sheer convenience of a cloud-based setup. In fact, I’ve even had to make a couple of compromises to ensure my FOSS stack remains operational at all times. </p>    <h2>
+Configuring a 3-2-1 backup pipeline became a necessity
+</h2>
+<h3>
+I used old hardware, so the upfront costs were fairly low
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-208269387" data-gallery-id="main-carousel-1-208269387" data-article-gallery="article-gallery-modal-1-208269387" data-gallery-lightbox="gallery-modal-1-208269387" data-gallery-thumbnail-img-class="gallery-thumbnails-1-208269387-img" data-gallery-type="">
+</div>
+</div>
+<p>Although moving everything to my local servers gave me complete ownership over my documents, I could no longer rely on cloud platforms and their robust storage services. And without proper backup provisions, I’d risk losing everything to a freak home lab accident. During my days as a fledgling tinkerer, I figured sending backups and snapshots of my containerized apps to a Network-Attached Storage system would be more than enough to keep my data safe. But all it took was one HDD ascending to the tech heaven for my immature self to realize relying on a single backup is a massive newbie trap. </p>    <p>So, the next step was to add redundancy to my NAS setup. The cheapest way to go about doing this would be cold backups, where I’d write important backups on spare HDDs and leave them in a safe place. Unfortunately, this adds two extra problems: there’d be no way to update my datasets without manually connecting my HDDs every few months. Not to mention, keeping the drives in my house would render my setups useless if a natural calamity were to strike my goblin cave.</p>    <p>This leaves a 3-2-1 backup workflow as the best solution. For the uninitiated, it involves keeping three sets of data across two systems, with one of them being an offshore rig. As a <a href="https://www.xda-developers.com/automated-myself-out-of-caring-about-my-home-lab/" target="_blank">home lab</a> addict, I often pick up cheap systems from flea markets, so all I had to do was flash TrueNAS onto an old machine, arm it with some HDDs, and my secondary server was ready. Thanks to TrueNAS’ rsync tasks and <a href="https://www.xda-developers.com/your-should-turn-on-snapshot-replication/" target="_blank">snapshot replication</a> functionality, creating automated backups was a piece of cake, and leaving it at my family’s home hundreds of miles from my goblin cave turned it into an offsite storage rig. But this brought yet another issue: I had to come up with a way to set up remote access on my nodes…</p>    <h2>
+I deployed Tailscale to enable remote access
+</h2>
+<h3>
+It’s safe to use and doesn’t need a paid subscription
+</h3>
+<div>
+<div>
+<img alt="The Tailscale VPN settings" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/04/opnsense-13.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>Even if I didn’t have my <a href="https://www.xda-developers.com/how-to-use-the-3-2-1-backup-rule-for-nas/" target="_blank">3-2-1 backup workflow</a>, I’d still need a way to connect remotely to my self-hosted services when I’m away from my tinkering lab. Unlike cloud platforms that I can just access as long as I have an Internet connection, I can’t just use my local IP addresses to connect to use my FOSS tools if my client devices aren’t hooked up to my home LAN. Port forwarding is the most straightforward method for setting up remote access on my home lab nodes, but since my network is afflicted by the curse of CGNAT, I had to look into other workarounds.</p>    <p>Paid VPNs are a no-no, as I don’t want to spend extra money on subscription fees, while their free counterparts aren’t very reliable when you care about privacy as much as I do. Since I didn’t want to rent a VPS for a self-hosted VPN either, I eventually went with Tailscale. Now that I’ve been using it for a few years, I’ve got nothing to complain about. I’ve already got an OPNsense router at the center of my home network, so configuring the subnet router functionality was fairly simple. </p>    <p>If you haven’t heard of a subnet router, it serves as a bridge that lets the devices on my tailnet access every system on my local network, even the ones that I haven’t armed with Tailscale. For my 3-2-1 backup operations, I spun up Tailscale as an app, added it to my tailnet, and gave it the permissions to connect to my home network. The best part? Despite relying on external servers, Tailscale is secure enough for home lab tasks and doesn’t hide essential features behind a paywall. </p>    <h2>
+The maintenance duty also falls on my shoulders
+</h2>
+<h3>
+I eventually migrated essential tools to a separate node
+</h3>
+<div>
+<div>
+<img alt="Running different LXCs and VMs on an Intel N100 system" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/12/proxmox-n100-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>As much as I adore gaining complete sovereignty over my productivity stack, it doesn’t change the fact that I’m responsible for ensuring mission-critical services remain operational 24/7. Sure, my backup pipeline can help my home lab recover from critical errors, but I’d still have to wait until the restoration tasks are complete. If things go south, I could end up marooned without essential FOSS services. </p>
+<div data-popup="false" data-sentinel-tracking="false" data-promotion-zone="TmV3c2xldHRlciBBcnRpY2xlIENvbnRlbnQgV2lkZ2V0" data-nosnippet="">
+<div data-style-path-url="https://static0.xdaimages.com/assets/promotions.37a609c0.css">
+<div data-guid="303388176nlp" data-nosnippet="">
+<div>
+<div>
+<h3>
+<i></i>
+Subscribe to the newsletter for reliable home-lab guides
+</h3>
+<div>
+<div>
+<input name="mailingList[]" type="checkbox" value="36" checked="" hidden="">
+<div>Get smarter about self-hosting: subscribe to the newsletter for clear, actionable how-tos on home labs, 3-2-1 backups, remote access with Tailscale, and concise setup tips that make FOSS tools easier to run.</div>
+</div>
+</div>
+<hr>
+<div>
+<div>
+<input maxlength="4000" name="email" placeholder="Email Address" required="" type="email">
+</div>
+<button name="SubmitButton" type="submit" value="Subscribe"><i></i><span>Get Updates</span></button>
+</div>
+<div>
+<div hidden=""></div>
+<input type="hidden" name="recaptcha_token">
+<div>By subscribing, you agree to receive newsletter and marketing emails, and accept our <a href="https://www.valnetinc.com/en/terms-of-use" target="_blank">Terms of Use</a> and <a href="https://www.valnetinc.com/en/privacy-policy" target="_blank">Privacy Policy</a>. You can unsubscribe anytime.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><p>My solution to this conundrum was hosting everything even remotely important on a separate node. My primary NAS handles all the storage-heavy media servers, while an N100 node is responsible for housing everything from reverse proxies and notification stations to smart home apps and monitoring dashboards. Considering that my wacky projects are the biggest threat to my home lab, I keep these nodes far away from my DIY misadventures.</p>    <h3>
+Self-hosting your own tools is a lot easier than it looks, though
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-2-857797775" data-gallery-id="main-carousel-2-857797775" data-article-gallery="article-gallery-modal-2-857797775" data-gallery-lightbox="gallery-modal-2-857797775" data-gallery-thumbnail-img-class="gallery-thumbnails-2-857797775-img" data-gallery-type="">
+</div>
+</div>
+<p>One of the biggest complaints I’ve heard about locally-hosted FOSS tools is that they’re too difficult to set up – and it’s something I just can’t agree on. Sure, running your own email server is pure agony. Likewise, it’s not a good idea to run something as complex as an SSO hub when you’re just starting out. However, containerization runtimes (especially Docker) have become a lot more beginner-friendly over the years, and with a little bit of practice, you can become an expert at running services on local hardware. The only caveat is that you need proper backup provisions, but if you’re not as against cloud platforms as I am, you can just as easily configure cloud sync tasks on your NAS and store encrypted snapshots on external servers. And I’d always recommend maintaining some documentation for your home lab, as these notes are really handy when an experiment fails and you need to restore your virtual guests. Yes, I speak from experience.</p>
+<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
+<div>
+<div>
+<div>
+<div data-stnl-group-once="vflhewq664">
+<div>
+<div>
+<img alt="docker-mark-blue" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2024/12/docker-mark-blue.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<h5>
+Docker
+</h5>
+</div>
+</div>
+</div>
+</div>
+<input type="checkbox" name="extra-content-f1d3-49e5-831c93f7f597">
+<div>
+<div>
+<a href="https://www.docker.com/" target="_blank">See at Docker</a>
+</div>
+</div>
+<div>
+<label for="extra-content-f1d3-49e5-831c93f7f597" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
+<span>Expand</span>
+<span>Collapse</span>
+</label>
+</div>
+</div>
+</div>]]>
+    </description>
+    <content:encoded><![CDATA[<p>As a hardcore member of the FOSS faction, I’ve migrated almost all essential services from cloud platforms to a self-hosted setup, and there were plenty of benefits with this approach. For starters, I don’t have to waste extra bucks on subscription fees or paid licenses just to unlock paywalled features. Likewise, since my data remains entirely on my local servers, I don’t have to worry about large corporations gaining access to private files and using them to train AI features that nobody asked for.</p>    <p>But leaving my complaints against enshittified tools aside, I must admit that a local-only FOSS arsenal lacks the sheer convenience of a cloud-based setup. In fact, I’ve even had to make a couple of compromises to ensure my FOSS stack remains operational at all times. </p>    <h2>
+Configuring a 3-2-1 backup pipeline became a necessity
+</h2>
+<h3>
+I used old hardware, so the upfront costs were fairly low
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-208269387" data-gallery-id="main-carousel-1-208269387" data-article-gallery="article-gallery-modal-1-208269387" data-gallery-lightbox="gallery-modal-1-208269387" data-gallery-thumbnail-img-class="gallery-thumbnails-1-208269387-img" data-gallery-type="">
+</div>
+</div>
+<p>Although moving everything to my local servers gave me complete ownership over my documents, I could no longer rely on cloud platforms and their robust storage services. And without proper backup provisions, I’d risk losing everything to a freak home lab accident. During my days as a fledgling tinkerer, I figured sending backups and snapshots of my containerized apps to a Network-Attached Storage system would be more than enough to keep my data safe. But all it took was one HDD ascending to the tech heaven for my immature self to realize relying on a single backup is a massive newbie trap. </p>    <p>So, the next step was to add redundancy to my NAS setup. The cheapest way to go about doing this would be cold backups, where I’d write important backups on spare HDDs and leave them in a safe place. Unfortunately, this adds two extra problems: there’d be no way to update my datasets without manually connecting my HDDs every few months. Not to mention, keeping the drives in my house would render my setups useless if a natural calamity were to strike my goblin cave.</p>    <p>This leaves a 3-2-1 backup workflow as the best solution. For the uninitiated, it involves keeping three sets of data across two systems, with one of them being an offshore rig. As a <a href="https://www.xda-developers.com/automated-myself-out-of-caring-about-my-home-lab/" target="_blank">home lab</a> addict, I often pick up cheap systems from flea markets, so all I had to do was flash TrueNAS onto an old machine, arm it with some HDDs, and my secondary server was ready. Thanks to TrueNAS’ rsync tasks and <a href="https://www.xda-developers.com/your-should-turn-on-snapshot-replication/" target="_blank">snapshot replication</a> functionality, creating automated backups was a piece of cake, and leaving it at my family’s home hundreds of miles from my goblin cave turned it into an offsite storage rig. But this brought yet another issue: I had to come up with a way to set up remote access on my nodes…</p>    <h2>
+I deployed Tailscale to enable remote access
+</h2>
+<h3>
+It’s safe to use and doesn’t need a paid subscription
+</h3>
+<div>
+<div>
+<img alt="The Tailscale VPN settings" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/04/opnsense-13.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>Even if I didn’t have my <a href="https://www.xda-developers.com/how-to-use-the-3-2-1-backup-rule-for-nas/" target="_blank">3-2-1 backup workflow</a>, I’d still need a way to connect remotely to my self-hosted services when I’m away from my tinkering lab. Unlike cloud platforms that I can just access as long as I have an Internet connection, I can’t just use my local IP addresses to connect to use my FOSS tools if my client devices aren’t hooked up to my home LAN. Port forwarding is the most straightforward method for setting up remote access on my home lab nodes, but since my network is afflicted by the curse of CGNAT, I had to look into other workarounds.</p>    <p>Paid VPNs are a no-no, as I don’t want to spend extra money on subscription fees, while their free counterparts aren’t very reliable when you care about privacy as much as I do. Since I didn’t want to rent a VPS for a self-hosted VPN either, I eventually went with Tailscale. Now that I’ve been using it for a few years, I’ve got nothing to complain about. I’ve already got an OPNsense router at the center of my home network, so configuring the subnet router functionality was fairly simple. </p>    <p>If you haven’t heard of a subnet router, it serves as a bridge that lets the devices on my tailnet access every system on my local network, even the ones that I haven’t armed with Tailscale. For my 3-2-1 backup operations, I spun up Tailscale as an app, added it to my tailnet, and gave it the permissions to connect to my home network. The best part? Despite relying on external servers, Tailscale is secure enough for home lab tasks and doesn’t hide essential features behind a paywall. </p>    <h2>
+The maintenance duty also falls on my shoulders
+</h2>
+<h3>
+I eventually migrated essential tools to a separate node
+</h3>
+<div>
+<div>
+<img alt="Running different LXCs and VMs on an Intel N100 system" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/12/proxmox-n100-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>As much as I adore gaining complete sovereignty over my productivity stack, it doesn’t change the fact that I’m responsible for ensuring mission-critical services remain operational 24/7. Sure, my backup pipeline can help my home lab recover from critical errors, but I’d still have to wait until the restoration tasks are complete. If things go south, I could end up marooned without essential FOSS services. </p>
+<div data-popup="false" data-sentinel-tracking="false" data-promotion-zone="TmV3c2xldHRlciBBcnRpY2xlIENvbnRlbnQgV2lkZ2V0" data-nosnippet="">
+<div data-style-path-url="https://static0.xdaimages.com/assets/promotions.37a609c0.css">
+<div data-guid="303388176nlp" data-nosnippet="">
+<div>
+<div>
+<h3>
+<i></i>
+Subscribe to the newsletter for reliable home-lab guides
+</h3>
+<div>
+<div>
+<input name="mailingList[]" type="checkbox" value="36" checked="" hidden="">
+<div>Get smarter about self-hosting: subscribe to the newsletter for clear, actionable how-tos on home labs, 3-2-1 backups, remote access with Tailscale, and concise setup tips that make FOSS tools easier to run.</div>
+</div>
+</div>
+<hr>
+<div>
+<div>
+<input maxlength="4000" name="email" placeholder="Email Address" required="" type="email">
+</div>
+<button name="SubmitButton" type="submit" value="Subscribe"><i></i><span>Get Updates</span></button>
+</div>
+<div>
+<div hidden=""></div>
+<input type="hidden" name="recaptcha_token">
+<div>By subscribing, you agree to receive newsletter and marketing emails, and accept our <a href="https://www.valnetinc.com/en/terms-of-use" target="_blank">Terms of Use</a> and <a href="https://www.valnetinc.com/en/privacy-policy" target="_blank">Privacy Policy</a>. You can unsubscribe anytime.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><p>My solution to this conundrum was hosting everything even remotely important on a separate node. My primary NAS handles all the storage-heavy media servers, while an N100 node is responsible for housing everything from reverse proxies and notification stations to smart home apps and monitoring dashboards. Considering that my wacky projects are the biggest threat to my home lab, I keep these nodes far away from my DIY misadventures.</p>    <h3>
+Self-hosting your own tools is a lot easier than it looks, though
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-2-857797775" data-gallery-id="main-carousel-2-857797775" data-article-gallery="article-gallery-modal-2-857797775" data-gallery-lightbox="gallery-modal-2-857797775" data-gallery-thumbnail-img-class="gallery-thumbnails-2-857797775-img" data-gallery-type="">
+</div>
+</div>
+<p>One of the biggest complaints I’ve heard about locally-hosted FOSS tools is that they’re too difficult to set up – and it’s something I just can’t agree on. Sure, running your own email server is pure agony. Likewise, it’s not a good idea to run something as complex as an SSO hub when you’re just starting out. However, containerization runtimes (especially Docker) have become a lot more beginner-friendly over the years, and with a little bit of practice, you can become an expert at running services on local hardware. The only caveat is that you need proper backup provisions, but if you’re not as against cloud platforms as I am, you can just as easily configure cloud sync tasks on your NAS and store encrypted snapshots on external servers. And I’d always recommend maintaining some documentation for your home lab, as these notes are really handy when an experiment fails and you need to restore your virtual guests. Yes, I speak from experience.</p>
+<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
+<div>
+<div>
+<div>
+<div data-stnl-group-once="vflhewq664">
+<div>
+<div>
+<img alt="docker-mark-blue" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2024/12/docker-mark-blue.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<h5>
+Docker
+</h5>
+</div>
+</div>
+</div>
+</div>
+<input type="checkbox" name="extra-content-f1d3-49e5-831c93f7f597">
+<div>
+<div>
+<a href="https://www.docker.com/" target="_blank">See at Docker</a>
+</div>
+</div>
+<div>
+<label for="extra-content-f1d3-49e5-831c93f7f597" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
+<span>Expand</span>
+<span>Collapse</span>
+</label>
+</div>
+</div>
+</div>]]></content:encoded>
+    <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/04/opnsense-13.jpg?q=49&fit=crop&w=825&dpr=2"/>
+          <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/04/opnsense-13.jpg?q=49&fit=crop&w=825&dpr=2" medium="image"/>
+    <pubDate>Thu, 28 May 2026 10:00:29 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[The new Steam Controller sold out in under an hour, so I turned my Steam Deck into one instead]]></title>
+    <link>https://www.xda-developers.com/new-steam-controller-sold-out-in-hour-turned-steam-deck-into-one/</link>
+    <itunes:title><![CDATA[The new Steam Controller sold out in under an hour, so I turned my Steam Deck into one instead]]></itunes:title>
+    <itunes:author><![CDATA[XDA[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>Valve finally     <span><a href="/valve-confirms-steam-controller-price-release-date-its-as-expensive-as-i-feared/" target="_blank">brought back the Steam Controller this year</a></span>. The second-generation pad launched on May 4 at $99, with twin trackpads, magnetic TMR thumbsticks, four back grip buttons, and the little 2.4GHz puck that doubles as a charging dock. It sold out in under an hour, and by the afternoon, the $99 SKU was gone. People were experiencing transaction errors mid-purchase and eBay listings were already sitting at $230 to $250. Valve has since opened a reservation queue, but if you missed the first drop, you're now waiting in line.    </p>    <p>However, if you already own a Steam Deck, you're holding the guts of a Steam Controller already. The Deck has two haptic trackpads, a gyro, and a full set of sticks and buttons, which is most of what made the Steam Controller worth wanting in the first place, and you can actually use it with your PC for gaming. There's a catch in how you connect it, though: the Deck won't enumerate as a HID gamepad when plugged into a computer, as it's a PC in its own right with no USB gadget mode. Over Bluetooth it's the same thing; a host that pairs with controllers rather than a device that pretends to be one.</p>    <p>People have been asking Valve for a native solution to use the Deck as a controller for years, and so far, every working method routes the Deck's inputs over your network instead. You stream to the Deck, and the trackpads, gyro, and haptics come back to the PC as part of the same connection. As a result, it isn't a true wired controller, and being honest, the Deck is a bit of an awkward slab to hold for hours. But hey, it works, and it's free if you already have the hardware. For now, it's filled the gap perfectly fine while I wait in the queue to pick up the new Steam Controller.</p>    <h2>
+Steam Link turns the Deck into a remote gamepad
+</h2>
+<h3>
+It's a free app on Discover
+</h3>
+<div>
+<div>
+<img alt="Steam Link showing on the Steam Deck" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/steam-deck-controller-steam-link-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>The path I settled on to get this working uses the standalone Steam Link app rather than the Remote Play streaming that's built into the Steam client. You install it from Discover in Desktop Mode, where it shows up on Flathub like any other Flatpak. Both machines need to be on the same network and signed into the same Steam account, and Steam Link will find your PC on its own. The first connection asks you to confirm a PIN on the host to pair the two, and after that, it remembers the PC.</p>    <p>Once you connect, your PC's desktop streams to the Deck and the Deck becomes the input device for whatever you launch. It <a href="https://www.xda-developers.com/turned-steam-deck-controller-pc/" target="_blank">basically treats the Deck like a Wii U GamePad</a>, a screen-and-controller combo talking to a console sitting elsewhere in the house. You hold the Deck, the game runs on your PC, and the trackpads and sticks control it. Nothing actually installs or runs on the Deck beyond the Steam Link client, so it doesn't matter whether the game is in your library locally or not.</p>    <p>For latency, you'll want to drop into the streaming options and lower the resolution, since you're not actually watching the Deck's display. There's no reason to stream a sharp 1280x800 image to a screen you're not even looking at, and a lower resolution gives the connection more headroom for input. Steam Link also exposes a bandwidth limit and a toggle for hardware decoding, both of which are worth setting and forgetting.</p>    <p>Over Wi-Fi, it's fine for most games, but you can take Wi-Fi out of the equation on both ends. Put the PC on Ethernet, which it probably already is, and run the Deck through a dock or a USB-C-to-Ethernet adapter, and you've got a wired path end to end. There's still no direct USB controller cable doing the work and the inputs are still travelling over IP, but a wired local network drops the jitter and the latency to the point where most people stop noticing it entirely. For more sensitive games (looking at you, <em>Celeste</em> fans), it might be an issue, but it'll be fine for most titles.</p>    <p>This is as close as the "wired" idea people go looking for actually gets. There's no setting that turns the Deck into a wired gamepad, so the closest you'll reach is a fully wired network between the two machines.</p>    <h2>
+Closing Steam in Desktop Mode hands over the trackpads and haptics
+</h2>
+<h3>
+It feels like a native game a lot of the time
+</h3>
+<div dir="auto">
+<img alt="Closing Steam on the Steam Deck in desktop mode" data-image-id="452211" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/steam-deck-controller-steam-link-2.jpg">
+</div><p>The reason I suggest using the Steam Link app over the built-in Remote Play comes down to how the Deck handles its own controls. If you launch Steam Link from inside Game Mode, the Deck's own Steam layer is still running underneath, and it wants a say in how the trackpads and the Steam button behave. You end up fighting two layers of Steam Input for control of the same hardware.</p>    <p>The fix is to go to Desktop Mode, close Steam entirely, and then open the Steam Link app on its own. With the local Steam client out of the way, the Steam Input configuration coming from your PC takes full control of the Deck. The trackpads, the haptic feedback, the Steam button, and the back grips all answer to the host machine's controller layout instead of the Deck's local one.</p>    <p>That especially matters for the trackpads, which the Steam Controller's whole identity is arguably built around. They offer greater controller and fantastic haptics, they're something that no other Xbox-style gamepad can replicate. Letting the host's Steam Input own them means a game configured for trackpad aiming or trackpad scrolling behaves the way it would with a real Steam Controller plugged in.</p>    <p>With that, it feels like a <em>real</em> controller for your games, and FPS titles which support it even get gyro aiming layered on top of the stick for fine adjustments, just like they would if they were running natively. The haptics under the pads give you the same textured feedback that you're used to, and it just feels like a complete setup overall.</p>    <p>The only downside is that you're operating out of Desktop Mode, which feels slightly wrong the first few times. You're closing the software the Deck is built around in order to use the Deck. Once Steam Link is running and connected, though, you forget about it, and you get the cleanest version of the trackpad experience the Deck can offer.</p>    <h2>
+VirtualHere gets you closer to a real controller, with more hassle
+</h2>
+<h3>
+It's a lot more work
+</h3>
+<div>
+<div>
+<img alt="screenshot showing virtualhere app in steam library with manage icon highlighted" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2024/08/steam-library-virtualhere-manage.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>There's a second route if you want the Deck to show up to Windows as an actual Steam Controller rather than a streaming target. VirtualHere is a USB-over-IP tool that exposes the Deck's internal Steam Controller HID across the network, and the PC running the VirtualHere client sees it as a native controller. To Windows, it's just a Steam Controller that happens to be plugged in.</p>    <p>It's more involved than I'd recommend for most people. You're setting a user password on the Deck, dropping a Linux binary into a folder, adding it as a non-Steam game so Game Mode can launch it, and pointing the client at the Deck's IP and port. It prompts for that password every session, and quitting cleanly can be quite finicky.</p>
+<div data-popup="false" data-sentinel-tracking="false" data-promotion-zone="TmV3c2xldHRlciBBcnRpY2xlIENvbnRlbnQgV2lkZ2V0" data-nosnippet="">
+<div data-style-path-url="https://static0.xdaimages.com/assets/promotions.37a609c0.css">
+<div data-guid="129280236nlp" data-nosnippet="">
+<div>
+<div>
+<h3>
+<i></i>
+Subscribe to our newsletter: Steam Deck controller tips
+</h3>
+<div>
+<div>
+<input name="mailingList[]" type="checkbox" value="36" checked="" hidden="">
+<div>Hungry for deeper, practical guidance? Subscribe to the newsletter for expanded coverage on using the Steam Deck as a controller — step-by-step setups (Steam Link, VirtualHere), troubleshooting, configuration tips, and related hardware guidance.</div>
+</div>
+</div>
+<hr>
+<div>
+<div>
+<input maxlength="4000" name="email" placeholder="Email Address" required="" type="email">
+</div>
+<button name="SubmitButton" type="submit" value="Subscribe"><i></i><span>Get Updates</span></button>
+</div>
+<div>
+<div hidden=""></div>
+<input type="hidden" name="recaptcha_token">
+<div>By subscribing, you agree to receive newsletter and marketing emails, and accept our <a href="https://www.valnetinc.com/en/terms-of-use" target="_blank">Terms of Use</a> and <a href="https://www.valnetinc.com/en/privacy-policy" target="_blank">Privacy Policy</a>. You can unsubscribe anytime.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><p>For non-Steam launchers, or for the cases where you want the OS itself to treat the Deck as a plugged-in gamepad, it's the better fit. For everything else, Steam Link asks far less of you and gets you playing faster, which is why it's the one I like to use the most.</p>    <h2>
+Not the Steam Controller, but a Steam Controller-shaped thing you already own
+</h2>
+<h3>
+The Steam Deck works quite well for it
+</h3>
+<div>
+<div>
+<img alt="The new Steam Controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/04/steam-controller-valve.jpg?q=70&amp;fit=crop&amp;w=825&amp;dpr=1">
+<small>Credit:&nbsp;Valve</small>
+</div>
+</div>
+<p>None of this turns the Deck into the new Steam Controller, and it's worth being aware of the limitations that a setup like this has. The Deck is heavier and wider than anything you'd choose to hold like a pad (unless you loved the Wii U, I guess?), the sticks aren't drift-proof TMR units, and you can only use it with devices on the same network. The previous Steam Controller could pair to anything that will accept a Bluetooth controller, <a href="https://github.com/greggersaurus/OpenSteamController" target="_blank">though with a bit of work</a>. If you want the real thing, the reservation queue is the only honest answer.</p>    <p>With all of that said, the parts that make the Steam Controller unique, like the trackpads and the haptics, are sitting in the handheld device that a lot of us already own and     <span><a href="/turned-steam-deck-home-server/" target="_blank">can use for all kinds of things</a></span>. Closing Steam and streaming over a wired network gives you those pads driven by your PC's Steam Input, for the cost of an app you can install in two minutes.    </p>    <p>I'd still rather have Valve's shiny new Steam Controller on my desk, but until I can actually obtain one, the Deck is doing an alright job filling that gap.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>Valve finally     <span><a href="/valve-confirms-steam-controller-price-release-date-its-as-expensive-as-i-feared/" target="_blank">brought back the Steam Controller this year</a></span>. The second-generation pad launched on May 4 at $99, with twin trackpads, magnetic TMR thumbsticks, four back grip buttons, and the little 2.4GHz puck that doubles as a charging dock. It sold out in under an hour, and by the afternoon, the $99 SKU was gone. People were experiencing transaction errors mid-purchase and eBay listings were already sitting at $230 to $250. Valve has since opened a reservation queue, but if you missed the first drop, you're now waiting in line.    </p>    <p>However, if you already own a Steam Deck, you're holding the guts of a Steam Controller already. The Deck has two haptic trackpads, a gyro, and a full set of sticks and buttons, which is most of what made the Steam Controller worth wanting in the first place, and you can actually use it with your PC for gaming. There's a catch in how you connect it, though: the Deck won't enumerate as a HID gamepad when plugged into a computer, as it's a PC in its own right with no USB gadget mode. Over Bluetooth it's the same thing; a host that pairs with controllers rather than a device that pretends to be one.</p>    <p>People have been asking Valve for a native solution to use the Deck as a controller for years, and so far, every working method routes the Deck's inputs over your network instead. You stream to the Deck, and the trackpads, gyro, and haptics come back to the PC as part of the same connection. As a result, it isn't a true wired controller, and being honest, the Deck is a bit of an awkward slab to hold for hours. But hey, it works, and it's free if you already have the hardware. For now, it's filled the gap perfectly fine while I wait in the queue to pick up the new Steam Controller.</p>    <h2>
+Steam Link turns the Deck into a remote gamepad
+</h2>
+<h3>
+It's a free app on Discover
+</h3>
+<div>
+<div>
+<img alt="Steam Link showing on the Steam Deck" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/steam-deck-controller-steam-link-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>The path I settled on to get this working uses the standalone Steam Link app rather than the Remote Play streaming that's built into the Steam client. You install it from Discover in Desktop Mode, where it shows up on Flathub like any other Flatpak. Both machines need to be on the same network and signed into the same Steam account, and Steam Link will find your PC on its own. The first connection asks you to confirm a PIN on the host to pair the two, and after that, it remembers the PC.</p>    <p>Once you connect, your PC's desktop streams to the Deck and the Deck becomes the input device for whatever you launch. It <a href="https://www.xda-developers.com/turned-steam-deck-controller-pc/" target="_blank">basically treats the Deck like a Wii U GamePad</a>, a screen-and-controller combo talking to a console sitting elsewhere in the house. You hold the Deck, the game runs on your PC, and the trackpads and sticks control it. Nothing actually installs or runs on the Deck beyond the Steam Link client, so it doesn't matter whether the game is in your library locally or not.</p>    <p>For latency, you'll want to drop into the streaming options and lower the resolution, since you're not actually watching the Deck's display. There's no reason to stream a sharp 1280x800 image to a screen you're not even looking at, and a lower resolution gives the connection more headroom for input. Steam Link also exposes a bandwidth limit and a toggle for hardware decoding, both of which are worth setting and forgetting.</p>    <p>Over Wi-Fi, it's fine for most games, but you can take Wi-Fi out of the equation on both ends. Put the PC on Ethernet, which it probably already is, and run the Deck through a dock or a USB-C-to-Ethernet adapter, and you've got a wired path end to end. There's still no direct USB controller cable doing the work and the inputs are still travelling over IP, but a wired local network drops the jitter and the latency to the point where most people stop noticing it entirely. For more sensitive games (looking at you, <em>Celeste</em> fans), it might be an issue, but it'll be fine for most titles.</p>    <p>This is as close as the "wired" idea people go looking for actually gets. There's no setting that turns the Deck into a wired gamepad, so the closest you'll reach is a fully wired network between the two machines.</p>    <h2>
+Closing Steam in Desktop Mode hands over the trackpads and haptics
+</h2>
+<h3>
+It feels like a native game a lot of the time
+</h3>
+<div dir="auto">
+<img alt="Closing Steam on the Steam Deck in desktop mode" data-image-id="452211" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/steam-deck-controller-steam-link-2.jpg">
+</div><p>The reason I suggest using the Steam Link app over the built-in Remote Play comes down to how the Deck handles its own controls. If you launch Steam Link from inside Game Mode, the Deck's own Steam layer is still running underneath, and it wants a say in how the trackpads and the Steam button behave. You end up fighting two layers of Steam Input for control of the same hardware.</p>    <p>The fix is to go to Desktop Mode, close Steam entirely, and then open the Steam Link app on its own. With the local Steam client out of the way, the Steam Input configuration coming from your PC takes full control of the Deck. The trackpads, the haptic feedback, the Steam button, and the back grips all answer to the host machine's controller layout instead of the Deck's local one.</p>    <p>That especially matters for the trackpads, which the Steam Controller's whole identity is arguably built around. They offer greater controller and fantastic haptics, they're something that no other Xbox-style gamepad can replicate. Letting the host's Steam Input own them means a game configured for trackpad aiming or trackpad scrolling behaves the way it would with a real Steam Controller plugged in.</p>    <p>With that, it feels like a <em>real</em> controller for your games, and FPS titles which support it even get gyro aiming layered on top of the stick for fine adjustments, just like they would if they were running natively. The haptics under the pads give you the same textured feedback that you're used to, and it just feels like a complete setup overall.</p>    <p>The only downside is that you're operating out of Desktop Mode, which feels slightly wrong the first few times. You're closing the software the Deck is built around in order to use the Deck. Once Steam Link is running and connected, though, you forget about it, and you get the cleanest version of the trackpad experience the Deck can offer.</p>    <h2>
+VirtualHere gets you closer to a real controller, with more hassle
+</h2>
+<h3>
+It's a lot more work
+</h3>
+<div>
+<div>
+<img alt="screenshot showing virtualhere app in steam library with manage icon highlighted" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2024/08/steam-library-virtualhere-manage.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>There's a second route if you want the Deck to show up to Windows as an actual Steam Controller rather than a streaming target. VirtualHere is a USB-over-IP tool that exposes the Deck's internal Steam Controller HID across the network, and the PC running the VirtualHere client sees it as a native controller. To Windows, it's just a Steam Controller that happens to be plugged in.</p>    <p>It's more involved than I'd recommend for most people. You're setting a user password on the Deck, dropping a Linux binary into a folder, adding it as a non-Steam game so Game Mode can launch it, and pointing the client at the Deck's IP and port. It prompts for that password every session, and quitting cleanly can be quite finicky.</p>
+<div data-popup="false" data-sentinel-tracking="false" data-promotion-zone="TmV3c2xldHRlciBBcnRpY2xlIENvbnRlbnQgV2lkZ2V0" data-nosnippet="">
+<div data-style-path-url="https://static0.xdaimages.com/assets/promotions.37a609c0.css">
+<div data-guid="129280236nlp" data-nosnippet="">
+<div>
+<div>
+<h3>
+<i></i>
+Subscribe to our newsletter: Steam Deck controller tips
+</h3>
+<div>
+<div>
+<input name="mailingList[]" type="checkbox" value="36" checked="" hidden="">
+<div>Hungry for deeper, practical guidance? Subscribe to the newsletter for expanded coverage on using the Steam Deck as a controller — step-by-step setups (Steam Link, VirtualHere), troubleshooting, configuration tips, and related hardware guidance.</div>
+</div>
+</div>
+<hr>
+<div>
+<div>
+<input maxlength="4000" name="email" placeholder="Email Address" required="" type="email">
+</div>
+<button name="SubmitButton" type="submit" value="Subscribe"><i></i><span>Get Updates</span></button>
+</div>
+<div>
+<div hidden=""></div>
+<input type="hidden" name="recaptcha_token">
+<div>By subscribing, you agree to receive newsletter and marketing emails, and accept our <a href="https://www.valnetinc.com/en/terms-of-use" target="_blank">Terms of Use</a> and <a href="https://www.valnetinc.com/en/privacy-policy" target="_blank">Privacy Policy</a>. You can unsubscribe anytime.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><p>For non-Steam launchers, or for the cases where you want the OS itself to treat the Deck as a plugged-in gamepad, it's the better fit. For everything else, Steam Link asks far less of you and gets you playing faster, which is why it's the one I like to use the most.</p>    <h2>
+Not the Steam Controller, but a Steam Controller-shaped thing you already own
+</h2>
+<h3>
+The Steam Deck works quite well for it
+</h3>
+<div>
+<div>
+<img alt="The new Steam Controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/04/steam-controller-valve.jpg?q=70&amp;fit=crop&amp;w=825&amp;dpr=1">
+<small>Credit:&nbsp;Valve</small>
+</div>
+</div>
+<p>None of this turns the Deck into the new Steam Controller, and it's worth being aware of the limitations that a setup like this has. The Deck is heavier and wider than anything you'd choose to hold like a pad (unless you loved the Wii U, I guess?), the sticks aren't drift-proof TMR units, and you can only use it with devices on the same network. The previous Steam Controller could pair to anything that will accept a Bluetooth controller, <a href="https://github.com/greggersaurus/OpenSteamController" target="_blank">though with a bit of work</a>. If you want the real thing, the reservation queue is the only honest answer.</p>    <p>With all of that said, the parts that make the Steam Controller unique, like the trackpads and the haptics, are sitting in the handheld device that a lot of us already own and     <span><a href="/turned-steam-deck-home-server/" target="_blank">can use for all kinds of things</a></span>. Closing Steam and streaming over a wired network gives you those pads driven by your PC's Steam Input, for the cost of an app you can install in two minutes.    </p>    <p>I'd still rather have Valve's shiny new Steam Controller on my desk, but until I can actually obtain one, the Deck is doing an alright job filling that gap.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>Valve finally     <span><a href="/valve-confirms-steam-controller-price-release-date-its-as-expensive-as-i-feared/" target="_blank">brought back the Steam Controller this year</a></span>. The second-generation pad launched on May 4 at $99, with twin trackpads, magnetic TMR thumbsticks, four back grip buttons, and the little 2.4GHz puck that doubles as a charging dock. It sold out in under an hour, and by the afternoon, the $99 SKU was gone. People were experiencing transaction errors mid-purchase and eBay listings were already sitting at $230 to $250. Valve has since opened a reservation queue, but if you missed the first drop, you're now waiting in line.    </p>    <p>However, if you already own a Steam Deck, you're holding the guts of a Steam Controller already. The Deck has two haptic trackpads, a gyro, and a full set of sticks and buttons, which is most of what made the Steam Controller worth wanting in the first place, and you can actually use it with your PC for gaming. There's a catch in how you connect it, though: the Deck won't enumerate as a HID gamepad when plugged into a computer, as it's a PC in its own right with no USB gadget mode. Over Bluetooth it's the same thing; a host that pairs with controllers rather than a device that pretends to be one.</p>    <p>People have been asking Valve for a native solution to use the Deck as a controller for years, and so far, every working method routes the Deck's inputs over your network instead. You stream to the Deck, and the trackpads, gyro, and haptics come back to the PC as part of the same connection. As a result, it isn't a true wired controller, and being honest, the Deck is a bit of an awkward slab to hold for hours. But hey, it works, and it's free if you already have the hardware. For now, it's filled the gap perfectly fine while I wait in the queue to pick up the new Steam Controller.</p>    <h2>
+Steam Link turns the Deck into a remote gamepad
+</h2>
+<h3>
+It's a free app on Discover
+</h3>
+<div>
+<div>
+<img alt="Steam Link showing on the Steam Deck" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/steam-deck-controller-steam-link-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>The path I settled on to get this working uses the standalone Steam Link app rather than the Remote Play streaming that's built into the Steam client. You install it from Discover in Desktop Mode, where it shows up on Flathub like any other Flatpak. Both machines need to be on the same network and signed into the same Steam account, and Steam Link will find your PC on its own. The first connection asks you to confirm a PIN on the host to pair the two, and after that, it remembers the PC.</p>    <p>Once you connect, your PC's desktop streams to the Deck and the Deck becomes the input device for whatever you launch. It <a href="https://www.xda-developers.com/turned-steam-deck-controller-pc/" target="_blank">basically treats the Deck like a Wii U GamePad</a>, a screen-and-controller combo talking to a console sitting elsewhere in the house. You hold the Deck, the game runs on your PC, and the trackpads and sticks control it. Nothing actually installs or runs on the Deck beyond the Steam Link client, so it doesn't matter whether the game is in your library locally or not.</p>    <p>For latency, you'll want to drop into the streaming options and lower the resolution, since you're not actually watching the Deck's display. There's no reason to stream a sharp 1280x800 image to a screen you're not even looking at, and a lower resolution gives the connection more headroom for input. Steam Link also exposes a bandwidth limit and a toggle for hardware decoding, both of which are worth setting and forgetting.</p>    <p>Over Wi-Fi, it's fine for most games, but you can take Wi-Fi out of the equation on both ends. Put the PC on Ethernet, which it probably already is, and run the Deck through a dock or a USB-C-to-Ethernet adapter, and you've got a wired path end to end. There's still no direct USB controller cable doing the work and the inputs are still travelling over IP, but a wired local network drops the jitter and the latency to the point where most people stop noticing it entirely. For more sensitive games (looking at you, <em>Celeste</em> fans), it might be an issue, but it'll be fine for most titles.</p>    <p>This is as close as the "wired" idea people go looking for actually gets. There's no setting that turns the Deck into a wired gamepad, so the closest you'll reach is a fully wired network between the two machines.</p>    <h2>
+Closing Steam in Desktop Mode hands over the trackpads and haptics
+</h2>
+<h3>
+It feels like a native game a lot of the time
+</h3>
+<div dir="auto">
+<img alt="Closing Steam on the Steam Deck in desktop mode" data-image-id="452211" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/steam-deck-controller-steam-link-2.jpg">
+</div><p>The reason I suggest using the Steam Link app over the built-in Remote Play comes down to how the Deck handles its own controls. If you launch Steam Link from inside Game Mode, the Deck's own Steam layer is still running underneath, and it wants a say in how the trackpads and the Steam button behave. You end up fighting two layers of Steam Input for control of the same hardware.</p>    <p>The fix is to go to Desktop Mode, close Steam entirely, and then open the Steam Link app on its own. With the local Steam client out of the way, the Steam Input configuration coming from your PC takes full control of the Deck. The trackpads, the haptic feedback, the Steam button, and the back grips all answer to the host machine's controller layout instead of the Deck's local one.</p>    <p>That especially matters for the trackpads, which the Steam Controller's whole identity is arguably built around. They offer greater controller and fantastic haptics, they're something that no other Xbox-style gamepad can replicate. Letting the host's Steam Input own them means a game configured for trackpad aiming or trackpad scrolling behaves the way it would with a real Steam Controller plugged in.</p>    <p>With that, it feels like a <em>real</em> controller for your games, and FPS titles which support it even get gyro aiming layered on top of the stick for fine adjustments, just like they would if they were running natively. The haptics under the pads give you the same textured feedback that you're used to, and it just feels like a complete setup overall.</p>    <p>The only downside is that you're operating out of Desktop Mode, which feels slightly wrong the first few times. You're closing the software the Deck is built around in order to use the Deck. Once Steam Link is running and connected, though, you forget about it, and you get the cleanest version of the trackpad experience the Deck can offer.</p>    <h2>
+VirtualHere gets you closer to a real controller, with more hassle
+</h2>
+<h3>
+It's a lot more work
+</h3>
+<div>
+<div>
+<img alt="screenshot showing virtualhere app in steam library with manage icon highlighted" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2024/08/steam-library-virtualhere-manage.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>There's a second route if you want the Deck to show up to Windows as an actual Steam Controller rather than a streaming target. VirtualHere is a USB-over-IP tool that exposes the Deck's internal Steam Controller HID across the network, and the PC running the VirtualHere client sees it as a native controller. To Windows, it's just a Steam Controller that happens to be plugged in.</p>    <p>It's more involved than I'd recommend for most people. You're setting a user password on the Deck, dropping a Linux binary into a folder, adding it as a non-Steam game so Game Mode can launch it, and pointing the client at the Deck's IP and port. It prompts for that password every session, and quitting cleanly can be quite finicky.</p>
+<div data-popup="false" data-sentinel-tracking="false" data-promotion-zone="TmV3c2xldHRlciBBcnRpY2xlIENvbnRlbnQgV2lkZ2V0" data-nosnippet="">
+<div data-style-path-url="https://static0.xdaimages.com/assets/promotions.37a609c0.css">
+<div data-guid="129280236nlp" data-nosnippet="">
+<div>
+<div>
+<h3>
+<i></i>
+Subscribe to our newsletter: Steam Deck controller tips
+</h3>
+<div>
+<div>
+<input name="mailingList[]" type="checkbox" value="36" checked="" hidden="">
+<div>Hungry for deeper, practical guidance? Subscribe to the newsletter for expanded coverage on using the Steam Deck as a controller — step-by-step setups (Steam Link, VirtualHere), troubleshooting, configuration tips, and related hardware guidance.</div>
+</div>
+</div>
+<hr>
+<div>
+<div>
+<input maxlength="4000" name="email" placeholder="Email Address" required="" type="email">
+</div>
+<button name="SubmitButton" type="submit" value="Subscribe"><i></i><span>Get Updates</span></button>
+</div>
+<div>
+<div hidden=""></div>
+<input type="hidden" name="recaptcha_token">
+<div>By subscribing, you agree to receive newsletter and marketing emails, and accept our <a href="https://www.valnetinc.com/en/terms-of-use" target="_blank">Terms of Use</a> and <a href="https://www.valnetinc.com/en/privacy-policy" target="_blank">Privacy Policy</a>. You can unsubscribe anytime.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><p>For non-Steam launchers, or for the cases where you want the OS itself to treat the Deck as a plugged-in gamepad, it's the better fit. For everything else, Steam Link asks far less of you and gets you playing faster, which is why it's the one I like to use the most.</p>    <h2>
+Not the Steam Controller, but a Steam Controller-shaped thing you already own
+</h2>
+<h3>
+The Steam Deck works quite well for it
+</h3>
+<div>
+<div>
+<img alt="The new Steam Controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/04/steam-controller-valve.jpg?q=70&amp;fit=crop&amp;w=825&amp;dpr=1">
+<small>Credit:&nbsp;Valve</small>
+</div>
+</div>
+<p>None of this turns the Deck into the new Steam Controller, and it's worth being aware of the limitations that a setup like this has. The Deck is heavier and wider than anything you'd choose to hold like a pad (unless you loved the Wii U, I guess?), the sticks aren't drift-proof TMR units, and you can only use it with devices on the same network. The previous Steam Controller could pair to anything that will accept a Bluetooth controller, <a href="https://github.com/greggersaurus/OpenSteamController" target="_blank">though with a bit of work</a>. If you want the real thing, the reservation queue is the only honest answer.</p>    <p>With all of that said, the parts that make the Steam Controller unique, like the trackpads and the haptics, are sitting in the handheld device that a lot of us already own and     <span><a href="/turned-steam-deck-home-server/" target="_blank">can use for all kinds of things</a></span>. Closing Steam and streaming over a wired network gives you those pads driven by your PC's Steam Input, for the cost of an app you can install in two minutes.    </p>    <p>I'd still rather have Valve's shiny new Steam Controller on my desk, but until I can actually obtain one, the Deck is doing an alright job filling that gap.</p>]]></content:encoded>
+    <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/steam-deck-controller-steam-link-1.jpg?q=49&fit=crop&w=825&dpr=2"/>
+          <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/steam-deck-controller-steam-link-1.jpg?q=49&fit=crop&w=825&dpr=2" medium="image"/>
+    <pubDate>Thu, 28 May 2026 00:00:22 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Frame generation finally clicked for me in Forza Horizon 6, and now I know where it actually belongs]]></title>
     <link>https://www.xda-developers.com/frame-generation-clicked-in-forza-horizon-6-now-i-know-where-it-belongs/</link>
     <itunes:title><![CDATA[Frame generation finally clicked for me in Forza Horizon 6, and now I know where it actually belongs]]></itunes:title>
@@ -3755,635 +4328,5 @@ Nexuslink G.hn Powerline Ethernet Kit
     <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/tinymediamanager.jpg?q=49&fit=crop&w=220&h=124&dpr=2"/>
           <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/tinymediamanager.jpg?q=49&fit=crop&w=220&h=124&dpr=2" medium="image"/>
     <pubDate>Wed, 27 May 2026 19:30:21 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[DuckDuckGo wins over a surge of users as Google pushes further into AI Search]]></title>
-    <link>https://www.xda-developers.com/duckduckgo-wins-over-surge-of-users-google-pushes-further-into-ai-search/</link>
-    <itunes:title><![CDATA[DuckDuckGo wins over a surge of users as Google pushes further into AI Search]]></itunes:title>
-    <itunes:author><![CDATA[XDA[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<section data-nosnippet="">
-<div>
-<h3>Summary</h3>
-<div>    <ul>
-<li>
-DuckDuckGo experienced a US install surge after Google I/O — 18.1% over six days; iPhone installs are up 33% over the average.
-</li>
-<li>
-Usage of the alternative search engine's no-AI search page increased 22.7%.
-</li>
-<li>
-DuckDuckGo includes optional AI but allows users to disable it.
-</li>
-</ul>
-</div>
-</div>
-</section><p>DuckDuckGo, an alternative, small-scale search engine, is reporting "a sustained surge" in US-based installations in the week following Google's very AI-focused I/O developer conference.</p>    <p>Among a flurry of announcements like its plan to take on OpenClaw with <a href="https://www.xda-developers.com/google-reveals-its-big-plan-to-take-on-openclaw-as-the-race-for-agentic-ai-begins/" target="_blank">Google Spark</a>, Gemini <a href="https://www.xda-developers.com/googles-gemini-omni-can-generate-anything-from-any-input-including-video/" target="_blank">Omni</a>, its turn anything into an AI video platform, and more information about its upcoming Android XR platform, the tech giant also revealed new agentic Google Search features and a dynamic search box, effectively killing off traditional Google Search.</p>    <p>As with many recent AI-related announcements, the reaction was mixed, and it seems a <a href="https://www.reddit.com/r/duckduckgo/comments/1tjy3vy/this_is_important_and_hello_to_everyone_switching/" target="_blank">small subset of Google users</a> are tired of the tech giant's focus on AI (via <a href="https://www.engadget.com/2181849/duckduckgo-installs-surge-after-google-ai-search/" target="_blank">Engadget</a>). According to DuckDuckGo, US installs of the search engine's app are up 18.1% over six consecutive days, peaking at 30.5% on May 25th. The majority of new users are on iOS, with iPhone installations showing an average week-over-week growth of 33%, peaking at 69.9% on May 25th.</p>    <h2>
-DuckDuckGo says the growth is in response to Google's I/O AI announcements
-</h2>
-<h3>
-The alternative search engine also offers AI features (but at least they can be turned off)
-</h3>
-<div>
-<div>
-<img alt="DuckDuckGo's privacy features" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/duckduckgo.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-<small>Credit:&nbsp;DuckDuckGo</small>
-</div>
-</div>
-<p> Visits to <a href="http://noai.duckduckgo.com/" target="_blank">http://noai.duckduckgo.com/</a>, DuckDuckGo's AI-free search page, also grew 22.7% week-over-week, peaking at 27.7 percent on May 24th. DuckDuckGo says that the growth it has experienced in the US is several times larger than its international expansion, and that it believes the surge is in "response to Google's US-centric announcement."</p>    <p>"Google is force-feeding AI with no way to opt out," said DuckDuckGo CEO Gabriel Weinberg, in a statement. "As result, their results are getting worse, not better. We want to be the place that puts users in charge and allows them to decide how much or how little AI they want. That's why we're seeing a spike in people coming to DuckDuckGo this week, it's as simple as that."</p>
-<p>Look, DuckDuckGo isn't <em>actually</em> going to take on Google in a meaningful way <span data-subtree="aimfl,mfl">— it</span>'s just not possible. Still, it's nice to see at least some backlash against Google's never-ending quest to add AI to what feels like absolutely everything, including Search. DuckDuckGo also includes AI features in its search engine, including functionality that's strikingly similar to Google's often-incorrect AI Overviews. That said, these features can be turned off entirely using the search engine's settings.</p>
-<div data-include-community-rating="false" data-nosnippet="">
-<a href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/">
-<img alt="Steam Deck OLED header" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/02/steam-deck-oled.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/" title="The Steam Deck's price has increased from $549 to $789 as hardware woes continue" target="_blank">
-The Steam Deck's price has increased from $549 to $789 as hardware woes continue
-</a>
-</h5>
-<p>The shortages have ended, for a high price.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/#threads">
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/simon-batt/" title="Posts by Simon Batt">Simon Batt</a>
-</div>
-</div>
-<div><span data-b64-ts="MTAgaG91cnMgYWdv" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</div>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<section data-nosnippet="">
-<div>
-<h3>Summary</h3>
-<div>    <ul>
-<li>
-DuckDuckGo experienced a US install surge after Google I/O — 18.1% over six days; iPhone installs are up 33% over the average.
-</li>
-<li>
-Usage of the alternative search engine's no-AI search page increased 22.7%.
-</li>
-<li>
-DuckDuckGo includes optional AI but allows users to disable it.
-</li>
-</ul>
-</div>
-</div>
-</section><p>DuckDuckGo, an alternative, small-scale search engine, is reporting "a sustained surge" in US-based installations in the week following Google's very AI-focused I/O developer conference.</p>    <p>Among a flurry of announcements like its plan to take on OpenClaw with <a href="https://www.xda-developers.com/google-reveals-its-big-plan-to-take-on-openclaw-as-the-race-for-agentic-ai-begins/" target="_blank">Google Spark</a>, Gemini <a href="https://www.xda-developers.com/googles-gemini-omni-can-generate-anything-from-any-input-including-video/" target="_blank">Omni</a>, its turn anything into an AI video platform, and more information about its upcoming Android XR platform, the tech giant also revealed new agentic Google Search features and a dynamic search box, effectively killing off traditional Google Search.</p>    <p>As with many recent AI-related announcements, the reaction was mixed, and it seems a <a href="https://www.reddit.com/r/duckduckgo/comments/1tjy3vy/this_is_important_and_hello_to_everyone_switching/" target="_blank">small subset of Google users</a> are tired of the tech giant's focus on AI (via <a href="https://www.engadget.com/2181849/duckduckgo-installs-surge-after-google-ai-search/" target="_blank">Engadget</a>). According to DuckDuckGo, US installs of the search engine's app are up 18.1% over six consecutive days, peaking at 30.5% on May 25th. The majority of new users are on iOS, with iPhone installations showing an average week-over-week growth of 33%, peaking at 69.9% on May 25th.</p>    <h2>
-DuckDuckGo says the growth is in response to Google's I/O AI announcements
-</h2>
-<h3>
-The alternative search engine also offers AI features (but at least they can be turned off)
-</h3>
-<div>
-<div>
-<img alt="DuckDuckGo's privacy features" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/duckduckgo.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-<small>Credit:&nbsp;DuckDuckGo</small>
-</div>
-</div>
-<p> Visits to <a href="http://noai.duckduckgo.com/" target="_blank">http://noai.duckduckgo.com/</a>, DuckDuckGo's AI-free search page, also grew 22.7% week-over-week, peaking at 27.7 percent on May 24th. DuckDuckGo says that the growth it has experienced in the US is several times larger than its international expansion, and that it believes the surge is in "response to Google's US-centric announcement."</p>    <p>"Google is force-feeding AI with no way to opt out," said DuckDuckGo CEO Gabriel Weinberg, in a statement. "As result, their results are getting worse, not better. We want to be the place that puts users in charge and allows them to decide how much or how little AI they want. That's why we're seeing a spike in people coming to DuckDuckGo this week, it's as simple as that."</p>
-<p>Look, DuckDuckGo isn't <em>actually</em> going to take on Google in a meaningful way <span data-subtree="aimfl,mfl">— it</span>'s just not possible. Still, it's nice to see at least some backlash against Google's never-ending quest to add AI to what feels like absolutely everything, including Search. DuckDuckGo also includes AI features in its search engine, including functionality that's strikingly similar to Google's often-incorrect AI Overviews. That said, these features can be turned off entirely using the search engine's settings.</p>
-<div data-include-community-rating="false" data-nosnippet="">
-<a href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/">
-<img alt="Steam Deck OLED header" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/02/steam-deck-oled.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/" title="The Steam Deck's price has increased from $549 to $789 as hardware woes continue" target="_blank">
-The Steam Deck's price has increased from $549 to $789 as hardware woes continue
-</a>
-</h5>
-<p>The shortages have ended, for a high price.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/#threads">
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/simon-batt/" title="Posts by Simon Batt">Simon Batt</a>
-</div>
-</div>
-<div><span data-b64-ts="MTAgaG91cnMgYWdv" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</div>]]>
-    </description>
-    <content:encoded><![CDATA[<section data-nosnippet="">
-<div>
-<h3>Summary</h3>
-<div>    <ul>
-<li>
-DuckDuckGo experienced a US install surge after Google I/O — 18.1% over six days; iPhone installs are up 33% over the average.
-</li>
-<li>
-Usage of the alternative search engine's no-AI search page increased 22.7%.
-</li>
-<li>
-DuckDuckGo includes optional AI but allows users to disable it.
-</li>
-</ul>
-</div>
-</div>
-</section><p>DuckDuckGo, an alternative, small-scale search engine, is reporting "a sustained surge" in US-based installations in the week following Google's very AI-focused I/O developer conference.</p>    <p>Among a flurry of announcements like its plan to take on OpenClaw with <a href="https://www.xda-developers.com/google-reveals-its-big-plan-to-take-on-openclaw-as-the-race-for-agentic-ai-begins/" target="_blank">Google Spark</a>, Gemini <a href="https://www.xda-developers.com/googles-gemini-omni-can-generate-anything-from-any-input-including-video/" target="_blank">Omni</a>, its turn anything into an AI video platform, and more information about its upcoming Android XR platform, the tech giant also revealed new agentic Google Search features and a dynamic search box, effectively killing off traditional Google Search.</p>    <p>As with many recent AI-related announcements, the reaction was mixed, and it seems a <a href="https://www.reddit.com/r/duckduckgo/comments/1tjy3vy/this_is_important_and_hello_to_everyone_switching/" target="_blank">small subset of Google users</a> are tired of the tech giant's focus on AI (via <a href="https://www.engadget.com/2181849/duckduckgo-installs-surge-after-google-ai-search/" target="_blank">Engadget</a>). According to DuckDuckGo, US installs of the search engine's app are up 18.1% over six consecutive days, peaking at 30.5% on May 25th. The majority of new users are on iOS, with iPhone installations showing an average week-over-week growth of 33%, peaking at 69.9% on May 25th.</p>    <h2>
-DuckDuckGo says the growth is in response to Google's I/O AI announcements
-</h2>
-<h3>
-The alternative search engine also offers AI features (but at least they can be turned off)
-</h3>
-<div>
-<div>
-<img alt="DuckDuckGo's privacy features" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/duckduckgo.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-<small>Credit:&nbsp;DuckDuckGo</small>
-</div>
-</div>
-<p> Visits to <a href="http://noai.duckduckgo.com/" target="_blank">http://noai.duckduckgo.com/</a>, DuckDuckGo's AI-free search page, also grew 22.7% week-over-week, peaking at 27.7 percent on May 24th. DuckDuckGo says that the growth it has experienced in the US is several times larger than its international expansion, and that it believes the surge is in "response to Google's US-centric announcement."</p>    <p>"Google is force-feeding AI with no way to opt out," said DuckDuckGo CEO Gabriel Weinberg, in a statement. "As result, their results are getting worse, not better. We want to be the place that puts users in charge and allows them to decide how much or how little AI they want. That's why we're seeing a spike in people coming to DuckDuckGo this week, it's as simple as that."</p>
-<p>Look, DuckDuckGo isn't <em>actually</em> going to take on Google in a meaningful way <span data-subtree="aimfl,mfl">— it</span>'s just not possible. Still, it's nice to see at least some backlash against Google's never-ending quest to add AI to what feels like absolutely everything, including Search. DuckDuckGo also includes AI features in its search engine, including functionality that's strikingly similar to Google's often-incorrect AI Overviews. That said, these features can be turned off entirely using the search engine's settings.</p>
-<div data-include-community-rating="false" data-nosnippet="">
-<a href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/">
-<img alt="Steam Deck OLED header" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/02/steam-deck-oled.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/" title="The Steam Deck's price has increased from $549 to $789 as hardware woes continue" target="_blank">
-The Steam Deck's price has increased from $549 to $789 as hardware woes continue
-</a>
-</h5>
-<p>The shortages have ended, for a high price.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/the-steam-decks-price-has-increased-from-549-to-789-as-hardware-woes-continue/#threads">
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/simon-batt/" title="Posts by Simon Batt">Simon Batt</a>
-</div>
-</div>
-<div><span data-b64-ts="MTAgaG91cnMgYWdv" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</div>]]></content:encoded>
-    <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/duckduckgo.jpg?q=49&fit=crop&w=825&dpr=2"/>
-          <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/duckduckgo.jpg?q=49&fit=crop&w=825&dpr=2" medium="image"/>
-    <pubDate>Wed, 27 May 2026 19:13:58 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Claude Pro is great, but here are 3 reasons why it'll never be the only subscription you'll need]]></title>
-    <link>https://www.xda-developers.com/claude-pro-is-great-but-here-are-x-reasons-why-itll-never-be-the-only-subscription-youll-need/</link>
-    <itunes:title><![CDATA[Claude Pro is great, but here are 3 reasons why it'll never be the only subscription you'll need]]></itunes:title>
-    <itunes:author><![CDATA[XDA[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>Anthropic has, beyond doubt, pushed the frontier of what is possible with generative AI through its <a href="https://www.xda-developers.com/claude-opus-4-7-overkill-for-non-coders-until-this-setup/" target="_blank">flagship Opus 4.7</a> and the lighter Sonnet 4.6 models, which are now being heavily relied on for creativity, programming, research, and study alike. The models themselves have earned their reputation, and the <a href="https://www.xda-developers.com/i-asked-gemini-claude-and-chatgpt-to-create-a-website-and-there-was-one-obvious-winner/" target="_blank">various benchmarks I've run</a> over the course of the last few months confirm as much.</p>    <p>It really is no surprise that multidisciplinary individuals have, for a variety of reasons, come to trust the capabilities of Anthropic's LLM. But there is something else that my extensive testing has established, and it's the fact that it would be a mistake to rely on Claude alone, even if you're a paid subscriber. Here are some reasons why a subscription to Claude, as capable as it is, will not be the only one you need. At least in its current state.</p>    <h2>
-Opus 4.7 is Anthropic's most expensive model to run
-</h2>
-<h3>
-The same task can cost up to 35% more on 4.7 than the pricing suggests
-</h3>
-<div>
-<div>
-<img alt="Anthropic documentation on Claude Opus 4.7 token consumption." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/anthropic-documentation.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-<small>Credit:&nbsp;Anthropic PBC.</small>
-</div>
-</div>
-<p> When you opt for a subscription on the premium tier of an LLM service, it's worth understanding what you will be paying for. At the time of writing, Opus 4.7 costs $5 per million input tokens and $25 per million output tokens, placing it very well above Sonnet 4.6 at $3 and $15 and Haiku 4.5 at $1 and $5. While that premium is mostly justifiable for the reasoning capabilities you get with Opus, <a href="https://platform.claude.com/docs/en/about-claude/models/migration-guide#migrating-to-claude-opus-4-7" target="_blank">Anthropic's own migration guide</a> reveals some hidden costs that the rate card doesn't immediately make evident.</p>    <p>In April 2026, Anthropic revealed that Opus 4.7 shipped with a new tokenizer that, "improves how the model processes text", which, according to the same documentation, can generate up to 35% more tokens for the exact same input text compared to its predecessor. This means that the same prompt <a href="https://www.anthropic.com/news/claude-opus-4-7" target="_blank">can cost up to a third more to run</a>. The workflows that rely on visuals are the worst impacted by the new tokenizer, as high-resolution image support on Opus 4.7 consumes up to approximately three times more image tokens per image than prior models. Now, if you're on a $20 a month plan like myself, none of this will show up as a larger bill, of course. It will instead show up as your usage allowance draining <em>much faster </em>than it used to, for a workflow that hasn't changed <em>at all</em>. That certainly isn't a happy sight for someone without a plan B.</p>    <h2>
-Anthropic's usage limits <em>will </em>get in the way of your work
-</h2>
-<h3>
-Even the revised limits are punitive enough to paralyze your workflow
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-1-660295397" data-gallery-id="main-carousel-1-660295397" data-article-gallery="article-gallery-modal-1-660295397" data-gallery-lightbox="gallery-modal-1-660295397" data-gallery-thumbnail-img-class="gallery-thumbnails-1-660295397-img" data-gallery-type="">
-</div>
-</div>
-<p>If you're investing in either a Claude Pro or Max plan, you're likely expecting long, uninterrupted hours of work and long hours of value to match. That very expectation can potentially catch you off-guard if you don't look into the various usage limits that Anthropic has put in place.</p>    <p>Claude Pro currently operates on a 5-hour rolling window, and Anthropic's official guidance estimates "at least 45 messages every five hours", further qualifying that figure against message length, conversational history, attached files, the model that's in use, and server capacity. What this means is that, two identical days with identical levels of work can yield vastly different amounts of usability on the platform. Furthermore, your own usage is only a <em>part </em>of the equation. How quickly you reach that ceiling also depends on when you're using Claude, and how many other subscribers are using it at the same time.</p>    <p>When you're knee-deep within your workflow, there is a real cost of hitting that ceiling, especially if Claude is the only model that's a part of it. All the context that you've built across a session, including the conversational history, the prompt directives, and the iterative refinements need to either be migrated to another model or left suspended until the window resets. Either option introduces friction that a continuous workflow cannot afford, and the impact almost feels like a breach of the psychological contract a premium subscriber has with the service.</p>    <p>In my experience, pairing Claude with a locally hosted model like <a href="https://www.xda-developers.com/gemma-4-not-smartest-local-llm-but-reach-for/" target="_blank">Gemma 4</a> for generative purposes has proven to be an effective hedge against exactly this scenario, and I've found it to be quite effective in offsetting costs and saving time on resource-intensive tasks.</p>
-<div data-include-community-rating="false" data-nosnippet="">
-<a href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/">
-<img alt="terminal window showing claude code editor with syntax highlighting on a tablet device" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/terminal-window-showing-claude-code-editor-with-syntax-highlighting-on-a-tablet-device.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/" title="I use Claude and local LLMs together now, and it costs half as much while being twice as fast" target="_blank">
-I use Claude and local LLMs together now, and it costs half as much while being twice as fast
-</a>
-</h5>
-<p>What's the average cost between $20 and $0?</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/#threads">
-<span>5</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/abhinav-raj/" title="Posts by Abhinav Raj">Abhinav Raj</a>
-</div>
-</div>
-<div><span data-b64-ts="NSBkYXlzIGFnbw==" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</div>
-<h2>
-Your messages are better reserved for more specialized tasks
-</h2>
-<h3>
-And the only way to save your tokens is by using another LLM
-</h3>
-<div>
-<div>
-<img alt="Gear ratio and drivetrain of a car explained by Claude's interactive visuals." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/03/claude-gear-ratio-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> Over the past few months, Anthropic has built a <a href="https://www.howtogeek.com/claude-works-better-when-you-stop-treating-it-like-a-chatbot/" target="_blank">suite of features around Claude</a> that are particularly useful for many workflows that involve research, study, and creativity. <a href="https://www.xda-developers.com/i-tested-claudes-new-interactive-visuals-and-theyre-seriously-impressive/" target="_blank">Interactive visuals</a>, Claude Design, and deep research all integrate seamlessly into the kind of work subscribers want to pay a premium for, but on the downside, they're just as exhaustive on your usage as they are useful. Since each feature draws from the same token pool as your regular conversations, a single interactive visual or research query will consume considerably more from your allowance than a standard prompt would. The features that justify the subscription are paradoxically the ones most likely to cut your session short.</p>
-<p>This is where I advocate for a complementary model. In my own workflow, I run a locally hosted 24B variant of Gemma 4 for routine generative tasks, such as first drafts and boilerplate, and reserve Claude strictly for the features that warrant its subscription. This inevitably provides more room for me to run multiple iterations of interactive visuals and <a href="https://www.xda-developers.com/i-built-these-x-claude-artifacts-and-now-i-use-them-every-single-day/" target="_blank">generated artifacts in creative work</a>, and dedicate more of my allowance to the debugging cycles that coding projects demand.</p>    <h3>
-Claude is exceptional, but not very efficient
-</h3>
-<div>
-<div>
-<img alt="claude  and calendar ande email" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/claude-and-calendar-ande-email.jpeg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> Claude is miles ahead of other LLMs available to consumers today, but while it decisively pulls ahead in expertise, it falls back in endurance. This is especially true if you're a paid user who expects the subscription to carry your entire workflow on its own. Until Anthropic closes the gap between what the platform <em>offers </em>and how much of it is realistically <em>usable, </em>the smartest way to get the most out of the platform is to simply not use it for everything at once.</p>
-<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
-<div>
-<div>
-<div>
-<div data-stnl-group-once="DMhblxzk9y">
-<div>
-<div>
-<img alt="claude" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/sharedimages/2026/02/claude.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
-</div>
-</div>
-</div>
-</div>
-<div>
-<div>
-<div>
-<h5>
-<a href="/claude/" title="Claude" target="_blank">
-Claude
-</a>
-</h5>
-</div>
-</div>
-<div>
-<div>
-<dl>
-<div>
-<dt>
-<strong>OS</strong> 					</dt>
-<dd>
-<span>
-Windows, macOS
-</span>
-</dd>
-</div>
-<div>
-<dt>
-<strong>Individual pricing</strong> 					</dt>
-<dd>
-<span>
-Free plan available; $17/month Pro plan
-</span>
-</dd>
-</div>
-</dl>
-</div>
-</div>
-</div>
-</div>
-<p>Claude is an AI assistant and LLM developed by Anthropic.</p>
-<input type="checkbox" name="extra-content-0d2e-40f3-9f0336a70c4f">
-<div>
-<div>
-<a href="https://claude.ai/login" target="_blank">See at Claude</a>
-</div>
-</div>
-<div>
-<label for="extra-content-0d2e-40f3-9f0336a70c4f" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
-<span>Expand</span>
-<span>Collapse</span>
-</label>
-</div>
-</div>
-</div>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>Anthropic has, beyond doubt, pushed the frontier of what is possible with generative AI through its <a href="https://www.xda-developers.com/claude-opus-4-7-overkill-for-non-coders-until-this-setup/" target="_blank">flagship Opus 4.7</a> and the lighter Sonnet 4.6 models, which are now being heavily relied on for creativity, programming, research, and study alike. The models themselves have earned their reputation, and the <a href="https://www.xda-developers.com/i-asked-gemini-claude-and-chatgpt-to-create-a-website-and-there-was-one-obvious-winner/" target="_blank">various benchmarks I've run</a> over the course of the last few months confirm as much.</p>    <p>It really is no surprise that multidisciplinary individuals have, for a variety of reasons, come to trust the capabilities of Anthropic's LLM. But there is something else that my extensive testing has established, and it's the fact that it would be a mistake to rely on Claude alone, even if you're a paid subscriber. Here are some reasons why a subscription to Claude, as capable as it is, will not be the only one you need. At least in its current state.</p>    <h2>
-Opus 4.7 is Anthropic's most expensive model to run
-</h2>
-<h3>
-The same task can cost up to 35% more on 4.7 than the pricing suggests
-</h3>
-<div>
-<div>
-<img alt="Anthropic documentation on Claude Opus 4.7 token consumption." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/anthropic-documentation.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-<small>Credit:&nbsp;Anthropic PBC.</small>
-</div>
-</div>
-<p> When you opt for a subscription on the premium tier of an LLM service, it's worth understanding what you will be paying for. At the time of writing, Opus 4.7 costs $5 per million input tokens and $25 per million output tokens, placing it very well above Sonnet 4.6 at $3 and $15 and Haiku 4.5 at $1 and $5. While that premium is mostly justifiable for the reasoning capabilities you get with Opus, <a href="https://platform.claude.com/docs/en/about-claude/models/migration-guide#migrating-to-claude-opus-4-7" target="_blank">Anthropic's own migration guide</a> reveals some hidden costs that the rate card doesn't immediately make evident.</p>    <p>In April 2026, Anthropic revealed that Opus 4.7 shipped with a new tokenizer that, "improves how the model processes text", which, according to the same documentation, can generate up to 35% more tokens for the exact same input text compared to its predecessor. This means that the same prompt <a href="https://www.anthropic.com/news/claude-opus-4-7" target="_blank">can cost up to a third more to run</a>. The workflows that rely on visuals are the worst impacted by the new tokenizer, as high-resolution image support on Opus 4.7 consumes up to approximately three times more image tokens per image than prior models. Now, if you're on a $20 a month plan like myself, none of this will show up as a larger bill, of course. It will instead show up as your usage allowance draining <em>much faster </em>than it used to, for a workflow that hasn't changed <em>at all</em>. That certainly isn't a happy sight for someone without a plan B.</p>    <h2>
-Anthropic's usage limits <em>will </em>get in the way of your work
-</h2>
-<h3>
-Even the revised limits are punitive enough to paralyze your workflow
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-1-660295397" data-gallery-id="main-carousel-1-660295397" data-article-gallery="article-gallery-modal-1-660295397" data-gallery-lightbox="gallery-modal-1-660295397" data-gallery-thumbnail-img-class="gallery-thumbnails-1-660295397-img" data-gallery-type="">
-</div>
-</div>
-<p>If you're investing in either a Claude Pro or Max plan, you're likely expecting long, uninterrupted hours of work and long hours of value to match. That very expectation can potentially catch you off-guard if you don't look into the various usage limits that Anthropic has put in place.</p>    <p>Claude Pro currently operates on a 5-hour rolling window, and Anthropic's official guidance estimates "at least 45 messages every five hours", further qualifying that figure against message length, conversational history, attached files, the model that's in use, and server capacity. What this means is that, two identical days with identical levels of work can yield vastly different amounts of usability on the platform. Furthermore, your own usage is only a <em>part </em>of the equation. How quickly you reach that ceiling also depends on when you're using Claude, and how many other subscribers are using it at the same time.</p>    <p>When you're knee-deep within your workflow, there is a real cost of hitting that ceiling, especially if Claude is the only model that's a part of it. All the context that you've built across a session, including the conversational history, the prompt directives, and the iterative refinements need to either be migrated to another model or left suspended until the window resets. Either option introduces friction that a continuous workflow cannot afford, and the impact almost feels like a breach of the psychological contract a premium subscriber has with the service.</p>    <p>In my experience, pairing Claude with a locally hosted model like <a href="https://www.xda-developers.com/gemma-4-not-smartest-local-llm-but-reach-for/" target="_blank">Gemma 4</a> for generative purposes has proven to be an effective hedge against exactly this scenario, and I've found it to be quite effective in offsetting costs and saving time on resource-intensive tasks.</p>
-<div data-include-community-rating="false" data-nosnippet="">
-<a href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/">
-<img alt="terminal window showing claude code editor with syntax highlighting on a tablet device" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/terminal-window-showing-claude-code-editor-with-syntax-highlighting-on-a-tablet-device.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/" title="I use Claude and local LLMs together now, and it costs half as much while being twice as fast" target="_blank">
-I use Claude and local LLMs together now, and it costs half as much while being twice as fast
-</a>
-</h5>
-<p>What's the average cost between $20 and $0?</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/#threads">
-<span>5</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/abhinav-raj/" title="Posts by Abhinav Raj">Abhinav Raj</a>
-</div>
-</div>
-<div><span data-b64-ts="NSBkYXlzIGFnbw==" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</div>
-<h2>
-Your messages are better reserved for more specialized tasks
-</h2>
-<h3>
-And the only way to save your tokens is by using another LLM
-</h3>
-<div>
-<div>
-<img alt="Gear ratio and drivetrain of a car explained by Claude's interactive visuals." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/03/claude-gear-ratio-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> Over the past few months, Anthropic has built a <a href="https://www.howtogeek.com/claude-works-better-when-you-stop-treating-it-like-a-chatbot/" target="_blank">suite of features around Claude</a> that are particularly useful for many workflows that involve research, study, and creativity. <a href="https://www.xda-developers.com/i-tested-claudes-new-interactive-visuals-and-theyre-seriously-impressive/" target="_blank">Interactive visuals</a>, Claude Design, and deep research all integrate seamlessly into the kind of work subscribers want to pay a premium for, but on the downside, they're just as exhaustive on your usage as they are useful. Since each feature draws from the same token pool as your regular conversations, a single interactive visual or research query will consume considerably more from your allowance than a standard prompt would. The features that justify the subscription are paradoxically the ones most likely to cut your session short.</p>
-<p>This is where I advocate for a complementary model. In my own workflow, I run a locally hosted 24B variant of Gemma 4 for routine generative tasks, such as first drafts and boilerplate, and reserve Claude strictly for the features that warrant its subscription. This inevitably provides more room for me to run multiple iterations of interactive visuals and <a href="https://www.xda-developers.com/i-built-these-x-claude-artifacts-and-now-i-use-them-every-single-day/" target="_blank">generated artifacts in creative work</a>, and dedicate more of my allowance to the debugging cycles that coding projects demand.</p>    <h3>
-Claude is exceptional, but not very efficient
-</h3>
-<div>
-<div>
-<img alt="claude  and calendar ande email" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/claude-and-calendar-ande-email.jpeg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> Claude is miles ahead of other LLMs available to consumers today, but while it decisively pulls ahead in expertise, it falls back in endurance. This is especially true if you're a paid user who expects the subscription to carry your entire workflow on its own. Until Anthropic closes the gap between what the platform <em>offers </em>and how much of it is realistically <em>usable, </em>the smartest way to get the most out of the platform is to simply not use it for everything at once.</p>
-<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
-<div>
-<div>
-<div>
-<div data-stnl-group-once="DMhblxzk9y">
-<div>
-<div>
-<img alt="claude" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/sharedimages/2026/02/claude.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
-</div>
-</div>
-</div>
-</div>
-<div>
-<div>
-<div>
-<h5>
-<a href="/claude/" title="Claude" target="_blank">
-Claude
-</a>
-</h5>
-</div>
-</div>
-<div>
-<div>
-<dl>
-<div>
-<dt>
-<strong>OS</strong> 					</dt>
-<dd>
-<span>
-Windows, macOS
-</span>
-</dd>
-</div>
-<div>
-<dt>
-<strong>Individual pricing</strong> 					</dt>
-<dd>
-<span>
-Free plan available; $17/month Pro plan
-</span>
-</dd>
-</div>
-</dl>
-</div>
-</div>
-</div>
-</div>
-<p>Claude is an AI assistant and LLM developed by Anthropic.</p>
-<input type="checkbox" name="extra-content-0d2e-40f3-9f0336a70c4f">
-<div>
-<div>
-<a href="https://claude.ai/login" target="_blank">See at Claude</a>
-</div>
-</div>
-<div>
-<label for="extra-content-0d2e-40f3-9f0336a70c4f" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
-<span>Expand</span>
-<span>Collapse</span>
-</label>
-</div>
-</div>
-</div>]]>
-    </description>
-    <content:encoded><![CDATA[<p>Anthropic has, beyond doubt, pushed the frontier of what is possible with generative AI through its <a href="https://www.xda-developers.com/claude-opus-4-7-overkill-for-non-coders-until-this-setup/" target="_blank">flagship Opus 4.7</a> and the lighter Sonnet 4.6 models, which are now being heavily relied on for creativity, programming, research, and study alike. The models themselves have earned their reputation, and the <a href="https://www.xda-developers.com/i-asked-gemini-claude-and-chatgpt-to-create-a-website-and-there-was-one-obvious-winner/" target="_blank">various benchmarks I've run</a> over the course of the last few months confirm as much.</p>    <p>It really is no surprise that multidisciplinary individuals have, for a variety of reasons, come to trust the capabilities of Anthropic's LLM. But there is something else that my extensive testing has established, and it's the fact that it would be a mistake to rely on Claude alone, even if you're a paid subscriber. Here are some reasons why a subscription to Claude, as capable as it is, will not be the only one you need. At least in its current state.</p>    <h2>
-Opus 4.7 is Anthropic's most expensive model to run
-</h2>
-<h3>
-The same task can cost up to 35% more on 4.7 than the pricing suggests
-</h3>
-<div>
-<div>
-<img alt="Anthropic documentation on Claude Opus 4.7 token consumption." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/anthropic-documentation.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-<small>Credit:&nbsp;Anthropic PBC.</small>
-</div>
-</div>
-<p> When you opt for a subscription on the premium tier of an LLM service, it's worth understanding what you will be paying for. At the time of writing, Opus 4.7 costs $5 per million input tokens and $25 per million output tokens, placing it very well above Sonnet 4.6 at $3 and $15 and Haiku 4.5 at $1 and $5. While that premium is mostly justifiable for the reasoning capabilities you get with Opus, <a href="https://platform.claude.com/docs/en/about-claude/models/migration-guide#migrating-to-claude-opus-4-7" target="_blank">Anthropic's own migration guide</a> reveals some hidden costs that the rate card doesn't immediately make evident.</p>    <p>In April 2026, Anthropic revealed that Opus 4.7 shipped with a new tokenizer that, "improves how the model processes text", which, according to the same documentation, can generate up to 35% more tokens for the exact same input text compared to its predecessor. This means that the same prompt <a href="https://www.anthropic.com/news/claude-opus-4-7" target="_blank">can cost up to a third more to run</a>. The workflows that rely on visuals are the worst impacted by the new tokenizer, as high-resolution image support on Opus 4.7 consumes up to approximately three times more image tokens per image than prior models. Now, if you're on a $20 a month plan like myself, none of this will show up as a larger bill, of course. It will instead show up as your usage allowance draining <em>much faster </em>than it used to, for a workflow that hasn't changed <em>at all</em>. That certainly isn't a happy sight for someone without a plan B.</p>    <h2>
-Anthropic's usage limits <em>will </em>get in the way of your work
-</h2>
-<h3>
-Even the revised limits are punitive enough to paralyze your workflow
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-1-660295397" data-gallery-id="main-carousel-1-660295397" data-article-gallery="article-gallery-modal-1-660295397" data-gallery-lightbox="gallery-modal-1-660295397" data-gallery-thumbnail-img-class="gallery-thumbnails-1-660295397-img" data-gallery-type="">
-</div>
-</div>
-<p>If you're investing in either a Claude Pro or Max plan, you're likely expecting long, uninterrupted hours of work and long hours of value to match. That very expectation can potentially catch you off-guard if you don't look into the various usage limits that Anthropic has put in place.</p>    <p>Claude Pro currently operates on a 5-hour rolling window, and Anthropic's official guidance estimates "at least 45 messages every five hours", further qualifying that figure against message length, conversational history, attached files, the model that's in use, and server capacity. What this means is that, two identical days with identical levels of work can yield vastly different amounts of usability on the platform. Furthermore, your own usage is only a <em>part </em>of the equation. How quickly you reach that ceiling also depends on when you're using Claude, and how many other subscribers are using it at the same time.</p>    <p>When you're knee-deep within your workflow, there is a real cost of hitting that ceiling, especially if Claude is the only model that's a part of it. All the context that you've built across a session, including the conversational history, the prompt directives, and the iterative refinements need to either be migrated to another model or left suspended until the window resets. Either option introduces friction that a continuous workflow cannot afford, and the impact almost feels like a breach of the psychological contract a premium subscriber has with the service.</p>    <p>In my experience, pairing Claude with a locally hosted model like <a href="https://www.xda-developers.com/gemma-4-not-smartest-local-llm-but-reach-for/" target="_blank">Gemma 4</a> for generative purposes has proven to be an effective hedge against exactly this scenario, and I've found it to be quite effective in offsetting costs and saving time on resource-intensive tasks.</p>
-<div data-include-community-rating="false" data-nosnippet="">
-<a href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/">
-<img alt="terminal window showing claude code editor with syntax highlighting on a tablet device" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/terminal-window-showing-claude-code-editor-with-syntax-highlighting-on-a-tablet-device.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/" title="I use Claude and local LLMs together now, and it costs half as much while being twice as fast" target="_blank">
-I use Claude and local LLMs together now, and it costs half as much while being twice as fast
-</a>
-</h5>
-<p>What's the average cost between $20 and $0?</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/i-use-claude-and-local-llms-together-now-and-it-costs-half-as-much-while-being-twice-as-fast/#threads">
-<span>5</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/abhinav-raj/" title="Posts by Abhinav Raj">Abhinav Raj</a>
-</div>
-</div>
-<div><span data-b64-ts="NSBkYXlzIGFnbw==" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</div>
-<h2>
-Your messages are better reserved for more specialized tasks
-</h2>
-<h3>
-And the only way to save your tokens is by using another LLM
-</h3>
-<div>
-<div>
-<img alt="Gear ratio and drivetrain of a car explained by Claude's interactive visuals." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/03/claude-gear-ratio-1.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> Over the past few months, Anthropic has built a <a href="https://www.howtogeek.com/claude-works-better-when-you-stop-treating-it-like-a-chatbot/" target="_blank">suite of features around Claude</a> that are particularly useful for many workflows that involve research, study, and creativity. <a href="https://www.xda-developers.com/i-tested-claudes-new-interactive-visuals-and-theyre-seriously-impressive/" target="_blank">Interactive visuals</a>, Claude Design, and deep research all integrate seamlessly into the kind of work subscribers want to pay a premium for, but on the downside, they're just as exhaustive on your usage as they are useful. Since each feature draws from the same token pool as your regular conversations, a single interactive visual or research query will consume considerably more from your allowance than a standard prompt would. The features that justify the subscription are paradoxically the ones most likely to cut your session short.</p>
-<p>This is where I advocate for a complementary model. In my own workflow, I run a locally hosted 24B variant of Gemma 4 for routine generative tasks, such as first drafts and boilerplate, and reserve Claude strictly for the features that warrant its subscription. This inevitably provides more room for me to run multiple iterations of interactive visuals and <a href="https://www.xda-developers.com/i-built-these-x-claude-artifacts-and-now-i-use-them-every-single-day/" target="_blank">generated artifacts in creative work</a>, and dedicate more of my allowance to the debugging cycles that coding projects demand.</p>    <h3>
-Claude is exceptional, but not very efficient
-</h3>
-<div>
-<div>
-<img alt="claude  and calendar ande email" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/claude-and-calendar-ande-email.jpeg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> Claude is miles ahead of other LLMs available to consumers today, but while it decisively pulls ahead in expertise, it falls back in endurance. This is especially true if you're a paid user who expects the subscription to carry your entire workflow on its own. Until Anthropic closes the gap between what the platform <em>offers </em>and how much of it is realistically <em>usable, </em>the smartest way to get the most out of the platform is to simply not use it for everything at once.</p>
-<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
-<div>
-<div>
-<div>
-<div data-stnl-group-once="DMhblxzk9y">
-<div>
-<div>
-<img alt="claude" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/sharedimages/2026/02/claude.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
-</div>
-</div>
-</div>
-</div>
-<div>
-<div>
-<div>
-<h5>
-<a href="/claude/" title="Claude" target="_blank">
-Claude
-</a>
-</h5>
-</div>
-</div>
-<div>
-<div>
-<dl>
-<div>
-<dt>
-<strong>OS</strong> 					</dt>
-<dd>
-<span>
-Windows, macOS
-</span>
-</dd>
-</div>
-<div>
-<dt>
-<strong>Individual pricing</strong> 					</dt>
-<dd>
-<span>
-Free plan available; $17/month Pro plan
-</span>
-</dd>
-</div>
-</dl>
-</div>
-</div>
-</div>
-</div>
-<p>Claude is an AI assistant and LLM developed by Anthropic.</p>
-<input type="checkbox" name="extra-content-0d2e-40f3-9f0336a70c4f">
-<div>
-<div>
-<a href="https://claude.ai/login" target="_blank">See at Claude</a>
-</div>
-</div>
-<div>
-<label for="extra-content-0d2e-40f3-9f0336a70c4f" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
-<span>Expand</span>
-<span>Collapse</span>
-</label>
-</div>
-</div>
-</div>]]></content:encoded>
-    <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/anthropic-documentation.jpg?q=49&fit=crop&w=825&dpr=2"/>
-          <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/05/anthropic-documentation.jpg?q=49&fit=crop&w=825&dpr=2" medium="image"/>
-    <pubDate>Wed, 27 May 2026 19:01:22 GMT</pubDate>
   </item></channel>
 </rss>
