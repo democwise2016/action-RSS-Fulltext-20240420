@@ -30,6 +30,135 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[PowerShell 系統管理安全之道 - JEA]]></title>
+    <link>https://blog.darkthread.net/blog/ps-jea-lab/</link>
+    <itunes:title><![CDATA[PowerShell 系統管理安全之道 - JEA]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>使用 PowerShell 管理 Windows 是當今的主流做法，這篇來分享我最近學到的 PowerShell 安全機制 - JEA，<a href="https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/jea/overview?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">Just Enough Administration</a>，恰到好處的系統管理。</p> <p>傳統伺服器管理常用的授權高度特權帳號(高權帳號)做法有個隱憂，一旦駭客掌握了某個高權帳號，便有可能用它在組織內部四處橫行(資安術語叫「橫向移動」)為非作歹，高權帳號的權限愈大，產生的風險愈高。</p> <p>資安哲學中有所謂「<a href="https://zh.wikipedia.org/wiki/%E6%9C%80%E5%B0%8F%E6%9D%83%E9%99%90%E5%8E%9F%E5%88%99">最小權限原則</a>」(PoLP，Principle of Least Privilege)，例如：若只給特定資料夾讀取權限就能做事，不要多給整個磁碟的寫入權限，如此即使帳號被駭客掌握，也無法會被用來讀取系統檔案或寫入惡意內容。</p> <p>PowerShell 的 JEA 就是本著此最小權限原則概念所發展的技術，結合了 gMSA (延伸閱讀：<a href="/blog/gmsa/">使用 gMSA 讓 Windows 排程與服務帳號更安全</a>)、WinRM、角色功能定義，實現一個「允許特定帳號開啟 PowerShell 遠端連線執行預先定義指令」的安全環境。</p> <p>關於 JEA 的種種，<a href="https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/jea/overview?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">MS Learn </a> 是最權威最完整的參考來源，這篇文章則會用一個簡單實作 Lab 帶大家體驗 JEA 的設定與運作。</p> <h3>啟用 PowerShell 遠端管理</h3> <p>以管理者權限執行 <code>Enable-PSRemoting</code> 系統會自動設定 WinRM 並啟用對應的 Windows 防火牆例外規則 (預設啟用 HTTP 5985 Port，若要使用加密傳輸 HTTPS 5986 需另外<a href="https://learn.microsoft.com/zh-tw/troubleshoot/windows-client/system-management-components/configure-winrm-for-https?WT.mc_id=DOP-MVP-37580">手動設定</a>)。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639155712089222440.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639155712094619486.png"></p> <p>註：JEA 本質是一個受限制的 PowerShell 遠端端點(SessionType 為 RestrictedRemoteServer)，使用者必須透過 Enter-PSSession 或 New-PSSession 等遠端命令連接，故依賴 WinRM 通訊協定、加密傳輸及其 ACL 權限管控。</p> <h3>建立角色功能檔 (Role Capability File)</h3> <p>下一步是建立角色功能檔 .psrc，定義角色及其可執行動作：</p> <ol><li><p>在 Program Files 建立一個新的 PowerShell 模組資料夾與 RoleCapabilities 子資料夾</p> <pre><code>$modulePath = Join-Path $Env:ProgramFiles "WindowsPowerShell\Modules\JEALab"
+$rcFolder = Join-Path $modulePath "RoleCapabilities"
+New-Item -ItemType Directory -Path $rcFolder -Force
+</code></pre> </li> <li><p>建立空的模組資訊清單 (至少需要一個與資料夾同名的檔案以識別為模組)</p> <pre><code>$moduleManifestPath = Join-Path $modulePath "JEALab.psd1"
+New-ModuleManifest -Path $moduleManifestPath -RootModule "JEALab.psm1"
+</code></pre> </li> <li><p>建立角色功能檔案</p> <pre><code>$psrcPath = Join-Path $rcFolder "Maintenance.psrc"
+New-PSRoleCapabilityFile -Path $psrcPath
+</code></pre> </li> <li><p>開啟 Maintenance.psrc 檔案列舉可執行的 Cmdlet<br> 尋找 VisibleCmdlets 範例位置，修改加入兩個指令 <code>VisibleCmdlets = @('Get-Service', 'Restart-Service')</code><br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639155712099841518.png"></p> </li></ol> <h3>建立工作階段組態檔 (Session Configuration File)</h3> <p>工作階段組態檔(.pssc)定義誰可以存取 JEA 端點、他們被指派的角色，以及 JEA 在幕後用來執行命令的身分識別。</p> <pre><code># 1. 定義角色對應 (將目前登入帳號對應到上面建立的 Maintenance 角色)
+$roles = @{
+"$env:COMPUTERNAME\$env:USERNAME" = @{ RoleCapabilities = 'Maintenance' }
+}
+# 2. 定義組態檔參數
+$parameters = @{
+# 設定使用 RestrictedRemoteServer 類型
+SessionType = 'RestrictedRemoteServer'
+# 指定路徑
+Path = '.\JEALabEndpoint.pssc'
+# 以本機虛擬帳號執行(具 Administrators 群組權限)
+RunAsVirtualAccount = $true
+RoleDefinitions = $roles
+}
+# 3. 產生組態檔
+New-PSSessionConfigurationFile @parameters
+# 4. 測試設定檔語法是否正確
+Test-PSSessionConfigurationFile -Path .\JEALabEndpoint.pssc
+</code></pre> <p>註：RunAsVirtualAccount 指定虛擬帳號執行，預設會具有 Administrators 群組權限，但可另外指定 RunAsVirtualAccountGroups 指定權限較小的群組。<a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/new-pssessionconfigurationfile?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#5">參考</a></p> <h3>註冊 JEA 端點與連線測試</h3> <p>做好 .psrc 與 .pssc，最後一步是向系統註冊此 JEA 端點，以下指令可完成註冊並重新啟動 WinRM 服務，讓 JEA 端點正式啟用。</p> <pre><code>Register-PSSessionConfiguration -Path .\JEALabEndpoint.pssc -Name 'JEALabEndpoint' -Force
+</code></pre> <p>接著做幾個簡單測試：</p> <pre><code># 連線到剛才建立的 JEA 端點
+Enter-PSSession -ComputerName 'localhost' -ConfigurationName 'JEALabEndpoint'
+# 只會看到 Get-Service 與 Restart-Service
+Get-Command
+# Get-Service 可正常執行
+Get-Service
+# 不在白名單的 Get-Process 會出現錯誤
+Get-Process
+# 不允許使用變數及程式語言指令 (RestrictedRemoteServer 為 NoLanguage 模式)
+$test = 1
+# 結束連線
+Eixt-PSSession
+</code></pre> <p>測試成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639155712105411396.png"></p> <h3>解除註冊 JEA 端點</h3> <p>要移除以上建立的實驗環境，可以執行 <code>Unregister-PSSessionConfiguration -Name 'JEALabEndpoint' -Force</code> 取消註冊。</p> <h3>遠端連線</h3> <p>要從另一台電腦（用戶端/遠端主機）連線到 JEALabEndpoint 所在伺服器，若雙方隸屬相同網域，且登入身分為角色對應指定的網域帳號，則用 <code>Enter-PSSession -ComputerName 'JEA伺服器名稱' -ConfigurationName 'JEALabEndpoint'</code> 即可連線，Windows 會自動處理使用者及伺服器的 Kerberos 身分驗證；若為工作群組或不同網域，則需要額外步驟：</p> <ol><li>將 JEA 伺服器加入 WinRM 的「信任的主機 (TrustedHosts)」清單：<code>Set-Item WSMan:\localhost\Client\TrustedHosts -Value &lt;JEA伺服器IP或電腦名稱&gt;</code></li> <li>連線時指定身分識別：<code>Enter-PSSession -ComputerName '&lt;JEA伺服器IP&gt;' -ConfigurationName 'JEALabEndpoint' -Credential (Get-Credential)</code></li></ol> <p data-slug="ps-jea-lab" data-title-en="PowerShell JEA hands-on lab" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/04/16/16/26/husky-5051333_1280.jpg#1280#720">Introduces PowerShell Just Enough Administration (JEA) and least-privilege server management. Walks through a hands-on lab enabling remoting, defining role capabilities, creating session configurations, registering a JEA endpoint, and testing restricted remote commands.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>使用 PowerShell 管理 Windows 是當今的主流做法，這篇來分享我最近學到的 PowerShell 安全機制 - JEA，<a href="https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/jea/overview?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">Just Enough Administration</a>，恰到好處的系統管理。</p> <p>傳統伺服器管理常用的授權高度特權帳號(高權帳號)做法有個隱憂，一旦駭客掌握了某個高權帳號，便有可能用它在組織內部四處橫行(資安術語叫「橫向移動」)為非作歹，高權帳號的權限愈大，產生的風險愈高。</p> <p>資安哲學中有所謂「<a href="https://zh.wikipedia.org/wiki/%E6%9C%80%E5%B0%8F%E6%9D%83%E9%99%90%E5%8E%9F%E5%88%99">最小權限原則</a>」(PoLP，Principle of Least Privilege)，例如：若只給特定資料夾讀取權限就能做事，不要多給整個磁碟的寫入權限，如此即使帳號被駭客掌握，也無法會被用來讀取系統檔案或寫入惡意內容。</p> <p>PowerShell 的 JEA 就是本著此最小權限原則概念所發展的技術，結合了 gMSA (延伸閱讀：<a href="/blog/gmsa/">使用 gMSA 讓 Windows 排程與服務帳號更安全</a>)、WinRM、角色功能定義，實現一個「允許特定帳號開啟 PowerShell 遠端連線執行預先定義指令」的安全環境。</p> <p>關於 JEA 的種種，<a href="https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/jea/overview?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">MS Learn </a> 是最權威最完整的參考來源，這篇文章則會用一個簡單實作 Lab 帶大家體驗 JEA 的設定與運作。</p> <h3>啟用 PowerShell 遠端管理</h3> <p>以管理者權限執行 <code>Enable-PSRemoting</code> 系統會自動設定 WinRM 並啟用對應的 Windows 防火牆例外規則 (預設啟用 HTTP 5985 Port，若要使用加密傳輸 HTTPS 5986 需另外<a href="https://learn.microsoft.com/zh-tw/troubleshoot/windows-client/system-management-components/configure-winrm-for-https?WT.mc_id=DOP-MVP-37580">手動設定</a>)。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639155712089222440.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639155712094619486.png"></p> <p>註：JEA 本質是一個受限制的 PowerShell 遠端端點(SessionType 為 RestrictedRemoteServer)，使用者必須透過 Enter-PSSession 或 New-PSSession 等遠端命令連接，故依賴 WinRM 通訊協定、加密傳輸及其 ACL 權限管控。</p> <h3>建立角色功能檔 (Role Capability File)</h3> <p>下一步是建立角色功能檔 .psrc，定義角色及其可執行動作：</p> <ol><li><p>在 Program Files 建立一個新的 PowerShell 模組資料夾與 RoleCapabilities 子資料夾</p> <pre><code>$modulePath = Join-Path $Env:ProgramFiles "WindowsPowerShell\Modules\JEALab"
+$rcFolder = Join-Path $modulePath "RoleCapabilities"
+New-Item -ItemType Directory -Path $rcFolder -Force
+</code></pre> </li> <li><p>建立空的模組資訊清單 (至少需要一個與資料夾同名的檔案以識別為模組)</p> <pre><code>$moduleManifestPath = Join-Path $modulePath "JEALab.psd1"
+New-ModuleManifest -Path $moduleManifestPath -RootModule "JEALab.psm1"
+</code></pre> </li> <li><p>建立角色功能檔案</p> <pre><code>$psrcPath = Join-Path $rcFolder "Maintenance.psrc"
+New-PSRoleCapabilityFile -Path $psrcPath
+</code></pre> </li> <li><p>開啟 Maintenance.psrc 檔案列舉可執行的 Cmdlet<br> 尋找 VisibleCmdlets 範例位置，修改加入兩個指令 <code>VisibleCmdlets = @('Get-Service', 'Restart-Service')</code><br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639155712099841518.png"></p> </li></ol> <h3>建立工作階段組態檔 (Session Configuration File)</h3> <p>工作階段組態檔(.pssc)定義誰可以存取 JEA 端點、他們被指派的角色，以及 JEA 在幕後用來執行命令的身分識別。</p> <pre><code># 1. 定義角色對應 (將目前登入帳號對應到上面建立的 Maintenance 角色)
+$roles = @{
+"$env:COMPUTERNAME\$env:USERNAME" = @{ RoleCapabilities = 'Maintenance' }
+}
+# 2. 定義組態檔參數
+$parameters = @{
+# 設定使用 RestrictedRemoteServer 類型
+SessionType = 'RestrictedRemoteServer'
+# 指定路徑
+Path = '.\JEALabEndpoint.pssc'
+# 以本機虛擬帳號執行(具 Administrators 群組權限)
+RunAsVirtualAccount = $true
+RoleDefinitions = $roles
+}
+# 3. 產生組態檔
+New-PSSessionConfigurationFile @parameters
+# 4. 測試設定檔語法是否正確
+Test-PSSessionConfigurationFile -Path .\JEALabEndpoint.pssc
+</code></pre> <p>註：RunAsVirtualAccount 指定虛擬帳號執行，預設會具有 Administrators 群組權限，但可另外指定 RunAsVirtualAccountGroups 指定權限較小的群組。<a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/new-pssessionconfigurationfile?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#5">參考</a></p> <h3>註冊 JEA 端點與連線測試</h3> <p>做好 .psrc 與 .pssc，最後一步是向系統註冊此 JEA 端點，以下指令可完成註冊並重新啟動 WinRM 服務，讓 JEA 端點正式啟用。</p> <pre><code>Register-PSSessionConfiguration -Path .\JEALabEndpoint.pssc -Name 'JEALabEndpoint' -Force
+</code></pre> <p>接著做幾個簡單測試：</p> <pre><code># 連線到剛才建立的 JEA 端點
+Enter-PSSession -ComputerName 'localhost' -ConfigurationName 'JEALabEndpoint'
+# 只會看到 Get-Service 與 Restart-Service
+Get-Command
+# Get-Service 可正常執行
+Get-Service
+# 不在白名單的 Get-Process 會出現錯誤
+Get-Process
+# 不允許使用變數及程式語言指令 (RestrictedRemoteServer 為 NoLanguage 模式)
+$test = 1
+# 結束連線
+Eixt-PSSession
+</code></pre> <p>測試成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639155712105411396.png"></p> <h3>解除註冊 JEA 端點</h3> <p>要移除以上建立的實驗環境，可以執行 <code>Unregister-PSSessionConfiguration -Name 'JEALabEndpoint' -Force</code> 取消註冊。</p> <h3>遠端連線</h3> <p>要從另一台電腦（用戶端/遠端主機）連線到 JEALabEndpoint 所在伺服器，若雙方隸屬相同網域，且登入身分為角色對應指定的網域帳號，則用 <code>Enter-PSSession -ComputerName 'JEA伺服器名稱' -ConfigurationName 'JEALabEndpoint'</code> 即可連線，Windows 會自動處理使用者及伺服器的 Kerberos 身分驗證；若為工作群組或不同網域，則需要額外步驟：</p> <ol><li>將 JEA 伺服器加入 WinRM 的「信任的主機 (TrustedHosts)」清單：<code>Set-Item WSMan:\localhost\Client\TrustedHosts -Value &lt;JEA伺服器IP或電腦名稱&gt;</code></li> <li>連線時指定身分識別：<code>Enter-PSSession -ComputerName '&lt;JEA伺服器IP&gt;' -ConfigurationName 'JEALabEndpoint' -Credential (Get-Credential)</code></li></ol> <p data-slug="ps-jea-lab" data-title-en="PowerShell JEA hands-on lab" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/04/16/16/26/husky-5051333_1280.jpg#1280#720">Introduces PowerShell Just Enough Administration (JEA) and least-privilege server management. Walks through a hands-on lab enabling remoting, defining role capabilities, creating session configurations, registering a JEA endpoint, and testing restricted remote commands.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>使用 PowerShell 管理 Windows 是當今的主流做法，這篇來分享我最近學到的 PowerShell 安全機制 - JEA，<a href="https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/jea/overview?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">Just Enough Administration</a>，恰到好處的系統管理。</p> <p>傳統伺服器管理常用的授權高度特權帳號(高權帳號)做法有個隱憂，一旦駭客掌握了某個高權帳號，便有可能用它在組織內部四處橫行(資安術語叫「橫向移動」)為非作歹，高權帳號的權限愈大，產生的風險愈高。</p> <p>資安哲學中有所謂「<a href="https://zh.wikipedia.org/wiki/%E6%9C%80%E5%B0%8F%E6%9D%83%E9%99%90%E5%8E%9F%E5%88%99">最小權限原則</a>」(PoLP，Principle of Least Privilege)，例如：若只給特定資料夾讀取權限就能做事，不要多給整個磁碟的寫入權限，如此即使帳號被駭客掌握，也無法會被用來讀取系統檔案或寫入惡意內容。</p> <p>PowerShell 的 JEA 就是本著此最小權限原則概念所發展的技術，結合了 gMSA (延伸閱讀：<a href="/blog/gmsa/">使用 gMSA 讓 Windows 排程與服務帳號更安全</a>)、WinRM、角色功能定義，實現一個「允許特定帳號開啟 PowerShell 遠端連線執行預先定義指令」的安全環境。</p> <p>關於 JEA 的種種，<a href="https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/jea/overview?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">MS Learn </a> 是最權威最完整的參考來源，這篇文章則會用一個簡單實作 Lab 帶大家體驗 JEA 的設定與運作。</p> <h3>啟用 PowerShell 遠端管理</h3> <p>以管理者權限執行 <code>Enable-PSRemoting</code> 系統會自動設定 WinRM 並啟用對應的 Windows 防火牆例外規則 (預設啟用 HTTP 5985 Port，若要使用加密傳輸 HTTPS 5986 需另外<a href="https://learn.microsoft.com/zh-tw/troubleshoot/windows-client/system-management-components/configure-winrm-for-https?WT.mc_id=DOP-MVP-37580">手動設定</a>)。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639155712089222440.png"></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639155712094619486.png"></p> <p>註：JEA 本質是一個受限制的 PowerShell 遠端端點(SessionType 為 RestrictedRemoteServer)，使用者必須透過 Enter-PSSession 或 New-PSSession 等遠端命令連接，故依賴 WinRM 通訊協定、加密傳輸及其 ACL 權限管控。</p> <h3>建立角色功能檔 (Role Capability File)</h3> <p>下一步是建立角色功能檔 .psrc，定義角色及其可執行動作：</p> <ol><li><p>在 Program Files 建立一個新的 PowerShell 模組資料夾與 RoleCapabilities 子資料夾</p> <pre><code>$modulePath = Join-Path $Env:ProgramFiles "WindowsPowerShell\Modules\JEALab"
+$rcFolder = Join-Path $modulePath "RoleCapabilities"
+New-Item -ItemType Directory -Path $rcFolder -Force
+</code></pre> </li> <li><p>建立空的模組資訊清單 (至少需要一個與資料夾同名的檔案以識別為模組)</p> <pre><code>$moduleManifestPath = Join-Path $modulePath "JEALab.psd1"
+New-ModuleManifest -Path $moduleManifestPath -RootModule "JEALab.psm1"
+</code></pre> </li> <li><p>建立角色功能檔案</p> <pre><code>$psrcPath = Join-Path $rcFolder "Maintenance.psrc"
+New-PSRoleCapabilityFile -Path $psrcPath
+</code></pre> </li> <li><p>開啟 Maintenance.psrc 檔案列舉可執行的 Cmdlet<br> 尋找 VisibleCmdlets 範例位置，修改加入兩個指令 <code>VisibleCmdlets = @('Get-Service', 'Restart-Service')</code><br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639155712099841518.png"></p> </li></ol> <h3>建立工作階段組態檔 (Session Configuration File)</h3> <p>工作階段組態檔(.pssc)定義誰可以存取 JEA 端點、他們被指派的角色，以及 JEA 在幕後用來執行命令的身分識別。</p> <pre><code># 1. 定義角色對應 (將目前登入帳號對應到上面建立的 Maintenance 角色)
+$roles = @{
+"$env:COMPUTERNAME\$env:USERNAME" = @{ RoleCapabilities = 'Maintenance' }
+}
+# 2. 定義組態檔參數
+$parameters = @{
+# 設定使用 RestrictedRemoteServer 類型
+SessionType = 'RestrictedRemoteServer'
+# 指定路徑
+Path = '.\JEALabEndpoint.pssc'
+# 以本機虛擬帳號執行(具 Administrators 群組權限)
+RunAsVirtualAccount = $true
+RoleDefinitions = $roles
+}
+# 3. 產生組態檔
+New-PSSessionConfigurationFile @parameters
+# 4. 測試設定檔語法是否正確
+Test-PSSessionConfigurationFile -Path .\JEALabEndpoint.pssc
+</code></pre> <p>註：RunAsVirtualAccount 指定虛擬帳號執行，預設會具有 Administrators 群組權限，但可另外指定 RunAsVirtualAccountGroups 指定權限較小的群組。<a href="https://learn.microsoft.com/zh-tw/powershell/module/microsoft.powershell.core/new-pssessionconfigurationfile?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#5">參考</a></p> <h3>註冊 JEA 端點與連線測試</h3> <p>做好 .psrc 與 .pssc，最後一步是向系統註冊此 JEA 端點，以下指令可完成註冊並重新啟動 WinRM 服務，讓 JEA 端點正式啟用。</p> <pre><code>Register-PSSessionConfiguration -Path .\JEALabEndpoint.pssc -Name 'JEALabEndpoint' -Force
+</code></pre> <p>接著做幾個簡單測試：</p> <pre><code># 連線到剛才建立的 JEA 端點
+Enter-PSSession -ComputerName 'localhost' -ConfigurationName 'JEALabEndpoint'
+# 只會看到 Get-Service 與 Restart-Service
+Get-Command
+# Get-Service 可正常執行
+Get-Service
+# 不在白名單的 Get-Process 會出現錯誤
+Get-Process
+# 不允許使用變數及程式語言指令 (RestrictedRemoteServer 為 NoLanguage 模式)
+$test = 1
+# 結束連線
+Eixt-PSSession
+</code></pre> <p>測試成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639155712105411396.png"></p> <h3>解除註冊 JEA 端點</h3> <p>要移除以上建立的實驗環境，可以執行 <code>Unregister-PSSessionConfiguration -Name 'JEALabEndpoint' -Force</code> 取消註冊。</p> <h3>遠端連線</h3> <p>要從另一台電腦（用戶端/遠端主機）連線到 JEALabEndpoint 所在伺服器，若雙方隸屬相同網域，且登入身分為角色對應指定的網域帳號，則用 <code>Enter-PSSession -ComputerName 'JEA伺服器名稱' -ConfigurationName 'JEALabEndpoint'</code> 即可連線，Windows 會自動處理使用者及伺服器的 Kerberos 身分驗證；若為工作群組或不同網域，則需要額外步驟：</p> <ol><li>將 JEA 伺服器加入 WinRM 的「信任的主機 (TrustedHosts)」清單：<code>Set-Item WSMan:\localhost\Client\TrustedHosts -Value &lt;JEA伺服器IP或電腦名稱&gt;</code></li> <li>連線時指定身分識別：<code>Enter-PSSession -ComputerName '&lt;JEA伺服器IP&gt;' -ConfigurationName 'JEALabEndpoint' -Credential (Get-Credential)</code></li></ol> <p data-slug="ps-jea-lab" data-title-en="PowerShell JEA hands-on lab" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/04/16/16/26/husky-5051333_1280.jpg#1280#720">Introduces PowerShell Just Enough Administration (JEA) and least-privilege server management. Walks through a hands-on lab enabling remoting, defining role capabilities, creating session configurations, registering a JEA endpoint, and testing restricted remote commands.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig2_639155712089222440.png"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig2_639155712089222440.png" medium="image"/>
+    <pubDate>Thu, 28 May 2026 13:04:39 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Token 經濟學 - 電報式提示詞]]></title>
     <link>https://blog.darkthread.net/blog/telegraph-prompting/</link>
     <itunes:title><![CDATA[Token 經濟學 - 電報式提示詞]]></itunes:title>
@@ -680,44 +809,5 @@ CostNTD      = $costNtd.ToString('n2')
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639144492652542131.png"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639144492652542131.png" medium="image"/>
     <pubDate>Fri, 15 May 2026 13:30:26 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[搶救 C 槽空間 - 遷移 WSL 虛擬硬碟]]></title>
-    <link>https://blog.darkthread.net/blog/move-wsl2-vhdx/</link>
-    <itunes:title><![CDATA[搶救 C 槽空間 - 遷移 WSL 虛擬硬碟]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>我的 <a href="/blog/deskmini-i5">i5 迷你工作機</a>當初買的是 2T SSD (記得好像六千入手，再看看現在的價格只能搖頭嘆氣)，我切了 500GB 給系統碟，心想應該綽綽有餘，但用著用著，前幾天剩餘空間降到 10%，空間百分比條變紅，我開始陷入焦慮...</p> <p>清 C 糟這檔事兒，我<a href="/blog/release-disk-c-space/">做了又做</a>，<a href="/blog/winsxs-cleanup/">做了還做</a>，2026 年繼續做，自己都覺得好笑。</p> <p>本次清空間依舊遵循古法，先開 WindirStat 掃描 C 槽，很快抓到一隻大肥貓 - WSL 的 vhdx (虛擬機硬碟) 44.3GB，用掉整顆 C 槽近 1/10 空間：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png"></p> <p>問 AI 找到解法，答案出奇簡單，不必下指令，Docker Desktop UI 操作介面有選項，重新選取存放位置，套用並重新啟動後，Docker Desktop 會在背後默默打包 Docker 容器，搬到新位置解開，再把舊檔刪除。過程要花點時間，而且很吃記憶體，我的 64G RAM 一度被用掉 90%，但全程不沾手，耐心等待即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639143597198082668.png"></p> <p>原始目錄 AppData\Local\Docker\wsl\data 搬家後 Docker Desktop 會改名 DockerDesktopWSL\data，無法沿用 wsl\data。但有清出空間就好，看到 C 槽剩餘空間回升到 20%，危機暫時解除，呼~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639143597200913504.png"></p> <p>空間清出來了，但留下疑問：WSL 的東西為什麼輪到 Docker Desktop 來處理，WSL 跟 Hyper-V 又有什麼關係？查了一下，故事是這樣的：</p> <p>我們現在說 WSL 指的通常是 WSL2，<a href="https://learn.microsoft.com/zh-tw/windows/wsl/compare-versions?WT.mc_id=DOP-MVP-37580">跟 WSL1 不同</a>，WSL2 本質上是一個「輕量化、與 Windows 深度整合的 VM」，WSL1 則是透過 Linux Syscall Translation 系統呼叫轉譯模擬，但 WSL2 有用到 Virtual Machine Platform (虛擬機平台) 技術 (Hyper-V 子集，與 Hyper-V 伺服器、VM 不同)，以 VM 方式執行 Linux Kernel，提供更高的相容性；而 Docker Desktop，便是建立在 WSL2 之上。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639144019360882815.png"></p> <p>Docker Desktop 在 WSL2 模式下會建立兩個隱藏 distro：docker-desktop、docker-desktop-data，前者是 Docker daemon/runtime，後者為 images/volumes/layers，需要儲存資料，而 C:\Users&lt;userName&gt;\AppData\Local\Docker\wsl\data\ext4.vhdx 便是 docker-desktop-data 的 WSL 虛擬磁碟。</p> <p>而 Docker Desktop GUI 提供的 vhdx 搬家功能，背後其實就是把一連串 CLI 包起來，故我們也可以選擇不用 GUI，用這串 CLI 指令完成搬家，使用這種做法目標資料夾便可完全自訂：</p> <pre><code># Stop Docker and WSL
-wsl --shutdown
-# Export Docker data distro
-wsl --export docker-desktop-data D:\docker-desktop-data.tar
-# Remove current registration
-wsl --unregister docker-desktop-data
-# Import into new location
-wsl --import docker-desktop-data D:\Docker\wsl\data D:\docker-desktop-data.tar --version 2
-</code></pre> <p>就醬，清 C 槽還多學了一些知識，收工。</p> <p>【補充】感謝讀者 Heresy、ChrisTorng 補充，新版 wsl (Windows 11 24H2+) 有提供更簡單的搬家指令：<code>wsl --manage Ubuntu --move S:\WSL\Ubuntu</code> <a href="https://kheresy.wordpress.com/2025/04/25/windows-11-24h2-move-wsl-vhdx/">參考</a>、<code>wsl --import-in-place</code> <a href="https://learn.microsoft.com/zh-tw/windows/wsl/basic-commands?WT.mc_id=DOP-MVP-37580">參考</a>。</p> <p data-slug="move-wsl2-vhdx" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>我的 <a href="/blog/deskmini-i5">i5 迷你工作機</a>當初買的是 2T SSD (記得好像六千入手，再看看現在的價格只能搖頭嘆氣)，我切了 500GB 給系統碟，心想應該綽綽有餘，但用著用著，前幾天剩餘空間降到 10%，空間百分比條變紅，我開始陷入焦慮...</p> <p>清 C 糟這檔事兒，我<a href="/blog/release-disk-c-space/">做了又做</a>，<a href="/blog/winsxs-cleanup/">做了還做</a>，2026 年繼續做，自己都覺得好笑。</p> <p>本次清空間依舊遵循古法，先開 WindirStat 掃描 C 槽，很快抓到一隻大肥貓 - WSL 的 vhdx (虛擬機硬碟) 44.3GB，用掉整顆 C 槽近 1/10 空間：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png"></p> <p>問 AI 找到解法，答案出奇簡單，不必下指令，Docker Desktop UI 操作介面有選項，重新選取存放位置，套用並重新啟動後，Docker Desktop 會在背後默默打包 Docker 容器，搬到新位置解開，再把舊檔刪除。過程要花點時間，而且很吃記憶體，我的 64G RAM 一度被用掉 90%，但全程不沾手，耐心等待即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639143597198082668.png"></p> <p>原始目錄 AppData\Local\Docker\wsl\data 搬家後 Docker Desktop 會改名 DockerDesktopWSL\data，無法沿用 wsl\data。但有清出空間就好，看到 C 槽剩餘空間回升到 20%，危機暫時解除，呼~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639143597200913504.png"></p> <p>空間清出來了，但留下疑問：WSL 的東西為什麼輪到 Docker Desktop 來處理，WSL 跟 Hyper-V 又有什麼關係？查了一下，故事是這樣的：</p> <p>我們現在說 WSL 指的通常是 WSL2，<a href="https://learn.microsoft.com/zh-tw/windows/wsl/compare-versions?WT.mc_id=DOP-MVP-37580">跟 WSL1 不同</a>，WSL2 本質上是一個「輕量化、與 Windows 深度整合的 VM」，WSL1 則是透過 Linux Syscall Translation 系統呼叫轉譯模擬，但 WSL2 有用到 Virtual Machine Platform (虛擬機平台) 技術 (Hyper-V 子集，與 Hyper-V 伺服器、VM 不同)，以 VM 方式執行 Linux Kernel，提供更高的相容性；而 Docker Desktop，便是建立在 WSL2 之上。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639144019360882815.png"></p> <p>Docker Desktop 在 WSL2 模式下會建立兩個隱藏 distro：docker-desktop、docker-desktop-data，前者是 Docker daemon/runtime，後者為 images/volumes/layers，需要儲存資料，而 C:\Users&lt;userName&gt;\AppData\Local\Docker\wsl\data\ext4.vhdx 便是 docker-desktop-data 的 WSL 虛擬磁碟。</p> <p>而 Docker Desktop GUI 提供的 vhdx 搬家功能，背後其實就是把一連串 CLI 包起來，故我們也可以選擇不用 GUI，用這串 CLI 指令完成搬家，使用這種做法目標資料夾便可完全自訂：</p> <pre><code># Stop Docker and WSL
-wsl --shutdown
-# Export Docker data distro
-wsl --export docker-desktop-data D:\docker-desktop-data.tar
-# Remove current registration
-wsl --unregister docker-desktop-data
-# Import into new location
-wsl --import docker-desktop-data D:\Docker\wsl\data D:\docker-desktop-data.tar --version 2
-</code></pre> <p>就醬，清 C 槽還多學了一些知識，收工。</p> <p>【補充】感謝讀者 Heresy、ChrisTorng 補充，新版 wsl (Windows 11 24H2+) 有提供更簡單的搬家指令：<code>wsl --manage Ubuntu --move S:\WSL\Ubuntu</code> <a href="https://kheresy.wordpress.com/2025/04/25/windows-11-24h2-move-wsl-vhdx/">參考</a>、<code>wsl --import-in-place</code> <a href="https://learn.microsoft.com/zh-tw/windows/wsl/basic-commands?WT.mc_id=DOP-MVP-37580">參考</a>。</p> <p data-slug="move-wsl2-vhdx" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>我的 <a href="/blog/deskmini-i5">i5 迷你工作機</a>當初買的是 2T SSD (記得好像六千入手，再看看現在的價格只能搖頭嘆氣)，我切了 500GB 給系統碟，心想應該綽綽有餘，但用著用著，前幾天剩餘空間降到 10%，空間百分比條變紅，我開始陷入焦慮...</p> <p>清 C 糟這檔事兒，我<a href="/blog/release-disk-c-space/">做了又做</a>，<a href="/blog/winsxs-cleanup/">做了還做</a>，2026 年繼續做，自己都覺得好笑。</p> <p>本次清空間依舊遵循古法，先開 WindirStat 掃描 C 槽，很快抓到一隻大肥貓 - WSL 的 vhdx (虛擬機硬碟) 44.3GB，用掉整顆 C 槽近 1/10 空間：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png"></p> <p>問 AI 找到解法，答案出奇簡單，不必下指令，Docker Desktop UI 操作介面有選項，重新選取存放位置，套用並重新啟動後，Docker Desktop 會在背後默默打包 Docker 容器，搬到新位置解開，再把舊檔刪除。過程要花點時間，而且很吃記憶體，我的 64G RAM 一度被用掉 90%，但全程不沾手，耐心等待即可。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639143597198082668.png"></p> <p>原始目錄 AppData\Local\Docker\wsl\data 搬家後 Docker Desktop 會改名 DockerDesktopWSL\data，無法沿用 wsl\data。但有清出空間就好，看到 C 槽剩餘空間回升到 20%，危機暫時解除，呼~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639143597200913504.png"></p> <p>空間清出來了，但留下疑問：WSL 的東西為什麼輪到 Docker Desktop 來處理，WSL 跟 Hyper-V 又有什麼關係？查了一下，故事是這樣的：</p> <p>我們現在說 WSL 指的通常是 WSL2，<a href="https://learn.microsoft.com/zh-tw/windows/wsl/compare-versions?WT.mc_id=DOP-MVP-37580">跟 WSL1 不同</a>，WSL2 本質上是一個「輕量化、與 Windows 深度整合的 VM」，WSL1 則是透過 Linux Syscall Translation 系統呼叫轉譯模擬，但 WSL2 有用到 Virtual Machine Platform (虛擬機平台) 技術 (Hyper-V 子集，與 Hyper-V 伺服器、VM 不同)，以 VM 方式執行 Linux Kernel，提供更高的相容性；而 Docker Desktop，便是建立在 WSL2 之上。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639144019360882815.png"></p> <p>Docker Desktop 在 WSL2 模式下會建立兩個隱藏 distro：docker-desktop、docker-desktop-data，前者是 Docker daemon/runtime，後者為 images/volumes/layers，需要儲存資料，而 C:\Users&lt;userName&gt;\AppData\Local\Docker\wsl\data\ext4.vhdx 便是 docker-desktop-data 的 WSL 虛擬磁碟。</p> <p>而 Docker Desktop GUI 提供的 vhdx 搬家功能，背後其實就是把一連串 CLI 包起來，故我們也可以選擇不用 GUI，用這串 CLI 指令完成搬家，使用這種做法目標資料夾便可完全自訂：</p> <pre><code># Stop Docker and WSL
-wsl --shutdown
-# Export Docker data distro
-wsl --export docker-desktop-data D:\docker-desktop-data.tar
-# Remove current registration
-wsl --unregister docker-desktop-data
-# Import into new location
-wsl --import docker-desktop-data D:\Docker\wsl\data D:\docker-desktop-data.tar --version 2
-</code></pre> <p>就醬，清 C 槽還多學了一些知識，收工。</p> <p>【補充】感謝讀者 Heresy、ChrisTorng 補充，新版 wsl (Windows 11 24H2+) 有提供更簡單的搬家指令：<code>wsl --manage Ubuntu --move S:\WSL\Ubuntu</code> <a href="https://kheresy.wordpress.com/2025/04/25/windows-11-24h2-move-wsl-vhdx/">參考</a>、<code>wsl --import-in-place</code> <a href="https://learn.microsoft.com/zh-tw/windows/wsl/basic-commands?WT.mc_id=DOP-MVP-37580">參考</a>。</p> <p data-slug="move-wsl2-vhdx" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639143597191296101.png" medium="image"/>
-    <pubDate>Thu, 14 May 2026 12:39:10 GMT</pubDate>
   </item></channel>
 </rss>
