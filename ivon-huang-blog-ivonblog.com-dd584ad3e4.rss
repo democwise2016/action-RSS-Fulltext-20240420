@@ -1,0 +1,1937 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[Ivon的部落格[RSS+]]]></title>
+    <link>https://ivonblog.com/index.xml</link>
+    <image>
+      <url>https://picsum.photos/800/800?random</url>
+      <title>Ivon的部落格[RSS+]</title>
+      <link>https://ivonblog.com/index.xml</link>
+    </image>
+    <language>zh-TW</language>
+    <atom:link href="https://ivonblog.com/index.xml" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[Ivon的部落格[RSS+]]]></copyright>
+    <itunes:author><![CDATA[Ivon的部落格[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      Recent content on Ivon的部落格<br />
+<br />
+<a href="https://ivonblog.com/index.xml" target="_blank">https://ivonblog.com/index.xml</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      Recent content on Ivon的部落格<br />
+<br />
+<a href="https://ivonblog.com/index.xml" target="_blank">https://ivonblog.com/index.xml</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://picsum.photos/800/800?random"/>
+<item>
+    <title><![CDATA[iPhone安裝OpenSSH Server方便遠端登入控制 + iproxy代理SSH連線]]></title>
+    <link>https://ivonblog.com/posts/jailbroken-ios-ssh-server/</link>
+    <itunes:title><![CDATA[iPhone安裝OpenSSH Server方便遠端登入控制 + iproxy代理SSH連線]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/jailbroken-ios-ssh-server/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7c17a50481.webp"></a></p>
+<p>將iPhone &amp; iPad變成SSH Server。</p>
+<p>iOS是基於Darwin開發的系統，理所當然有跑OpenSSH的能力！</p>
+<p>注意，是將iOS變成SSH Server，而非SSH Client。</p>
+<p>在iPhone越獄後，可以在iOS安裝OpenSSH伺服器，讓我們能隨時遠端登入系統執行APT進行系統管理，除錯，使用SFTP傳檔案等等。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ed5e929955.webp">
+<p>而且就算iPhone沒網路也是可以透過USB傳輸線登入呢！</p>
+<h2>1. 在iOS安裝OpenSSH
+<span>
+<a href="#1-%e5%9c%a8ios%e5%ae%89%e8%a3%9dopenssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>一個OpenSSH套件移植通常包含OpenSSH Server與OpenSSH Client。Cydia很多套件庫都有收OpenSSH，最舊支援到iOS 6。不過要小心太舊的SSH Server可能會有安全性問題。</p>
+<p>部分越獄軟體已經內建SSH Server，譬如checkra1n。這裡要手動安裝的是會在iOS開機後自動啟動的OpenSSH服務。</p>
+<ol>
+<li>
+<p>開啟Cydia或Sileo，搜尋<code>OpenSSH</code>，安裝套件
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-78c96fed8f.webp"></p>
+</li>
+<li>
+<p>（選擇性）在iOS安裝一個越獄用的終端機App，例如NewTerm或MTerminal，方便直接操作指令。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8e9b15b835.webp"></p>
+</li>
+<li>
+<p>大部分軟體越獄後，系統管理員帳號為<code>root</code>，密碼為<code>alpine</code>。至於iOS的一般使用者帳號則是叫做<code>mobile</code>，執行修改系統的指令需要加上<code>sudo</code>，或者輸入<code>su</code>可以切換成root帳號。<code>passwd</code>則是可以變更帳號的密碼。</p>
+</li>
+<li>
+<p>為了安全性，遠端SSH應該登入<code>mobile</code>帳號就好，需要的時候再用sudo提權。不過若你想直接登入root，就得在iOS上用終端機編輯sshd的設定檔：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vi /etc/ssh/sshd_config</span></span></code></pre></div></div>
+<ol start="5">
+<li>開啟允許root登入</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>PermitRootLogin yes</span></span></code></pre></div></div>
+<ol start="6">
+<li>
+<p>然後重開機。</p>
+</li>
+<li>
+<p>OpenSSH的服務<code>sshd</code>，會在iOS開機後自動啟動，即使iOS螢幕關閉也會繼續執行。這可以透過<code>luanchctl</code>指令停止：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># rootless越獄</span>
+</span></span><span><span>launchctl unload /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist
+</span></span><span><span>
+</span></span><span><span><span># rootful越獄</span>
+</span></span><span><span>launchctl unload /Library/LaunchDaemons/com.openssh.sshd.plist</span></span></code></pre></div></div>
+<h2>2. 透過Wifi登入SSH
+<span>
+<a href="#2-%e9%80%8f%e9%81%8ewifi%e7%99%bb%e5%85%a5ssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>確保電腦和iPhone處於同一Wifi下。</p>
+</li>
+<li>
+<p>開啟iPhone設定 → Wifi，點選i，查看區域IP位址，通常是192.168開頭。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e0fbbbd0a7.webp"></p>
+</li>
+<li>
+<p>在電腦輸入指令連線。一般越獄應該是使用通訊埠22，而checkra1n的SSH預設是44。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh mobile@192.168.0.119 -p <span>22</span></span></span></code></pre></div></div>
+<ol start="4">
+<li>然後應該會看到iPhone的主機名稱，代表已經連線到iOS了。</li>
+</ol>
+<p>注解：部分機型的OpenSSH比較舊，會出現<code>Unable to negotiate with port : no matching host key type found. Their offer: ssh-rsa,ssh-dss</code>錯誤，需要指定舊版的加密方法連線</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh -o <span>HostKeyAlgorithms</span><span>=</span>+ssh-rsa mobile@IP</span></span></code></pre></div></div>
+<h2>3. 透過iproxy走USB連線登入SSH
+<span>
+<a href="#3-%e9%80%8f%e9%81%8eiproxy%e8%b5%b0usb%e9%80%a3%e7%b7%9a%e7%99%bb%e5%85%a5ssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這裡以Linux電腦操作為例。iPhone插入電腦的時候，透過usbmuxd做溝通。透過iproxy代理iOS的通訊埠，就可以有線SSH到iPhone。這樣iPhone不用連上任何網路也能SSH進去。</p>
+<ol>
+<li>
+<p>在Linux安裝<a href="https://ivonblog.com/posts/linux-access-ios-files/" target="_blank">libimobiledevice</a>套件</p>
+</li>
+<li>
+<p>將iPhone插電腦，點選信任此電腦。</p>
+</li>
+<li>
+<p>啟動iproxy代理，轉發iOS的SSH通訊埠22，到Linux本機的2222</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>iproxy <span>2222</span> <span>22</span></span></span></code></pre></div></div>
+<ol start="4">
+<li>開另外一個終端機，從電腦SSH進去</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh mobile@localhost -p <span>2222</span></span></span></code></pre></div></div>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://github.com/libimobiledevice/libusbmuxd/blob/master/tools/iproxy.c" target="_blank">iproxy - proxy that enables tcp service access to iOS devices</a></li>
+<li><a href="https://checkra.in/" target="_blank">Can I ssh into my device? - checkra1n</a></li>
+</ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/jailbroken-ios-ssh-server/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7c17a50481.webp"></a></p>
+<p>將iPhone &amp; iPad變成SSH Server。</p>
+<p>iOS是基於Darwin開發的系統，理所當然有跑OpenSSH的能力！</p>
+<p>注意，是將iOS變成SSH Server，而非SSH Client。</p>
+<p>在iPhone越獄後，可以在iOS安裝OpenSSH伺服器，讓我們能隨時遠端登入系統執行APT進行系統管理，除錯，使用SFTP傳檔案等等。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ed5e929955.webp">
+<p>而且就算iPhone沒網路也是可以透過USB傳輸線登入呢！</p>
+<h2>1. 在iOS安裝OpenSSH
+<span>
+<a href="#1-%e5%9c%a8ios%e5%ae%89%e8%a3%9dopenssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>一個OpenSSH套件移植通常包含OpenSSH Server與OpenSSH Client。Cydia很多套件庫都有收OpenSSH，最舊支援到iOS 6。不過要小心太舊的SSH Server可能會有安全性問題。</p>
+<p>部分越獄軟體已經內建SSH Server，譬如checkra1n。這裡要手動安裝的是會在iOS開機後自動啟動的OpenSSH服務。</p>
+<ol>
+<li>
+<p>開啟Cydia或Sileo，搜尋<code>OpenSSH</code>，安裝套件
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-78c96fed8f.webp"></p>
+</li>
+<li>
+<p>（選擇性）在iOS安裝一個越獄用的終端機App，例如NewTerm或MTerminal，方便直接操作指令。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8e9b15b835.webp"></p>
+</li>
+<li>
+<p>大部分軟體越獄後，系統管理員帳號為<code>root</code>，密碼為<code>alpine</code>。至於iOS的一般使用者帳號則是叫做<code>mobile</code>，執行修改系統的指令需要加上<code>sudo</code>，或者輸入<code>su</code>可以切換成root帳號。<code>passwd</code>則是可以變更帳號的密碼。</p>
+</li>
+<li>
+<p>為了安全性，遠端SSH應該登入<code>mobile</code>帳號就好，需要的時候再用sudo提權。不過若你想直接登入root，就得在iOS上用終端機編輯sshd的設定檔：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vi /etc/ssh/sshd_config</span></span></code></pre></div></div>
+<ol start="5">
+<li>開啟允許root登入</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>PermitRootLogin yes</span></span></code></pre></div></div>
+<ol start="6">
+<li>
+<p>然後重開機。</p>
+</li>
+<li>
+<p>OpenSSH的服務<code>sshd</code>，會在iOS開機後自動啟動，即使iOS螢幕關閉也會繼續執行。這可以透過<code>luanchctl</code>指令停止：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># rootless越獄</span>
+</span></span><span><span>launchctl unload /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist
+</span></span><span><span>
+</span></span><span><span><span># rootful越獄</span>
+</span></span><span><span>launchctl unload /Library/LaunchDaemons/com.openssh.sshd.plist</span></span></code></pre></div></div>
+<h2>2. 透過Wifi登入SSH
+<span>
+<a href="#2-%e9%80%8f%e9%81%8ewifi%e7%99%bb%e5%85%a5ssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>確保電腦和iPhone處於同一Wifi下。</p>
+</li>
+<li>
+<p>開啟iPhone設定 → Wifi，點選i，查看區域IP位址，通常是192.168開頭。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e0fbbbd0a7.webp"></p>
+</li>
+<li>
+<p>在電腦輸入指令連線。一般越獄應該是使用通訊埠22，而checkra1n的SSH預設是44。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh mobile@192.168.0.119 -p <span>22</span></span></span></code></pre></div></div>
+<ol start="4">
+<li>然後應該會看到iPhone的主機名稱，代表已經連線到iOS了。</li>
+</ol>
+<p>注解：部分機型的OpenSSH比較舊，會出現<code>Unable to negotiate with port : no matching host key type found. Their offer: ssh-rsa,ssh-dss</code>錯誤，需要指定舊版的加密方法連線</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh -o <span>HostKeyAlgorithms</span><span>=</span>+ssh-rsa mobile@IP</span></span></code></pre></div></div>
+<h2>3. 透過iproxy走USB連線登入SSH
+<span>
+<a href="#3-%e9%80%8f%e9%81%8eiproxy%e8%b5%b0usb%e9%80%a3%e7%b7%9a%e7%99%bb%e5%85%a5ssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這裡以Linux電腦操作為例。iPhone插入電腦的時候，透過usbmuxd做溝通。透過iproxy代理iOS的通訊埠，就可以有線SSH到iPhone。這樣iPhone不用連上任何網路也能SSH進去。</p>
+<ol>
+<li>
+<p>在Linux安裝<a href="https://ivonblog.com/posts/linux-access-ios-files/" target="_blank">libimobiledevice</a>套件</p>
+</li>
+<li>
+<p>將iPhone插電腦，點選信任此電腦。</p>
+</li>
+<li>
+<p>啟動iproxy代理，轉發iOS的SSH通訊埠22，到Linux本機的2222</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>iproxy <span>2222</span> <span>22</span></span></span></code></pre></div></div>
+<ol start="4">
+<li>開另外一個終端機，從電腦SSH進去</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh mobile@localhost -p <span>2222</span></span></span></code></pre></div></div>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://github.com/libimobiledevice/libusbmuxd/blob/master/tools/iproxy.c" target="_blank">iproxy - proxy that enables tcp service access to iOS devices</a></li>
+<li><a href="https://checkra.in/" target="_blank">Can I ssh into my device? - checkra1n</a></li>
+</ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/jailbroken-ios-ssh-server/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7c17a50481.webp"></a></p>
+<p>將iPhone &amp; iPad變成SSH Server。</p>
+<p>iOS是基於Darwin開發的系統，理所當然有跑OpenSSH的能力！</p>
+<p>注意，是將iOS變成SSH Server，而非SSH Client。</p>
+<p>在iPhone越獄後，可以在iOS安裝OpenSSH伺服器，讓我們能隨時遠端登入系統執行APT進行系統管理，除錯，使用SFTP傳檔案等等。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ed5e929955.webp">
+<p>而且就算iPhone沒網路也是可以透過USB傳輸線登入呢！</p>
+<h2>1. 在iOS安裝OpenSSH
+<span>
+<a href="#1-%e5%9c%a8ios%e5%ae%89%e8%a3%9dopenssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>一個OpenSSH套件移植通常包含OpenSSH Server與OpenSSH Client。Cydia很多套件庫都有收OpenSSH，最舊支援到iOS 6。不過要小心太舊的SSH Server可能會有安全性問題。</p>
+<p>部分越獄軟體已經內建SSH Server，譬如checkra1n。這裡要手動安裝的是會在iOS開機後自動啟動的OpenSSH服務。</p>
+<ol>
+<li>
+<p>開啟Cydia或Sileo，搜尋<code>OpenSSH</code>，安裝套件
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-78c96fed8f.webp"></p>
+</li>
+<li>
+<p>（選擇性）在iOS安裝一個越獄用的終端機App，例如NewTerm或MTerminal，方便直接操作指令。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8e9b15b835.webp"></p>
+</li>
+<li>
+<p>大部分軟體越獄後，系統管理員帳號為<code>root</code>，密碼為<code>alpine</code>。至於iOS的一般使用者帳號則是叫做<code>mobile</code>，執行修改系統的指令需要加上<code>sudo</code>，或者輸入<code>su</code>可以切換成root帳號。<code>passwd</code>則是可以變更帳號的密碼。</p>
+</li>
+<li>
+<p>為了安全性，遠端SSH應該登入<code>mobile</code>帳號就好，需要的時候再用sudo提權。不過若你想直接登入root，就得在iOS上用終端機編輯sshd的設定檔：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo vi /etc/ssh/sshd_config</span></span></code></pre></div></div>
+<ol start="5">
+<li>開啟允許root登入</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>PermitRootLogin yes</span></span></code></pre></div></div>
+<ol start="6">
+<li>
+<p>然後重開機。</p>
+</li>
+<li>
+<p>OpenSSH的服務<code>sshd</code>，會在iOS開機後自動啟動，即使iOS螢幕關閉也會繼續執行。這可以透過<code>luanchctl</code>指令停止：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># rootless越獄</span>
+</span></span><span><span>launchctl unload /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist
+</span></span><span><span>
+</span></span><span><span><span># rootful越獄</span>
+</span></span><span><span>launchctl unload /Library/LaunchDaemons/com.openssh.sshd.plist</span></span></code></pre></div></div>
+<h2>2. 透過Wifi登入SSH
+<span>
+<a href="#2-%e9%80%8f%e9%81%8ewifi%e7%99%bb%e5%85%a5ssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>確保電腦和iPhone處於同一Wifi下。</p>
+</li>
+<li>
+<p>開啟iPhone設定 → Wifi，點選i，查看區域IP位址，通常是192.168開頭。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e0fbbbd0a7.webp"></p>
+</li>
+<li>
+<p>在電腦輸入指令連線。一般越獄應該是使用通訊埠22，而checkra1n的SSH預設是44。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh mobile@192.168.0.119 -p <span>22</span></span></span></code></pre></div></div>
+<ol start="4">
+<li>然後應該會看到iPhone的主機名稱，代表已經連線到iOS了。</li>
+</ol>
+<p>注解：部分機型的OpenSSH比較舊，會出現<code>Unable to negotiate with port : no matching host key type found. Their offer: ssh-rsa,ssh-dss</code>錯誤，需要指定舊版的加密方法連線</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh -o <span>HostKeyAlgorithms</span><span>=</span>+ssh-rsa mobile@IP</span></span></code></pre></div></div>
+<h2>3. 透過iproxy走USB連線登入SSH
+<span>
+<a href="#3-%e9%80%8f%e9%81%8eiproxy%e8%b5%b0usb%e9%80%a3%e7%b7%9a%e7%99%bb%e5%85%a5ssh" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這裡以Linux電腦操作為例。iPhone插入電腦的時候，透過usbmuxd做溝通。透過iproxy代理iOS的通訊埠，就可以有線SSH到iPhone。這樣iPhone不用連上任何網路也能SSH進去。</p>
+<ol>
+<li>
+<p>在Linux安裝<a href="https://ivonblog.com/posts/linux-access-ios-files/" target="_blank">libimobiledevice</a>套件</p>
+</li>
+<li>
+<p>將iPhone插電腦，點選信任此電腦。</p>
+</li>
+<li>
+<p>啟動iproxy代理，轉發iOS的SSH通訊埠22，到Linux本機的2222</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>iproxy <span>2222</span> <span>22</span></span></span></code></pre></div></div>
+<ol start="4">
+<li>開另外一個終端機，從電腦SSH進去</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh mobile@localhost -p <span>2222</span></span></span></code></pre></div></div>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://github.com/libimobiledevice/libusbmuxd/blob/master/tools/iproxy.c" target="_blank">iproxy - proxy that enables tcp service access to iOS devices</a></li>
+<li><a href="https://checkra.in/" target="_blank">Can I ssh into my device? - checkra1n</a></li>
+</ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7c17a50481.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7c17a50481.webp" medium="image"/>
+    <pubDate>Tue, 01 Sep 2026 02:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[透過Surf瀏覽器讓老iPhone正常打開網頁，Puffin Browser替代品]]></title>
+    <link>https://ivonblog.com/posts/surf-ios-remote-browser/</link>
+    <itunes:title><![CDATA[透過Surf瀏覽器讓老iPhone正常打開網頁，Puffin Browser替代品]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/surf-ios-remote-browser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4546164365.webp"></a></p>
+<p>Safari無法打開網頁？你的瀏覽器太舊網頁顯示不支援？</p>
+<p>相信這是很多使用老iPhone用戶會遇到的問題。尤其iOS 17以前，所有瀏覽器核心強制使用WebKit，且跟著iOS版本跑。如果被放生，就無法更新瀏覽器核心了。現在最新版的Chrome和Firefox都要iOS 16以上版本才能安裝了呢，那麼舊版裝置怎麼辦呢。慢慢的，網站會嫌你太舊不支援。</p>
+<p>又，iOS跟Android不一樣，瀏覽器無法獨立系統更新，所以iOS不更新，上網能力也就GG了。iPhone無法像Android機一樣刷機強制升級系統，使用最新版瀏覽器。</p>
+<p>於是，就有了Surf。這是開發者seg6為了解決他iPad Mini 1的Safari太舊，無法打開大多數網站的問題，製作了Surf這個開源App。最舊支援到iOS 6。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a94b2dae3c.webp"></p>
+<p>原理是，在越獄的iOS裝置安裝假瀏覽器App，然後在另外一臺電腦跑真正的瀏覽器，再用App串流遠端瀏覽器網頁的內容，瀏覽記錄保存在本機，還可以播放影片呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69cfb8e500.webp">
+<p>例如，我測試在iPhone 4S用Safari開啟Google搜尋，是根本不給載入。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b5307676dc.webp"></p>
+<p>換成Surf之後，影片都能播了！由於運算都交由遠端電腦承載，手機只負責串流，因此看任何網頁都不會有太大負載。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-84c9a82725.webp"></p>
+<p>如果我們將Surf部署到VPS，或者用Tailscale遠端存取，就能自己實現一個雲端瀏覽器了。</p>
+<h2>1. Surf以外的方案比較
+<span>
+<a href="#1-surf%e4%bb%a5%e5%a4%96%e7%9a%84%e6%96%b9%e6%a1%88%e6%af%94%e8%bc%83" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>首先是，類似Surf的「雲端瀏覽器」其實已經有人做了。注意不是遠端桌面，這裡App要做的，僅是串流瀏覽器的內容。</p>
+<p>看到Surf的架構，我想了一下…這不就是<a href="https://www.puffin.com/web-browser" target="_blank">Puffin Browser</a>的做法嗎！原來Puffin Browser佈局這麼久就是爲了這個目的，更好的覆蓋老裝置的支援度啊。Puffin Browser本質上是在伺服器遠端載入網頁然後回傳，因此幾乎可以無視客戶端的瀏覽器條件。他們連Flash都在雲端串流，所以幾乎不受客戶端影響。</p>
+<p>不過Puffin爲了防止濫用，現在變成付費軟體了呢。</p>
+<p>Puffin公司幾年前還因爲突然收費，員工在Play商店怒嗆網友導致評價一落千丈。</p>
+<p>類似Puffin Browser的還有<a href="https://www.opera.com/zh-cn/mini" target="_blank">Opera Mini</a>，但是有廣告啊。</p>
+<p>而且，Puffin Browser需要iOS 8，而這個Surf最低支援到iOS 6。</p>
+<p>雲端瀏覽器的Docker方案，我看到有<a href="https://github.com/tenox7/wrp" target="_blank">Web Rendering Proxy</a>，它在任何古老電腦瀏覽器都能用。可是唯獨沒有針對手機優化，而且它是傳送靜態圖片而非串流，嗯，性能很糟糕。</p>
+<p>另外一個方案，是針對舊版iOS移植原生的瀏覽器，例如<a href="https://ivonblog.com/posts/ios-reynard-browser-app/" target="_blank">Reynard Browser</a>。可是我們能期望有人能把Reynard Browser給backport到iOS 9以下嗎？32位元arm-v7的裝置，很難耶。</p>
+<p>這樣看來，Surf是不錯的折衷解決方案。雖然Surf畫面是串流的，導致有點模糊但是還算堪用啦。如果舊iPhone螢幕太小，就看作者要不要加入自訂User Agent功能吧。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-314e99039f.webp"></p>
+<h2>2. 安裝Surf伺服端
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dsurf%e4%bc%ba%e6%9c%8d%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Surf伺服端支援Linux、Windows、macOS。目前還沒有Docker版但可以用指令啟動。</p>
+<ol>
+<li>
+<p>確認電腦有安裝瀏覽器，Surf偏好以Google Chrome開啟，會以headless執行</p>
+</li>
+<li>
+<p>到<a href="https://github.com/seg6/surf/releases" target="_blank">Github</a>下載Surf伺服端，例如Linux就下載AppImage版本</p>
+</li>
+<li>
+<p>點兩下開啟網頁界面
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1c1775c0c2.webp"></p>
+</li>
+<li>
+<p>你可能要事先開放防火牆：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>18080</span>
+</span></span><span><span>
+</span></span><span><span>sudo ufw reload</span></span></code></pre></div></div>
+<h2>3. 安裝Surf iOS客戶端
+<span>
+<a href="#3-%e5%ae%89%e8%a3%9dsurf-ios%e5%ae%a2%e6%88%b6%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>需要越獄才能安裝。最低需要iOS 6.0以上版本。</p>
+</li>
+<li>
+<p>開啟Cyida，新增作者的套件庫：<code>https://seg6.space/surf/</code></p>
+</li>
+<li>
+<p>搜尋Surf by seg6，安裝。</p>
+</li>
+<li>
+<p>讓iPhone和電腦位於同一個Wifi網路。傳輸過程會經過TLS加密。</p>
+</li>
+<li>
+<p>在Surf伺服端，點選Pair，開始配對
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-86a7a7505a.webp"></p>
+</li>
+<li>
+<p>開啟Surf客戶端，應該會顯示區域網路的Surf伺服端，點選，輸入配對碼，連線。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd2c7b5b18.webp"></p>
+</li>
+</ol>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://seg6.space/posts/resurrecting-ipad-mini/" target="_blank">bringing the modern web to the original ipad mini - seg6</a></li>
+</ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/surf-ios-remote-browser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4546164365.webp"></a></p>
+<p>Safari無法打開網頁？你的瀏覽器太舊網頁顯示不支援？</p>
+<p>相信這是很多使用老iPhone用戶會遇到的問題。尤其iOS 17以前，所有瀏覽器核心強制使用WebKit，且跟著iOS版本跑。如果被放生，就無法更新瀏覽器核心了。現在最新版的Chrome和Firefox都要iOS 16以上版本才能安裝了呢，那麼舊版裝置怎麼辦呢。慢慢的，網站會嫌你太舊不支援。</p>
+<p>又，iOS跟Android不一樣，瀏覽器無法獨立系統更新，所以iOS不更新，上網能力也就GG了。iPhone無法像Android機一樣刷機強制升級系統，使用最新版瀏覽器。</p>
+<p>於是，就有了Surf。這是開發者seg6為了解決他iPad Mini 1的Safari太舊，無法打開大多數網站的問題，製作了Surf這個開源App。最舊支援到iOS 6。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a94b2dae3c.webp"></p>
+<p>原理是，在越獄的iOS裝置安裝假瀏覽器App，然後在另外一臺電腦跑真正的瀏覽器，再用App串流遠端瀏覽器網頁的內容，瀏覽記錄保存在本機，還可以播放影片呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69cfb8e500.webp">
+<p>例如，我測試在iPhone 4S用Safari開啟Google搜尋，是根本不給載入。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b5307676dc.webp"></p>
+<p>換成Surf之後，影片都能播了！由於運算都交由遠端電腦承載，手機只負責串流，因此看任何網頁都不會有太大負載。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-84c9a82725.webp"></p>
+<p>如果我們將Surf部署到VPS，或者用Tailscale遠端存取，就能自己實現一個雲端瀏覽器了。</p>
+<h2>1. Surf以外的方案比較
+<span>
+<a href="#1-surf%e4%bb%a5%e5%a4%96%e7%9a%84%e6%96%b9%e6%a1%88%e6%af%94%e8%bc%83" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>首先是，類似Surf的「雲端瀏覽器」其實已經有人做了。注意不是遠端桌面，這裡App要做的，僅是串流瀏覽器的內容。</p>
+<p>看到Surf的架構，我想了一下…這不就是<a href="https://www.puffin.com/web-browser" target="_blank">Puffin Browser</a>的做法嗎！原來Puffin Browser佈局這麼久就是爲了這個目的，更好的覆蓋老裝置的支援度啊。Puffin Browser本質上是在伺服器遠端載入網頁然後回傳，因此幾乎可以無視客戶端的瀏覽器條件。他們連Flash都在雲端串流，所以幾乎不受客戶端影響。</p>
+<p>不過Puffin爲了防止濫用，現在變成付費軟體了呢。</p>
+<p>Puffin公司幾年前還因爲突然收費，員工在Play商店怒嗆網友導致評價一落千丈。</p>
+<p>類似Puffin Browser的還有<a href="https://www.opera.com/zh-cn/mini" target="_blank">Opera Mini</a>，但是有廣告啊。</p>
+<p>而且，Puffin Browser需要iOS 8，而這個Surf最低支援到iOS 6。</p>
+<p>雲端瀏覽器的Docker方案，我看到有<a href="https://github.com/tenox7/wrp" target="_blank">Web Rendering Proxy</a>，它在任何古老電腦瀏覽器都能用。可是唯獨沒有針對手機優化，而且它是傳送靜態圖片而非串流，嗯，性能很糟糕。</p>
+<p>另外一個方案，是針對舊版iOS移植原生的瀏覽器，例如<a href="https://ivonblog.com/posts/ios-reynard-browser-app/" target="_blank">Reynard Browser</a>。可是我們能期望有人能把Reynard Browser給backport到iOS 9以下嗎？32位元arm-v7的裝置，很難耶。</p>
+<p>這樣看來，Surf是不錯的折衷解決方案。雖然Surf畫面是串流的，導致有點模糊但是還算堪用啦。如果舊iPhone螢幕太小，就看作者要不要加入自訂User Agent功能吧。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-314e99039f.webp"></p>
+<h2>2. 安裝Surf伺服端
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dsurf%e4%bc%ba%e6%9c%8d%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Surf伺服端支援Linux、Windows、macOS。目前還沒有Docker版但可以用指令啟動。</p>
+<ol>
+<li>
+<p>確認電腦有安裝瀏覽器，Surf偏好以Google Chrome開啟，會以headless執行</p>
+</li>
+<li>
+<p>到<a href="https://github.com/seg6/surf/releases" target="_blank">Github</a>下載Surf伺服端，例如Linux就下載AppImage版本</p>
+</li>
+<li>
+<p>點兩下開啟網頁界面
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1c1775c0c2.webp"></p>
+</li>
+<li>
+<p>你可能要事先開放防火牆：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>18080</span>
+</span></span><span><span>
+</span></span><span><span>sudo ufw reload</span></span></code></pre></div></div>
+<h2>3. 安裝Surf iOS客戶端
+<span>
+<a href="#3-%e5%ae%89%e8%a3%9dsurf-ios%e5%ae%a2%e6%88%b6%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>需要越獄才能安裝。最低需要iOS 6.0以上版本。</p>
+</li>
+<li>
+<p>開啟Cyida，新增作者的套件庫：<code>https://seg6.space/surf/</code></p>
+</li>
+<li>
+<p>搜尋Surf by seg6，安裝。</p>
+</li>
+<li>
+<p>讓iPhone和電腦位於同一個Wifi網路。傳輸過程會經過TLS加密。</p>
+</li>
+<li>
+<p>在Surf伺服端，點選Pair，開始配對
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-86a7a7505a.webp"></p>
+</li>
+<li>
+<p>開啟Surf客戶端，應該會顯示區域網路的Surf伺服端，點選，輸入配對碼，連線。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd2c7b5b18.webp"></p>
+</li>
+</ol>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://seg6.space/posts/resurrecting-ipad-mini/" target="_blank">bringing the modern web to the original ipad mini - seg6</a></li>
+</ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/surf-ios-remote-browser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4546164365.webp"></a></p>
+<p>Safari無法打開網頁？你的瀏覽器太舊網頁顯示不支援？</p>
+<p>相信這是很多使用老iPhone用戶會遇到的問題。尤其iOS 17以前，所有瀏覽器核心強制使用WebKit，且跟著iOS版本跑。如果被放生，就無法更新瀏覽器核心了。現在最新版的Chrome和Firefox都要iOS 16以上版本才能安裝了呢，那麼舊版裝置怎麼辦呢。慢慢的，網站會嫌你太舊不支援。</p>
+<p>又，iOS跟Android不一樣，瀏覽器無法獨立系統更新，所以iOS不更新，上網能力也就GG了。iPhone無法像Android機一樣刷機強制升級系統，使用最新版瀏覽器。</p>
+<p>於是，就有了Surf。這是開發者seg6為了解決他iPad Mini 1的Safari太舊，無法打開大多數網站的問題，製作了Surf這個開源App。最舊支援到iOS 6。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a94b2dae3c.webp"></p>
+<p>原理是，在越獄的iOS裝置安裝假瀏覽器App，然後在另外一臺電腦跑真正的瀏覽器，再用App串流遠端瀏覽器網頁的內容，瀏覽記錄保存在本機，還可以播放影片呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69cfb8e500.webp">
+<p>例如，我測試在iPhone 4S用Safari開啟Google搜尋，是根本不給載入。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b5307676dc.webp"></p>
+<p>換成Surf之後，影片都能播了！由於運算都交由遠端電腦承載，手機只負責串流，因此看任何網頁都不會有太大負載。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-84c9a82725.webp"></p>
+<p>如果我們將Surf部署到VPS，或者用Tailscale遠端存取，就能自己實現一個雲端瀏覽器了。</p>
+<h2>1. Surf以外的方案比較
+<span>
+<a href="#1-surf%e4%bb%a5%e5%a4%96%e7%9a%84%e6%96%b9%e6%a1%88%e6%af%94%e8%bc%83" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>首先是，類似Surf的「雲端瀏覽器」其實已經有人做了。注意不是遠端桌面，這裡App要做的，僅是串流瀏覽器的內容。</p>
+<p>看到Surf的架構，我想了一下…這不就是<a href="https://www.puffin.com/web-browser" target="_blank">Puffin Browser</a>的做法嗎！原來Puffin Browser佈局這麼久就是爲了這個目的，更好的覆蓋老裝置的支援度啊。Puffin Browser本質上是在伺服器遠端載入網頁然後回傳，因此幾乎可以無視客戶端的瀏覽器條件。他們連Flash都在雲端串流，所以幾乎不受客戶端影響。</p>
+<p>不過Puffin爲了防止濫用，現在變成付費軟體了呢。</p>
+<p>Puffin公司幾年前還因爲突然收費，員工在Play商店怒嗆網友導致評價一落千丈。</p>
+<p>類似Puffin Browser的還有<a href="https://www.opera.com/zh-cn/mini" target="_blank">Opera Mini</a>，但是有廣告啊。</p>
+<p>而且，Puffin Browser需要iOS 8，而這個Surf最低支援到iOS 6。</p>
+<p>雲端瀏覽器的Docker方案，我看到有<a href="https://github.com/tenox7/wrp" target="_blank">Web Rendering Proxy</a>，它在任何古老電腦瀏覽器都能用。可是唯獨沒有針對手機優化，而且它是傳送靜態圖片而非串流，嗯，性能很糟糕。</p>
+<p>另外一個方案，是針對舊版iOS移植原生的瀏覽器，例如<a href="https://ivonblog.com/posts/ios-reynard-browser-app/" target="_blank">Reynard Browser</a>。可是我們能期望有人能把Reynard Browser給backport到iOS 9以下嗎？32位元arm-v7的裝置，很難耶。</p>
+<p>這樣看來，Surf是不錯的折衷解決方案。雖然Surf畫面是串流的，導致有點模糊但是還算堪用啦。如果舊iPhone螢幕太小，就看作者要不要加入自訂User Agent功能吧。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-314e99039f.webp"></p>
+<h2>2. 安裝Surf伺服端
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dsurf%e4%bc%ba%e6%9c%8d%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Surf伺服端支援Linux、Windows、macOS。目前還沒有Docker版但可以用指令啟動。</p>
+<ol>
+<li>
+<p>確認電腦有安裝瀏覽器，Surf偏好以Google Chrome開啟，會以headless執行</p>
+</li>
+<li>
+<p>到<a href="https://github.com/seg6/surf/releases" target="_blank">Github</a>下載Surf伺服端，例如Linux就下載AppImage版本</p>
+</li>
+<li>
+<p>點兩下開啟網頁界面
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1c1775c0c2.webp"></p>
+</li>
+<li>
+<p>你可能要事先開放防火牆：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo ufw allow <span>18080</span>
+</span></span><span><span>
+</span></span><span><span>sudo ufw reload</span></span></code></pre></div></div>
+<h2>3. 安裝Surf iOS客戶端
+<span>
+<a href="#3-%e5%ae%89%e8%a3%9dsurf-ios%e5%ae%a2%e6%88%b6%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>需要越獄才能安裝。最低需要iOS 6.0以上版本。</p>
+</li>
+<li>
+<p>開啟Cyida，新增作者的套件庫：<code>https://seg6.space/surf/</code></p>
+</li>
+<li>
+<p>搜尋Surf by seg6，安裝。</p>
+</li>
+<li>
+<p>讓iPhone和電腦位於同一個Wifi網路。傳輸過程會經過TLS加密。</p>
+</li>
+<li>
+<p>在Surf伺服端，點選Pair，開始配對
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-86a7a7505a.webp"></p>
+</li>
+<li>
+<p>開啟Surf客戶端，應該會顯示區域網路的Surf伺服端，點選，輸入配對碼，連線。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd2c7b5b18.webp"></p>
+</li>
+</ol>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://seg6.space/posts/resurrecting-ipad-mini/" target="_blank">bringing the modern web to the original ipad mini - seg6</a></li>
+</ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4546164365.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4546164365.webp" medium="image"/>
+    <pubDate>Tue, 01 Sep 2026 01:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[iOS用iSH Shell跑SSH伺服器，電腦遠端連線存取iPhone檔案]]></title>
+    <link>https://ivonblog.com/posts/ios-ish-shell-ssh-server/</link>
+    <itunes:title><![CDATA[iOS用iSH Shell跑SSH伺服器，電腦遠端連線存取iPhone檔案]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>本文講述的主旨不是要你用iPhone SSH到遠端主機，而是在iPhone跑SSH伺服器，讓電腦可以遠端存取iPhone檔案，不需要越獄。</p>
+<h2>1. 準備SSH連線客戶端
+<span>
+<a href="#1-%e6%ba%96%e5%82%99ssh%e9%80%a3%e7%b7%9a%e5%ae%a2%e6%88%b6%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Linux電腦：開啟終端機，安裝<code>openssh-client</code>套件</p>
+<p>Windows 11：開啟終端機，按照<a href="https://learn.microsoft.com/zh-tw/windows-server/administration/openssh/openssh_install_firstuse?tabs=gui" target="_blank">官方文件</a>，安裝openssh-client套件</p>
+<p>macOS：開啟終端機，ssh指令應該已經內建。</p>
+<h2>2. 架設SSH伺服器
+<span>
+<a href="#2-%e6%9e%b6%e8%a8%adssh%e4%bc%ba%e6%9c%8d%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>注意：不要同時跑二個SSH伺服器，他們預設都是用22通訊埠，不修改的話會互相衝突。</p>
+<p>iSH Shell因為是普通APP只能看到自己的檔案，至多用mount指令掛載部份APP的共享資料夾而已。</p>
+<ol>
+<li>
+<p>安裝<a href="https://ivonblog.com/posts/ios-ish-shell" target="_blank">iSH Shell</a></p>
+</li>
+<li>
+<p>安裝OpenSSH套件</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>apk add openssh openrc</span></span></code></pre></div></div>
+<ol start="3">
+<li>修改目前帳號密碼。iSH Shell的預設帳號為<code>root</code>。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>passwd</span></span></code></pre></div></div>
+<ol start="4">
+<li>編輯SSH設定</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>vim /etc/ssh/sshd_config</span></span></code></pre></div></div>
+<ol start="5">
+<li>允許root帳號登入</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>PermitRootLogin yes</span></span></code></pre></div></div>
+<ol start="6">
+<li>啟動SSH伺服器服務，並設定為開啟APP後自動啟用</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>service sshd start
+</span></span><span><span>rc-update add sshd
+</span></span><span><span>
+</span></span><span><span><span># 停止SSH服務的指令</span>
+</span></span><span><span>service sshd stop</span></span></code></pre></div></div>
+<ol start="7">
+<li>iPhone鎖定螢幕後網路會斷掉，因此請延長自動鎖定時間，或者讓它保持在背景執行：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>cat /dev/location &gt; /dev/null <span>&amp;</span></span></span></code></pre></div></div>
+<h2>3. SSH連線至iOS裝置
+<span>
+<a href="#3-ssh%e9%80%a3%e7%b7%9a%e8%87%b3ios%e8%a3%9d%e7%bd%ae" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>確保電腦和iPhone處於同一Wifi下。</p>
+</li>
+<li>
+<p>開啟iPhone設定 → Wifi，點選i，查看區域IP位址，通常是192.168開頭。</p>
+</li>
+<li>
+<p>在電腦輸入指令連線。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh root@192.168.0.111</span></span></code></pre></div></div>
+<ol start="4">
+<li>
+<p>之後就可以任意打指令操作了，用完之後輸入<code>exit</code>退出。</p>
+</li>
+<li>
+<p>順帶一提，你可以用scp指令在電腦與iPhone間傳輸檔案。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 從電腦複製目錄到iPhone</span>
+</span></span><span><span>
+</span></span><span><span><span>#       電腦目錄              iPhone目錄</span>
+</span></span><span><span>scp -r /home/user/Pictures   root@192.168.0.1111:~/</span></span></code></pre></div></div>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>本文講述的主旨不是要你用iPhone SSH到遠端主機，而是在iPhone跑SSH伺服器，讓電腦可以遠端存取iPhone檔案，不需要越獄。</p>
+<h2>1. 準備SSH連線客戶端
+<span>
+<a href="#1-%e6%ba%96%e5%82%99ssh%e9%80%a3%e7%b7%9a%e5%ae%a2%e6%88%b6%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Linux電腦：開啟終端機，安裝<code>openssh-client</code>套件</p>
+<p>Windows 11：開啟終端機，按照<a href="https://learn.microsoft.com/zh-tw/windows-server/administration/openssh/openssh_install_firstuse?tabs=gui" target="_blank">官方文件</a>，安裝openssh-client套件</p>
+<p>macOS：開啟終端機，ssh指令應該已經內建。</p>
+<h2>2. 架設SSH伺服器
+<span>
+<a href="#2-%e6%9e%b6%e8%a8%adssh%e4%bc%ba%e6%9c%8d%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>注意：不要同時跑二個SSH伺服器，他們預設都是用22通訊埠，不修改的話會互相衝突。</p>
+<p>iSH Shell因為是普通APP只能看到自己的檔案，至多用mount指令掛載部份APP的共享資料夾而已。</p>
+<ol>
+<li>
+<p>安裝<a href="https://ivonblog.com/posts/ios-ish-shell" target="_blank">iSH Shell</a></p>
+</li>
+<li>
+<p>安裝OpenSSH套件</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>apk add openssh openrc</span></span></code></pre></div></div>
+<ol start="3">
+<li>修改目前帳號密碼。iSH Shell的預設帳號為<code>root</code>。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>passwd</span></span></code></pre></div></div>
+<ol start="4">
+<li>編輯SSH設定</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>vim /etc/ssh/sshd_config</span></span></code></pre></div></div>
+<ol start="5">
+<li>允許root帳號登入</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>PermitRootLogin yes</span></span></code></pre></div></div>
+<ol start="6">
+<li>啟動SSH伺服器服務，並設定為開啟APP後自動啟用</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>service sshd start
+</span></span><span><span>rc-update add sshd
+</span></span><span><span>
+</span></span><span><span><span># 停止SSH服務的指令</span>
+</span></span><span><span>service sshd stop</span></span></code></pre></div></div>
+<ol start="7">
+<li>iPhone鎖定螢幕後網路會斷掉，因此請延長自動鎖定時間，或者讓它保持在背景執行：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>cat /dev/location &gt; /dev/null <span>&amp;</span></span></span></code></pre></div></div>
+<h2>3. SSH連線至iOS裝置
+<span>
+<a href="#3-ssh%e9%80%a3%e7%b7%9a%e8%87%b3ios%e8%a3%9d%e7%bd%ae" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>確保電腦和iPhone處於同一Wifi下。</p>
+</li>
+<li>
+<p>開啟iPhone設定 → Wifi，點選i，查看區域IP位址，通常是192.168開頭。</p>
+</li>
+<li>
+<p>在電腦輸入指令連線。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh root@192.168.0.111</span></span></code></pre></div></div>
+<ol start="4">
+<li>
+<p>之後就可以任意打指令操作了，用完之後輸入<code>exit</code>退出。</p>
+</li>
+<li>
+<p>順帶一提，你可以用scp指令在電腦與iPhone間傳輸檔案。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 從電腦複製目錄到iPhone</span>
+</span></span><span><span>
+</span></span><span><span><span>#       電腦目錄              iPhone目錄</span>
+</span></span><span><span>scp -r /home/user/Pictures   root@192.168.0.1111:~/</span></span></code></pre></div></div>]]>
+    </description>
+    <content:encoded><![CDATA[<p>本文講述的主旨不是要你用iPhone SSH到遠端主機，而是在iPhone跑SSH伺服器，讓電腦可以遠端存取iPhone檔案，不需要越獄。</p>
+<h2>1. 準備SSH連線客戶端
+<span>
+<a href="#1-%e6%ba%96%e5%82%99ssh%e9%80%a3%e7%b7%9a%e5%ae%a2%e6%88%b6%e7%ab%af" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Linux電腦：開啟終端機，安裝<code>openssh-client</code>套件</p>
+<p>Windows 11：開啟終端機，按照<a href="https://learn.microsoft.com/zh-tw/windows-server/administration/openssh/openssh_install_firstuse?tabs=gui" target="_blank">官方文件</a>，安裝openssh-client套件</p>
+<p>macOS：開啟終端機，ssh指令應該已經內建。</p>
+<h2>2. 架設SSH伺服器
+<span>
+<a href="#2-%e6%9e%b6%e8%a8%adssh%e4%bc%ba%e6%9c%8d%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>注意：不要同時跑二個SSH伺服器，他們預設都是用22通訊埠，不修改的話會互相衝突。</p>
+<p>iSH Shell因為是普通APP只能看到自己的檔案，至多用mount指令掛載部份APP的共享資料夾而已。</p>
+<ol>
+<li>
+<p>安裝<a href="https://ivonblog.com/posts/ios-ish-shell" target="_blank">iSH Shell</a></p>
+</li>
+<li>
+<p>安裝OpenSSH套件</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>apk add openssh openrc</span></span></code></pre></div></div>
+<ol start="3">
+<li>修改目前帳號密碼。iSH Shell的預設帳號為<code>root</code>。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>passwd</span></span></code></pre></div></div>
+<ol start="4">
+<li>編輯SSH設定</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>vim /etc/ssh/sshd_config</span></span></code></pre></div></div>
+<ol start="5">
+<li>允許root帳號登入</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>PermitRootLogin yes</span></span></code></pre></div></div>
+<ol start="6">
+<li>啟動SSH伺服器服務，並設定為開啟APP後自動啟用</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>service sshd start
+</span></span><span><span>rc-update add sshd
+</span></span><span><span>
+</span></span><span><span><span># 停止SSH服務的指令</span>
+</span></span><span><span>service sshd stop</span></span></code></pre></div></div>
+<ol start="7">
+<li>iPhone鎖定螢幕後網路會斷掉，因此請延長自動鎖定時間，或者讓它保持在背景執行：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>cat /dev/location &gt; /dev/null <span>&amp;</span></span></span></code></pre></div></div>
+<h2>3. SSH連線至iOS裝置
+<span>
+<a href="#3-ssh%e9%80%a3%e7%b7%9a%e8%87%b3ios%e8%a3%9d%e7%bd%ae" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>確保電腦和iPhone處於同一Wifi下。</p>
+</li>
+<li>
+<p>開啟iPhone設定 → Wifi，點選i，查看區域IP位址，通常是192.168開頭。</p>
+</li>
+<li>
+<p>在電腦輸入指令連線。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ssh root@192.168.0.111</span></span></code></pre></div></div>
+<ol start="4">
+<li>
+<p>之後就可以任意打指令操作了，用完之後輸入<code>exit</code>退出。</p>
+</li>
+<li>
+<p>順帶一提，你可以用scp指令在電腦與iPhone間傳輸檔案。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 從電腦複製目錄到iPhone</span>
+</span></span><span><span>
+</span></span><span><span><span>#       電腦目錄              iPhone目錄</span>
+</span></span><span><span>scp -r /home/user/Pictures   root@192.168.0.1111:~/</span></span></code></pre></div></div>]]></content:encoded>
+    
+    <pubDate>Mon, 31 Aug 2026 20:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[iOS就是拿macOS改的，你還沒收到通知嗎...越獄後的恍然大悟]]></title>
+    <link>https://ivonblog.com/posts/ios-is-based-on-macos/</link>
+    <itunes:title><![CDATA[iOS就是拿macOS改的，你還沒收到通知嗎...越獄後的恍然大悟]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-is-based-on-macos/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-569a2b4ae1.webp"></a></p>
+<p>似乎有人會以為iOS是憑空生出來的系統，但絕對不是這樣。有Mac的技術積累才有iOS。</p>
+<p>你還沒收到通知嗎，iOS就是拿macOS改的。</p>
+<p>iOS真的將檔案系統隱藏的很好，跟Android沒Root還能瞄到根目錄對比起來，一般使用者頂多看到App本身的目錄。檔案App也是有限的家目錄，無法知道iPhone的系統結構有<code>/usr/bin</code>和<code>/etc</code>的存在。使用者就容易變成只知道「App」，而沒有PC檔案管理的概念。</p>
+<p>當我終於越獄，取得root權限，能看到完整iOS，我就會觸發這個好奇寶寶過程：<a href="https://www.youtube.com/watch?v=Unb-CfNx4KQ" target="_blank">Spongebob Squarepants - The Map</a></p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a86466dc97.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baeb1b4f65.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5df3167221.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e6ff2fe40b.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6dd2790fe6.webp">
+<p>用iFiles看完系統目錄後。</p>
+<p>派大星：海綿寶寶你不覺得這個rootfs很眼熟嗎。</p>
+<p>海綿寶寶：是的派大星，這個就是macOS的結構啊。</p>
+<p>蟹老闆：請問有什麼問題嗎？</p>
+<p>因此iOS確實就是拿Darwin改的沒錯。2014年我第一次接觸到Root的時候也是一直看Android根目錄，當時還不明白SELinux是什麼，rwx是啥，2021年認真學了Linux之後才恍然大悟。</p>
+<p>iOS基於Darwin系統，裡面包含了一部分FreeBSD，也就是Unix的組件，可是除了kernel以外，user space很多GUI framework都是Apple私有的格式，令外人難以複製。</p>
+<p>需要注意的是Linux != Unix != macOS。對了雖然Apple有花錢取得UNIX國際認證，可是還是有些人認為macOS不算UNIX：<a href="https://www.osnews.com/story/141633/apples-macos-unix-certification-is-a-lie/" target="_blank">Apple’s macOS UNIX certification is a lie</a> 八卦是FreeBSD沒錢買這個認證所以只能自稱Unix-like。QQ</p>
+<p>蘋果生態系的OS幾乎都離不開macOS的技術，iPhone和iPad，還有Vision Pro，都互相分享技術。故，iPad理論上完全是能跑macOS的，但Apple不準！</p>
+<p>Apple雖然有開源Darwin和XNU Kernel，但很少在宣傳中提及，基本只有賈伯斯<a href="https://www.wired.com/2007/05/steve-jobs-ipho/" target="_blank">在2007年發表會提過</a>。大概是要宣傳OS Kernel features有多先進的話果粉會聽不懂。誰會像華為的HomoOS每次都在發表會說自主研發的Kernel多厲害啊。</p>
+<p>但不得不說iOS 2.0時代的container一開始就設計的很先進了，每個App資料隔離，有效防止App在使用者家目錄亂倒垃圾。當Android 2.3時代廠商還不知道自己在做什麼的時候，iOS 4在UI美學和系統設計上就有了完整規範了。當然現在Android的權限設計也很成熟了。</p>
+<p>Android跟iOS到今天一樣都變成了immutable的系統，跳脫Unix Way防止系統崩壞。</p>
+<p>比起Linux社群吵了十年都還搞不定要ZFS還是BTRFS，macOS的APFS的成熟運用就遙遙領先了吧。</p>
+<p>必須讓全世界的人能順手用卻不知道自己在用Unix…這就是蘋果厲害的地方。Android對Linux的貢獻同樣很多。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-is-based-on-macos/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-569a2b4ae1.webp"></a></p>
+<p>似乎有人會以為iOS是憑空生出來的系統，但絕對不是這樣。有Mac的技術積累才有iOS。</p>
+<p>你還沒收到通知嗎，iOS就是拿macOS改的。</p>
+<p>iOS真的將檔案系統隱藏的很好，跟Android沒Root還能瞄到根目錄對比起來，一般使用者頂多看到App本身的目錄。檔案App也是有限的家目錄，無法知道iPhone的系統結構有<code>/usr/bin</code>和<code>/etc</code>的存在。使用者就容易變成只知道「App」，而沒有PC檔案管理的概念。</p>
+<p>當我終於越獄，取得root權限，能看到完整iOS，我就會觸發這個好奇寶寶過程：<a href="https://www.youtube.com/watch?v=Unb-CfNx4KQ" target="_blank">Spongebob Squarepants - The Map</a></p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a86466dc97.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baeb1b4f65.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5df3167221.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e6ff2fe40b.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6dd2790fe6.webp">
+<p>用iFiles看完系統目錄後。</p>
+<p>派大星：海綿寶寶你不覺得這個rootfs很眼熟嗎。</p>
+<p>海綿寶寶：是的派大星，這個就是macOS的結構啊。</p>
+<p>蟹老闆：請問有什麼問題嗎？</p>
+<p>因此iOS確實就是拿Darwin改的沒錯。2014年我第一次接觸到Root的時候也是一直看Android根目錄，當時還不明白SELinux是什麼，rwx是啥，2021年認真學了Linux之後才恍然大悟。</p>
+<p>iOS基於Darwin系統，裡面包含了一部分FreeBSD，也就是Unix的組件，可是除了kernel以外，user space很多GUI framework都是Apple私有的格式，令外人難以複製。</p>
+<p>需要注意的是Linux != Unix != macOS。對了雖然Apple有花錢取得UNIX國際認證，可是還是有些人認為macOS不算UNIX：<a href="https://www.osnews.com/story/141633/apples-macos-unix-certification-is-a-lie/" target="_blank">Apple’s macOS UNIX certification is a lie</a> 八卦是FreeBSD沒錢買這個認證所以只能自稱Unix-like。QQ</p>
+<p>蘋果生態系的OS幾乎都離不開macOS的技術，iPhone和iPad，還有Vision Pro，都互相分享技術。故，iPad理論上完全是能跑macOS的，但Apple不準！</p>
+<p>Apple雖然有開源Darwin和XNU Kernel，但很少在宣傳中提及，基本只有賈伯斯<a href="https://www.wired.com/2007/05/steve-jobs-ipho/" target="_blank">在2007年發表會提過</a>。大概是要宣傳OS Kernel features有多先進的話果粉會聽不懂。誰會像華為的HomoOS每次都在發表會說自主研發的Kernel多厲害啊。</p>
+<p>但不得不說iOS 2.0時代的container一開始就設計的很先進了，每個App資料隔離，有效防止App在使用者家目錄亂倒垃圾。當Android 2.3時代廠商還不知道自己在做什麼的時候，iOS 4在UI美學和系統設計上就有了完整規範了。當然現在Android的權限設計也很成熟了。</p>
+<p>Android跟iOS到今天一樣都變成了immutable的系統，跳脫Unix Way防止系統崩壞。</p>
+<p>比起Linux社群吵了十年都還搞不定要ZFS還是BTRFS，macOS的APFS的成熟運用就遙遙領先了吧。</p>
+<p>必須讓全世界的人能順手用卻不知道自己在用Unix…這就是蘋果厲害的地方。Android對Linux的貢獻同樣很多。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ios-is-based-on-macos/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-569a2b4ae1.webp"></a></p>
+<p>似乎有人會以為iOS是憑空生出來的系統，但絕對不是這樣。有Mac的技術積累才有iOS。</p>
+<p>你還沒收到通知嗎，iOS就是拿macOS改的。</p>
+<p>iOS真的將檔案系統隱藏的很好，跟Android沒Root還能瞄到根目錄對比起來，一般使用者頂多看到App本身的目錄。檔案App也是有限的家目錄，無法知道iPhone的系統結構有<code>/usr/bin</code>和<code>/etc</code>的存在。使用者就容易變成只知道「App」，而沒有PC檔案管理的概念。</p>
+<p>當我終於越獄，取得root權限，能看到完整iOS，我就會觸發這個好奇寶寶過程：<a href="https://www.youtube.com/watch?v=Unb-CfNx4KQ" target="_blank">Spongebob Squarepants - The Map</a></p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a86466dc97.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baeb1b4f65.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5df3167221.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e6ff2fe40b.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6dd2790fe6.webp">
+<p>用iFiles看完系統目錄後。</p>
+<p>派大星：海綿寶寶你不覺得這個rootfs很眼熟嗎。</p>
+<p>海綿寶寶：是的派大星，這個就是macOS的結構啊。</p>
+<p>蟹老闆：請問有什麼問題嗎？</p>
+<p>因此iOS確實就是拿Darwin改的沒錯。2014年我第一次接觸到Root的時候也是一直看Android根目錄，當時還不明白SELinux是什麼，rwx是啥，2021年認真學了Linux之後才恍然大悟。</p>
+<p>iOS基於Darwin系統，裡面包含了一部分FreeBSD，也就是Unix的組件，可是除了kernel以外，user space很多GUI framework都是Apple私有的格式，令外人難以複製。</p>
+<p>需要注意的是Linux != Unix != macOS。對了雖然Apple有花錢取得UNIX國際認證，可是還是有些人認為macOS不算UNIX：<a href="https://www.osnews.com/story/141633/apples-macos-unix-certification-is-a-lie/" target="_blank">Apple’s macOS UNIX certification is a lie</a> 八卦是FreeBSD沒錢買這個認證所以只能自稱Unix-like。QQ</p>
+<p>蘋果生態系的OS幾乎都離不開macOS的技術，iPhone和iPad，還有Vision Pro，都互相分享技術。故，iPad理論上完全是能跑macOS的，但Apple不準！</p>
+<p>Apple雖然有開源Darwin和XNU Kernel，但很少在宣傳中提及，基本只有賈伯斯<a href="https://www.wired.com/2007/05/steve-jobs-ipho/" target="_blank">在2007年發表會提過</a>。大概是要宣傳OS Kernel features有多先進的話果粉會聽不懂。誰會像華為的HomoOS每次都在發表會說自主研發的Kernel多厲害啊。</p>
+<p>但不得不說iOS 2.0時代的container一開始就設計的很先進了，每個App資料隔離，有效防止App在使用者家目錄亂倒垃圾。當Android 2.3時代廠商還不知道自己在做什麼的時候，iOS 4在UI美學和系統設計上就有了完整規範了。當然現在Android的權限設計也很成熟了。</p>
+<p>Android跟iOS到今天一樣都變成了immutable的系統，跳脫Unix Way防止系統崩壞。</p>
+<p>比起Linux社群吵了十年都還搞不定要ZFS還是BTRFS，macOS的APFS的成熟運用就遙遙領先了吧。</p>
+<p>必須讓全世界的人能順手用卻不知道自己在用Unix…這就是蘋果厲害的地方。Android對Linux的貢獻同樣很多。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-569a2b4ae1.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-569a2b4ae1.webp" medium="image"/>
+    <pubDate>Mon, 31 Aug 2026 15:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[我們真的需要小手機回來嗎，還是懷舊感作祟？]]></title>
+    <link>https://ivonblog.com/posts/do-we-really-want-small-phones-back/</link>
+    <itunes:title><![CDATA[我們真的需要小手機回來嗎，還是懷舊感作祟？]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/do-we-really-want-small-phones-back/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14b58388ee.webp"></a></p>
+<p>風立ちぬ、いざ生きめやも。</p>
+<p>手機太大或太小都不行啊。</p>
+<p>有個有趣比喻說：小手機現在就像愛快羅密歐(Alfa Romeo)的車一樣，很多人吵著說想要但其實沒人要買了。</p>
+<p>這是在<a href="https://www.reddit.com/r/NOTHING/comments/1q9fo2i/comment/nyuwh9w/" target="_blank">Reddit的Nothing Phone社區</a>看到的。有人建議Nothing應該要迎合小眾市場出一款小型手機。</p>
+<p>我只開得起天竺鼠車車，所以我不太能理解這個比喻，大概是在說理想很美好現實很骨感吧。哈哈我對很多歐系車廠的印象都來自於二戰時他們幫法西斯政權生產過飛機引擎。</p>
+<p>現在主流的手機，6吋已經算小了，可是所謂小手機應該是4、5吋左右吧。誰知道呢，未來小手機的定義，搞不好變成比誰的折疊機螢幕比較小。</p>
+<p>主流手機公司已經不願意推出這麼小的手機了，最現實的原因，就是沒人買，銷量不佳。<a href="https://cirpapple.substack.com/p/the-iphone-sales-data-that-apple" target="_blank">CIRP - The iPhone Sales Data that Apple Doesn’t Disclose</a></p>
+<p>嗯，過去幾個月，我真的去買了以前的6吋以下小手機來用。</p>
+<p>Zenfone 9和Pixel 5我還嫌太大台了 。</p>
+<p>我的選擇包括Sony Xperia XZ1 Compact還有iPhone 12 Mini。這是你能找到最近代的大廠出的小旗艦了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-be02aafb67.webp">
+<p>請看之前的開箱文：</p>
+<ul>
+<li><a href="https://ivonblog.com/posts/sony-xperia-xz1-compact-review/" target="_blank">方塊小手機Xperia XZ1 Compact刷機復活</a></li>
+<li><a href="https://ivonblog.com/posts/apple-iphone-12-mini-review/" target="_blank">小手機FTW，繼續用iPhone 12 Mini</a></li>
+</ul>
+<p>iPhone還能更新到iOS 26。Xperia刷機更新到最新Android 15之後還堪用。</p>
+<p>因爲我本來就不是重度使用者，所以64GB容量也夠我用。Well看你怎麼定義重度這個字…起碼我不是重度遊戲玩家，只是重度上網。</p>
+<p>但是我拿了幾天後就覺得生理性不適，字好像太小了，續航不好，然後鏡頭只有一兩個……。</p>
+<p>理想破滅了。</p>
+<p>便返回6吋的Xperia 10 V了，也就是Pixel 9無印版的尺寸。</p>
+<p>另一方面，矛盾的是，我嘗試拿6.7吋的紅米手機卻又覺得，太大台了。</p>
+<p>現在對我來說，6吋手機剛剛好。這是所有折衷下的選擇。</p>
+<p>也許我過去，根本從沒喜歡過小手機。</p>
+<p>除了2013年第一支白牌手機外，在那之後我的手機都是5吋起跳的，而我也默默接受了。</p>
+<p>我去看以前的手機，其實從大概2015年起，非全螢幕的手機的主流尺寸，例如Zenfone 2和iPhone 6s Plus，機身長度就跟現在的6吋全螢幕手機一樣大了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e69c5b5a1a.webp">
+<p>那我想我能接受的大小適中的手機，就是6吋。</p>
+<p><a href="https://www.reddit.com/r/smallphones/comments/1rm94ru/are_tiny_phones_actually_practical_in_2025_or/" target="_blank">Are tiny phones actually practical in 2025 or just a nostalgia trap?</a></p>
+<p>懷舊的陷阱，讓你想追求回去用小手機，但也許是回憶的加成你才覺得那是好的，或者是被SNS的文青語言影響覺得「以前比較好」。</p>
+<p>實際上在當代根本不實際，除了很難做之外也缺乏市場。</p>
+<p>時代在變化，也許我們已經回不去了。太多人把手機當小型電腦工作站用了，所以需要大螢幕。我也有平板，我知道複雜的事情可以拿iPad出來做，可是手機早就不是單純的手機了。</p>
+<p>起風了，唯有努力生存，嗎？</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/do-we-really-want-small-phones-back/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14b58388ee.webp"></a></p>
+<p>風立ちぬ、いざ生きめやも。</p>
+<p>手機太大或太小都不行啊。</p>
+<p>有個有趣比喻說：小手機現在就像愛快羅密歐(Alfa Romeo)的車一樣，很多人吵著說想要但其實沒人要買了。</p>
+<p>這是在<a href="https://www.reddit.com/r/NOTHING/comments/1q9fo2i/comment/nyuwh9w/" target="_blank">Reddit的Nothing Phone社區</a>看到的。有人建議Nothing應該要迎合小眾市場出一款小型手機。</p>
+<p>我只開得起天竺鼠車車，所以我不太能理解這個比喻，大概是在說理想很美好現實很骨感吧。哈哈我對很多歐系車廠的印象都來自於二戰時他們幫法西斯政權生產過飛機引擎。</p>
+<p>現在主流的手機，6吋已經算小了，可是所謂小手機應該是4、5吋左右吧。誰知道呢，未來小手機的定義，搞不好變成比誰的折疊機螢幕比較小。</p>
+<p>主流手機公司已經不願意推出這麼小的手機了，最現實的原因，就是沒人買，銷量不佳。<a href="https://cirpapple.substack.com/p/the-iphone-sales-data-that-apple" target="_blank">CIRP - The iPhone Sales Data that Apple Doesn’t Disclose</a></p>
+<p>嗯，過去幾個月，我真的去買了以前的6吋以下小手機來用。</p>
+<p>Zenfone 9和Pixel 5我還嫌太大台了 。</p>
+<p>我的選擇包括Sony Xperia XZ1 Compact還有iPhone 12 Mini。這是你能找到最近代的大廠出的小旗艦了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-be02aafb67.webp">
+<p>請看之前的開箱文：</p>
+<ul>
+<li><a href="https://ivonblog.com/posts/sony-xperia-xz1-compact-review/" target="_blank">方塊小手機Xperia XZ1 Compact刷機復活</a></li>
+<li><a href="https://ivonblog.com/posts/apple-iphone-12-mini-review/" target="_blank">小手機FTW，繼續用iPhone 12 Mini</a></li>
+</ul>
+<p>iPhone還能更新到iOS 26。Xperia刷機更新到最新Android 15之後還堪用。</p>
+<p>因爲我本來就不是重度使用者，所以64GB容量也夠我用。Well看你怎麼定義重度這個字…起碼我不是重度遊戲玩家，只是重度上網。</p>
+<p>但是我拿了幾天後就覺得生理性不適，字好像太小了，續航不好，然後鏡頭只有一兩個……。</p>
+<p>理想破滅了。</p>
+<p>便返回6吋的Xperia 10 V了，也就是Pixel 9無印版的尺寸。</p>
+<p>另一方面，矛盾的是，我嘗試拿6.7吋的紅米手機卻又覺得，太大台了。</p>
+<p>現在對我來說，6吋手機剛剛好。這是所有折衷下的選擇。</p>
+<p>也許我過去，根本從沒喜歡過小手機。</p>
+<p>除了2013年第一支白牌手機外，在那之後我的手機都是5吋起跳的，而我也默默接受了。</p>
+<p>我去看以前的手機，其實從大概2015年起，非全螢幕的手機的主流尺寸，例如Zenfone 2和iPhone 6s Plus，機身長度就跟現在的6吋全螢幕手機一樣大了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e69c5b5a1a.webp">
+<p>那我想我能接受的大小適中的手機，就是6吋。</p>
+<p><a href="https://www.reddit.com/r/smallphones/comments/1rm94ru/are_tiny_phones_actually_practical_in_2025_or/" target="_blank">Are tiny phones actually practical in 2025 or just a nostalgia trap?</a></p>
+<p>懷舊的陷阱，讓你想追求回去用小手機，但也許是回憶的加成你才覺得那是好的，或者是被SNS的文青語言影響覺得「以前比較好」。</p>
+<p>實際上在當代根本不實際，除了很難做之外也缺乏市場。</p>
+<p>時代在變化，也許我們已經回不去了。太多人把手機當小型電腦工作站用了，所以需要大螢幕。我也有平板，我知道複雜的事情可以拿iPad出來做，可是手機早就不是單純的手機了。</p>
+<p>起風了，唯有努力生存，嗎？</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/do-we-really-want-small-phones-back/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14b58388ee.webp"></a></p>
+<p>風立ちぬ、いざ生きめやも。</p>
+<p>手機太大或太小都不行啊。</p>
+<p>有個有趣比喻說：小手機現在就像愛快羅密歐(Alfa Romeo)的車一樣，很多人吵著說想要但其實沒人要買了。</p>
+<p>這是在<a href="https://www.reddit.com/r/NOTHING/comments/1q9fo2i/comment/nyuwh9w/" target="_blank">Reddit的Nothing Phone社區</a>看到的。有人建議Nothing應該要迎合小眾市場出一款小型手機。</p>
+<p>我只開得起天竺鼠車車，所以我不太能理解這個比喻，大概是在說理想很美好現實很骨感吧。哈哈我對很多歐系車廠的印象都來自於二戰時他們幫法西斯政權生產過飛機引擎。</p>
+<p>現在主流的手機，6吋已經算小了，可是所謂小手機應該是4、5吋左右吧。誰知道呢，未來小手機的定義，搞不好變成比誰的折疊機螢幕比較小。</p>
+<p>主流手機公司已經不願意推出這麼小的手機了，最現實的原因，就是沒人買，銷量不佳。<a href="https://cirpapple.substack.com/p/the-iphone-sales-data-that-apple" target="_blank">CIRP - The iPhone Sales Data that Apple Doesn’t Disclose</a></p>
+<p>嗯，過去幾個月，我真的去買了以前的6吋以下小手機來用。</p>
+<p>Zenfone 9和Pixel 5我還嫌太大台了 。</p>
+<p>我的選擇包括Sony Xperia XZ1 Compact還有iPhone 12 Mini。這是你能找到最近代的大廠出的小旗艦了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-be02aafb67.webp">
+<p>請看之前的開箱文：</p>
+<ul>
+<li><a href="https://ivonblog.com/posts/sony-xperia-xz1-compact-review/" target="_blank">方塊小手機Xperia XZ1 Compact刷機復活</a></li>
+<li><a href="https://ivonblog.com/posts/apple-iphone-12-mini-review/" target="_blank">小手機FTW，繼續用iPhone 12 Mini</a></li>
+</ul>
+<p>iPhone還能更新到iOS 26。Xperia刷機更新到最新Android 15之後還堪用。</p>
+<p>因爲我本來就不是重度使用者，所以64GB容量也夠我用。Well看你怎麼定義重度這個字…起碼我不是重度遊戲玩家，只是重度上網。</p>
+<p>但是我拿了幾天後就覺得生理性不適，字好像太小了，續航不好，然後鏡頭只有一兩個……。</p>
+<p>理想破滅了。</p>
+<p>便返回6吋的Xperia 10 V了，也就是Pixel 9無印版的尺寸。</p>
+<p>另一方面，矛盾的是，我嘗試拿6.7吋的紅米手機卻又覺得，太大台了。</p>
+<p>現在對我來說，6吋手機剛剛好。這是所有折衷下的選擇。</p>
+<p>也許我過去，根本從沒喜歡過小手機。</p>
+<p>除了2013年第一支白牌手機外，在那之後我的手機都是5吋起跳的，而我也默默接受了。</p>
+<p>我去看以前的手機，其實從大概2015年起，非全螢幕的手機的主流尺寸，例如Zenfone 2和iPhone 6s Plus，機身長度就跟現在的6吋全螢幕手機一樣大了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e69c5b5a1a.webp">
+<p>那我想我能接受的大小適中的手機，就是6吋。</p>
+<p><a href="https://www.reddit.com/r/smallphones/comments/1rm94ru/are_tiny_phones_actually_practical_in_2025_or/" target="_blank">Are tiny phones actually practical in 2025 or just a nostalgia trap?</a></p>
+<p>懷舊的陷阱，讓你想追求回去用小手機，但也許是回憶的加成你才覺得那是好的，或者是被SNS的文青語言影響覺得「以前比較好」。</p>
+<p>實際上在當代根本不實際，除了很難做之外也缺乏市場。</p>
+<p>時代在變化，也許我們已經回不去了。太多人把手機當小型電腦工作站用了，所以需要大螢幕。我也有平板，我知道複雜的事情可以拿iPad出來做，可是手機早就不是單純的手機了。</p>
+<p>起風了，唯有努力生存，嗎？</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14b58388ee.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14b58388ee.webp" medium="image"/>
+    <pubDate>Mon, 31 Aug 2026 14:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[YTNine：讓老iPhone與iPad正常看Youtube的APP，支援iOS 6 ~ iOS 9]]></title>
+    <link>https://ivonblog.com/posts/ios-ytnine-app/</link>
+    <itunes:title><![CDATA[YTNine：讓老iPhone與iPad正常看Youtube的APP，支援iOS 6 ~ iOS 9]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-ytnine-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bef9f43abe.webp"></a></p>
+<p>YTNine, a YouTube client for jailbroken iOS 6 - 9.</p>
+<p>10年前的舊iPhone 4S和iPad Air 2還能用嗎？App都不能裝了。頂多看看Youtube吧，但是要看Youtube影片，Google官方的App已經不能安裝更新了，用Safari瀏覽器？因爲WebKit被鎖在舊版本，也根本打不開呢！</p>
+<p>那麼不妨來試試非官方的App吧：YTNine
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7098d91346.webp"></p>
+<p>這是越獄社群所打造的非官方Youtube App。</p>
+<p>可以在舊版iOS安裝看Youtube，自動去廣告，背景播放，還有下載影片與登入Google帳號的功能。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fc0c987427.webp">
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-36559a699a.webp"></p>
+<h2>1. 系統需求
+<span>
+<a href="#1-%e7%b3%bb%e7%b5%b1%e9%9c%80%e6%b1%82" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>YTNine由himais0giiiin開發，作者說支援iOS 6 - iOS 9系統版本，例如iPhone 6, iPhone 5, iPhone 4, iPad Air 2, iPad Mini 4這些上古裝置。但其實更高iOS版本也能裝。我測試在iPhone 4S (iOS 6) 和 iPod touch 6 (iOS 12) 都能安裝。</p>
+<p>YTNine屬於專有軟體，部分功能需要付費。</p>
+<p>這種特殊的東西無法上架App Store。它也不是以IPA方式發表的，而是deb套件。需要越獄後安裝。</p>
+<h2>2. 安裝YTNine
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dytnine" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將iPhone越獄，iOS 15以前的版本有很多漏洞能越獄，參閱<a href="https://appledb.dev/device-selection/" target="_blank">AppleDB的資料</a></p>
+</li>
+<li>
+<p>新增作者的套件庫：<a href="https://cydia.himais0giiiin.com" target="_blank">https://cydia.himais0giiiin.com</a>。似乎Sileo無法匯入這個軟體源？要用Cydia或Zebra。</p>
+</li>
+<li>
+<p>搜尋安裝YTNine
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19e208551e.webp"></p>
+</li>
+<li>
+<p>然後就會出現在桌面
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b74da81210.webp"></p>
+</li>
+<li>
+<p>YTNine的影片下載路徑：<code>/var/mobile/Documents/Downloads</code>，要用iFiles才看得到。</p>
+</li>
+</ol>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-ytnine-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bef9f43abe.webp"></a></p>
+<p>YTNine, a YouTube client for jailbroken iOS 6 - 9.</p>
+<p>10年前的舊iPhone 4S和iPad Air 2還能用嗎？App都不能裝了。頂多看看Youtube吧，但是要看Youtube影片，Google官方的App已經不能安裝更新了，用Safari瀏覽器？因爲WebKit被鎖在舊版本，也根本打不開呢！</p>
+<p>那麼不妨來試試非官方的App吧：YTNine
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7098d91346.webp"></p>
+<p>這是越獄社群所打造的非官方Youtube App。</p>
+<p>可以在舊版iOS安裝看Youtube，自動去廣告，背景播放，還有下載影片與登入Google帳號的功能。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fc0c987427.webp">
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-36559a699a.webp"></p>
+<h2>1. 系統需求
+<span>
+<a href="#1-%e7%b3%bb%e7%b5%b1%e9%9c%80%e6%b1%82" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>YTNine由himais0giiiin開發，作者說支援iOS 6 - iOS 9系統版本，例如iPhone 6, iPhone 5, iPhone 4, iPad Air 2, iPad Mini 4這些上古裝置。但其實更高iOS版本也能裝。我測試在iPhone 4S (iOS 6) 和 iPod touch 6 (iOS 12) 都能安裝。</p>
+<p>YTNine屬於專有軟體，部分功能需要付費。</p>
+<p>這種特殊的東西無法上架App Store。它也不是以IPA方式發表的，而是deb套件。需要越獄後安裝。</p>
+<h2>2. 安裝YTNine
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dytnine" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將iPhone越獄，iOS 15以前的版本有很多漏洞能越獄，參閱<a href="https://appledb.dev/device-selection/" target="_blank">AppleDB的資料</a></p>
+</li>
+<li>
+<p>新增作者的套件庫：<a href="https://cydia.himais0giiiin.com" target="_blank">https://cydia.himais0giiiin.com</a>。似乎Sileo無法匯入這個軟體源？要用Cydia或Zebra。</p>
+</li>
+<li>
+<p>搜尋安裝YTNine
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19e208551e.webp"></p>
+</li>
+<li>
+<p>然後就會出現在桌面
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b74da81210.webp"></p>
+</li>
+<li>
+<p>YTNine的影片下載路徑：<code>/var/mobile/Documents/Downloads</code>，要用iFiles才看得到。</p>
+</li>
+</ol>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ios-ytnine-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bef9f43abe.webp"></a></p>
+<p>YTNine, a YouTube client for jailbroken iOS 6 - 9.</p>
+<p>10年前的舊iPhone 4S和iPad Air 2還能用嗎？App都不能裝了。頂多看看Youtube吧，但是要看Youtube影片，Google官方的App已經不能安裝更新了，用Safari瀏覽器？因爲WebKit被鎖在舊版本，也根本打不開呢！</p>
+<p>那麼不妨來試試非官方的App吧：YTNine
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7098d91346.webp"></p>
+<p>這是越獄社群所打造的非官方Youtube App。</p>
+<p>可以在舊版iOS安裝看Youtube，自動去廣告，背景播放，還有下載影片與登入Google帳號的功能。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fc0c987427.webp">
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-36559a699a.webp"></p>
+<h2>1. 系統需求
+<span>
+<a href="#1-%e7%b3%bb%e7%b5%b1%e9%9c%80%e6%b1%82" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>YTNine由himais0giiiin開發，作者說支援iOS 6 - iOS 9系統版本，例如iPhone 6, iPhone 5, iPhone 4, iPad Air 2, iPad Mini 4這些上古裝置。但其實更高iOS版本也能裝。我測試在iPhone 4S (iOS 6) 和 iPod touch 6 (iOS 12) 都能安裝。</p>
+<p>YTNine屬於專有軟體，部分功能需要付費。</p>
+<p>這種特殊的東西無法上架App Store。它也不是以IPA方式發表的，而是deb套件。需要越獄後安裝。</p>
+<h2>2. 安裝YTNine
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dytnine" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將iPhone越獄，iOS 15以前的版本有很多漏洞能越獄，參閱<a href="https://appledb.dev/device-selection/" target="_blank">AppleDB的資料</a></p>
+</li>
+<li>
+<p>新增作者的套件庫：<a href="https://cydia.himais0giiiin.com" target="_blank">https://cydia.himais0giiiin.com</a>。似乎Sileo無法匯入這個軟體源？要用Cydia或Zebra。</p>
+</li>
+<li>
+<p>搜尋安裝YTNine
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-19e208551e.webp"></p>
+</li>
+<li>
+<p>然後就會出現在桌面
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b74da81210.webp"></p>
+</li>
+<li>
+<p>YTNine的影片下載路徑：<code>/var/mobile/Documents/Downloads</code>，要用iFiles才看得到。</p>
+</li>
+</ol>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bef9f43abe.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bef9f43abe.webp" medium="image"/>
+    <pubDate>Sat, 29 Aug 2026 10:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[命運石之門RE:BOOT 心得 + 新舊作差異，我覺得不行]]></title>
+    <link>https://ivonblog.com/posts/steins-gate-re-boot-game-review/</link>
+    <itunes:title><![CDATA[命運石之門RE:BOOT 心得 + 新舊作差異，我覺得不行]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/steins-gate-re-boot-game-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13d8421ec7.webp"></a></p>
+<p>夏Comic Market結束了，當然要來玩《命運石之門 RE:BOOT》 (STEINS;GATE RE:BOOT) ，來看看嘟嘟嚕能否活過8月15日。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-678368d8a0.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4f764f3f4f.webp">
+<p>2026年的這款新作評價如何？</p>
+<p>我認爲算是失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了</p>
+<p>Steam定價1,600臺幣，雖然是10年前炒冷飯的作品嗎？但我還是用原價買了，畢竟我很喜歡這部作品。</p>
+<p>我是2025年入坑的，也就是岡部倫太郎死去的那一年。Steam有上架的命運石之門系列作都買了。</p>
+<p>這次，Steam版的特典包含真人音樂祭、原聲帶、CG電子書。</p>
+<h2>1. 遊戲簡介
+<span>
+<a href="#1-%e9%81%8a%e6%88%b2%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》是5pb.製作的ADV文字冒險遊戲，要在劇情進行的時候操作手機，發送D-Mail，跳轉世界線，拯救椎名真由理和牧瀬紅莉栖兩個主要女主角。否則等待他的，將會是2036年世界毀滅的未來。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-333801025c.webp">
+<p>雖然這種Galgame的玩法聽起來很無聊，但透過遊戲的演出，瘋狂操作手機發D-Mail的過程，還有為了找尋正確的發信時機，不斷Save &amp; Reload，可以讓人感受到岡部倫太郎不斷挑戰命運的絕望感。即使你是看攻略照抄，也會越玩越焦急！</p>
+<p>這個遊戲非常推薦科幻迷和對2ch鄉民梗熟悉的人遊玩。</p>
+<p>《命運石之門 RE:BOOT》是2009年《命運石之門》的重製版，加入了部分新劇情，繪製全新CG，語音重新錄製，修正一些場景bug，並加入與《命運石之門 0》角色的關聯。</p>
+<p>這個遊戲於2026年8月20日發售，也就是「掌管未來的女神」作戰發動的當天。Steam有賣，支援Windows系統。在Linux用Proton 11可以跑但不知道爲什麼角色語音沒聲音，他們是用了什麼加密技術還是專有編碼器。明明舊作沒問題的。只好用Windows玩，可是Live2D在我的老電腦會掉幀。嗯，切換到GE Proton 11.5就有聲音了，Live2D在Linux感覺順多了。</p>
+<p>另外，Steam版的特典包含真人音樂祭、原聲帶、電子書。因為這電子書只是CG集，果然還是實體的比較好啊….似乎只有家機版有賣實體的。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3d2d9bc3a9.webp">
+<p>Live演唱會有兩小時，提供部分中文字幕，還有2024年的聲優現場演出短劇。可以說遊戲的高定價一部分就包含了這個錄影帶吧。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-72c2f882d1.webp">
+<h2>2. 攻略
+<span>
+<a href="#2-%e6%94%bb%e7%95%a5" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》的流程跟舊版《命運石之門》差不多，Steam Community有很多攻略可以看。</p>
+<p>要拯救牧瀬紅莉栖，需要完成其他線，犧牲與其他角色的回憶，看過假結局後，才會進入真結局。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5de8abc45e.webp">
+<p>這次多出來的是γ Gamma世界線，算是在2012年的廣播劇就有的內容。這次把它加進來，做成了不長不短的內容，補完結局。</p>
+<p>進入γ世界線的方法：</p>
+<p>在桐生萌郁線的第九章，不要發D-mail，直到最後讓崩壞的小動物（天王寺綯）搶走手機，就會進入γ世界線。</p>
+<h2>3. 新舊作CG風格差異
+<span>
+<a href="#3-%e6%96%b0%e8%88%8a%e4%bd%9ccg%e9%a2%a8%e6%a0%bc%e5%b7%ae%e7%95%b0" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>之前寫的舊作遊玩心得： <a href="https://ivonblog.com/posts/steins-gate-game-review/" target="_blank">《STEINS;GATE》Steam版遊戲心得</a></p>
+<p>首先，我破完阿萬音鈴雨線，感覺是界面拉皮、畫風變了、BGM重編曲，聲優老了但仍儘力維持聲線。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0a2ac7f5f2.webp">
+<p>故事裡面的科技還停留在2010年，所以角色用的還是按鍵型手機。誰知道把手機跟微波爐組合在一起就能製作出時光機呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-014a476253.webp">
+<p>新功能：遊戲選單加入了OBSERVER，顯示各個世界線的流程圖幫助破關。這是很方便沒錯啦，可是遊戲劇情很複雜，我不覺得有人能不看攻略從這裡猜出要如何抵達真結局啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8986ce4f84.webp">
+<p>世界線變動的動畫…感覺降級了。是吧，我覺得整體美術走現代化平面科技風格，導致過去的擬物化氛圍失去了。</p>
+<p>世界線變動率探測儀明明是真空管做的，看起來像保險套奶瓶。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d2b4d13169.webp">
+<p>不知道爲什麼，CG背景圖片會有奇怪的花花綠綠的線條，是怕畫面太乾淨嗎。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f4417e5c46.webp">
+<p>有趣的是《命運石之門 0》的角色也出現在劇情裡，包括比屋定真帆，是爲了製造與他們的關聯吧，不然在本傳牧瀬紅莉栖完全沒提到美國研究所的同事，導致後來0加入的角色很突兀。這裡算是補上了這個缺憾。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1f2e945d5a.webp">
+<p>阿保剛的配樂略微重編曲，但我還是喜歡舊版鋼琴呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-03d214076a.webp">
+<p>畫風變化最大的huke，個人風格消失了。嗯，huke以前雖然有些畫面畫的很憨，如鈴羽衝刺臉，岡部超大下巴，人物扁平頭
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4d0a9fe062.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f49a5e7bce.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6e9b03f06a.webp">
+<p>但是風格特殊嘛！</p>
+<p>現在人物比例正常反而很不習慣呢，只有眼睛的畫法還看得出神韻。總覺得比2019年的《命運石之門 0》畫風變化更糟糕了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-94260f3c92.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5f73b58852.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5a18d59257.webp">
+<p>另外，女角的奶子都變大了。看看洗澡這一幕，真由理真的，大</p>
+<p>舊版
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-50bf94bf27.webp">
+<p>新版
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e94a0a01d8.webp">
+<p>新版遊戲加入了E-mote，也就是Live2D，人物講話的時候會動。E-mote Live2D只有角色在動，材質不動，好像古早歐美卡通的上色方式，這樣也能賣專利喔。</p>
+<p>可我覺得E-mote Live2D的功用…就是展示閃光指壓師按手機的手速有多快，還有達魯的手終於能放下了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f58e49cbdd.webp">
+<p>真有理和菲麗絲喵喵，有很偶爾的乳搖。</p>
+<p>雖然官方說，CG數量比舊版多1.5倍，這次Cutscene細節有變多，勉強像動畫，但仍不及《命運石之門 ELITE》
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5e27e60c58.webp">
+<p>反倒很多本來該有CG的地方都用很尷尬的幾個E-mote動作替代了，例如帶真由理逃跑的過場，以及跟桐生萌郁扭打的場景。</p>
+<p>如果要欣賞精彩演出，不要對這種皮影戲抱太多期待。直接看動畫版比較好。</p>
+<h2>4. 劇情安排有問題
+<span>
+<a href="#4-%e5%8a%87%e6%83%85%e5%ae%89%e6%8e%92%e6%9c%89%e5%95%8f%e9%a1%8c" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》劇情結構沒有太大變化。</p>
+<p>破完舊作花了快30小時吧。隔不到一年，再來玩幾乎一模一樣的新版劇情，我花了10小時就結束了。</p>
+<p>我覺得玩完，聽到伊藤香奈子唱的〈Another Heaven〉還是有再次被真結局感動到啦，劇情中間抓緊時機發郵件給牧瀬紅莉栖製造好感度的感覺給人緊張感，只是一些細節變更就覺得體驗降級了。</p>
+<p>部分舊版場景的bug有修正，例如天王寺是到空地與岡部會談。琉華子從Comiket回來後是穿制服而非巫女服。菲莉絲·喵喵結局的衣服換上紫色的等等。</p>
+<p>但是其他改進嘛…</p>
+<p>新版OP移除了時光機從宇宙墜落，看起來像人造衛星的暗示消失了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d5ab46baf1.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f64a2d43ba.webp">
+<p>參考舊版OP，不知道是不是只有我這樣想啦，那臺時光機看起來真的很像人造衛星嘛，再加上OP的呈現方式，有誤導玩家的作用在。說真的第一次玩舊版會有讓人摸不者頭腦的感覺，因爲開場就是岡部中二病發作在自言自語，不知道哪個設定是真是假。而新版給人的這種感覺就少很多呢。</p>
+<p>可能我2025年才玩完舊作，覺得玩新作沒有太多懷舊感。反而覺得拉皮是退步。</p>
+<p>很多本來有CG的地方被E-mote取代致使觀感不佳。</p>
+<p>SERN的傭兵闖入研究所的節奏很怪，「真由理的懷錶停了」這個梗消失了。</p>
+<p>助手登場救人的中二姿勢消失了！！！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7fd7c6f94a.webp">
+<p>琉華子線，跟岡部結婚生小孩的CG被刪除了，看來編劇也覺得這畫面意義不明!?
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9712b7e8db.webp">
+<p>誒幹Gamma世界線戲份太少了吧，岡部成爲Wanderer，與未來研究所的眾人為敵，殺了FB就跑路，與秋葉原的夥伴訣別，我還以為有其他發展！！！嗯看來後續故事已經能當另外一部作品賣了是吧。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-97c6b83bdf.webp">
+<p>這條線的特色就…欣賞小動物崩壞的鬼畜臉。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b2aeac1cb7.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2b0dd787fe.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c477ac08a5.webp">
+<p>看起來只是強行加入一個萌郁存活的結局，不讓她就這樣死去。故事戛然而止。不是很完整的故事，只是演示了另外一種可能性。</p>
+<p>新版沒有為牧瀬紅莉栖以外的人物加筆什麼劇情。專注在強化牧瀬紅莉栖的劇情。中間加入了更多文戲，包括與父親的對談，以及提及Amadeus人工智慧的存在，為《命運石之門 0》的故事埋下伏筆。</p>
+<p>她不論跨越多少世界線都會無條件的信賴你。</p>
+<p>岡部在進入Beta世界線前，還爲了嘗試其他救牧瀬紅莉栖的可能性，多跳幾次，可依然無法迴避真有理之死。最後在兩人接吻之下，才決定回到Beta世界線。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8b4f441b.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-facd990497.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8f2764eb42.webp">
+<p>我認爲炒冷飯算是失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了 → 不過新版遊戲針對這一段信的演出有改進，滿生草的。</p>
+<p>幹還我2000！！！就當作買OST送Live2D。能動的角色總是看起來比較爽…吧。</p>
+<h2>5. 總結
+<span>
+<a href="#5-%e7%b8%bd%e7%b5%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>不是鋼鐵粉絲的話等特價再買。</p>
+<p>說是失敗好像也不是完全失敗的樣子呢，但就是舊版的氛圍已經回不去了。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/steins-gate-re-boot-game-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13d8421ec7.webp"></a></p>
+<p>夏Comic Market結束了，當然要來玩《命運石之門 RE:BOOT》 (STEINS;GATE RE:BOOT) ，來看看嘟嘟嚕能否活過8月15日。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-678368d8a0.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4f764f3f4f.webp">
+<p>2026年的這款新作評價如何？</p>
+<p>我認爲算是失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了</p>
+<p>Steam定價1,600臺幣，雖然是10年前炒冷飯的作品嗎？但我還是用原價買了，畢竟我很喜歡這部作品。</p>
+<p>我是2025年入坑的，也就是岡部倫太郎死去的那一年。Steam有上架的命運石之門系列作都買了。</p>
+<p>這次，Steam版的特典包含真人音樂祭、原聲帶、CG電子書。</p>
+<h2>1. 遊戲簡介
+<span>
+<a href="#1-%e9%81%8a%e6%88%b2%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》是5pb.製作的ADV文字冒險遊戲，要在劇情進行的時候操作手機，發送D-Mail，跳轉世界線，拯救椎名真由理和牧瀬紅莉栖兩個主要女主角。否則等待他的，將會是2036年世界毀滅的未來。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-333801025c.webp">
+<p>雖然這種Galgame的玩法聽起來很無聊，但透過遊戲的演出，瘋狂操作手機發D-Mail的過程，還有為了找尋正確的發信時機，不斷Save &amp; Reload，可以讓人感受到岡部倫太郎不斷挑戰命運的絕望感。即使你是看攻略照抄，也會越玩越焦急！</p>
+<p>這個遊戲非常推薦科幻迷和對2ch鄉民梗熟悉的人遊玩。</p>
+<p>《命運石之門 RE:BOOT》是2009年《命運石之門》的重製版，加入了部分新劇情，繪製全新CG，語音重新錄製，修正一些場景bug，並加入與《命運石之門 0》角色的關聯。</p>
+<p>這個遊戲於2026年8月20日發售，也就是「掌管未來的女神」作戰發動的當天。Steam有賣，支援Windows系統。在Linux用Proton 11可以跑但不知道爲什麼角色語音沒聲音，他們是用了什麼加密技術還是專有編碼器。明明舊作沒問題的。只好用Windows玩，可是Live2D在我的老電腦會掉幀。嗯，切換到GE Proton 11.5就有聲音了，Live2D在Linux感覺順多了。</p>
+<p>另外，Steam版的特典包含真人音樂祭、原聲帶、電子書。因為這電子書只是CG集，果然還是實體的比較好啊….似乎只有家機版有賣實體的。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3d2d9bc3a9.webp">
+<p>Live演唱會有兩小時，提供部分中文字幕，還有2024年的聲優現場演出短劇。可以說遊戲的高定價一部分就包含了這個錄影帶吧。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-72c2f882d1.webp">
+<h2>2. 攻略
+<span>
+<a href="#2-%e6%94%bb%e7%95%a5" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》的流程跟舊版《命運石之門》差不多，Steam Community有很多攻略可以看。</p>
+<p>要拯救牧瀬紅莉栖，需要完成其他線，犧牲與其他角色的回憶，看過假結局後，才會進入真結局。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5de8abc45e.webp">
+<p>這次多出來的是γ Gamma世界線，算是在2012年的廣播劇就有的內容。這次把它加進來，做成了不長不短的內容，補完結局。</p>
+<p>進入γ世界線的方法：</p>
+<p>在桐生萌郁線的第九章，不要發D-mail，直到最後讓崩壞的小動物（天王寺綯）搶走手機，就會進入γ世界線。</p>
+<h2>3. 新舊作CG風格差異
+<span>
+<a href="#3-%e6%96%b0%e8%88%8a%e4%bd%9ccg%e9%a2%a8%e6%a0%bc%e5%b7%ae%e7%95%b0" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>之前寫的舊作遊玩心得： <a href="https://ivonblog.com/posts/steins-gate-game-review/" target="_blank">《STEINS;GATE》Steam版遊戲心得</a></p>
+<p>首先，我破完阿萬音鈴雨線，感覺是界面拉皮、畫風變了、BGM重編曲，聲優老了但仍儘力維持聲線。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0a2ac7f5f2.webp">
+<p>故事裡面的科技還停留在2010年，所以角色用的還是按鍵型手機。誰知道把手機跟微波爐組合在一起就能製作出時光機呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-014a476253.webp">
+<p>新功能：遊戲選單加入了OBSERVER，顯示各個世界線的流程圖幫助破關。這是很方便沒錯啦，可是遊戲劇情很複雜，我不覺得有人能不看攻略從這裡猜出要如何抵達真結局啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8986ce4f84.webp">
+<p>世界線變動的動畫…感覺降級了。是吧，我覺得整體美術走現代化平面科技風格，導致過去的擬物化氛圍失去了。</p>
+<p>世界線變動率探測儀明明是真空管做的，看起來像保險套奶瓶。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d2b4d13169.webp">
+<p>不知道爲什麼，CG背景圖片會有奇怪的花花綠綠的線條，是怕畫面太乾淨嗎。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f4417e5c46.webp">
+<p>有趣的是《命運石之門 0》的角色也出現在劇情裡，包括比屋定真帆，是爲了製造與他們的關聯吧，不然在本傳牧瀬紅莉栖完全沒提到美國研究所的同事，導致後來0加入的角色很突兀。這裡算是補上了這個缺憾。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1f2e945d5a.webp">
+<p>阿保剛的配樂略微重編曲，但我還是喜歡舊版鋼琴呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-03d214076a.webp">
+<p>畫風變化最大的huke，個人風格消失了。嗯，huke以前雖然有些畫面畫的很憨，如鈴羽衝刺臉，岡部超大下巴，人物扁平頭
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4d0a9fe062.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f49a5e7bce.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6e9b03f06a.webp">
+<p>但是風格特殊嘛！</p>
+<p>現在人物比例正常反而很不習慣呢，只有眼睛的畫法還看得出神韻。總覺得比2019年的《命運石之門 0》畫風變化更糟糕了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-94260f3c92.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5f73b58852.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5a18d59257.webp">
+<p>另外，女角的奶子都變大了。看看洗澡這一幕，真由理真的，大</p>
+<p>舊版
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-50bf94bf27.webp">
+<p>新版
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e94a0a01d8.webp">
+<p>新版遊戲加入了E-mote，也就是Live2D，人物講話的時候會動。E-mote Live2D只有角色在動，材質不動，好像古早歐美卡通的上色方式，這樣也能賣專利喔。</p>
+<p>可我覺得E-mote Live2D的功用…就是展示閃光指壓師按手機的手速有多快，還有達魯的手終於能放下了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f58e49cbdd.webp">
+<p>真有理和菲麗絲喵喵，有很偶爾的乳搖。</p>
+<p>雖然官方說，CG數量比舊版多1.5倍，這次Cutscene細節有變多，勉強像動畫，但仍不及《命運石之門 ELITE》
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5e27e60c58.webp">
+<p>反倒很多本來該有CG的地方都用很尷尬的幾個E-mote動作替代了，例如帶真由理逃跑的過場，以及跟桐生萌郁扭打的場景。</p>
+<p>如果要欣賞精彩演出，不要對這種皮影戲抱太多期待。直接看動畫版比較好。</p>
+<h2>4. 劇情安排有問題
+<span>
+<a href="#4-%e5%8a%87%e6%83%85%e5%ae%89%e6%8e%92%e6%9c%89%e5%95%8f%e9%a1%8c" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》劇情結構沒有太大變化。</p>
+<p>破完舊作花了快30小時吧。隔不到一年，再來玩幾乎一模一樣的新版劇情，我花了10小時就結束了。</p>
+<p>我覺得玩完，聽到伊藤香奈子唱的〈Another Heaven〉還是有再次被真結局感動到啦，劇情中間抓緊時機發郵件給牧瀬紅莉栖製造好感度的感覺給人緊張感，只是一些細節變更就覺得體驗降級了。</p>
+<p>部分舊版場景的bug有修正，例如天王寺是到空地與岡部會談。琉華子從Comiket回來後是穿制服而非巫女服。菲莉絲·喵喵結局的衣服換上紫色的等等。</p>
+<p>但是其他改進嘛…</p>
+<p>新版OP移除了時光機從宇宙墜落，看起來像人造衛星的暗示消失了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d5ab46baf1.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f64a2d43ba.webp">
+<p>參考舊版OP，不知道是不是只有我這樣想啦，那臺時光機看起來真的很像人造衛星嘛，再加上OP的呈現方式，有誤導玩家的作用在。說真的第一次玩舊版會有讓人摸不者頭腦的感覺，因爲開場就是岡部中二病發作在自言自語，不知道哪個設定是真是假。而新版給人的這種感覺就少很多呢。</p>
+<p>可能我2025年才玩完舊作，覺得玩新作沒有太多懷舊感。反而覺得拉皮是退步。</p>
+<p>很多本來有CG的地方被E-mote取代致使觀感不佳。</p>
+<p>SERN的傭兵闖入研究所的節奏很怪，「真由理的懷錶停了」這個梗消失了。</p>
+<p>助手登場救人的中二姿勢消失了！！！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7fd7c6f94a.webp">
+<p>琉華子線，跟岡部結婚生小孩的CG被刪除了，看來編劇也覺得這畫面意義不明!?
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9712b7e8db.webp">
+<p>誒幹Gamma世界線戲份太少了吧，岡部成爲Wanderer，與未來研究所的眾人為敵，殺了FB就跑路，與秋葉原的夥伴訣別，我還以為有其他發展！！！嗯看來後續故事已經能當另外一部作品賣了是吧。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-97c6b83bdf.webp">
+<p>這條線的特色就…欣賞小動物崩壞的鬼畜臉。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b2aeac1cb7.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2b0dd787fe.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c477ac08a5.webp">
+<p>看起來只是強行加入一個萌郁存活的結局，不讓她就這樣死去。故事戛然而止。不是很完整的故事，只是演示了另外一種可能性。</p>
+<p>新版沒有為牧瀬紅莉栖以外的人物加筆什麼劇情。專注在強化牧瀬紅莉栖的劇情。中間加入了更多文戲，包括與父親的對談，以及提及Amadeus人工智慧的存在，為《命運石之門 0》的故事埋下伏筆。</p>
+<p>她不論跨越多少世界線都會無條件的信賴你。</p>
+<p>岡部在進入Beta世界線前，還爲了嘗試其他救牧瀬紅莉栖的可能性，多跳幾次，可依然無法迴避真有理之死。最後在兩人接吻之下，才決定回到Beta世界線。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8b4f441b.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-facd990497.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8f2764eb42.webp">
+<p>我認爲炒冷飯算是失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了 → 不過新版遊戲針對這一段信的演出有改進，滿生草的。</p>
+<p>幹還我2000！！！就當作買OST送Live2D。能動的角色總是看起來比較爽…吧。</p>
+<h2>5. 總結
+<span>
+<a href="#5-%e7%b8%bd%e7%b5%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>不是鋼鐵粉絲的話等特價再買。</p>
+<p>說是失敗好像也不是完全失敗的樣子呢，但就是舊版的氛圍已經回不去了。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/steins-gate-re-boot-game-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13d8421ec7.webp"></a></p>
+<p>夏Comic Market結束了，當然要來玩《命運石之門 RE:BOOT》 (STEINS;GATE RE:BOOT) ，來看看嘟嘟嚕能否活過8月15日。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-678368d8a0.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4f764f3f4f.webp">
+<p>2026年的這款新作評價如何？</p>
+<p>我認爲算是失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了</p>
+<p>Steam定價1,600臺幣，雖然是10年前炒冷飯的作品嗎？但我還是用原價買了，畢竟我很喜歡這部作品。</p>
+<p>我是2025年入坑的，也就是岡部倫太郎死去的那一年。Steam有上架的命運石之門系列作都買了。</p>
+<p>這次，Steam版的特典包含真人音樂祭、原聲帶、CG電子書。</p>
+<h2>1. 遊戲簡介
+<span>
+<a href="#1-%e9%81%8a%e6%88%b2%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》是5pb.製作的ADV文字冒險遊戲，要在劇情進行的時候操作手機，發送D-Mail，跳轉世界線，拯救椎名真由理和牧瀬紅莉栖兩個主要女主角。否則等待他的，將會是2036年世界毀滅的未來。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-333801025c.webp">
+<p>雖然這種Galgame的玩法聽起來很無聊，但透過遊戲的演出，瘋狂操作手機發D-Mail的過程，還有為了找尋正確的發信時機，不斷Save &amp; Reload，可以讓人感受到岡部倫太郎不斷挑戰命運的絕望感。即使你是看攻略照抄，也會越玩越焦急！</p>
+<p>這個遊戲非常推薦科幻迷和對2ch鄉民梗熟悉的人遊玩。</p>
+<p>《命運石之門 RE:BOOT》是2009年《命運石之門》的重製版，加入了部分新劇情，繪製全新CG，語音重新錄製，修正一些場景bug，並加入與《命運石之門 0》角色的關聯。</p>
+<p>這個遊戲於2026年8月20日發售，也就是「掌管未來的女神」作戰發動的當天。Steam有賣，支援Windows系統。在Linux用Proton 11可以跑但不知道爲什麼角色語音沒聲音，他們是用了什麼加密技術還是專有編碼器。明明舊作沒問題的。只好用Windows玩，可是Live2D在我的老電腦會掉幀。嗯，切換到GE Proton 11.5就有聲音了，Live2D在Linux感覺順多了。</p>
+<p>另外，Steam版的特典包含真人音樂祭、原聲帶、電子書。因為這電子書只是CG集，果然還是實體的比較好啊….似乎只有家機版有賣實體的。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3d2d9bc3a9.webp">
+<p>Live演唱會有兩小時，提供部分中文字幕，還有2024年的聲優現場演出短劇。可以說遊戲的高定價一部分就包含了這個錄影帶吧。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-72c2f882d1.webp">
+<h2>2. 攻略
+<span>
+<a href="#2-%e6%94%bb%e7%95%a5" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》的流程跟舊版《命運石之門》差不多，Steam Community有很多攻略可以看。</p>
+<p>要拯救牧瀬紅莉栖，需要完成其他線，犧牲與其他角色的回憶，看過假結局後，才會進入真結局。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5de8abc45e.webp">
+<p>這次多出來的是γ Gamma世界線，算是在2012年的廣播劇就有的內容。這次把它加進來，做成了不長不短的內容，補完結局。</p>
+<p>進入γ世界線的方法：</p>
+<p>在桐生萌郁線的第九章，不要發D-mail，直到最後讓崩壞的小動物（天王寺綯）搶走手機，就會進入γ世界線。</p>
+<h2>3. 新舊作CG風格差異
+<span>
+<a href="#3-%e6%96%b0%e8%88%8a%e4%bd%9ccg%e9%a2%a8%e6%a0%bc%e5%b7%ae%e7%95%b0" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>之前寫的舊作遊玩心得： <a href="https://ivonblog.com/posts/steins-gate-game-review/" target="_blank">《STEINS;GATE》Steam版遊戲心得</a></p>
+<p>首先，我破完阿萬音鈴雨線，感覺是界面拉皮、畫風變了、BGM重編曲，聲優老了但仍儘力維持聲線。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0a2ac7f5f2.webp">
+<p>故事裡面的科技還停留在2010年，所以角色用的還是按鍵型手機。誰知道把手機跟微波爐組合在一起就能製作出時光機呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-014a476253.webp">
+<p>新功能：遊戲選單加入了OBSERVER，顯示各個世界線的流程圖幫助破關。這是很方便沒錯啦，可是遊戲劇情很複雜，我不覺得有人能不看攻略從這裡猜出要如何抵達真結局啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8986ce4f84.webp">
+<p>世界線變動的動畫…感覺降級了。是吧，我覺得整體美術走現代化平面科技風格，導致過去的擬物化氛圍失去了。</p>
+<p>世界線變動率探測儀明明是真空管做的，看起來像保險套奶瓶。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d2b4d13169.webp">
+<p>不知道爲什麼，CG背景圖片會有奇怪的花花綠綠的線條，是怕畫面太乾淨嗎。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f4417e5c46.webp">
+<p>有趣的是《命運石之門 0》的角色也出現在劇情裡，包括比屋定真帆，是爲了製造與他們的關聯吧，不然在本傳牧瀬紅莉栖完全沒提到美國研究所的同事，導致後來0加入的角色很突兀。這裡算是補上了這個缺憾。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1f2e945d5a.webp">
+<p>阿保剛的配樂略微重編曲，但我還是喜歡舊版鋼琴呢。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-03d214076a.webp">
+<p>畫風變化最大的huke，個人風格消失了。嗯，huke以前雖然有些畫面畫的很憨，如鈴羽衝刺臉，岡部超大下巴，人物扁平頭
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4d0a9fe062.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f49a5e7bce.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6e9b03f06a.webp">
+<p>但是風格特殊嘛！</p>
+<p>現在人物比例正常反而很不習慣呢，只有眼睛的畫法還看得出神韻。總覺得比2019年的《命運石之門 0》畫風變化更糟糕了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-94260f3c92.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5f73b58852.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5a18d59257.webp">
+<p>另外，女角的奶子都變大了。看看洗澡這一幕，真由理真的，大</p>
+<p>舊版
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-50bf94bf27.webp">
+<p>新版
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e94a0a01d8.webp">
+<p>新版遊戲加入了E-mote，也就是Live2D，人物講話的時候會動。E-mote Live2D只有角色在動，材質不動，好像古早歐美卡通的上色方式，這樣也能賣專利喔。</p>
+<p>可我覺得E-mote Live2D的功用…就是展示閃光指壓師按手機的手速有多快，還有達魯的手終於能放下了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f58e49cbdd.webp">
+<p>真有理和菲麗絲喵喵，有很偶爾的乳搖。</p>
+<p>雖然官方說，CG數量比舊版多1.5倍，這次Cutscene細節有變多，勉強像動畫，但仍不及《命運石之門 ELITE》
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5e27e60c58.webp">
+<p>反倒很多本來該有CG的地方都用很尷尬的幾個E-mote動作替代了，例如帶真由理逃跑的過場，以及跟桐生萌郁扭打的場景。</p>
+<p>如果要欣賞精彩演出，不要對這種皮影戲抱太多期待。直接看動畫版比較好。</p>
+<h2>4. 劇情安排有問題
+<span>
+<a href="#4-%e5%8a%87%e6%83%85%e5%ae%89%e6%8e%92%e6%9c%89%e5%95%8f%e9%a1%8c" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>《命運石之門 RE:BOOT》劇情結構沒有太大變化。</p>
+<p>破完舊作花了快30小時吧。隔不到一年，再來玩幾乎一模一樣的新版劇情，我花了10小時就結束了。</p>
+<p>我覺得玩完，聽到伊藤香奈子唱的〈Another Heaven〉還是有再次被真結局感動到啦，劇情中間抓緊時機發郵件給牧瀬紅莉栖製造好感度的感覺給人緊張感，只是一些細節變更就覺得體驗降級了。</p>
+<p>部分舊版場景的bug有修正，例如天王寺是到空地與岡部會談。琉華子從Comiket回來後是穿制服而非巫女服。菲莉絲·喵喵結局的衣服換上紫色的等等。</p>
+<p>但是其他改進嘛…</p>
+<p>新版OP移除了時光機從宇宙墜落，看起來像人造衛星的暗示消失了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d5ab46baf1.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f64a2d43ba.webp">
+<p>參考舊版OP，不知道是不是只有我這樣想啦，那臺時光機看起來真的很像人造衛星嘛，再加上OP的呈現方式，有誤導玩家的作用在。說真的第一次玩舊版會有讓人摸不者頭腦的感覺，因爲開場就是岡部中二病發作在自言自語，不知道哪個設定是真是假。而新版給人的這種感覺就少很多呢。</p>
+<p>可能我2025年才玩完舊作，覺得玩新作沒有太多懷舊感。反而覺得拉皮是退步。</p>
+<p>很多本來有CG的地方被E-mote取代致使觀感不佳。</p>
+<p>SERN的傭兵闖入研究所的節奏很怪，「真由理的懷錶停了」這個梗消失了。</p>
+<p>助手登場救人的中二姿勢消失了！！！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7fd7c6f94a.webp">
+<p>琉華子線，跟岡部結婚生小孩的CG被刪除了，看來編劇也覺得這畫面意義不明!?
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9712b7e8db.webp">
+<p>誒幹Gamma世界線戲份太少了吧，岡部成爲Wanderer，與未來研究所的眾人為敵，殺了FB就跑路，與秋葉原的夥伴訣別，我還以為有其他發展！！！嗯看來後續故事已經能當另外一部作品賣了是吧。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-97c6b83bdf.webp">
+<p>這條線的特色就…欣賞小動物崩壞的鬼畜臉。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b2aeac1cb7.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2b0dd787fe.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c477ac08a5.webp">
+<p>看起來只是強行加入一個萌郁存活的結局，不讓她就這樣死去。故事戛然而止。不是很完整的故事，只是演示了另外一種可能性。</p>
+<p>新版沒有為牧瀬紅莉栖以外的人物加筆什麼劇情。專注在強化牧瀬紅莉栖的劇情。中間加入了更多文戲，包括與父親的對談，以及提及Amadeus人工智慧的存在，為《命運石之門 0》的故事埋下伏筆。</p>
+<p>她不論跨越多少世界線都會無條件的信賴你。</p>
+<p>岡部在進入Beta世界線前，還爲了嘗試其他救牧瀬紅莉栖的可能性，多跳幾次，可依然無法迴避真有理之死。最後在兩人接吻之下，才決定回到Beta世界線。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8b4f441b.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-facd990497.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8f2764eb42.webp">
+<p>我認爲炒冷飯算是失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了失敗了 → 不過新版遊戲針對這一段信的演出有改進，滿生草的。</p>
+<p>幹還我2000！！！就當作買OST送Live2D。能動的角色總是看起來比較爽…吧。</p>
+<h2>5. 總結
+<span>
+<a href="#5-%e7%b8%bd%e7%b5%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>不是鋼鐵粉絲的話等特價再買。</p>
+<p>說是失敗好像也不是完全失敗的樣子呢，但就是舊版的氛圍已經回不去了。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13d8421ec7.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-13d8421ec7.webp" medium="image"/>
+    <pubDate>Thu, 27 Aug 2026 11:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[追求不吃記憶體的瀏覽器是不現實的指標]]></title>
+    <link>https://ivonblog.com/posts/using-lightweight-browser-is-impossible/</link>
+    <itunes:title><![CDATA[追求不吃記憶體的瀏覽器是不現實的指標]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/using-lightweight-browser-is-impossible/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8c7e33762b.webp"></a></p>
+<p>一直有人說Firefox和Chrome一樣越來越吃記憶體(RAM)，但說真的，我們能怪他們嗎…？追求低記憶體佔用的指標根本不現實。</p>
+<p>瀏覽器的工作早就不是單純看HTML網頁那麼簡單了，它要管理行程，分多個行程開沙盒保護安全，同步服務，還要處理外掛。此外網頁會載入大量JavaScript，現在還有WebAssembly（在瀏覽器跑C與Rust低階語言寫的程式）、WebGPU存取顯卡，需要的電腦資源自然就會變多了。</p>
+<p>比較瀏覽器剛開起來佔用的RAM代表不了什麼，分頁一多還不是一樣。</p>
+<p>一個Youtube分頁看久了吃1GB RAM都不奇怪。</p>
+<p>嗯…只要網頁不會像ChatGPT因為對話太長導致RAM佔用過高甚至當掉我都還能忍受啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-85781e66cf.webp">
+<p>即使號稱輕量的Helium Browser，開網頁多了RAM佔用也不會低到哪裡去。如果你真的想要不吃記憶體的，就去用看看純QtWebEngine或WebKitGTK做成的瀏覽器吧！譬如Qutebrowser。幾乎什麼功能都沒有，靠犧牲Chromium的安全性換速度。不然就得是Safari那種特製化的瀏覽器，才有可能在不犧牲功能性的情況下保存低記憶體佔用。可是這維護太困難了，也與主流Web標準背道而馳。</p>
+<p>要叫那些網頁開發者別用Vue、React、Angualr，使用節省一點記憶體的框架，並且處理好server side和client side rendering？比《牛來》在臺灣上映還不可能。誰要手刻HTML + CSS啊，又不是無名小站的時代了。（順帶一提我網站用的是Hugo框架，LightHouse各項指標接近100分）</p>
+<p>重點是如何管理分頁。然後不要裝太多擴充。</p>
+<p>Chrome和基於Chromium開發的瀏覽器有「記憶體節省模式」，自動關閉閒置分頁的功能，這可以在設定開啟。分頁不會消失，而是從RAM釋放，切換回去就重新載入。</p>
+<p>目前Firefox v.152還沒有Chrome那麼積極的自動釋放閒置分頁，頂多只會跳「這個分頁讓Firefox變慢了」的警告，你得手動觸發。對分頁按右鍵，卸載分頁，釋放RAM。按Shift一鍵全選，就能讓目前瀏覽以外的網頁取消載入，這樣能減少電腦壓力。</p>
+<p>但我覺得最簡單的處理方式，還是開啟在瀏覽器啟動時，自動還原分頁功能，然後整個關掉瀏覽器再重開就好啦。</p>
+<p>因為我覺得讓瀏覽器去自動關閉分頁顯的很不可靠，我在iPad用Firefox就很不爽，因為分頁隨時就會隨機被殺掉，不像Linux寧願撐爆RAM也要維持分頁載入。</p>
+<p>手機瀏覽器的話因為要防止背景分頁耗電所以自動殺掉分頁可以理解，但電腦瀏覽器不應該任意關掉其他分頁呢。</p>
+<p>此外，利用多個設定檔整理分頁也是一個方法。Firefox有垂直分頁，還有分頁群組。但沒有加入Zen Browser的工作區，而是以設定檔為主。分頁可以在不同的設定檔之間移動。如果有分頁之後要看，把它移動到另外一個設定檔就行了。</p>
+<p>請不要再用Windows XP時代的思維看待現在的電腦了。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/using-lightweight-browser-is-impossible/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8c7e33762b.webp"></a></p>
+<p>一直有人說Firefox和Chrome一樣越來越吃記憶體(RAM)，但說真的，我們能怪他們嗎…？追求低記憶體佔用的指標根本不現實。</p>
+<p>瀏覽器的工作早就不是單純看HTML網頁那麼簡單了，它要管理行程，分多個行程開沙盒保護安全，同步服務，還要處理外掛。此外網頁會載入大量JavaScript，現在還有WebAssembly（在瀏覽器跑C與Rust低階語言寫的程式）、WebGPU存取顯卡，需要的電腦資源自然就會變多了。</p>
+<p>比較瀏覽器剛開起來佔用的RAM代表不了什麼，分頁一多還不是一樣。</p>
+<p>一個Youtube分頁看久了吃1GB RAM都不奇怪。</p>
+<p>嗯…只要網頁不會像ChatGPT因為對話太長導致RAM佔用過高甚至當掉我都還能忍受啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-85781e66cf.webp">
+<p>即使號稱輕量的Helium Browser，開網頁多了RAM佔用也不會低到哪裡去。如果你真的想要不吃記憶體的，就去用看看純QtWebEngine或WebKitGTK做成的瀏覽器吧！譬如Qutebrowser。幾乎什麼功能都沒有，靠犧牲Chromium的安全性換速度。不然就得是Safari那種特製化的瀏覽器，才有可能在不犧牲功能性的情況下保存低記憶體佔用。可是這維護太困難了，也與主流Web標準背道而馳。</p>
+<p>要叫那些網頁開發者別用Vue、React、Angualr，使用節省一點記憶體的框架，並且處理好server side和client side rendering？比《牛來》在臺灣上映還不可能。誰要手刻HTML + CSS啊，又不是無名小站的時代了。（順帶一提我網站用的是Hugo框架，LightHouse各項指標接近100分）</p>
+<p>重點是如何管理分頁。然後不要裝太多擴充。</p>
+<p>Chrome和基於Chromium開發的瀏覽器有「記憶體節省模式」，自動關閉閒置分頁的功能，這可以在設定開啟。分頁不會消失，而是從RAM釋放，切換回去就重新載入。</p>
+<p>目前Firefox v.152還沒有Chrome那麼積極的自動釋放閒置分頁，頂多只會跳「這個分頁讓Firefox變慢了」的警告，你得手動觸發。對分頁按右鍵，卸載分頁，釋放RAM。按Shift一鍵全選，就能讓目前瀏覽以外的網頁取消載入，這樣能減少電腦壓力。</p>
+<p>但我覺得最簡單的處理方式，還是開啟在瀏覽器啟動時，自動還原分頁功能，然後整個關掉瀏覽器再重開就好啦。</p>
+<p>因為我覺得讓瀏覽器去自動關閉分頁顯的很不可靠，我在iPad用Firefox就很不爽，因為分頁隨時就會隨機被殺掉，不像Linux寧願撐爆RAM也要維持分頁載入。</p>
+<p>手機瀏覽器的話因為要防止背景分頁耗電所以自動殺掉分頁可以理解，但電腦瀏覽器不應該任意關掉其他分頁呢。</p>
+<p>此外，利用多個設定檔整理分頁也是一個方法。Firefox有垂直分頁，還有分頁群組。但沒有加入Zen Browser的工作區，而是以設定檔為主。分頁可以在不同的設定檔之間移動。如果有分頁之後要看，把它移動到另外一個設定檔就行了。</p>
+<p>請不要再用Windows XP時代的思維看待現在的電腦了。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/using-lightweight-browser-is-impossible/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8c7e33762b.webp"></a></p>
+<p>一直有人說Firefox和Chrome一樣越來越吃記憶體(RAM)，但說真的，我們能怪他們嗎…？追求低記憶體佔用的指標根本不現實。</p>
+<p>瀏覽器的工作早就不是單純看HTML網頁那麼簡單了，它要管理行程，分多個行程開沙盒保護安全，同步服務，還要處理外掛。此外網頁會載入大量JavaScript，現在還有WebAssembly（在瀏覽器跑C與Rust低階語言寫的程式）、WebGPU存取顯卡，需要的電腦資源自然就會變多了。</p>
+<p>比較瀏覽器剛開起來佔用的RAM代表不了什麼，分頁一多還不是一樣。</p>
+<p>一個Youtube分頁看久了吃1GB RAM都不奇怪。</p>
+<p>嗯…只要網頁不會像ChatGPT因為對話太長導致RAM佔用過高甚至當掉我都還能忍受啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-85781e66cf.webp">
+<p>即使號稱輕量的Helium Browser，開網頁多了RAM佔用也不會低到哪裡去。如果你真的想要不吃記憶體的，就去用看看純QtWebEngine或WebKitGTK做成的瀏覽器吧！譬如Qutebrowser。幾乎什麼功能都沒有，靠犧牲Chromium的安全性換速度。不然就得是Safari那種特製化的瀏覽器，才有可能在不犧牲功能性的情況下保存低記憶體佔用。可是這維護太困難了，也與主流Web標準背道而馳。</p>
+<p>要叫那些網頁開發者別用Vue、React、Angualr，使用節省一點記憶體的框架，並且處理好server side和client side rendering？比《牛來》在臺灣上映還不可能。誰要手刻HTML + CSS啊，又不是無名小站的時代了。（順帶一提我網站用的是Hugo框架，LightHouse各項指標接近100分）</p>
+<p>重點是如何管理分頁。然後不要裝太多擴充。</p>
+<p>Chrome和基於Chromium開發的瀏覽器有「記憶體節省模式」，自動關閉閒置分頁的功能，這可以在設定開啟。分頁不會消失，而是從RAM釋放，切換回去就重新載入。</p>
+<p>目前Firefox v.152還沒有Chrome那麼積極的自動釋放閒置分頁，頂多只會跳「這個分頁讓Firefox變慢了」的警告，你得手動觸發。對分頁按右鍵，卸載分頁，釋放RAM。按Shift一鍵全選，就能讓目前瀏覽以外的網頁取消載入，這樣能減少電腦壓力。</p>
+<p>但我覺得最簡單的處理方式，還是開啟在瀏覽器啟動時，自動還原分頁功能，然後整個關掉瀏覽器再重開就好啦。</p>
+<p>因為我覺得讓瀏覽器去自動關閉分頁顯的很不可靠，我在iPad用Firefox就很不爽，因為分頁隨時就會隨機被殺掉，不像Linux寧願撐爆RAM也要維持分頁載入。</p>
+<p>手機瀏覽器的話因為要防止背景分頁耗電所以自動殺掉分頁可以理解，但電腦瀏覽器不應該任意關掉其他分頁呢。</p>
+<p>此外，利用多個設定檔整理分頁也是一個方法。Firefox有垂直分頁，還有分頁群組。但沒有加入Zen Browser的工作區，而是以設定檔為主。分頁可以在不同的設定檔之間移動。如果有分頁之後要看，把它移動到另外一個設定檔就行了。</p>
+<p>請不要再用Windows XP時代的思維看待現在的電腦了。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8c7e33762b.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8c7e33762b.webp" medium="image"/>
+    <pubDate>Wed, 26 Aug 2026 23:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[如何在Linux解壓縮日文亂碼的.zip檔案，解決SHIFT-JIS、GBK、Big5亂碼問題]]></title>
+    <link>https://ivonblog.com/posts/extract-zip-files-with-specific-encoding/</link>
+    <itunes:title><![CDATA[如何在Linux解壓縮日文亂碼的.zip檔案，解決SHIFT-JIS、GBK、Big5亂碼問題]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/extract-zip-files-with-specific-encoding/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp"></a></p>
+<p>解決Ubunu等Linux發行版解壓縮檔案出現亂碼的問題。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f582673bf.webp">
+<p>在中文Linux環境解壓縮檔案，有時會遇到使用Windows區域字元編碼，譬如Big5、GBK、SHIFT-JIS，致使解出來是亂碼的情況。若是程式，可能還會無法正常執行呢。</p>
+<p>譬如，從DLsite下載的壓縮檔，很多都有日文編碼亂碼問題。</p>
+<p>似乎很多本本繪師都是在日文Windows作業然後輸出上傳，直接繼承了SHIFT-JIS編碼，於是在中文Windows解壓縮就會出現亂碼。更別說Linux了。</p>
+<p>一般來說壓縮檔案應該用UTF-8才有跨平臺相容性。可是Windows 11直到今天仍然預設使用預設區域的Code Page編碼，譬如繁體中文就會用Big5編碼，令人頭痛。反之，在Linux壓縮檔案的話，程式通常會自動選取UTF-8編碼。</p>
+<p>我看只有像《愛上火車》這種有製作多國語言特典大禮包（花500日元就送你遊戲 + 10部影片 + 抱枕CG圖 + ASMR音聲）的開發者才會懂得特別用UTF-8壓縮檔案吧！</p>
+<p>Linux並沒有Locale Emulator，要用其他方式處理。</p>
+<p>其實只要告訴解壓縮軟體，用特定區域編碼去解壓縮檔案就可以了！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e295c4160a.webp">
+<p>GUI方面的軟體，PeaZip無法解，KDE Ark也不行。可見，除了WinRAR（需要透過Wine執行）之外，Linux沒有一個GUI軟體能解壓縮需要切換編碼的檔案。</p>
+<p>那麼有以下解方：</p>
+<h2>7-Zip
+<span>
+<a href="#7-zip" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>跨平臺的解壓縮軟體，Linux沒有官方的GUI。安裝指令：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install p7zip-full</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，使用日文編碼解壓縮：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>7z x -mcp<span>=</span><span>932</span> <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<h2>WinRAR
+<span>
+<a href="#winrar" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>授權：專有軟體</p>
+<ol>
+<li>
+<p>透過<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">Wine</a>安裝WinRAR</p>
+</li>
+<li>
+<p>打開檔案 → 選項 → 切換編碼，選取日文(SHIFT-JIS)，再解壓縮。</p>
+</li>
+</ol>
+<h2>unar
+<span>
+<a href="#unar" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>macOS移植來的工具unar (The Unarchiver)</p>
+<p>安裝</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unar</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，用<code>-e</code>指定日文編碼，或者不加，讓它自動偵測檔案編碼：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unar -e shift_jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<h2>unzip
+<span>
+<a href="#unzip" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>大多數Linu發行版都有內建的unzip指令，沒有就安裝：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unzip</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，解壓縮，它可以用<code>-O</code>指定日文編碼：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unzip -O shift-jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<p>不過用的時候我發現：はあ！？居然要Arch Linux和Ubuntu 26.04的unzip才有支援日文的patch，Debian 13收的不行。</p>
+<h2>參考
+<span>
+<a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://blog.gtwang.org/linux/linux-decompression-chinese-zip-files/" target="_blank">Linux 解壓縮中文檔名的 Zip 壓縮檔，解決 Big5 編碼產生亂碼問題 - G. T. Wang</a></li>
+<li><a href="https://blog.pulipuli.info/2021/03/7-zipzip-using-7-zip-to-decompress-zip.html" target="_blank"> 用7-Zip解壓縮含有亂碼檔名的ZIP檔案 / Using 7-Zip to decompress ZIP with given encoding</a></li>
+</ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/extract-zip-files-with-specific-encoding/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp"></a></p>
+<p>解決Ubunu等Linux發行版解壓縮檔案出現亂碼的問題。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f582673bf.webp">
+<p>在中文Linux環境解壓縮檔案，有時會遇到使用Windows區域字元編碼，譬如Big5、GBK、SHIFT-JIS，致使解出來是亂碼的情況。若是程式，可能還會無法正常執行呢。</p>
+<p>譬如，從DLsite下載的壓縮檔，很多都有日文編碼亂碼問題。</p>
+<p>似乎很多本本繪師都是在日文Windows作業然後輸出上傳，直接繼承了SHIFT-JIS編碼，於是在中文Windows解壓縮就會出現亂碼。更別說Linux了。</p>
+<p>一般來說壓縮檔案應該用UTF-8才有跨平臺相容性。可是Windows 11直到今天仍然預設使用預設區域的Code Page編碼，譬如繁體中文就會用Big5編碼，令人頭痛。反之，在Linux壓縮檔案的話，程式通常會自動選取UTF-8編碼。</p>
+<p>我看只有像《愛上火車》這種有製作多國語言特典大禮包（花500日元就送你遊戲 + 10部影片 + 抱枕CG圖 + ASMR音聲）的開發者才會懂得特別用UTF-8壓縮檔案吧！</p>
+<p>Linux並沒有Locale Emulator，要用其他方式處理。</p>
+<p>其實只要告訴解壓縮軟體，用特定區域編碼去解壓縮檔案就可以了！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e295c4160a.webp">
+<p>GUI方面的軟體，PeaZip無法解，KDE Ark也不行。可見，除了WinRAR（需要透過Wine執行）之外，Linux沒有一個GUI軟體能解壓縮需要切換編碼的檔案。</p>
+<p>那麼有以下解方：</p>
+<h2>7-Zip
+<span>
+<a href="#7-zip" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>跨平臺的解壓縮軟體，Linux沒有官方的GUI。安裝指令：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install p7zip-full</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，使用日文編碼解壓縮：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>7z x -mcp<span>=</span><span>932</span> <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<h2>WinRAR
+<span>
+<a href="#winrar" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>授權：專有軟體</p>
+<ol>
+<li>
+<p>透過<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">Wine</a>安裝WinRAR</p>
+</li>
+<li>
+<p>打開檔案 → 選項 → 切換編碼，選取日文(SHIFT-JIS)，再解壓縮。</p>
+</li>
+</ol>
+<h2>unar
+<span>
+<a href="#unar" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>macOS移植來的工具unar (The Unarchiver)</p>
+<p>安裝</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unar</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，用<code>-e</code>指定日文編碼，或者不加，讓它自動偵測檔案編碼：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unar -e shift_jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<h2>unzip
+<span>
+<a href="#unzip" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>大多數Linu發行版都有內建的unzip指令，沒有就安裝：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unzip</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，解壓縮，它可以用<code>-O</code>指定日文編碼：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unzip -O shift-jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<p>不過用的時候我發現：はあ！？居然要Arch Linux和Ubuntu 26.04的unzip才有支援日文的patch，Debian 13收的不行。</p>
+<h2>參考
+<span>
+<a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://blog.gtwang.org/linux/linux-decompression-chinese-zip-files/" target="_blank">Linux 解壓縮中文檔名的 Zip 壓縮檔，解決 Big5 編碼產生亂碼問題 - G. T. Wang</a></li>
+<li><a href="https://blog.pulipuli.info/2021/03/7-zipzip-using-7-zip-to-decompress-zip.html" target="_blank"> 用7-Zip解壓縮含有亂碼檔名的ZIP檔案 / Using 7-Zip to decompress ZIP with given encoding</a></li>
+</ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/extract-zip-files-with-specific-encoding/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp"></a></p>
+<p>解決Ubunu等Linux發行版解壓縮檔案出現亂碼的問題。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f582673bf.webp">
+<p>在中文Linux環境解壓縮檔案，有時會遇到使用Windows區域字元編碼，譬如Big5、GBK、SHIFT-JIS，致使解出來是亂碼的情況。若是程式，可能還會無法正常執行呢。</p>
+<p>譬如，從DLsite下載的壓縮檔，很多都有日文編碼亂碼問題。</p>
+<p>似乎很多本本繪師都是在日文Windows作業然後輸出上傳，直接繼承了SHIFT-JIS編碼，於是在中文Windows解壓縮就會出現亂碼。更別說Linux了。</p>
+<p>一般來說壓縮檔案應該用UTF-8才有跨平臺相容性。可是Windows 11直到今天仍然預設使用預設區域的Code Page編碼，譬如繁體中文就會用Big5編碼，令人頭痛。反之，在Linux壓縮檔案的話，程式通常會自動選取UTF-8編碼。</p>
+<p>我看只有像《愛上火車》這種有製作多國語言特典大禮包（花500日元就送你遊戲 + 10部影片 + 抱枕CG圖 + ASMR音聲）的開發者才會懂得特別用UTF-8壓縮檔案吧！</p>
+<p>Linux並沒有Locale Emulator，要用其他方式處理。</p>
+<p>其實只要告訴解壓縮軟體，用特定區域編碼去解壓縮檔案就可以了！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e295c4160a.webp">
+<p>GUI方面的軟體，PeaZip無法解，KDE Ark也不行。可見，除了WinRAR（需要透過Wine執行）之外，Linux沒有一個GUI軟體能解壓縮需要切換編碼的檔案。</p>
+<p>那麼有以下解方：</p>
+<h2>7-Zip
+<span>
+<a href="#7-zip" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>跨平臺的解壓縮軟體，Linux沒有官方的GUI。安裝指令：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install p7zip-full</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，使用日文編碼解壓縮：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>7z x -mcp<span>=</span><span>932</span> <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<h2>WinRAR
+<span>
+<a href="#winrar" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>授權：專有軟體</p>
+<ol>
+<li>
+<p>透過<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">Wine</a>安裝WinRAR</p>
+</li>
+<li>
+<p>打開檔案 → 選項 → 切換編碼，選取日文(SHIFT-JIS)，再解壓縮。</p>
+</li>
+</ol>
+<h2>unar
+<span>
+<a href="#unar" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>macOS移植來的工具unar (The Unarchiver)</p>
+<p>安裝</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unar</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，用<code>-e</code>指定日文編碼，或者不加，讓它自動偵測檔案編碼：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unar -e shift_jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<h2>unzip
+<span>
+<a href="#unzip" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>大多數Linu發行版都有內建的unzip指令，沒有就安裝：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unzip</span></span></code></pre></div></div>
+<p>在下載目錄打開終端機，解壓縮，它可以用<code>-O</code>指定日文編碼：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unzip -O shift-jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
+<p>不過用的時候我發現：はあ！？居然要Arch Linux和Ubuntu 26.04的unzip才有支援日文的patch，Debian 13收的不行。</p>
+<h2>參考
+<span>
+<a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://blog.gtwang.org/linux/linux-decompression-chinese-zip-files/" target="_blank">Linux 解壓縮中文檔名的 Zip 壓縮檔，解決 Big5 編碼產生亂碼問題 - G. T. Wang</a></li>
+<li><a href="https://blog.pulipuli.info/2021/03/7-zipzip-using-7-zip-to-decompress-zip.html" target="_blank"> 用7-Zip解壓縮含有亂碼檔名的ZIP檔案 / Using 7-Zip to decompress ZIP with given encoding</a></li>
+</ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp" medium="image"/>
+    <pubDate>Tue, 25 Aug 2026 01:00:00 +0800</pubDate>
+  </item></channel>
+</rss>
