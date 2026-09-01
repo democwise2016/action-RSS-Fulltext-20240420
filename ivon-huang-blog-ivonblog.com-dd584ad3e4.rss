@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://picsum.photos/800/800?random</url>
+      <url>https://fastly.picsum.photos/id/966/800/800.jpg?hmac=92hmxUBsan1DCvpnd890-5dVO9A5Tjq0GOVbbxFS3gk</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,359 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://picsum.photos/800/800?random"/>
+    <itunes:image href="https://fastly.picsum.photos/id/966/800/800.jpg?hmac=92hmxUBsan1DCvpnd890-5dVO9A5Tjq0GOVbbxFS3gk"/>
 <item>
+    <title><![CDATA[NewTerm：iOS越獄必備終端機APP，用APT指令管理Sileo插件更新]]></title>
+    <link>https://ivonblog.com/posts/ios-newterm-app/</link>
+    <itunes:title><![CDATA[NewTerm：iOS越獄必備終端機APP，用APT指令管理Sileo插件更新]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-newterm-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-699f887c36.webp"></a></p>
+<p>註：本APP需要越獄環境，如果你不需要越獄功能，只是想要單純存取Linux指令工具，請改到App Store裝<a href="/posts/ios-ish-shell/">iSH Shell</a>。</p>
+<p>將iOS裝置越獄後，我們通常會安裝Sileo管理插件吧，檔案管理則是Filza，那麼這一切背後的操作是否能用指令完成呢？</p>
+<p>NewTerm滿足你的願望。NewTerm為一款開源的終端機模擬器(terminal emulator)，支援iOS/iPadOS/macOS，讓你可以存取iOS的shell，執行各式各樣的指令。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc0ddf1c3a.webp"></p>
+<p>跟macOS上的iTerm2一樣，NewTerm是專門的終端機模擬器。跟iOS其他終端機APP不同之處在於，NewTerm並沒有模擬環境，而是讓使用者直接存取iOS系統shell，故執行速度沒有任何損耗。</p>
+<p>有了NewTerm，你就可以：</p>
+<ul>
+<li>在本機執行純文字工具，例如VIM、Clang、ffmpeg、ImageMagick、Python。只要Sileo軟體源有的套件都能取用。</li>
+<li>免開Sileo，直接透過APT指令安裝與更新越獄插件 ，因為Tweak通常都是以deb套件格式打包的。</li>
+<li>SSH到遠端電腦，或者在iOS啟動SSH伺服器，從電腦遠端存取。</li>
+<li>支援iPad的120hz螢幕更新率，利用iPad功能進行雙視窗作業。</li>
+</ul>
+<p>macOS用戶可能會問能不能裝Homebrew呢…？不行，iOS的Tweak雖然採用deb打包，但都是針對iPhoneOS特別編譯的版本，必須從專門的套件庫下載deb安裝才行。</p>
+<p>下面我會介紹如何安裝NewTerm APP，並分享一些iOS越獄後可以玩的指令。</p>
+<h2>1. 下載NewTerm APP
+<span>
+<a href="#1-%e4%b8%8b%e8%bc%89newterm-app" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>NewTerm是HASHBANG Productions開發的自由軟體，原始碼放在<a href="https://github.com/hbang/NewTerm" target="_blank">Github</a>。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2357c640d8.webp">
+<p>目前「NewTerm3」支援iOS 14以上系統的裝置，支援rootless模式越獄。如果你是舊版iOS系統需要終端機，請用「MTerminal」吧。</p>
+<p>這裡我使用iOS 15，Dopamine的rootless越獄環境做示範。</p>
+<ol>
+<li>
+<p>Sileo內建的軟體源就有收NewTerm了，搜尋安裝即可。你也可以手動到<a href="https://github.com/hbang/NewTerm/releases" target="_blank">Github</a>下載arm64架構的deb檔。</p>
+</li>
+<li>
+<p>第一次開啟後，請按照指示建立<code>~/.zshrc</code></p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>touch ~/.zshrc</span></span></code></pre></div></div>
+<ol start="3">
+<li>關於Zsh的用法請看<a href="https://zsh.sourceforge.io/Doc/Release/zsh_toc.html" target="_blank">官方文件</a>，相信用過macOS的人應該很熟悉自己要什麼。比如，我會在zshrc加入儲存指令歷史紀錄的功能：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>cat <span>&lt;&lt;EOT &gt;&gt; ~/.histfile
+</span></span></span><span><span><span>HISTFILE=~/.histfile
+</span></span></span><span><span><span>HISTSIZE=1000
+</span></span></span><span><span><span>SAVEHIST=1000
+</span></span></span><span><span><span>setopt appendhistory
+</span></span></span><span><span><span>EOT</span>
+</span></span><span><span>
+</span></span><span><span><span>source</span> ~/.zshrc</span></span></code></pre></div></div>
+<ol start="4">
+<li>如果你還沒給帳號設定密碼，請自行變更</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># rootless模式下，預設是以mobile帳號登入</span>
+</span></span><span><span>passwd mobile
+</span></span><span><span>
+</span></span><span><span><span># 變更root帳號密碼</span>
+</span></span><span><span>sudo passwd</span></span></code></pre></div></div>
+<h2>2. iOS越獄系統管理常用指令
+<span>
+<a href="#2-ios%e8%b6%8a%e7%8d%84%e7%b3%bb%e7%b5%b1%e7%ae%a1%e7%90%86%e5%b8%b8%e7%94%a8%e6%8c%87%e4%bb%a4" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>參考Reddit社群整理的實用指令。</p>
+<p>如果你執行指令的時候遇到Permission denied錯誤，請加上<code>sudo</code>試試。</p>
+<p>與iOS系統有關的指令：</p>
+<p><code>launchctl</code>：管理系統服務的工具。比如<code>launchctl unload /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist</code>和<code>launchctl load /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist</code>可以重啟SSH daemon服務。</p>
+<p><code>killall SpringBoard</code>：重啟主畫面的指令，俗稱respring</p>
+<p><code>reboot</code>：iOS重開機。</p>
+<p><code>ldrestart</code>：軟重開機，可以保有越獄環境。</p>
+<p><code>uicache</code>：強制重新整理主畫面，APP安裝後沒出現圖示可使用此指令。</p>
+<p>Zsh內建的指令在這裡也可以用喔：</p>
+<p><code>ls</code>：列出目錄下的檔案</p>
+<p><code>pwd</code>：印出目前工作目錄</p>
+<p><code>cp</code>：複製檔案</p>
+<p><code>mv</code>：移動檔案</p>
+<p><code>rm</code>：刪除檔案</p>
+<p>想要更多指令，你可以自己新增軟體源，安裝套件擴充。那麼，我們就要了解如何使用APT指令裝套件了。</p>
+<h2>3. 用APT指令管理Sileo插件
+<span>
+<a href="#3-%e7%94%a8apt%e6%8c%87%e4%bb%a4%e7%ae%a1%e7%90%86sileo%e6%8f%92%e4%bb%b6" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>越獄環境採用的套件管理器多半為APT，Sileo就是管理這些套件的前端。</p>
+<p>你想的並沒有錯，Linux發行版Ubuntu也是使用APT當作套件管理器，故他們的指令十分類似。但正如我文章開頭說的，一般Linux的deb套件與iOS越獄的deb套件並不相容，所以請不要在iOS硬裝Ubuntu的deb檔。</p>
+<p>註：如果你打算用命令行安裝IPA而非deb檔案，請改用<a href="https://cydia.akemi.ai/" target="_blank">appinst by Karen</a>之類的工具協助安裝。</p>
+<p>現在，Rootless越獄的檔案都一律放在<code>/var/jb/</code>目錄底下，不要走錯位置了。</p>
+<ol>
+<li>
+<p>已安裝的越獄套件可以用<code>sudo apt update &amp;&amp; sudo apt upgrade</code>指令全部更新。</p>
+</li>
+<li>
+<p>查詢線上有什麼套件：<code>sudo apt search "套件名稱"</code></p>
+</li>
+<li>
+<p>安裝套件：<code>sudo apt install "套件名稱"</code>，例如<code>sudo apt install vim</code></p>
+</li>
+<li>
+<p>移除套件：<code>sudo apt remove "套件名稱"</code></p>
+</li>
+<li>
+<p>如果要安裝單獨的deb套件（比方說Github開發者新發表的軟體），你可以用wget指令下載到deb到NewTerm的家目錄，再用apt安裝。但是有些deb依賴的套件可能要加特定軟體源才有，故使用APT單獨安裝要小心。此外，也不要下載不開放原始碼、來路不明的越獄插件。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>wget <span>"網址"</span>
+</span></span><span><span>
+</span></span><span><span>sudo apt install ./<span>"檔案名稱.deb"</span></span></span></code></pre></div></div>
+<ol start="6">
+<li>APT的各個軟體源位於<code>/var/jb/etc/apt/sources.listd/</code>，你可以用VIM手動編輯，自行新增軟體源網址，之後再更新APT軟體源。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 安裝純文字編輯器</span>
+</span></span><span><span>sudo apt install vim
+</span></span><span><span>
+</span></span><span><span><span># 編輯Sileo的軟體源</span>
+</span></span><span><span>sudo vim /var/jb/etc/apt/sources.listd/sileo.list
+</span></span><span><span>
+</span></span><span><span><span># 更新軟體源</span>
+</span></span><span><span>sudo apt update</span></span></code></pre></div></div>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ios-newterm-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-699f887c36.webp"></a></p>
+<p>註：本APP需要越獄環境，如果你不需要越獄功能，只是想要單純存取Linux指令工具，請改到App Store裝<a href="/posts/ios-ish-shell/">iSH Shell</a>。</p>
+<p>將iOS裝置越獄後，我們通常會安裝Sileo管理插件吧，檔案管理則是Filza，那麼這一切背後的操作是否能用指令完成呢？</p>
+<p>NewTerm滿足你的願望。NewTerm為一款開源的終端機模擬器(terminal emulator)，支援iOS/iPadOS/macOS，讓你可以存取iOS的shell，執行各式各樣的指令。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc0ddf1c3a.webp"></p>
+<p>跟macOS上的iTerm2一樣，NewTerm是專門的終端機模擬器。跟iOS其他終端機APP不同之處在於，NewTerm並沒有模擬環境，而是讓使用者直接存取iOS系統shell，故執行速度沒有任何損耗。</p>
+<p>有了NewTerm，你就可以：</p>
+<ul>
+<li>在本機執行純文字工具，例如VIM、Clang、ffmpeg、ImageMagick、Python。只要Sileo軟體源有的套件都能取用。</li>
+<li>免開Sileo，直接透過APT指令安裝與更新越獄插件 ，因為Tweak通常都是以deb套件格式打包的。</li>
+<li>SSH到遠端電腦，或者在iOS啟動SSH伺服器，從電腦遠端存取。</li>
+<li>支援iPad的120hz螢幕更新率，利用iPad功能進行雙視窗作業。</li>
+</ul>
+<p>macOS用戶可能會問能不能裝Homebrew呢…？不行，iOS的Tweak雖然採用deb打包，但都是針對iPhoneOS特別編譯的版本，必須從專門的套件庫下載deb安裝才行。</p>
+<p>下面我會介紹如何安裝NewTerm APP，並分享一些iOS越獄後可以玩的指令。</p>
+<h2>1. 下載NewTerm APP
+<span>
+<a href="#1-%e4%b8%8b%e8%bc%89newterm-app" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>NewTerm是HASHBANG Productions開發的自由軟體，原始碼放在<a href="https://github.com/hbang/NewTerm" target="_blank">Github</a>。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2357c640d8.webp">
+<p>目前「NewTerm3」支援iOS 14以上系統的裝置，支援rootless模式越獄。如果你是舊版iOS系統需要終端機，請用「MTerminal」吧。</p>
+<p>這裡我使用iOS 15，Dopamine的rootless越獄環境做示範。</p>
+<ol>
+<li>
+<p>Sileo內建的軟體源就有收NewTerm了，搜尋安裝即可。你也可以手動到<a href="https://github.com/hbang/NewTerm/releases" target="_blank">Github</a>下載arm64架構的deb檔。</p>
+</li>
+<li>
+<p>第一次開啟後，請按照指示建立<code>~/.zshrc</code></p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>touch ~/.zshrc</span></span></code></pre></div></div>
+<ol start="3">
+<li>關於Zsh的用法請看<a href="https://zsh.sourceforge.io/Doc/Release/zsh_toc.html" target="_blank">官方文件</a>，相信用過macOS的人應該很熟悉自己要什麼。比如，我會在zshrc加入儲存指令歷史紀錄的功能：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>cat <span>&lt;&lt;EOT &gt;&gt; ~/.histfile
+</span></span></span><span><span><span>HISTFILE=~/.histfile
+</span></span></span><span><span><span>HISTSIZE=1000
+</span></span></span><span><span><span>SAVEHIST=1000
+</span></span></span><span><span><span>setopt appendhistory
+</span></span></span><span><span><span>EOT</span>
+</span></span><span><span>
+</span></span><span><span><span>source</span> ~/.zshrc</span></span></code></pre></div></div>
+<ol start="4">
+<li>如果你還沒給帳號設定密碼，請自行變更</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># rootless模式下，預設是以mobile帳號登入</span>
+</span></span><span><span>passwd mobile
+</span></span><span><span>
+</span></span><span><span><span># 變更root帳號密碼</span>
+</span></span><span><span>sudo passwd</span></span></code></pre></div></div>
+<h2>2. iOS越獄系統管理常用指令
+<span>
+<a href="#2-ios%e8%b6%8a%e7%8d%84%e7%b3%bb%e7%b5%b1%e7%ae%a1%e7%90%86%e5%b8%b8%e7%94%a8%e6%8c%87%e4%bb%a4" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>參考Reddit社群整理的實用指令。</p>
+<p>如果你執行指令的時候遇到Permission denied錯誤，請加上<code>sudo</code>試試。</p>
+<p>與iOS系統有關的指令：</p>
+<p><code>launchctl</code>：管理系統服務的工具。比如<code>launchctl unload /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist</code>和<code>launchctl load /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist</code>可以重啟SSH daemon服務。</p>
+<p><code>killall SpringBoard</code>：重啟主畫面的指令，俗稱respring</p>
+<p><code>reboot</code>：iOS重開機。</p>
+<p><code>ldrestart</code>：軟重開機，可以保有越獄環境。</p>
+<p><code>uicache</code>：強制重新整理主畫面，APP安裝後沒出現圖示可使用此指令。</p>
+<p>Zsh內建的指令在這裡也可以用喔：</p>
+<p><code>ls</code>：列出目錄下的檔案</p>
+<p><code>pwd</code>：印出目前工作目錄</p>
+<p><code>cp</code>：複製檔案</p>
+<p><code>mv</code>：移動檔案</p>
+<p><code>rm</code>：刪除檔案</p>
+<p>想要更多指令，你可以自己新增軟體源，安裝套件擴充。那麼，我們就要了解如何使用APT指令裝套件了。</p>
+<h2>3. 用APT指令管理Sileo插件
+<span>
+<a href="#3-%e7%94%a8apt%e6%8c%87%e4%bb%a4%e7%ae%a1%e7%90%86sileo%e6%8f%92%e4%bb%b6" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>越獄環境採用的套件管理器多半為APT，Sileo就是管理這些套件的前端。</p>
+<p>你想的並沒有錯，Linux發行版Ubuntu也是使用APT當作套件管理器，故他們的指令十分類似。但正如我文章開頭說的，一般Linux的deb套件與iOS越獄的deb套件並不相容，所以請不要在iOS硬裝Ubuntu的deb檔。</p>
+<p>註：如果你打算用命令行安裝IPA而非deb檔案，請改用<a href="https://cydia.akemi.ai/" target="_blank">appinst by Karen</a>之類的工具協助安裝。</p>
+<p>現在，Rootless越獄的檔案都一律放在<code>/var/jb/</code>目錄底下，不要走錯位置了。</p>
+<ol>
+<li>
+<p>已安裝的越獄套件可以用<code>sudo apt update &amp;&amp; sudo apt upgrade</code>指令全部更新。</p>
+</li>
+<li>
+<p>查詢線上有什麼套件：<code>sudo apt search "套件名稱"</code></p>
+</li>
+<li>
+<p>安裝套件：<code>sudo apt install "套件名稱"</code>，例如<code>sudo apt install vim</code></p>
+</li>
+<li>
+<p>移除套件：<code>sudo apt remove "套件名稱"</code></p>
+</li>
+<li>
+<p>如果要安裝單獨的deb套件（比方說Github開發者新發表的軟體），你可以用wget指令下載到deb到NewTerm的家目錄，再用apt安裝。但是有些deb依賴的套件可能要加特定軟體源才有，故使用APT單獨安裝要小心。此外，也不要下載不開放原始碼、來路不明的越獄插件。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>wget <span>"網址"</span>
+</span></span><span><span>
+</span></span><span><span>sudo apt install ./<span>"檔案名稱.deb"</span></span></span></code></pre></div></div>
+<ol start="6">
+<li>APT的各個軟體源位於<code>/var/jb/etc/apt/sources.listd/</code>，你可以用VIM手動編輯，自行新增軟體源網址，之後再更新APT軟體源。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 安裝純文字編輯器</span>
+</span></span><span><span>sudo apt install vim
+</span></span><span><span>
+</span></span><span><span><span># 編輯Sileo的軟體源</span>
+</span></span><span><span>sudo vim /var/jb/etc/apt/sources.listd/sileo.list
+</span></span><span><span>
+</span></span><span><span><span># 更新軟體源</span>
+</span></span><span><span>sudo apt update</span></span></code></pre></div></div>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ios-newterm-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-699f887c36.webp"></a></p>
+<p>註：本APP需要越獄環境，如果你不需要越獄功能，只是想要單純存取Linux指令工具，請改到App Store裝<a href="/posts/ios-ish-shell/">iSH Shell</a>。</p>
+<p>將iOS裝置越獄後，我們通常會安裝Sileo管理插件吧，檔案管理則是Filza，那麼這一切背後的操作是否能用指令完成呢？</p>
+<p>NewTerm滿足你的願望。NewTerm為一款開源的終端機模擬器(terminal emulator)，支援iOS/iPadOS/macOS，讓你可以存取iOS的shell，執行各式各樣的指令。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bc0ddf1c3a.webp"></p>
+<p>跟macOS上的iTerm2一樣，NewTerm是專門的終端機模擬器。跟iOS其他終端機APP不同之處在於，NewTerm並沒有模擬環境，而是讓使用者直接存取iOS系統shell，故執行速度沒有任何損耗。</p>
+<p>有了NewTerm，你就可以：</p>
+<ul>
+<li>在本機執行純文字工具，例如VIM、Clang、ffmpeg、ImageMagick、Python。只要Sileo軟體源有的套件都能取用。</li>
+<li>免開Sileo，直接透過APT指令安裝與更新越獄插件 ，因為Tweak通常都是以deb套件格式打包的。</li>
+<li>SSH到遠端電腦，或者在iOS啟動SSH伺服器，從電腦遠端存取。</li>
+<li>支援iPad的120hz螢幕更新率，利用iPad功能進行雙視窗作業。</li>
+</ul>
+<p>macOS用戶可能會問能不能裝Homebrew呢…？不行，iOS的Tweak雖然採用deb打包，但都是針對iPhoneOS特別編譯的版本，必須從專門的套件庫下載deb安裝才行。</p>
+<p>下面我會介紹如何安裝NewTerm APP，並分享一些iOS越獄後可以玩的指令。</p>
+<h2>1. 下載NewTerm APP
+<span>
+<a href="#1-%e4%b8%8b%e8%bc%89newterm-app" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>NewTerm是HASHBANG Productions開發的自由軟體，原始碼放在<a href="https://github.com/hbang/NewTerm" target="_blank">Github</a>。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2357c640d8.webp">
+<p>目前「NewTerm3」支援iOS 14以上系統的裝置，支援rootless模式越獄。如果你是舊版iOS系統需要終端機，請用「MTerminal」吧。</p>
+<p>這裡我使用iOS 15，Dopamine的rootless越獄環境做示範。</p>
+<ol>
+<li>
+<p>Sileo內建的軟體源就有收NewTerm了，搜尋安裝即可。你也可以手動到<a href="https://github.com/hbang/NewTerm/releases" target="_blank">Github</a>下載arm64架構的deb檔。</p>
+</li>
+<li>
+<p>第一次開啟後，請按照指示建立<code>~/.zshrc</code></p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>touch ~/.zshrc</span></span></code></pre></div></div>
+<ol start="3">
+<li>關於Zsh的用法請看<a href="https://zsh.sourceforge.io/Doc/Release/zsh_toc.html" target="_blank">官方文件</a>，相信用過macOS的人應該很熟悉自己要什麼。比如，我會在zshrc加入儲存指令歷史紀錄的功能：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>cat <span>&lt;&lt;EOT &gt;&gt; ~/.histfile
+</span></span></span><span><span><span>HISTFILE=~/.histfile
+</span></span></span><span><span><span>HISTSIZE=1000
+</span></span></span><span><span><span>SAVEHIST=1000
+</span></span></span><span><span><span>setopt appendhistory
+</span></span></span><span><span><span>EOT</span>
+</span></span><span><span>
+</span></span><span><span><span>source</span> ~/.zshrc</span></span></code></pre></div></div>
+<ol start="4">
+<li>如果你還沒給帳號設定密碼，請自行變更</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># rootless模式下，預設是以mobile帳號登入</span>
+</span></span><span><span>passwd mobile
+</span></span><span><span>
+</span></span><span><span><span># 變更root帳號密碼</span>
+</span></span><span><span>sudo passwd</span></span></code></pre></div></div>
+<h2>2. iOS越獄系統管理常用指令
+<span>
+<a href="#2-ios%e8%b6%8a%e7%8d%84%e7%b3%bb%e7%b5%b1%e7%ae%a1%e7%90%86%e5%b8%b8%e7%94%a8%e6%8c%87%e4%bb%a4" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>參考Reddit社群整理的實用指令。</p>
+<p>如果你執行指令的時候遇到Permission denied錯誤，請加上<code>sudo</code>試試。</p>
+<p>與iOS系統有關的指令：</p>
+<p><code>launchctl</code>：管理系統服務的工具。比如<code>launchctl unload /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist</code>和<code>launchctl load /var/jb/Library/LaunchDaemons/com.openssh.sshd.plist</code>可以重啟SSH daemon服務。</p>
+<p><code>killall SpringBoard</code>：重啟主畫面的指令，俗稱respring</p>
+<p><code>reboot</code>：iOS重開機。</p>
+<p><code>ldrestart</code>：軟重開機，可以保有越獄環境。</p>
+<p><code>uicache</code>：強制重新整理主畫面，APP安裝後沒出現圖示可使用此指令。</p>
+<p>Zsh內建的指令在這裡也可以用喔：</p>
+<p><code>ls</code>：列出目錄下的檔案</p>
+<p><code>pwd</code>：印出目前工作目錄</p>
+<p><code>cp</code>：複製檔案</p>
+<p><code>mv</code>：移動檔案</p>
+<p><code>rm</code>：刪除檔案</p>
+<p>想要更多指令，你可以自己新增軟體源，安裝套件擴充。那麼，我們就要了解如何使用APT指令裝套件了。</p>
+<h2>3. 用APT指令管理Sileo插件
+<span>
+<a href="#3-%e7%94%a8apt%e6%8c%87%e4%bb%a4%e7%ae%a1%e7%90%86sileo%e6%8f%92%e4%bb%b6" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>越獄環境採用的套件管理器多半為APT，Sileo就是管理這些套件的前端。</p>
+<p>你想的並沒有錯，Linux發行版Ubuntu也是使用APT當作套件管理器，故他們的指令十分類似。但正如我文章開頭說的，一般Linux的deb套件與iOS越獄的deb套件並不相容，所以請不要在iOS硬裝Ubuntu的deb檔。</p>
+<p>註：如果你打算用命令行安裝IPA而非deb檔案，請改用<a href="https://cydia.akemi.ai/" target="_blank">appinst by Karen</a>之類的工具協助安裝。</p>
+<p>現在，Rootless越獄的檔案都一律放在<code>/var/jb/</code>目錄底下，不要走錯位置了。</p>
+<ol>
+<li>
+<p>已安裝的越獄套件可以用<code>sudo apt update &amp;&amp; sudo apt upgrade</code>指令全部更新。</p>
+</li>
+<li>
+<p>查詢線上有什麼套件：<code>sudo apt search "套件名稱"</code></p>
+</li>
+<li>
+<p>安裝套件：<code>sudo apt install "套件名稱"</code>，例如<code>sudo apt install vim</code></p>
+</li>
+<li>
+<p>移除套件：<code>sudo apt remove "套件名稱"</code></p>
+</li>
+<li>
+<p>如果要安裝單獨的deb套件（比方說Github開發者新發表的軟體），你可以用wget指令下載到deb到NewTerm的家目錄，再用apt安裝。但是有些deb依賴的套件可能要加特定軟體源才有，故使用APT單獨安裝要小心。此外，也不要下載不開放原始碼、來路不明的越獄插件。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>wget <span>"網址"</span>
+</span></span><span><span>
+</span></span><span><span>sudo apt install ./<span>"檔案名稱.deb"</span></span></span></code></pre></div></div>
+<ol start="6">
+<li>APT的各個軟體源位於<code>/var/jb/etc/apt/sources.listd/</code>，你可以用VIM手動編輯，自行新增軟體源網址，之後再更新APT軟體源。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span><span># 安裝純文字編輯器</span>
+</span></span><span><span>sudo apt install vim
+</span></span><span><span>
+</span></span><span><span><span># 編輯Sileo的軟體源</span>
+</span></span><span><span>sudo vim /var/jb/etc/apt/sources.listd/sileo.list
+</span></span><span><span>
+</span></span><span><span><span># 更新軟體源</span>
+</span></span><span><span>sudo apt update</span></span></code></pre></div></div>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-699f887c36.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-699f887c36.webp" medium="image"/>
+    <pubDate>Tue, 01 Sep 2026 03:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[iPhone安裝OpenSSH Server方便遠端登入控制 + iproxy代理SSH連線]]></title>
     <link>https://ivonblog.com/posts/jailbroken-ios-ssh-server/</link>
     <itunes:title><![CDATA[iPhone安裝OpenSSH Server方便遠端登入控制 + iproxy代理SSH連線]]></itunes:title>
@@ -1720,218 +2071,5 @@
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8c7e33762b.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8c7e33762b.webp" medium="image"/>
     <pubDate>Wed, 26 Aug 2026 23:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[如何在Linux解壓縮日文亂碼的.zip檔案，解決SHIFT-JIS、GBK、Big5亂碼問題]]></title>
-    <link>https://ivonblog.com/posts/extract-zip-files-with-specific-encoding/</link>
-    <itunes:title><![CDATA[如何在Linux解壓縮日文亂碼的.zip檔案，解決SHIFT-JIS、GBK、Big5亂碼問題]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/extract-zip-files-with-specific-encoding/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp"></a></p>
-<p>解決Ubunu等Linux發行版解壓縮檔案出現亂碼的問題。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f582673bf.webp">
-<p>在中文Linux環境解壓縮檔案，有時會遇到使用Windows區域字元編碼，譬如Big5、GBK、SHIFT-JIS，致使解出來是亂碼的情況。若是程式，可能還會無法正常執行呢。</p>
-<p>譬如，從DLsite下載的壓縮檔，很多都有日文編碼亂碼問題。</p>
-<p>似乎很多本本繪師都是在日文Windows作業然後輸出上傳，直接繼承了SHIFT-JIS編碼，於是在中文Windows解壓縮就會出現亂碼。更別說Linux了。</p>
-<p>一般來說壓縮檔案應該用UTF-8才有跨平臺相容性。可是Windows 11直到今天仍然預設使用預設區域的Code Page編碼，譬如繁體中文就會用Big5編碼，令人頭痛。反之，在Linux壓縮檔案的話，程式通常會自動選取UTF-8編碼。</p>
-<p>我看只有像《愛上火車》這種有製作多國語言特典大禮包（花500日元就送你遊戲 + 10部影片 + 抱枕CG圖 + ASMR音聲）的開發者才會懂得特別用UTF-8壓縮檔案吧！</p>
-<p>Linux並沒有Locale Emulator，要用其他方式處理。</p>
-<p>其實只要告訴解壓縮軟體，用特定區域編碼去解壓縮檔案就可以了！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e295c4160a.webp">
-<p>GUI方面的軟體，PeaZip無法解，KDE Ark也不行。可見，除了WinRAR（需要透過Wine執行）之外，Linux沒有一個GUI軟體能解壓縮需要切換編碼的檔案。</p>
-<p>那麼有以下解方：</p>
-<h2>7-Zip
-<span>
-<a href="#7-zip" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>跨平臺的解壓縮軟體，Linux沒有官方的GUI。安裝指令：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install p7zip-full</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，使用日文編碼解壓縮：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>7z x -mcp<span>=</span><span>932</span> <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<h2>WinRAR
-<span>
-<a href="#winrar" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>授權：專有軟體</p>
-<ol>
-<li>
-<p>透過<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">Wine</a>安裝WinRAR</p>
-</li>
-<li>
-<p>打開檔案 → 選項 → 切換編碼，選取日文(SHIFT-JIS)，再解壓縮。</p>
-</li>
-</ol>
-<h2>unar
-<span>
-<a href="#unar" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>macOS移植來的工具unar (The Unarchiver)</p>
-<p>安裝</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unar</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，用<code>-e</code>指定日文編碼，或者不加，讓它自動偵測檔案編碼：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unar -e shift_jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<h2>unzip
-<span>
-<a href="#unzip" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>大多數Linu發行版都有內建的unzip指令，沒有就安裝：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unzip</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，解壓縮，它可以用<code>-O</code>指定日文編碼：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unzip -O shift-jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<p>不過用的時候我發現：はあ！？居然要Arch Linux和Ubuntu 26.04的unzip才有支援日文的patch，Debian 13收的不行。</p>
-<h2>參考
-<span>
-<a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a>
-</span>
-</h2>
-<ul>
-<li><a href="https://blog.gtwang.org/linux/linux-decompression-chinese-zip-files/" target="_blank">Linux 解壓縮中文檔名的 Zip 壓縮檔，解決 Big5 編碼產生亂碼問題 - G. T. Wang</a></li>
-<li><a href="https://blog.pulipuli.info/2021/03/7-zipzip-using-7-zip-to-decompress-zip.html" target="_blank"> 用7-Zip解壓縮含有亂碼檔名的ZIP檔案 / Using 7-Zip to decompress ZIP with given encoding</a></li>
-</ul>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/extract-zip-files-with-specific-encoding/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp"></a></p>
-<p>解決Ubunu等Linux發行版解壓縮檔案出現亂碼的問題。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f582673bf.webp">
-<p>在中文Linux環境解壓縮檔案，有時會遇到使用Windows區域字元編碼，譬如Big5、GBK、SHIFT-JIS，致使解出來是亂碼的情況。若是程式，可能還會無法正常執行呢。</p>
-<p>譬如，從DLsite下載的壓縮檔，很多都有日文編碼亂碼問題。</p>
-<p>似乎很多本本繪師都是在日文Windows作業然後輸出上傳，直接繼承了SHIFT-JIS編碼，於是在中文Windows解壓縮就會出現亂碼。更別說Linux了。</p>
-<p>一般來說壓縮檔案應該用UTF-8才有跨平臺相容性。可是Windows 11直到今天仍然預設使用預設區域的Code Page編碼，譬如繁體中文就會用Big5編碼，令人頭痛。反之，在Linux壓縮檔案的話，程式通常會自動選取UTF-8編碼。</p>
-<p>我看只有像《愛上火車》這種有製作多國語言特典大禮包（花500日元就送你遊戲 + 10部影片 + 抱枕CG圖 + ASMR音聲）的開發者才會懂得特別用UTF-8壓縮檔案吧！</p>
-<p>Linux並沒有Locale Emulator，要用其他方式處理。</p>
-<p>其實只要告訴解壓縮軟體，用特定區域編碼去解壓縮檔案就可以了！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e295c4160a.webp">
-<p>GUI方面的軟體，PeaZip無法解，KDE Ark也不行。可見，除了WinRAR（需要透過Wine執行）之外，Linux沒有一個GUI軟體能解壓縮需要切換編碼的檔案。</p>
-<p>那麼有以下解方：</p>
-<h2>7-Zip
-<span>
-<a href="#7-zip" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>跨平臺的解壓縮軟體，Linux沒有官方的GUI。安裝指令：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install p7zip-full</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，使用日文編碼解壓縮：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>7z x -mcp<span>=</span><span>932</span> <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<h2>WinRAR
-<span>
-<a href="#winrar" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>授權：專有軟體</p>
-<ol>
-<li>
-<p>透過<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">Wine</a>安裝WinRAR</p>
-</li>
-<li>
-<p>打開檔案 → 選項 → 切換編碼，選取日文(SHIFT-JIS)，再解壓縮。</p>
-</li>
-</ol>
-<h2>unar
-<span>
-<a href="#unar" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>macOS移植來的工具unar (The Unarchiver)</p>
-<p>安裝</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unar</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，用<code>-e</code>指定日文編碼，或者不加，讓它自動偵測檔案編碼：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unar -e shift_jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<h2>unzip
-<span>
-<a href="#unzip" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>大多數Linu發行版都有內建的unzip指令，沒有就安裝：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unzip</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，解壓縮，它可以用<code>-O</code>指定日文編碼：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unzip -O shift-jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<p>不過用的時候我發現：はあ！？居然要Arch Linux和Ubuntu 26.04的unzip才有支援日文的patch，Debian 13收的不行。</p>
-<h2>參考
-<span>
-<a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a>
-</span>
-</h2>
-<ul>
-<li><a href="https://blog.gtwang.org/linux/linux-decompression-chinese-zip-files/" target="_blank">Linux 解壓縮中文檔名的 Zip 壓縮檔，解決 Big5 編碼產生亂碼問題 - G. T. Wang</a></li>
-<li><a href="https://blog.pulipuli.info/2021/03/7-zipzip-using-7-zip-to-decompress-zip.html" target="_blank"> 用7-Zip解壓縮含有亂碼檔名的ZIP檔案 / Using 7-Zip to decompress ZIP with given encoding</a></li>
-</ul>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/extract-zip-files-with-specific-encoding/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp"></a></p>
-<p>解決Ubunu等Linux發行版解壓縮檔案出現亂碼的問題。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f582673bf.webp">
-<p>在中文Linux環境解壓縮檔案，有時會遇到使用Windows區域字元編碼，譬如Big5、GBK、SHIFT-JIS，致使解出來是亂碼的情況。若是程式，可能還會無法正常執行呢。</p>
-<p>譬如，從DLsite下載的壓縮檔，很多都有日文編碼亂碼問題。</p>
-<p>似乎很多本本繪師都是在日文Windows作業然後輸出上傳，直接繼承了SHIFT-JIS編碼，於是在中文Windows解壓縮就會出現亂碼。更別說Linux了。</p>
-<p>一般來說壓縮檔案應該用UTF-8才有跨平臺相容性。可是Windows 11直到今天仍然預設使用預設區域的Code Page編碼，譬如繁體中文就會用Big5編碼，令人頭痛。反之，在Linux壓縮檔案的話，程式通常會自動選取UTF-8編碼。</p>
-<p>我看只有像《愛上火車》這種有製作多國語言特典大禮包（花500日元就送你遊戲 + 10部影片 + 抱枕CG圖 + ASMR音聲）的開發者才會懂得特別用UTF-8壓縮檔案吧！</p>
-<p>Linux並沒有Locale Emulator，要用其他方式處理。</p>
-<p>其實只要告訴解壓縮軟體，用特定區域編碼去解壓縮檔案就可以了！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e295c4160a.webp">
-<p>GUI方面的軟體，PeaZip無法解，KDE Ark也不行。可見，除了WinRAR（需要透過Wine執行）之外，Linux沒有一個GUI軟體能解壓縮需要切換編碼的檔案。</p>
-<p>那麼有以下解方：</p>
-<h2>7-Zip
-<span>
-<a href="#7-zip" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>跨平臺的解壓縮軟體，Linux沒有官方的GUI。安裝指令：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install p7zip-full</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，使用日文編碼解壓縮：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>7z x -mcp<span>=</span><span>932</span> <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<h2>WinRAR
-<span>
-<a href="#winrar" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>授權：專有軟體</p>
-<ol>
-<li>
-<p>透過<a href="https://ivonblog.com/posts/linux-wine-introduction/" target="_blank">Wine</a>安裝WinRAR</p>
-</li>
-<li>
-<p>打開檔案 → 選項 → 切換編碼，選取日文(SHIFT-JIS)，再解壓縮。</p>
-</li>
-</ol>
-<h2>unar
-<span>
-<a href="#unar" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>macOS移植來的工具unar (The Unarchiver)</p>
-<p>安裝</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unar</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，用<code>-e</code>指定日文編碼，或者不加，讓它自動偵測檔案編碼：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unar -e shift_jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<h2>unzip
-<span>
-<a href="#unzip" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>大多數Linu發行版都有內建的unzip指令，沒有就安裝：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo apt install unzip</span></span></code></pre></div></div>
-<p>在下載目錄打開終端機，解壓縮，它可以用<code>-O</code>指定日文編碼：</p>
-<div><div><pre tabindex="0"><code data-lang="bash"><span><span>unzip -O shift-jis <span>"壓縮檔.zip"</span></span></span></code></pre></div></div>
-<p>不過用的時候我發現：はあ！？居然要Arch Linux和Ubuntu 26.04的unzip才有支援日文的patch，Debian 13收的不行。</p>
-<h2>參考
-<span>
-<a href="#%e5%8f%83%e8%80%83" aria-label="定位點">#</a>
-</span>
-</h2>
-<ul>
-<li><a href="https://blog.gtwang.org/linux/linux-decompression-chinese-zip-files/" target="_blank">Linux 解壓縮中文檔名的 Zip 壓縮檔，解決 Big5 編碼產生亂碼問題 - G. T. Wang</a></li>
-<li><a href="https://blog.pulipuli.info/2021/03/7-zipzip-using-7-zip-to-decompress-zip.html" target="_blank"> 用7-Zip解壓縮含有亂碼檔名的ZIP檔案 / Using 7-Zip to decompress ZIP with given encoding</a></li>
-</ul>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0c85946384.webp" medium="image"/>
-    <pubDate>Tue, 25 Aug 2026 01:00:00 +0800</pubDate>
   </item></channel>
 </rss>

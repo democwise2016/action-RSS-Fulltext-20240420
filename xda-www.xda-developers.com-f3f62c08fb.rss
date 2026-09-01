@@ -3,7 +3,7 @@
     <title><![CDATA[XDA[RSS+]]]></title>
     <link>https://www.xda-developers.com/feed/</link>
     <image>
-      <url>https://picsum.photos/800/800?random</url>
+      <url>https://fastly.picsum.photos/id/765/800/800.jpg?hmac=CGzcDXzcd6S_4RROBr-k8i2uhqzfXoLx5cukV9drwjY</url>
       <title>XDA[RSS+]</title>
       <link>https://www.xda-developers.com/feed/</link>
     </image>
@@ -28,8 +28,1031 @@
     <itunes:owner>
       <itunes:name><![CDATA[XDA[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://picsum.photos/800/800?random"/>
+    <itunes:image href="https://fastly.picsum.photos/id/765/800/800.jpg?hmac=CGzcDXzcd6S_4RROBr-k8i2uhqzfXoLx5cukV9drwjY"/>
 <item>
+    <title><![CDATA[I moved my Windows page file off my main SSD, and my drive stopped doing work it never needed to do]]></title>
+    <link>https://www.xda-developers.com/i-moved-my-windows-page-file-off-my-main-ssd-and-my-drive-stopped-doing-work-it-never-needed-to-do/</link>
+    <itunes:title><![CDATA[I moved my Windows page file off my main SSD, and my drive stopped doing work it never needed to do]]></itunes:title>
+    <itunes:author><![CDATA[XDA[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>It probably will not come as a surprise to most when I say that your Windows boot drive has enough on its plate. It handles the OS, applications, Windows updates, caches, temporary files, <a href="https://www.xda-developers.com/a-windows-11-service-you-never-asked-for-is-making-your-laptop-run-warmer-and-die-sooner/" target="_blank">telemetry</a>, and the list goes on and on. As such, it is useful to offload some of these tasks when it's possible, and most users start with pagefile.sys, since it is one of the few high-write files Windows lets you relocate without trouble.</p>    <p>Most users build their PCs around two SSDs, and if you're one of them, you have a second drive with capacity to spare and no real reason not to point Windows at it. That's exactly what I decided to do a few weeks back.</p>    <h2>
+Before migrating your pagefile, it's worth knowing what it does
+</h2>
+<h3>
+It does three jobs, and only one is about your RAM
+</h3>
+<div>
+<div>
+<img alt="XPG Gammix S70 Blade 2TB NVMe SSD with Blazing Heatsink from AsRock." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/xpg-gammix-s70-blade-2tb-nvme-with-blazing-heatsink.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p> Before we delve into <a href="https://www.makeuseof.com/windows-page-file-might-be-on-wrong-drive-heres-how-to-move/" target="_blank">moving your pagefile to another drive</a>, it helps to understand what you're actually moving. The pagefile.sys is a system file that Windows creates for three things, including virtual memory, supporting the system's commit limit, and of course, crash-dump support.</p>    <p>Windows can move infrequently accessed modified pages from physical system memory to the pagefile, which, in the process, frees RAM for data that needs to be accessed on the fly. The OS also tracks memory that is committed to running processes, and the commit limit is determined by available physical memory and the capacity of the pagefiles.</p>    <p>If the system hits that limit, Windows cannot satisfy further memory commitments, regardless of how much RAM might appear to be available at a glance. This is when you see freezes, out-of-memory errors, and the occasional crash. None of that is pleasant to see on your machine.</p>    <p>When it comes to crash-dump support, the function is quite vital and worth understanding. Without a pagefile of the right size, Windows may not be able to write certain memory dumps when something goes wrong, leaving you with a BSOD and little useful information to diagnose the issue. Windows, therefore, manages the pagefile automatically by default, adjusting its size and <a href="https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/introduction-to-the-page-file" target="_blank">letting it grow up to three times your installed RAM or up to 4GB</a> (whichever is larger). This is one of the reasons why some users see this file <a href="https://www.reddit.com/r/WindowsHelp/comments/1pas27r/pagefilesys_taking_82gb_on_otherwise_empty_drive/" target="_blank">swell up to tens of gigabytes</a> in size.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/">
+<img alt="A hand holding an NVMe enclosure." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/05/nvme-ssd-enclosure-1-1.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/" title="I added a second SSD to my PC for one boring reason, and it made Windows feel cleaner overnight" target="_blank">
+I added a second SSD to my PC for one boring reason, and it made Windows feel cleaner overnight
+</a>
+</h5>
+<p>Adding a second SSD frees up storage and makes my files quick to access.</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/#threads">
+<span>1</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/brian-burgess/" title="Posts by Brian Burgess">Brian Burgess</a>
+</div>
+</div>
+<div><span data-b64-ts="SnVsIDE2LCAyMDI2" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+What's the benefit to moving your pagefile to another drive?
+</h2>
+<h3>
+It's subtle, but also not recommended in every case
+</h3>
+<div>
+<div>
+<img alt="Pagefile on Windows 11 PC." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-16.png?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p> Contrary to what many on user forums believe, moving the pagefile doesn't make the RAM or the OS faster itself, and it won't turn a second SSD into a performance upgrade either. The benefit is a little subtle, in that, by doing this, you separate paging activity from the other work your primary drive is already handling.</p>    <p>When Windows requires paging data, the read and write activity have to be handled by whichever drive hosts pagefile.sys. If that's the boot drive (as it usually is, by default) those operations are competing for the same storage resources as Windows, applications, software updates, cache, and other everyday files. Therefore, migrating the pagefile to a separate drive gives another room for the activity to occur, and your OS drive is free from the read and write activity occurring in the background.</p>    <p>There are circumstances where you'd be better off avoiding moving the pagefile, though, and exploring alternative optimization methods. If your PC already has plenty of system memory (say, 32GB of RAM or more) and rarely pages, you're unlikely to see noticeable benefit to this, which renders the exercise moot.</p>    <p>Another case where it's generally unadvisable to move the pagefile is when your secondary drive is a lot slower than your main drive. For example, it's generally okay to move the pagefile from an NVMe SSD to a SATA SSD, but not from a SATA SSD to an HDD because of the difference in <a href="https://www.xda-developers.com/iops-why-they-matter/" target="_blank">random IOPS</a>. Moving the pagefile to a slower drive could make the paging process itself slower.</p>    <h2>
+How to move your pagefile to another drive the right way
+</h2>
+<h3>
+A couple of steps and a reboot is all it takes
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-72444652" data-gallery-id="main-carousel-1-72444652" data-article-gallery="article-gallery-modal-1-72444652" data-gallery-lightbox="gallery-modal-1-72444652" data-gallery-thumbnail-img-class="gallery-thumbnails-1-72444652-img" data-gallery-type="">
+<div><section data-gallery-expanded-id="main-expanable-carousel-1-72444652" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-72444652"><button type="button"></button><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1439&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
+</div>
+</div>
+<p>Although it sounds complicated, moving the pagefile to your secondary drive is simple and can be done natively through Windows.</p>    <p>The first thing you'd want to do is use Search to find <strong>View advanced system settings</strong> and open it. Then, you'd want to find the <strong>Performance</strong> tab and click on <strong>Settings</strong>. This should take you to a new window, where you have to switch to <strong>Advanced</strong> and find <strong>Virtual memory</strong>.</p>
+<p>Here, you have to click <strong>Change</strong> and untick the option to <strong>Automatically manage paging file size for all drives</strong>. Then, select the designated drive you have selected to move the pagefile to, choose <strong>System managed size</strong>, and click on <strong>Set </strong>to save this.</p>    <p>Finally, you now have to select your boot drive, choose <strong>No paging file</strong>, and click <strong>Set </strong>again. Once all of that is done, click <strong>Ok</strong> through the remaining windows and reboot your PC.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/4-reasons-use-multiple-partitions-windows-pc/">
+<img alt="person installing m2 drive into laptop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2024/10/person-installig-m2-drive-into-laptop.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/4-reasons-use-multiple-partitions-windows-pc/" title="4 reasons to use multiple partitions on a Windows PC" target="_blank">
+4 reasons to use multiple partitions on a Windows PC
+</a>
+</h5>
+<p>There are still good reasons in 2025 to use multiple partitions on a Windows PC.</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/4-reasons-use-multiple-partitions-windows-pc/#threads">
+<span>7</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/brian-burgess/" title="Posts by Brian Burgess">Brian Burgess</a>
+</div>
+</div>
+<div><span data-b64-ts="TWFyIDIzLCAyMDI1" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h3>
+Your boot drive will be a little less busy, and thank you for it
+</h3>
+<p>Windows 11 has plenty of background activity and <a href="https://www.xda-developers.com/windows-11-hibernation-silently-hammering-ssd-life/" target="_blank">processes competing for storage</a>, and the pagefile is one of the few Windows files you can move with a few clicks in a consequence-free way. If you happen to have a second drive with the headroom for it, it can take a workload off the boot drive. It's a rather sensible way to divide labor between your storage devices, and it costs you nothing except for ten minutes of your time.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>It probably will not come as a surprise to most when I say that your Windows boot drive has enough on its plate. It handles the OS, applications, Windows updates, caches, temporary files, <a href="https://www.xda-developers.com/a-windows-11-service-you-never-asked-for-is-making-your-laptop-run-warmer-and-die-sooner/" target="_blank">telemetry</a>, and the list goes on and on. As such, it is useful to offload some of these tasks when it's possible, and most users start with pagefile.sys, since it is one of the few high-write files Windows lets you relocate without trouble.</p>    <p>Most users build their PCs around two SSDs, and if you're one of them, you have a second drive with capacity to spare and no real reason not to point Windows at it. That's exactly what I decided to do a few weeks back.</p>    <h2>
+Before migrating your pagefile, it's worth knowing what it does
+</h2>
+<h3>
+It does three jobs, and only one is about your RAM
+</h3>
+<div>
+<div>
+<img alt="XPG Gammix S70 Blade 2TB NVMe SSD with Blazing Heatsink from AsRock." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/xpg-gammix-s70-blade-2tb-nvme-with-blazing-heatsink.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p> Before we delve into <a href="https://www.makeuseof.com/windows-page-file-might-be-on-wrong-drive-heres-how-to-move/" target="_blank">moving your pagefile to another drive</a>, it helps to understand what you're actually moving. The pagefile.sys is a system file that Windows creates for three things, including virtual memory, supporting the system's commit limit, and of course, crash-dump support.</p>    <p>Windows can move infrequently accessed modified pages from physical system memory to the pagefile, which, in the process, frees RAM for data that needs to be accessed on the fly. The OS also tracks memory that is committed to running processes, and the commit limit is determined by available physical memory and the capacity of the pagefiles.</p>    <p>If the system hits that limit, Windows cannot satisfy further memory commitments, regardless of how much RAM might appear to be available at a glance. This is when you see freezes, out-of-memory errors, and the occasional crash. None of that is pleasant to see on your machine.</p>    <p>When it comes to crash-dump support, the function is quite vital and worth understanding. Without a pagefile of the right size, Windows may not be able to write certain memory dumps when something goes wrong, leaving you with a BSOD and little useful information to diagnose the issue. Windows, therefore, manages the pagefile automatically by default, adjusting its size and <a href="https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/introduction-to-the-page-file" target="_blank">letting it grow up to three times your installed RAM or up to 4GB</a> (whichever is larger). This is one of the reasons why some users see this file <a href="https://www.reddit.com/r/WindowsHelp/comments/1pas27r/pagefilesys_taking_82gb_on_otherwise_empty_drive/" target="_blank">swell up to tens of gigabytes</a> in size.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/">
+<img alt="A hand holding an NVMe enclosure." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/05/nvme-ssd-enclosure-1-1.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/" title="I added a second SSD to my PC for one boring reason, and it made Windows feel cleaner overnight" target="_blank">
+I added a second SSD to my PC for one boring reason, and it made Windows feel cleaner overnight
+</a>
+</h5>
+<p>Adding a second SSD frees up storage and makes my files quick to access.</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/#threads">
+<span>1</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/brian-burgess/" title="Posts by Brian Burgess">Brian Burgess</a>
+</div>
+</div>
+<div><span data-b64-ts="SnVsIDE2LCAyMDI2" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+What's the benefit to moving your pagefile to another drive?
+</h2>
+<h3>
+It's subtle, but also not recommended in every case
+</h3>
+<div>
+<div>
+<img alt="Pagefile on Windows 11 PC." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-16.png?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p> Contrary to what many on user forums believe, moving the pagefile doesn't make the RAM or the OS faster itself, and it won't turn a second SSD into a performance upgrade either. The benefit is a little subtle, in that, by doing this, you separate paging activity from the other work your primary drive is already handling.</p>    <p>When Windows requires paging data, the read and write activity have to be handled by whichever drive hosts pagefile.sys. If that's the boot drive (as it usually is, by default) those operations are competing for the same storage resources as Windows, applications, software updates, cache, and other everyday files. Therefore, migrating the pagefile to a separate drive gives another room for the activity to occur, and your OS drive is free from the read and write activity occurring in the background.</p>    <p>There are circumstances where you'd be better off avoiding moving the pagefile, though, and exploring alternative optimization methods. If your PC already has plenty of system memory (say, 32GB of RAM or more) and rarely pages, you're unlikely to see noticeable benefit to this, which renders the exercise moot.</p>    <p>Another case where it's generally unadvisable to move the pagefile is when your secondary drive is a lot slower than your main drive. For example, it's generally okay to move the pagefile from an NVMe SSD to a SATA SSD, but not from a SATA SSD to an HDD because of the difference in <a href="https://www.xda-developers.com/iops-why-they-matter/" target="_blank">random IOPS</a>. Moving the pagefile to a slower drive could make the paging process itself slower.</p>    <h2>
+How to move your pagefile to another drive the right way
+</h2>
+<h3>
+A couple of steps and a reboot is all it takes
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-72444652" data-gallery-id="main-carousel-1-72444652" data-article-gallery="article-gallery-modal-1-72444652" data-gallery-lightbox="gallery-modal-1-72444652" data-gallery-thumbnail-img-class="gallery-thumbnails-1-72444652-img" data-gallery-type="">
+<div><section data-gallery-expanded-id="main-expanable-carousel-1-72444652" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-72444652"><button type="button"></button><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1439&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
+</div>
+</div>
+<p>Although it sounds complicated, moving the pagefile to your secondary drive is simple and can be done natively through Windows.</p>    <p>The first thing you'd want to do is use Search to find <strong>View advanced system settings</strong> and open it. Then, you'd want to find the <strong>Performance</strong> tab and click on <strong>Settings</strong>. This should take you to a new window, where you have to switch to <strong>Advanced</strong> and find <strong>Virtual memory</strong>.</p>
+<p>Here, you have to click <strong>Change</strong> and untick the option to <strong>Automatically manage paging file size for all drives</strong>. Then, select the designated drive you have selected to move the pagefile to, choose <strong>System managed size</strong>, and click on <strong>Set </strong>to save this.</p>    <p>Finally, you now have to select your boot drive, choose <strong>No paging file</strong>, and click <strong>Set </strong>again. Once all of that is done, click <strong>Ok</strong> through the remaining windows and reboot your PC.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/4-reasons-use-multiple-partitions-windows-pc/">
+<img alt="person installing m2 drive into laptop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2024/10/person-installig-m2-drive-into-laptop.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/4-reasons-use-multiple-partitions-windows-pc/" title="4 reasons to use multiple partitions on a Windows PC" target="_blank">
+4 reasons to use multiple partitions on a Windows PC
+</a>
+</h5>
+<p>There are still good reasons in 2025 to use multiple partitions on a Windows PC.</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/4-reasons-use-multiple-partitions-windows-pc/#threads">
+<span>7</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/brian-burgess/" title="Posts by Brian Burgess">Brian Burgess</a>
+</div>
+</div>
+<div><span data-b64-ts="TWFyIDIzLCAyMDI1" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h3>
+Your boot drive will be a little less busy, and thank you for it
+</h3>
+<p>Windows 11 has plenty of background activity and <a href="https://www.xda-developers.com/windows-11-hibernation-silently-hammering-ssd-life/" target="_blank">processes competing for storage</a>, and the pagefile is one of the few Windows files you can move with a few clicks in a consequence-free way. If you happen to have a second drive with the headroom for it, it can take a workload off the boot drive. It's a rather sensible way to divide labor between your storage devices, and it costs you nothing except for ten minutes of your time.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>It probably will not come as a surprise to most when I say that your Windows boot drive has enough on its plate. It handles the OS, applications, Windows updates, caches, temporary files, <a href="https://www.xda-developers.com/a-windows-11-service-you-never-asked-for-is-making-your-laptop-run-warmer-and-die-sooner/" target="_blank">telemetry</a>, and the list goes on and on. As such, it is useful to offload some of these tasks when it's possible, and most users start with pagefile.sys, since it is one of the few high-write files Windows lets you relocate without trouble.</p>    <p>Most users build their PCs around two SSDs, and if you're one of them, you have a second drive with capacity to spare and no real reason not to point Windows at it. That's exactly what I decided to do a few weeks back.</p>    <h2>
+Before migrating your pagefile, it's worth knowing what it does
+</h2>
+<h3>
+It does three jobs, and only one is about your RAM
+</h3>
+<div>
+<div>
+<img alt="XPG Gammix S70 Blade 2TB NVMe SSD with Blazing Heatsink from AsRock." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/xpg-gammix-s70-blade-2tb-nvme-with-blazing-heatsink.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p> Before we delve into <a href="https://www.makeuseof.com/windows-page-file-might-be-on-wrong-drive-heres-how-to-move/" target="_blank">moving your pagefile to another drive</a>, it helps to understand what you're actually moving. The pagefile.sys is a system file that Windows creates for three things, including virtual memory, supporting the system's commit limit, and of course, crash-dump support.</p>    <p>Windows can move infrequently accessed modified pages from physical system memory to the pagefile, which, in the process, frees RAM for data that needs to be accessed on the fly. The OS also tracks memory that is committed to running processes, and the commit limit is determined by available physical memory and the capacity of the pagefiles.</p>    <p>If the system hits that limit, Windows cannot satisfy further memory commitments, regardless of how much RAM might appear to be available at a glance. This is when you see freezes, out-of-memory errors, and the occasional crash. None of that is pleasant to see on your machine.</p>    <p>When it comes to crash-dump support, the function is quite vital and worth understanding. Without a pagefile of the right size, Windows may not be able to write certain memory dumps when something goes wrong, leaving you with a BSOD and little useful information to diagnose the issue. Windows, therefore, manages the pagefile automatically by default, adjusting its size and <a href="https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/introduction-to-the-page-file" target="_blank">letting it grow up to three times your installed RAM or up to 4GB</a> (whichever is larger). This is one of the reasons why some users see this file <a href="https://www.reddit.com/r/WindowsHelp/comments/1pas27r/pagefilesys_taking_82gb_on_otherwise_empty_drive/" target="_blank">swell up to tens of gigabytes</a> in size.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/">
+<img alt="A hand holding an NVMe enclosure." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/05/nvme-ssd-enclosure-1-1.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/" title="I added a second SSD to my PC for one boring reason, and it made Windows feel cleaner overnight" target="_blank">
+I added a second SSD to my PC for one boring reason, and it made Windows feel cleaner overnight
+</a>
+</h5>
+<p>Adding a second SSD frees up storage and makes my files quick to access.</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/added-second-ssd-to-pc-for-one-boring-reason-made-windows-feel-cleaner/#threads">
+<span>1</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/brian-burgess/" title="Posts by Brian Burgess">Brian Burgess</a>
+</div>
+</div>
+<div><span data-b64-ts="SnVsIDE2LCAyMDI2" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+What's the benefit to moving your pagefile to another drive?
+</h2>
+<h3>
+It's subtle, but also not recommended in every case
+</h3>
+<div>
+<div>
+<img alt="Pagefile on Windows 11 PC." src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-16.png?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p> Contrary to what many on user forums believe, moving the pagefile doesn't make the RAM or the OS faster itself, and it won't turn a second SSD into a performance upgrade either. The benefit is a little subtle, in that, by doing this, you separate paging activity from the other work your primary drive is already handling.</p>    <p>When Windows requires paging data, the read and write activity have to be handled by whichever drive hosts pagefile.sys. If that's the boot drive (as it usually is, by default) those operations are competing for the same storage resources as Windows, applications, software updates, cache, and other everyday files. Therefore, migrating the pagefile to a separate drive gives another room for the activity to occur, and your OS drive is free from the read and write activity occurring in the background.</p>    <p>There are circumstances where you'd be better off avoiding moving the pagefile, though, and exploring alternative optimization methods. If your PC already has plenty of system memory (say, 32GB of RAM or more) and rarely pages, you're unlikely to see noticeable benefit to this, which renders the exercise moot.</p>    <p>Another case where it's generally unadvisable to move the pagefile is when your secondary drive is a lot slower than your main drive. For example, it's generally okay to move the pagefile from an NVMe SSD to a SATA SSD, but not from a SATA SSD to an HDD because of the difference in <a href="https://www.xda-developers.com/iops-why-they-matter/" target="_blank">random IOPS</a>. Moving the pagefile to a slower drive could make the paging process itself slower.</p>    <h2>
+How to move your pagefile to another drive the right way
+</h2>
+<h3>
+A couple of steps and a reboot is all it takes
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-72444652" data-gallery-id="main-carousel-1-72444652" data-article-gallery="article-gallery-modal-1-72444652" data-gallery-lightbox="gallery-modal-1-72444652" data-gallery-thumbnail-img-class="gallery-thumbnails-1-72444652-img" data-gallery-type="">
+<div><section data-gallery-expanded-id="main-expanable-carousel-1-72444652" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-72444652"><button type="button"></button><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1439&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=contain&amp;w=2559&amp;h=1438&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Pagefile-migration-1" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-1.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-14" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-14.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-12" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-12.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-15" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-15.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Pagefile-migration-13" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/pagefile-migration-13.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
+</div>
+</div>
+<p>Although it sounds complicated, moving the pagefile to your secondary drive is simple and can be done natively through Windows.</p>    <p>The first thing you'd want to do is use Search to find <strong>View advanced system settings</strong> and open it. Then, you'd want to find the <strong>Performance</strong> tab and click on <strong>Settings</strong>. This should take you to a new window, where you have to switch to <strong>Advanced</strong> and find <strong>Virtual memory</strong>.</p>
+<p>Here, you have to click <strong>Change</strong> and untick the option to <strong>Automatically manage paging file size for all drives</strong>. Then, select the designated drive you have selected to move the pagefile to, choose <strong>System managed size</strong>, and click on <strong>Set </strong>to save this.</p>    <p>Finally, you now have to select your boot drive, choose <strong>No paging file</strong>, and click <strong>Set </strong>again. Once all of that is done, click <strong>Ok</strong> through the remaining windows and reboot your PC.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/4-reasons-use-multiple-partitions-windows-pc/">
+<img alt="person installing m2 drive into laptop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2024/10/person-installig-m2-drive-into-laptop.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/4-reasons-use-multiple-partitions-windows-pc/" title="4 reasons to use multiple partitions on a Windows PC" target="_blank">
+4 reasons to use multiple partitions on a Windows PC
+</a>
+</h5>
+<p>There are still good reasons in 2025 to use multiple partitions on a Windows PC.</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/4-reasons-use-multiple-partitions-windows-pc/#threads">
+<span>7</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/brian-burgess/" title="Posts by Brian Burgess">Brian Burgess</a>
+</div>
+</div>
+<div><span data-b64-ts="TWFyIDIzLCAyMDI1" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h3>
+Your boot drive will be a little less busy, and thank you for it
+</h3>
+<p>Windows 11 has plenty of background activity and <a href="https://www.xda-developers.com/windows-11-hibernation-silently-hammering-ssd-life/" target="_blank">processes competing for storage</a>, and the pagefile is one of the few Windows files you can move with a few clicks in a consequence-free way. If you happen to have a second drive with the headroom for it, it can take a workload off the boot drive. It's a rather sensible way to divide labor between your storage devices, and it costs you nothing except for ten minutes of your time.</p>]]></content:encoded>
+    <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/xpg-gammix-s70-blade-2tb-nvme-with-blazing-heatsink.jpg?q=49&fit=crop&w=825&dpr=2"/>
+          <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/xpg-gammix-s70-blade-2tb-nvme-with-blazing-heatsink.jpg?q=49&fit=crop&w=825&dpr=2" medium="image"/>
+    <pubDate>Tue, 01 Sep 2026 11:01:17 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[I ditched cloud AI for a local LLM in Proxmox, and my home lab finally makes sense]]></title>
+    <link>https://www.xda-developers.com/ditched-cloud-ai-for-a-local-llm-proxmox-homelab-finally-makes-sense/</link>
+    <itunes:title><![CDATA[I ditched cloud AI for a local LLM in Proxmox, and my home lab finally makes sense]]></itunes:title>
+    <itunes:author><![CDATA[XDA[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>Local AI means different things <a href="https://www.xda-developers.com/local-ai-is-finally-boring-and-thats-why-its-finally-useful/" target="_blank">depending on who's saying it</a>, and it stopped being a crucial part of the conversation once we got semi-<a href="https://www.xda-developers.com/i-replaced-cloud-llms-with-local-models-running-off-a-proxmox-lxc/" target="_blank">competent models we could self-host</a>. I'd spent a lot of time thinking about home automation in terms of cloud vs. local, and I'd missed one big point. <a href="https://www.xda-developers.com/gave-local-llm-control-homelab-nothing-touched-cloud/" target="_blank">Where the model runs</a> is a minor detail; what matters is who can see your automations and who gets to edit them. </p>    <p>So I stood up Lemonade Server inside an LXC on my Proxmox node, pointed it at the custom four-tier model router I built for my ROG Flow Z13, and started asking every piece of automation in the house the same two questions. Can I read the rule? Can I edit the rule? Both need to be a yes before your home lab is really yours.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/">
+<img alt="A mini PC on top of a NAS enclosure" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/nas-and-home-lab-1.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/" title="I gave my home lab and NAS separate hardware, and now I actually trust my backups" target="_blank">
+I gave my home lab and NAS separate hardware, and now I actually trust my backups
+</a>
+</h5>
+<p>It's better across the board</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/#threads">
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joao-xda/" title="Posts by João Carrasqueira">João Carrasqueira</a>
+</div>
+</div>
+<div><span data-b64-ts="NCBkYXlzIGFnbw==" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+Where the automation runs is the whole point
+</h2>
+<h3>
+The Proxmox API drew a line I didn't expect
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-808764636" data-gallery-id="main-carousel-1-808764636" data-article-gallery="article-gallery-modal-1-808764636" data-gallery-lightbox="gallery-modal-1-808764636" data-gallery-thumbnail-img-class="gallery-thumbnails-1-808764636-img" data-gallery-type="">
+<div><section data-gallery-expanded-id="main-expanable-carousel-1-808764636" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-808764636"><button type="button"></button><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
+</div>
+</div>
+<p>My Proxmox box is powered by a Ryzen AI Max+ 395 with 128GB of unified memory, and I've been mostly taking advantage of that memory to stuff as many LXCs and VMs onto it as I can. But that also means it's perfect for running a local LLM, and it's silicon I'm familiar with, as I run a Ryzen AI Halo and Z13 Flow, both powered by the same configuration.</p>    <p>The other thing is that it was ever so easy to set up. It's a Debian 13 template, unprivileged, 250GB on the NVMe ZFS pool, 12 cores, and three device nodes mapped in:<strong> /dev/kfd, /dev/dri/renderD128</strong>, and<strong> /dev/dri/card0</strong>. The container sees the Radeon 8060S through the host's own driver. Lemonade Server 11.8.1 reports it as a gfx1151 device, and unified memory does the rest.</p>    <p>It's a good thing I tested because Lemonade defaults to the Vulkan backend, and the ROCm backend is often better for performance. That didn't take long to fix, though. In the same container, ROCm runs a 120B model at 19 tok/s compared to 5 tok/s for Vulkan, and a 30B coder at 26 tok/s to 7.6 tok/s on Vulkan; so the swap was well worth it. It's not that long ago that ROCm was a complicated beast to set up, but now it's much more usable.</p>    <h3>
+The Proxmox API can't do everything
+</h3>
+<div>
+<div>
+<img alt="lemonade lxc proxmox" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/lemonade-lxc-proxmox.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>I loaded up Claude to create the Proxmox LXC, because <a href="https://www.xda-developers.com/tried-controlling-my-home-lab-through-mcp-servers/" target="_blank">what's the point of setting up MCP servers</a> if you're not going to use them? Except, the API decided that I needed to do some of it manually, because setting up device passthrough is clearly a level of access too high.</p>    <pre>403 Forbidden: Permission check failed (configuring device passthrough is only allowed for root@pam)<br></pre>    <p>Even with root access, the API can't map devices into a container or set feature flags other than nesting. It only needed a couple of PCT commands from the shell, and it's probably correct not to let the API change hardware configuration for you.</p>
+<div>
+<div>
+<img alt="proxmox llm lemonade amd gpu passthrough rocm backend" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/proxmox-llm-lemonade-amd-gpu-passthrough-rocm-backend.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>There was one other obstacle in my way, the RAM carve-out. When it's set to Auto in BIOS, this means 64GB: the host sees 62GB, the GPU gets 65,536 MiB of dedicated VRAM plus 31,967 MiB of borrowable GTT. That's a Windows-shaped default, but you don't need that when using Linux. The fix is to go in the other direction. Set the iGPU frame buffer to the 512 MB minimum, and use ttm.pages_limit in the kernel line to increase the VRAM carve-out to 100 GB. I hit one OOM-killed server at 99.99 GB of usage, and that told me I needed to unload models instead of keeping them all in memory.</p>
+<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
+<div>
+<div>
+<div>
+<div data-stnl-group-once="mlRjphIrIf">
+<div>
+<div>
+<img alt="render of bosgame m5 mini pc from a top angle" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2025/09/bosgame-m5-mini-pc.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<h5>
+Bosgame M5 AI Mini Desktop
+</h5>
+<div>$3000
+<span>$3600</span>
+Save $600
+</div>
+</div>
+</div>
+<div>
+<div>
+<dl>
+<div>
+<dt>
+<strong>RAM</strong> 					</dt>
+<dd>
+<span>
+128GB LPDDR5X DDR5-8000
+</span>
+</dd>
+</div>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<p>Strix Halo is a perfect choice for Proxmox to run on, with plenty of RAM to share between containers.</p>
+<input type="checkbox" name="extra-content-f6e8-41df-8dda6d389d13">
+<div>
+<div>
+<dl>
+<div>
+<dt>
+<strong>CPU Speed</strong> 					</dt>
+<dd>
+<span>
+Base 3GHz, Boost up to 5.1GHz
+</span>
+</dd>
+</div>
+</dl>
+</div>
+</div>
+<div>
+<div>
+<a href="https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395" target="_blank">$3000 at Official Site</a>
+</div>
+</div>
+<div>
+<label for="extra-content-f6e8-41df-8dda6d389d13" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
+<span>Expand</span>
+<span>Collapse</span>
+</label>
+</div>
+</div>
+</div>
+<h2>
+What automation is allowed to touch is where the vendors go quiet
+</h2>
+<h3>
+Routing accuracy and answer quality are two different numbers
+</h3>
+<div>
+<div>
+<img alt="eero 6e pro on shelf" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/06/eero-on-shelf.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>Let's take an example from my house. My eero network intercepts all DNS traffic on port 53, even if I've got a local DNS set up. Each node is also a Zigbee hub, and Amazon auto-connects devices using credentials I don't have to type because the chain of automations links together for convenience. My container's version of that is the same <a href="https://www.xda-developers.com/i-connected-my-local-llm-to-home-assistant-through-mcp/" target="_blank">set of MCP servers</a> I already had: Proxmox, both Technitium DNS nodes, and Home Assistant.</p>    <p>I can measure routing accuracy because I have a set of rules to put things on the correct models and another set of questions to trigger them. The eleven questions range from a one-line greeting to two hard-reasoning prompts, and my router put them all where they're expected. Answers are harder to quantify and even harder to make consistent. The 2B's first reply to "what's 2+2" was empty because it spent its whole token budget thinking, and the coder's fix for a divide-by-zero was to wrap the divide-by-zero in a try/except. I'd rather report both numbers than round them into one.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/review-amd-ryzen-ai-halo/">
+<img alt="amd ryzen ai halo on a desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/amd-ryzen-ai-halo-glowing-2.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/review-amd-ryzen-ai-halo/" title="AMD's tiny Ryzen AI box does what Nvidia's DGX Spark does at a fraction of the power" target="_blank">
+AMD's tiny Ryzen AI box does what Nvidia's DGX Spark does at a fraction of the power
+</a>
+</h5>
+<p>Same price tag, very different electricity bill</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/review-amd-ryzen-ai-halo/#threads">
+<span>4</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joe-rice-jones/" title="Posts by Joe Rice-Jones">Joe Rice-Jones</a>
+</div>
+</div>
+<div><span data-b64-ts="SnVsIDYsIDIwMjY=" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+The model router is what makes the lab make sense
+</h2>
+<h3>
+Except the judge LLM had been quietly lying to me
+</h3>
+<div>
+<div>
+<img alt="model router tests lemonade proxmox" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/model-router-tests-lemonade-proxmox.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>The thing serving requests isn't a model; it's a policy. Lemonade's router recipe lets you register a collection of models and a rule set, and ours, unimaginatively named Squeeze, is four tiers: Qwen3.5 2B for quick hits, Qwen3.5 9B as the default and the only tier that gets images, Qwen3-Coder 30B-A3B for anything that smells like code or tool use, and gpt-oss-120b for hard reasoning or big pastes. A small model sits in front as the difficulty judge, and its entire job description fits in one prompt: reply EASY, NORMAL, or HARD.</p>
+<p>The rules are the point. Under 200 characters and judged EASY goes to the 2B. Anything over 12,000 characters, or judged HARD, wakes the 120B. A stack trace, a code fence, or a tool definition routes to the Coder. And if a client sets a metadata flag, it can pin the heavy tier regardless. Every response includes an x-lemonade-route header naming the rule that fired, and adding route_trace to the request returns the per-rule decision, condition by condition. Try asking your mesh router why it did anything.</p>    <h3>
+Except there was a problem
+</h3>
+<p>The original 0.8B judge is a thinking model, and when asked for one word, it writes a plan instead and runs out of tokens before it says the word. The router's on_error setting quietly turned that into "not HARD," so every hard prompt fell through to the 9B, which answered well enough that nobody looked at the header. Swapping the judge for a non-thinking 4B and rewording the prompt fixed it, and the first hard prompt through the repaired router came back with the 120B's answer and the judge's own rationale attached: "The proof requires a mathematical argument about irrationality... involving deep logical reasoning." I didn't fix it because it was slow. I fixed it because I could read it.</p>    <p>To be clear, this costs something. The 120B is slower than any cloud model, and the judge adds three or four seconds of fixed overhead to every request, which is why the 2B's router-level number is 46 tokens per second when the model itself is far quicker. That's the price of being able to read the rules. The commercial products charge it, too. You just never get the receipt.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/strix-halo-ai-automation-hub-lemonade-11/">
+<img alt="amd ryzen ai halo from the top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/amd-ryzen-ai-halo-top.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/strix-halo-ai-automation-hub-lemonade-11/" title="This AMD Strix Halo mini PC generates 3D models, images, and speech without touching the cloud" target="_blank">
+This AMD Strix Halo mini PC generates 3D models, images, and speech without touching the cloud
+</a>
+</h5>
+<p>Turns out having a chat interface in Lemonade was underselling things</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/strix-halo-ai-automation-hub-lemonade-11/#threads">
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joe-rice-jones/" title="Posts by Joe Rice-Jones">Joe Rice-Jones</a>
+</div>
+</div>
+<div><span data-b64-ts="QXVnIDIsIDIwMjY=" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h3>
+Control is one feature you can only self-host
+</h3>
+<p>The industry will happily sell you local AI that runs on your network now, but it runs in a box, and you can't tweak it. It won't sell you the prompts, the rules, or the reasoning. And that's why I self-host my models for my home lab, because I want to write the harness around them.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>Local AI means different things <a href="https://www.xda-developers.com/local-ai-is-finally-boring-and-thats-why-its-finally-useful/" target="_blank">depending on who's saying it</a>, and it stopped being a crucial part of the conversation once we got semi-<a href="https://www.xda-developers.com/i-replaced-cloud-llms-with-local-models-running-off-a-proxmox-lxc/" target="_blank">competent models we could self-host</a>. I'd spent a lot of time thinking about home automation in terms of cloud vs. local, and I'd missed one big point. <a href="https://www.xda-developers.com/gave-local-llm-control-homelab-nothing-touched-cloud/" target="_blank">Where the model runs</a> is a minor detail; what matters is who can see your automations and who gets to edit them. </p>    <p>So I stood up Lemonade Server inside an LXC on my Proxmox node, pointed it at the custom four-tier model router I built for my ROG Flow Z13, and started asking every piece of automation in the house the same two questions. Can I read the rule? Can I edit the rule? Both need to be a yes before your home lab is really yours.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/">
+<img alt="A mini PC on top of a NAS enclosure" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/nas-and-home-lab-1.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/" title="I gave my home lab and NAS separate hardware, and now I actually trust my backups" target="_blank">
+I gave my home lab and NAS separate hardware, and now I actually trust my backups
+</a>
+</h5>
+<p>It's better across the board</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/#threads">
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joao-xda/" title="Posts by João Carrasqueira">João Carrasqueira</a>
+</div>
+</div>
+<div><span data-b64-ts="NCBkYXlzIGFnbw==" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+Where the automation runs is the whole point
+</h2>
+<h3>
+The Proxmox API drew a line I didn't expect
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-808764636" data-gallery-id="main-carousel-1-808764636" data-article-gallery="article-gallery-modal-1-808764636" data-gallery-lightbox="gallery-modal-1-808764636" data-gallery-thumbnail-img-class="gallery-thumbnails-1-808764636-img" data-gallery-type="">
+<div><section data-gallery-expanded-id="main-expanable-carousel-1-808764636" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-808764636"><button type="button"></button><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
+</div>
+</div>
+<p>My Proxmox box is powered by a Ryzen AI Max+ 395 with 128GB of unified memory, and I've been mostly taking advantage of that memory to stuff as many LXCs and VMs onto it as I can. But that also means it's perfect for running a local LLM, and it's silicon I'm familiar with, as I run a Ryzen AI Halo and Z13 Flow, both powered by the same configuration.</p>    <p>The other thing is that it was ever so easy to set up. It's a Debian 13 template, unprivileged, 250GB on the NVMe ZFS pool, 12 cores, and three device nodes mapped in:<strong> /dev/kfd, /dev/dri/renderD128</strong>, and<strong> /dev/dri/card0</strong>. The container sees the Radeon 8060S through the host's own driver. Lemonade Server 11.8.1 reports it as a gfx1151 device, and unified memory does the rest.</p>    <p>It's a good thing I tested because Lemonade defaults to the Vulkan backend, and the ROCm backend is often better for performance. That didn't take long to fix, though. In the same container, ROCm runs a 120B model at 19 tok/s compared to 5 tok/s for Vulkan, and a 30B coder at 26 tok/s to 7.6 tok/s on Vulkan; so the swap was well worth it. It's not that long ago that ROCm was a complicated beast to set up, but now it's much more usable.</p>    <h3>
+The Proxmox API can't do everything
+</h3>
+<div>
+<div>
+<img alt="lemonade lxc proxmox" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/lemonade-lxc-proxmox.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>I loaded up Claude to create the Proxmox LXC, because <a href="https://www.xda-developers.com/tried-controlling-my-home-lab-through-mcp-servers/" target="_blank">what's the point of setting up MCP servers</a> if you're not going to use them? Except, the API decided that I needed to do some of it manually, because setting up device passthrough is clearly a level of access too high.</p>    <pre>403 Forbidden: Permission check failed (configuring device passthrough is only allowed for root@pam)<br></pre>    <p>Even with root access, the API can't map devices into a container or set feature flags other than nesting. It only needed a couple of PCT commands from the shell, and it's probably correct not to let the API change hardware configuration for you.</p>
+<div>
+<div>
+<img alt="proxmox llm lemonade amd gpu passthrough rocm backend" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/proxmox-llm-lemonade-amd-gpu-passthrough-rocm-backend.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>There was one other obstacle in my way, the RAM carve-out. When it's set to Auto in BIOS, this means 64GB: the host sees 62GB, the GPU gets 65,536 MiB of dedicated VRAM plus 31,967 MiB of borrowable GTT. That's a Windows-shaped default, but you don't need that when using Linux. The fix is to go in the other direction. Set the iGPU frame buffer to the 512 MB minimum, and use ttm.pages_limit in the kernel line to increase the VRAM carve-out to 100 GB. I hit one OOM-killed server at 99.99 GB of usage, and that told me I needed to unload models instead of keeping them all in memory.</p>
+<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
+<div>
+<div>
+<div>
+<div data-stnl-group-once="mlRjphIrIf">
+<div>
+<div>
+<img alt="render of bosgame m5 mini pc from a top angle" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2025/09/bosgame-m5-mini-pc.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<h5>
+Bosgame M5 AI Mini Desktop
+</h5>
+<div>$3000
+<span>$3600</span>
+Save $600
+</div>
+</div>
+</div>
+<div>
+<div>
+<dl>
+<div>
+<dt>
+<strong>RAM</strong> 					</dt>
+<dd>
+<span>
+128GB LPDDR5X DDR5-8000
+</span>
+</dd>
+</div>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<p>Strix Halo is a perfect choice for Proxmox to run on, with plenty of RAM to share between containers.</p>
+<input type="checkbox" name="extra-content-f6e8-41df-8dda6d389d13">
+<div>
+<div>
+<dl>
+<div>
+<dt>
+<strong>CPU Speed</strong> 					</dt>
+<dd>
+<span>
+Base 3GHz, Boost up to 5.1GHz
+</span>
+</dd>
+</div>
+</dl>
+</div>
+</div>
+<div>
+<div>
+<a href="https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395" target="_blank">$3000 at Official Site</a>
+</div>
+</div>
+<div>
+<label for="extra-content-f6e8-41df-8dda6d389d13" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
+<span>Expand</span>
+<span>Collapse</span>
+</label>
+</div>
+</div>
+</div>
+<h2>
+What automation is allowed to touch is where the vendors go quiet
+</h2>
+<h3>
+Routing accuracy and answer quality are two different numbers
+</h3>
+<div>
+<div>
+<img alt="eero 6e pro on shelf" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/06/eero-on-shelf.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>Let's take an example from my house. My eero network intercepts all DNS traffic on port 53, even if I've got a local DNS set up. Each node is also a Zigbee hub, and Amazon auto-connects devices using credentials I don't have to type because the chain of automations links together for convenience. My container's version of that is the same <a href="https://www.xda-developers.com/i-connected-my-local-llm-to-home-assistant-through-mcp/" target="_blank">set of MCP servers</a> I already had: Proxmox, both Technitium DNS nodes, and Home Assistant.</p>    <p>I can measure routing accuracy because I have a set of rules to put things on the correct models and another set of questions to trigger them. The eleven questions range from a one-line greeting to two hard-reasoning prompts, and my router put them all where they're expected. Answers are harder to quantify and even harder to make consistent. The 2B's first reply to "what's 2+2" was empty because it spent its whole token budget thinking, and the coder's fix for a divide-by-zero was to wrap the divide-by-zero in a try/except. I'd rather report both numbers than round them into one.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/review-amd-ryzen-ai-halo/">
+<img alt="amd ryzen ai halo on a desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/amd-ryzen-ai-halo-glowing-2.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/review-amd-ryzen-ai-halo/" title="AMD's tiny Ryzen AI box does what Nvidia's DGX Spark does at a fraction of the power" target="_blank">
+AMD's tiny Ryzen AI box does what Nvidia's DGX Spark does at a fraction of the power
+</a>
+</h5>
+<p>Same price tag, very different electricity bill</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/review-amd-ryzen-ai-halo/#threads">
+<span>4</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joe-rice-jones/" title="Posts by Joe Rice-Jones">Joe Rice-Jones</a>
+</div>
+</div>
+<div><span data-b64-ts="SnVsIDYsIDIwMjY=" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+The model router is what makes the lab make sense
+</h2>
+<h3>
+Except the judge LLM had been quietly lying to me
+</h3>
+<div>
+<div>
+<img alt="model router tests lemonade proxmox" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/model-router-tests-lemonade-proxmox.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>The thing serving requests isn't a model; it's a policy. Lemonade's router recipe lets you register a collection of models and a rule set, and ours, unimaginatively named Squeeze, is four tiers: Qwen3.5 2B for quick hits, Qwen3.5 9B as the default and the only tier that gets images, Qwen3-Coder 30B-A3B for anything that smells like code or tool use, and gpt-oss-120b for hard reasoning or big pastes. A small model sits in front as the difficulty judge, and its entire job description fits in one prompt: reply EASY, NORMAL, or HARD.</p>
+<p>The rules are the point. Under 200 characters and judged EASY goes to the 2B. Anything over 12,000 characters, or judged HARD, wakes the 120B. A stack trace, a code fence, or a tool definition routes to the Coder. And if a client sets a metadata flag, it can pin the heavy tier regardless. Every response includes an x-lemonade-route header naming the rule that fired, and adding route_trace to the request returns the per-rule decision, condition by condition. Try asking your mesh router why it did anything.</p>    <h3>
+Except there was a problem
+</h3>
+<p>The original 0.8B judge is a thinking model, and when asked for one word, it writes a plan instead and runs out of tokens before it says the word. The router's on_error setting quietly turned that into "not HARD," so every hard prompt fell through to the 9B, which answered well enough that nobody looked at the header. Swapping the judge for a non-thinking 4B and rewording the prompt fixed it, and the first hard prompt through the repaired router came back with the 120B's answer and the judge's own rationale attached: "The proof requires a mathematical argument about irrationality... involving deep logical reasoning." I didn't fix it because it was slow. I fixed it because I could read it.</p>    <p>To be clear, this costs something. The 120B is slower than any cloud model, and the judge adds three or four seconds of fixed overhead to every request, which is why the 2B's router-level number is 46 tokens per second when the model itself is far quicker. That's the price of being able to read the rules. The commercial products charge it, too. You just never get the receipt.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/strix-halo-ai-automation-hub-lemonade-11/">
+<img alt="amd ryzen ai halo from the top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/amd-ryzen-ai-halo-top.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/strix-halo-ai-automation-hub-lemonade-11/" title="This AMD Strix Halo mini PC generates 3D models, images, and speech without touching the cloud" target="_blank">
+This AMD Strix Halo mini PC generates 3D models, images, and speech without touching the cloud
+</a>
+</h5>
+<p>Turns out having a chat interface in Lemonade was underselling things</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/strix-halo-ai-automation-hub-lemonade-11/#threads">
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joe-rice-jones/" title="Posts by Joe Rice-Jones">Joe Rice-Jones</a>
+</div>
+</div>
+<div><span data-b64-ts="QXVnIDIsIDIwMjY=" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h3>
+Control is one feature you can only self-host
+</h3>
+<p>The industry will happily sell you local AI that runs on your network now, but it runs in a box, and you can't tweak it. It won't sell you the prompts, the rules, or the reasoning. And that's why I self-host my models for my home lab, because I want to write the harness around them.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>Local AI means different things <a href="https://www.xda-developers.com/local-ai-is-finally-boring-and-thats-why-its-finally-useful/" target="_blank">depending on who's saying it</a>, and it stopped being a crucial part of the conversation once we got semi-<a href="https://www.xda-developers.com/i-replaced-cloud-llms-with-local-models-running-off-a-proxmox-lxc/" target="_blank">competent models we could self-host</a>. I'd spent a lot of time thinking about home automation in terms of cloud vs. local, and I'd missed one big point. <a href="https://www.xda-developers.com/gave-local-llm-control-homelab-nothing-touched-cloud/" target="_blank">Where the model runs</a> is a minor detail; what matters is who can see your automations and who gets to edit them. </p>    <p>So I stood up Lemonade Server inside an LXC on my Proxmox node, pointed it at the custom four-tier model router I built for my ROG Flow Z13, and started asking every piece of automation in the house the same two questions. Can I read the rule? Can I edit the rule? Both need to be a yes before your home lab is really yours.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/">
+<img alt="A mini PC on top of a NAS enclosure" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/nas-and-home-lab-1.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/" title="I gave my home lab and NAS separate hardware, and now I actually trust my backups" target="_blank">
+I gave my home lab and NAS separate hardware, and now I actually trust my backups
+</a>
+</h5>
+<p>It's better across the board</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/gave-home-lab-nas-separate-hardware-actually-trust-backups/#threads">
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joao-xda/" title="Posts by João Carrasqueira">João Carrasqueira</a>
+</div>
+</div>
+<div><span data-b64-ts="NCBkYXlzIGFnbw==" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+Where the automation runs is the whole point
+</h2>
+<h3>
+The Proxmox API drew a line I didn't expect
+</h3>
+<div>
+<div data-gallery-thumbnail-id="gallery-thumbnails-1-808764636" data-gallery-id="main-carousel-1-808764636" data-article-gallery="article-gallery-modal-1-808764636" data-gallery-lightbox="gallery-modal-1-808764636" data-gallery-thumbnail-img-class="gallery-thumbnails-1-808764636-img" data-gallery-type="">
+<div><section data-gallery-expanded-id="main-expanable-carousel-1-808764636" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-808764636"><button type="button"></button><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=contain&amp;w=4032&amp;h=2688&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="usb-c kvm device attached to a mini pc" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/05/kvm-over-ip-mini-pc.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc flipped over to show the ssd door" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-ssd-door.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench with an xbox controller on top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-controller-on-top.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc on a white bench next to an xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="bosgame m5 mini pc with xbox controller" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/bosgame-m5-ryzen-strix-halo-xbox-controller.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
+</div>
+</div>
+<p>My Proxmox box is powered by a Ryzen AI Max+ 395 with 128GB of unified memory, and I've been mostly taking advantage of that memory to stuff as many LXCs and VMs onto it as I can. But that also means it's perfect for running a local LLM, and it's silicon I'm familiar with, as I run a Ryzen AI Halo and Z13 Flow, both powered by the same configuration.</p>    <p>The other thing is that it was ever so easy to set up. It's a Debian 13 template, unprivileged, 250GB on the NVMe ZFS pool, 12 cores, and three device nodes mapped in:<strong> /dev/kfd, /dev/dri/renderD128</strong>, and<strong> /dev/dri/card0</strong>. The container sees the Radeon 8060S through the host's own driver. Lemonade Server 11.8.1 reports it as a gfx1151 device, and unified memory does the rest.</p>    <p>It's a good thing I tested because Lemonade defaults to the Vulkan backend, and the ROCm backend is often better for performance. That didn't take long to fix, though. In the same container, ROCm runs a 120B model at 19 tok/s compared to 5 tok/s for Vulkan, and a 30B coder at 26 tok/s to 7.6 tok/s on Vulkan; so the swap was well worth it. It's not that long ago that ROCm was a complicated beast to set up, but now it's much more usable.</p>    <h3>
+The Proxmox API can't do everything
+</h3>
+<div>
+<div>
+<img alt="lemonade lxc proxmox" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/lemonade-lxc-proxmox.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>I loaded up Claude to create the Proxmox LXC, because <a href="https://www.xda-developers.com/tried-controlling-my-home-lab-through-mcp-servers/" target="_blank">what's the point of setting up MCP servers</a> if you're not going to use them? Except, the API decided that I needed to do some of it manually, because setting up device passthrough is clearly a level of access too high.</p>    <pre>403 Forbidden: Permission check failed (configuring device passthrough is only allowed for root@pam)<br></pre>    <p>Even with root access, the API can't map devices into a container or set feature flags other than nesting. It only needed a couple of PCT commands from the shell, and it's probably correct not to let the API change hardware configuration for you.</p>
+<div>
+<div>
+<img alt="proxmox llm lemonade amd gpu passthrough rocm backend" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/proxmox-llm-lemonade-amd-gpu-passthrough-rocm-backend.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>There was one other obstacle in my way, the RAM carve-out. When it's set to Auto in BIOS, this means 64GB: the host sees 62GB, the GPU gets 65,536 MiB of dedicated VRAM plus 31,967 MiB of borrowable GTT. That's a Windows-shaped default, but you don't need that when using Linux. The fix is to go in the other direction. Set the iGPU frame buffer to the 512 MB minimum, and use ttm.pages_limit in the kernel line to increase the VRAM carve-out to 100 GB. I hit one OOM-killed server at 99.99 GB of usage, and that told me I needed to unload models instead of keeping them all in memory.</p>
+<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
+<div>
+<div>
+<div>
+<div data-stnl-group-once="mlRjphIrIf">
+<div>
+<div>
+<img alt="render of bosgame m5 mini pc from a top angle" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2025/09/bosgame-m5-mini-pc.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<div>
+<h5>
+Bosgame M5 AI Mini Desktop
+</h5>
+<div>$3000
+<span>$3600</span>
+Save $600
+</div>
+</div>
+</div>
+<div>
+<div>
+<dl>
+<div>
+<dt>
+<strong>RAM</strong> 					</dt>
+<dd>
+<span>
+128GB LPDDR5X DDR5-8000
+</span>
+</dd>
+</div>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<p>Strix Halo is a perfect choice for Proxmox to run on, with plenty of RAM to share between containers.</p>
+<input type="checkbox" name="extra-content-f6e8-41df-8dda6d389d13">
+<div>
+<div>
+<dl>
+<div>
+<dt>
+<strong>CPU Speed</strong> 					</dt>
+<dd>
+<span>
+Base 3GHz, Boost up to 5.1GHz
+</span>
+</dd>
+</div>
+</dl>
+</div>
+</div>
+<div>
+<div>
+<a href="https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395" target="_blank">$3000 at Official Site</a>
+</div>
+</div>
+<div>
+<label for="extra-content-f6e8-41df-8dda6d389d13" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
+<span>Expand</span>
+<span>Collapse</span>
+</label>
+</div>
+</div>
+</div>
+<h2>
+What automation is allowed to touch is where the vendors go quiet
+</h2>
+<h3>
+Routing accuracy and answer quality are two different numbers
+</h3>
+<div>
+<div>
+<img alt="eero 6e pro on shelf" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/06/eero-on-shelf.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>Let's take an example from my house. My eero network intercepts all DNS traffic on port 53, even if I've got a local DNS set up. Each node is also a Zigbee hub, and Amazon auto-connects devices using credentials I don't have to type because the chain of automations links together for convenience. My container's version of that is the same <a href="https://www.xda-developers.com/i-connected-my-local-llm-to-home-assistant-through-mcp/" target="_blank">set of MCP servers</a> I already had: Proxmox, both Technitium DNS nodes, and Home Assistant.</p>    <p>I can measure routing accuracy because I have a set of rules to put things on the correct models and another set of questions to trigger them. The eleven questions range from a one-line greeting to two hard-reasoning prompts, and my router put them all where they're expected. Answers are harder to quantify and even harder to make consistent. The 2B's first reply to "what's 2+2" was empty because it spent its whole token budget thinking, and the coder's fix for a divide-by-zero was to wrap the divide-by-zero in a try/except. I'd rather report both numbers than round them into one.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/review-amd-ryzen-ai-halo/">
+<img alt="amd ryzen ai halo on a desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/amd-ryzen-ai-halo-glowing-2.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/review-amd-ryzen-ai-halo/" title="AMD's tiny Ryzen AI box does what Nvidia's DGX Spark does at a fraction of the power" target="_blank">
+AMD's tiny Ryzen AI box does what Nvidia's DGX Spark does at a fraction of the power
+</a>
+</h5>
+<p>Same price tag, very different electricity bill</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/review-amd-ryzen-ai-halo/#threads">
+<span>4</span>
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joe-rice-jones/" title="Posts by Joe Rice-Jones">Joe Rice-Jones</a>
+</div>
+</div>
+<div><span data-b64-ts="SnVsIDYsIDIwMjY=" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h2>
+The model router is what makes the lab make sense
+</h2>
+<h3>
+Except the judge LLM had been quietly lying to me
+</h3>
+<div>
+<div>
+<img alt="model router tests lemonade proxmox" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/model-router-tests-lemonade-proxmox.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
+</div>
+</div>
+<p>The thing serving requests isn't a model; it's a policy. Lemonade's router recipe lets you register a collection of models and a rule set, and ours, unimaginatively named Squeeze, is four tiers: Qwen3.5 2B for quick hits, Qwen3.5 9B as the default and the only tier that gets images, Qwen3-Coder 30B-A3B for anything that smells like code or tool use, and gpt-oss-120b for hard reasoning or big pastes. A small model sits in front as the difficulty judge, and its entire job description fits in one prompt: reply EASY, NORMAL, or HARD.</p>
+<p>The rules are the point. Under 200 characters and judged EASY goes to the 2B. Anything over 12,000 characters, or judged HARD, wakes the 120B. A stack trace, a code fence, or a tool definition routes to the Coder. And if a client sets a metadata flag, it can pin the heavy tier regardless. Every response includes an x-lemonade-route header naming the rule that fired, and adding route_trace to the request returns the per-rule decision, condition by condition. Try asking your mesh router why it did anything.</p>    <h3>
+Except there was a problem
+</h3>
+<p>The original 0.8B judge is a thinking model, and when asked for one word, it writes a plan instead and runs out of tokens before it says the word. The router's on_error setting quietly turned that into "not HARD," so every hard prompt fell through to the 9B, which answered well enough that nobody looked at the header. Swapping the judge for a non-thinking 4B and rewording the prompt fixed it, and the first hard prompt through the repaired router came back with the 120B's answer and the judge's own rationale attached: "The proof requires a mathematical argument about irrationality... involving deep logical reasoning." I didn't fix it because it was slow. I fixed it because I could read it.</p>    <p>To be clear, this costs something. The 120B is slower than any cloud model, and the judge adds three or four seconds of fixed overhead to every request, which is why the 2B's router-level number is 46 tokens per second when the model itself is far quicker. That's the price of being able to read the rules. The commercial products charge it, too. You just never get the receipt.</p>
+<aside data-include-community-rating="false" data-nosnippet="">
+<a href="/strix-halo-ai-automation-hub-lemonade-11/">
+<img alt="amd ryzen ai halo from the top" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/07/amd-ryzen-ai-halo-top.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
+</a>
+<span data-field="label"><label>Related</label></span>
+<div>
+<h5>
+<a href="/strix-halo-ai-automation-hub-lemonade-11/" title="This AMD Strix Halo mini PC generates 3D models, images, and speech without touching the cloud" target="_blank">
+This AMD Strix Halo mini PC generates 3D models, images, and speech without touching the cloud
+</a>
+</h5>
+<p>Turns out having a chat interface in Lemonade was underselling things</p>
+<div>
+<div>
+<label>Posts</label>
+<a title="Total Posts" href="/strix-halo-ai-automation-hub-lemonade-11/#threads">
+</a>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<span>By&nbsp;</span>
+<a href="/author/joe-rice-jones/" title="Posts by Joe Rice-Jones">Joe Rice-Jones</a>
+</div>
+</div>
+<div><span data-b64-ts="QXVnIDIsIDIwMjY=" data-nosnippet=""></span></div>
+</div>
+</div>
+</div>
+</aside>
+<h3>
+Control is one feature you can only self-host
+</h3>
+<p>The industry will happily sell you local AI that runs on your network now, but it runs in a box, and you can't tweak it. It won't sell you the prompts, the rules, or the reasoning. And that's why I self-host my models for my home lab, because I want to write the harness around them.</p>]]></content:encoded>
+    <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/nas-and-home-lab-1.jpg?q=49&fit=crop&w=220&h=124&dpr=2"/>
+          <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/nas-and-home-lab-1.jpg?q=49&fit=crop&w=220&h=124&dpr=2" medium="image"/>
+    <pubDate>Tue, 01 Sep 2026 10:00:15 GMT</pubDate>
+  </item><item>
     <title><![CDATA[After drama tore GZDoom apart, UZDoom v5 is here to modernise the FPS classic]]></title>
     <link>https://www.xda-developers.com/after-drama-tore-gzdoom-apart-uzdoom-v5-is-here-to-modernise-the-fps-classic/</link>
     <itunes:title><![CDATA[After drama tore GZDoom apart, UZDoom v5 is here to modernise the FPS classic]]></itunes:title>
@@ -3161,662 +4184,5 @@ The mid-range has become economically obsolete in the new memory economy
     <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/03/rtx-5090-desk.jpg?q=49&fit=contain&w=750&h=422&dpr=2"/>
           <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/03/rtx-5090-desk.jpg?q=49&fit=contain&w=750&h=422&dpr=2" medium="image"/>
     <pubDate>Mon, 31 Aug 2026 20:30:15 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[This underrated Docker container is the perfect TeamViewer killer I wish I found sooner]]></title>
-    <link>https://www.xda-developers.com/underrated-docker-container-is-the-perfect-teamviewer-killer/</link>
-    <itunes:title><![CDATA[This underrated Docker container is the perfect TeamViewer killer I wish I found sooner]]></itunes:title>
-    <itunes:author><![CDATA[XDA[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>I have slowly replaced many of the tools I use with <a href="https://www.xda-developers.com/decades-old-open-source-apps-outperform-modern-alternatives/" target="_blank">open-source</a> and <a href="https://www.xda-developers.com/non-negotiable-self-hosted-productivity-stack-for-2026/" target="_blank">self-hosted</a> alternatives. I like knowing how my software works, where it runs, and what happens to my data. It also fits the way I work: I can try something new, run it on my own hardware, and keep it alongside the rest of my productivity setup. <a href="https://www.xda-developers.com/remote-desktop-tailscale-setup-teamviewer-killer/" target="_blank">Remote access</a> was one area where I had still stuck with a commercial option like TeamViewer. I didn't think much about it until I started looking for another tool to add to my self-hosted stack.</p>    <h2>
-TeamViewer no longer fit my setup
-</h2>
-<h3>
-I needed less from remote access
-</h3>
-<div>
-<div>
-<img alt="ControlR register/login page" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-02.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p>TeamViewer had worked well for me, but I eventually started questioning whether I still needed it. My remote-access needs were fairly basic. I wasn't managing a large fleet of computers or using remote access throughout the day. Most of the time, I needed to connect to my own machines for a quick task and then get back to whatever I was doing. That made TeamViewer feel like more software than I actually needed.</p>    <p>So I started looking for alternatives. I wasn't specifically trying to find a “TeamViewer killer” at first. I just wanted something practical for occasional remote access without making the whole process feel heavier than it needed to be. That's when I came across ControlR. It looked simple at first, but the more I explored it, the more I wondered why I hadn't tried it earlier.</p>    <h2>
-ControlR turns remote desktop into a Docker container
-</h2>
-<h3>
-My remote desktop now lives in Docker
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-1-1219630114" data-gallery-id="main-carousel-1-1219630114" data-article-gallery="article-gallery-modal-1-1219630114" data-gallery-lightbox="gallery-modal-1-1219630114" data-gallery-thumbnail-img-class="gallery-thumbnails-1-1219630114-img" data-gallery-type="">
-<div><section data-gallery-expanded-id="main-expanable-carousel-1-1219630114" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-1219630114"><button type="button"></button><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=contain&amp;w=2328&amp;h=1516&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=contain&amp;w=2328&amp;h=1444&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=contain&amp;w=2322&amp;h=1507&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=contain&amp;w=2319&amp;h=1519&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=contain&amp;w=2311&amp;h=1518&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
-</div>
-</div>
-<p>ControlR is an open-source remote access tool created by Jared Goodwin. Jared was the person behind Remotely, another popular self-hosted remote access project. After selling Remotely to Immense, he started ControlR to explore some of the ideas he still had for remote access and device management.</p>    <p>Getting ControlR running was easier than I expected. It comes with a <a href="https://www.xda-developers.com/docker-compose-only-self-hosting-skill-you-actually-need-learn-properly/" target="_blank">Docker Compose</a> file, so I didn't have to build the setup myself. I downloaded the file, added the required settings, and ran <em>docker compose up -d</em>. A few moments later, the ControlR server was running.</p>    <p>Since I already use Docker, the whole process felt familiar. I didn't need to install a separate server application or change much about my existing setup. I could simply add ControlR as another container and start connecting my devices.</p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/docker-containers-that-run-247-on-my-100-mini-pc/">
-<img alt="An image of a mobile lab built with Proxmox and a mini PC. " src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/i-built-a-mobile-lab-with-proxmox-and-a-mini-pc.jpeg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/docker-containers-that-run-247-on-my-100-mini-pc/" title="9 Docker containers that run 24/7 on my $100 mini PC" target="_blank">
-9 Docker containers that run 24/7 on my $100 mini PC
-</a>
-</h5>
-<p>Maximum value budget homelab.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/docker-containers-that-run-247-on-my-100-mini-pc/#threads">
-<span>18</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/samir-makwana/" title="Posts by Samir Makwana">Samir Makwana</a>
-</div>
-</div>
-<div><span data-b64-ts="RmViIDksIDIwMjY=" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>
-<h2>
-It is more than just a remote desktop tool
-</h2>
-<h3>
-More than a Remote Desktop Tool
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-2-2146183989" data-gallery-id="main-carousel-2-2146183989" data-article-gallery="article-gallery-modal-2-2146183989" data-gallery-lightbox="gallery-modal-2-2146183989" data-gallery-thumbnail-img-class="gallery-thumbnails-2-2146183989-img" data-gallery-type="">
-<div><section data-gallery-expanded-id="main-expanable-carousel-2-2146183989" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-2-2146183989"><button type="button"></button><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1964&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1964&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1496&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1500&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1494&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1498&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1482&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
-</div>
-</div>
-<p>The remote desktop experience was the first thing I tested, and it immediately felt familiar. I connected to my Windows machine from my Mac, took control of the desktop, and everything felt surprisingly smooth. I could move around Windows, open apps, and interact with the machine without constantly fighting lag or a clunky interface. For something I was running myself, I honestly didn't expect it to feel this polished.</p>    <p>But the remote desktop is only one part of ControlR. The built-in PowerShell terminal lets me run commands on my Windows machine without opening a full remote session. I found this useful for quick checks and small maintenance tasks.</p>    <p>There is also a remote file manager for browsing and transferring files between machines. ControlR includes remote logs, device status, device tags, and permissions, which make it easier to keep track of multiple computers.</p>    <p>I also liked the built-in chat feature. It can be useful when remotely helping someone because I can communicate while working on their machine.</p>    <p>With Windows, macOS, and Linux agents, ControlR covers the computers I am most likely to use. It feels less like a simple TeamViewer replacement and more like a complete remote management tool.</p>    <h2>
-More private and secure
-</h2>
-<h3>
-The self-hosted and open source benefit
-</h3>
-<div>
-<div>
-<img alt="Remote devices list ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-11.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> One of the biggest reasons I prefer running ControlR myself is that I have more control over the remote-access setup. I decide where the server runs and how it is exposed, rather than handing that responsibility entirely to a remote-access provider.</p>
-<p>That matters because a remote desktop gives access to an entire computer. I feel more comfortable knowing that the server handling my connections is <a href="https://www.xda-developers.com/reason-why-most-self-hosted-apps-fall-apart/" target="_blank">running on my own infrastructure</a>. I can also keep it behind my existing security setup and decide who can reach it.</p>    <p>ControlR being open source is another plus for me. I can see the code, follow its development, and understand what I'm actually running. I don't have to blindly trust a closed application with such sensitive access.</p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/">
-<img alt="RustDesk on a laptop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/07/reasons-i-use-rustdesk.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/" title="I replaced my mini PC's paid remote-access app with a self-hosted tool that does the same job" target="_blank">
-I replaced my mini PC's paid remote-access app with a self-hosted tool that does the same job
-</a>
-</h5>
-<p>A free self-hosted tool replaced my paid remote-access software completely.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/#threads">
-<span>2</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/yash-patel/" title="Posts by Yash Patel">Yash Patel</a>
-</div>
-</div>
-<div><span data-b64-ts="QXVnIDEyLCAyMDI2" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>
-<h3>
-I don't think I'm going back to TeamViewer anytime soon
-</h3>
-<p>ControlR ended up being one of those tools that made me question why I was paying for something I could handle myself. It gave me a smooth experience without making remote access feel complicated or adding another standalone service to my workflow. What I liked most was how naturally it fit into the way I already use my computers. I could manage my machines when I needed to, without feeling like I was working around the software. It isn't perfect, and <a href="https://www.xda-developers.com/the-hardest-part-of-self-hosting-is-not-the-setup/" target="_blank">self-hosting</a> does require some responsibility, but for my needs, that is not an issue.</p>
-<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
-<div>
-<div>
-<div>
-<div data-stnl-group-once="AuUoKh9wbF">
-<div>
-<div>
-<img alt="ControlR square logo" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/08/controlr-square-logo.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
-</div>
-</div>
-</div>
-</div>
-<div>
-<div>
-<div>
-<h5>
-ControlR
-</h5>
-</div>
-</div>
-</div>
-</div>
-<input type="checkbox" name="extra-content-258c-4143-9d018f5a21cb">
-<div>
-<div>
-<a href="https://controlr.app/" target="_blank">See at Official Website</a>
-<a href="https://github.com/bitbound/controlr" target="_blank">See at Github</a>
-</div>
-</div>
-<div>
-<label for="extra-content-258c-4143-9d018f5a21cb" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
-<span>Expand</span>
-<span>Collapse</span>
-</label>
-</div>
-</div>
-</div>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>I have slowly replaced many of the tools I use with <a href="https://www.xda-developers.com/decades-old-open-source-apps-outperform-modern-alternatives/" target="_blank">open-source</a> and <a href="https://www.xda-developers.com/non-negotiable-self-hosted-productivity-stack-for-2026/" target="_blank">self-hosted</a> alternatives. I like knowing how my software works, where it runs, and what happens to my data. It also fits the way I work: I can try something new, run it on my own hardware, and keep it alongside the rest of my productivity setup. <a href="https://www.xda-developers.com/remote-desktop-tailscale-setup-teamviewer-killer/" target="_blank">Remote access</a> was one area where I had still stuck with a commercial option like TeamViewer. I didn't think much about it until I started looking for another tool to add to my self-hosted stack.</p>    <h2>
-TeamViewer no longer fit my setup
-</h2>
-<h3>
-I needed less from remote access
-</h3>
-<div>
-<div>
-<img alt="ControlR register/login page" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-02.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p>TeamViewer had worked well for me, but I eventually started questioning whether I still needed it. My remote-access needs were fairly basic. I wasn't managing a large fleet of computers or using remote access throughout the day. Most of the time, I needed to connect to my own machines for a quick task and then get back to whatever I was doing. That made TeamViewer feel like more software than I actually needed.</p>    <p>So I started looking for alternatives. I wasn't specifically trying to find a “TeamViewer killer” at first. I just wanted something practical for occasional remote access without making the whole process feel heavier than it needed to be. That's when I came across ControlR. It looked simple at first, but the more I explored it, the more I wondered why I hadn't tried it earlier.</p>    <h2>
-ControlR turns remote desktop into a Docker container
-</h2>
-<h3>
-My remote desktop now lives in Docker
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-1-1219630114" data-gallery-id="main-carousel-1-1219630114" data-article-gallery="article-gallery-modal-1-1219630114" data-gallery-lightbox="gallery-modal-1-1219630114" data-gallery-thumbnail-img-class="gallery-thumbnails-1-1219630114-img" data-gallery-type="">
-<div><section data-gallery-expanded-id="main-expanable-carousel-1-1219630114" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-1219630114"><button type="button"></button><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=contain&amp;w=2328&amp;h=1516&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=contain&amp;w=2328&amp;h=1444&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=contain&amp;w=2322&amp;h=1507&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=contain&amp;w=2319&amp;h=1519&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=contain&amp;w=2311&amp;h=1518&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
-</div>
-</div>
-<p>ControlR is an open-source remote access tool created by Jared Goodwin. Jared was the person behind Remotely, another popular self-hosted remote access project. After selling Remotely to Immense, he started ControlR to explore some of the ideas he still had for remote access and device management.</p>    <p>Getting ControlR running was easier than I expected. It comes with a <a href="https://www.xda-developers.com/docker-compose-only-self-hosting-skill-you-actually-need-learn-properly/" target="_blank">Docker Compose</a> file, so I didn't have to build the setup myself. I downloaded the file, added the required settings, and ran <em>docker compose up -d</em>. A few moments later, the ControlR server was running.</p>    <p>Since I already use Docker, the whole process felt familiar. I didn't need to install a separate server application or change much about my existing setup. I could simply add ControlR as another container and start connecting my devices.</p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/docker-containers-that-run-247-on-my-100-mini-pc/">
-<img alt="An image of a mobile lab built with Proxmox and a mini PC. " src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/i-built-a-mobile-lab-with-proxmox-and-a-mini-pc.jpeg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/docker-containers-that-run-247-on-my-100-mini-pc/" title="9 Docker containers that run 24/7 on my $100 mini PC" target="_blank">
-9 Docker containers that run 24/7 on my $100 mini PC
-</a>
-</h5>
-<p>Maximum value budget homelab.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/docker-containers-that-run-247-on-my-100-mini-pc/#threads">
-<span>18</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/samir-makwana/" title="Posts by Samir Makwana">Samir Makwana</a>
-</div>
-</div>
-<div><span data-b64-ts="RmViIDksIDIwMjY=" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>
-<h2>
-It is more than just a remote desktop tool
-</h2>
-<h3>
-More than a Remote Desktop Tool
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-2-2146183989" data-gallery-id="main-carousel-2-2146183989" data-article-gallery="article-gallery-modal-2-2146183989" data-gallery-lightbox="gallery-modal-2-2146183989" data-gallery-thumbnail-img-class="gallery-thumbnails-2-2146183989-img" data-gallery-type="">
-<div><section data-gallery-expanded-id="main-expanable-carousel-2-2146183989" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-2-2146183989"><button type="button"></button><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1964&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1964&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1496&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1500&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1494&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1498&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1482&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
-</div>
-</div>
-<p>The remote desktop experience was the first thing I tested, and it immediately felt familiar. I connected to my Windows machine from my Mac, took control of the desktop, and everything felt surprisingly smooth. I could move around Windows, open apps, and interact with the machine without constantly fighting lag or a clunky interface. For something I was running myself, I honestly didn't expect it to feel this polished.</p>    <p>But the remote desktop is only one part of ControlR. The built-in PowerShell terminal lets me run commands on my Windows machine without opening a full remote session. I found this useful for quick checks and small maintenance tasks.</p>    <p>There is also a remote file manager for browsing and transferring files between machines. ControlR includes remote logs, device status, device tags, and permissions, which make it easier to keep track of multiple computers.</p>    <p>I also liked the built-in chat feature. It can be useful when remotely helping someone because I can communicate while working on their machine.</p>    <p>With Windows, macOS, and Linux agents, ControlR covers the computers I am most likely to use. It feels less like a simple TeamViewer replacement and more like a complete remote management tool.</p>    <h2>
-More private and secure
-</h2>
-<h3>
-The self-hosted and open source benefit
-</h3>
-<div>
-<div>
-<img alt="Remote devices list ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-11.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> One of the biggest reasons I prefer running ControlR myself is that I have more control over the remote-access setup. I decide where the server runs and how it is exposed, rather than handing that responsibility entirely to a remote-access provider.</p>
-<p>That matters because a remote desktop gives access to an entire computer. I feel more comfortable knowing that the server handling my connections is <a href="https://www.xda-developers.com/reason-why-most-self-hosted-apps-fall-apart/" target="_blank">running on my own infrastructure</a>. I can also keep it behind my existing security setup and decide who can reach it.</p>    <p>ControlR being open source is another plus for me. I can see the code, follow its development, and understand what I'm actually running. I don't have to blindly trust a closed application with such sensitive access.</p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/">
-<img alt="RustDesk on a laptop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/07/reasons-i-use-rustdesk.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/" title="I replaced my mini PC's paid remote-access app with a self-hosted tool that does the same job" target="_blank">
-I replaced my mini PC's paid remote-access app with a self-hosted tool that does the same job
-</a>
-</h5>
-<p>A free self-hosted tool replaced my paid remote-access software completely.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/#threads">
-<span>2</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/yash-patel/" title="Posts by Yash Patel">Yash Patel</a>
-</div>
-</div>
-<div><span data-b64-ts="QXVnIDEyLCAyMDI2" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>
-<h3>
-I don't think I'm going back to TeamViewer anytime soon
-</h3>
-<p>ControlR ended up being one of those tools that made me question why I was paying for something I could handle myself. It gave me a smooth experience without making remote access feel complicated or adding another standalone service to my workflow. What I liked most was how naturally it fit into the way I already use my computers. I could manage my machines when I needed to, without feeling like I was working around the software. It isn't perfect, and <a href="https://www.xda-developers.com/the-hardest-part-of-self-hosting-is-not-the-setup/" target="_blank">self-hosting</a> does require some responsibility, but for my needs, that is not an issue.</p>
-<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
-<div>
-<div>
-<div>
-<div data-stnl-group-once="AuUoKh9wbF">
-<div>
-<div>
-<img alt="ControlR square logo" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/08/controlr-square-logo.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
-</div>
-</div>
-</div>
-</div>
-<div>
-<div>
-<div>
-<h5>
-ControlR
-</h5>
-</div>
-</div>
-</div>
-</div>
-<input type="checkbox" name="extra-content-258c-4143-9d018f5a21cb">
-<div>
-<div>
-<a href="https://controlr.app/" target="_blank">See at Official Website</a>
-<a href="https://github.com/bitbound/controlr" target="_blank">See at Github</a>
-</div>
-</div>
-<div>
-<label for="extra-content-258c-4143-9d018f5a21cb" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
-<span>Expand</span>
-<span>Collapse</span>
-</label>
-</div>
-</div>
-</div>]]>
-    </description>
-    <content:encoded><![CDATA[<p>I have slowly replaced many of the tools I use with <a href="https://www.xda-developers.com/decades-old-open-source-apps-outperform-modern-alternatives/" target="_blank">open-source</a> and <a href="https://www.xda-developers.com/non-negotiable-self-hosted-productivity-stack-for-2026/" target="_blank">self-hosted</a> alternatives. I like knowing how my software works, where it runs, and what happens to my data. It also fits the way I work: I can try something new, run it on my own hardware, and keep it alongside the rest of my productivity setup. <a href="https://www.xda-developers.com/remote-desktop-tailscale-setup-teamviewer-killer/" target="_blank">Remote access</a> was one area where I had still stuck with a commercial option like TeamViewer. I didn't think much about it until I started looking for another tool to add to my self-hosted stack.</p>    <h2>
-TeamViewer no longer fit my setup
-</h2>
-<h3>
-I needed less from remote access
-</h3>
-<div>
-<div>
-<img alt="ControlR register/login page" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-02.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p>TeamViewer had worked well for me, but I eventually started questioning whether I still needed it. My remote-access needs were fairly basic. I wasn't managing a large fleet of computers or using remote access throughout the day. Most of the time, I needed to connect to my own machines for a quick task and then get back to whatever I was doing. That made TeamViewer feel like more software than I actually needed.</p>    <p>So I started looking for alternatives. I wasn't specifically trying to find a “TeamViewer killer” at first. I just wanted something practical for occasional remote access without making the whole process feel heavier than it needed to be. That's when I came across ControlR. It looked simple at first, but the more I explored it, the more I wondered why I hadn't tried it earlier.</p>    <h2>
-ControlR turns remote desktop into a Docker container
-</h2>
-<h3>
-My remote desktop now lives in Docker
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-1-1219630114" data-gallery-id="main-carousel-1-1219630114" data-article-gallery="article-gallery-modal-1-1219630114" data-gallery-lightbox="gallery-modal-1-1219630114" data-gallery-thumbnail-img-class="gallery-thumbnails-1-1219630114-img" data-gallery-type="">
-<div><section data-gallery-expanded-id="main-expanable-carousel-1-1219630114" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-1-1219630114"><button type="button"></button><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=contain&amp;w=2328&amp;h=1516&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=contain&amp;w=2328&amp;h=1444&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=contain&amp;w=2322&amp;h=1507&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=contain&amp;w=2319&amp;h=1519&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=contain&amp;w=2311&amp;h=1518&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Fetch docker container for ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-01.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="ControlR in Docker Desktop app" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-06.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Devices section in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-08.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Deploy Agent screen in ControlR desktop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-09.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Time Dated selected for Deploy Agent" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-10.jpg?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
-</div>
-</div>
-<p>ControlR is an open-source remote access tool created by Jared Goodwin. Jared was the person behind Remotely, another popular self-hosted remote access project. After selling Remotely to Immense, he started ControlR to explore some of the ideas he still had for remote access and device management.</p>    <p>Getting ControlR running was easier than I expected. It comes with a <a href="https://www.xda-developers.com/docker-compose-only-self-hosting-skill-you-actually-need-learn-properly/" target="_blank">Docker Compose</a> file, so I didn't have to build the setup myself. I downloaded the file, added the required settings, and ran <em>docker compose up -d</em>. A few moments later, the ControlR server was running.</p>    <p>Since I already use Docker, the whole process felt familiar. I didn't need to install a separate server application or change much about my existing setup. I could simply add ControlR as another container and start connecting my devices.</p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/docker-containers-that-run-247-on-my-100-mini-pc/">
-<img alt="An image of a mobile lab built with Proxmox and a mini PC. " src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/09/i-built-a-mobile-lab-with-proxmox-and-a-mini-pc.jpeg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/docker-containers-that-run-247-on-my-100-mini-pc/" title="9 Docker containers that run 24/7 on my $100 mini PC" target="_blank">
-9 Docker containers that run 24/7 on my $100 mini PC
-</a>
-</h5>
-<p>Maximum value budget homelab.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/docker-containers-that-run-247-on-my-100-mini-pc/#threads">
-<span>18</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/samir-makwana/" title="Posts by Samir Makwana">Samir Makwana</a>
-</div>
-</div>
-<div><span data-b64-ts="RmViIDksIDIwMjY=" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>
-<h2>
-It is more than just a remote desktop tool
-</h2>
-<h3>
-More than a Remote Desktop Tool
-</h3>
-<div>
-<div data-gallery-thumbnail-id="gallery-thumbnails-2-2146183989" data-gallery-id="main-carousel-2-2146183989" data-article-gallery="article-gallery-modal-2-2146183989" data-gallery-lightbox="gallery-modal-2-2146183989" data-gallery-thumbnail-img-class="gallery-thumbnails-2-2146183989-img" data-gallery-type="">
-<div><section data-gallery-expanded-id="main-expanable-carousel-2-2146183989" data-gallery-expanded-thumbnail-id="expanded-gallery-thumbnails-2-2146183989"><button type="button"></button><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=contain&amp;w=750&amp;h=422&amp;dpr=2"></li></ul></div></section><section><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=crop&amp;w=167&amp;h=93&amp;dpr=2"></li></ul></div></section></div><div><section><button type="button"><span>Close</span></button><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1964&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1964&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1496&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1500&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1494&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1498&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=contain&amp;w=3024&amp;h=1482&amp;dpr=2"></li></ul></div></section><section aria-label="The carousel with thumbnails. Selecting a thumbnail will change the Beautiful Gallery carousel."><div><ul><li><img alt="Windows laptop access on Mac using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-12.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Remote device connected using ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-13.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Quality option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-16.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Windows laptop Google Chrome access on Mac" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-17.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Privacy screen in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-20.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Input option in ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-19.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li><li><img alt="Extra settings ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-21.png?q=49&amp;fit=crop&amp;w=145&amp;h=85&amp;dpr=2"></li></ul></div></section></div>
-</div>
-</div>
-<p>The remote desktop experience was the first thing I tested, and it immediately felt familiar. I connected to my Windows machine from my Mac, took control of the desktop, and everything felt surprisingly smooth. I could move around Windows, open apps, and interact with the machine without constantly fighting lag or a clunky interface. For something I was running myself, I honestly didn't expect it to feel this polished.</p>    <p>But the remote desktop is only one part of ControlR. The built-in PowerShell terminal lets me run commands on my Windows machine without opening a full remote session. I found this useful for quick checks and small maintenance tasks.</p>    <p>There is also a remote file manager for browsing and transferring files between machines. ControlR includes remote logs, device status, device tags, and permissions, which make it easier to keep track of multiple computers.</p>    <p>I also liked the built-in chat feature. It can be useful when remotely helping someone because I can communicate while working on their machine.</p>    <p>With Windows, macOS, and Linux agents, ControlR covers the computers I am most likely to use. It feels less like a simple TeamViewer replacement and more like a complete remote management tool.</p>    <h2>
-More private and secure
-</h2>
-<h3>
-The self-hosted and open source benefit
-</h3>
-<div>
-<div>
-<img alt="Remote devices list ControlR" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-11.jpg?q=49&amp;fit=crop&amp;w=825&amp;dpr=2">
-</div>
-</div>
-<p> One of the biggest reasons I prefer running ControlR myself is that I have more control over the remote-access setup. I decide where the server runs and how it is exposed, rather than handing that responsibility entirely to a remote-access provider.</p>
-<p>That matters because a remote desktop gives access to an entire computer. I feel more comfortable knowing that the server handling my connections is <a href="https://www.xda-developers.com/reason-why-most-self-hosted-apps-fall-apart/" target="_blank">running on my own infrastructure</a>. I can also keep it behind my existing security setup and decide who can reach it.</p>    <p>ControlR being open source is another plus for me. I can see the code, follow its development, and understand what I'm actually running. I don't have to blindly trust a closed application with such sensitive access.</p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/">
-<img alt="RustDesk on a laptop" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2025/07/reasons-i-use-rustdesk.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/" title="I replaced my mini PC's paid remote-access app with a self-hosted tool that does the same job" target="_blank">
-I replaced my mini PC's paid remote-access app with a self-hosted tool that does the same job
-</a>
-</h5>
-<p>A free self-hosted tool replaced my paid remote-access software completely.</p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/replaced-paid-remote-access-app-with-a-self-hosted-tool/#threads">
-<span>2</span>
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/yash-patel/" title="Posts by Yash Patel">Yash Patel</a>
-</div>
-</div>
-<div><span data-b64-ts="QXVnIDEyLCAyMDI2" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>
-<h3>
-I don't think I'm going back to TeamViewer anytime soon
-</h3>
-<p>ControlR ended up being one of those tools that made me question why I was paying for something I could handle myself. It gave me a smooth experience without making remote access feel complicated or adding another standalone service to my workflow. What I liked most was how naturally it fit into the way I already use my computers. I could manage my machines when I needed to, without feeling like I was working around the software. It isn't perfect, and <a href="https://www.xda-developers.com/the-hardest-part-of-self-hosting-is-not-the-setup/" target="_blank">self-hosting</a> does require some responsibility, but for my needs, that is not an issue.</p>
-<div data-show-streamrentbuy-links="false" data-include-community-rating="false">
-<div>
-<div>
-<div>
-<div data-stnl-group-once="AuUoKh9wbF">
-<div>
-<div>
-<img alt="ControlR square logo" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/08/controlr-square-logo.png?q=70&amp;fit=contain&amp;w=420&amp;dpr=1">
-</div>
-</div>
-</div>
-</div>
-<div>
-<div>
-<div>
-<h5>
-ControlR
-</h5>
-</div>
-</div>
-</div>
-</div>
-<input type="checkbox" name="extra-content-258c-4143-9d018f5a21cb">
-<div>
-<div>
-<a href="https://controlr.app/" target="_blank">See at Official Website</a>
-<a href="https://github.com/bitbound/controlr" target="_blank">See at Github</a>
-</div>
-</div>
-<div>
-<label for="extra-content-258c-4143-9d018f5a21cb" data-media-load-triggered="0" data-media-loaded="0" data-is-expanded="0" data-stnl="%7B%22category%22%3A%22Click%20Interactions%22%2C%22name%22%3A%22Tag%20Display%20Card%22%2C%22action%22%3A%22Show%20More%20Expand%20Open%22%2C%22once%22%3Atrue%7D">
-<span>Expand</span>
-<span>Collapse</span>
-</label>
-</div>
-</div>
-</div>]]></content:encoded>
-    <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-02.jpg?q=49&fit=crop&w=825&dpr=2"/>
-          <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/wm/2026/08/controlr-self-hosted-remote-app-02.jpg?q=49&fit=crop&w=825&dpr=2" medium="image"/>
-    <pubDate>Mon, 31 Aug 2026 20:01:15 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Modders turn Super Mario Odyssey into an uncanny valley nightmare with a leaked DLSS 5 build]]></title>
-    <link>https://www.xda-developers.com/modders-turned-super-mario-odyssey-into-an-uncanny-valley-nightmare-with-leaked-dlss-5/</link>
-    <itunes:title><![CDATA[Modders turn Super Mario Odyssey into an uncanny valley nightmare with a leaked DLSS 5 build]]></itunes:title>
-    <itunes:author><![CDATA[XDA[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<section data-nosnippet="">
-<div>
-<h3>Summary</h3>
-<div>    <ul>
-<li>
-DLSS 5 applies over-the-top, realistic neural rendering to Switch/Switch 2 games.
-</li>
-<li>
-Modders routed the Switch's video output through a capture card hooked up to a PC.
-</li>
-<li>
-The unfinished version of DLSS 5 is creating uncanny-valley results.
-</li>
-</ul>
-</div>
-</div>
-</section><p>Nvidia's unfinished and unreleased <a href="https://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank">DLSS 5 AI-powered neural rendering</a> is undeniably controversial, and now someone has figured out a way to add the over-the-top filter to Switch and Switch 2 titles.</p>    <p>Modders have shown off what <a href="https://x.com/EDMIRE2k/status/2094310644686234092" target="_blank"><em>Super Mario Odyssey</em></a> and <a href="https://x.com/EDMIRE2k/status/2094273666775200134" target="_blank"><em>Mario Kart World</em> </a>look like with DLSS 5 rendering, adding a sheen of painfully unnecessary realism to Nintendo's trademark cartoony art style (via: <a href="https://videocardz.com/newz/mario-meets-nvidia-dlss-5" target="_blank">VideoCardz</a>). To be clear, DLSS 5 isn't actually running on the Switch or Switch 2. Instead, the console's output is fed through a capture card connected to a PC, where the neural rendering process is applied.</p>
-<p>While this seems more like a post-processing filter to me, <a href="https://x.com/EDMIRE2k/status/2094310644686234092" target="_blank">@EDMIRE</a> says that's not how their setup works. According to the Twitter user, DLSS 5 receives information directly from a game's engine, which can't happen from just a Switch 2 video signal. To get around this, they used a scene-aware algorithm that converts information from the capture card into data that DLSS 5 can use.</p>    <p>To me, this still sounds like a filter, albeit a complicated one with multiple layers.</p>    <h2>
-DLSS 5 leaked in an NBA 2K27 early-access build
-</h2>
-<h3>
-In some games, the neural rendering technique looks fine, but in others it's very off-putting
-</h3>
-<p>In terms of the console space, we've also seen DLSS 5 running on <a href="https://x.com/Unreal_64/status/2093820767716688316" target="_blank"><em>Super Mario 64</em></a>, <a href="https://x.com/EDMIRE2k/status/2094336845354000444" target="_blank"><em>Donkey Kong Bananza</em></a>, and <a href="https://x.com/EDMIRE2k/status/2094356930554745017" target="_blank"><em>The Legend of Zelda: Breath of the Wild</em></a>. While the results are undeniably fascinating and, at times, even kind of cool-looking, I don't think I'd necessarily say it makes any of these titles look better. All DLSS 5 seems to do is alter the original artistic intent of the title it's running on, while also making it look far too realistic in an uncanny valley-style way.</p>    <p>Last week, an early version of DLSS 5 leaked in <a href="https://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank">NBA 2K27's early-access build</a>. As expected, modders quickly got to work and brought the filter-like AI neural rendering feature to games like <em>Skyrim</em>, <em>Control</em>, <em>Final Fantasy VII Rebirth</em>, and more. While <em>Control</em> actually doesn't look that bad, DLSS 5 basically turns <a href="http://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank"><em>Final Fantasy VII Rebirth</em>'s Cloud into pure nightmare fuel</a>.</p>
-<p><span>It's important to note that this is based on an unfinished, unreleased version of DLSS 5. With that in mind, while it's amusing to poke fun at the very awful-looking AI upscaling tech, we don't know how the final version will perform.</span></p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/">
-<img alt="Cloud in Final Fantasy: Rebirth with DLSS 5 on" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/08/cloud-dlss-5.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" title="Nvidia's DLSS 5 has leaked, and modders are already creating uncanny valley nightmares" target="_blank">
-Nvidia's DLSS 5 has leaked, and modders are already creating uncanny valley nightmares
-</a>
-</h5>
-<p>Hopefully, the final version of the AI upscaling tool doesn't make games look this ridiculous. </p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/#threads">
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/patrick-orourke/" title="Posts by Patrick O'Rourke">Patrick O'Rourke</a>
-</div>
-</div>
-<div><span data-b64-ts="MyBkYXlzIGFnbw==" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<section data-nosnippet="">
-<div>
-<h3>Summary</h3>
-<div>    <ul>
-<li>
-DLSS 5 applies over-the-top, realistic neural rendering to Switch/Switch 2 games.
-</li>
-<li>
-Modders routed the Switch's video output through a capture card hooked up to a PC.
-</li>
-<li>
-The unfinished version of DLSS 5 is creating uncanny-valley results.
-</li>
-</ul>
-</div>
-</div>
-</section><p>Nvidia's unfinished and unreleased <a href="https://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank">DLSS 5 AI-powered neural rendering</a> is undeniably controversial, and now someone has figured out a way to add the over-the-top filter to Switch and Switch 2 titles.</p>    <p>Modders have shown off what <a href="https://x.com/EDMIRE2k/status/2094310644686234092" target="_blank"><em>Super Mario Odyssey</em></a> and <a href="https://x.com/EDMIRE2k/status/2094273666775200134" target="_blank"><em>Mario Kart World</em> </a>look like with DLSS 5 rendering, adding a sheen of painfully unnecessary realism to Nintendo's trademark cartoony art style (via: <a href="https://videocardz.com/newz/mario-meets-nvidia-dlss-5" target="_blank">VideoCardz</a>). To be clear, DLSS 5 isn't actually running on the Switch or Switch 2. Instead, the console's output is fed through a capture card connected to a PC, where the neural rendering process is applied.</p>
-<p>While this seems more like a post-processing filter to me, <a href="https://x.com/EDMIRE2k/status/2094310644686234092" target="_blank">@EDMIRE</a> says that's not how their setup works. According to the Twitter user, DLSS 5 receives information directly from a game's engine, which can't happen from just a Switch 2 video signal. To get around this, they used a scene-aware algorithm that converts information from the capture card into data that DLSS 5 can use.</p>    <p>To me, this still sounds like a filter, albeit a complicated one with multiple layers.</p>    <h2>
-DLSS 5 leaked in an NBA 2K27 early-access build
-</h2>
-<h3>
-In some games, the neural rendering technique looks fine, but in others it's very off-putting
-</h3>
-<p>In terms of the console space, we've also seen DLSS 5 running on <a href="https://x.com/Unreal_64/status/2093820767716688316" target="_blank"><em>Super Mario 64</em></a>, <a href="https://x.com/EDMIRE2k/status/2094336845354000444" target="_blank"><em>Donkey Kong Bananza</em></a>, and <a href="https://x.com/EDMIRE2k/status/2094356930554745017" target="_blank"><em>The Legend of Zelda: Breath of the Wild</em></a>. While the results are undeniably fascinating and, at times, even kind of cool-looking, I don't think I'd necessarily say it makes any of these titles look better. All DLSS 5 seems to do is alter the original artistic intent of the title it's running on, while also making it look far too realistic in an uncanny valley-style way.</p>    <p>Last week, an early version of DLSS 5 leaked in <a href="https://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank">NBA 2K27's early-access build</a>. As expected, modders quickly got to work and brought the filter-like AI neural rendering feature to games like <em>Skyrim</em>, <em>Control</em>, <em>Final Fantasy VII Rebirth</em>, and more. While <em>Control</em> actually doesn't look that bad, DLSS 5 basically turns <a href="http://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank"><em>Final Fantasy VII Rebirth</em>'s Cloud into pure nightmare fuel</a>.</p>
-<p><span>It's important to note that this is based on an unfinished, unreleased version of DLSS 5. With that in mind, while it's amusing to poke fun at the very awful-looking AI upscaling tech, we don't know how the final version will perform.</span></p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/">
-<img alt="Cloud in Final Fantasy: Rebirth with DLSS 5 on" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/08/cloud-dlss-5.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" title="Nvidia's DLSS 5 has leaked, and modders are already creating uncanny valley nightmares" target="_blank">
-Nvidia's DLSS 5 has leaked, and modders are already creating uncanny valley nightmares
-</a>
-</h5>
-<p>Hopefully, the final version of the AI upscaling tool doesn't make games look this ridiculous. </p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/#threads">
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/patrick-orourke/" title="Posts by Patrick O'Rourke">Patrick O'Rourke</a>
-</div>
-</div>
-<div><span data-b64-ts="MyBkYXlzIGFnbw==" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>]]>
-    </description>
-    <content:encoded><![CDATA[<section data-nosnippet="">
-<div>
-<h3>Summary</h3>
-<div>    <ul>
-<li>
-DLSS 5 applies over-the-top, realistic neural rendering to Switch/Switch 2 games.
-</li>
-<li>
-Modders routed the Switch's video output through a capture card hooked up to a PC.
-</li>
-<li>
-The unfinished version of DLSS 5 is creating uncanny-valley results.
-</li>
-</ul>
-</div>
-</div>
-</section><p>Nvidia's unfinished and unreleased <a href="https://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank">DLSS 5 AI-powered neural rendering</a> is undeniably controversial, and now someone has figured out a way to add the over-the-top filter to Switch and Switch 2 titles.</p>    <p>Modders have shown off what <a href="https://x.com/EDMIRE2k/status/2094310644686234092" target="_blank"><em>Super Mario Odyssey</em></a> and <a href="https://x.com/EDMIRE2k/status/2094273666775200134" target="_blank"><em>Mario Kart World</em> </a>look like with DLSS 5 rendering, adding a sheen of painfully unnecessary realism to Nintendo's trademark cartoony art style (via: <a href="https://videocardz.com/newz/mario-meets-nvidia-dlss-5" target="_blank">VideoCardz</a>). To be clear, DLSS 5 isn't actually running on the Switch or Switch 2. Instead, the console's output is fed through a capture card connected to a PC, where the neural rendering process is applied.</p>
-<p>While this seems more like a post-processing filter to me, <a href="https://x.com/EDMIRE2k/status/2094310644686234092" target="_blank">@EDMIRE</a> says that's not how their setup works. According to the Twitter user, DLSS 5 receives information directly from a game's engine, which can't happen from just a Switch 2 video signal. To get around this, they used a scene-aware algorithm that converts information from the capture card into data that DLSS 5 can use.</p>    <p>To me, this still sounds like a filter, albeit a complicated one with multiple layers.</p>    <h2>
-DLSS 5 leaked in an NBA 2K27 early-access build
-</h2>
-<h3>
-In some games, the neural rendering technique looks fine, but in others it's very off-putting
-</h3>
-<p>In terms of the console space, we've also seen DLSS 5 running on <a href="https://x.com/Unreal_64/status/2093820767716688316" target="_blank"><em>Super Mario 64</em></a>, <a href="https://x.com/EDMIRE2k/status/2094336845354000444" target="_blank"><em>Donkey Kong Bananza</em></a>, and <a href="https://x.com/EDMIRE2k/status/2094356930554745017" target="_blank"><em>The Legend of Zelda: Breath of the Wild</em></a>. While the results are undeniably fascinating and, at times, even kind of cool-looking, I don't think I'd necessarily say it makes any of these titles look better. All DLSS 5 seems to do is alter the original artistic intent of the title it's running on, while also making it look far too realistic in an uncanny valley-style way.</p>    <p>Last week, an early version of DLSS 5 leaked in <a href="https://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank">NBA 2K27's early-access build</a>. As expected, modders quickly got to work and brought the filter-like AI neural rendering feature to games like <em>Skyrim</em>, <em>Control</em>, <em>Final Fantasy VII Rebirth</em>, and more. While <em>Control</em> actually doesn't look that bad, DLSS 5 basically turns <a href="http://www.xda-developers.com/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" target="_blank"><em>Final Fantasy VII Rebirth</em>'s Cloud into pure nightmare fuel</a>.</p>
-<p><span>It's important to note that this is based on an unfinished, unreleased version of DLSS 5. With that in mind, while it's amusing to poke fun at the very awful-looking AI upscaling tech, we don't know how the final version will perform.</span></p>
-<aside data-include-community-rating="false" data-nosnippet="">
-<a href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/">
-<img alt="Cloud in Final Fantasy: Rebirth with DLSS 5 on" src="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/08/cloud-dlss-5.jpg?q=49&amp;fit=crop&amp;w=220&amp;h=124&amp;dpr=2">
-</a>
-<span data-field="label"><label>Related</label></span>
-<div>
-<h5>
-<a href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/" title="Nvidia's DLSS 5 has leaked, and modders are already creating uncanny valley nightmares" target="_blank">
-Nvidia's DLSS 5 has leaked, and modders are already creating uncanny valley nightmares
-</a>
-</h5>
-<p>Hopefully, the final version of the AI upscaling tool doesn't make games look this ridiculous. </p>
-<div>
-<div>
-<label>Posts</label>
-<a title="Total Posts" href="/nvidia-dlss-5-has-leaked-modders-are-already-creating-uncanny-valley-nightmares/#threads">
-</a>
-</div>
-</div>
-<div>
-<div>
-<div>
-<div>
-<span>By&nbsp;</span>
-<a href="/author/patrick-orourke/" title="Posts by Patrick O'Rourke">Patrick O'Rourke</a>
-</div>
-</div>
-<div><span data-b64-ts="MyBkYXlzIGFnbw==" data-nosnippet=""></span></div>
-</div>
-</div>
-</div>
-</aside>]]></content:encoded>
-    <itunes:image href="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/08/cloud-dlss-5.jpg?q=49&fit=crop&w=220&h=124&dpr=2"/>
-          <media:content url="https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/08/cloud-dlss-5.jpg?q=49&fit=crop&w=220&h=124&dpr=2" medium="image"/>
-    <pubDate>Mon, 31 Aug 2026 19:46:16 GMT</pubDate>
   </item></channel>
 </rss>
