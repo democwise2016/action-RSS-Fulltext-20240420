@@ -30,6 +30,92 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Ubuntu 24.04 信任自訂 CA 憑證問題]]></title>
+    <link>https://blog.darkthread.net/blog/ubuntu-2404-ca-cert-issue/</link>
+    <itunes:title><![CDATA[Ubuntu 24.04 信任自訂 CA 憑證問題]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>五年前分享過<a href="/blog/install-caroot-cert-in-linux/">如何在 Linux 信任自訂 CA 根憑證</a>，隨著作業系統及軟體版本更新，試裝 Ubuntu 24.04 遇到新狀況。</p> <h3>憑證金鑰強度不足</h3> <p>這些年，對於憑證金鑰長度要求變高，新版 OpenSSL Security Level 預設值調高為 2，RSA 金鑰長度至少要 2048。原本可被接受的 RSA 1024 Intermediate CA 會得到 CA certificate key too weak 錯誤。</p> <table><thead><tr><th>Security Level</th><th>RSA 最低強度概念</th></tr></thead><tbody><tr><td>Level 0</td><td>幾乎不限制</td></tr><tr><td>Level 1</td><td>約 80-bit security</td></tr><tr><td>Level 2</td><td>約 112-bit security</td></tr><tr><td>Level 3</td><td>約 128-bit security</td></tr><tr><td>Level 4</td><td>約 192-bit security</td></tr><tr><td>Level 5</td><td>約 256-bit security</td></tr></tbody></table> <p>即便信任了憑證，curl 仍會噴錯：</p> <pre><code>$curl https://www.google.com
+curl: (60) SSL certificate problem: CA certificate key too weak
+More details here: https://curl.se/docs/sslcerts.html
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+</code></pre> <p>若憑證一時無法換新，另個解決方向是調低 OpenSSL 門檻，恢復到 Security Level 1，修改方法是先用 <code>openssl version -d</code> 找到 OPENSSLDIR (如 <code>/usr/lib/ssl</code>) 下的 openssl.cnf，各版 Linux 的設計不同，Ubuntu 24.04 的修改方式如下：</p> <ol><li>循 openssl_conf = openssl_init 找到 [openssl_init]</li> <li>加上 ssl_conf = ssl_sect</li> <li>在檔案最後補上一段 <pre><code>[ssl_sect]
+system_default = system_default_sect
+[system_default_sect]
+MinProtocol = TLSv1.0
+CipherString = DEFAULT@SECLEVEL=1
+</code></pre> </li></ol> <h3>apt update 時憑證驗證失敗</h3> <p>即使信任過自訂 CA 根憑證也調成 SECLEVEL 1，apt update 時還是會出錯：</p> <pre><code>$sudo apt update
+Err:1 https://download.docker.com/linux/ubuntu noble InRelease
+Certificate verification failed: The certificate is NOT trusted.
+The certificate chain uses insecure algorithm.
+Could not handshake: Error in the certificate verification.
+https://download.docker.com/linux/ubuntu
+</code></pre> <p>解法是在 apt 指令加上參數不驗證 TLS 憑證：</p> <p><code>$sudo apt -o "Acquire::https::Verify-Peer=false" update</code></p> <h3>docker pull 反應憑證無效</h3> <p>docker pull 下載時抱怨憑證序號是負值。GO 1.23 起 crypto/x509 依規範要求序號必須為正整數，原本有個過渡參數 GODEBUG=x509netativeserial=1 可當 Workaround，但 1.24+ 拿掉了。</p> <pre><code>$ docker run hello-world
+Unable to find image 'hello-world:latest' locally
+docker: Error response from daemon: failed to resolve reference "docker.io/library/hello-world:latest":
+failed to authorize: failed to fetch anonymous token:
+Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fhello-world%3Apull&amp;service=registry.docker.io":
+tls: failed to parse certificate from server: x509: negative serial number
+Run 'docker run --help' for more information
+</code></pre> <p>這題沒有簡單解法，要走多套一層 Proxy 之類的把戲，之後再分享。</p> <p data-slug="ubuntu-2404-ca-cert-issue" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>五年前分享過<a href="/blog/install-caroot-cert-in-linux/">如何在 Linux 信任自訂 CA 根憑證</a>，隨著作業系統及軟體版本更新，試裝 Ubuntu 24.04 遇到新狀況。</p> <h3>憑證金鑰強度不足</h3> <p>這些年，對於憑證金鑰長度要求變高，新版 OpenSSL Security Level 預設值調高為 2，RSA 金鑰長度至少要 2048。原本可被接受的 RSA 1024 Intermediate CA 會得到 CA certificate key too weak 錯誤。</p> <table><thead><tr><th>Security Level</th><th>RSA 最低強度概念</th></tr></thead><tbody><tr><td>Level 0</td><td>幾乎不限制</td></tr><tr><td>Level 1</td><td>約 80-bit security</td></tr><tr><td>Level 2</td><td>約 112-bit security</td></tr><tr><td>Level 3</td><td>約 128-bit security</td></tr><tr><td>Level 4</td><td>約 192-bit security</td></tr><tr><td>Level 5</td><td>約 256-bit security</td></tr></tbody></table> <p>即便信任了憑證，curl 仍會噴錯：</p> <pre><code>$curl https://www.google.com
+curl: (60) SSL certificate problem: CA certificate key too weak
+More details here: https://curl.se/docs/sslcerts.html
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+</code></pre> <p>若憑證一時無法換新，另個解決方向是調低 OpenSSL 門檻，恢復到 Security Level 1，修改方法是先用 <code>openssl version -d</code> 找到 OPENSSLDIR (如 <code>/usr/lib/ssl</code>) 下的 openssl.cnf，各版 Linux 的設計不同，Ubuntu 24.04 的修改方式如下：</p> <ol><li>循 openssl_conf = openssl_init 找到 [openssl_init]</li> <li>加上 ssl_conf = ssl_sect</li> <li>在檔案最後補上一段 <pre><code>[ssl_sect]
+system_default = system_default_sect
+[system_default_sect]
+MinProtocol = TLSv1.0
+CipherString = DEFAULT@SECLEVEL=1
+</code></pre> </li></ol> <h3>apt update 時憑證驗證失敗</h3> <p>即使信任過自訂 CA 根憑證也調成 SECLEVEL 1，apt update 時還是會出錯：</p> <pre><code>$sudo apt update
+Err:1 https://download.docker.com/linux/ubuntu noble InRelease
+Certificate verification failed: The certificate is NOT trusted.
+The certificate chain uses insecure algorithm.
+Could not handshake: Error in the certificate verification.
+https://download.docker.com/linux/ubuntu
+</code></pre> <p>解法是在 apt 指令加上參數不驗證 TLS 憑證：</p> <p><code>$sudo apt -o "Acquire::https::Verify-Peer=false" update</code></p> <h3>docker pull 反應憑證無效</h3> <p>docker pull 下載時抱怨憑證序號是負值。GO 1.23 起 crypto/x509 依規範要求序號必須為正整數，原本有個過渡參數 GODEBUG=x509netativeserial=1 可當 Workaround，但 1.24+ 拿掉了。</p> <pre><code>$ docker run hello-world
+Unable to find image 'hello-world:latest' locally
+docker: Error response from daemon: failed to resolve reference "docker.io/library/hello-world:latest":
+failed to authorize: failed to fetch anonymous token:
+Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fhello-world%3Apull&amp;service=registry.docker.io":
+tls: failed to parse certificate from server: x509: negative serial number
+Run 'docker run --help' for more information
+</code></pre> <p>這題沒有簡單解法，要走多套一層 Proxy 之類的把戲，之後再分享。</p> <p data-slug="ubuntu-2404-ca-cert-issue" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>五年前分享過<a href="/blog/install-caroot-cert-in-linux/">如何在 Linux 信任自訂 CA 根憑證</a>，隨著作業系統及軟體版本更新，試裝 Ubuntu 24.04 遇到新狀況。</p> <h3>憑證金鑰強度不足</h3> <p>這些年，對於憑證金鑰長度要求變高，新版 OpenSSL Security Level 預設值調高為 2，RSA 金鑰長度至少要 2048。原本可被接受的 RSA 1024 Intermediate CA 會得到 CA certificate key too weak 錯誤。</p> <table><thead><tr><th>Security Level</th><th>RSA 最低強度概念</th></tr></thead><tbody><tr><td>Level 0</td><td>幾乎不限制</td></tr><tr><td>Level 1</td><td>約 80-bit security</td></tr><tr><td>Level 2</td><td>約 112-bit security</td></tr><tr><td>Level 3</td><td>約 128-bit security</td></tr><tr><td>Level 4</td><td>約 192-bit security</td></tr><tr><td>Level 5</td><td>約 256-bit security</td></tr></tbody></table> <p>即便信任了憑證，curl 仍會噴錯：</p> <pre><code>$curl https://www.google.com
+curl: (60) SSL certificate problem: CA certificate key too weak
+More details here: https://curl.se/docs/sslcerts.html
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+</code></pre> <p>若憑證一時無法換新，另個解決方向是調低 OpenSSL 門檻，恢復到 Security Level 1，修改方法是先用 <code>openssl version -d</code> 找到 OPENSSLDIR (如 <code>/usr/lib/ssl</code>) 下的 openssl.cnf，各版 Linux 的設計不同，Ubuntu 24.04 的修改方式如下：</p> <ol><li>循 openssl_conf = openssl_init 找到 [openssl_init]</li> <li>加上 ssl_conf = ssl_sect</li> <li>在檔案最後補上一段 <pre><code>[ssl_sect]
+system_default = system_default_sect
+[system_default_sect]
+MinProtocol = TLSv1.0
+CipherString = DEFAULT@SECLEVEL=1
+</code></pre> </li></ol> <h3>apt update 時憑證驗證失敗</h3> <p>即使信任過自訂 CA 根憑證也調成 SECLEVEL 1，apt update 時還是會出錯：</p> <pre><code>$sudo apt update
+Err:1 https://download.docker.com/linux/ubuntu noble InRelease
+Certificate verification failed: The certificate is NOT trusted.
+The certificate chain uses insecure algorithm.
+Could not handshake: Error in the certificate verification.
+https://download.docker.com/linux/ubuntu
+</code></pre> <p>解法是在 apt 指令加上參數不驗證 TLS 憑證：</p> <p><code>$sudo apt -o "Acquire::https::Verify-Peer=false" update</code></p> <h3>docker pull 反應憑證無效</h3> <p>docker pull 下載時抱怨憑證序號是負值。GO 1.23 起 crypto/x509 依規範要求序號必須為正整數，原本有個過渡參數 GODEBUG=x509netativeserial=1 可當 Workaround，但 1.24+ 拿掉了。</p> <pre><code>$ docker run hello-world
+Unable to find image 'hello-world:latest' locally
+docker: Error response from daemon: failed to resolve reference "docker.io/library/hello-world:latest":
+failed to authorize: failed to fetch anonymous token:
+Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fhello-world%3Apull&amp;service=registry.docker.io":
+tls: failed to parse certificate from server: x509: negative serial number
+Run 'docker run --help' for more information
+</code></pre> <p>這題沒有簡單解法，要走多套一層 Proxy 之類的把戲，之後再分享。</p> <p data-slug="ubuntu-2404-ca-cert-issue" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360"> </p>]]></content:encoded>
+    
+    <pubDate>Fri, 04 Sep 2026 13:54:39 GMT</pubDate>
+  </item><item>
     <title><![CDATA[新手機 S25 Ultra 入手心得]]></title>
     <link>https://blog.darkthread.net/blog/s25-ultra/</link>
     <itunes:title><![CDATA[新手機 S25 Ultra 入手心得]]></itunes:title>
@@ -1442,20 +1528,5 @@ Console.Error.WriteLine($"Agent 簽章或驗證失敗: {exception.Message}");
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639220835606920950.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639220835606920950.jpg" medium="image"/>
     <pubDate>Tue, 11 Aug 2026 22:18:06 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[數十億美金的資安教訓 - 隨機性有多重要？]]></title>
-    <link>https://blog.darkthread.net/blog/coldcard-security-incident/</link>
-    <itunes:title><![CDATA[數十億美金的資安教訓 - 隨機性有多重要？]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>年初寫過一篇文章談「<a href="/blog/rdrand/">隨機對資安的重要性</a>」，最近 Coldcard 冷錢包被破解新聞，為它補上超強佐證。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639218593195977458.webp"></p> <p>Coldcard 在某段期間生產的比特幣冷錢包因為，程式誤使用<a href="https://sprucets.com/blog/coldcard-prng-vulnerability">不夠安全的軟體偽隨機數產生器 (PRNG)</a>，導致駭客可依據縮小暴力破解私密金鑰的計算範圍，從而在 41 分鐘內破解了 1,196 個錢包，大批盜走超過七千萬美元的比特幣。</p> <p>當今大家每天在用的數位憑證、線上交易、電子簽章、區塊鏈加密貨幣，背後全靠公私鑰演算法。其之所以難被攻破，一大部分來自作為祕密金鑰的一長串數字為隨機生成，只要保密得宜(例如鎖在晶片裡永遠不傳出來)，攻擊者想破解只能靠猜，逐一試遍所有可能組合，演算法後面的數學難題讓你就算擁有全世界所有 CPU/GPU，照樣算到宇宙毁滅也算不完。(量子電腦出現改變這個前題，某些原本要算幾萬年的數學難題變成可在 24 小時內解開，但這又是另外一個<a href="/blog/pqc-notes-1-threat/">故事</a>了)</p> <p>網路錢包裡的加密貨幣價值連城，但一向只認私鑰不認人，因此錢包的私密金鑰自然讓駭客垂涎三尺，一旦能猜對，錢包裡的錢任你拿。</p> <p>保管錢包私鑰可以寫在紙上、存進電腦、交由交易所保管，但如果怕紙不見被偷、電腦被駭中木馬、交易所被搶，一個更保險的選擇是實體冷錢包，將私鑰永遠鎖在專屬硬體裡，社絕被複製或竊取的風險。</p> <p>這回的 Coldcard 被破解，演算法及運作原理本身沒問題，問題出在 Coldcard 某個版本起的程式碼被改壞，生成金鑰時原本該用硬體隨機數產生器確保 2<sup>256 的隨機範圍(術語叫有效熵)，不小心被改成非密碼學安全的軟體隨機數產生器，只由「晶片 UID (32bit) + 系統計時器 (8萬種可能) + 生成時間」決定隨機性， 讓隨機範圍掉到只剩 2</sup>40，用現代 GPU 破解完全不是難題，而駭客不需要拿到冷錢包，也不必知道主人是誰住在哪裡，單憑網路可查到該錢包的公鑰就能試著破解，一旦推算出私鑰，便能假冒本人把加密貨幣轉走。</p> <p>Coldcard 冷錢包主人沒有犯任何錯，錢包也好好的躺在抽屜/保險箱裡，全因廠商有一行程式庫路徑指錯，人在家中坐，錢往雲端流。而且即便是更新了韌體，原本的錢包由於金鑰不安全，必須重新建立新錢包把錢移過去才算解除危機。</p> <p>而 AI 在這次事件也軋了一角。由於 Coldcard 的 Firmware 程式碼是開源的，因此有人懷疑攻擊者是用 AI 分析了歷史記錄找到這段漏洞。而有趣的是，Coldcard 說自己在事件發生前幾週前才用最好的 AI 模型分析過程式碼，沒發現這個漏洞 (我猜可能只掃了最新版)。</p> <p>雖說 Security by Obscurity (企圖靠不公開演算法/程式讓人猜不到來實現安全) 不可取 (像是之前<a href="/blog/easycard-hacking/">悠遊卡被高中生破解</a>的案例)，但如果當初 Coldcard 沒大方開源，這次的攻擊要成功的難度會再上升。但不開源又會被人質疑產品的安全性，說你遮遮掩掩不願接受公開檢驗，肯定有鬼... 嘿，這真是個難題。</p> <p>【延伸閱讀】</p> <ul><li><a href="https://www.blocktempo.com/coldcard-seed-flaw-594-btc-swept-in-25-minutes/">Coldcard MK3 冷錢包爆「種子漏洞」：594 枚比特幣 25 分鐘掃空，官方籲用戶盡速遷移資產</a></li> <li><a href="https://sprucets.com/blog/coldcard-prng-vulnerability">Coldcard 冷錢包 PRNG 熵源缺陷事件技術解析</a></li> <li><a href="/blog/rdrand/">「隨機」對資安真的很重要! 藏在 CPU 的「真·隨機數產生器」</a></li> <li><a href="/blog/15-chars-password/">長度與破解所需時間的關係</a></li> <li><a href="/blog/pqc-notes-1-threat/">靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/quantum-crack-aes/">量子電腦已成功破解 AES 加密？真的假的？</a></li></ul> <p data-slug="coldcard-security-incident" data-fbimg="https://cdn.pixabay.com/photo/2017/10/09/15/49/cube-2833823_1280.jpg#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>年初寫過一篇文章談「<a href="/blog/rdrand/">隨機對資安的重要性</a>」，最近 Coldcard 冷錢包被破解新聞，為它補上超強佐證。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639218593195977458.webp"></p> <p>Coldcard 在某段期間生產的比特幣冷錢包因為，程式誤使用<a href="https://sprucets.com/blog/coldcard-prng-vulnerability">不夠安全的軟體偽隨機數產生器 (PRNG)</a>，導致駭客可依據縮小暴力破解私密金鑰的計算範圍，從而在 41 分鐘內破解了 1,196 個錢包，大批盜走超過七千萬美元的比特幣。</p> <p>當今大家每天在用的數位憑證、線上交易、電子簽章、區塊鏈加密貨幣，背後全靠公私鑰演算法。其之所以難被攻破，一大部分來自作為祕密金鑰的一長串數字為隨機生成，只要保密得宜(例如鎖在晶片裡永遠不傳出來)，攻擊者想破解只能靠猜，逐一試遍所有可能組合，演算法後面的數學難題讓你就算擁有全世界所有 CPU/GPU，照樣算到宇宙毁滅也算不完。(量子電腦出現改變這個前題，某些原本要算幾萬年的數學難題變成可在 24 小時內解開，但這又是另外一個<a href="/blog/pqc-notes-1-threat/">故事</a>了)</p> <p>網路錢包裡的加密貨幣價值連城，但一向只認私鑰不認人，因此錢包的私密金鑰自然讓駭客垂涎三尺，一旦能猜對，錢包裡的錢任你拿。</p> <p>保管錢包私鑰可以寫在紙上、存進電腦、交由交易所保管，但如果怕紙不見被偷、電腦被駭中木馬、交易所被搶，一個更保險的選擇是實體冷錢包，將私鑰永遠鎖在專屬硬體裡，社絕被複製或竊取的風險。</p> <p>這回的 Coldcard 被破解，演算法及運作原理本身沒問題，問題出在 Coldcard 某個版本起的程式碼被改壞，生成金鑰時原本該用硬體隨機數產生器確保 2<sup>256 的隨機範圍(術語叫有效熵)，不小心被改成非密碼學安全的軟體隨機數產生器，只由「晶片 UID (32bit) + 系統計時器 (8萬種可能) + 生成時間」決定隨機性， 讓隨機範圍掉到只剩 2</sup>40，用現代 GPU 破解完全不是難題，而駭客不需要拿到冷錢包，也不必知道主人是誰住在哪裡，單憑網路可查到該錢包的公鑰就能試著破解，一旦推算出私鑰，便能假冒本人把加密貨幣轉走。</p> <p>Coldcard 冷錢包主人沒有犯任何錯，錢包也好好的躺在抽屜/保險箱裡，全因廠商有一行程式庫路徑指錯，人在家中坐，錢往雲端流。而且即便是更新了韌體，原本的錢包由於金鑰不安全，必須重新建立新錢包把錢移過去才算解除危機。</p> <p>而 AI 在這次事件也軋了一角。由於 Coldcard 的 Firmware 程式碼是開源的，因此有人懷疑攻擊者是用 AI 分析了歷史記錄找到這段漏洞。而有趣的是，Coldcard 說自己在事件發生前幾週前才用最好的 AI 模型分析過程式碼，沒發現這個漏洞 (我猜可能只掃了最新版)。</p> <p>雖說 Security by Obscurity (企圖靠不公開演算法/程式讓人猜不到來實現安全) 不可取 (像是之前<a href="/blog/easycard-hacking/">悠遊卡被高中生破解</a>的案例)，但如果當初 Coldcard 沒大方開源，這次的攻擊要成功的難度會再上升。但不開源又會被人質疑產品的安全性，說你遮遮掩掩不願接受公開檢驗，肯定有鬼... 嘿，這真是個難題。</p> <p>【延伸閱讀】</p> <ul><li><a href="https://www.blocktempo.com/coldcard-seed-flaw-594-btc-swept-in-25-minutes/">Coldcard MK3 冷錢包爆「種子漏洞」：594 枚比特幣 25 分鐘掃空，官方籲用戶盡速遷移資產</a></li> <li><a href="https://sprucets.com/blog/coldcard-prng-vulnerability">Coldcard 冷錢包 PRNG 熵源缺陷事件技術解析</a></li> <li><a href="/blog/rdrand/">「隨機」對資安真的很重要! 藏在 CPU 的「真·隨機數產生器」</a></li> <li><a href="/blog/15-chars-password/">長度與破解所需時間的關係</a></li> <li><a href="/blog/pqc-notes-1-threat/">靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/quantum-crack-aes/">量子電腦已成功破解 AES 加密？真的假的？</a></li></ul> <p data-slug="coldcard-security-incident" data-fbimg="https://cdn.pixabay.com/photo/2017/10/09/15/49/cube-2833823_1280.jpg#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>年初寫過一篇文章談「<a href="/blog/rdrand/">隨機對資安的重要性</a>」，最近 Coldcard 冷錢包被破解新聞，為它補上超強佐證。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639218593195977458.webp"></p> <p>Coldcard 在某段期間生產的比特幣冷錢包因為，程式誤使用<a href="https://sprucets.com/blog/coldcard-prng-vulnerability">不夠安全的軟體偽隨機數產生器 (PRNG)</a>，導致駭客可依據縮小暴力破解私密金鑰的計算範圍，從而在 41 分鐘內破解了 1,196 個錢包，大批盜走超過七千萬美元的比特幣。</p> <p>當今大家每天在用的數位憑證、線上交易、電子簽章、區塊鏈加密貨幣，背後全靠公私鑰演算法。其之所以難被攻破，一大部分來自作為祕密金鑰的一長串數字為隨機生成，只要保密得宜(例如鎖在晶片裡永遠不傳出來)，攻擊者想破解只能靠猜，逐一試遍所有可能組合，演算法後面的數學難題讓你就算擁有全世界所有 CPU/GPU，照樣算到宇宙毁滅也算不完。(量子電腦出現改變這個前題，某些原本要算幾萬年的數學難題變成可在 24 小時內解開，但這又是另外一個<a href="/blog/pqc-notes-1-threat/">故事</a>了)</p> <p>網路錢包裡的加密貨幣價值連城，但一向只認私鑰不認人，因此錢包的私密金鑰自然讓駭客垂涎三尺，一旦能猜對，錢包裡的錢任你拿。</p> <p>保管錢包私鑰可以寫在紙上、存進電腦、交由交易所保管，但如果怕紙不見被偷、電腦被駭中木馬、交易所被搶，一個更保險的選擇是實體冷錢包，將私鑰永遠鎖在專屬硬體裡，社絕被複製或竊取的風險。</p> <p>這回的 Coldcard 被破解，演算法及運作原理本身沒問題，問題出在 Coldcard 某個版本起的程式碼被改壞，生成金鑰時原本該用硬體隨機數產生器確保 2<sup>256 的隨機範圍(術語叫有效熵)，不小心被改成非密碼學安全的軟體隨機數產生器，只由「晶片 UID (32bit) + 系統計時器 (8萬種可能) + 生成時間」決定隨機性， 讓隨機範圍掉到只剩 2</sup>40，用現代 GPU 破解完全不是難題，而駭客不需要拿到冷錢包，也不必知道主人是誰住在哪裡，單憑網路可查到該錢包的公鑰就能試著破解，一旦推算出私鑰，便能假冒本人把加密貨幣轉走。</p> <p>Coldcard 冷錢包主人沒有犯任何錯，錢包也好好的躺在抽屜/保險箱裡，全因廠商有一行程式庫路徑指錯，人在家中坐，錢往雲端流。而且即便是更新了韌體，原本的錢包由於金鑰不安全，必須重新建立新錢包把錢移過去才算解除危機。</p> <p>而 AI 在這次事件也軋了一角。由於 Coldcard 的 Firmware 程式碼是開源的，因此有人懷疑攻擊者是用 AI 分析了歷史記錄找到這段漏洞。而有趣的是，Coldcard 說自己在事件發生前幾週前才用最好的 AI 模型分析過程式碼，沒發現這個漏洞 (我猜可能只掃了最新版)。</p> <p>雖說 Security by Obscurity (企圖靠不公開演算法/程式讓人猜不到來實現安全) 不可取 (像是之前<a href="/blog/easycard-hacking/">悠遊卡被高中生破解</a>的案例)，但如果當初 Coldcard 沒大方開源，這次的攻擊要成功的難度會再上升。但不開源又會被人質疑產品的安全性，說你遮遮掩掩不願接受公開檢驗，肯定有鬼... 嘿，這真是個難題。</p> <p>【延伸閱讀】</p> <ul><li><a href="https://www.blocktempo.com/coldcard-seed-flaw-594-btc-swept-in-25-minutes/">Coldcard MK3 冷錢包爆「種子漏洞」：594 枚比特幣 25 分鐘掃空，官方籲用戶盡速遷移資產</a></li> <li><a href="https://sprucets.com/blog/coldcard-prng-vulnerability">Coldcard 冷錢包 PRNG 熵源缺陷事件技術解析</a></li> <li><a href="/blog/rdrand/">「隨機」對資安真的很重要! 藏在 CPU 的「真·隨機數產生器」</a></li> <li><a href="/blog/15-chars-password/">長度與破解所需時間的關係</a></li> <li><a href="/blog/pqc-notes-1-threat/">靠近一點看量子電腦對當代密碼學的威脅</a></li> <li><a href="/blog/quantum-crack-aes/">量子電腦已成功破解 AES 加密？真的假的？</a></li></ul> <p data-slug="coldcard-security-incident" data-fbimg="https://cdn.pixabay.com/photo/2017/10/09/15/49/cube-2833823_1280.jpg#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639218593195977458.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639218593195977458.webp" medium="image"/>
-    <pubDate>Sun, 09 Aug 2026 07:57:39 GMT</pubDate>
   </item></channel>
 </rss>
