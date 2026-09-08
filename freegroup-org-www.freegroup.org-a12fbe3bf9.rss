@@ -30,6 +30,306 @@
     </itunes:owner>
     <itunes:image href="https://free.com.tw/wp-content/uploads/2026/07/cropped-free-com-tw-avatar.jpg"/>
 <item>
+    <title><![CDATA[Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關]]></title>
+    <link>https://free.com.tw/cloudflare-workers-64mib-size-limit/</link>
+    <itunes:title><![CDATA[Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關]]></itunes:title>
+    <itunes:author><![CDATA[免費資源網路社群[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<div>
+<div google-add-preferred-source-btn=""></div>
+</div>
+<img data-perfmatters-preload="" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2d46c4c6ab.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-5.jpg" fetchpriority="high">
+<p>Cloudflare 在 2026 年 9 月 4 日<a href="https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/" target="_blank">宣布</a>調整旗下 Serverless 平台 Cloudflare Workers 的<a href="https://developers.cloudflare.com/workers/platform/limits/#worker-size" target="_blank">容量限制</a>，把過去以「壓縮後大小」計算的上限，改成統一以「未壓縮大小」計算，而且<strong>免費與付費方案一律拉高到 64 MiB</strong>。對開發者來說，這代表可以放進更大的框架、更多的依賴套件與更多程式碼，比較不會再卡在容量上限。</p>
+<p>這項改動隨即在社群平台上掀起一陣熱烈討論，以往在部署時都會受限於免費方案 3 MB、付費方案 10 MB 限制，在這次大幅放寬後，很多開源專案如果個人使用，基本上都可以利用 Cloudflare 免費額度跑起來了，難怪有許多網友都戲稱 Cloudflare 是「賽博菩薩」，這麼佛系的大型科技公司真的用手指頭就能數得出來，除了 Workers 之外，像 <a href="https://free.com.tw/cloudflare-email-routing/">Cloudflare Email Routing</a> 這類免費服務也很受個人使用者歡迎，以後專案也都可以考慮部署到 Cloudflare。</p>
+<div><div><div>
+<p>網站名稱：<strong>Cloudflare Workers</strong><br>網站連結：<a href="https://developers.cloudflare.com/workers/" target="_blank">https://developers.cloudflare.com/workers/</a></p>
+</div></div></div>
+<h2>Cloudflare Workers 是什麼？</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-65fad7ca70.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-3.jpg">
+<p>Cloudflare Workers 是 Cloudflare 提供的 Serverless 運算平台，讓開發者把程式碼直接部署到 Cloudflare 遍布全球的邊緣節點上執行，和傳統租一台伺服器的做法不同，只需上傳、部署程式碼，Cloudflare 會就近在離使用者最近的節點回應請求，啟動速度快、延遲低，更重要的是不必自己管理伺服器，減少可能遇到的資安風險。</p>
+<p>常見的用途包括打造 API、處理表單、做網址轉址、串接第三方服務，或是搭配 Pages 建置完整的前後端網站，甚至能<a href="https://free.com.tw/cloudflare-workers-wordpress/">搭配 WordPress 提升網站速度與效能</a>。Workers 預設有免費方案，對於個人專案、小型服務或想先試水溫的開發者來說，門檻相當低，這也是它受歡迎的原因之一；如果只是想把靜態網站快速上線，Cloudflare 旗下的 <a href="https://free.com.tw/cloudflare-drop/">Cloudflare Drop</a> 也能拖曳資料夾直接部署。</p>
+<h2>這次改了什麼？從壓縮限制改成未壓縮 64 MiB</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-ff067fee11.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-4.jpg">
+<p>過去 Cloudflare 檢查 Worker 大小時，看的是程式碼壓縮之後的檔案大小，並依方案分成不同上限。這次更新後，Cloudflare 將原本的壓縮大小限制移除，改成只檢查「未壓縮」的 bundle 大小，而且不分方案，統一為 64 MiB。</p>
+<p>換句話說，現在決定一個 Worker 能不能部署，實際上是打包後尚未壓縮的原始體積。官方也說明，部署時工具仍會顯示 gzip 壓縮後的數字，但這個數字現在只是提供參考，不再是實際的限制門檻，<strong>真正會被檢查的是未壓縮的大小。</strong>這個調整讓大小的計算方式變得相對單純，開發者只要檢查一個數字就好，不用再去換算壓縮率。</p>
+<h2>新舊限制對照，免費版一口氣放寬更多</h2>
+<p>這次調整前後的差異，可以用下面的方式理解。</p>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-0d02687b99.png" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-1.png">
+<p>改動前，免費方案的上限是 3 MB 壓縮後大小，付費方案則是 10 MB 壓縮後大小。改動後，免費與付費方案一律改為 64 MiB 未壓縮大小。</p>
+<p>由於計算基準從「壓縮後」換成「未壓縮」，兩者不能直接拿數字相減，不過就實際可放入的程式碼量來說，<strong>這是一次相當大幅度的放寬，而且免費方案與付費方案站在同一個基準上</strong>。過去因為容量限制必須精簡依賴、拆分程式碼，或是被迫升級方案的情況，現在有機會獲得解決。</p>
+<p><strong>至於 64 MiB 和原有的 3 MB、10 MB 相差多少？</strong>簡單解釋一下。MiB 是以 2 的次方計算的容量單位，64 MiB 約等於 67 MB，比 64 MB 多出約百分之五，相對於原有的限制來說，可用空間等於一口氣往上拉了好幾倍，即使免費方案也能受惠，這也是此次更新最有感的地方。</p>
+<h2>為什麼這個改動值得關注？</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-43b97a1bfb.png" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-2.png">
+<p>對開發者而言，這次放寬解決的是一個很實際的痛點。現代的網頁框架與函式庫功能越來越豐富，在體積上自然不用多說，過去在容量吃緊的方案上，常常得反覆精簡程式碼，或是想辦法拆分部署，開發體驗並不理想。上限提高後，這類為了容量而做的取捨明顯減少，可以更專注在功能本身。</p>
+<p>這次消息另一個重點是「免費方案同樣適用」，這代表個人開發者、學生或想先做原型驗證的人，用免費額度就能部署較完整的專案，不必一開始就必須付費升級。對於想推廣自家平台、吸引更多開發者進場的 Cloudflare 來說，這也是相當直接的做法，也更具有競爭力。</p>
+<p>當然，容量變大並非全無代價，過大的 bundle 仍可能影響冷啟動速度與後續維護，因此<strong>這次放寬比較像是「拿掉不必要的限制」，讓開發者能夠有更大的彈性</strong>，而非鼓勵大家把 Worker 塞好塞滿。對多數專案來說，少了一道容量顧慮，可以更自由地選用想用的框架與套件。</p>
+<h2>總結</h2>
+<p>Cloudflare Workers 這次把容量限制從壓縮大小改為未壓縮大小，並統一提高到 64 MiB，計算方式更單純，可用空間也大幅增加，即使是個人專案與小型服務也能部署較大型的框架與依賴套件，<strong>不必再為了容量而精簡程式碼或升級方案</strong>。</p>
+<p>如果你原本就在用 Workers，或曾因為容量限制而放棄，我會建議趁這次更新重新評估，看看是否值得回到 Cloudflare。</p>
+<h2>常見問題</h2>
+<div>
+<div>
+<div>
+<h3>這次的容量放寬需要付費嗎？</h3>
+<div>
+<p>不需要。免費與付費方案都適用 64 MiB 的未壓縮上限，免費方案的使用者同樣能享受到這次放寬。</p>
+</div>
+</div>
+<div>
+<h3>64 MiB 是壓縮前還是壓縮後的大小？</h3>
+<div>
+<p>是未壓縮（壓縮前）的大小。現在 Cloudflare 只檢查未壓縮大小，部署工具顯示的 gzip 壓縮後大小只作為參考，不再是限制門檻。</p>
+</div>
+</div>
+<div>
+<h3>64 MiB 等於 64 MB 嗎？</h3>
+<div>
+<p>不完全相等。MiB 是以 2 的次方計算的容量單位，64 MiB 約等於 67 MB，比 64 MB 多出約百分之五。此外要注意，舊的 3 MB、10 MB 是壓縮後大小，64 MiB 是未壓縮大小，兩者量的東西不同，不適合直接拿數字相減比較。</p>
+</div>
+</div>
+<div>
+<h3>改動前的限制是多少？</h3>
+<div>
+<p>改動前，免費方案是 3 MB 壓縮後大小，付費方案是 10 MB 壓縮後大小。改動後統一改為 64 MiB 未壓縮大小，不分方案。</p>
+</div>
+</div>
+<div>
+<h3>這次調整還放寬了其他額度嗎？</h3>
+<div>
+<p>沒有。這次放寬的是 Worker 程式碼本身的 bundle 大小，其他像是 CPU 執行時間、記憶體、請求次數等額度，仍依你所使用的方案而定，並不會因為這次調整而一起改變。</p>
+</div>
+</div>
+</div>
+</div><div aria-hidden="true">本資訊最後檢核於 2026 年 9 月。</div>
+<div>
+<hr>
+<h3>探索更多來自 免費資源網 的內容</h3>
+<p>訂閱即可透過電子郵件收到最新文章。</p>
+<div>
+<div>
+<div>
+<form action="https://wordpress.com/email-subscriptions" method="post" accept-charset="utf-8" data-blog="1101591" data-post_access_level="everybody" data-subscriber_email="">
+<div>
+<p>
+<label for="subscribe-field">
+輸入你的電子郵件地址…							</label>
+<input required="required" type="email" name="email" autocomplete="email" placeholder="輸入你的電子郵件地址…" value="" title="請填寫此欄位。">						</p>
+<p>
+<input type="hidden" name="action" value="subscribe">
+<input type="hidden" name="blog_id" value="1101591">
+<input type="hidden" name="source" value="https://free.com.tw/cloudflare-workers-64mib-size-limit/">
+<input type="hidden" name="sub-type" value="subscribe-block">
+<input type="hidden" name="app_source" value="subscribe-block-post-end">
+<input type="hidden" name="redirect_fragment" value="subscribe-blog">
+<input type="hidden" name="lang" value="zh_TW">
+<input type="hidden" name="_wpnonce" value="0716a8833a"><input type="hidden" name="_wp_http_referer" value="/cloudflare-workers-64mib-size-limit/"><input type="hidden" name="post_id" value="125905">							<button type="submit" name="jetpack_subscriptions_widget">
+訂閱							</button>
+</p>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<div>
+<div google-add-preferred-source-btn=""></div>
+</div>
+<img data-perfmatters-preload="" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2d46c4c6ab.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-5.jpg" fetchpriority="high">
+<p>Cloudflare 在 2026 年 9 月 4 日<a href="https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/" target="_blank">宣布</a>調整旗下 Serverless 平台 Cloudflare Workers 的<a href="https://developers.cloudflare.com/workers/platform/limits/#worker-size" target="_blank">容量限制</a>，把過去以「壓縮後大小」計算的上限，改成統一以「未壓縮大小」計算，而且<strong>免費與付費方案一律拉高到 64 MiB</strong>。對開發者來說，這代表可以放進更大的框架、更多的依賴套件與更多程式碼，比較不會再卡在容量上限。</p>
+<p>這項改動隨即在社群平台上掀起一陣熱烈討論，以往在部署時都會受限於免費方案 3 MB、付費方案 10 MB 限制，在這次大幅放寬後，很多開源專案如果個人使用，基本上都可以利用 Cloudflare 免費額度跑起來了，難怪有許多網友都戲稱 Cloudflare 是「賽博菩薩」，這麼佛系的大型科技公司真的用手指頭就能數得出來，除了 Workers 之外，像 <a href="https://free.com.tw/cloudflare-email-routing/">Cloudflare Email Routing</a> 這類免費服務也很受個人使用者歡迎，以後專案也都可以考慮部署到 Cloudflare。</p>
+<div><div><div>
+<p>網站名稱：<strong>Cloudflare Workers</strong><br>網站連結：<a href="https://developers.cloudflare.com/workers/" target="_blank">https://developers.cloudflare.com/workers/</a></p>
+</div></div></div>
+<h2>Cloudflare Workers 是什麼？</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-65fad7ca70.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-3.jpg">
+<p>Cloudflare Workers 是 Cloudflare 提供的 Serverless 運算平台，讓開發者把程式碼直接部署到 Cloudflare 遍布全球的邊緣節點上執行，和傳統租一台伺服器的做法不同，只需上傳、部署程式碼，Cloudflare 會就近在離使用者最近的節點回應請求，啟動速度快、延遲低，更重要的是不必自己管理伺服器，減少可能遇到的資安風險。</p>
+<p>常見的用途包括打造 API、處理表單、做網址轉址、串接第三方服務，或是搭配 Pages 建置完整的前後端網站，甚至能<a href="https://free.com.tw/cloudflare-workers-wordpress/">搭配 WordPress 提升網站速度與效能</a>。Workers 預設有免費方案，對於個人專案、小型服務或想先試水溫的開發者來說，門檻相當低，這也是它受歡迎的原因之一；如果只是想把靜態網站快速上線，Cloudflare 旗下的 <a href="https://free.com.tw/cloudflare-drop/">Cloudflare Drop</a> 也能拖曳資料夾直接部署。</p>
+<h2>這次改了什麼？從壓縮限制改成未壓縮 64 MiB</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-ff067fee11.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-4.jpg">
+<p>過去 Cloudflare 檢查 Worker 大小時，看的是程式碼壓縮之後的檔案大小，並依方案分成不同上限。這次更新後，Cloudflare 將原本的壓縮大小限制移除，改成只檢查「未壓縮」的 bundle 大小，而且不分方案，統一為 64 MiB。</p>
+<p>換句話說，現在決定一個 Worker 能不能部署，實際上是打包後尚未壓縮的原始體積。官方也說明，部署時工具仍會顯示 gzip 壓縮後的數字，但這個數字現在只是提供參考，不再是實際的限制門檻，<strong>真正會被檢查的是未壓縮的大小。</strong>這個調整讓大小的計算方式變得相對單純，開發者只要檢查一個數字就好，不用再去換算壓縮率。</p>
+<h2>新舊限制對照，免費版一口氣放寬更多</h2>
+<p>這次調整前後的差異，可以用下面的方式理解。</p>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-0d02687b99.png" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-1.png">
+<p>改動前，免費方案的上限是 3 MB 壓縮後大小，付費方案則是 10 MB 壓縮後大小。改動後，免費與付費方案一律改為 64 MiB 未壓縮大小。</p>
+<p>由於計算基準從「壓縮後」換成「未壓縮」，兩者不能直接拿數字相減，不過就實際可放入的程式碼量來說，<strong>這是一次相當大幅度的放寬，而且免費方案與付費方案站在同一個基準上</strong>。過去因為容量限制必須精簡依賴、拆分程式碼，或是被迫升級方案的情況，現在有機會獲得解決。</p>
+<p><strong>至於 64 MiB 和原有的 3 MB、10 MB 相差多少？</strong>簡單解釋一下。MiB 是以 2 的次方計算的容量單位，64 MiB 約等於 67 MB，比 64 MB 多出約百分之五，相對於原有的限制來說，可用空間等於一口氣往上拉了好幾倍，即使免費方案也能受惠，這也是此次更新最有感的地方。</p>
+<h2>為什麼這個改動值得關注？</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-43b97a1bfb.png" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-2.png">
+<p>對開發者而言，這次放寬解決的是一個很實際的痛點。現代的網頁框架與函式庫功能越來越豐富，在體積上自然不用多說，過去在容量吃緊的方案上，常常得反覆精簡程式碼，或是想辦法拆分部署，開發體驗並不理想。上限提高後，這類為了容量而做的取捨明顯減少，可以更專注在功能本身。</p>
+<p>這次消息另一個重點是「免費方案同樣適用」，這代表個人開發者、學生或想先做原型驗證的人，用免費額度就能部署較完整的專案，不必一開始就必須付費升級。對於想推廣自家平台、吸引更多開發者進場的 Cloudflare 來說，這也是相當直接的做法，也更具有競爭力。</p>
+<p>當然，容量變大並非全無代價，過大的 bundle 仍可能影響冷啟動速度與後續維護，因此<strong>這次放寬比較像是「拿掉不必要的限制」，讓開發者能夠有更大的彈性</strong>，而非鼓勵大家把 Worker 塞好塞滿。對多數專案來說，少了一道容量顧慮，可以更自由地選用想用的框架與套件。</p>
+<h2>總結</h2>
+<p>Cloudflare Workers 這次把容量限制從壓縮大小改為未壓縮大小，並統一提高到 64 MiB，計算方式更單純，可用空間也大幅增加，即使是個人專案與小型服務也能部署較大型的框架與依賴套件，<strong>不必再為了容量而精簡程式碼或升級方案</strong>。</p>
+<p>如果你原本就在用 Workers，或曾因為容量限制而放棄，我會建議趁這次更新重新評估，看看是否值得回到 Cloudflare。</p>
+<h2>常見問題</h2>
+<div>
+<div>
+<div>
+<h3>這次的容量放寬需要付費嗎？</h3>
+<div>
+<p>不需要。免費與付費方案都適用 64 MiB 的未壓縮上限，免費方案的使用者同樣能享受到這次放寬。</p>
+</div>
+</div>
+<div>
+<h3>64 MiB 是壓縮前還是壓縮後的大小？</h3>
+<div>
+<p>是未壓縮（壓縮前）的大小。現在 Cloudflare 只檢查未壓縮大小，部署工具顯示的 gzip 壓縮後大小只作為參考，不再是限制門檻。</p>
+</div>
+</div>
+<div>
+<h3>64 MiB 等於 64 MB 嗎？</h3>
+<div>
+<p>不完全相等。MiB 是以 2 的次方計算的容量單位，64 MiB 約等於 67 MB，比 64 MB 多出約百分之五。此外要注意，舊的 3 MB、10 MB 是壓縮後大小，64 MiB 是未壓縮大小，兩者量的東西不同，不適合直接拿數字相減比較。</p>
+</div>
+</div>
+<div>
+<h3>改動前的限制是多少？</h3>
+<div>
+<p>改動前，免費方案是 3 MB 壓縮後大小，付費方案是 10 MB 壓縮後大小。改動後統一改為 64 MiB 未壓縮大小，不分方案。</p>
+</div>
+</div>
+<div>
+<h3>這次調整還放寬了其他額度嗎？</h3>
+<div>
+<p>沒有。這次放寬的是 Worker 程式碼本身的 bundle 大小，其他像是 CPU 執行時間、記憶體、請求次數等額度，仍依你所使用的方案而定，並不會因為這次調整而一起改變。</p>
+</div>
+</div>
+</div>
+</div><div aria-hidden="true">本資訊最後檢核於 2026 年 9 月。</div>
+<div>
+<hr>
+<h3>探索更多來自 免費資源網 的內容</h3>
+<p>訂閱即可透過電子郵件收到最新文章。</p>
+<div>
+<div>
+<div>
+<form action="https://wordpress.com/email-subscriptions" method="post" accept-charset="utf-8" data-blog="1101591" data-post_access_level="everybody" data-subscriber_email="">
+<div>
+<p>
+<label for="subscribe-field">
+輸入你的電子郵件地址…							</label>
+<input required="required" type="email" name="email" autocomplete="email" placeholder="輸入你的電子郵件地址…" value="" title="請填寫此欄位。">						</p>
+<p>
+<input type="hidden" name="action" value="subscribe">
+<input type="hidden" name="blog_id" value="1101591">
+<input type="hidden" name="source" value="https://free.com.tw/cloudflare-workers-64mib-size-limit/">
+<input type="hidden" name="sub-type" value="subscribe-block">
+<input type="hidden" name="app_source" value="subscribe-block-post-end">
+<input type="hidden" name="redirect_fragment" value="subscribe-blog">
+<input type="hidden" name="lang" value="zh_TW">
+<input type="hidden" name="_wpnonce" value="0716a8833a"><input type="hidden" name="_wp_http_referer" value="/cloudflare-workers-64mib-size-limit/"><input type="hidden" name="post_id" value="125905">							<button type="submit" name="jetpack_subscriptions_widget">
+訂閱							</button>
+</p>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>]]>
+    </description>
+    <content:encoded><![CDATA[<div>
+<div google-add-preferred-source-btn=""></div>
+</div>
+<img data-perfmatters-preload="" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2d46c4c6ab.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-5.jpg" fetchpriority="high">
+<p>Cloudflare 在 2026 年 9 月 4 日<a href="https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/" target="_blank">宣布</a>調整旗下 Serverless 平台 Cloudflare Workers 的<a href="https://developers.cloudflare.com/workers/platform/limits/#worker-size" target="_blank">容量限制</a>，把過去以「壓縮後大小」計算的上限，改成統一以「未壓縮大小」計算，而且<strong>免費與付費方案一律拉高到 64 MiB</strong>。對開發者來說，這代表可以放進更大的框架、更多的依賴套件與更多程式碼，比較不會再卡在容量上限。</p>
+<p>這項改動隨即在社群平台上掀起一陣熱烈討論，以往在部署時都會受限於免費方案 3 MB、付費方案 10 MB 限制，在這次大幅放寬後，很多開源專案如果個人使用，基本上都可以利用 Cloudflare 免費額度跑起來了，難怪有許多網友都戲稱 Cloudflare 是「賽博菩薩」，這麼佛系的大型科技公司真的用手指頭就能數得出來，除了 Workers 之外，像 <a href="https://free.com.tw/cloudflare-email-routing/">Cloudflare Email Routing</a> 這類免費服務也很受個人使用者歡迎，以後專案也都可以考慮部署到 Cloudflare。</p>
+<div><div><div>
+<p>網站名稱：<strong>Cloudflare Workers</strong><br>網站連結：<a href="https://developers.cloudflare.com/workers/" target="_blank">https://developers.cloudflare.com/workers/</a></p>
+</div></div></div>
+<h2>Cloudflare Workers 是什麼？</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-65fad7ca70.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-3.jpg">
+<p>Cloudflare Workers 是 Cloudflare 提供的 Serverless 運算平台，讓開發者把程式碼直接部署到 Cloudflare 遍布全球的邊緣節點上執行，和傳統租一台伺服器的做法不同，只需上傳、部署程式碼，Cloudflare 會就近在離使用者最近的節點回應請求，啟動速度快、延遲低，更重要的是不必自己管理伺服器，減少可能遇到的資安風險。</p>
+<p>常見的用途包括打造 API、處理表單、做網址轉址、串接第三方服務，或是搭配 Pages 建置完整的前後端網站，甚至能<a href="https://free.com.tw/cloudflare-workers-wordpress/">搭配 WordPress 提升網站速度與效能</a>。Workers 預設有免費方案，對於個人專案、小型服務或想先試水溫的開發者來說，門檻相當低，這也是它受歡迎的原因之一；如果只是想把靜態網站快速上線，Cloudflare 旗下的 <a href="https://free.com.tw/cloudflare-drop/">Cloudflare Drop</a> 也能拖曳資料夾直接部署。</p>
+<h2>這次改了什麼？從壓縮限制改成未壓縮 64 MiB</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-ff067fee11.jpg" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-4.jpg">
+<p>過去 Cloudflare 檢查 Worker 大小時，看的是程式碼壓縮之後的檔案大小，並依方案分成不同上限。這次更新後，Cloudflare 將原本的壓縮大小限制移除，改成只檢查「未壓縮」的 bundle 大小，而且不分方案，統一為 64 MiB。</p>
+<p>換句話說，現在決定一個 Worker 能不能部署，實際上是打包後尚未壓縮的原始體積。官方也說明，部署時工具仍會顯示 gzip 壓縮後的數字，但這個數字現在只是提供參考，不再是實際的限制門檻，<strong>真正會被檢查的是未壓縮的大小。</strong>這個調整讓大小的計算方式變得相對單純，開發者只要檢查一個數字就好，不用再去換算壓縮率。</p>
+<h2>新舊限制對照，免費版一口氣放寬更多</h2>
+<p>這次調整前後的差異，可以用下面的方式理解。</p>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-0d02687b99.png" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-1.png">
+<p>改動前，免費方案的上限是 3 MB 壓縮後大小，付費方案則是 10 MB 壓縮後大小。改動後，免費與付費方案一律改為 64 MiB 未壓縮大小。</p>
+<p>由於計算基準從「壓縮後」換成「未壓縮」，兩者不能直接拿數字相減，不過就實際可放入的程式碼量來說，<strong>這是一次相當大幅度的放寬，而且免費方案與付費方案站在同一個基準上</strong>。過去因為容量限制必須精簡依賴、拆分程式碼，或是被迫升級方案的情況，現在有機會獲得解決。</p>
+<p><strong>至於 64 MiB 和原有的 3 MB、10 MB 相差多少？</strong>簡單解釋一下。MiB 是以 2 的次方計算的容量單位，64 MiB 約等於 67 MB，比 64 MB 多出約百分之五，相對於原有的限制來說，可用空間等於一口氣往上拉了好幾倍，即使免費方案也能受惠，這也是此次更新最有感的地方。</p>
+<h2>為什麼這個改動值得關注？</h2>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-43b97a1bfb.png" alt="Cloudflare Workers 放寬容量限制！免費與付費方案一律 64 MiB，部署大型框架不再卡關" title="cloudflare-workers-64mib-size-limit-2.png">
+<p>對開發者而言，這次放寬解決的是一個很實際的痛點。現代的網頁框架與函式庫功能越來越豐富，在體積上自然不用多說，過去在容量吃緊的方案上，常常得反覆精簡程式碼，或是想辦法拆分部署，開發體驗並不理想。上限提高後，這類為了容量而做的取捨明顯減少，可以更專注在功能本身。</p>
+<p>這次消息另一個重點是「免費方案同樣適用」，這代表個人開發者、學生或想先做原型驗證的人，用免費額度就能部署較完整的專案，不必一開始就必須付費升級。對於想推廣自家平台、吸引更多開發者進場的 Cloudflare 來說，這也是相當直接的做法，也更具有競爭力。</p>
+<p>當然，容量變大並非全無代價，過大的 bundle 仍可能影響冷啟動速度與後續維護，因此<strong>這次放寬比較像是「拿掉不必要的限制」，讓開發者能夠有更大的彈性</strong>，而非鼓勵大家把 Worker 塞好塞滿。對多數專案來說，少了一道容量顧慮，可以更自由地選用想用的框架與套件。</p>
+<h2>總結</h2>
+<p>Cloudflare Workers 這次把容量限制從壓縮大小改為未壓縮大小，並統一提高到 64 MiB，計算方式更單純，可用空間也大幅增加，即使是個人專案與小型服務也能部署較大型的框架與依賴套件，<strong>不必再為了容量而精簡程式碼或升級方案</strong>。</p>
+<p>如果你原本就在用 Workers，或曾因為容量限制而放棄，我會建議趁這次更新重新評估，看看是否值得回到 Cloudflare。</p>
+<h2>常見問題</h2>
+<div>
+<div>
+<div>
+<h3>這次的容量放寬需要付費嗎？</h3>
+<div>
+<p>不需要。免費與付費方案都適用 64 MiB 的未壓縮上限，免費方案的使用者同樣能享受到這次放寬。</p>
+</div>
+</div>
+<div>
+<h3>64 MiB 是壓縮前還是壓縮後的大小？</h3>
+<div>
+<p>是未壓縮（壓縮前）的大小。現在 Cloudflare 只檢查未壓縮大小，部署工具顯示的 gzip 壓縮後大小只作為參考，不再是限制門檻。</p>
+</div>
+</div>
+<div>
+<h3>64 MiB 等於 64 MB 嗎？</h3>
+<div>
+<p>不完全相等。MiB 是以 2 的次方計算的容量單位，64 MiB 約等於 67 MB，比 64 MB 多出約百分之五。此外要注意，舊的 3 MB、10 MB 是壓縮後大小，64 MiB 是未壓縮大小，兩者量的東西不同，不適合直接拿數字相減比較。</p>
+</div>
+</div>
+<div>
+<h3>改動前的限制是多少？</h3>
+<div>
+<p>改動前，免費方案是 3 MB 壓縮後大小，付費方案是 10 MB 壓縮後大小。改動後統一改為 64 MiB 未壓縮大小，不分方案。</p>
+</div>
+</div>
+<div>
+<h3>這次調整還放寬了其他額度嗎？</h3>
+<div>
+<p>沒有。這次放寬的是 Worker 程式碼本身的 bundle 大小，其他像是 CPU 執行時間、記憶體、請求次數等額度，仍依你所使用的方案而定，並不會因為這次調整而一起改變。</p>
+</div>
+</div>
+</div>
+</div><div aria-hidden="true">本資訊最後檢核於 2026 年 9 月。</div>
+<div>
+<hr>
+<h3>探索更多來自 免費資源網 的內容</h3>
+<p>訂閱即可透過電子郵件收到最新文章。</p>
+<div>
+<div>
+<div>
+<form action="https://wordpress.com/email-subscriptions" method="post" accept-charset="utf-8" data-blog="1101591" data-post_access_level="everybody" data-subscriber_email="">
+<div>
+<p>
+<label for="subscribe-field">
+輸入你的電子郵件地址…							</label>
+<input required="required" type="email" name="email" autocomplete="email" placeholder="輸入你的電子郵件地址…" value="" title="請填寫此欄位。">						</p>
+<p>
+<input type="hidden" name="action" value="subscribe">
+<input type="hidden" name="blog_id" value="1101591">
+<input type="hidden" name="source" value="https://free.com.tw/cloudflare-workers-64mib-size-limit/">
+<input type="hidden" name="sub-type" value="subscribe-block">
+<input type="hidden" name="app_source" value="subscribe-block-post-end">
+<input type="hidden" name="redirect_fragment" value="subscribe-blog">
+<input type="hidden" name="lang" value="zh_TW">
+<input type="hidden" name="_wpnonce" value="0716a8833a"><input type="hidden" name="_wp_http_referer" value="/cloudflare-workers-64mib-size-limit/"><input type="hidden" name="post_id" value="125905">							<button type="submit" name="jetpack_subscriptions_widget">
+訂閱							</button>
+</p>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2d46c4c6ab.jpg"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2d46c4c6ab.jpg" medium="image"/>
+    <pubDate>Tue, 08 Sep 2026 02:00:00 +0000</pubDate>
+  </item><item>
     <title><![CDATA[Line Drawing Converter 線上照片轉黑白線稿工具，五種線條風格可先預覽再下載]]></title>
     <link>https://free.com.tw/line-drawing-converter/</link>
     <itunes:title><![CDATA[Line Drawing Converter 線上照片轉黑白線稿工具，五種線條風格可先預覽再下載]]></itunes:title>
@@ -2279,344 +2579,5 @@
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2f8eb1e8ed.jpg"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2f8eb1e8ed.jpg" medium="image"/>
     <pubDate>Wed, 02 Sep 2026 14:00:16 +0000</pubDate>
-  </item><item>
-    <title><![CDATA[ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語]]></title>
-    <link>https://free.com.tw/imagetoprompt/</link>
-    <itunes:title><![CDATA[ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語]]></itunes:title>
-    <itunes:author><![CDATA[免費資源網路社群[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<div>
-<div google-add-preferred-source-btn=""></div>
-</div>
-<img data-perfmatters-preload="" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2c36563c09.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 1" fetchpriority="high">
-<div><div><div><svg viewBox="0 0 612 612"> <g> </g><g> </g><g> <path d="M403.939,295.749l-78.814,78.833V172.125c0-10.557-8.568-19.125-19.125-19.125c-10.557,0-19.125,8.568-19.125,19.125 v202.457l-78.814-78.814c-7.478-7.478-19.584-7.478-27.043,0c-7.478,7.478-7.478,19.584,0,27.042l108.19,108.19 c4.59,4.59,10.863,6.005,16.812,4.953c5.929,1.052,12.221-0.382,16.811-4.953l108.19-108.19c7.478-7.478,7.478-19.583,0-27.042 C423.523,288.29,411.417,288.29,403.939,295.749z M306,0C137.012,0,0,136.992,0,306s137.012,306,306,306s306-137.012,306-306 S475.008,0,306,0z M306,573.75C158.125,573.75,38.25,453.875,38.25,306C38.25,158.125,158.125,38.25,306,38.25 c147.875,0,267.75,119.875,267.75,267.75C573.75,453.875,453.875,573.75,306,573.75z"></path> </g>   </svg></div><div>
-<p><strong>本文重點：</strong>ImageToPrompt.me 是免費的 AI 圖片轉提示詞工具，上傳一張圖片就能反推出詳細的英文提示詞，並針對 Flux、Midjourney、Stable Diffusion、Nano Banana 等模型最佳化。免註冊、免登入，每天提供十次免費額度，圖片只做即時分析，不會存放在伺服器。</p>
-</div></div></div>
-<h2>AI 生圖的提示詞為什麼很難寫？</h2>
-<p>這幾年 AI 繪圖工具越來越成熟，Midjourney、Stable Diffusion、Flux 和 Nano Banana 這類服務讓一般人也能用文字描述畫出想要的圖，不過真正動手之後就會發現，操作工具其實不難，真正卡關的地方往往是「提示詞」該怎麼寫。相同主題，別人的咒語就是能生出質感細膩的作品，自己憑空寫下的關鍵字卻總是差了一截。</p>
-<p>另一種常見的情境，在社群或作品集上看到一張很喜歡的 AI 圖，很想照著風格畫出類似的效果，卻完全不知道對方用了哪些描述、指定了什麼構圖、光線與材質。如果想從一張成品反推出背後的提示詞，一般來說幾乎很難做到。</p>
-<h2>ImageToPrompt.me：上傳圖片就能反推 AI 提示詞</h2>
-<p>本文要介紹的「<a href="https://imagetoprompt.me/" target="_blank">ImageToPrompt.me</a>」是為了解決這個問題而做的免費工具，它的運作方式和一般生圖工具相反，使用者在上傳圖片後，網站就會分析圖片內容，反推出一段詳細的英文提示詞（或切換其他語言），並且能針對不同的 AI 圖片生成模型做最佳化調整。</p>
-<p>使用者就能利用這段提示詞，拿去其他 AI 工具生成風格類似的圖片，省下自己慢慢摸索、逐字調整的時間。</p>
-<h3>支援多種模型與輸出格式</h3>
-<p>ImageToPrompt.me 支援 JPG、PNG 和 WebP 三種常見格式，單檔最大不超過 5 MB，比較大的照片會先在瀏覽器端自動壓縮再上傳。使用時可先選擇要最佳化的模型目標，包含 Flux、Midjourney、Stable Diffusion、Nano Banana，或是不指定特定模型的通用（General）格式。輸出的提示詞也有標準（Standard）、結構化（Structured）與 JSON 三種呈現方式，預設生成英文版本，亦可調整為中文、日文、西班牙文和葡萄牙文。</p>
-<h3>每天十次免費，付費方案解鎖生圖額度</h3>
-<p>ImageToPrompt.me 每天提供十次免費額度，對於偶爾參考、臨時查一下咒語的需求已經相當夠用。若有大量或商業需求，網站另有 Pro 與 Max 兩種付費方案，主要差別在於每月的生圖額度與可用模型。</p>
-<table><thead><tr><th>方案</th><th>價格</th><th>重點</th></tr></thead><tbody><tr><td>免費</td><td>0 美元</td><td>每天 10 次圖片轉提示詞，支援全部目標模型，圖片不保存</td></tr><tr><td>Pro</td><td>每月 19 美元</td><td>每月 300 張生圖額度，解鎖 Flux 2、Nano Banana 2 等新模型</td></tr><tr><td>Max</td><td>每月 49 美元</td><td>每月 1,000 張生圖額度，額外解鎖 4K 模型</td></tr></tbody></table>
-<h2>網站資訊</h2>
-<div><div><div>
-<p>網站標題：<strong>Image to Prompt</strong><br>網站連結：<a href="https://imagetoprompt.me/" target="_blank">https://imagetoprompt.me/</a></p>
-</div></div></div>
-<h2>使用教學</h2>
-<div itemscope="" itemtype="https://schema.org/HowTo"><div><div itemprop="name"></div></div><div><div itemprop="description"></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-2.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e21597e9step"><div><div itemprop="name">開啟網站並認識操作介面</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>開啟 ImageToPrompt.me 網站後，主要操作區塊就在首頁中央。整個流程歸納成三個步驟：上傳圖片、選擇目標模型、生成並複製提示詞，不需要註冊帳號也不用登入，直接就能開始使用，操作上很簡單，要注意每人每天有十張的免費額度。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-cdf2aef23f.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 2">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-3.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e21598b3step"><div><div itemprop="name">上傳想反推的圖片</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>把想反推的圖片拖曳到上傳區塊，或是點選該區塊從電腦瀏覽檔案。支援 JPG、PNG、WebP 格式，單張檔案大小必須控制在 5 MB 以內，比較大的照片系統會先在瀏覽器端壓縮再上傳。圖片只用來分析，不會被保存，上傳後不需要擔心作品外流的問題。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-7a74c78b5b.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 3">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-4.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159958step"><div><div itemprop="name">選擇目標模型與輸出格式</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>上傳前記得先選好目標模型：通用、Flux、Midjourney、Stable Diffusion 或 Nano Banana，也能切換不同格式，包括標準、結構化或是 JSON，生成的提示詞語言預設是英文。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-6e5874e61a.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 4">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-5.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159a0astep"><div><div itemprop="name">生成並複製提示詞</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>按下生成後，網站會分析圖片內容並產生一段提示詞，描述通常會涵蓋主體、風格、構圖、光線、色調與材質等細節。</p>
-<p>確認內容後，直接點右上角的一鍵複製按鈕就能把整段提示詞帶走，貼到 Midjourney、Stable Diffusion 等工具重新生成新的圖片，也可以自己再調整提示詞內容，生成一張更符合需求的圖片。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-78a2fb51f4.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 5">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-7.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159aa3step"><div><div itemprop="name">貼到其他 AI 工具重新生成</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>下圖就是將生成的提示詞複製後貼到 ChatGPT 進行「創作圖像」，生成一張新的圖片，看起來就和原圖很像。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-29ac34bf8e.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 6">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-6.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159b35step"><div><div itemprop="name">善用站內的 AI 生圖功能</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>ImageToPrompt.me 除了將圖片轉為提示詞的功能，還有透過各種不同 AI 模型直接生成新圖片的工具，這些功能需要消耗點數，要付費升級才能解鎖所有模型。若不想付費，也可以將轉換後的提示詞複製到自己慣用的 AI 生成工具，再建立新的圖片。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-652ee82029.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 7">
-</div></div></div>
-</div>
-<h2>常見問題</h2>
-<div>
-<div>
-<div>
-<h3>ImageToPrompt.me 是免費的嗎？</h3>
-<div>
-<p>每天提供十次免費額度，不需要註冊或登入就能使用。若需要更多次數或站內直接生圖功能，才需要升級每月 19 美元的 Pro 或 49 美元的 Max。</p>
-</div>
-</div>
-<div>
-<h3>上傳的圖片會被保存嗎？</h3>
-<div>
-<p>不會，圖片只在瀏覽器端壓縮並用於即時分析，官方說明不會存放在伺服器。</p>
-</div>
-</div>
-<div>
-<h3>支援哪些 AI 繪圖模型？</h3>
-<div>
-<p>可針對 Flux、Midjourney、Stable Diffusion、Nano Banana 最佳化，也提供不指定模型的通用格式，輸出可切換標準、結構化或 JSON。</p>
-</div>
-</div>
-<div>
-<h3>提示詞可以輸出中文嗎？</h3>
-<div>
-<p>預設輸出英文，也能切換中文、日文、西班牙文與葡萄牙文。</p>
-</div>
-</div>
-</div>
-</div><div aria-hidden="true">本資訊最後檢核於 2026 年 8 月。</div>
-<div>
-<hr>
-<h3>探索更多來自 免費資源網 的內容</h3>
-<p>訂閱即可透過電子郵件收到最新文章。</p>
-<div>
-<div>
-<div>
-<form action="https://wordpress.com/email-subscriptions" method="post" accept-charset="utf-8" data-blog="1101591" data-post_access_level="everybody" data-subscriber_email="">
-<div>
-<p>
-<label for="subscribe-field">
-輸入你的電子郵件地址…							</label>
-<input required="required" type="email" name="email" autocomplete="email" placeholder="輸入你的電子郵件地址…" value="" title="請填寫此欄位。">						</p>
-<p>
-<input type="hidden" name="action" value="subscribe">
-<input type="hidden" name="blog_id" value="1101591">
-<input type="hidden" name="source" value="https://free.com.tw/imagetoprompt/">
-<input type="hidden" name="sub-type" value="subscribe-block">
-<input type="hidden" name="app_source" value="subscribe-block-post-end">
-<input type="hidden" name="redirect_fragment" value="subscribe-blog">
-<input type="hidden" name="lang" value="zh_TW">
-<input type="hidden" name="_wpnonce" value="4d76e5dd7c"><input type="hidden" name="_wp_http_referer" value="/imagetoprompt/"><input type="hidden" name="post_id" value="125471">							<button type="submit" name="jetpack_subscriptions_widget">
-訂閱							</button>
-</p>
-</div>
-</form>
-</div>
-</div>
-</div>
-</div>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<div>
-<div google-add-preferred-source-btn=""></div>
-</div>
-<img data-perfmatters-preload="" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2c36563c09.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 1" fetchpriority="high">
-<div><div><div><svg viewBox="0 0 612 612"> <g> </g><g> </g><g> <path d="M403.939,295.749l-78.814,78.833V172.125c0-10.557-8.568-19.125-19.125-19.125c-10.557,0-19.125,8.568-19.125,19.125 v202.457l-78.814-78.814c-7.478-7.478-19.584-7.478-27.043,0c-7.478,7.478-7.478,19.584,0,27.042l108.19,108.19 c4.59,4.59,10.863,6.005,16.812,4.953c5.929,1.052,12.221-0.382,16.811-4.953l108.19-108.19c7.478-7.478,7.478-19.583,0-27.042 C423.523,288.29,411.417,288.29,403.939,295.749z M306,0C137.012,0,0,136.992,0,306s137.012,306,306,306s306-137.012,306-306 S475.008,0,306,0z M306,573.75C158.125,573.75,38.25,453.875,38.25,306C38.25,158.125,158.125,38.25,306,38.25 c147.875,0,267.75,119.875,267.75,267.75C573.75,453.875,453.875,573.75,306,573.75z"></path> </g>   </svg></div><div>
-<p><strong>本文重點：</strong>ImageToPrompt.me 是免費的 AI 圖片轉提示詞工具，上傳一張圖片就能反推出詳細的英文提示詞，並針對 Flux、Midjourney、Stable Diffusion、Nano Banana 等模型最佳化。免註冊、免登入，每天提供十次免費額度，圖片只做即時分析，不會存放在伺服器。</p>
-</div></div></div>
-<h2>AI 生圖的提示詞為什麼很難寫？</h2>
-<p>這幾年 AI 繪圖工具越來越成熟，Midjourney、Stable Diffusion、Flux 和 Nano Banana 這類服務讓一般人也能用文字描述畫出想要的圖，不過真正動手之後就會發現，操作工具其實不難，真正卡關的地方往往是「提示詞」該怎麼寫。相同主題，別人的咒語就是能生出質感細膩的作品，自己憑空寫下的關鍵字卻總是差了一截。</p>
-<p>另一種常見的情境，在社群或作品集上看到一張很喜歡的 AI 圖，很想照著風格畫出類似的效果，卻完全不知道對方用了哪些描述、指定了什麼構圖、光線與材質。如果想從一張成品反推出背後的提示詞，一般來說幾乎很難做到。</p>
-<h2>ImageToPrompt.me：上傳圖片就能反推 AI 提示詞</h2>
-<p>本文要介紹的「<a href="https://imagetoprompt.me/" target="_blank">ImageToPrompt.me</a>」是為了解決這個問題而做的免費工具，它的運作方式和一般生圖工具相反，使用者在上傳圖片後，網站就會分析圖片內容，反推出一段詳細的英文提示詞（或切換其他語言），並且能針對不同的 AI 圖片生成模型做最佳化調整。</p>
-<p>使用者就能利用這段提示詞，拿去其他 AI 工具生成風格類似的圖片，省下自己慢慢摸索、逐字調整的時間。</p>
-<h3>支援多種模型與輸出格式</h3>
-<p>ImageToPrompt.me 支援 JPG、PNG 和 WebP 三種常見格式，單檔最大不超過 5 MB，比較大的照片會先在瀏覽器端自動壓縮再上傳。使用時可先選擇要最佳化的模型目標，包含 Flux、Midjourney、Stable Diffusion、Nano Banana，或是不指定特定模型的通用（General）格式。輸出的提示詞也有標準（Standard）、結構化（Structured）與 JSON 三種呈現方式，預設生成英文版本，亦可調整為中文、日文、西班牙文和葡萄牙文。</p>
-<h3>每天十次免費，付費方案解鎖生圖額度</h3>
-<p>ImageToPrompt.me 每天提供十次免費額度，對於偶爾參考、臨時查一下咒語的需求已經相當夠用。若有大量或商業需求，網站另有 Pro 與 Max 兩種付費方案，主要差別在於每月的生圖額度與可用模型。</p>
-<table><thead><tr><th>方案</th><th>價格</th><th>重點</th></tr></thead><tbody><tr><td>免費</td><td>0 美元</td><td>每天 10 次圖片轉提示詞，支援全部目標模型，圖片不保存</td></tr><tr><td>Pro</td><td>每月 19 美元</td><td>每月 300 張生圖額度，解鎖 Flux 2、Nano Banana 2 等新模型</td></tr><tr><td>Max</td><td>每月 49 美元</td><td>每月 1,000 張生圖額度，額外解鎖 4K 模型</td></tr></tbody></table>
-<h2>網站資訊</h2>
-<div><div><div>
-<p>網站標題：<strong>Image to Prompt</strong><br>網站連結：<a href="https://imagetoprompt.me/" target="_blank">https://imagetoprompt.me/</a></p>
-</div></div></div>
-<h2>使用教學</h2>
-<div itemscope="" itemtype="https://schema.org/HowTo"><div><div itemprop="name"></div></div><div><div itemprop="description"></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-2.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e21597e9step"><div><div itemprop="name">開啟網站並認識操作介面</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>開啟 ImageToPrompt.me 網站後，主要操作區塊就在首頁中央。整個流程歸納成三個步驟：上傳圖片、選擇目標模型、生成並複製提示詞，不需要註冊帳號也不用登入，直接就能開始使用，操作上很簡單，要注意每人每天有十張的免費額度。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-cdf2aef23f.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 2">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-3.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e21598b3step"><div><div itemprop="name">上傳想反推的圖片</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>把想反推的圖片拖曳到上傳區塊，或是點選該區塊從電腦瀏覽檔案。支援 JPG、PNG、WebP 格式，單張檔案大小必須控制在 5 MB 以內，比較大的照片系統會先在瀏覽器端壓縮再上傳。圖片只用來分析，不會被保存，上傳後不需要擔心作品外流的問題。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-7a74c78b5b.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 3">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-4.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159958step"><div><div itemprop="name">選擇目標模型與輸出格式</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>上傳前記得先選好目標模型：通用、Flux、Midjourney、Stable Diffusion 或 Nano Banana，也能切換不同格式，包括標準、結構化或是 JSON，生成的提示詞語言預設是英文。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-6e5874e61a.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 4">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-5.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159a0astep"><div><div itemprop="name">生成並複製提示詞</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>按下生成後，網站會分析圖片內容並產生一段提示詞，描述通常會涵蓋主體、風格、構圖、光線、色調與材質等細節。</p>
-<p>確認內容後，直接點右上角的一鍵複製按鈕就能把整段提示詞帶走，貼到 Midjourney、Stable Diffusion 等工具重新生成新的圖片，也可以自己再調整提示詞內容，生成一張更符合需求的圖片。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-78a2fb51f4.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 5">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-7.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159aa3step"><div><div itemprop="name">貼到其他 AI 工具重新生成</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>下圖就是將生成的提示詞複製後貼到 ChatGPT 進行「創作圖像」，生成一張新的圖片，看起來就和原圖很像。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-29ac34bf8e.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 6">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-6.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159b35step"><div><div itemprop="name">善用站內的 AI 生圖功能</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>ImageToPrompt.me 除了將圖片轉為提示詞的功能，還有透過各種不同 AI 模型直接生成新圖片的工具，這些功能需要消耗點數，要付費升級才能解鎖所有模型。若不想付費，也可以將轉換後的提示詞複製到自己慣用的 AI 生成工具，再建立新的圖片。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-652ee82029.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 7">
-</div></div></div>
-</div>
-<h2>常見問題</h2>
-<div>
-<div>
-<div>
-<h3>ImageToPrompt.me 是免費的嗎？</h3>
-<div>
-<p>每天提供十次免費額度，不需要註冊或登入就能使用。若需要更多次數或站內直接生圖功能，才需要升級每月 19 美元的 Pro 或 49 美元的 Max。</p>
-</div>
-</div>
-<div>
-<h3>上傳的圖片會被保存嗎？</h3>
-<div>
-<p>不會，圖片只在瀏覽器端壓縮並用於即時分析，官方說明不會存放在伺服器。</p>
-</div>
-</div>
-<div>
-<h3>支援哪些 AI 繪圖模型？</h3>
-<div>
-<p>可針對 Flux、Midjourney、Stable Diffusion、Nano Banana 最佳化，也提供不指定模型的通用格式，輸出可切換標準、結構化或 JSON。</p>
-</div>
-</div>
-<div>
-<h3>提示詞可以輸出中文嗎？</h3>
-<div>
-<p>預設輸出英文，也能切換中文、日文、西班牙文與葡萄牙文。</p>
-</div>
-</div>
-</div>
-</div><div aria-hidden="true">本資訊最後檢核於 2026 年 8 月。</div>
-<div>
-<hr>
-<h3>探索更多來自 免費資源網 的內容</h3>
-<p>訂閱即可透過電子郵件收到最新文章。</p>
-<div>
-<div>
-<div>
-<form action="https://wordpress.com/email-subscriptions" method="post" accept-charset="utf-8" data-blog="1101591" data-post_access_level="everybody" data-subscriber_email="">
-<div>
-<p>
-<label for="subscribe-field">
-輸入你的電子郵件地址…							</label>
-<input required="required" type="email" name="email" autocomplete="email" placeholder="輸入你的電子郵件地址…" value="" title="請填寫此欄位。">						</p>
-<p>
-<input type="hidden" name="action" value="subscribe">
-<input type="hidden" name="blog_id" value="1101591">
-<input type="hidden" name="source" value="https://free.com.tw/imagetoprompt/">
-<input type="hidden" name="sub-type" value="subscribe-block">
-<input type="hidden" name="app_source" value="subscribe-block-post-end">
-<input type="hidden" name="redirect_fragment" value="subscribe-blog">
-<input type="hidden" name="lang" value="zh_TW">
-<input type="hidden" name="_wpnonce" value="4d76e5dd7c"><input type="hidden" name="_wp_http_referer" value="/imagetoprompt/"><input type="hidden" name="post_id" value="125471">							<button type="submit" name="jetpack_subscriptions_widget">
-訂閱							</button>
-</p>
-</div>
-</form>
-</div>
-</div>
-</div>
-</div>]]>
-    </description>
-    <content:encoded><![CDATA[<div>
-<div google-add-preferred-source-btn=""></div>
-</div>
-<img data-perfmatters-preload="" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2c36563c09.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 1" fetchpriority="high">
-<div><div><div><svg viewBox="0 0 612 612"> <g> </g><g> </g><g> <path d="M403.939,295.749l-78.814,78.833V172.125c0-10.557-8.568-19.125-19.125-19.125c-10.557,0-19.125,8.568-19.125,19.125 v202.457l-78.814-78.814c-7.478-7.478-19.584-7.478-27.043,0c-7.478,7.478-7.478,19.584,0,27.042l108.19,108.19 c4.59,4.59,10.863,6.005,16.812,4.953c5.929,1.052,12.221-0.382,16.811-4.953l108.19-108.19c7.478-7.478,7.478-19.583,0-27.042 C423.523,288.29,411.417,288.29,403.939,295.749z M306,0C137.012,0,0,136.992,0,306s137.012,306,306,306s306-137.012,306-306 S475.008,0,306,0z M306,573.75C158.125,573.75,38.25,453.875,38.25,306C38.25,158.125,158.125,38.25,306,38.25 c147.875,0,267.75,119.875,267.75,267.75C573.75,453.875,453.875,573.75,306,573.75z"></path> </g>   </svg></div><div>
-<p><strong>本文重點：</strong>ImageToPrompt.me 是免費的 AI 圖片轉提示詞工具，上傳一張圖片就能反推出詳細的英文提示詞，並針對 Flux、Midjourney、Stable Diffusion、Nano Banana 等模型最佳化。免註冊、免登入，每天提供十次免費額度，圖片只做即時分析，不會存放在伺服器。</p>
-</div></div></div>
-<h2>AI 生圖的提示詞為什麼很難寫？</h2>
-<p>這幾年 AI 繪圖工具越來越成熟，Midjourney、Stable Diffusion、Flux 和 Nano Banana 這類服務讓一般人也能用文字描述畫出想要的圖，不過真正動手之後就會發現，操作工具其實不難，真正卡關的地方往往是「提示詞」該怎麼寫。相同主題，別人的咒語就是能生出質感細膩的作品，自己憑空寫下的關鍵字卻總是差了一截。</p>
-<p>另一種常見的情境，在社群或作品集上看到一張很喜歡的 AI 圖，很想照著風格畫出類似的效果，卻完全不知道對方用了哪些描述、指定了什麼構圖、光線與材質。如果想從一張成品反推出背後的提示詞，一般來說幾乎很難做到。</p>
-<h2>ImageToPrompt.me：上傳圖片就能反推 AI 提示詞</h2>
-<p>本文要介紹的「<a href="https://imagetoprompt.me/" target="_blank">ImageToPrompt.me</a>」是為了解決這個問題而做的免費工具，它的運作方式和一般生圖工具相反，使用者在上傳圖片後，網站就會分析圖片內容，反推出一段詳細的英文提示詞（或切換其他語言），並且能針對不同的 AI 圖片生成模型做最佳化調整。</p>
-<p>使用者就能利用這段提示詞，拿去其他 AI 工具生成風格類似的圖片，省下自己慢慢摸索、逐字調整的時間。</p>
-<h3>支援多種模型與輸出格式</h3>
-<p>ImageToPrompt.me 支援 JPG、PNG 和 WebP 三種常見格式，單檔最大不超過 5 MB，比較大的照片會先在瀏覽器端自動壓縮再上傳。使用時可先選擇要最佳化的模型目標，包含 Flux、Midjourney、Stable Diffusion、Nano Banana，或是不指定特定模型的通用（General）格式。輸出的提示詞也有標準（Standard）、結構化（Structured）與 JSON 三種呈現方式，預設生成英文版本，亦可調整為中文、日文、西班牙文和葡萄牙文。</p>
-<h3>每天十次免費，付費方案解鎖生圖額度</h3>
-<p>ImageToPrompt.me 每天提供十次免費額度，對於偶爾參考、臨時查一下咒語的需求已經相當夠用。若有大量或商業需求，網站另有 Pro 與 Max 兩種付費方案，主要差別在於每月的生圖額度與可用模型。</p>
-<table><thead><tr><th>方案</th><th>價格</th><th>重點</th></tr></thead><tbody><tr><td>免費</td><td>0 美元</td><td>每天 10 次圖片轉提示詞，支援全部目標模型，圖片不保存</td></tr><tr><td>Pro</td><td>每月 19 美元</td><td>每月 300 張生圖額度，解鎖 Flux 2、Nano Banana 2 等新模型</td></tr><tr><td>Max</td><td>每月 49 美元</td><td>每月 1,000 張生圖額度，額外解鎖 4K 模型</td></tr></tbody></table>
-<h2>網站資訊</h2>
-<div><div><div>
-<p>網站標題：<strong>Image to Prompt</strong><br>網站連結：<a href="https://imagetoprompt.me/" target="_blank">https://imagetoprompt.me/</a></p>
-</div></div></div>
-<h2>使用教學</h2>
-<div itemscope="" itemtype="https://schema.org/HowTo"><div><div itemprop="name"></div></div><div><div itemprop="description"></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-2.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e21597e9step"><div><div itemprop="name">開啟網站並認識操作介面</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>開啟 ImageToPrompt.me 網站後，主要操作區塊就在首頁中央。整個流程歸納成三個步驟：上傳圖片、選擇目標模型、生成並複製提示詞，不需要註冊帳號也不用登入，直接就能開始使用，操作上很簡單，要注意每人每天有十張的免費額度。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-cdf2aef23f.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 2">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-3.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e21598b3step"><div><div itemprop="name">上傳想反推的圖片</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>把想反推的圖片拖曳到上傳區塊，或是點選該區塊從電腦瀏覽檔案。支援 JPG、PNG、WebP 格式，單張檔案大小必須控制在 5 MB 以內，比較大的照片系統會先在瀏覽器端壓縮再上傳。圖片只用來分析，不會被保存，上傳後不需要擔心作品外流的問題。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-7a74c78b5b.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 3">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-4.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159958step"><div><div itemprop="name">選擇目標模型與輸出格式</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>上傳前記得先選好目標模型：通用、Flux、Midjourney、Stable Diffusion 或 Nano Banana，也能切換不同格式，包括標準、結構化或是 JSON，生成的提示詞語言預設是英文。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-6e5874e61a.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 4">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-5.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159a0astep"><div><div itemprop="name">生成並複製提示詞</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>按下生成後，網站會分析圖片內容並產生一段提示詞，描述通常會涵蓋主體、風格、構圖、光線、色調與材質等細節。</p>
-<p>確認內容後，直接點右上角的一鍵複製按鈕就能把整段提示詞帶走，貼到 Midjourney、Stable Diffusion 等工具重新生成新的圖片，也可以自己再調整提示詞內容，生成一張更符合需求的圖片。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-78a2fb51f4.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 5">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-7.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159aa3step"><div><div itemprop="name">貼到其他 AI 工具重新生成</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>下圖就是將生成的提示詞複製後貼到 ChatGPT 進行「創作圖像」，生成一張新的圖片，看起來就和原圖很像。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-29ac34bf8e.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 6">
-</div></div></div>
-<div itemprop="step" itemscope="" itemtype="https://schema.org/HowToStep"><meta itemprop="image" content="https://free.com.tw/wp-content/uploads/2026/08/imagetoprompt-6.jpg"><meta itemprop="url" content="https://free.com.tw/imagetoprompt/#gspb-howid6a981e2159b35step"><div><div itemprop="name">善用站內的 AI 生圖功能</div></div><div itemprop="itemListElement" itemscope="" itemtype="https://schema.org/HowToDirection"><div itemprop="text">
-<p>ImageToPrompt.me 除了將圖片轉為提示詞的功能，還有透過各種不同 AI 模型直接生成新圖片的工具，這些功能需要消耗點數，要付費升級才能解鎖所有模型。若不想付費，也可以將轉換後的提示詞複製到自己慣用的 AI 生成工具，再建立新的圖片。</p>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-652ee82029.jpg" alt="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語" title="ImageToPrompt.me 免費 AI 圖片轉提示詞工具，上傳圖片就能還原 Midjourney、Flux 生圖咒語 7">
-</div></div></div>
-</div>
-<h2>常見問題</h2>
-<div>
-<div>
-<div>
-<h3>ImageToPrompt.me 是免費的嗎？</h3>
-<div>
-<p>每天提供十次免費額度，不需要註冊或登入就能使用。若需要更多次數或站內直接生圖功能，才需要升級每月 19 美元的 Pro 或 49 美元的 Max。</p>
-</div>
-</div>
-<div>
-<h3>上傳的圖片會被保存嗎？</h3>
-<div>
-<p>不會，圖片只在瀏覽器端壓縮並用於即時分析，官方說明不會存放在伺服器。</p>
-</div>
-</div>
-<div>
-<h3>支援哪些 AI 繪圖模型？</h3>
-<div>
-<p>可針對 Flux、Midjourney、Stable Diffusion、Nano Banana 最佳化，也提供不指定模型的通用格式，輸出可切換標準、結構化或 JSON。</p>
-</div>
-</div>
-<div>
-<h3>提示詞可以輸出中文嗎？</h3>
-<div>
-<p>預設輸出英文，也能切換中文、日文、西班牙文與葡萄牙文。</p>
-</div>
-</div>
-</div>
-</div><div aria-hidden="true">本資訊最後檢核於 2026 年 8 月。</div>
-<div>
-<hr>
-<h3>探索更多來自 免費資源網 的內容</h3>
-<p>訂閱即可透過電子郵件收到最新文章。</p>
-<div>
-<div>
-<div>
-<form action="https://wordpress.com/email-subscriptions" method="post" accept-charset="utf-8" data-blog="1101591" data-post_access_level="everybody" data-subscriber_email="">
-<div>
-<p>
-<label for="subscribe-field">
-輸入你的電子郵件地址…							</label>
-<input required="required" type="email" name="email" autocomplete="email" placeholder="輸入你的電子郵件地址…" value="" title="請填寫此欄位。">						</p>
-<p>
-<input type="hidden" name="action" value="subscribe">
-<input type="hidden" name="blog_id" value="1101591">
-<input type="hidden" name="source" value="https://free.com.tw/imagetoprompt/">
-<input type="hidden" name="sub-type" value="subscribe-block">
-<input type="hidden" name="app_source" value="subscribe-block-post-end">
-<input type="hidden" name="redirect_fragment" value="subscribe-blog">
-<input type="hidden" name="lang" value="zh_TW">
-<input type="hidden" name="_wpnonce" value="4d76e5dd7c"><input type="hidden" name="_wp_http_referer" value="/imagetoprompt/"><input type="hidden" name="post_id" value="125471">							<button type="submit" name="jetpack_subscriptions_widget">
-訂閱							</button>
-</p>
-</div>
-</form>
-</div>
-</div>
-</div>
-</div>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2c36563c09.jpg"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/free.com.tw-2c36563c09.jpg" medium="image"/>
-    <pubDate>Wed, 02 Sep 2026 13:00:22 +0000</pubDate>
   </item></channel>
 </rss>
