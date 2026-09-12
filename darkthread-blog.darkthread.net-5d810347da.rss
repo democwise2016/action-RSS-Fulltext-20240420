@@ -30,6 +30,309 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[Debian 13 (Trixie) Docker 環境快速安裝]]></title>
+    <link>https://blog.darkthread.net/blog/trixie-docker-quick-setup/</link>
+    <itunes:title><![CDATA[Debian 13 (Trixie) Docker 環境快速安裝]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>這陣子常需要新建 VM 跑 Docker 做實驗，純伺服器靠 ssh 操作不需桌面，我習慣裝 Debian 13 (代號 Trixie，2025/8 發行，是目前 Debian 最新穩定版)。</p> <p>建好 VM 還需要安裝 Docker Engine、設定 Nginx、搞定 TLS 憑證等一連串步驟才能跑 HTTPS 網站，幾年前寫過 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>，當時是 Debian 11，資料有點過時；加上我愛用的 Nginx + Certbot Docker 輕巧精簡但改設定檔偏麻煩，正式環境沒話說，若是不需要精細控制 Nginx 設定又常要異動的測試環境，<a href="/blog/nginx-proxy-manager/">Nginx Proxy Manager</a> 是更方便的選擇。</p> <p>為簡化每次 Docker VM 安裝作業提升效率，整理成一份快速安裝腳本備忘。</p> <p>以下是安裝 Docker Engine、在 ~/dockers/nginx-proxy-manager 建立 docker-compose.yml 到運行 Nginx Proxy Manager 的完成指令：</p> <pre><code># 1. 作業系統更新
+sudo apt update -y
+sudo apt full-upgrade -y
+sudo apt install -y unzip
+# 2. 安裝 Docker Engine https://docs.docker.com/engine/install/debian/
+# 設定 Docker apt 來源
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+# 加入 apt 來源
+sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update
+# 安裝 Docker Engine
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl status docker
+sudo systemctl start docker
+# 允許目前使用者不需 sudo 直接執行 docker (重新登入後生效)
+sudo usermod -aG docker $USER
+# 3. 安裝 Nginx Proxy Manager
+# Docker 設定統一儲存於 dockers 資料夾
+mkdir -p ~/dockers/nginx-proxy-manager
+cd ~/dockers/nginx-proxy-manager
+mkdir data
+mkdir letsencrypt
+tee ~/dockers/nginx-proxy-manager/docker-compose.yml &lt;&lt;EOF
+services:
+app:
+image: 'jc21/nginx-proxy-manager:latest'
+restart: unless-stopped
+ports:
+- '80:80'
+- '81:81'
+- '443:443'
+volumes:
+- ./data:/data
+- ./letsencrypt:/etc/letsencrypt
+EOF
+sudo docker compose up -d
+</code></pre> <p>若是 Azure VM 且要對外開放服務，要記得防火牆開放 80/443，可從 Azure Portal 資源設定頁面 Networking/Network settings 新增 Network Security Group (NSG) 規則或是使用 az CLI 指令：<a href="https://learn.microsoft.com/zh-tw/azure/virtual-machines/windows/quick-create-cli?WT.mc_id=DOP-MVP-37580#open-port-80-for-web-traffic">參考</a></p> <pre><code>az vm open-port --resource-group MyResourceGroup --name MyVm --port 80,443 --priority 101
+</code></pre> <p>至於管理用的 81 Port，我傾向不對 Internet 開放，需要使用時，用 SSH Remote Port Forwarding 將遠端的 81 Port 導到本機 81 Port 使用，指令為 <code>ssh -L 81:localhost:81 user@remote-server</code> (語法為<code>ssh -L [本機 IP(可省略)]:[本機 Port]:[目標 IP]:[目標 Port] [遠端 User]@[遠端主機]</code>) 若本地 81 Port 已被佔用要換成 8081，則可寫 <code>ssh -L 8081:localhost:81 user@remote-server</code>)，接著用 <code>http://localhost:81</code> 可進入 Nginx Proxy Manager 初始設定，輸入管理者資訊後開始使用：<a href="/blog/nginx-proxy-manager/">相關文章</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"></p> <p>順便記錄可能用到的開發環境安裝：</p> <ol><li>PowerShell 7.6 LTS <a href="https://learn.microsoft.com/en-us/powershell/scripting/install/install-debian?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>
+# Update the list of packages
+sudo apt-get update
+# Install pre-requisite packages.
+sudo apt-get install -y wget
+# Download the PowerShell package file
+wget https://github.com/PowerShell/PowerShell/releases/download/v7.6.1/powershell_7.6.1-1.deb_amd64.deb
+# Resolve missing dependencies and finish the install (if necessary)
+sudo dpkg -i powershell_7.6.1-1.deb_amd64.deb
+# Resolve missing dependencies and finish the install (if necessary)
+sudo apt-get install -f
+# Delete the downloaded package file
+rm powershell_7.6.1-1.deb_amd64.deb
+# 測試
+pwsh
+</code></pre> <ol start="2"><li>安裝 .NET 10 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-debian?tabs=dotnet10&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+sudo apt-get update &amp;&amp; sudo apt-get install -y dotnet-sdk-10.0
+dotnet --version
+</code></pre> <ol start="3"><li>安裝 uv (<a href="https://blog.darkthread.net/blog/uv/">Python 版本管理/套件安裝/虛擬環境 極速神器</a>)</li></ol> <pre><code>curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+# 安裝最新版 Python
+uv python install
+# 測試 (含 venv)
+mkdir -p ~/tmp-uv-test &amp;&amp; cd ~/tmp-uv-test
+uv venv # 建立虛擬環境
+source .venv/bin/activate # 啟用虛擬環境
+uv pip install requests  # 安裝套件
+python -c "import requests; print(requests.__version__)"  # 執行並印出版本
+deactivate # 退出虛擬環境
+cd ~
+rm -rf ~/tmp-uv-test
+</code></pre> <ol start="4"><li>安裝 Node.js（版本管理用 <strong>fnm</strong>，套件安裝用 <strong>pnpm</strong>）</li></ol> <pre><code># 安裝 fnm (Fast Node Manager，Rust 撰寫，對應 uv python install)
+curl -fsSL https://fnm.vercel.app/install | bash
+source ~/.bashrc
+fnm install --lts       # 安裝最新 LTS
+fnm use lts-latest      # 切換至 LTS 版本
+node -v
+# 安裝 pnpm (對應 uv pip，節省磁碟空間、支援 monorepo)
+npm install -g pnpm
+pnpm -v
+# 測試：建立專案並安裝套件
+mkdir -p ~/tmp-node-test &amp;&amp; cd ~/tmp-node-test
+pnpm init -y
+pnpm add axios
+node -e "const a = require('axios'); console.log(a.VERSION)"
+cd ~
+rm -rf ~/tmp-node-test
+</code></pre> <p data-slug="trixie-docker-quick-setup" data-fbimg="https://i.postimg.cc/KjzNRQmq/image.png#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>這陣子常需要新建 VM 跑 Docker 做實驗，純伺服器靠 ssh 操作不需桌面，我習慣裝 Debian 13 (代號 Trixie，2025/8 發行，是目前 Debian 最新穩定版)。</p> <p>建好 VM 還需要安裝 Docker Engine、設定 Nginx、搞定 TLS 憑證等一連串步驟才能跑 HTTPS 網站，幾年前寫過 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>，當時是 Debian 11，資料有點過時；加上我愛用的 Nginx + Certbot Docker 輕巧精簡但改設定檔偏麻煩，正式環境沒話說，若是不需要精細控制 Nginx 設定又常要異動的測試環境，<a href="/blog/nginx-proxy-manager/">Nginx Proxy Manager</a> 是更方便的選擇。</p> <p>為簡化每次 Docker VM 安裝作業提升效率，整理成一份快速安裝腳本備忘。</p> <p>以下是安裝 Docker Engine、在 ~/dockers/nginx-proxy-manager 建立 docker-compose.yml 到運行 Nginx Proxy Manager 的完成指令：</p> <pre><code># 1. 作業系統更新
+sudo apt update -y
+sudo apt full-upgrade -y
+sudo apt install -y unzip
+# 2. 安裝 Docker Engine https://docs.docker.com/engine/install/debian/
+# 設定 Docker apt 來源
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+# 加入 apt 來源
+sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update
+# 安裝 Docker Engine
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl status docker
+sudo systemctl start docker
+# 允許目前使用者不需 sudo 直接執行 docker (重新登入後生效)
+sudo usermod -aG docker $USER
+# 3. 安裝 Nginx Proxy Manager
+# Docker 設定統一儲存於 dockers 資料夾
+mkdir -p ~/dockers/nginx-proxy-manager
+cd ~/dockers/nginx-proxy-manager
+mkdir data
+mkdir letsencrypt
+tee ~/dockers/nginx-proxy-manager/docker-compose.yml &lt;&lt;EOF
+services:
+app:
+image: 'jc21/nginx-proxy-manager:latest'
+restart: unless-stopped
+ports:
+- '80:80'
+- '81:81'
+- '443:443'
+volumes:
+- ./data:/data
+- ./letsencrypt:/etc/letsencrypt
+EOF
+sudo docker compose up -d
+</code></pre> <p>若是 Azure VM 且要對外開放服務，要記得防火牆開放 80/443，可從 Azure Portal 資源設定頁面 Networking/Network settings 新增 Network Security Group (NSG) 規則或是使用 az CLI 指令：<a href="https://learn.microsoft.com/zh-tw/azure/virtual-machines/windows/quick-create-cli?WT.mc_id=DOP-MVP-37580#open-port-80-for-web-traffic">參考</a></p> <pre><code>az vm open-port --resource-group MyResourceGroup --name MyVm --port 80,443 --priority 101
+</code></pre> <p>至於管理用的 81 Port，我傾向不對 Internet 開放，需要使用時，用 SSH Remote Port Forwarding 將遠端的 81 Port 導到本機 81 Port 使用，指令為 <code>ssh -L 81:localhost:81 user@remote-server</code> (語法為<code>ssh -L [本機 IP(可省略)]:[本機 Port]:[目標 IP]:[目標 Port] [遠端 User]@[遠端主機]</code>) 若本地 81 Port 已被佔用要換成 8081，則可寫 <code>ssh -L 8081:localhost:81 user@remote-server</code>)，接著用 <code>http://localhost:81</code> 可進入 Nginx Proxy Manager 初始設定，輸入管理者資訊後開始使用：<a href="/blog/nginx-proxy-manager/">相關文章</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"></p> <p>順便記錄可能用到的開發環境安裝：</p> <ol><li>PowerShell 7.6 LTS <a href="https://learn.microsoft.com/en-us/powershell/scripting/install/install-debian?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>
+# Update the list of packages
+sudo apt-get update
+# Install pre-requisite packages.
+sudo apt-get install -y wget
+# Download the PowerShell package file
+wget https://github.com/PowerShell/PowerShell/releases/download/v7.6.1/powershell_7.6.1-1.deb_amd64.deb
+# Resolve missing dependencies and finish the install (if necessary)
+sudo dpkg -i powershell_7.6.1-1.deb_amd64.deb
+# Resolve missing dependencies and finish the install (if necessary)
+sudo apt-get install -f
+# Delete the downloaded package file
+rm powershell_7.6.1-1.deb_amd64.deb
+# 測試
+pwsh
+</code></pre> <ol start="2"><li>安裝 .NET 10 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-debian?tabs=dotnet10&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+sudo apt-get update &amp;&amp; sudo apt-get install -y dotnet-sdk-10.0
+dotnet --version
+</code></pre> <ol start="3"><li>安裝 uv (<a href="https://blog.darkthread.net/blog/uv/">Python 版本管理/套件安裝/虛擬環境 極速神器</a>)</li></ol> <pre><code>curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+# 安裝最新版 Python
+uv python install
+# 測試 (含 venv)
+mkdir -p ~/tmp-uv-test &amp;&amp; cd ~/tmp-uv-test
+uv venv # 建立虛擬環境
+source .venv/bin/activate # 啟用虛擬環境
+uv pip install requests  # 安裝套件
+python -c "import requests; print(requests.__version__)"  # 執行並印出版本
+deactivate # 退出虛擬環境
+cd ~
+rm -rf ~/tmp-uv-test
+</code></pre> <ol start="4"><li>安裝 Node.js（版本管理用 <strong>fnm</strong>，套件安裝用 <strong>pnpm</strong>）</li></ol> <pre><code># 安裝 fnm (Fast Node Manager，Rust 撰寫，對應 uv python install)
+curl -fsSL https://fnm.vercel.app/install | bash
+source ~/.bashrc
+fnm install --lts       # 安裝最新 LTS
+fnm use lts-latest      # 切換至 LTS 版本
+node -v
+# 安裝 pnpm (對應 uv pip，節省磁碟空間、支援 monorepo)
+npm install -g pnpm
+pnpm -v
+# 測試：建立專案並安裝套件
+mkdir -p ~/tmp-node-test &amp;&amp; cd ~/tmp-node-test
+pnpm init -y
+pnpm add axios
+node -e "const a = require('axios'); console.log(a.VERSION)"
+cd ~
+rm -rf ~/tmp-node-test
+</code></pre> <p data-slug="trixie-docker-quick-setup" data-fbimg="https://i.postimg.cc/KjzNRQmq/image.png#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>這陣子常需要新建 VM 跑 Docker 做實驗，純伺服器靠 ssh 操作不需桌面，我習慣裝 Debian 13 (代號 Trixie，2025/8 發行，是目前 Debian 最新穩定版)。</p> <p>建好 VM 還需要安裝 Docker Engine、設定 Nginx、搞定 TLS 憑證等一連串步驟才能跑 HTTPS 網站，幾年前寫過 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>，當時是 Debian 11，資料有點過時；加上我愛用的 Nginx + Certbot Docker 輕巧精簡但改設定檔偏麻煩，正式環境沒話說，若是不需要精細控制 Nginx 設定又常要異動的測試環境，<a href="/blog/nginx-proxy-manager/">Nginx Proxy Manager</a> 是更方便的選擇。</p> <p>為簡化每次 Docker VM 安裝作業提升效率，整理成一份快速安裝腳本備忘。</p> <p>以下是安裝 Docker Engine、在 ~/dockers/nginx-proxy-manager 建立 docker-compose.yml 到運行 Nginx Proxy Manager 的完成指令：</p> <pre><code># 1. 作業系統更新
+sudo apt update -y
+sudo apt full-upgrade -y
+sudo apt install -y unzip
+# 2. 安裝 Docker Engine https://docs.docker.com/engine/install/debian/
+# 設定 Docker apt 來源
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+# 加入 apt 來源
+sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update
+# 安裝 Docker Engine
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl status docker
+sudo systemctl start docker
+# 允許目前使用者不需 sudo 直接執行 docker (重新登入後生效)
+sudo usermod -aG docker $USER
+# 3. 安裝 Nginx Proxy Manager
+# Docker 設定統一儲存於 dockers 資料夾
+mkdir -p ~/dockers/nginx-proxy-manager
+cd ~/dockers/nginx-proxy-manager
+mkdir data
+mkdir letsencrypt
+tee ~/dockers/nginx-proxy-manager/docker-compose.yml &lt;&lt;EOF
+services:
+app:
+image: 'jc21/nginx-proxy-manager:latest'
+restart: unless-stopped
+ports:
+- '80:80'
+- '81:81'
+- '443:443'
+volumes:
+- ./data:/data
+- ./letsencrypt:/etc/letsencrypt
+EOF
+sudo docker compose up -d
+</code></pre> <p>若是 Azure VM 且要對外開放服務，要記得防火牆開放 80/443，可從 Azure Portal 資源設定頁面 Networking/Network settings 新增 Network Security Group (NSG) 規則或是使用 az CLI 指令：<a href="https://learn.microsoft.com/zh-tw/azure/virtual-machines/windows/quick-create-cli?WT.mc_id=DOP-MVP-37580#open-port-80-for-web-traffic">參考</a></p> <pre><code>az vm open-port --resource-group MyResourceGroup --name MyVm --port 80,443 --priority 101
+</code></pre> <p>至於管理用的 81 Port，我傾向不對 Internet 開放，需要使用時，用 SSH Remote Port Forwarding 將遠端的 81 Port 導到本機 81 Port 使用，指令為 <code>ssh -L 81:localhost:81 user@remote-server</code> (語法為<code>ssh -L [本機 IP(可省略)]:[本機 Port]:[目標 IP]:[目標 Port] [遠端 User]@[遠端主機]</code>) 若本地 81 Port 已被佔用要換成 8081，則可寫 <code>ssh -L 8081:localhost:81 user@remote-server</code>)，接著用 <code>http://localhost:81</code> 可進入 Nginx Proxy Manager 初始設定，輸入管理者資訊後開始使用：<a href="/blog/nginx-proxy-manager/">相關文章</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"></p> <p>順便記錄可能用到的開發環境安裝：</p> <ol><li>PowerShell 7.6 LTS <a href="https://learn.microsoft.com/en-us/powershell/scripting/install/install-debian?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>
+# Update the list of packages
+sudo apt-get update
+# Install pre-requisite packages.
+sudo apt-get install -y wget
+# Download the PowerShell package file
+wget https://github.com/PowerShell/PowerShell/releases/download/v7.6.1/powershell_7.6.1-1.deb_amd64.deb
+# Resolve missing dependencies and finish the install (if necessary)
+sudo dpkg -i powershell_7.6.1-1.deb_amd64.deb
+# Resolve missing dependencies and finish the install (if necessary)
+sudo apt-get install -f
+# Delete the downloaded package file
+rm powershell_7.6.1-1.deb_amd64.deb
+# 測試
+pwsh
+</code></pre> <ol start="2"><li>安裝 .NET 10 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-debian?tabs=dotnet10&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+sudo apt-get update &amp;&amp; sudo apt-get install -y dotnet-sdk-10.0
+dotnet --version
+</code></pre> <ol start="3"><li>安裝 uv (<a href="https://blog.darkthread.net/blog/uv/">Python 版本管理/套件安裝/虛擬環境 極速神器</a>)</li></ol> <pre><code>curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+# 安裝最新版 Python
+uv python install
+# 測試 (含 venv)
+mkdir -p ~/tmp-uv-test &amp;&amp; cd ~/tmp-uv-test
+uv venv # 建立虛擬環境
+source .venv/bin/activate # 啟用虛擬環境
+uv pip install requests  # 安裝套件
+python -c "import requests; print(requests.__version__)"  # 執行並印出版本
+deactivate # 退出虛擬環境
+cd ~
+rm -rf ~/tmp-uv-test
+</code></pre> <ol start="4"><li>安裝 Node.js（版本管理用 <strong>fnm</strong>，套件安裝用 <strong>pnpm</strong>）</li></ol> <pre><code># 安裝 fnm (Fast Node Manager，Rust 撰寫，對應 uv python install)
+curl -fsSL https://fnm.vercel.app/install | bash
+source ~/.bashrc
+fnm install --lts       # 安裝最新 LTS
+fnm use lts-latest      # 切換至 LTS 版本
+node -v
+# 安裝 pnpm (對應 uv pip，節省磁碟空間、支援 monorepo)
+npm install -g pnpm
+pnpm -v
+# 測試：建立專案並安裝套件
+mkdir -p ~/tmp-node-test &amp;&amp; cd ~/tmp-node-test
+pnpm init -y
+pnpm add axios
+node -e "const a = require('axios'); console.log(a.VERSION)"
+cd ~
+rm -rf ~/tmp-node-test
+</code></pre> <p data-slug="trixie-docker-quick-setup" data-fbimg="https://i.postimg.cc/KjzNRQmq/image.png#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp" medium="image"/>
+    <pubDate>Sat, 12 Sep 2026 12:25:47 GMT</pubDate>
+  </item><item>
     <title><![CDATA[了解 WSL NAT 模式運作原理]]></title>
     <link>https://blog.darkthread.net/blog/wsl-nat-mode/</link>
     <itunes:title><![CDATA[了解 WSL NAT 模式運作原理]]></itunes:title>
@@ -393,530 +696,5 @@ Write-Host "[Console]::OutputEncoding.CodePage=$([Console]::OutputEncoding.CodeP
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639228355680245335.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639228355680245335.webp" medium="image"/>
     <pubDate>Thu, 20 Aug 2026 15:12:43 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[使用程式讀取 Windows 無線網路訊號品質]]></title>
-    <link>https://blog.darkthread.net/blog/monitor-wifi-signal-quality/</link>
-    <itunes:title><![CDATA[使用程式讀取 Windows 無線網路訊號品質]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>昨天從 RDP 連線瞬斷問題追出是<a href="/blog/rdp-connection-break-issue/">無線路由器的 Smart Connect 機制觸發網卡自動切換 2.4G/5G 頻段</a>造成，而 Smart Connect 也在<a href="https://www.facebook.com/share/p/197VpQQBTQ/">留言區</a>被刷了不少負評，我目前的結論是「除非是走 WiFi 7 有 MLO，不然還是 2.4G 跟 5G 切成不同 SSID 較好」。</p> <p>不過會自動切換頻段應也源於訊號品質不佳，讓我開始關注工作機的 WiFi 訊號品質是否太差？</p> <p>我的無線路由器位置位於房子中央，工作機則在房間邊角中間還隔了牆，訊號確實可能會差一些，我想寫個程式長期觀測 WiFi 品質確認這點，看看白天晚上、不同時段是否有差別。</p> <p>研究了一下，查看 WiFi 品質數字最簡單的做法是用 CLI <code>netsh wlan show intefaces</code>，顯示結果中的 Signal (訊號) 百分比即為訊號品質：</p> <pre><code>PS D:\&gt; netsh wlan show interfaces
-There is 1 interface on the system:
-Name                   : Wi-Fi AX210
-Description            : Intel(R) Wi-Fi 6E AX210 160MHz
-GUID                   : 4dba6ce4-dc0f-49dd-5a4e-66626be68720
-Physical address       : f4:7b:09:ab:cd:ef
-Interface type         : Primary
-State                  : connected
-SSID                   : M-WiFi-SSID
-AP BSSID               : 12:34:56:78:90:ab
-Band                   : 5 GHz
-Channel                : 157
-Connected Akm-cipher   : [ akm = 00-0f-ac:08, cipher =  00-0f-ac:04 ]
-Network type           : Infrastructure
-Radio type             : 802.11ax
-Authentication         : WPA3-Personal  (H2E)
-Cipher                 : CCMP
-Connection mode        : Auto Connect
-Receive rate (Mbps)    : 216
-Transmit rate (Mbps)   : 144
-Signal                 : 60%
-Rssi                   : -72
-Profile                : My-WiFi-SSID
-QoS MSCS Configured         : 0
-QoS Map Configured          : 0
-QoS Map Allowed by Policy   : 0
-</code></pre> <p>程式要取得品質數據，無腦寫法是呼叫 netsh 並解析輸出結果，但呼叫外部程序偏笨重，解析文字則要考慮語系，我覺得不甚理想。netsh 可以查到資料代表背後有對映的 Windows API，我很快找到 <a href="https://learn.microsoft.com/en-us/windows/win32/nativewifi/portal?WT.mc_id=DOP-MVP-37580">Native Wifi API</a>。</p> <p>描述無線網卡介面的資料結構 <a href="https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ns-wlanapi-wlan_association_attributes?WT.mc_id=DOP-MVP-37580"><code>WLAN_ASSOCIATION_ATTRIBUTES</code></a> 有個 <code>WLAN_SIGNAL_QUALITY wlanSignalQuality</code> 表示網路訊號品質百分比值，其值介於 0 到 100 之間。0 表示實際 RSSI 訊號強度 -100 dbm、100 表示實際 RSSI 訊號強度 -50 dbm。用線性插補可計算 wlanSignalQuality 值介於 1 到 99 之間的 RSSI 訊號強度值。</p> <p>找到方法，就可以寫個共用函式。完整程序是先 WlanOpenHandle() 與無線自動設定服務(WLAN AutoConfig Service）建立連線，WlanEnumInterfaces() 列舉使用中的無線網卡，從清單取得第一個介面的識別碼 Guid，接著呼叫 WlanQueryInterface() 取得該介面包含 WiFi 訊號品質的即時資料。考量 WlanOpenHandle() 建立本機 RPC 連線會耗用較多資源，而網卡不會三不五時異動，故每次重複列舉介面純屬多餘，故我決定重複使用連線及記憶介面識別 ID，定期查詢直接呼叫 WlanQueryInterface()，如此程式較省資源、執行效率更好。</p> <pre><code>using System.Runtime.InteropServices;
-static class PInvokeHelper
-{
-static IntPtr _hClient = IntPtr.Zero;
-static Guid _ifGuid;
-static string _ssid = string.Empty;
-const uint ERROR_SUCCESS = 0;
-const uint WLAN_INTF_OPCODE_CURRENT_CONNECTION = 7;
-[DllImport("wlanapi.dll")]
-static extern uint WlanOpenHandle(uint dwClientVersion, IntPtr pReserved,
-out uint pdwNegotiatedVersion, out IntPtr phClientHandle);
-[DllImport("wlanapi.dll")]
-static extern uint WlanEnumInterfaces(IntPtr hClientHandle, IntPtr pReserved,
-out IntPtr ppInterfaceList);
-[DllImport("wlanapi.dll")]
-static extern uint WlanQueryInterface(IntPtr hClientHandle, ref Guid pInterfaceGuid,
-uint OpCode, IntPtr pReserved, out uint pdwDataSize, out IntPtr ppData,
-out uint pWlanOpcodeValueType);
-[DllImport("wlanapi.dll")]
-static extern void WlanFreeMemory(IntPtr pMemory);
-[DllImport("wlanapi.dll")]
-static extern uint WlanCloseHandle(IntPtr hClientHandle, IntPtr pReserved);
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-struct WLAN_INTERFACE_INFO
-{
-public Guid InterfaceGuid;
-[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-public string strInterfaceDescription;
-public uint isState;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct DOT11_SSID
-{
-public uint uSSIDLength;
-[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
-public byte[] ucSSID;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct WLAN_ASSOCIATION_ATTRIBUTES
-{
-public DOT11_SSID dot11Ssid;
-public uint dot11BssType;
-[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-public byte[] dot11Bssid;
-public uint dot11PhyType;
-public uint uDot11PhyIndex;
-public uint wlanSignalQuality; // 0–100; RSSI (dBm) = (quality / 2) - 100
-public uint ulRxRate;
-public uint ulTxRate;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct WLAN_SECURITY_ATTRIBUTES
-{
-public int bSecurityEnabled;
-public int bOneXEnabled;
-public uint dot11AuthAlgorithm;
-public uint dot11CipherAlgorithm;
-}
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-struct WLAN_CONNECTION_ATTRIBUTES
-{
-public uint isState;
-public uint wlanConnectionMode;
-[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-public string strProfileName;
-public WLAN_ASSOCIATION_ATTRIBUTES wlanAssociationAttributes;
-public WLAN_SECURITY_ATTRIBUTES wlanSecurityAttributes;
-}
-static void EnsureInitialized()
-{
-if (_hClient != IntPtr.Zero) return;
-uint err = WlanOpenHandle(2, IntPtr.Zero, out _, out _hClient);
-if (err != ERROR_SUCCESS)
-{
-_hClient = IntPtr.Zero;
-throw new InvalidOperationException($"WlanOpenHandle failed: {err}");
-}
-err = WlanEnumInterfaces(_hClient, IntPtr.Zero, out IntPtr pIfList);
-if (err != ERROR_SUCCESS)
-{
-Reset();
-throw new InvalidOperationException($"WlanEnumInterfaces failed: {err}");
-}
-uint count = (uint)Marshal.ReadInt32(pIfList);
-if (count == 0)
-{
-WlanFreeMemory(pIfList);
-Reset();
-throw new InvalidOperationException("No WLAN interfaces found.");
-}
-// dwNumberOfItems, dwIndex 各 4 bytes，+8 取得第一個 WLAN_INTERFACE_INFO 結構
-var ifInfo = Marshal.PtrToStructure&lt;WLAN_INTERFACE_INFO&gt;(pIfList + 8);
-_ifGuid = ifInfo.InterfaceGuid;
-WlanFreeMemory(pIfList);
-}
-static void Reset()
-{
-if (_hClient == IntPtr.Zero) return;
-WlanCloseHandle(_hClient, IntPtr.Zero);
-_hClient = IntPtr.Zero;
-_ssid = string.Empty;
-}
-public static ulong GetWifiQuality()
-{
-EnsureInitialized();
-uint err = WlanQueryInterface(_hClient, ref _ifGuid,
-WLAN_INTF_OPCODE_CURRENT_CONNECTION, IntPtr.Zero,
-out _, out IntPtr pConnAttr, out _);
-if (err != ERROR_SUCCESS)
-{
-// Wlan Hander 或 ifGuid 失效，重新查詢網卡介面
-Reset();
-EnsureInitialized();
-err = WlanQueryInterface(_hClient, ref _ifGuid,
-WLAN_INTF_OPCODE_CURRENT_CONNECTION, IntPtr.Zero,
-out _, out pConnAttr, out _);
-if (err != ERROR_SUCCESS)
-throw new InvalidOperationException($"Not connected (error {err})");
-}
-var attr = Marshal.PtrToStructure&lt;WLAN_CONNECTION_ATTRIBUTES&gt;(pConnAttr);
-WlanFreeMemory(pConnAttr);
-_ssid = System.Text.Encoding.UTF8.GetString(attr.wlanAssociationAttributes.dot11Ssid.ucSSID, 0,
-(int)attr.wlanAssociationAttributes.dot11Ssid.uSSIDLength);
-return attr.wlanAssociationAttributes.wlanSignalQuality;
-}
-public static string GetWifiSsid() =&gt; _ssid;
-}
-</code></pre> <p>搞定上述關鍵，寫幾行 C# 就能做到定期監測 WiFi 訊號品質囉~</p> <pre><code>Console.WriteLine("Press Ctrl+C to stop.");
-using var cts = new CancellationTokenSource();
-Console.CancelKeyPress += (_, e) =&gt; { e.Cancel = true; cts.Cancel(); };
-var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
-while (await timer.WaitForNextTickAsync(cts.Token))
-{
-try
-{
-ulong quality = PInvokeHelper.GetWifiQuality();
-int rssi = (int)(quality / 2) - 100;
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Quality: {quality}%  RSSI: {rssi} dBm");
-}
-catch (Exception ex)
-{
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {ex.Message}");
-}
-}
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639225756879594346.webp"></p> <p>補充，跟 AI 學到 async 時代的非同步定期輪詢寫法，建立 PeriodicTimer，用 WaitForNextTickAsync() 等待下次觸發，如此可透過 CancellationTokenSource 即時中止程序，比傳統 while 迴圈加 Thread.Spleep() 寫法更符合非同步精神。</p> <p data-slug="monitor-wifi-signal-quality" data-title-en="Build a C# WiFi signal monitor" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/10/51/nature-2564502_1280.jpg#1280#720">Build a C# WiFi signal monitor using Windows Native Wifi API instead of parsing netsh, retrieving quality/RSSI efficiently via cached WLAN handles and interface IDs, with async periodic polling using PeriodicTimer.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>昨天從 RDP 連線瞬斷問題追出是<a href="/blog/rdp-connection-break-issue/">無線路由器的 Smart Connect 機制觸發網卡自動切換 2.4G/5G 頻段</a>造成，而 Smart Connect 也在<a href="https://www.facebook.com/share/p/197VpQQBTQ/">留言區</a>被刷了不少負評，我目前的結論是「除非是走 WiFi 7 有 MLO，不然還是 2.4G 跟 5G 切成不同 SSID 較好」。</p> <p>不過會自動切換頻段應也源於訊號品質不佳，讓我開始關注工作機的 WiFi 訊號品質是否太差？</p> <p>我的無線路由器位置位於房子中央，工作機則在房間邊角中間還隔了牆，訊號確實可能會差一些，我想寫個程式長期觀測 WiFi 品質確認這點，看看白天晚上、不同時段是否有差別。</p> <p>研究了一下，查看 WiFi 品質數字最簡單的做法是用 CLI <code>netsh wlan show intefaces</code>，顯示結果中的 Signal (訊號) 百分比即為訊號品質：</p> <pre><code>PS D:\&gt; netsh wlan show interfaces
-There is 1 interface on the system:
-Name                   : Wi-Fi AX210
-Description            : Intel(R) Wi-Fi 6E AX210 160MHz
-GUID                   : 4dba6ce4-dc0f-49dd-5a4e-66626be68720
-Physical address       : f4:7b:09:ab:cd:ef
-Interface type         : Primary
-State                  : connected
-SSID                   : M-WiFi-SSID
-AP BSSID               : 12:34:56:78:90:ab
-Band                   : 5 GHz
-Channel                : 157
-Connected Akm-cipher   : [ akm = 00-0f-ac:08, cipher =  00-0f-ac:04 ]
-Network type           : Infrastructure
-Radio type             : 802.11ax
-Authentication         : WPA3-Personal  (H2E)
-Cipher                 : CCMP
-Connection mode        : Auto Connect
-Receive rate (Mbps)    : 216
-Transmit rate (Mbps)   : 144
-Signal                 : 60%
-Rssi                   : -72
-Profile                : My-WiFi-SSID
-QoS MSCS Configured         : 0
-QoS Map Configured          : 0
-QoS Map Allowed by Policy   : 0
-</code></pre> <p>程式要取得品質數據，無腦寫法是呼叫 netsh 並解析輸出結果，但呼叫外部程序偏笨重，解析文字則要考慮語系，我覺得不甚理想。netsh 可以查到資料代表背後有對映的 Windows API，我很快找到 <a href="https://learn.microsoft.com/en-us/windows/win32/nativewifi/portal?WT.mc_id=DOP-MVP-37580">Native Wifi API</a>。</p> <p>描述無線網卡介面的資料結構 <a href="https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ns-wlanapi-wlan_association_attributes?WT.mc_id=DOP-MVP-37580"><code>WLAN_ASSOCIATION_ATTRIBUTES</code></a> 有個 <code>WLAN_SIGNAL_QUALITY wlanSignalQuality</code> 表示網路訊號品質百分比值，其值介於 0 到 100 之間。0 表示實際 RSSI 訊號強度 -100 dbm、100 表示實際 RSSI 訊號強度 -50 dbm。用線性插補可計算 wlanSignalQuality 值介於 1 到 99 之間的 RSSI 訊號強度值。</p> <p>找到方法，就可以寫個共用函式。完整程序是先 WlanOpenHandle() 與無線自動設定服務(WLAN AutoConfig Service）建立連線，WlanEnumInterfaces() 列舉使用中的無線網卡，從清單取得第一個介面的識別碼 Guid，接著呼叫 WlanQueryInterface() 取得該介面包含 WiFi 訊號品質的即時資料。考量 WlanOpenHandle() 建立本機 RPC 連線會耗用較多資源，而網卡不會三不五時異動，故每次重複列舉介面純屬多餘，故我決定重複使用連線及記憶介面識別 ID，定期查詢直接呼叫 WlanQueryInterface()，如此程式較省資源、執行效率更好。</p> <pre><code>using System.Runtime.InteropServices;
-static class PInvokeHelper
-{
-static IntPtr _hClient = IntPtr.Zero;
-static Guid _ifGuid;
-static string _ssid = string.Empty;
-const uint ERROR_SUCCESS = 0;
-const uint WLAN_INTF_OPCODE_CURRENT_CONNECTION = 7;
-[DllImport("wlanapi.dll")]
-static extern uint WlanOpenHandle(uint dwClientVersion, IntPtr pReserved,
-out uint pdwNegotiatedVersion, out IntPtr phClientHandle);
-[DllImport("wlanapi.dll")]
-static extern uint WlanEnumInterfaces(IntPtr hClientHandle, IntPtr pReserved,
-out IntPtr ppInterfaceList);
-[DllImport("wlanapi.dll")]
-static extern uint WlanQueryInterface(IntPtr hClientHandle, ref Guid pInterfaceGuid,
-uint OpCode, IntPtr pReserved, out uint pdwDataSize, out IntPtr ppData,
-out uint pWlanOpcodeValueType);
-[DllImport("wlanapi.dll")]
-static extern void WlanFreeMemory(IntPtr pMemory);
-[DllImport("wlanapi.dll")]
-static extern uint WlanCloseHandle(IntPtr hClientHandle, IntPtr pReserved);
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-struct WLAN_INTERFACE_INFO
-{
-public Guid InterfaceGuid;
-[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-public string strInterfaceDescription;
-public uint isState;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct DOT11_SSID
-{
-public uint uSSIDLength;
-[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
-public byte[] ucSSID;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct WLAN_ASSOCIATION_ATTRIBUTES
-{
-public DOT11_SSID dot11Ssid;
-public uint dot11BssType;
-[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-public byte[] dot11Bssid;
-public uint dot11PhyType;
-public uint uDot11PhyIndex;
-public uint wlanSignalQuality; // 0–100; RSSI (dBm) = (quality / 2) - 100
-public uint ulRxRate;
-public uint ulTxRate;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct WLAN_SECURITY_ATTRIBUTES
-{
-public int bSecurityEnabled;
-public int bOneXEnabled;
-public uint dot11AuthAlgorithm;
-public uint dot11CipherAlgorithm;
-}
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-struct WLAN_CONNECTION_ATTRIBUTES
-{
-public uint isState;
-public uint wlanConnectionMode;
-[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-public string strProfileName;
-public WLAN_ASSOCIATION_ATTRIBUTES wlanAssociationAttributes;
-public WLAN_SECURITY_ATTRIBUTES wlanSecurityAttributes;
-}
-static void EnsureInitialized()
-{
-if (_hClient != IntPtr.Zero) return;
-uint err = WlanOpenHandle(2, IntPtr.Zero, out _, out _hClient);
-if (err != ERROR_SUCCESS)
-{
-_hClient = IntPtr.Zero;
-throw new InvalidOperationException($"WlanOpenHandle failed: {err}");
-}
-err = WlanEnumInterfaces(_hClient, IntPtr.Zero, out IntPtr pIfList);
-if (err != ERROR_SUCCESS)
-{
-Reset();
-throw new InvalidOperationException($"WlanEnumInterfaces failed: {err}");
-}
-uint count = (uint)Marshal.ReadInt32(pIfList);
-if (count == 0)
-{
-WlanFreeMemory(pIfList);
-Reset();
-throw new InvalidOperationException("No WLAN interfaces found.");
-}
-// dwNumberOfItems, dwIndex 各 4 bytes，+8 取得第一個 WLAN_INTERFACE_INFO 結構
-var ifInfo = Marshal.PtrToStructure&lt;WLAN_INTERFACE_INFO&gt;(pIfList + 8);
-_ifGuid = ifInfo.InterfaceGuid;
-WlanFreeMemory(pIfList);
-}
-static void Reset()
-{
-if (_hClient == IntPtr.Zero) return;
-WlanCloseHandle(_hClient, IntPtr.Zero);
-_hClient = IntPtr.Zero;
-_ssid = string.Empty;
-}
-public static ulong GetWifiQuality()
-{
-EnsureInitialized();
-uint err = WlanQueryInterface(_hClient, ref _ifGuid,
-WLAN_INTF_OPCODE_CURRENT_CONNECTION, IntPtr.Zero,
-out _, out IntPtr pConnAttr, out _);
-if (err != ERROR_SUCCESS)
-{
-// Wlan Hander 或 ifGuid 失效，重新查詢網卡介面
-Reset();
-EnsureInitialized();
-err = WlanQueryInterface(_hClient, ref _ifGuid,
-WLAN_INTF_OPCODE_CURRENT_CONNECTION, IntPtr.Zero,
-out _, out pConnAttr, out _);
-if (err != ERROR_SUCCESS)
-throw new InvalidOperationException($"Not connected (error {err})");
-}
-var attr = Marshal.PtrToStructure&lt;WLAN_CONNECTION_ATTRIBUTES&gt;(pConnAttr);
-WlanFreeMemory(pConnAttr);
-_ssid = System.Text.Encoding.UTF8.GetString(attr.wlanAssociationAttributes.dot11Ssid.ucSSID, 0,
-(int)attr.wlanAssociationAttributes.dot11Ssid.uSSIDLength);
-return attr.wlanAssociationAttributes.wlanSignalQuality;
-}
-public static string GetWifiSsid() =&gt; _ssid;
-}
-</code></pre> <p>搞定上述關鍵，寫幾行 C# 就能做到定期監測 WiFi 訊號品質囉~</p> <pre><code>Console.WriteLine("Press Ctrl+C to stop.");
-using var cts = new CancellationTokenSource();
-Console.CancelKeyPress += (_, e) =&gt; { e.Cancel = true; cts.Cancel(); };
-var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
-while (await timer.WaitForNextTickAsync(cts.Token))
-{
-try
-{
-ulong quality = PInvokeHelper.GetWifiQuality();
-int rssi = (int)(quality / 2) - 100;
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Quality: {quality}%  RSSI: {rssi} dBm");
-}
-catch (Exception ex)
-{
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {ex.Message}");
-}
-}
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639225756879594346.webp"></p> <p>補充，跟 AI 學到 async 時代的非同步定期輪詢寫法，建立 PeriodicTimer，用 WaitForNextTickAsync() 等待下次觸發，如此可透過 CancellationTokenSource 即時中止程序，比傳統 while 迴圈加 Thread.Spleep() 寫法更符合非同步精神。</p> <p data-slug="monitor-wifi-signal-quality" data-title-en="Build a C# WiFi signal monitor" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/10/51/nature-2564502_1280.jpg#1280#720">Build a C# WiFi signal monitor using Windows Native Wifi API instead of parsing netsh, retrieving quality/RSSI efficiently via cached WLAN handles and interface IDs, with async periodic polling using PeriodicTimer.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>昨天從 RDP 連線瞬斷問題追出是<a href="/blog/rdp-connection-break-issue/">無線路由器的 Smart Connect 機制觸發網卡自動切換 2.4G/5G 頻段</a>造成，而 Smart Connect 也在<a href="https://www.facebook.com/share/p/197VpQQBTQ/">留言區</a>被刷了不少負評，我目前的結論是「除非是走 WiFi 7 有 MLO，不然還是 2.4G 跟 5G 切成不同 SSID 較好」。</p> <p>不過會自動切換頻段應也源於訊號品質不佳，讓我開始關注工作機的 WiFi 訊號品質是否太差？</p> <p>我的無線路由器位置位於房子中央，工作機則在房間邊角中間還隔了牆，訊號確實可能會差一些，我想寫個程式長期觀測 WiFi 品質確認這點，看看白天晚上、不同時段是否有差別。</p> <p>研究了一下，查看 WiFi 品質數字最簡單的做法是用 CLI <code>netsh wlan show intefaces</code>，顯示結果中的 Signal (訊號) 百分比即為訊號品質：</p> <pre><code>PS D:\&gt; netsh wlan show interfaces
-There is 1 interface on the system:
-Name                   : Wi-Fi AX210
-Description            : Intel(R) Wi-Fi 6E AX210 160MHz
-GUID                   : 4dba6ce4-dc0f-49dd-5a4e-66626be68720
-Physical address       : f4:7b:09:ab:cd:ef
-Interface type         : Primary
-State                  : connected
-SSID                   : M-WiFi-SSID
-AP BSSID               : 12:34:56:78:90:ab
-Band                   : 5 GHz
-Channel                : 157
-Connected Akm-cipher   : [ akm = 00-0f-ac:08, cipher =  00-0f-ac:04 ]
-Network type           : Infrastructure
-Radio type             : 802.11ax
-Authentication         : WPA3-Personal  (H2E)
-Cipher                 : CCMP
-Connection mode        : Auto Connect
-Receive rate (Mbps)    : 216
-Transmit rate (Mbps)   : 144
-Signal                 : 60%
-Rssi                   : -72
-Profile                : My-WiFi-SSID
-QoS MSCS Configured         : 0
-QoS Map Configured          : 0
-QoS Map Allowed by Policy   : 0
-</code></pre> <p>程式要取得品質數據，無腦寫法是呼叫 netsh 並解析輸出結果，但呼叫外部程序偏笨重，解析文字則要考慮語系，我覺得不甚理想。netsh 可以查到資料代表背後有對映的 Windows API，我很快找到 <a href="https://learn.microsoft.com/en-us/windows/win32/nativewifi/portal?WT.mc_id=DOP-MVP-37580">Native Wifi API</a>。</p> <p>描述無線網卡介面的資料結構 <a href="https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/ns-wlanapi-wlan_association_attributes?WT.mc_id=DOP-MVP-37580"><code>WLAN_ASSOCIATION_ATTRIBUTES</code></a> 有個 <code>WLAN_SIGNAL_QUALITY wlanSignalQuality</code> 表示網路訊號品質百分比值，其值介於 0 到 100 之間。0 表示實際 RSSI 訊號強度 -100 dbm、100 表示實際 RSSI 訊號強度 -50 dbm。用線性插補可計算 wlanSignalQuality 值介於 1 到 99 之間的 RSSI 訊號強度值。</p> <p>找到方法，就可以寫個共用函式。完整程序是先 WlanOpenHandle() 與無線自動設定服務(WLAN AutoConfig Service）建立連線，WlanEnumInterfaces() 列舉使用中的無線網卡，從清單取得第一個介面的識別碼 Guid，接著呼叫 WlanQueryInterface() 取得該介面包含 WiFi 訊號品質的即時資料。考量 WlanOpenHandle() 建立本機 RPC 連線會耗用較多資源，而網卡不會三不五時異動，故每次重複列舉介面純屬多餘，故我決定重複使用連線及記憶介面識別 ID，定期查詢直接呼叫 WlanQueryInterface()，如此程式較省資源、執行效率更好。</p> <pre><code>using System.Runtime.InteropServices;
-static class PInvokeHelper
-{
-static IntPtr _hClient = IntPtr.Zero;
-static Guid _ifGuid;
-static string _ssid = string.Empty;
-const uint ERROR_SUCCESS = 0;
-const uint WLAN_INTF_OPCODE_CURRENT_CONNECTION = 7;
-[DllImport("wlanapi.dll")]
-static extern uint WlanOpenHandle(uint dwClientVersion, IntPtr pReserved,
-out uint pdwNegotiatedVersion, out IntPtr phClientHandle);
-[DllImport("wlanapi.dll")]
-static extern uint WlanEnumInterfaces(IntPtr hClientHandle, IntPtr pReserved,
-out IntPtr ppInterfaceList);
-[DllImport("wlanapi.dll")]
-static extern uint WlanQueryInterface(IntPtr hClientHandle, ref Guid pInterfaceGuid,
-uint OpCode, IntPtr pReserved, out uint pdwDataSize, out IntPtr ppData,
-out uint pWlanOpcodeValueType);
-[DllImport("wlanapi.dll")]
-static extern void WlanFreeMemory(IntPtr pMemory);
-[DllImport("wlanapi.dll")]
-static extern uint WlanCloseHandle(IntPtr hClientHandle, IntPtr pReserved);
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-struct WLAN_INTERFACE_INFO
-{
-public Guid InterfaceGuid;
-[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-public string strInterfaceDescription;
-public uint isState;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct DOT11_SSID
-{
-public uint uSSIDLength;
-[MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
-public byte[] ucSSID;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct WLAN_ASSOCIATION_ATTRIBUTES
-{
-public DOT11_SSID dot11Ssid;
-public uint dot11BssType;
-[MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-public byte[] dot11Bssid;
-public uint dot11PhyType;
-public uint uDot11PhyIndex;
-public uint wlanSignalQuality; // 0–100; RSSI (dBm) = (quality / 2) - 100
-public uint ulRxRate;
-public uint ulTxRate;
-}
-[StructLayout(LayoutKind.Sequential)]
-struct WLAN_SECURITY_ATTRIBUTES
-{
-public int bSecurityEnabled;
-public int bOneXEnabled;
-public uint dot11AuthAlgorithm;
-public uint dot11CipherAlgorithm;
-}
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-struct WLAN_CONNECTION_ATTRIBUTES
-{
-public uint isState;
-public uint wlanConnectionMode;
-[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-public string strProfileName;
-public WLAN_ASSOCIATION_ATTRIBUTES wlanAssociationAttributes;
-public WLAN_SECURITY_ATTRIBUTES wlanSecurityAttributes;
-}
-static void EnsureInitialized()
-{
-if (_hClient != IntPtr.Zero) return;
-uint err = WlanOpenHandle(2, IntPtr.Zero, out _, out _hClient);
-if (err != ERROR_SUCCESS)
-{
-_hClient = IntPtr.Zero;
-throw new InvalidOperationException($"WlanOpenHandle failed: {err}");
-}
-err = WlanEnumInterfaces(_hClient, IntPtr.Zero, out IntPtr pIfList);
-if (err != ERROR_SUCCESS)
-{
-Reset();
-throw new InvalidOperationException($"WlanEnumInterfaces failed: {err}");
-}
-uint count = (uint)Marshal.ReadInt32(pIfList);
-if (count == 0)
-{
-WlanFreeMemory(pIfList);
-Reset();
-throw new InvalidOperationException("No WLAN interfaces found.");
-}
-// dwNumberOfItems, dwIndex 各 4 bytes，+8 取得第一個 WLAN_INTERFACE_INFO 結構
-var ifInfo = Marshal.PtrToStructure&lt;WLAN_INTERFACE_INFO&gt;(pIfList + 8);
-_ifGuid = ifInfo.InterfaceGuid;
-WlanFreeMemory(pIfList);
-}
-static void Reset()
-{
-if (_hClient == IntPtr.Zero) return;
-WlanCloseHandle(_hClient, IntPtr.Zero);
-_hClient = IntPtr.Zero;
-_ssid = string.Empty;
-}
-public static ulong GetWifiQuality()
-{
-EnsureInitialized();
-uint err = WlanQueryInterface(_hClient, ref _ifGuid,
-WLAN_INTF_OPCODE_CURRENT_CONNECTION, IntPtr.Zero,
-out _, out IntPtr pConnAttr, out _);
-if (err != ERROR_SUCCESS)
-{
-// Wlan Hander 或 ifGuid 失效，重新查詢網卡介面
-Reset();
-EnsureInitialized();
-err = WlanQueryInterface(_hClient, ref _ifGuid,
-WLAN_INTF_OPCODE_CURRENT_CONNECTION, IntPtr.Zero,
-out _, out pConnAttr, out _);
-if (err != ERROR_SUCCESS)
-throw new InvalidOperationException($"Not connected (error {err})");
-}
-var attr = Marshal.PtrToStructure&lt;WLAN_CONNECTION_ATTRIBUTES&gt;(pConnAttr);
-WlanFreeMemory(pConnAttr);
-_ssid = System.Text.Encoding.UTF8.GetString(attr.wlanAssociationAttributes.dot11Ssid.ucSSID, 0,
-(int)attr.wlanAssociationAttributes.dot11Ssid.uSSIDLength);
-return attr.wlanAssociationAttributes.wlanSignalQuality;
-}
-public static string GetWifiSsid() =&gt; _ssid;
-}
-</code></pre> <p>搞定上述關鍵，寫幾行 C# 就能做到定期監測 WiFi 訊號品質囉~</p> <pre><code>Console.WriteLine("Press Ctrl+C to stop.");
-using var cts = new CancellationTokenSource();
-Console.CancelKeyPress += (_, e) =&gt; { e.Cancel = true; cts.Cancel(); };
-var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
-while (await timer.WaitForNextTickAsync(cts.Token))
-{
-try
-{
-ulong quality = PInvokeHelper.GetWifiQuality();
-int rssi = (int)(quality / 2) - 100;
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Quality: {quality}%  RSSI: {rssi} dBm");
-}
-catch (Exception ex)
-{
-Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {ex.Message}");
-}
-}
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639225756879594346.webp"></p> <p>補充，跟 AI 學到 async 時代的非同步定期輪詢寫法，建立 PeriodicTimer，用 WaitForNextTickAsync() 等待下次觸發，如此可透過 CancellationTokenSource 即時中止程序，比傳統 while 迴圈加 Thread.Spleep() 寫法更符合非同步精神。</p> <p data-slug="monitor-wifi-signal-quality" data-title-en="Build a C# WiFi signal monitor" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/10/51/nature-2564502_1280.jpg#1280#720">Build a C# WiFi signal monitor using Windows Native Wifi API instead of parsing netsh, retrieving quality/RSSI efficiently via cached WLAN handles and interface IDs, with async periodic polling using PeriodicTimer.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639225756879594346.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639225756879594346.webp" medium="image"/>
-    <pubDate>Mon, 17 Aug 2026 15:00:00 GMT</pubDate>
   </item></channel>
 </rss>
