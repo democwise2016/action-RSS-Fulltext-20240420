@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/893/800/800.jpg?hmac=f98pCEH_BAqKXEHowgcfRy4GFIoKaelGMg1k2FYbEp4</url>
+      <url>https://fastly.picsum.photos/id/951/800/800.jpg?hmac=IZCJ0llFoRaafMCJGva6ss3cUrvwP8RA5v5noGcgXAw</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,401 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/893/800/800.jpg?hmac=f98pCEH_BAqKXEHowgcfRy4GFIoKaelGMg1k2FYbEp4"/>
+    <itunes:image href="https://fastly.picsum.photos/id/951/800/800.jpg?hmac=IZCJ0llFoRaafMCJGva6ss3cUrvwP8RA5v5noGcgXAw"/>
 <item>
+    <title><![CDATA[iPhone 4S強制降級回iOS 6，Legacy iOS Kit使用方法]]></title>
+    <link>https://ivonblog.com/posts/downgrade-iphone-4s-to-ios-6/</link>
+    <itunes:title><![CDATA[iPhone 4S強制降級回iOS 6，Legacy iOS Kit使用方法]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/downgrade-iphone-4s-to-ios-6/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce9e8c2d66.webp"></a></p>
+<p>iPhone上市時搭載的前幾個OS版本，往往是最順的吧。偏偏Apple為了你好不準任意降級。</p>
+<p>iPhone 4S是典型的受害者，本來剛出來幾年iOS 5, 6, 7還很順的，到iOS 8就不行了，升級到iOS 9更是連UI滑動都會卡。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5379ca978a.webp"></p>
+<p>反正iPhone 4S現在幾乎所有APP都不支援了，跟功能機沒兩樣，只剩越獄和側載IPA能玩了，至少讓手機用起來觀感好一點吧！而且iPhone 4S的外形設計，比較契合舊版iOS的擬物化風格啊。</p>
+<p>這個時候我們能夠用開源社群製作的工具「Legacy iOS Kit」強制將iPhone 4S降級回iOS 6。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0051ff5f16.webp"></p>
+<h2>1. 前置步驟：越獄
+<span>
+<a href="#1-%e5%89%8d%e7%bd%ae%e6%ad%a5%e9%a9%9f%e8%b6%8a%e7%8d%84" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>iOS正規降級程序是使用iTunes，下載IPSW降級，但是在iOS簽名伺服器關閉後，Apple便不允許降級iOS版本了，因為iOS驗證簽名會無法開機。不過因為舊版iOS有很多漏洞，越獄後有很多手段能利用。</p>
+</li>
+<li>
+<p>理論上越獄後能降級回任意iOS版本。可是即使降級iOS版本通常需要事先保存SHSH blobs才能開機，一般人怎麼可能保存這些檔案呢！故不能用iTunes降級。神奇的是，不知道為什麼Apple伺服器到現在仍沒有撤銷iOS 6的簽名，明明iPhone 4S上市的時候搭載的是iOS 5呢。那麼，透過越獄後的一些手段，就能將iPhone 4S降級回iOS 6。</p>
+</li>
+<li>
+<p>總之，首先需要先將iPhone 4S越獄才能操作。我操作的當下，iPhone 4S升級到了最後的版本iOS 9.3.6。請參考：</p>
+</li>
+</ol>
+<ul>
+<li><a href="https://ivonblog.com/posts/ios-carbon-jailbreaking/" target="_blank">iPhone 4S使用Carbon網頁進行完美越獄，適用iOS 8 ~ 9.3.6 </a></li>
+<li><a href="https://ivonblog.com/posts/ios-everpwnage-jailbreaking/" target="_blank"> iPhone 4S用EverPwnage實現完美越獄，支援iOS 7 ~ iOS 9.3.6</a></li>
+</ul>
+<ol start="4">
+<li>確認Cydia有安裝成功後再繼續。</li>
+</ol>
+<h2>2. 安裝Legacy iOS Kit
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dlegacy-ios-kit" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>根據<a href="https://github.com/LukeZGD/Legacy-iOS-Kit" target="_blank">Github</a>說明，Legacy iOS Ki是    LukeZGD開發的整合性開源越獄工具箱，主要針對iOS 6 ~ iOS 9設計，可以部分替代3utools和iAmazing的功能。Legacy iOS Kit只能在Linux與macOS系統使用。</p>
+</li>
+<li>
+<p>以Ubuntu為例子，先安裝<a href="https://ivonblog.com/posts/linux-access-ios-files/" target="_blank">libimobiledevice</a></p>
+</li>
+<li>
+<p>複製Legacy iOS Kit</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/LukeZGD/Legacy-iOS-Kit.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> Legacy-iOS-Kit</span></span></code></pre></div></div>
+<ol start="4">
+<li>執行<code>restore.sh</code>安裝依賴</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="5">
+<li>啟動程式，看能否偵測到iPhone</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="6">
+<li>聊勝於無的操作：選取<code>Save SHSH Blobs</code>，按下Enter，備份目前iOS系統版本的SHSH blobs，也許你哪天降級會用到。輸入預設越獄密碼<code>alpine</code>。檔案會保存在<code>./Legacy-iOS-Kit/saved/</code>。</li>
+</ol>
+<h2>3. 下載iOS 6的IPSW
+<span>
+<a href="#3-%e4%b8%8b%e8%bc%89ios-6%e7%9a%84ipsw" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>到<a href="https://appledb.dev/firmware/iOS/10B327" target="_blank">AppleDB</a>，或者在Legacy iOS Kit按Restore/Downgrade →  IPSW Downloader，下載iOS 6.1.3的.ipsw韌體。</p>
+<h2>4. 讓iPhone進入kDFU模式
+<span>
+<a href="#4-%e8%ae%93iphone%e9%80%b2%e5%85%a5kdfu%e6%a8%a1%e5%bc%8f" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>kDFU模式跟一般的DFU不同，是越獄後才能觸發的還原模式。</p>
+</li>
+<li>
+<p>iOS 7和iOS 8可透過Legacy iOS Kit自動讓iPhone進入kDFU模式。</p>
+</li>
+<li>
+<p>iOS 9，Leagacy iOS Kit無法進入kDFU，需要手動在Cydia安裝<code>kDFU Bundle</code> by LukeZGD的App。或者用checkm8-A5。</p>
+</li>
+<li>
+<p>打開kDFU Bundle App，勾選所有選項，按下Enter kDFU，手機會維持黑螢幕狀態。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6a03a5c72e.webp"></p>
+</li>
+</ol>
+<h2>5. 降級開始
+<span>
+<a href="#5-%e9%99%8d%e7%b4%9a%e9%96%8b%e5%a7%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將kDFU模式的iPhone插到電腦</p>
+</li>
+<li>
+<p>啟動Legacy iOS Kit</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="3">
+<li>
+<p>選取Restore/Downgrade → iOS 6.1.3 → Select Target IPSW</p>
+</li>
+<li>
+<p>選取剛剛下載的IPSW，再按下Start Restore。剩下的依照畫面指示都使用預設選項，它還能順便幫你的iOS 6系統越獄，一開機就有越獄環境。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69f2d7ec60.webp">
+</li>
+<li>
+<p>開始執行，等待iPhone重開機
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fd80dd7aa.webp"></p>
+</li>
+<li>
+<p>在降級回iOS 6後，要防止系統自動下載更新，用Cydia安裝<code>Software Update Killer</code>。因為舊版iOS是沒有關閉自動更新開關的
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1f13ceada7.webp"></p>
+</li>
+</ol>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://github.com/LukeZGD/Legacy-iOS-Kit/wiki/Restore-32-bit-Device/" target="_blank">Restore 32 bit Device - Legacy iOS Kit Wiki</a></li>
+<li><a href="https://www.ifixit.com/Guide/How+to+downgrade+iPhone+4S+-+iPad+2++to+iOS+6.1.3/101231" target="_blank">How to downgrade iPhone 4S / iPad 2 to iOS 6.1.3 - ifixit</a></li>
+</ul>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/downgrade-iphone-4s-to-ios-6/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce9e8c2d66.webp"></a></p>
+<p>iPhone上市時搭載的前幾個OS版本，往往是最順的吧。偏偏Apple為了你好不準任意降級。</p>
+<p>iPhone 4S是典型的受害者，本來剛出來幾年iOS 5, 6, 7還很順的，到iOS 8就不行了，升級到iOS 9更是連UI滑動都會卡。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5379ca978a.webp"></p>
+<p>反正iPhone 4S現在幾乎所有APP都不支援了，跟功能機沒兩樣，只剩越獄和側載IPA能玩了，至少讓手機用起來觀感好一點吧！而且iPhone 4S的外形設計，比較契合舊版iOS的擬物化風格啊。</p>
+<p>這個時候我們能夠用開源社群製作的工具「Legacy iOS Kit」強制將iPhone 4S降級回iOS 6。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0051ff5f16.webp"></p>
+<h2>1. 前置步驟：越獄
+<span>
+<a href="#1-%e5%89%8d%e7%bd%ae%e6%ad%a5%e9%a9%9f%e8%b6%8a%e7%8d%84" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>iOS正規降級程序是使用iTunes，下載IPSW降級，但是在iOS簽名伺服器關閉後，Apple便不允許降級iOS版本了，因為iOS驗證簽名會無法開機。不過因為舊版iOS有很多漏洞，越獄後有很多手段能利用。</p>
+</li>
+<li>
+<p>理論上越獄後能降級回任意iOS版本。可是即使降級iOS版本通常需要事先保存SHSH blobs才能開機，一般人怎麼可能保存這些檔案呢！故不能用iTunes降級。神奇的是，不知道為什麼Apple伺服器到現在仍沒有撤銷iOS 6的簽名，明明iPhone 4S上市的時候搭載的是iOS 5呢。那麼，透過越獄後的一些手段，就能將iPhone 4S降級回iOS 6。</p>
+</li>
+<li>
+<p>總之，首先需要先將iPhone 4S越獄才能操作。我操作的當下，iPhone 4S升級到了最後的版本iOS 9.3.6。請參考：</p>
+</li>
+</ol>
+<ul>
+<li><a href="https://ivonblog.com/posts/ios-carbon-jailbreaking/" target="_blank">iPhone 4S使用Carbon網頁進行完美越獄，適用iOS 8 ~ 9.3.6 </a></li>
+<li><a href="https://ivonblog.com/posts/ios-everpwnage-jailbreaking/" target="_blank"> iPhone 4S用EverPwnage實現完美越獄，支援iOS 7 ~ iOS 9.3.6</a></li>
+</ul>
+<ol start="4">
+<li>確認Cydia有安裝成功後再繼續。</li>
+</ol>
+<h2>2. 安裝Legacy iOS Kit
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dlegacy-ios-kit" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>根據<a href="https://github.com/LukeZGD/Legacy-iOS-Kit" target="_blank">Github</a>說明，Legacy iOS Ki是    LukeZGD開發的整合性開源越獄工具箱，主要針對iOS 6 ~ iOS 9設計，可以部分替代3utools和iAmazing的功能。Legacy iOS Kit只能在Linux與macOS系統使用。</p>
+</li>
+<li>
+<p>以Ubuntu為例子，先安裝<a href="https://ivonblog.com/posts/linux-access-ios-files/" target="_blank">libimobiledevice</a></p>
+</li>
+<li>
+<p>複製Legacy iOS Kit</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/LukeZGD/Legacy-iOS-Kit.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> Legacy-iOS-Kit</span></span></code></pre></div></div>
+<ol start="4">
+<li>執行<code>restore.sh</code>安裝依賴</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="5">
+<li>啟動程式，看能否偵測到iPhone</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="6">
+<li>聊勝於無的操作：選取<code>Save SHSH Blobs</code>，按下Enter，備份目前iOS系統版本的SHSH blobs，也許你哪天降級會用到。輸入預設越獄密碼<code>alpine</code>。檔案會保存在<code>./Legacy-iOS-Kit/saved/</code>。</li>
+</ol>
+<h2>3. 下載iOS 6的IPSW
+<span>
+<a href="#3-%e4%b8%8b%e8%bc%89ios-6%e7%9a%84ipsw" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>到<a href="https://appledb.dev/firmware/iOS/10B327" target="_blank">AppleDB</a>，或者在Legacy iOS Kit按Restore/Downgrade →  IPSW Downloader，下載iOS 6.1.3的.ipsw韌體。</p>
+<h2>4. 讓iPhone進入kDFU模式
+<span>
+<a href="#4-%e8%ae%93iphone%e9%80%b2%e5%85%a5kdfu%e6%a8%a1%e5%bc%8f" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>kDFU模式跟一般的DFU不同，是越獄後才能觸發的還原模式。</p>
+</li>
+<li>
+<p>iOS 7和iOS 8可透過Legacy iOS Kit自動讓iPhone進入kDFU模式。</p>
+</li>
+<li>
+<p>iOS 9，Leagacy iOS Kit無法進入kDFU，需要手動在Cydia安裝<code>kDFU Bundle</code> by LukeZGD的App。或者用checkm8-A5。</p>
+</li>
+<li>
+<p>打開kDFU Bundle App，勾選所有選項，按下Enter kDFU，手機會維持黑螢幕狀態。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6a03a5c72e.webp"></p>
+</li>
+</ol>
+<h2>5. 降級開始
+<span>
+<a href="#5-%e9%99%8d%e7%b4%9a%e9%96%8b%e5%a7%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將kDFU模式的iPhone插到電腦</p>
+</li>
+<li>
+<p>啟動Legacy iOS Kit</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="3">
+<li>
+<p>選取Restore/Downgrade → iOS 6.1.3 → Select Target IPSW</p>
+</li>
+<li>
+<p>選取剛剛下載的IPSW，再按下Start Restore。剩下的依照畫面指示都使用預設選項，它還能順便幫你的iOS 6系統越獄，一開機就有越獄環境。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69f2d7ec60.webp">
+</li>
+<li>
+<p>開始執行，等待iPhone重開機
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fd80dd7aa.webp"></p>
+</li>
+<li>
+<p>在降級回iOS 6後，要防止系統自動下載更新，用Cydia安裝<code>Software Update Killer</code>。因為舊版iOS是沒有關閉自動更新開關的
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1f13ceada7.webp"></p>
+</li>
+</ol>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://github.com/LukeZGD/Legacy-iOS-Kit/wiki/Restore-32-bit-Device/" target="_blank">Restore 32 bit Device - Legacy iOS Kit Wiki</a></li>
+<li><a href="https://www.ifixit.com/Guide/How+to+downgrade+iPhone+4S+-+iPad+2++to+iOS+6.1.3/101231" target="_blank">How to downgrade iPhone 4S / iPad 2 to iOS 6.1.3 - ifixit</a></li>
+</ul>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/downgrade-iphone-4s-to-ios-6/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce9e8c2d66.webp"></a></p>
+<p>iPhone上市時搭載的前幾個OS版本，往往是最順的吧。偏偏Apple為了你好不準任意降級。</p>
+<p>iPhone 4S是典型的受害者，本來剛出來幾年iOS 5, 6, 7還很順的，到iOS 8就不行了，升級到iOS 9更是連UI滑動都會卡。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5379ca978a.webp"></p>
+<p>反正iPhone 4S現在幾乎所有APP都不支援了，跟功能機沒兩樣，只剩越獄和側載IPA能玩了，至少讓手機用起來觀感好一點吧！而且iPhone 4S的外形設計，比較契合舊版iOS的擬物化風格啊。</p>
+<p>這個時候我們能夠用開源社群製作的工具「Legacy iOS Kit」強制將iPhone 4S降級回iOS 6。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0051ff5f16.webp"></p>
+<h2>1. 前置步驟：越獄
+<span>
+<a href="#1-%e5%89%8d%e7%bd%ae%e6%ad%a5%e9%a9%9f%e8%b6%8a%e7%8d%84" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>iOS正規降級程序是使用iTunes，下載IPSW降級，但是在iOS簽名伺服器關閉後，Apple便不允許降級iOS版本了，因為iOS驗證簽名會無法開機。不過因為舊版iOS有很多漏洞，越獄後有很多手段能利用。</p>
+</li>
+<li>
+<p>理論上越獄後能降級回任意iOS版本。可是即使降級iOS版本通常需要事先保存SHSH blobs才能開機，一般人怎麼可能保存這些檔案呢！故不能用iTunes降級。神奇的是，不知道為什麼Apple伺服器到現在仍沒有撤銷iOS 6的簽名，明明iPhone 4S上市的時候搭載的是iOS 5呢。那麼，透過越獄後的一些手段，就能將iPhone 4S降級回iOS 6。</p>
+</li>
+<li>
+<p>總之，首先需要先將iPhone 4S越獄才能操作。我操作的當下，iPhone 4S升級到了最後的版本iOS 9.3.6。請參考：</p>
+</li>
+</ol>
+<ul>
+<li><a href="https://ivonblog.com/posts/ios-carbon-jailbreaking/" target="_blank">iPhone 4S使用Carbon網頁進行完美越獄，適用iOS 8 ~ 9.3.6 </a></li>
+<li><a href="https://ivonblog.com/posts/ios-everpwnage-jailbreaking/" target="_blank"> iPhone 4S用EverPwnage實現完美越獄，支援iOS 7 ~ iOS 9.3.6</a></li>
+</ul>
+<ol start="4">
+<li>確認Cydia有安裝成功後再繼續。</li>
+</ol>
+<h2>2. 安裝Legacy iOS Kit
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dlegacy-ios-kit" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>根據<a href="https://github.com/LukeZGD/Legacy-iOS-Kit" target="_blank">Github</a>說明，Legacy iOS Ki是    LukeZGD開發的整合性開源越獄工具箱，主要針對iOS 6 ~ iOS 9設計，可以部分替代3utools和iAmazing的功能。Legacy iOS Kit只能在Linux與macOS系統使用。</p>
+</li>
+<li>
+<p>以Ubuntu為例子，先安裝<a href="https://ivonblog.com/posts/linux-access-ios-files/" target="_blank">libimobiledevice</a></p>
+</li>
+<li>
+<p>複製Legacy iOS Kit</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>git clone https://github.com/LukeZGD/Legacy-iOS-Kit.git
+</span></span><span><span>
+</span></span><span><span><span>cd</span> Legacy-iOS-Kit</span></span></code></pre></div></div>
+<ol start="4">
+<li>執行<code>restore.sh</code>安裝依賴</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="5">
+<li>啟動程式，看能否偵測到iPhone</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="6">
+<li>聊勝於無的操作：選取<code>Save SHSH Blobs</code>，按下Enter，備份目前iOS系統版本的SHSH blobs，也許你哪天降級會用到。輸入預設越獄密碼<code>alpine</code>。檔案會保存在<code>./Legacy-iOS-Kit/saved/</code>。</li>
+</ol>
+<h2>3. 下載iOS 6的IPSW
+<span>
+<a href="#3-%e4%b8%8b%e8%bc%89ios-6%e7%9a%84ipsw" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>到<a href="https://appledb.dev/firmware/iOS/10B327" target="_blank">AppleDB</a>，或者在Legacy iOS Kit按Restore/Downgrade →  IPSW Downloader，下載iOS 6.1.3的.ipsw韌體。</p>
+<h2>4. 讓iPhone進入kDFU模式
+<span>
+<a href="#4-%e8%ae%93iphone%e9%80%b2%e5%85%a5kdfu%e6%a8%a1%e5%bc%8f" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>kDFU模式跟一般的DFU不同，是越獄後才能觸發的還原模式。</p>
+</li>
+<li>
+<p>iOS 7和iOS 8可透過Legacy iOS Kit自動讓iPhone進入kDFU模式。</p>
+</li>
+<li>
+<p>iOS 9，Leagacy iOS Kit無法進入kDFU，需要手動在Cydia安裝<code>kDFU Bundle</code> by LukeZGD的App。或者用checkm8-A5。</p>
+</li>
+<li>
+<p>打開kDFU Bundle App，勾選所有選項，按下Enter kDFU，手機會維持黑螢幕狀態。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6a03a5c72e.webp"></p>
+</li>
+</ol>
+<h2>5. 降級開始
+<span>
+<a href="#5-%e9%99%8d%e7%b4%9a%e9%96%8b%e5%a7%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將kDFU模式的iPhone插到電腦</p>
+</li>
+<li>
+<p>啟動Legacy iOS Kit</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>./restore.sh</span></span></code></pre></div></div>
+<ol start="3">
+<li>
+<p>選取Restore/Downgrade → iOS 6.1.3 → Select Target IPSW</p>
+</li>
+<li>
+<p>選取剛剛下載的IPSW，再按下Start Restore。剩下的依照畫面指示都使用預設選項，它還能順便幫你的iOS 6系統越獄，一開機就有越獄環境。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-69f2d7ec60.webp">
+</li>
+<li>
+<p>開始執行，等待iPhone重開機
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fd80dd7aa.webp"></p>
+</li>
+<li>
+<p>在降級回iOS 6後，要防止系統自動下載更新，用Cydia安裝<code>Software Update Killer</code>。因為舊版iOS是沒有關閉自動更新開關的
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1f13ceada7.webp"></p>
+</li>
+</ol>
+<h2>參考資料
+<span>
+<a href="#%e5%8f%83%e8%80%83%e8%b3%87%e6%96%99" aria-label="定位點">#</a>
+</span>
+</h2>
+<ul>
+<li><a href="https://github.com/LukeZGD/Legacy-iOS-Kit/wiki/Restore-32-bit-Device/" target="_blank">Restore 32 bit Device - Legacy iOS Kit Wiki</a></li>
+<li><a href="https://www.ifixit.com/Guide/How+to+downgrade+iPhone+4S+-+iPad+2++to+iOS+6.1.3/101231" target="_blank">How to downgrade iPhone 4S / iPad 2 to iOS 6.1.3 - ifixit</a></li>
+</ul>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce9e8c2d66.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ce9e8c2d66.webp" medium="image"/>
+    <pubDate>Tue, 15 Sep 2026 22:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[iPhone 4S使用Carbon網頁進行完美越獄，適用iOS 8 ~ 9.3.6]]></title>
     <link>https://ivonblog.com/posts/ios-carbon-jailbreaking/</link>
     <itunes:title><![CDATA[iPhone 4S使用Carbon網頁進行完美越獄，適用iOS 8 ~ 9.3.6]]></itunes:title>
@@ -1227,6 +1620,219 @@
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cacb275032.webp" medium="image"/>
     <pubDate>Tue, 15 Sep 2026 12:00:00 +0800</pubDate>
   </item><item>
+    <title><![CDATA[色色應該看正版，其實Pixiv Fanbox真的便宜，支持獨立創作者跟買獨立音樂一樣重要]]></title>
+    <link>https://ivonblog.com/posts/try-to-stop-pirating-hentai/</link>
+    <itunes:title><![CDATA[色色應該看正版，其實Pixiv Fanbox真的便宜，支持獨立創作者跟買獨立音樂一樣重要]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/try-to-stop-pirating-hentai/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12e098f799.webp"></a></p>
+<a aria-hidden="true"></a>
+<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
+<section>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
+<h2>
+金、暴力、SEX！年齡驗證
+</h2>
+<p>
+本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
+</p>
+<div>
+<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
+<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
+</div>
+</section>
+</div>
+<p>花錢看盜版平臺的本本與片片是最蠢的事…？ Steam讓人方便購買正版遊戲，很多熱門的Galgame都透過本體 + R18補丁成功上架了，減低了去玩盜版遊戲的動機。什麼時候有其他夠好的H平臺呢？</p>
+<p>除了捐款給開源軟體的開發者之外，我還有購買獨立音樂的習慣，在Youtube聽到覺得不錯的混音帶，就會去看看音樂家有沒有Bandcamp，就會隨意佈施一點錢。尤其我喜歡買蒸汽波類型的。</p>
+<p>我購買的正版作品，多半會在目錄裡面加上<code>自購+日期.txt</code>以茲證明，免得以後放到硬碟認不出來</p>
+<p>可是我有一個陋習，就是色色方面的資源還是習慣看盜版的。譬如本子，還有H小動畫。會去E-Hentai和Kemono還有Nyaa抓。寧願投資在VPN或者BT網站private tracker的會員也不要自己去購買正版。因為我認為這樣做比較划算。</p>
+<p>可我現在才發現，如果只要單圖，其實在Pixiv Fanbox或Patreon贊助繪師，購買作品，就跟贊助Bandcamp的獨立音樂是一樣重要的！色色也要看正版。而且Fanbox價格很划算呢，大部分是500日元起跳，就一杯星巴克的價錢而已。且通常是單次購買就能下載作者過去的所有作品，可隨時取消，不會用訂閱制綁架你。</p>
+<p>若覺得下載訂閱的Fanbox內容很麻煩，要批次下載的話也有專門工具能用。</p>
+<p>不應該去看盜版平臺甚至付費看盜版，譬如像有些中國盜版動漫網站會販售VIP，還會趁機廣告飛機杯，真不要臉。</p>
+<p>儘管想支持正版，但是抱歉E-hentai實在太好用了，捐贈Bronze Star後就回不去了，我只能偶爾在DLsite買幾本正版支持，可是我又討厭DRM，我還要用特殊軟體解密。那為何不買實體書呢…我想要可以隨時閱覽，下載的本子我都會上傳到自架的Immich電子書伺服器。（喔喔DLSite現在提供無DRM的版本下載了！）</p>
+<p>其實我會想直接買Fanbox…乃是因為我看到nosuke1999老師製作的費倫x史塔克小動畫，動物交配後背位就受不了啊啊，雖然不及MapleStar精緻但也夠用了。Kemono壞好幾個月了。直接Pixiv Fanbox會員訂下去。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14e7b3d8da.webp">
+<p>Pixiv Fanbox網頁圖片與影片批次下載工具，不用再一個一個點了。不會有人不知道Pixiv Fanbox訂閱最便宜的方案，就能瀏覽繪師過去全部作品吧？何必到Kemono看盜版。除非作者另外設定價格。但很多都是便宜的500日元就讓你隨便看，很多做H二創小動畫的也是這麼佛呢。如果要批次保存作者的舊作品要怎麼辦呢？可以使用網頁下載工具批次快速保存。</p>
+<p>免費仔退散：這些工具需要付費訂閱Pixiv Fanbox作品才能存取，這不是破解軟體！</p>
+<p>例如，Firefox有<a href="https://addons.mozilla.org/en-US/firefox/addon/fanbox-downloader/" target="_blank">fanbox-downloader by tana3n</a>，Chrome則是<a href="https://chromewebstore.google.com/detail/pixiv-fanbox-downloader/ihnfpdchjnmlehnoeffgcbakfmdjcckn" target="_blank">Pixiv Fanbox Downloader</a>。安裝之後，Pixiv Fanbox的網頁右鍵就有一次下載全部附件的功能。</p>
+<p><a href="https://ivonblog.com/posts/gallery-dl-usage/" target="_blank">gallery-dl</a>也能批次下載Pixiv Fanbox的所有投稿。</p>
+<p>注意：這些工具是非官方製作的，使用風險自負。如果短時間對Pixiv大量下載可能導致你的帳號被封。</p>
+<hr>
+<p>順便又到DLsite補票了幾部我用了十年的裏番，剛好有特價。</p>
+<p>不知道為什麼明明到了DLSite買了正版里番，卻感覺畫質比盜版的看起來還差。</p>
+<p>最近到補票了幾部我用了十年的裏番，包括《Euphoria 3 ～白夜凛音輪廻転生編～》、《黒獣 ～気高き聖女は白濁に染まる～ オリガ×クロエ 黒の城、崩落編.》、《Tiny Evil 第四話 少女人形・ニナ～無垢な想いの束縛～》、《小女ラムネ 第2話 ドキドキの撮影タイムと恋のABC》、《ふた部！》、《都市伝説シリーズ 其の弐 エ呪いのビデオ》 、《恋糸記念日 THE ANIMATION Memorial.1「むすんで ひらいて」》</p>
+<p>十年前用到現在，證明這些作品跟X Server一樣是久經考驗的軟體，值得購買。</p>
+<p>幸好所謂的「HD版」指的是1080p而非720p，嗯…可是為什麼感覺影片的位元率好低呀，暗處會有許多色塊漸層，畫面還糊糊的，難道他們是把DVD發售時的720p直接昇頻拿來賣！？我是不是不應該期望4K藍光畫質呀……。</p>
+<p>影片格式很多還是老式的WMV編碼。</p>
+<p>即使是新發售的影片似乎都還是有這種問題。</p>
+<p>靠，那我還是得用濾鏡debanding才能看呀…嗯，其實Linux直接開MPV播放器 + Anime4K（Windows則是mpv_lazy）就大致解決畫面模糊的問題了。</p>
+<p>難道我以前下載過的字幕組發佈的資源，都是重新壓片過的才會看起來畫質比較好…？ 嗯嗯，你知道的吧，將影片重編碼為AV1或H.265可以大幅減少檔案大小又保有1080p高畫質。此外，透過Vapoursynth這個影片濾鏡處理工具，處理掉線條與色塊問題，在重新壓製片子之後，能讓影片畫質比較好。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-18a2b11359.webp">
+<p>Linux版的MPV播放器可以調用Vapoursynth達成即使濾鏡運算。</p>
+<p>我多麼希望有裏番串流平臺呀，但裏番的規模不太可能作出完整劇情作，變成只能靠買斷來營收。可是沒人在買DVD了，DLSite這類網站已經是裏番比較能有能見度的地方了。Steam又不能上架影片。</p>
+<p>慘，二創繪師在Pixiv Fanbox販售的幾分鐘的小動畫都比裏番精緻了，而且因為直接拿熱門動漫IP來用，容易打入更多市場。有人說要讓裏番公司跳下來做這種小動畫競爭，不是會死的更快嗎。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/try-to-stop-pirating-hentai/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12e098f799.webp"></a></p>
+<a aria-hidden="true"></a>
+<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
+<section>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
+<h2>
+金、暴力、SEX！年齡驗證
+</h2>
+<p>
+本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
+</p>
+<div>
+<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
+<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
+</div>
+</section>
+</div>
+<p>花錢看盜版平臺的本本與片片是最蠢的事…？ Steam讓人方便購買正版遊戲，很多熱門的Galgame都透過本體 + R18補丁成功上架了，減低了去玩盜版遊戲的動機。什麼時候有其他夠好的H平臺呢？</p>
+<p>除了捐款給開源軟體的開發者之外，我還有購買獨立音樂的習慣，在Youtube聽到覺得不錯的混音帶，就會去看看音樂家有沒有Bandcamp，就會隨意佈施一點錢。尤其我喜歡買蒸汽波類型的。</p>
+<p>我購買的正版作品，多半會在目錄裡面加上<code>自購+日期.txt</code>以茲證明，免得以後放到硬碟認不出來</p>
+<p>可是我有一個陋習，就是色色方面的資源還是習慣看盜版的。譬如本子，還有H小動畫。會去E-Hentai和Kemono還有Nyaa抓。寧願投資在VPN或者BT網站private tracker的會員也不要自己去購買正版。因為我認為這樣做比較划算。</p>
+<p>可我現在才發現，如果只要單圖，其實在Pixiv Fanbox或Patreon贊助繪師，購買作品，就跟贊助Bandcamp的獨立音樂是一樣重要的！色色也要看正版。而且Fanbox價格很划算呢，大部分是500日元起跳，就一杯星巴克的價錢而已。且通常是單次購買就能下載作者過去的所有作品，可隨時取消，不會用訂閱制綁架你。</p>
+<p>若覺得下載訂閱的Fanbox內容很麻煩，要批次下載的話也有專門工具能用。</p>
+<p>不應該去看盜版平臺甚至付費看盜版，譬如像有些中國盜版動漫網站會販售VIP，還會趁機廣告飛機杯，真不要臉。</p>
+<p>儘管想支持正版，但是抱歉E-hentai實在太好用了，捐贈Bronze Star後就回不去了，我只能偶爾在DLsite買幾本正版支持，可是我又討厭DRM，我還要用特殊軟體解密。那為何不買實體書呢…我想要可以隨時閱覽，下載的本子我都會上傳到自架的Immich電子書伺服器。（喔喔DLSite現在提供無DRM的版本下載了！）</p>
+<p>其實我會想直接買Fanbox…乃是因為我看到nosuke1999老師製作的費倫x史塔克小動畫，動物交配後背位就受不了啊啊，雖然不及MapleStar精緻但也夠用了。Kemono壞好幾個月了。直接Pixiv Fanbox會員訂下去。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14e7b3d8da.webp">
+<p>Pixiv Fanbox網頁圖片與影片批次下載工具，不用再一個一個點了。不會有人不知道Pixiv Fanbox訂閱最便宜的方案，就能瀏覽繪師過去全部作品吧？何必到Kemono看盜版。除非作者另外設定價格。但很多都是便宜的500日元就讓你隨便看，很多做H二創小動畫的也是這麼佛呢。如果要批次保存作者的舊作品要怎麼辦呢？可以使用網頁下載工具批次快速保存。</p>
+<p>免費仔退散：這些工具需要付費訂閱Pixiv Fanbox作品才能存取，這不是破解軟體！</p>
+<p>例如，Firefox有<a href="https://addons.mozilla.org/en-US/firefox/addon/fanbox-downloader/" target="_blank">fanbox-downloader by tana3n</a>，Chrome則是<a href="https://chromewebstore.google.com/detail/pixiv-fanbox-downloader/ihnfpdchjnmlehnoeffgcbakfmdjcckn" target="_blank">Pixiv Fanbox Downloader</a>。安裝之後，Pixiv Fanbox的網頁右鍵就有一次下載全部附件的功能。</p>
+<p><a href="https://ivonblog.com/posts/gallery-dl-usage/" target="_blank">gallery-dl</a>也能批次下載Pixiv Fanbox的所有投稿。</p>
+<p>注意：這些工具是非官方製作的，使用風險自負。如果短時間對Pixiv大量下載可能導致你的帳號被封。</p>
+<hr>
+<p>順便又到DLsite補票了幾部我用了十年的裏番，剛好有特價。</p>
+<p>不知道為什麼明明到了DLSite買了正版里番，卻感覺畫質比盜版的看起來還差。</p>
+<p>最近到補票了幾部我用了十年的裏番，包括《Euphoria 3 ～白夜凛音輪廻転生編～》、《黒獣 ～気高き聖女は白濁に染まる～ オリガ×クロエ 黒の城、崩落編.》、《Tiny Evil 第四話 少女人形・ニナ～無垢な想いの束縛～》、《小女ラムネ 第2話 ドキドキの撮影タイムと恋のABC》、《ふた部！》、《都市伝説シリーズ 其の弐 エ呪いのビデオ》 、《恋糸記念日 THE ANIMATION Memorial.1「むすんで ひらいて」》</p>
+<p>十年前用到現在，證明這些作品跟X Server一樣是久經考驗的軟體，值得購買。</p>
+<p>幸好所謂的「HD版」指的是1080p而非720p，嗯…可是為什麼感覺影片的位元率好低呀，暗處會有許多色塊漸層，畫面還糊糊的，難道他們是把DVD發售時的720p直接昇頻拿來賣！？我是不是不應該期望4K藍光畫質呀……。</p>
+<p>影片格式很多還是老式的WMV編碼。</p>
+<p>即使是新發售的影片似乎都還是有這種問題。</p>
+<p>靠，那我還是得用濾鏡debanding才能看呀…嗯，其實Linux直接開MPV播放器 + Anime4K（Windows則是mpv_lazy）就大致解決畫面模糊的問題了。</p>
+<p>難道我以前下載過的字幕組發佈的資源，都是重新壓片過的才會看起來畫質比較好…？ 嗯嗯，你知道的吧，將影片重編碼為AV1或H.265可以大幅減少檔案大小又保有1080p高畫質。此外，透過Vapoursynth這個影片濾鏡處理工具，處理掉線條與色塊問題，在重新壓製片子之後，能讓影片畫質比較好。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-18a2b11359.webp">
+<p>Linux版的MPV播放器可以調用Vapoursynth達成即使濾鏡運算。</p>
+<p>我多麼希望有裏番串流平臺呀，但裏番的規模不太可能作出完整劇情作，變成只能靠買斷來營收。可是沒人在買DVD了，DLSite這類網站已經是裏番比較能有能見度的地方了。Steam又不能上架影片。</p>
+<p>慘，二創繪師在Pixiv Fanbox販售的幾分鐘的小動畫都比裏番精緻了，而且因為直接拿熱門動漫IP來用，容易打入更多市場。有人說要讓裏番公司跳下來做這種小動畫競爭，不是會死的更快嗎。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/try-to-stop-pirating-hentai/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12e098f799.webp"></a></p>
+<a aria-hidden="true"></a>
+<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
+<section>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
+<h2>
+金、暴力、SEX！年齡驗證
+</h2>
+<p>
+本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
+</p>
+<div>
+<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
+<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
+</div>
+</section>
+</div>
+<p>花錢看盜版平臺的本本與片片是最蠢的事…？ Steam讓人方便購買正版遊戲，很多熱門的Galgame都透過本體 + R18補丁成功上架了，減低了去玩盜版遊戲的動機。什麼時候有其他夠好的H平臺呢？</p>
+<p>除了捐款給開源軟體的開發者之外，我還有購買獨立音樂的習慣，在Youtube聽到覺得不錯的混音帶，就會去看看音樂家有沒有Bandcamp，就會隨意佈施一點錢。尤其我喜歡買蒸汽波類型的。</p>
+<p>我購買的正版作品，多半會在目錄裡面加上<code>自購+日期.txt</code>以茲證明，免得以後放到硬碟認不出來</p>
+<p>可是我有一個陋習，就是色色方面的資源還是習慣看盜版的。譬如本子，還有H小動畫。會去E-Hentai和Kemono還有Nyaa抓。寧願投資在VPN或者BT網站private tracker的會員也不要自己去購買正版。因為我認為這樣做比較划算。</p>
+<p>可我現在才發現，如果只要單圖，其實在Pixiv Fanbox或Patreon贊助繪師，購買作品，就跟贊助Bandcamp的獨立音樂是一樣重要的！色色也要看正版。而且Fanbox價格很划算呢，大部分是500日元起跳，就一杯星巴克的價錢而已。且通常是單次購買就能下載作者過去的所有作品，可隨時取消，不會用訂閱制綁架你。</p>
+<p>若覺得下載訂閱的Fanbox內容很麻煩，要批次下載的話也有專門工具能用。</p>
+<p>不應該去看盜版平臺甚至付費看盜版，譬如像有些中國盜版動漫網站會販售VIP，還會趁機廣告飛機杯，真不要臉。</p>
+<p>儘管想支持正版，但是抱歉E-hentai實在太好用了，捐贈Bronze Star後就回不去了，我只能偶爾在DLsite買幾本正版支持，可是我又討厭DRM，我還要用特殊軟體解密。那為何不買實體書呢…我想要可以隨時閱覽，下載的本子我都會上傳到自架的Immich電子書伺服器。（喔喔DLSite現在提供無DRM的版本下載了！）</p>
+<p>其實我會想直接買Fanbox…乃是因為我看到nosuke1999老師製作的費倫x史塔克小動畫，動物交配後背位就受不了啊啊，雖然不及MapleStar精緻但也夠用了。Kemono壞好幾個月了。直接Pixiv Fanbox會員訂下去。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-14e7b3d8da.webp">
+<p>Pixiv Fanbox網頁圖片與影片批次下載工具，不用再一個一個點了。不會有人不知道Pixiv Fanbox訂閱最便宜的方案，就能瀏覽繪師過去全部作品吧？何必到Kemono看盜版。除非作者另外設定價格。但很多都是便宜的500日元就讓你隨便看，很多做H二創小動畫的也是這麼佛呢。如果要批次保存作者的舊作品要怎麼辦呢？可以使用網頁下載工具批次快速保存。</p>
+<p>免費仔退散：這些工具需要付費訂閱Pixiv Fanbox作品才能存取，這不是破解軟體！</p>
+<p>例如，Firefox有<a href="https://addons.mozilla.org/en-US/firefox/addon/fanbox-downloader/" target="_blank">fanbox-downloader by tana3n</a>，Chrome則是<a href="https://chromewebstore.google.com/detail/pixiv-fanbox-downloader/ihnfpdchjnmlehnoeffgcbakfmdjcckn" target="_blank">Pixiv Fanbox Downloader</a>。安裝之後，Pixiv Fanbox的網頁右鍵就有一次下載全部附件的功能。</p>
+<p><a href="https://ivonblog.com/posts/gallery-dl-usage/" target="_blank">gallery-dl</a>也能批次下載Pixiv Fanbox的所有投稿。</p>
+<p>注意：這些工具是非官方製作的，使用風險自負。如果短時間對Pixiv大量下載可能導致你的帳號被封。</p>
+<hr>
+<p>順便又到DLsite補票了幾部我用了十年的裏番，剛好有特價。</p>
+<p>不知道為什麼明明到了DLSite買了正版里番，卻感覺畫質比盜版的看起來還差。</p>
+<p>最近到補票了幾部我用了十年的裏番，包括《Euphoria 3 ～白夜凛音輪廻転生編～》、《黒獣 ～気高き聖女は白濁に染まる～ オリガ×クロエ 黒の城、崩落編.》、《Tiny Evil 第四話 少女人形・ニナ～無垢な想いの束縛～》、《小女ラムネ 第2話 ドキドキの撮影タイムと恋のABC》、《ふた部！》、《都市伝説シリーズ 其の弐 エ呪いのビデオ》 、《恋糸記念日 THE ANIMATION Memorial.1「むすんで ひらいて」》</p>
+<p>十年前用到現在，證明這些作品跟X Server一樣是久經考驗的軟體，值得購買。</p>
+<p>幸好所謂的「HD版」指的是1080p而非720p，嗯…可是為什麼感覺影片的位元率好低呀，暗處會有許多色塊漸層，畫面還糊糊的，難道他們是把DVD發售時的720p直接昇頻拿來賣！？我是不是不應該期望4K藍光畫質呀……。</p>
+<p>影片格式很多還是老式的WMV編碼。</p>
+<p>即使是新發售的影片似乎都還是有這種問題。</p>
+<p>靠，那我還是得用濾鏡debanding才能看呀…嗯，其實Linux直接開MPV播放器 + Anime4K（Windows則是mpv_lazy）就大致解決畫面模糊的問題了。</p>
+<p>難道我以前下載過的字幕組發佈的資源，都是重新壓片過的才會看起來畫質比較好…？ 嗯嗯，你知道的吧，將影片重編碼為AV1或H.265可以大幅減少檔案大小又保有1080p高畫質。此外，透過Vapoursynth這個影片濾鏡處理工具，處理掉線條與色塊問題，在重新壓製片子之後，能讓影片畫質比較好。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-18a2b11359.webp">
+<p>Linux版的MPV播放器可以調用Vapoursynth達成即使濾鏡運算。</p>
+<p>我多麼希望有裏番串流平臺呀，但裏番的規模不太可能作出完整劇情作，變成只能靠買斷來營收。可是沒人在買DVD了，DLSite這類網站已經是裏番比較能有能見度的地方了。Steam又不能上架影片。</p>
+<p>慘，二創繪師在Pixiv Fanbox販售的幾分鐘的小動畫都比裏番精緻了，而且因為直接拿熱門動漫IP來用，容易打入更多市場。有人說要讓裏番公司跳下來做這種小動畫競爭，不是會死的更快嗎。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12e098f799.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12e098f799.webp" medium="image"/>
+    <pubDate>Mon, 14 Sep 2026 02:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[將任意Galgame的角色變成偽ASMR語音的實驗 (PipeWire + EasyEffects)]]></title>
+    <link>https://ivonblog.com/posts/pipewire-galgame-fake-asmr/</link>
+    <itunes:title><![CDATA[將任意Galgame的角色變成偽ASMR語音的實驗 (PipeWire + EasyEffects)]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/pipewire-galgame-fake-asmr/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1afec7c85c.webp"></a></p>
+<p>將任意Galgame的角色變成偽ASMR語音的實驗，適用Linux與Steam Deck。</p>
+<p>訂了Final E500耳機，突發奇想，可否不修改任何檔案，就將Steam的Galgame改成類似的ASMR音頻輸出。</p>
+<p>效果大概像是這樣（需要耳機）</p>
+<div>
+<iframe src="https://www.youtube.com/embed/iVHCsvmuFbE" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>需要下載<a href="https://ivonblog.com/posts/linux-easyeffects/" target="_blank">EasyEffects</a>，然後載入<a href="https://github.com/ivon852/easyeffects-galgame-asmr-audio-presets-" target="_blank">這裡</a>的音效檔案。</p>
+<p>很多經典遊戲連出個音聲騙錢都不肯，而遊戲中的錄音多半是雙聲道，集中在聽者兩側，戴著耳機的用戶聽到的就好像是在面前講話。</p>
+<p>我想製造一種角色在聽者耳邊說話的感覺，或左或右。那麼我就想到之前操弄PipeWire合併聲道的經驗。</p>
+<p>我們只要透過Linux的EasyEffects，加入EQ與效果器，修改遊戲最終輸出到耳機的音效就好了。EasyEffects是Linux專屬的音效軟體。用EQ提高人聲頻率，製造麥克風感。加入Compressor，提高靜音時的細節。用Stereo Tools調整雙聲道的偏移量，這樣就能控制聲音是在左耳還是右耳輸出。設定Reverb，定義小空間內的反射。</p>
+<p>目前看來的效果普普。且需要手動切換方位。</p>
+<p>我不太確定要如何用出近在咫尺的音效感？</p>
+<p>另一個值得考慮的點是，OBS錄影出來的音效軌是能分成左右兩個的，用後製而非即使處理也是可行。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/pipewire-galgame-fake-asmr/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1afec7c85c.webp"></a></p>
+<p>將任意Galgame的角色變成偽ASMR語音的實驗，適用Linux與Steam Deck。</p>
+<p>訂了Final E500耳機，突發奇想，可否不修改任何檔案，就將Steam的Galgame改成類似的ASMR音頻輸出。</p>
+<p>效果大概像是這樣（需要耳機）</p>
+<div>
+<iframe src="https://www.youtube.com/embed/iVHCsvmuFbE" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>需要下載<a href="https://ivonblog.com/posts/linux-easyeffects/" target="_blank">EasyEffects</a>，然後載入<a href="https://github.com/ivon852/easyeffects-galgame-asmr-audio-presets-" target="_blank">這裡</a>的音效檔案。</p>
+<p>很多經典遊戲連出個音聲騙錢都不肯，而遊戲中的錄音多半是雙聲道，集中在聽者兩側，戴著耳機的用戶聽到的就好像是在面前講話。</p>
+<p>我想製造一種角色在聽者耳邊說話的感覺，或左或右。那麼我就想到之前操弄PipeWire合併聲道的經驗。</p>
+<p>我們只要透過Linux的EasyEffects，加入EQ與效果器，修改遊戲最終輸出到耳機的音效就好了。EasyEffects是Linux專屬的音效軟體。用EQ提高人聲頻率，製造麥克風感。加入Compressor，提高靜音時的細節。用Stereo Tools調整雙聲道的偏移量，這樣就能控制聲音是在左耳還是右耳輸出。設定Reverb，定義小空間內的反射。</p>
+<p>目前看來的效果普普。且需要手動切換方位。</p>
+<p>我不太確定要如何用出近在咫尺的音效感？</p>
+<p>另一個值得考慮的點是，OBS錄影出來的音效軌是能分成左右兩個的，用後製而非即使處理也是可行。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/pipewire-galgame-fake-asmr/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1afec7c85c.webp"></a></p>
+<p>將任意Galgame的角色變成偽ASMR語音的實驗，適用Linux與Steam Deck。</p>
+<p>訂了Final E500耳機，突發奇想，可否不修改任何檔案，就將Steam的Galgame改成類似的ASMR音頻輸出。</p>
+<p>效果大概像是這樣（需要耳機）</p>
+<div>
+<iframe src="https://www.youtube.com/embed/iVHCsvmuFbE" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>需要下載<a href="https://ivonblog.com/posts/linux-easyeffects/" target="_blank">EasyEffects</a>，然後載入<a href="https://github.com/ivon852/easyeffects-galgame-asmr-audio-presets-" target="_blank">這裡</a>的音效檔案。</p>
+<p>很多經典遊戲連出個音聲騙錢都不肯，而遊戲中的錄音多半是雙聲道，集中在聽者兩側，戴著耳機的用戶聽到的就好像是在面前講話。</p>
+<p>我想製造一種角色在聽者耳邊說話的感覺，或左或右。那麼我就想到之前操弄PipeWire合併聲道的經驗。</p>
+<p>我們只要透過Linux的EasyEffects，加入EQ與效果器，修改遊戲最終輸出到耳機的音效就好了。EasyEffects是Linux專屬的音效軟體。用EQ提高人聲頻率，製造麥克風感。加入Compressor，提高靜音時的細節。用Stereo Tools調整雙聲道的偏移量，這樣就能控制聲音是在左耳還是右耳輸出。設定Reverb，定義小空間內的反射。</p>
+<p>目前看來的效果普普。且需要手動切換方位。</p>
+<p>我不太確定要如何用出近在咫尺的音效感？</p>
+<p>另一個值得考慮的點是，OBS錄影出來的音效軌是能分成左右兩個的，用後製而非即使處理也是可行。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1afec7c85c.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1afec7c85c.webp" medium="image"/>
+    <pubDate>Mon, 14 Sep 2026 01:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[Sony Xperia L2解鎖Bootloader取得Root權限]]></title>
     <link>https://ivonblog.com/posts/sony-xperia-l2-root/</link>
     <itunes:title><![CDATA[Sony Xperia L2解鎖Bootloader取得Root權限]]></itunes:title>
@@ -1862,518 +2468,5 @@
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a2d708352.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5a2d708352.webp" medium="image"/>
     <pubDate>Sat, 12 Sep 2026 15:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[《月影魅像-解放之羽》心得：讓人下面入木三分的懸疑恐怖小品]]></title>
-    <link>https://ivonblog.com/posts/tsukikage-no-simulacre-kaihou-no-hane-review/</link>
-    <itunes:title><![CDATA[《月影魅像-解放之羽》心得：讓人下面入木三分的懸疑恐怖小品]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/tsukikage-no-simulacre-kaihou-no-hane-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-995d6581b2.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>《月影魅像-解放之羽》（月影のシミュラクル - 解放の羽 -）是Applique於2017年推出的Galgame。</p>
-<p>一款非線性敘事作品，包含懸疑、解謎、殺人、恐怖、神話、美少女、人偶元素。</p>
-<p>故事描述藏有機關人偶技術的如月家的故事，主角會在兩個女主角「零」與「紅」之間周旋，對抗命運，拯救她們。</p>
-<p>這部作品的女主角，絕對會讓你覺得「入木三分」。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ecfb5a09da.webp"></p>
-<p>這個遊戲有在Steam推出官方中文版，支援Windows系統，Linux可以用GE Proton 11.5執行。需要額外下載R18補丁。</p>
-<p>為什麼會知道這個冷門遊戲：因為某個讀116數學系碩士班的申必人士，在KaLuG線下面基的時候，當面推薦我去玩的，他說他論文寫不出來的時候就玩這個就著迷了呢。</p>
-<h2>1. 簡易攻略
-<span>
-<a href="#1-%e7%b0%a1%e6%98%93%e6%94%bb%e7%95%a5" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》是擁有10個以上結局的遊戲，新的分支選項會在看完其他結局後出現，最後才能打真結局。</p>
-<p>嗯，大概是玩ADV有比較多經驗了，我居然完全沒看攻略就猜到真結局打法了。首先在第一個分支稱讚「零」的胸部很大，每出現分支就存檔一次，然後Save &amp; Load，看完所有後續分支的每個BE路線。</p>
-<p>完成所有BE路線後，再次稱讚「零」的胸部很大，與「紅」上床，就會出現與蜘蛛神談判的選項。使出相信我之術，就會進入GE。</p>
-<p>後日談要從流程圖進入。</p>
-<h2>2. 俐落的劇本評析
-<span>
-<a href="#2-%e4%bf%90%e8%90%bd%e7%9a%84%e5%8a%87%e6%9c%ac%e8%a9%95%e6%9e%90" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》劇情很短，沒有日常，直接進主線，我想這種沒有鋪陳真的沒問題嗎…本來我以為會很漫長的，結果玩不到5小時就結束了呢。因為便當劇情來的太突然，所以想讓人看下去另外一個路線的結局如何，故迅速的把它破完。所以我想問…稱讚女生胸部變大錯了嗎，一開始選這個選項就是全都進BE。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-23b81bff4c.webp">
-<p>一打開遊戲就播放詭異的音樂，沉重又印象深刻，完全沒有日常小曲，反映了如月家沉重的使命。</p>
-<p>某些場景搭配恐怖配樂真的讓人很害怕呢。最大的反差是：「紅」出場的BGM真的很好的反映了自身詭譎的氣氛。有一種給人見到她的安心感（其實是陷阱）又摸不著頭腦的樣子。因為長的跟零很像，這很容易營造出一種心理恐怖的氛圍，不知道眼前的人究竟是不是人。劇中多次提及這種概念：人會在催眠條件下，將某些東西誤會為人臉。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-cb38dce286.webp">
-<p>但是因為遊戲立繪太可愛了，且有時畫風崩壞，遊戲整體來說也沒那麼恐怖，沒有特別獵奇的CG，沒有jumpscare。頂多就女僕上吊，還有超級大蜘蛛的畫面會讓人害怕而已吧。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-cc430d066d.webp">
-<p>非線性敘事，讓人摸不著頭腦。要看其他路線的劇情才知道角色動機為何，譬如，如果放著金髮女僕不管的話，她就會因為無法復仇而自殺，或者殺害如月家家主。</p>
-<p>人偶是一面鏡子…原來「紅」是因為被神明附身，依照接觸的人的心理而行動，變成了一個難纏的對手。依照作品設定，想殺害紅的人就會導致自己賠上姓名，因此要處理她就必須像主角這種正人君子（？）來才行。在透過兩人相處之後，「紅」才慢慢成為獨立個體。</p>
-<p>最終Boss是超級大蜘蛛，我是不會怕蟲子啦，所以看上去沒感覺。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9624cf5e60.webp">
-<p>Steam倒是有負評說怕蜘蛛的人不要買這遊戲，哈哈，可惜遊戲裡面沒有"Kill it with fire!!!“的選項。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c4b21b47f2.webp">
-<p>…不對還真的有，只能把自己家燒了才能殺死大蜘蛛。如果主角找不出解決方法的話，他們就只剩下這個手段。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8e3f31dd.webp">
-<p>本來覺得這個作品名稱取的有夠中二。真的要玩到最後才知道「解放之羽」是什麼意思呢。如月一家人終於能化作蝴蝶自由飛翔。</p>
-<p>要說劇情bug的話？</p>
-<p>就是主角的物品蜘蛛透視能力不是那麼顯眼的樣子，只有某個路線提到。如果有蜘蛛能力就早點用一用啊，你是害怕自己真的成為蜘蛛人還是猛毒嗎。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c881db2777.webp">
-<p>沒想到返還能力會成為談判關鍵，然後相信我之術居然還成功了。讓蜘蛛神放過如月家。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f9197e6bda.webp">
-<p>主角小時候與「紅」的接觸是後來才回想起來，呼應作品一開始「我是跟誰做過約定呢」，來的實在太突兀。</p>
-<p>部分場景的立繪畫風崩壞。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-db84c0f899.webp">
-<p>而且劇情太倉促，感情線就描寫的很粗糙，床戲顯的很硬要…其實很快結束不全是缺點，因為主要角色就那幾個，寫太多廢話反而拖沓。這個劇本長度剛好改編成里番？</p>
-<h2>3. 色色場景夠用就好
-<span>
-<a href="#3-%e8%89%b2%e8%89%b2%e5%a0%b4%e6%99%af%e5%a4%a0%e7%94%a8%e5%b0%b1%e5%a5%bd" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》因為劇情緊湊，沒有色色也沒差吧，不過紅的劇情就會難以銜接。</p>
-<p>青梅女角 野上美優 的色色超級隨便
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-136f0ab6ad.webp">
-<p>主角好過分，射完了就撒手人寰（物理）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-61f0dddf65.webp">
-<p>金髮女僕 水無月一葉 為了解密家族的真相，主動獻身真感動。奶子不是特別大還盡力乳交的畫面好可愛…結果更大的「零」卻沒有乳交橋段！！！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1181af39cf.webp">
-<p>要對付沒生命的木偶就用性騷擾的方式…用奶子大小鑑別零與紅的差別。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4ccfcc095e.webp">
-<p>原來比型月重工Saber老虎鉗更可怕的是幹木頭…說實在這一幕雖然BGM可怕，但是被「紅」強暴的快感又看上去很爽，可能是這遊戲裡面最好用的橋段（？）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e2562ba9f4.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b4014500d0.webp">
-<p>木偶透過精液獲得肉身，「紅」就慢慢變成人類的樣子了。這就是俗話說的入木三分，倒吃甘蔗，漸入佳境。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-01a4a50572.webp">
-<p>比較喜歡巨乳的話就看看「零」的純愛路線吧。這個沈默寡言的丫頭，看我幹死妳。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-67c05426e6.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7cbd5b8c68.webp">
-<p>話說回來如果主角跟如月家是家族旁系血親關係的話…那跟零在一起的結局不就是亂倫嗎，嗯嗯，幸好主角最後選了紅（大誤）平胸才是正義啊！</p>
-<p>……真美。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d0903e49de.webp">]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/tsukikage-no-simulacre-kaihou-no-hane-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-995d6581b2.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>《月影魅像-解放之羽》（月影のシミュラクル - 解放の羽 -）是Applique於2017年推出的Galgame。</p>
-<p>一款非線性敘事作品，包含懸疑、解謎、殺人、恐怖、神話、美少女、人偶元素。</p>
-<p>故事描述藏有機關人偶技術的如月家的故事，主角會在兩個女主角「零」與「紅」之間周旋，對抗命運，拯救她們。</p>
-<p>這部作品的女主角，絕對會讓你覺得「入木三分」。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ecfb5a09da.webp"></p>
-<p>這個遊戲有在Steam推出官方中文版，支援Windows系統，Linux可以用GE Proton 11.5執行。需要額外下載R18補丁。</p>
-<p>為什麼會知道這個冷門遊戲：因為某個讀116數學系碩士班的申必人士，在KaLuG線下面基的時候，當面推薦我去玩的，他說他論文寫不出來的時候就玩這個就著迷了呢。</p>
-<h2>1. 簡易攻略
-<span>
-<a href="#1-%e7%b0%a1%e6%98%93%e6%94%bb%e7%95%a5" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》是擁有10個以上結局的遊戲，新的分支選項會在看完其他結局後出現，最後才能打真結局。</p>
-<p>嗯，大概是玩ADV有比較多經驗了，我居然完全沒看攻略就猜到真結局打法了。首先在第一個分支稱讚「零」的胸部很大，每出現分支就存檔一次，然後Save &amp; Load，看完所有後續分支的每個BE路線。</p>
-<p>完成所有BE路線後，再次稱讚「零」的胸部很大，與「紅」上床，就會出現與蜘蛛神談判的選項。使出相信我之術，就會進入GE。</p>
-<p>後日談要從流程圖進入。</p>
-<h2>2. 俐落的劇本評析
-<span>
-<a href="#2-%e4%bf%90%e8%90%bd%e7%9a%84%e5%8a%87%e6%9c%ac%e8%a9%95%e6%9e%90" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》劇情很短，沒有日常，直接進主線，我想這種沒有鋪陳真的沒問題嗎…本來我以為會很漫長的，結果玩不到5小時就結束了呢。因為便當劇情來的太突然，所以想讓人看下去另外一個路線的結局如何，故迅速的把它破完。所以我想問…稱讚女生胸部變大錯了嗎，一開始選這個選項就是全都進BE。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-23b81bff4c.webp">
-<p>一打開遊戲就播放詭異的音樂，沉重又印象深刻，完全沒有日常小曲，反映了如月家沉重的使命。</p>
-<p>某些場景搭配恐怖配樂真的讓人很害怕呢。最大的反差是：「紅」出場的BGM真的很好的反映了自身詭譎的氣氛。有一種給人見到她的安心感（其實是陷阱）又摸不著頭腦的樣子。因為長的跟零很像，這很容易營造出一種心理恐怖的氛圍，不知道眼前的人究竟是不是人。劇中多次提及這種概念：人會在催眠條件下，將某些東西誤會為人臉。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-cb38dce286.webp">
-<p>但是因為遊戲立繪太可愛了，且有時畫風崩壞，遊戲整體來說也沒那麼恐怖，沒有特別獵奇的CG，沒有jumpscare。頂多就女僕上吊，還有超級大蜘蛛的畫面會讓人害怕而已吧。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-cc430d066d.webp">
-<p>非線性敘事，讓人摸不著頭腦。要看其他路線的劇情才知道角色動機為何，譬如，如果放著金髮女僕不管的話，她就會因為無法復仇而自殺，或者殺害如月家家主。</p>
-<p>人偶是一面鏡子…原來「紅」是因為被神明附身，依照接觸的人的心理而行動，變成了一個難纏的對手。依照作品設定，想殺害紅的人就會導致自己賠上姓名，因此要處理她就必須像主角這種正人君子（？）來才行。在透過兩人相處之後，「紅」才慢慢成為獨立個體。</p>
-<p>最終Boss是超級大蜘蛛，我是不會怕蟲子啦，所以看上去沒感覺。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9624cf5e60.webp">
-<p>Steam倒是有負評說怕蜘蛛的人不要買這遊戲，哈哈，可惜遊戲裡面沒有"Kill it with fire!!!“的選項。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c4b21b47f2.webp">
-<p>…不對還真的有，只能把自己家燒了才能殺死大蜘蛛。如果主角找不出解決方法的話，他們就只剩下這個手段。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8e3f31dd.webp">
-<p>本來覺得這個作品名稱取的有夠中二。真的要玩到最後才知道「解放之羽」是什麼意思呢。如月一家人終於能化作蝴蝶自由飛翔。</p>
-<p>要說劇情bug的話？</p>
-<p>就是主角的物品蜘蛛透視能力不是那麼顯眼的樣子，只有某個路線提到。如果有蜘蛛能力就早點用一用啊，你是害怕自己真的成為蜘蛛人還是猛毒嗎。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c881db2777.webp">
-<p>沒想到返還能力會成為談判關鍵，然後相信我之術居然還成功了。讓蜘蛛神放過如月家。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f9197e6bda.webp">
-<p>主角小時候與「紅」的接觸是後來才回想起來，呼應作品一開始「我是跟誰做過約定呢」，來的實在太突兀。</p>
-<p>部分場景的立繪畫風崩壞。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-db84c0f899.webp">
-<p>而且劇情太倉促，感情線就描寫的很粗糙，床戲顯的很硬要…其實很快結束不全是缺點，因為主要角色就那幾個，寫太多廢話反而拖沓。這個劇本長度剛好改編成里番？</p>
-<h2>3. 色色場景夠用就好
-<span>
-<a href="#3-%e8%89%b2%e8%89%b2%e5%a0%b4%e6%99%af%e5%a4%a0%e7%94%a8%e5%b0%b1%e5%a5%bd" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》因為劇情緊湊，沒有色色也沒差吧，不過紅的劇情就會難以銜接。</p>
-<p>青梅女角 野上美優 的色色超級隨便
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-136f0ab6ad.webp">
-<p>主角好過分，射完了就撒手人寰（物理）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-61f0dddf65.webp">
-<p>金髮女僕 水無月一葉 為了解密家族的真相，主動獻身真感動。奶子不是特別大還盡力乳交的畫面好可愛…結果更大的「零」卻沒有乳交橋段！！！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1181af39cf.webp">
-<p>要對付沒生命的木偶就用性騷擾的方式…用奶子大小鑑別零與紅的差別。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4ccfcc095e.webp">
-<p>原來比型月重工Saber老虎鉗更可怕的是幹木頭…說實在這一幕雖然BGM可怕，但是被「紅」強暴的快感又看上去很爽，可能是這遊戲裡面最好用的橋段（？）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e2562ba9f4.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b4014500d0.webp">
-<p>木偶透過精液獲得肉身，「紅」就慢慢變成人類的樣子了。這就是俗話說的入木三分，倒吃甘蔗，漸入佳境。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-01a4a50572.webp">
-<p>比較喜歡巨乳的話就看看「零」的純愛路線吧。這個沈默寡言的丫頭，看我幹死妳。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-67c05426e6.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7cbd5b8c68.webp">
-<p>話說回來如果主角跟如月家是家族旁系血親關係的話…那跟零在一起的結局不就是亂倫嗎，嗯嗯，幸好主角最後選了紅（大誤）平胸才是正義啊！</p>
-<p>……真美。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d0903e49de.webp">]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/tsukikage-no-simulacre-kaihou-no-hane-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-995d6581b2.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>《月影魅像-解放之羽》（月影のシミュラクル - 解放の羽 -）是Applique於2017年推出的Galgame。</p>
-<p>一款非線性敘事作品，包含懸疑、解謎、殺人、恐怖、神話、美少女、人偶元素。</p>
-<p>故事描述藏有機關人偶技術的如月家的故事，主角會在兩個女主角「零」與「紅」之間周旋，對抗命運，拯救她們。</p>
-<p>這部作品的女主角，絕對會讓你覺得「入木三分」。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ecfb5a09da.webp"></p>
-<p>這個遊戲有在Steam推出官方中文版，支援Windows系統，Linux可以用GE Proton 11.5執行。需要額外下載R18補丁。</p>
-<p>為什麼會知道這個冷門遊戲：因為某個讀116數學系碩士班的申必人士，在KaLuG線下面基的時候，當面推薦我去玩的，他說他論文寫不出來的時候就玩這個就著迷了呢。</p>
-<h2>1. 簡易攻略
-<span>
-<a href="#1-%e7%b0%a1%e6%98%93%e6%94%bb%e7%95%a5" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》是擁有10個以上結局的遊戲，新的分支選項會在看完其他結局後出現，最後才能打真結局。</p>
-<p>嗯，大概是玩ADV有比較多經驗了，我居然完全沒看攻略就猜到真結局打法了。首先在第一個分支稱讚「零」的胸部很大，每出現分支就存檔一次，然後Save &amp; Load，看完所有後續分支的每個BE路線。</p>
-<p>完成所有BE路線後，再次稱讚「零」的胸部很大，與「紅」上床，就會出現與蜘蛛神談判的選項。使出相信我之術，就會進入GE。</p>
-<p>後日談要從流程圖進入。</p>
-<h2>2. 俐落的劇本評析
-<span>
-<a href="#2-%e4%bf%90%e8%90%bd%e7%9a%84%e5%8a%87%e6%9c%ac%e8%a9%95%e6%9e%90" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》劇情很短，沒有日常，直接進主線，我想這種沒有鋪陳真的沒問題嗎…本來我以為會很漫長的，結果玩不到5小時就結束了呢。因為便當劇情來的太突然，所以想讓人看下去另外一個路線的結局如何，故迅速的把它破完。所以我想問…稱讚女生胸部變大錯了嗎，一開始選這個選項就是全都進BE。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-23b81bff4c.webp">
-<p>一打開遊戲就播放詭異的音樂，沉重又印象深刻，完全沒有日常小曲，反映了如月家沉重的使命。</p>
-<p>某些場景搭配恐怖配樂真的讓人很害怕呢。最大的反差是：「紅」出場的BGM真的很好的反映了自身詭譎的氣氛。有一種給人見到她的安心感（其實是陷阱）又摸不著頭腦的樣子。因為長的跟零很像，這很容易營造出一種心理恐怖的氛圍，不知道眼前的人究竟是不是人。劇中多次提及這種概念：人會在催眠條件下，將某些東西誤會為人臉。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-cb38dce286.webp">
-<p>但是因為遊戲立繪太可愛了，且有時畫風崩壞，遊戲整體來說也沒那麼恐怖，沒有特別獵奇的CG，沒有jumpscare。頂多就女僕上吊，還有超級大蜘蛛的畫面會讓人害怕而已吧。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-cc430d066d.webp">
-<p>非線性敘事，讓人摸不著頭腦。要看其他路線的劇情才知道角色動機為何，譬如，如果放著金髮女僕不管的話，她就會因為無法復仇而自殺，或者殺害如月家家主。</p>
-<p>人偶是一面鏡子…原來「紅」是因為被神明附身，依照接觸的人的心理而行動，變成了一個難纏的對手。依照作品設定，想殺害紅的人就會導致自己賠上姓名，因此要處理她就必須像主角這種正人君子（？）來才行。在透過兩人相處之後，「紅」才慢慢成為獨立個體。</p>
-<p>最終Boss是超級大蜘蛛，我是不會怕蟲子啦，所以看上去沒感覺。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9624cf5e60.webp">
-<p>Steam倒是有負評說怕蜘蛛的人不要買這遊戲，哈哈，可惜遊戲裡面沒有"Kill it with fire!!!“的選項。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c4b21b47f2.webp">
-<p>…不對還真的有，只能把自己家燒了才能殺死大蜘蛛。如果主角找不出解決方法的話，他們就只剩下這個手段。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8e3f31dd.webp">
-<p>本來覺得這個作品名稱取的有夠中二。真的要玩到最後才知道「解放之羽」是什麼意思呢。如月一家人終於能化作蝴蝶自由飛翔。</p>
-<p>要說劇情bug的話？</p>
-<p>就是主角的物品蜘蛛透視能力不是那麼顯眼的樣子，只有某個路線提到。如果有蜘蛛能力就早點用一用啊，你是害怕自己真的成為蜘蛛人還是猛毒嗎。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c881db2777.webp">
-<p>沒想到返還能力會成為談判關鍵，然後相信我之術居然還成功了。讓蜘蛛神放過如月家。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f9197e6bda.webp">
-<p>主角小時候與「紅」的接觸是後來才回想起來，呼應作品一開始「我是跟誰做過約定呢」，來的實在太突兀。</p>
-<p>部分場景的立繪畫風崩壞。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-db84c0f899.webp">
-<p>而且劇情太倉促，感情線就描寫的很粗糙，床戲顯的很硬要…其實很快結束不全是缺點，因為主要角色就那幾個，寫太多廢話反而拖沓。這個劇本長度剛好改編成里番？</p>
-<h2>3. 色色場景夠用就好
-<span>
-<a href="#3-%e8%89%b2%e8%89%b2%e5%a0%b4%e6%99%af%e5%a4%a0%e7%94%a8%e5%b0%b1%e5%a5%bd" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>《月影魅像-解放之羽》因為劇情緊湊，沒有色色也沒差吧，不過紅的劇情就會難以銜接。</p>
-<p>青梅女角 野上美優 的色色超級隨便
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-136f0ab6ad.webp">
-<p>主角好過分，射完了就撒手人寰（物理）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-61f0dddf65.webp">
-<p>金髮女僕 水無月一葉 為了解密家族的真相，主動獻身真感動。奶子不是特別大還盡力乳交的畫面好可愛…結果更大的「零」卻沒有乳交橋段！！！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1181af39cf.webp">
-<p>要對付沒生命的木偶就用性騷擾的方式…用奶子大小鑑別零與紅的差別。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4ccfcc095e.webp">
-<p>原來比型月重工Saber老虎鉗更可怕的是幹木頭…說實在這一幕雖然BGM可怕，但是被「紅」強暴的快感又看上去很爽，可能是這遊戲裡面最好用的橋段（？）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e2562ba9f4.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b4014500d0.webp">
-<p>木偶透過精液獲得肉身，「紅」就慢慢變成人類的樣子了。這就是俗話說的入木三分，倒吃甘蔗，漸入佳境。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-01a4a50572.webp">
-<p>比較喜歡巨乳的話就看看「零」的純愛路線吧。這個沈默寡言的丫頭，看我幹死妳。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-67c05426e6.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7cbd5b8c68.webp">
-<p>話說回來如果主角跟如月家是家族旁系血親關係的話…那跟零在一起的結局不就是亂倫嗎，嗯嗯，幸好主角最後選了紅（大誤）平胸才是正義啊！</p>
-<p>……真美。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d0903e49de.webp">]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-995d6581b2.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-995d6581b2.webp" medium="image"/>
-    <pubDate>Fri, 11 Sep 2026 05:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[有多少人在用LineageOS？刷機真的不行了嗎？]]></title>
-    <link>https://ivonblog.com/posts/lineageos-statistics-in-2026/</link>
-    <itunes:title><![CDATA[有多少人在用LineageOS？刷機真的不行了嗎？]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/lineageos-statistics-in-2026/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3037e60ffd.webp"></a></p>
-<p>Android手機刷機真的涼了嗎？</p>
-<p>全球刷機人數不斷減少的當下，北朝鮮居然還有9個太陽的後裔在研究Android刷機，沒有路 ✋😭🤚 將軍真是高瞻遠矚。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1eb7bb10b0.webp">
-<p>LineageOS有使用者自願參加的統計功能，會蒐集匿名系統資料上傳到官方伺服器，能夠讓開發者知道有多少人在用這個系統。</p>
-<p>根據官網統計：<a href="https://stats.lineageos.org" target="_blank">https://stats.lineageos.org</a></p>
-<p>2026年，世界上有180萬部手機正跑著LineageOS。</p>
-<p>LineageOS是碩果僅存，規模比較大的第三方Android ROM了，一直不斷的有在追AOSP上游更新。基於原生Android開發，系統十分乾淨輕量。</p>
-<ul>
-<li>相關文章：<a href="https://ivonblog.com/posts/lineageos-introduction/" target="_blank">LineageOS入門</a></li>
-</ul>
-<p>作為對比：2015年LineageOS的前身，CyanogenMod宣稱全球有2500萬用戶，那時全球Android手機出貨量11億隻。</p>
-<p>到了2025年，全球Android手機出貨量增長到了12億隻，但LineageOS裝機數量卻肉眼可見的萎縮了。</p>
-<p>由此可見，刷機在現在真的是很小眾的興趣了。恐怕很多用戶連Root的意願都不高了。</p>
-<p>這個資料很有趣哦，LineageOS有分為「Official」和「Unofficial」的組建，前者是有人專門在維護的，Kernel和Device原始碼都有完整公開，需要定期更新合併上游AOSP的代碼並釋出ROM更新，大約一週一次Nightly build更新。Android釋出大版本更新後，通常幾個月後LineageOS也得升級上去。</p>
-<p>而Unofficial是個人開發者隨意構建的ROM，可能在XDA放出來一個版本就沒有後續了，非常吃開發者維護意願。</p>
-<p>而這種Unofficial的安裝數量居然就佔了80%以上的比例，而且最多的版本還在Android 11 (LineageOS 18)。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c4d5a0d5ba.webp">
-<p>雖說如此，Official的LineageOS機型還是有上百支型號在定期更新的啦，以小米、一加的居多，還有Pixel。</p>
-<p>刷機最多的國家，以美國和中國用戶為大宗，臺灣也貢獻了相當多的安裝數，綜合排行第32位。</p>
-<p>LineageOS最熱門的刷機機型是…Linux的Waydroid模擬器，其次是小米8、三星S7、三星J7、一加8。都是有點年代的機型了呢。話說原來一加8的機型代號叫做泡麵(instantnoodlep)。</p>
-<p>我想，這跟現在各大手機廠商收緊解鎖Bootloader，以及Google用Play Integrity嚴打第三方ROM有關，導致刷機意願下降許多。雖然Root後能用<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">反Root偵測模組</a>修復，但是技術含量很高，使用不便。</p>
-<p>除了Pixel、Sony、Nothing和部分小米舊機以外，解鎖Bootloader的過程都變得極其嚴苛。</p>
-<hr>
-<p>也許，大部分一般用戶根本不在意計算機自由這回事，所以解鎖Bootloader和Root的權利被剝奪了無法引起重視。但很高興仍有一群開發者在努力的維持專案運作。</p>
-<p>LineageOS沒有商業公司支援，全由開源社區合力開發，還能維持住運作就很不錯了。它可以說是Android界的Debian Linux發行版，累積了大量開放資源，其他Android ROM或多或少受到其影響。</p>
-<p>CyanogenMod過去曾經想將專案商業化但很快就涼了，因此目前ROM維護幾乎都靠志工和捐款運作。</p>
-<p>在你力所能及的範圍內，<a href="https://www.patreon.com/LineageOS" target="_blank">捐款給LineageOS LLC</a>，並善用資源，把<a href="https://wiki.lineageos.org/submitting_device" target="_blank">LineageOS移植</a>到你的手機吧！</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/lineageos-statistics-in-2026/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3037e60ffd.webp"></a></p>
-<p>Android手機刷機真的涼了嗎？</p>
-<p>全球刷機人數不斷減少的當下，北朝鮮居然還有9個太陽的後裔在研究Android刷機，沒有路 ✋😭🤚 將軍真是高瞻遠矚。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1eb7bb10b0.webp">
-<p>LineageOS有使用者自願參加的統計功能，會蒐集匿名系統資料上傳到官方伺服器，能夠讓開發者知道有多少人在用這個系統。</p>
-<p>根據官網統計：<a href="https://stats.lineageos.org" target="_blank">https://stats.lineageos.org</a></p>
-<p>2026年，世界上有180萬部手機正跑著LineageOS。</p>
-<p>LineageOS是碩果僅存，規模比較大的第三方Android ROM了，一直不斷的有在追AOSP上游更新。基於原生Android開發，系統十分乾淨輕量。</p>
-<ul>
-<li>相關文章：<a href="https://ivonblog.com/posts/lineageos-introduction/" target="_blank">LineageOS入門</a></li>
-</ul>
-<p>作為對比：2015年LineageOS的前身，CyanogenMod宣稱全球有2500萬用戶，那時全球Android手機出貨量11億隻。</p>
-<p>到了2025年，全球Android手機出貨量增長到了12億隻，但LineageOS裝機數量卻肉眼可見的萎縮了。</p>
-<p>由此可見，刷機在現在真的是很小眾的興趣了。恐怕很多用戶連Root的意願都不高了。</p>
-<p>這個資料很有趣哦，LineageOS有分為「Official」和「Unofficial」的組建，前者是有人專門在維護的，Kernel和Device原始碼都有完整公開，需要定期更新合併上游AOSP的代碼並釋出ROM更新，大約一週一次Nightly build更新。Android釋出大版本更新後，通常幾個月後LineageOS也得升級上去。</p>
-<p>而Unofficial是個人開發者隨意構建的ROM，可能在XDA放出來一個版本就沒有後續了，非常吃開發者維護意願。</p>
-<p>而這種Unofficial的安裝數量居然就佔了80%以上的比例，而且最多的版本還在Android 11 (LineageOS 18)。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c4d5a0d5ba.webp">
-<p>雖說如此，Official的LineageOS機型還是有上百支型號在定期更新的啦，以小米、一加的居多，還有Pixel。</p>
-<p>刷機最多的國家，以美國和中國用戶為大宗，臺灣也貢獻了相當多的安裝數，綜合排行第32位。</p>
-<p>LineageOS最熱門的刷機機型是…Linux的Waydroid模擬器，其次是小米8、三星S7、三星J7、一加8。都是有點年代的機型了呢。話說原來一加8的機型代號叫做泡麵(instantnoodlep)。</p>
-<p>我想，這跟現在各大手機廠商收緊解鎖Bootloader，以及Google用Play Integrity嚴打第三方ROM有關，導致刷機意願下降許多。雖然Root後能用<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">反Root偵測模組</a>修復，但是技術含量很高，使用不便。</p>
-<p>除了Pixel、Sony、Nothing和部分小米舊機以外，解鎖Bootloader的過程都變得極其嚴苛。</p>
-<hr>
-<p>也許，大部分一般用戶根本不在意計算機自由這回事，所以解鎖Bootloader和Root的權利被剝奪了無法引起重視。但很高興仍有一群開發者在努力的維持專案運作。</p>
-<p>LineageOS沒有商業公司支援，全由開源社區合力開發，還能維持住運作就很不錯了。它可以說是Android界的Debian Linux發行版，累積了大量開放資源，其他Android ROM或多或少受到其影響。</p>
-<p>CyanogenMod過去曾經想將專案商業化但很快就涼了，因此目前ROM維護幾乎都靠志工和捐款運作。</p>
-<p>在你力所能及的範圍內，<a href="https://www.patreon.com/LineageOS" target="_blank">捐款給LineageOS LLC</a>，並善用資源，把<a href="https://wiki.lineageos.org/submitting_device" target="_blank">LineageOS移植</a>到你的手機吧！</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/lineageos-statistics-in-2026/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3037e60ffd.webp"></a></p>
-<p>Android手機刷機真的涼了嗎？</p>
-<p>全球刷機人數不斷減少的當下，北朝鮮居然還有9個太陽的後裔在研究Android刷機，沒有路 ✋😭🤚 將軍真是高瞻遠矚。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1eb7bb10b0.webp">
-<p>LineageOS有使用者自願參加的統計功能，會蒐集匿名系統資料上傳到官方伺服器，能夠讓開發者知道有多少人在用這個系統。</p>
-<p>根據官網統計：<a href="https://stats.lineageos.org" target="_blank">https://stats.lineageos.org</a></p>
-<p>2026年，世界上有180萬部手機正跑著LineageOS。</p>
-<p>LineageOS是碩果僅存，規模比較大的第三方Android ROM了，一直不斷的有在追AOSP上游更新。基於原生Android開發，系統十分乾淨輕量。</p>
-<ul>
-<li>相關文章：<a href="https://ivonblog.com/posts/lineageos-introduction/" target="_blank">LineageOS入門</a></li>
-</ul>
-<p>作為對比：2015年LineageOS的前身，CyanogenMod宣稱全球有2500萬用戶，那時全球Android手機出貨量11億隻。</p>
-<p>到了2025年，全球Android手機出貨量增長到了12億隻，但LineageOS裝機數量卻肉眼可見的萎縮了。</p>
-<p>由此可見，刷機在現在真的是很小眾的興趣了。恐怕很多用戶連Root的意願都不高了。</p>
-<p>這個資料很有趣哦，LineageOS有分為「Official」和「Unofficial」的組建，前者是有人專門在維護的，Kernel和Device原始碼都有完整公開，需要定期更新合併上游AOSP的代碼並釋出ROM更新，大約一週一次Nightly build更新。Android釋出大版本更新後，通常幾個月後LineageOS也得升級上去。</p>
-<p>而Unofficial是個人開發者隨意構建的ROM，可能在XDA放出來一個版本就沒有後續了，非常吃開發者維護意願。</p>
-<p>而這種Unofficial的安裝數量居然就佔了80%以上的比例，而且最多的版本還在Android 11 (LineageOS 18)。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c4d5a0d5ba.webp">
-<p>雖說如此，Official的LineageOS機型還是有上百支型號在定期更新的啦，以小米、一加的居多，還有Pixel。</p>
-<p>刷機最多的國家，以美國和中國用戶為大宗，臺灣也貢獻了相當多的安裝數，綜合排行第32位。</p>
-<p>LineageOS最熱門的刷機機型是…Linux的Waydroid模擬器，其次是小米8、三星S7、三星J7、一加8。都是有點年代的機型了呢。話說原來一加8的機型代號叫做泡麵(instantnoodlep)。</p>
-<p>我想，這跟現在各大手機廠商收緊解鎖Bootloader，以及Google用Play Integrity嚴打第三方ROM有關，導致刷機意願下降許多。雖然Root後能用<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">反Root偵測模組</a>修復，但是技術含量很高，使用不便。</p>
-<p>除了Pixel、Sony、Nothing和部分小米舊機以外，解鎖Bootloader的過程都變得極其嚴苛。</p>
-<hr>
-<p>也許，大部分一般用戶根本不在意計算機自由這回事，所以解鎖Bootloader和Root的權利被剝奪了無法引起重視。但很高興仍有一群開發者在努力的維持專案運作。</p>
-<p>LineageOS沒有商業公司支援，全由開源社區合力開發，還能維持住運作就很不錯了。它可以說是Android界的Debian Linux發行版，累積了大量開放資源，其他Android ROM或多或少受到其影響。</p>
-<p>CyanogenMod過去曾經想將專案商業化但很快就涼了，因此目前ROM維護幾乎都靠志工和捐款運作。</p>
-<p>在你力所能及的範圍內，<a href="https://www.patreon.com/LineageOS" target="_blank">捐款給LineageOS LLC</a>，並善用資源，把<a href="https://wiki.lineageos.org/submitting_device" target="_blank">LineageOS移植</a>到你的手機吧！</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3037e60ffd.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3037e60ffd.webp" medium="image"/>
-    <pubDate>Tue, 08 Sep 2026 13:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[買新中階還是舊旗艦？手機效能過剩了，完全是假命題]]></title>
-    <link>https://ivonblog.com/posts/old-flagship-phones-are-better-than-new-mid-range-phones/</link>
-    <itunes:title><![CDATA[買新中階還是舊旗艦？手機效能過剩了，完全是假命題]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/old-flagship-phones-are-better-than-new-mid-range-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f8c7622836.webp"></a></p>
-<p>你會買過季旗艦機還是新中階機呢…？</p>
-<p>我要說「現在的手機效能過剩」完全是假命題。手機處理器不是越新就越強，並非跑分高就代表新中階段已經摸到了舊旗艦的邊。不太可能才隔不到5年，新中階就超越舊旗艦。</p>
-<p>我以前會有這個思考盲點，總認為我要求不多，沒有要什麼100倍變焦還是玩戰爭雷霆最高畫質，新手機只要基本順暢，買跑分跟舊旗艦差不多的新中階就行了。</p>
-<p>然而，跑分平臺優先展示的僅是CPU單核多核跑分，這無法說明使用體驗的好壞呀。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9b6375a274.webp">
-<p>我可以粗暴概括，Android系統動畫使用流暢不流暢，看的是GPU而非CPU跑分嗎，Linux的畫面合成器都需要GPU算力，Android當然也要。</p>
-<p>例如，高通在2021年出的中階SD695，Geekbench 6的跑分勝過2018年的旗艦SD845，那它用起來應該起碼系統是流暢吧，No no no。</p>
-<p>我發現在一樣的使用情境下，都安裝LineageOS 23 (Android 16) ，在多個瀏覽器與SNS App切換，甚至沒打開遊戲喔。在這種正常的操作下，搭載SD695的Sony Xperia 10 V，就是比搭載SD845的小米Poco F1卡，打字動畫都可能掉幀。</p>
-<p>明明Geekbench CPU兩者跑分差不多，兩者都有UFS和DDR4 。</p>
-<p>結果看GPU (Vulkan) 跑分，啊啊，SD845仍然是SD695的2倍。</p>
-<p>GFLOPS，有1.69倍的差距。</p>
-<p>SD845還有記憶體頻寬比較大的優勢。並且SD845有四個A75大核 + 4個A55小核，而SD695是2個A78大核 + 6個A55小核。</p>
-<p>這得出了，新中階不見得比舊旗艦好。</p>
-<p>或許，新ARM架構的核心和臺積電製程能讓中階處理器更省電，但這不代表高通會大幅提升中階處理器的Adreno GPU啊。從SD695到SD 6 Gen 4，CPU雖然有進步，但GPU性能的進化幅度，跟旗艦8系列比起來，可說是幾乎牛步啊！其他比較少人會去留意的參數就會更加影響體驗。</p>
-<p>參照下表：高通6系列與8系列的進化幅度，基於NaonReview的數據
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baf5d1da9f.webp">
-<p>尤其現在高通刀法精準，也許是從8系列砍好幾刀，變成7系列，再砍幾刀成為6系列。帳面上數字好看無法掩蓋6系列處理器性能悲催的事實。</p>
-<p>單就高通來說，如果說新中階要全面超越舊旗艦，中間代差，短則5年，誇張一點要10年以上。舊旗艦的優勢往往會維持得比CPU跑分顯示的更久。新中階的CPU追上老旗艦，不代表GPU和記憶體頻寬和整套SoC配置也同步追上。還有，中階機在鏡頭與螢幕方面會各種cost-down，促使體驗不佳。</p>
-<p>畢竟瘦死的駱駝比馬大。</p>
-<p>對沒錢的人來說，買過季旗艦（二三年以前的，最多五年）往往能比購買當年度中階得到更好體驗，不少Android旗艦機價格還會大幅度跳水。只是這就很考驗購買管道了，因為很多品牌手機時間到了就會斷貨，網拍平臺賣的又不見得是全新的，需要做更多功課。</p>
-<p>這就是為什麼，我在2025年用低價買了2021年出的Xperia 1 III，經過root調教後壓制住火龍888發熱，獲得了比2023年買的Xperia 10 V更好的體驗。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/old-flagship-phones-are-better-than-new-mid-range-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f8c7622836.webp"></a></p>
-<p>你會買過季旗艦機還是新中階機呢…？</p>
-<p>我要說「現在的手機效能過剩」完全是假命題。手機處理器不是越新就越強，並非跑分高就代表新中階段已經摸到了舊旗艦的邊。不太可能才隔不到5年，新中階就超越舊旗艦。</p>
-<p>我以前會有這個思考盲點，總認為我要求不多，沒有要什麼100倍變焦還是玩戰爭雷霆最高畫質，新手機只要基本順暢，買跑分跟舊旗艦差不多的新中階就行了。</p>
-<p>然而，跑分平臺優先展示的僅是CPU單核多核跑分，這無法說明使用體驗的好壞呀。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9b6375a274.webp">
-<p>我可以粗暴概括，Android系統動畫使用流暢不流暢，看的是GPU而非CPU跑分嗎，Linux的畫面合成器都需要GPU算力，Android當然也要。</p>
-<p>例如，高通在2021年出的中階SD695，Geekbench 6的跑分勝過2018年的旗艦SD845，那它用起來應該起碼系統是流暢吧，No no no。</p>
-<p>我發現在一樣的使用情境下，都安裝LineageOS 23 (Android 16) ，在多個瀏覽器與SNS App切換，甚至沒打開遊戲喔。在這種正常的操作下，搭載SD695的Sony Xperia 10 V，就是比搭載SD845的小米Poco F1卡，打字動畫都可能掉幀。</p>
-<p>明明Geekbench CPU兩者跑分差不多，兩者都有UFS和DDR4 。</p>
-<p>結果看GPU (Vulkan) 跑分，啊啊，SD845仍然是SD695的2倍。</p>
-<p>GFLOPS，有1.69倍的差距。</p>
-<p>SD845還有記憶體頻寬比較大的優勢。並且SD845有四個A75大核 + 4個A55小核，而SD695是2個A78大核 + 6個A55小核。</p>
-<p>這得出了，新中階不見得比舊旗艦好。</p>
-<p>或許，新ARM架構的核心和臺積電製程能讓中階處理器更省電，但這不代表高通會大幅提升中階處理器的Adreno GPU啊。從SD695到SD 6 Gen 4，CPU雖然有進步，但GPU性能的進化幅度，跟旗艦8系列比起來，可說是幾乎牛步啊！其他比較少人會去留意的參數就會更加影響體驗。</p>
-<p>參照下表：高通6系列與8系列的進化幅度，基於NaonReview的數據
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baf5d1da9f.webp">
-<p>尤其現在高通刀法精準，也許是從8系列砍好幾刀，變成7系列，再砍幾刀成為6系列。帳面上數字好看無法掩蓋6系列處理器性能悲催的事實。</p>
-<p>單就高通來說，如果說新中階要全面超越舊旗艦，中間代差，短則5年，誇張一點要10年以上。舊旗艦的優勢往往會維持得比CPU跑分顯示的更久。新中階的CPU追上老旗艦，不代表GPU和記憶體頻寬和整套SoC配置也同步追上。還有，中階機在鏡頭與螢幕方面會各種cost-down，促使體驗不佳。</p>
-<p>畢竟瘦死的駱駝比馬大。</p>
-<p>對沒錢的人來說，買過季旗艦（二三年以前的，最多五年）往往能比購買當年度中階得到更好體驗，不少Android旗艦機價格還會大幅度跳水。只是這就很考驗購買管道了，因為很多品牌手機時間到了就會斷貨，網拍平臺賣的又不見得是全新的，需要做更多功課。</p>
-<p>這就是為什麼，我在2025年用低價買了2021年出的Xperia 1 III，經過root調教後壓制住火龍888發熱，獲得了比2023年買的Xperia 10 V更好的體驗。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/old-flagship-phones-are-better-than-new-mid-range-phones/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f8c7622836.webp"></a></p>
-<p>你會買過季旗艦機還是新中階機呢…？</p>
-<p>我要說「現在的手機效能過剩」完全是假命題。手機處理器不是越新就越強，並非跑分高就代表新中階段已經摸到了舊旗艦的邊。不太可能才隔不到5年，新中階就超越舊旗艦。</p>
-<p>我以前會有這個思考盲點，總認為我要求不多，沒有要什麼100倍變焦還是玩戰爭雷霆最高畫質，新手機只要基本順暢，買跑分跟舊旗艦差不多的新中階就行了。</p>
-<p>然而，跑分平臺優先展示的僅是CPU單核多核跑分，這無法說明使用體驗的好壞呀。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9b6375a274.webp">
-<p>我可以粗暴概括，Android系統動畫使用流暢不流暢，看的是GPU而非CPU跑分嗎，Linux的畫面合成器都需要GPU算力，Android當然也要。</p>
-<p>例如，高通在2021年出的中階SD695，Geekbench 6的跑分勝過2018年的旗艦SD845，那它用起來應該起碼系統是流暢吧，No no no。</p>
-<p>我發現在一樣的使用情境下，都安裝LineageOS 23 (Android 16) ，在多個瀏覽器與SNS App切換，甚至沒打開遊戲喔。在這種正常的操作下，搭載SD695的Sony Xperia 10 V，就是比搭載SD845的小米Poco F1卡，打字動畫都可能掉幀。</p>
-<p>明明Geekbench CPU兩者跑分差不多，兩者都有UFS和DDR4 。</p>
-<p>結果看GPU (Vulkan) 跑分，啊啊，SD845仍然是SD695的2倍。</p>
-<p>GFLOPS，有1.69倍的差距。</p>
-<p>SD845還有記憶體頻寬比較大的優勢。並且SD845有四個A75大核 + 4個A55小核，而SD695是2個A78大核 + 6個A55小核。</p>
-<p>這得出了，新中階不見得比舊旗艦好。</p>
-<p>或許，新ARM架構的核心和臺積電製程能讓中階處理器更省電，但這不代表高通會大幅提升中階處理器的Adreno GPU啊。從SD695到SD 6 Gen 4，CPU雖然有進步，但GPU性能的進化幅度，跟旗艦8系列比起來，可說是幾乎牛步啊！其他比較少人會去留意的參數就會更加影響體驗。</p>
-<p>參照下表：高通6系列與8系列的進化幅度，基於NaonReview的數據
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-baf5d1da9f.webp">
-<p>尤其現在高通刀法精準，也許是從8系列砍好幾刀，變成7系列，再砍幾刀成為6系列。帳面上數字好看無法掩蓋6系列處理器性能悲催的事實。</p>
-<p>單就高通來說，如果說新中階要全面超越舊旗艦，中間代差，短則5年，誇張一點要10年以上。舊旗艦的優勢往往會維持得比CPU跑分顯示的更久。新中階的CPU追上老旗艦，不代表GPU和記憶體頻寬和整套SoC配置也同步追上。還有，中階機在鏡頭與螢幕方面會各種cost-down，促使體驗不佳。</p>
-<p>畢竟瘦死的駱駝比馬大。</p>
-<p>對沒錢的人來說，買過季旗艦（二三年以前的，最多五年）往往能比購買當年度中階得到更好體驗，不少Android旗艦機價格還會大幅度跳水。只是這就很考驗購買管道了，因為很多品牌手機時間到了就會斷貨，網拍平臺賣的又不見得是全新的，需要做更多功課。</p>
-<p>這就是為什麼，我在2025年用低價買了2021年出的Xperia 1 III，經過root調教後壓制住火龍888發熱，獲得了比2023年買的Xperia 10 V更好的體驗。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f8c7622836.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f8c7622836.webp" medium="image"/>
-    <pubDate>Mon, 07 Sep 2026 23:00:00 +0800</pubDate>
   </item></channel>
 </rss>
