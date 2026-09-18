@@ -30,6 +30,126 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[在網頁直接預覽 Word .docx 文件]]></title>
+    <link>https://blog.darkthread.net/blog/docx-preview/</link>
+    <itunes:title><![CDATA[在網頁直接預覽 Word .docx 文件]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>現代瀏覽器都內建支援 PDF，遇到表單或流程有 PDF 附檔時，在網頁點一下便可直接用瀏覽器檢視。相形之下，Word 文件必須下載回本機開啟，操作體驗明顯差了一大截...</p> <p>今天花了點時間研究，找到不錯的解法，雖不完美，但要快速預覽內容已綽綽有餘。</p> <p>Word 轉 HTML 的程式庫不少，開源或商業軟體都有，但就網頁應用來說，純 JavaScript 程式庫應屬最輕巧簡潔的解法。查了一下，意外選擇還不少，我前後試了幾個：</p> <ul><li><strong><a href="https://github.com/mwilliamson/mammoth.js/">Mammoth.js</a></strong><br> 功能陽春，支援格式有限，看文字內容沒問題，但排版樣式盡失，不夠理想</li> <li><strong><a href="https://github.com/lalalic/docx2html">docx2html</a></strong><br> 線上展示出錯跑不起來，跳過</li> <li><strong><a href="https://github.com/jitOffice/jit-viewer-sdk">JitViewer</a></strong><br> 支援 PDF、DOCX、XLSX、PPTX、OFD、TXT、Markdown、影片、CSV、CAD，支援 Vue/React 整合，檢視器還提供放大縮小旋轉等功能，Word 排版還原度很不錯。缺點是需明顯加註 <code>JitViewer 提供文档预览支持</code> 版權資訊<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639253377328131242.webp"></li> <li><strong><a href="https://github.com/VolodymyrBaydalka/docxjs">docx-preview</a></strong><br> 只支援 .docx，文件排版及樣式的還原度頗高，小缺點是文件變成不分頁連續顯示，分頁資訊消失：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639253377330886989.webp"><br> 與原始文件仍有一些出入，但做到這個程度已符合預覽內容的需求~ <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639253377333649802.webp"></li></ul> <p>這類還原特定文件格式的程式庫一定存在某些格式、內容呈現不正確的問題，Issue 區滿是各種特殊情境的問題回報。就預覽應用，永遠存在不行就下載回去看這條後路，追求完美無瑕的解決方案不符成本效益。經過評估，我決定選用 docx-preview。</p> <p>在網頁加入 docx-preview 很簡單，引用 CDN 上的 jszip.min.js 及 docx-preview.min.js，取得檔案後呼叫 docx.renderAsync() 產生預覽視窗，搞定收工。<a href="https://develop365.gitlab.io/word-preview/docx-preview/zh-tw.html">參考</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;div style="margin-bottom: 15px;"&gt;
+&lt;input id="fileInput" type="file" accept=".docx"&gt;
+&lt;p style="font-size: 0.9em; color: #666;"&gt;選擇 Word 文件(.docx)進行預覽&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="row"&gt;
+&lt;div style="margin-bottom: 20px;"&gt;
+&lt;h3&gt;預覽結果&lt;/h3&gt;
+&lt;div id="container"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script src="https://unpkg.com/<a href="/cdn-cgi/l/email-protection" data-cfemail="e9839a938099a9dac7d8d9c7d8">[email&nbsp;protected]</a>/dist/jszip.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/<a href="/cdn-cgi/l/email-protection" data-cfemail="d2b6bdb1aaffa2a0b7a4bbb7a592e2fce1fce7">[email&nbsp;protected]</a>/dist/docx-preview.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+// 初始化事件監聽
+document.getElementById("fileInput").addEventListener("change", handleFile, false);
+function handleFile(event) {
+const file = event.target.files[0];
+if (file) {
+const reader = new FileReader();
+reader.onload = function (e) {
+const docData = e.target.result;
+docx.renderAsync(docData, document.getElementById("container"))
+.then(x =&gt; {
+console.log("docx: finished", x)
+});
+};
+reader.readAsArrayBuffer(file);
+}
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><a href="https://darkthread.github.io/docx-preview/">線上展示</a></p> <p>就醬，.docx 也能像 .pdf 一樣直接在瀏覽器裡預覽檢視囉~ 使用者體驗再加分。</p> <p data-slug="docx-preview" data-title-en="Browser-based Word preview with pure JavaScript library" data-catg="Web Development" data-fbimg="https://i.postimg.cc/W4vgpXrw/image.png#1270#720">A quick evaluation of JavaScript libraries for browser-based Word preview, comparing Mammoth.js, JitViewer, and docx-preview, and showing how to use docx-preview to render .docx files directly in the browser for a better user experience.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>現代瀏覽器都內建支援 PDF，遇到表單或流程有 PDF 附檔時，在網頁點一下便可直接用瀏覽器檢視。相形之下，Word 文件必須下載回本機開啟，操作體驗明顯差了一大截...</p> <p>今天花了點時間研究，找到不錯的解法，雖不完美，但要快速預覽內容已綽綽有餘。</p> <p>Word 轉 HTML 的程式庫不少，開源或商業軟體都有，但就網頁應用來說，純 JavaScript 程式庫應屬最輕巧簡潔的解法。查了一下，意外選擇還不少，我前後試了幾個：</p> <ul><li><strong><a href="https://github.com/mwilliamson/mammoth.js/">Mammoth.js</a></strong><br> 功能陽春，支援格式有限，看文字內容沒問題，但排版樣式盡失，不夠理想</li> <li><strong><a href="https://github.com/lalalic/docx2html">docx2html</a></strong><br> 線上展示出錯跑不起來，跳過</li> <li><strong><a href="https://github.com/jitOffice/jit-viewer-sdk">JitViewer</a></strong><br> 支援 PDF、DOCX、XLSX、PPTX、OFD、TXT、Markdown、影片、CSV、CAD，支援 Vue/React 整合，檢視器還提供放大縮小旋轉等功能，Word 排版還原度很不錯。缺點是需明顯加註 <code>JitViewer 提供文档预览支持</code> 版權資訊<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639253377328131242.webp"></li> <li><strong><a href="https://github.com/VolodymyrBaydalka/docxjs">docx-preview</a></strong><br> 只支援 .docx，文件排版及樣式的還原度頗高，小缺點是文件變成不分頁連續顯示，分頁資訊消失：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639253377330886989.webp"><br> 與原始文件仍有一些出入，但做到這個程度已符合預覽內容的需求~ <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639253377333649802.webp"></li></ul> <p>這類還原特定文件格式的程式庫一定存在某些格式、內容呈現不正確的問題，Issue 區滿是各種特殊情境的問題回報。就預覽應用，永遠存在不行就下載回去看這條後路，追求完美無瑕的解決方案不符成本效益。經過評估，我決定選用 docx-preview。</p> <p>在網頁加入 docx-preview 很簡單，引用 CDN 上的 jszip.min.js 及 docx-preview.min.js，取得檔案後呼叫 docx.renderAsync() 產生預覽視窗，搞定收工。<a href="https://develop365.gitlab.io/word-preview/docx-preview/zh-tw.html">參考</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;div style="margin-bottom: 15px;"&gt;
+&lt;input id="fileInput" type="file" accept=".docx"&gt;
+&lt;p style="font-size: 0.9em; color: #666;"&gt;選擇 Word 文件(.docx)進行預覽&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="row"&gt;
+&lt;div style="margin-bottom: 20px;"&gt;
+&lt;h3&gt;預覽結果&lt;/h3&gt;
+&lt;div id="container"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script src="https://unpkg.com/<a href="/cdn-cgi/l/email-protection" data-cfemail="e9839a938099a9dac7d8d9c7d8">[email&nbsp;protected]</a>/dist/jszip.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/<a href="/cdn-cgi/l/email-protection" data-cfemail="d2b6bdb1aaffa2a0b7a4bbb7a592e2fce1fce7">[email&nbsp;protected]</a>/dist/docx-preview.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+// 初始化事件監聽
+document.getElementById("fileInput").addEventListener("change", handleFile, false);
+function handleFile(event) {
+const file = event.target.files[0];
+if (file) {
+const reader = new FileReader();
+reader.onload = function (e) {
+const docData = e.target.result;
+docx.renderAsync(docData, document.getElementById("container"))
+.then(x =&gt; {
+console.log("docx: finished", x)
+});
+};
+reader.readAsArrayBuffer(file);
+}
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><a href="https://darkthread.github.io/docx-preview/">線上展示</a></p> <p>就醬，.docx 也能像 .pdf 一樣直接在瀏覽器裡預覽檢視囉~ 使用者體驗再加分。</p> <p data-slug="docx-preview" data-title-en="Browser-based Word preview with pure JavaScript library" data-catg="Web Development" data-fbimg="https://i.postimg.cc/W4vgpXrw/image.png#1270#720">A quick evaluation of JavaScript libraries for browser-based Word preview, comparing Mammoth.js, JitViewer, and docx-preview, and showing how to use docx-preview to render .docx files directly in the browser for a better user experience.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>現代瀏覽器都內建支援 PDF，遇到表單或流程有 PDF 附檔時，在網頁點一下便可直接用瀏覽器檢視。相形之下，Word 文件必須下載回本機開啟，操作體驗明顯差了一大截...</p> <p>今天花了點時間研究，找到不錯的解法，雖不完美，但要快速預覽內容已綽綽有餘。</p> <p>Word 轉 HTML 的程式庫不少，開源或商業軟體都有，但就網頁應用來說，純 JavaScript 程式庫應屬最輕巧簡潔的解法。查了一下，意外選擇還不少，我前後試了幾個：</p> <ul><li><strong><a href="https://github.com/mwilliamson/mammoth.js/">Mammoth.js</a></strong><br> 功能陽春，支援格式有限，看文字內容沒問題，但排版樣式盡失，不夠理想</li> <li><strong><a href="https://github.com/lalalic/docx2html">docx2html</a></strong><br> 線上展示出錯跑不起來，跳過</li> <li><strong><a href="https://github.com/jitOffice/jit-viewer-sdk">JitViewer</a></strong><br> 支援 PDF、DOCX、XLSX、PPTX、OFD、TXT、Markdown、影片、CSV、CAD，支援 Vue/React 整合，檢視器還提供放大縮小旋轉等功能，Word 排版還原度很不錯。缺點是需明顯加註 <code>JitViewer 提供文档预览支持</code> 版權資訊<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639253377328131242.webp"></li> <li><strong><a href="https://github.com/VolodymyrBaydalka/docxjs">docx-preview</a></strong><br> 只支援 .docx，文件排版及樣式的還原度頗高，小缺點是文件變成不分頁連續顯示，分頁資訊消失：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639253377330886989.webp"><br> 與原始文件仍有一些出入，但做到這個程度已符合預覽內容的需求~ <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639253377333649802.webp"></li></ul> <p>這類還原特定文件格式的程式庫一定存在某些格式、內容呈現不正確的問題，Issue 區滿是各種特殊情境的問題回報。就預覽應用，永遠存在不行就下載回去看這條後路，追求完美無瑕的解決方案不符成本效益。經過評估，我決定選用 docx-preview。</p> <p>在網頁加入 docx-preview 很簡單，引用 CDN 上的 jszip.min.js 及 docx-preview.min.js，取得檔案後呼叫 docx.renderAsync() 產生預覽視窗，搞定收工。<a href="https://develop365.gitlab.io/word-preview/docx-preview/zh-tw.html">參考</a></p> <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;div style="margin-bottom: 15px;"&gt;
+&lt;input id="fileInput" type="file" accept=".docx"&gt;
+&lt;p style="font-size: 0.9em; color: #666;"&gt;選擇 Word 文件(.docx)進行預覽&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="row"&gt;
+&lt;div style="margin-bottom: 20px;"&gt;
+&lt;h3&gt;預覽結果&lt;/h3&gt;
+&lt;div id="container"&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;script src="https://unpkg.com/<a href="/cdn-cgi/l/email-protection" data-cfemail="e9839a938099a9dac7d8d9c7d8">[email&nbsp;protected]</a>/dist/jszip.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/<a href="/cdn-cgi/l/email-protection" data-cfemail="d2b6bdb1aaffa2a0b7a4bbb7a592e2fce1fce7">[email&nbsp;protected]</a>/dist/docx-preview.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+// 初始化事件監聽
+document.getElementById("fileInput").addEventListener("change", handleFile, false);
+function handleFile(event) {
+const file = event.target.files[0];
+if (file) {
+const reader = new FileReader();
+reader.onload = function (e) {
+const docData = e.target.result;
+docx.renderAsync(docData, document.getElementById("container"))
+.then(x =&gt; {
+console.log("docx: finished", x)
+});
+};
+reader.readAsArrayBuffer(file);
+}
+}
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre> <p><a href="https://darkthread.github.io/docx-preview/">線上展示</a></p> <p>就醬，.docx 也能像 .pdf 一樣直接在瀏覽器裡預覽檢視囉~ 使用者體驗再加分。</p> <p data-slug="docx-preview" data-title-en="Browser-based Word preview with pure JavaScript library" data-catg="Web Development" data-fbimg="https://i.postimg.cc/W4vgpXrw/image.png#1270#720">A quick evaluation of JavaScript libraries for browser-based Word preview, comparing Mammoth.js, JitViewer, and docx-preview, and showing how to use docx-preview to render .docx files directly in the browser for a better user experience.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639253377328131242.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639253377328131242.webp" medium="image"/>
+    <pubDate>Fri, 18 Sep 2026 14:14:11 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Debian 13 (Trixie) Docker 環境快速安裝]]></title>
     <link>https://blog.darkthread.net/blog/trixie-docker-quick-setup/</link>
     <itunes:title><![CDATA[Debian 13 (Trixie) Docker 環境快速安裝]]></itunes:title>
@@ -639,62 +759,5 @@ Run 'docker run --help' for more information
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639229215639344884.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639229215639344884.jpg" medium="image"/>
     <pubDate>Fri, 21 Aug 2026 15:03:48 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手日記】命令列環境串接輸出後，CLI 工具改口講英文？]]></title>
-    <link>https://blog.darkthread.net/blog/pipe-n-codepage/</link>
-    <itunes:title><![CDATA[【茶包射手日記】命令列環境串接輸出後，CLI 工具改口講英文？]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>下面擷圖是我最近遇到的奇妙狀況。想寫 PowerShell 解析 netsh 的輸出文字，netsh 在中文版 Windows 預設會輸出中文，直接跑顯示的是中文內容，用 Pipe <code>| Select-String '-'</code> 抓到中文亂碼，這問題<a href="/blog/ps-pipeline-exe-encoding/">之前遇過</a>不意外，後來試了改用 <a href="/blog/CoreUtils-for-win/">CoreUtils</a> 的 grep.exe，神奇的事發生了 - grep 成功抓到文字，但 netsh 這回輸出的是英文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639228355680245335.webp"></p> <p>莫非 netsh 遇到 grep 一見如故，兩人改用家鄉話聊天，開始說英文？</p> <p>在 CMD 做了類似測試，netsh 原本顯示中文 [1]，串 | more 因編碼問題出現亂碼 [2]，用 | wc 改串 CoreUtils 的 wc.exe 可正確執行 [3]，之後直接跑 netsh 不串接管線也改輸出英文 [4]，此時再 | more 也是說英文...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639228355682054758.webp"></p> <p>而下面這個實驗更有趣，執行過一次 CoreUtils 的 <code>sleep.exe</code> 後，netsh 便改說英文，所以串接管線不是關鍵，CoreUtils 工具(grep、wc、sleep... )執行時似乎會修改某個全域設定，改變了 netsh 的輸出行為。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639228355683810806.webp"></p> <p>至於 CoreUtils 改了什麼？這問題太深奧超出我的知識範圍，以前遇到只能問 Google 大神，找對關鍵字爬文找答案可能得耗上數小時。2026 年，新時代的射茶包方法是設計一組可重視問題的步驟，呼叫 AI Agent，請他自己查資料做實驗找答案。</p> <p>微軟官方建議確保 Console 編碼正確的主流做法是<a href="https://learn.microsoft.com/en-us/windows/console/console-application-issues?WT.mc_id=DOP-MVP-37580">呼叫 SetConsoleCP 及 SetConsoleOutputCP API 將 CodePage 設定為 65001 (CP_UTF8)</a>，CoreUtils 是十分新的專案，很有可能會依循此原則在執行時呼叫 SetConsoleCP/SetConsoleOutputCP，以下的 PowerShell 實驗證明了這點。</p> <pre><code>Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class CP {
-[DllImport("kernel32")] public static extern uint GetConsoleCP();
-[DllImport("kernel32")] public static extern uint GetConsoleOutputCP();
-}
-"@
-Write-Host "GetConsoleCP=$([CP]::GetConsoleCP()) GetConsoleOutputCP=$([CP]::GetConsoleOutputCP())"
-Write-Host "[Console]::OutputEncoding.CodePage=$([Console]::OutputEncoding.CodePage)"
-Write-Host "Running sleep.exe..." -ForegroundColor Yellow
-&amp; "C:\Program Files\coreutils\bin\sleep.exe" 1
-Write-Host "GetConsoleCP=$([CP]::GetConsoleCP()) GetConsoleOutputCP=$([CP]::GetConsoleOutputCP())"
-Write-Host "[Console]::OutputEncoding.CodePage=$([Console]::OutputEncoding.CodePage)"
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639228355685552844.webp"></p> <p>執行完 sleep.exe，GetConsoleOutputCP 被改成 65001，兇手現身! 改了 ConsoleOutputCP 但沒還原，這是 Feature 還是 Bug，就見仁見智了。</p> <p>留下的問題是：OutputEncoding 背後也是 ConsoleOutputCP，為什麼明明改了 PowerShell 讀到的還是舊的？(先前自己調查我卡在這點鬼打牆，AI 的知識儲備與查資料速度是我的 N 倍，一下子就突破盲點)</p> <p>MS Learn 官方文件有<a href="https://learn.microsoft.com/en-us/dotnet/api/system.console.outputencoding?view=net-10.0&amp;WT.mc_id=DOP-MVP-37580">答案</a>：</p> <blockquote> <p>Starting with the .NET Framework 4, a property get operation may return a cached value instead of the console's current output encoding. This can occur if the value of the OutputEncoding property is modified by some means other than an assignment to the OutputEncoding property, such as calling the Windows SetConsoleOutputCP function. 從 .NET 4 起 OutputEncoding 值會有快取，不會反映透過 SetConsoleOutputCP API 做的修改。</p> </blockquote> <p>完美破案~</p> <p data-slug="pipe-n-codepage" data-title-en="CoreUtils changes the console output code page!" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/07/03/13/20/conversation-3513843_1280.jpg#1280#720">CoreUtils for Windows unexpectedly changes the console output code page to UTF-8, causing netsh to switch from Chinese to English output. The post investigates this behavior with PowerShell experiments and explains why .NET’s cached Console.OutputEncoding can hide the change.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>下面擷圖是我最近遇到的奇妙狀況。想寫 PowerShell 解析 netsh 的輸出文字，netsh 在中文版 Windows 預設會輸出中文，直接跑顯示的是中文內容，用 Pipe <code>| Select-String '-'</code> 抓到中文亂碼，這問題<a href="/blog/ps-pipeline-exe-encoding/">之前遇過</a>不意外，後來試了改用 <a href="/blog/CoreUtils-for-win/">CoreUtils</a> 的 grep.exe，神奇的事發生了 - grep 成功抓到文字，但 netsh 這回輸出的是英文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639228355680245335.webp"></p> <p>莫非 netsh 遇到 grep 一見如故，兩人改用家鄉話聊天，開始說英文？</p> <p>在 CMD 做了類似測試，netsh 原本顯示中文 [1]，串 | more 因編碼問題出現亂碼 [2]，用 | wc 改串 CoreUtils 的 wc.exe 可正確執行 [3]，之後直接跑 netsh 不串接管線也改輸出英文 [4]，此時再 | more 也是說英文...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639228355682054758.webp"></p> <p>而下面這個實驗更有趣，執行過一次 CoreUtils 的 <code>sleep.exe</code> 後，netsh 便改說英文，所以串接管線不是關鍵，CoreUtils 工具(grep、wc、sleep... )執行時似乎會修改某個全域設定，改變了 netsh 的輸出行為。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639228355683810806.webp"></p> <p>至於 CoreUtils 改了什麼？這問題太深奧超出我的知識範圍，以前遇到只能問 Google 大神，找對關鍵字爬文找答案可能得耗上數小時。2026 年，新時代的射茶包方法是設計一組可重視問題的步驟，呼叫 AI Agent，請他自己查資料做實驗找答案。</p> <p>微軟官方建議確保 Console 編碼正確的主流做法是<a href="https://learn.microsoft.com/en-us/windows/console/console-application-issues?WT.mc_id=DOP-MVP-37580">呼叫 SetConsoleCP 及 SetConsoleOutputCP API 將 CodePage 設定為 65001 (CP_UTF8)</a>，CoreUtils 是十分新的專案，很有可能會依循此原則在執行時呼叫 SetConsoleCP/SetConsoleOutputCP，以下的 PowerShell 實驗證明了這點。</p> <pre><code>Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class CP {
-[DllImport("kernel32")] public static extern uint GetConsoleCP();
-[DllImport("kernel32")] public static extern uint GetConsoleOutputCP();
-}
-"@
-Write-Host "GetConsoleCP=$([CP]::GetConsoleCP()) GetConsoleOutputCP=$([CP]::GetConsoleOutputCP())"
-Write-Host "[Console]::OutputEncoding.CodePage=$([Console]::OutputEncoding.CodePage)"
-Write-Host "Running sleep.exe..." -ForegroundColor Yellow
-&amp; "C:\Program Files\coreutils\bin\sleep.exe" 1
-Write-Host "GetConsoleCP=$([CP]::GetConsoleCP()) GetConsoleOutputCP=$([CP]::GetConsoleOutputCP())"
-Write-Host "[Console]::OutputEncoding.CodePage=$([Console]::OutputEncoding.CodePage)"
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639228355685552844.webp"></p> <p>執行完 sleep.exe，GetConsoleOutputCP 被改成 65001，兇手現身! 改了 ConsoleOutputCP 但沒還原，這是 Feature 還是 Bug，就見仁見智了。</p> <p>留下的問題是：OutputEncoding 背後也是 ConsoleOutputCP，為什麼明明改了 PowerShell 讀到的還是舊的？(先前自己調查我卡在這點鬼打牆，AI 的知識儲備與查資料速度是我的 N 倍，一下子就突破盲點)</p> <p>MS Learn 官方文件有<a href="https://learn.microsoft.com/en-us/dotnet/api/system.console.outputencoding?view=net-10.0&amp;WT.mc_id=DOP-MVP-37580">答案</a>：</p> <blockquote> <p>Starting with the .NET Framework 4, a property get operation may return a cached value instead of the console's current output encoding. This can occur if the value of the OutputEncoding property is modified by some means other than an assignment to the OutputEncoding property, such as calling the Windows SetConsoleOutputCP function. 從 .NET 4 起 OutputEncoding 值會有快取，不會反映透過 SetConsoleOutputCP API 做的修改。</p> </blockquote> <p>完美破案~</p> <p data-slug="pipe-n-codepage" data-title-en="CoreUtils changes the console output code page!" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/07/03/13/20/conversation-3513843_1280.jpg#1280#720">CoreUtils for Windows unexpectedly changes the console output code page to UTF-8, causing netsh to switch from Chinese to English output. The post investigates this behavior with PowerShell experiments and explains why .NET’s cached Console.OutputEncoding can hide the change.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>下面擷圖是我最近遇到的奇妙狀況。想寫 PowerShell 解析 netsh 的輸出文字，netsh 在中文版 Windows 預設會輸出中文，直接跑顯示的是中文內容，用 Pipe <code>| Select-String '-'</code> 抓到中文亂碼，這問題<a href="/blog/ps-pipeline-exe-encoding/">之前遇過</a>不意外，後來試了改用 <a href="/blog/CoreUtils-for-win/">CoreUtils</a> 的 grep.exe，神奇的事發生了 - grep 成功抓到文字，但 netsh 這回輸出的是英文。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639228355680245335.webp"></p> <p>莫非 netsh 遇到 grep 一見如故，兩人改用家鄉話聊天，開始說英文？</p> <p>在 CMD 做了類似測試，netsh 原本顯示中文 [1]，串 | more 因編碼問題出現亂碼 [2]，用 | wc 改串 CoreUtils 的 wc.exe 可正確執行 [3]，之後直接跑 netsh 不串接管線也改輸出英文 [4]，此時再 | more 也是說英文...</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639228355682054758.webp"></p> <p>而下面這個實驗更有趣，執行過一次 CoreUtils 的 <code>sleep.exe</code> 後，netsh 便改說英文，所以串接管線不是關鍵，CoreUtils 工具(grep、wc、sleep... )執行時似乎會修改某個全域設定，改變了 netsh 的輸出行為。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639228355683810806.webp"></p> <p>至於 CoreUtils 改了什麼？這問題太深奧超出我的知識範圍，以前遇到只能問 Google 大神，找對關鍵字爬文找答案可能得耗上數小時。2026 年，新時代的射茶包方法是設計一組可重視問題的步驟，呼叫 AI Agent，請他自己查資料做實驗找答案。</p> <p>微軟官方建議確保 Console 編碼正確的主流做法是<a href="https://learn.microsoft.com/en-us/windows/console/console-application-issues?WT.mc_id=DOP-MVP-37580">呼叫 SetConsoleCP 及 SetConsoleOutputCP API 將 CodePage 設定為 65001 (CP_UTF8)</a>，CoreUtils 是十分新的專案，很有可能會依循此原則在執行時呼叫 SetConsoleCP/SetConsoleOutputCP，以下的 PowerShell 實驗證明了這點。</p> <pre><code>Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class CP {
-[DllImport("kernel32")] public static extern uint GetConsoleCP();
-[DllImport("kernel32")] public static extern uint GetConsoleOutputCP();
-}
-"@
-Write-Host "GetConsoleCP=$([CP]::GetConsoleCP()) GetConsoleOutputCP=$([CP]::GetConsoleOutputCP())"
-Write-Host "[Console]::OutputEncoding.CodePage=$([Console]::OutputEncoding.CodePage)"
-Write-Host "Running sleep.exe..." -ForegroundColor Yellow
-&amp; "C:\Program Files\coreutils\bin\sleep.exe" 1
-Write-Host "GetConsoleCP=$([CP]::GetConsoleCP()) GetConsoleOutputCP=$([CP]::GetConsoleOutputCP())"
-Write-Host "[Console]::OutputEncoding.CodePage=$([Console]::OutputEncoding.CodePage)"
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639228355685552844.webp"></p> <p>執行完 sleep.exe，GetConsoleOutputCP 被改成 65001，兇手現身! 改了 ConsoleOutputCP 但沒還原，這是 Feature 還是 Bug，就見仁見智了。</p> <p>留下的問題是：OutputEncoding 背後也是 ConsoleOutputCP，為什麼明明改了 PowerShell 讀到的還是舊的？(先前自己調查我卡在這點鬼打牆，AI 的知識儲備與查資料速度是我的 N 倍，一下子就突破盲點)</p> <p>MS Learn 官方文件有<a href="https://learn.microsoft.com/en-us/dotnet/api/system.console.outputencoding?view=net-10.0&amp;WT.mc_id=DOP-MVP-37580">答案</a>：</p> <blockquote> <p>Starting with the .NET Framework 4, a property get operation may return a cached value instead of the console's current output encoding. This can occur if the value of the OutputEncoding property is modified by some means other than an assignment to the OutputEncoding property, such as calling the Windows SetConsoleOutputCP function. 從 .NET 4 起 OutputEncoding 值會有快取，不會反映透過 SetConsoleOutputCP API 做的修改。</p> </blockquote> <p>完美破案~</p> <p data-slug="pipe-n-codepage" data-title-en="CoreUtils changes the console output code page!" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2018/07/03/13/20/conversation-3513843_1280.jpg#1280#720">CoreUtils for Windows unexpectedly changes the console output code page to UTF-8, causing netsh to switch from Chinese to English output. The post investigates this behavior with PowerShell experiments and explains why .NET’s cached Console.OutputEncoding can hide the change.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639228355680245335.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639228355680245335.webp" medium="image"/>
-    <pubDate>Thu, 20 Aug 2026 15:12:43 GMT</pubDate>
   </item></channel>
 </rss>
