@@ -30,6 +30,39 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[VSCode / Github Copliot 透過 LiteLLM 轉接雲端/地端 AI 模型]]></title>
+    <link>https://blog.darkthread.net/blog/github-copilot-w-litellm/</link>
+    <itunes:title><![CDATA[VSCode / Github Copliot 透過 LiteLLM 轉接雲端/地端 AI 模型]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前幾天介紹過好用的 LiteLLM，允許在多人或多系統<a href="/blog/foundry-models-with-litellm/">共用 Azure Foundry / OpenAI / Claude 模型 API</a>，透過建立多把 Virtual Key 區分權限、設定額度及統計用量。而 VSCode Github Copilot 可串接第三方雲端或地端 AI 模型，能把 LiteLLM 當成模型服務提供者。這篇就來說說如何在 VSCode 設定讓 Github Copilot 透過 LiteLLM 轉接雲端或地端模型。</p> <p>LiteLLM 有篇<a href="https://docs.litellm.ai/docs/tutorials/github_copilot_integration">專文</a>介紹在 VS Code 的聊天中使用 LiteLLM Proxy 的做法，第一種是安裝延伸套件增加模型來源，第二種是將 LiteLLM 設成的 Proxy 攔截 Github Copilot 的上網流量。前者等同在現有的 Copilot 或 Foundry 模型外，多一組來自 LiteLLM 的模型清單，比較彈性直覺，是我選擇的做法。</p> <p>依據官方教學，建議 git clone 專案自己編譯製作 VSCode 套件安裝檔 <code>litellm-vscode-0.1.0.vsix</code>，VSCode 套件庫有一些網友已經包好的安裝檔，我個人偏好從官方來源取得自己製作，專案體積比想像大，超過 2.2GB，編譯需要準備 Node.js 環境，麻煩些但用起來安心。</p> <pre><code>git clone https://github.com/BerriAI/litellm.git
+cd litellm/vscode-extension
+npm ci
+npm run package
+# 使用指令安裝
+code --install-extension litellm-vscode-0.1.0.vsix
+</code></pre> <p>安裝完成後，按 Ctrl-Shift-P 找到 Chat: Manage Language Models：</p> <p><img src="Fig1webp"></p> <p>在模型管理介面，按【Add Models】選 【LiteLLM】，輸入 LiteLLM 網址(如 <code>http://litellm-ip:4000</code>) 及 Virtual API Key：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639257704740360487.webp"></p> <p>設定完成後，模型選單便會出現 LiteLLM 群組，裡面有該 Virtual Key 可存取的模型清單：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639257704742120056.webp"></p> <p>然後就可點 LiteLLM 的模型出來聊天囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639257704743937424.webp"></p> <p data-slug="github-copilot-w-litellm" data-fbimg="https://cdn.pixabay.com/photo/2017/09/15/11/56/animal-2751981_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前幾天介紹過好用的 LiteLLM，允許在多人或多系統<a href="/blog/foundry-models-with-litellm/">共用 Azure Foundry / OpenAI / Claude 模型 API</a>，透過建立多把 Virtual Key 區分權限、設定額度及統計用量。而 VSCode Github Copilot 可串接第三方雲端或地端 AI 模型，能把 LiteLLM 當成模型服務提供者。這篇就來說說如何在 VSCode 設定讓 Github Copilot 透過 LiteLLM 轉接雲端或地端模型。</p> <p>LiteLLM 有篇<a href="https://docs.litellm.ai/docs/tutorials/github_copilot_integration">專文</a>介紹在 VS Code 的聊天中使用 LiteLLM Proxy 的做法，第一種是安裝延伸套件增加模型來源，第二種是將 LiteLLM 設成的 Proxy 攔截 Github Copilot 的上網流量。前者等同在現有的 Copilot 或 Foundry 模型外，多一組來自 LiteLLM 的模型清單，比較彈性直覺，是我選擇的做法。</p> <p>依據官方教學，建議 git clone 專案自己編譯製作 VSCode 套件安裝檔 <code>litellm-vscode-0.1.0.vsix</code>，VSCode 套件庫有一些網友已經包好的安裝檔，我個人偏好從官方來源取得自己製作，專案體積比想像大，超過 2.2GB，編譯需要準備 Node.js 環境，麻煩些但用起來安心。</p> <pre><code>git clone https://github.com/BerriAI/litellm.git
+cd litellm/vscode-extension
+npm ci
+npm run package
+# 使用指令安裝
+code --install-extension litellm-vscode-0.1.0.vsix
+</code></pre> <p>安裝完成後，按 Ctrl-Shift-P 找到 Chat: Manage Language Models：</p> <p><img src="Fig1webp"></p> <p>在模型管理介面，按【Add Models】選 【LiteLLM】，輸入 LiteLLM 網址(如 <code>http://litellm-ip:4000</code>) 及 Virtual API Key：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639257704740360487.webp"></p> <p>設定完成後，模型選單便會出現 LiteLLM 群組，裡面有該 Virtual Key 可存取的模型清單：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639257704742120056.webp"></p> <p>然後就可點 LiteLLM 的模型出來聊天囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639257704743937424.webp"></p> <p data-slug="github-copilot-w-litellm" data-fbimg="https://cdn.pixabay.com/photo/2017/09/15/11/56/animal-2751981_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前幾天介紹過好用的 LiteLLM，允許在多人或多系統<a href="/blog/foundry-models-with-litellm/">共用 Azure Foundry / OpenAI / Claude 模型 API</a>，透過建立多把 Virtual Key 區分權限、設定額度及統計用量。而 VSCode Github Copilot 可串接第三方雲端或地端 AI 模型，能把 LiteLLM 當成模型服務提供者。這篇就來說說如何在 VSCode 設定讓 Github Copilot 透過 LiteLLM 轉接雲端或地端模型。</p> <p>LiteLLM 有篇<a href="https://docs.litellm.ai/docs/tutorials/github_copilot_integration">專文</a>介紹在 VS Code 的聊天中使用 LiteLLM Proxy 的做法，第一種是安裝延伸套件增加模型來源，第二種是將 LiteLLM 設成的 Proxy 攔截 Github Copilot 的上網流量。前者等同在現有的 Copilot 或 Foundry 模型外，多一組來自 LiteLLM 的模型清單，比較彈性直覺，是我選擇的做法。</p> <p>依據官方教學，建議 git clone 專案自己編譯製作 VSCode 套件安裝檔 <code>litellm-vscode-0.1.0.vsix</code>，VSCode 套件庫有一些網友已經包好的安裝檔，我個人偏好從官方來源取得自己製作，專案體積比想像大，超過 2.2GB，編譯需要準備 Node.js 環境，麻煩些但用起來安心。</p> <pre><code>git clone https://github.com/BerriAI/litellm.git
+cd litellm/vscode-extension
+npm ci
+npm run package
+# 使用指令安裝
+code --install-extension litellm-vscode-0.1.0.vsix
+</code></pre> <p>安裝完成後，按 Ctrl-Shift-P 找到 Chat: Manage Language Models：</p> <p><img src="Fig1webp"></p> <p>在模型管理介面，按【Add Models】選 【LiteLLM】，輸入 LiteLLM 網址(如 <code>http://litellm-ip:4000</code>) 及 Virtual API Key：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639257704740360487.webp"></p> <p>設定完成後，模型選單便會出現 LiteLLM 群組，裡面有該 Virtual Key 可存取的模型清單：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639257704742120056.webp"></p> <p>然後就可點 LiteLLM 的模型出來聊天囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639257704743937424.webp"></p> <p data-slug="github-copilot-w-litellm" data-fbimg="https://cdn.pixabay.com/photo/2017/09/15/11/56/animal-2751981_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="Fig1webp"/>
+          <media:content url="Fig1webp" medium="image"/>
+    <pubDate>Wed, 23 Sep 2026 14:27:08 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Windows Node.js 環境安裝小記 (2026 版)]]></title>
     <link>https://blog.darkthread.net/blog/win-nodejs-setup-2026/</link>
     <itunes:title><![CDATA[Windows Node.js 環境安裝小記 (2026 版)]]></itunes:title>
@@ -924,20 +957,5 @@ Run 'docker run --help' for more information
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig4_639235752553419856.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig4_639235752553419856.jpg" medium="image"/>
     <pubDate>Sat, 29 Aug 2026 04:41:05 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[新麥克風入手 - Fifine K688]]></title>
-    <link>https://blog.darkthread.net/blog/fifine-k688/</link>
-    <itunes:title><![CDATA[新麥克風入手 - Fifine K688]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>昨天<a href="/blog/dell-p3225qe/">說過</a>，敗家要 PO 文，就再來一發吧~</p> <p>我原本有支入門級麥克風 Superlux 的 E431U，之前在 <a href="https://www.facebook.com/share/p/1P6pMCTgWX/">FB 亮相</a>過，雖說是入門級價格三千出頭，但有監聽耳機孔、三種收音模式，也算是半專業型，收音品質挺好，遠勝過一般耳麥。是我開線上會議、測試語音程式的主力設備。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639230520042297536.jpg" alt="thumbnail"></p> <p>不過，E431U 的耳機孔設計不太好，耳機插座採用 SMT (表面黏著技術)零件，只靠三個小焊點固定在電路板，沒有額外支撐，幾年使用下來，拔插次數多了插座便和電路板分家，失去了監聽功能。我拆開發現無力維修，只能默默裝回去，之後又用了一陣子，有天它就死了~ 插上電腦 Windows 會有連上 USB 設備的 登登 提示音，但識別不到任何裝置。不知是被我拆壞，還是自然死亡，反正這下要買新的了~ (心中竊喜)</p> <p>鑑於之前麥克風太敏感，常收錄到背景雜音，每次要錄音時得公告請家庭成員保持安靜，至於車聲、雨聲、戶外貓狗叫則無能為力。這回我決定捨電容式改買動圈式麥克風，至於介面，我沒要錄 Podcast 做訪談搞多人直播，選 USB 插上電腦就能用比較方便，也不需要多買 XLR 錄音介面或混音機等額外設備。加上只是簡單的通話、語音測試需求，對音質沒太高要求，挑支中低價位的入門級麥克風即可。參考：<a href="https://www.taiwanaccess.com.tw/blog/posts/microphone-guide-2026">電容式 vs 動圈式全評比，選對麥克風讓音質翻倍</a></p> <p>看了一些評比文章、影片，最後我在 Manono PD220X 跟 Fifine K688 間選擇，二者都是 USB/XLR 雙介面，有監聽耳機孔，自帶防震架跟防爆海綿套，不到三千元的售價很親民。最後選 K688 而非 PD220X 的理由是我比較喜歡 K688 的金屬質感及實體音量鈕，RGB 燈光與 APP 調音我用不到；另外 K688 有搭配懸臂支架的套餐，不到三千五，支架、防震、防噴一次到位，不用再傷腦筋。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639230520045970653.jpg" alt="thumbnail"></p> <p>到貨後發現一個大問題，我的電腦桌緣太厚了，超過支架夾具的最大高度... Orz 我的解法是找了一塊木板用螺絲鎖在桌面下，延伸出來給支架鎖住固定。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639230520048069986.jpg" alt="thumbnail"></p> <p>就醬，麥克風設備升級完成!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639230520050692390.jpg" alt="thumbnail"></p> <p data-slug="fifine-k688" data-fbimg="https://i.postimg.cc/hv1RKcyj/image.png#679#800"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>昨天<a href="/blog/dell-p3225qe/">說過</a>，敗家要 PO 文，就再來一發吧~</p> <p>我原本有支入門級麥克風 Superlux 的 E431U，之前在 <a href="https://www.facebook.com/share/p/1P6pMCTgWX/">FB 亮相</a>過，雖說是入門級價格三千出頭，但有監聽耳機孔、三種收音模式，也算是半專業型，收音品質挺好，遠勝過一般耳麥。是我開線上會議、測試語音程式的主力設備。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639230520042297536.jpg" alt="thumbnail"></p> <p>不過，E431U 的耳機孔設計不太好，耳機插座採用 SMT (表面黏著技術)零件，只靠三個小焊點固定在電路板，沒有額外支撐，幾年使用下來，拔插次數多了插座便和電路板分家，失去了監聽功能。我拆開發現無力維修，只能默默裝回去，之後又用了一陣子，有天它就死了~ 插上電腦 Windows 會有連上 USB 設備的 登登 提示音，但識別不到任何裝置。不知是被我拆壞，還是自然死亡，反正這下要買新的了~ (心中竊喜)</p> <p>鑑於之前麥克風太敏感，常收錄到背景雜音，每次要錄音時得公告請家庭成員保持安靜，至於車聲、雨聲、戶外貓狗叫則無能為力。這回我決定捨電容式改買動圈式麥克風，至於介面，我沒要錄 Podcast 做訪談搞多人直播，選 USB 插上電腦就能用比較方便，也不需要多買 XLR 錄音介面或混音機等額外設備。加上只是簡單的通話、語音測試需求，對音質沒太高要求，挑支中低價位的入門級麥克風即可。參考：<a href="https://www.taiwanaccess.com.tw/blog/posts/microphone-guide-2026">電容式 vs 動圈式全評比，選對麥克風讓音質翻倍</a></p> <p>看了一些評比文章、影片，最後我在 Manono PD220X 跟 Fifine K688 間選擇，二者都是 USB/XLR 雙介面，有監聽耳機孔，自帶防震架跟防爆海綿套，不到三千元的售價很親民。最後選 K688 而非 PD220X 的理由是我比較喜歡 K688 的金屬質感及實體音量鈕，RGB 燈光與 APP 調音我用不到；另外 K688 有搭配懸臂支架的套餐，不到三千五，支架、防震、防噴一次到位，不用再傷腦筋。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639230520045970653.jpg" alt="thumbnail"></p> <p>到貨後發現一個大問題，我的電腦桌緣太厚了，超過支架夾具的最大高度... Orz 我的解法是找了一塊木板用螺絲鎖在桌面下，延伸出來給支架鎖住固定。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639230520048069986.jpg" alt="thumbnail"></p> <p>就醬，麥克風設備升級完成!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639230520050692390.jpg" alt="thumbnail"></p> <p data-slug="fifine-k688" data-fbimg="https://i.postimg.cc/hv1RKcyj/image.png#679#800"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>昨天<a href="/blog/dell-p3225qe/">說過</a>，敗家要 PO 文，就再來一發吧~</p> <p>我原本有支入門級麥克風 Superlux 的 E431U，之前在 <a href="https://www.facebook.com/share/p/1P6pMCTgWX/">FB 亮相</a>過，雖說是入門級價格三千出頭，但有監聽耳機孔、三種收音模式，也算是半專業型，收音品質挺好，遠勝過一般耳麥。是我開線上會議、測試語音程式的主力設備。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639230520042297536.jpg" alt="thumbnail"></p> <p>不過，E431U 的耳機孔設計不太好，耳機插座採用 SMT (表面黏著技術)零件，只靠三個小焊點固定在電路板，沒有額外支撐，幾年使用下來，拔插次數多了插座便和電路板分家，失去了監聽功能。我拆開發現無力維修，只能默默裝回去，之後又用了一陣子，有天它就死了~ 插上電腦 Windows 會有連上 USB 設備的 登登 提示音，但識別不到任何裝置。不知是被我拆壞，還是自然死亡，反正這下要買新的了~ (心中竊喜)</p> <p>鑑於之前麥克風太敏感，常收錄到背景雜音，每次要錄音時得公告請家庭成員保持安靜，至於車聲、雨聲、戶外貓狗叫則無能為力。這回我決定捨電容式改買動圈式麥克風，至於介面，我沒要錄 Podcast 做訪談搞多人直播，選 USB 插上電腦就能用比較方便，也不需要多買 XLR 錄音介面或混音機等額外設備。加上只是簡單的通話、語音測試需求，對音質沒太高要求，挑支中低價位的入門級麥克風即可。參考：<a href="https://www.taiwanaccess.com.tw/blog/posts/microphone-guide-2026">電容式 vs 動圈式全評比，選對麥克風讓音質翻倍</a></p> <p>看了一些評比文章、影片，最後我在 Manono PD220X 跟 Fifine K688 間選擇，二者都是 USB/XLR 雙介面，有監聽耳機孔，自帶防震架跟防爆海綿套，不到三千元的售價很親民。最後選 K688 而非 PD220X 的理由是我比較喜歡 K688 的金屬質感及實體音量鈕，RGB 燈光與 APP 調音我用不到；另外 K688 有搭配懸臂支架的套餐，不到三千五，支架、防震、防噴一次到位，不用再傷腦筋。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639230520045970653.jpg" alt="thumbnail"></p> <p>到貨後發現一個大問題，我的電腦桌緣太厚了，超過支架夾具的最大高度... Orz 我的解法是找了一塊木板用螺絲鎖在桌面下，延伸出來給支架鎖住固定。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639230520048069986.jpg" alt="thumbnail"></p> <p>就醬，麥克風設備升級完成!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639230520050692390.jpg" alt="thumbnail"></p> <p data-slug="fifine-k688" data-fbimg="https://i.postimg.cc/hv1RKcyj/image.png#679#800"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig4_639230520042297536.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig4_639230520042297536.jpg" medium="image"/>
-    <pubDate>Sun, 23 Aug 2026 01:55:31 GMT</pubDate>
   </item></channel>
 </rss>
