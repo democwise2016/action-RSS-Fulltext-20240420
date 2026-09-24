@@ -30,6 +30,342 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[介於 JSON 與 SQLite 的中間選擇 - LiteDB]]></title>
+    <link>https://blog.darkthread.net/blog/litedb/</link>
+    <itunes:title><![CDATA[介於 JSON 與 SQLite 的中間選擇 - LiteDB]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>開發 .NET 桌面小工具時，免不了會有保存資料的需求。若筆數不多查詢不複雜，我會選擇序列化存成 JSON 檔，這是最輕巧簡便的選擇，不需第三方程式庫，資料檔還可直接人工檢視修改；若筆數偏多或涉及複雜查詢、更新或統計，我則會改用 SQLite，免安裝設定就有與 SQL/Oracle/Postgres/MySQL 同等級的關聯式資料庫功能，甚至還能把零散檔案一起放進資料庫，隨資料同步增刪，小缺點是 SQLite 通常要透過 EntityFramework / Dapper 存取，複雜度略高，加上 SQLite 依賴 C 寫的原生程式庫，部署成單一檔案桌面工具或跨平台時要花點心思處理。</p> <p>介於以上兩種資料規模之間，還有一類需求，偏向文件保存性質，筆數多到存成 JSON 太肥或需要收納零散檔案，但沒有複雜 JOIN 查詢或彙整統計需求，不需動用 SQLite。針對這類情境，有沒有 C# 原生開發的簡單資料庫，提供基本索引功能加速查詢、用單一檔案保存資料及附加檔案、使用起來比 SQLite 簡單且不依賴原生程式庫？</p> <p><a href="https://www.litedb.org/">LiteDB</a> 剛好是切中這類情境的優秀選項。</p> <p>LiteDB 是一套以 C# 開發的 Embedded NoSQL Document Database，從 2010 年代開始發展，定位介於 SQLite 與 MongoDB 之間：跟 SQLite 一樣不需要獨立的資料庫伺服器，以單一檔案儲存資料；但本質上則類似 MongoDB 的 Document 模型，適合 .NET 應用程式保存結構較彈性的資料。LiteDB 從 5.0 版加入 WAL、Transaction、多 Reader、Index 等能力，足以應付日常資料保存需求。</p> <p>以下是個簡單應用範例，LiteDB 程式寫起來比 SQLite 稍稍簡單一些，但配合 LINQ 查詢時有個重要觀念 - LiteDB 會將資料轉成 BSON 格式儲存，可運用 BSON 查詢語法更有效率地找到資料。但正如有些 LINQ 條件無法被轉成 SQL 語法便不能直接在 IQueryable / EF.Core 使用 <a href="https://learn.microsoft.com/zh-tw/ef/core/querying/how-query-works?WT.mc_id=DOP-MVP-37580">參考</a>，LiteDB 有自己一套 Query.EQ、Query.GT... 等方法，若 C# 寫法無法直接轉換成 BSON 查詢，就需改用 BSON 表示式或先載入記憶體再處理境。這部分不難，但要花點時間了解才好上手。<a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/#42_%E6%A0%B9%E6%93%9A%E6%A2%9D%E4%BB%B6%E6%9F%A5%E8%A9%A2_Find_with_Query">參考</a></p> <p>補充說明我寫在註解裡，大家直接看 Code 吧!</p> <pre><code>using LiteDB;
+var dbPath = "MyData.db";
+if (File.Exists(dbPath)) File.Delete(dbPath); // 每次刪除資料檔重新建立
+using var db = new LiteDatabase(dbPath);
+var players = db.GetCollection&lt;Player&gt;("players");
+var skills = db.GetCollection&lt;Skill&gt;("skills");
+// 新增 Skill
+skills.Insert(new Skill { Id = "CS", Name = "C#" });
+skills.Insert(new Skill { Id = "TS", Name = "TypeScript" });
+skills.Insert(new Skill { Id = "JS", Name = "JavaScript" });
+skills.Insert(new Skill { Id = "PY", Name = "Python" });
+var jeffrey = new Player
+{
+Name = "Jeffrey",
+SkillIds = new string[] { "CS", "JS" },
+RegDate = DateTime.Now,
+IsActive = true
+};
+players.Insert(jeffrey);
+var retired = new Player {
+Name = "Bob",
+SkillIds = new string[] { "JS" },
+RegDate = DateTime.Now,
+IsActive = false
+};
+players.Insert(retired);
+var llm = new Player
+{
+Name = "LLM",
+SkillIds = skills.FindAll().Select(s =&gt; s.Id).ToArray(),
+RegDate = DateTime.Now,
+IsActive = true
+};
+players.Insert(llm);
+// 使用 FindOne 查詢
+var found = players.FindOne(p =&gt; p.Name == "Jeffrey");
+Console.WriteLine($"Found Player: {found.Id}. {found?.Name}");
+// 使用 LINQ 查詢所有 Active 玩家姓名
+var activePlayers = players.Query().Where(p =&gt; p.IsActive).Select(p =&gt; p.Name).ToList();
+Console.WriteLine($"
+Active Players: {string.Join(", ", activePlayers)}");
+// 建立索引
+players.EnsureIndex(p =&gt; p.SkillIds);
+// 使用 Query.EQ 查詢，可善用索引提高查詢效能
+var jsPlayers = players.Find(Query.EQ(nameof(Player.SkillIds), "JS")).ToList();
+// 注意：不是所有 LINQ 方法都能直接轉換成 LiteDB 的 BSON 查詢，例如：
+// players.Query().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
+// Contains 不在支援之列，會產生錯誤：
+//   Method Contains not available to convert to BsonExpression
+//   (op_Implicit(Convert(p.SkillIds, String[])).Contains("JS")).
+// 另個解法是先將資料載入記憶體再查，但效能較差
+// players.Query().ToList().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
+Console.WriteLine($"
+JS Players: {string.Join(", ", jsPlayers.Select(p =&gt; p.Name))}");
+// LiteDB 不直接支援 JOIN 查詢，但可在程式端用 LINQ 操作
+// LiteDB 會盡可能翻成 BSON 查詢，不行的話會載入記憶體再處理，效能不能跟 SQLite 相提並論
+// 建議自己用 Dictionary 處理以確保效能，避免在 LINQ 裡反覆搜尋 LiteDB
+var skillNames = skills.FindAll().ToDictionary(s =&gt; s.Id, s =&gt; s.Name);
+var list = players.Query()
+.ToList()
+.Select(p =&gt; new
+{
+PlayerName = p.Name,
+Skills = p.SkillIds
+.Where(skillNames.ContainsKey)
+.Select(id =&gt; skillNames[id])
+.ToArray()
+})
+.ToList();
+foreach (var item in list)
+{
+Console.WriteLine($" - Player [{item.PlayerName}]: {string.Join(", ", item.Skills)}");
+}
+Console.WriteLine("
+After Deletions:");
+// 示範刪除及更新
+players.Delete(jeffrey.Id);
+// 亦可用條件批次刪除
+players.DeleteMany(p =&gt; p.IsActive == false);
+// 若是直接使用 LiteDB 的 Query 物件，效果相同
+players.DeleteMany(Query.EQ(nameof(Player.IsActive), false));
+var editEnt = players.FindOne(p =&gt; p.Name == "LLM");
+if (editEnt != null) {
+editEnt.Name = "Skynet";
+players.Update(editEnt);
+}
+foreach (var p in players.FindAll())
+{
+Console.WriteLine($" - Player: {p.Id}. {p.Name}");
+}
+public class Player
+{
+// 取名 Id 自動成為 PK，int/long 會自動跳號
+public  int Id { get; set; }
+public required string Name { get; set; }
+public required string[] SkillIds { get; set; }
+public DateTime RegDate { get; set; }
+public bool IsActive { get; set; }
+}
+public class Skill
+{
+// LiteDB 支援 int/long/Guid/objectId/string 作為 PK
+// 名稱包含 Id 會自動被視為 PK，亦可用 [BsonId] 標註
+// 完全不宣告時底層會建立 _id，但無法 FindById/Update/Delete 故不建議
+public required string Id { get; set; }
+public required string Name { get; set; }
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"></p> <p>【延伸閱讀】</p> <ul><li><a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/">C# LiteDB 全方位教學 - C# Libraries</a></li> <li><a href="https://dotblogs.com.tw/supershowwei/2018/04/25/230600">輕巧方便的 LiteDB by 軟體廚房</a></li></ul> <p data-slug="litedb" data-title-en="LiteDB tips" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/10/25/13/57/lunch-box-200762_1280.jpg#1280#720">LiteDB is a lightweight, C#-native embedded NoSQL database ideal for .NET desktop tools. It stores documents and attachments in a single file, supports indexes and transactions, and avoids native dependencies. This article demonstrates CRUD operations, BSON queries, LINQ limitations, and application-side joins.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>開發 .NET 桌面小工具時，免不了會有保存資料的需求。若筆數不多查詢不複雜，我會選擇序列化存成 JSON 檔，這是最輕巧簡便的選擇，不需第三方程式庫，資料檔還可直接人工檢視修改；若筆數偏多或涉及複雜查詢、更新或統計，我則會改用 SQLite，免安裝設定就有與 SQL/Oracle/Postgres/MySQL 同等級的關聯式資料庫功能，甚至還能把零散檔案一起放進資料庫，隨資料同步增刪，小缺點是 SQLite 通常要透過 EntityFramework / Dapper 存取，複雜度略高，加上 SQLite 依賴 C 寫的原生程式庫，部署成單一檔案桌面工具或跨平台時要花點心思處理。</p> <p>介於以上兩種資料規模之間，還有一類需求，偏向文件保存性質，筆數多到存成 JSON 太肥或需要收納零散檔案，但沒有複雜 JOIN 查詢或彙整統計需求，不需動用 SQLite。針對這類情境，有沒有 C# 原生開發的簡單資料庫，提供基本索引功能加速查詢、用單一檔案保存資料及附加檔案、使用起來比 SQLite 簡單且不依賴原生程式庫？</p> <p><a href="https://www.litedb.org/">LiteDB</a> 剛好是切中這類情境的優秀選項。</p> <p>LiteDB 是一套以 C# 開發的 Embedded NoSQL Document Database，從 2010 年代開始發展，定位介於 SQLite 與 MongoDB 之間：跟 SQLite 一樣不需要獨立的資料庫伺服器，以單一檔案儲存資料；但本質上則類似 MongoDB 的 Document 模型，適合 .NET 應用程式保存結構較彈性的資料。LiteDB 從 5.0 版加入 WAL、Transaction、多 Reader、Index 等能力，足以應付日常資料保存需求。</p> <p>以下是個簡單應用範例，LiteDB 程式寫起來比 SQLite 稍稍簡單一些，但配合 LINQ 查詢時有個重要觀念 - LiteDB 會將資料轉成 BSON 格式儲存，可運用 BSON 查詢語法更有效率地找到資料。但正如有些 LINQ 條件無法被轉成 SQL 語法便不能直接在 IQueryable / EF.Core 使用 <a href="https://learn.microsoft.com/zh-tw/ef/core/querying/how-query-works?WT.mc_id=DOP-MVP-37580">參考</a>，LiteDB 有自己一套 Query.EQ、Query.GT... 等方法，若 C# 寫法無法直接轉換成 BSON 查詢，就需改用 BSON 表示式或先載入記憶體再處理境。這部分不難，但要花點時間了解才好上手。<a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/#42_%E6%A0%B9%E6%93%9A%E6%A2%9D%E4%BB%B6%E6%9F%A5%E8%A9%A2_Find_with_Query">參考</a></p> <p>補充說明我寫在註解裡，大家直接看 Code 吧!</p> <pre><code>using LiteDB;
+var dbPath = "MyData.db";
+if (File.Exists(dbPath)) File.Delete(dbPath); // 每次刪除資料檔重新建立
+using var db = new LiteDatabase(dbPath);
+var players = db.GetCollection&lt;Player&gt;("players");
+var skills = db.GetCollection&lt;Skill&gt;("skills");
+// 新增 Skill
+skills.Insert(new Skill { Id = "CS", Name = "C#" });
+skills.Insert(new Skill { Id = "TS", Name = "TypeScript" });
+skills.Insert(new Skill { Id = "JS", Name = "JavaScript" });
+skills.Insert(new Skill { Id = "PY", Name = "Python" });
+var jeffrey = new Player
+{
+Name = "Jeffrey",
+SkillIds = new string[] { "CS", "JS" },
+RegDate = DateTime.Now,
+IsActive = true
+};
+players.Insert(jeffrey);
+var retired = new Player {
+Name = "Bob",
+SkillIds = new string[] { "JS" },
+RegDate = DateTime.Now,
+IsActive = false
+};
+players.Insert(retired);
+var llm = new Player
+{
+Name = "LLM",
+SkillIds = skills.FindAll().Select(s =&gt; s.Id).ToArray(),
+RegDate = DateTime.Now,
+IsActive = true
+};
+players.Insert(llm);
+// 使用 FindOne 查詢
+var found = players.FindOne(p =&gt; p.Name == "Jeffrey");
+Console.WriteLine($"Found Player: {found.Id}. {found?.Name}");
+// 使用 LINQ 查詢所有 Active 玩家姓名
+var activePlayers = players.Query().Where(p =&gt; p.IsActive).Select(p =&gt; p.Name).ToList();
+Console.WriteLine($"
+Active Players: {string.Join(", ", activePlayers)}");
+// 建立索引
+players.EnsureIndex(p =&gt; p.SkillIds);
+// 使用 Query.EQ 查詢，可善用索引提高查詢效能
+var jsPlayers = players.Find(Query.EQ(nameof(Player.SkillIds), "JS")).ToList();
+// 注意：不是所有 LINQ 方法都能直接轉換成 LiteDB 的 BSON 查詢，例如：
+// players.Query().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
+// Contains 不在支援之列，會產生錯誤：
+//   Method Contains not available to convert to BsonExpression
+//   (op_Implicit(Convert(p.SkillIds, String[])).Contains("JS")).
+// 另個解法是先將資料載入記憶體再查，但效能較差
+// players.Query().ToList().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
+Console.WriteLine($"
+JS Players: {string.Join(", ", jsPlayers.Select(p =&gt; p.Name))}");
+// LiteDB 不直接支援 JOIN 查詢，但可在程式端用 LINQ 操作
+// LiteDB 會盡可能翻成 BSON 查詢，不行的話會載入記憶體再處理，效能不能跟 SQLite 相提並論
+// 建議自己用 Dictionary 處理以確保效能，避免在 LINQ 裡反覆搜尋 LiteDB
+var skillNames = skills.FindAll().ToDictionary(s =&gt; s.Id, s =&gt; s.Name);
+var list = players.Query()
+.ToList()
+.Select(p =&gt; new
+{
+PlayerName = p.Name,
+Skills = p.SkillIds
+.Where(skillNames.ContainsKey)
+.Select(id =&gt; skillNames[id])
+.ToArray()
+})
+.ToList();
+foreach (var item in list)
+{
+Console.WriteLine($" - Player [{item.PlayerName}]: {string.Join(", ", item.Skills)}");
+}
+Console.WriteLine("
+After Deletions:");
+// 示範刪除及更新
+players.Delete(jeffrey.Id);
+// 亦可用條件批次刪除
+players.DeleteMany(p =&gt; p.IsActive == false);
+// 若是直接使用 LiteDB 的 Query 物件，效果相同
+players.DeleteMany(Query.EQ(nameof(Player.IsActive), false));
+var editEnt = players.FindOne(p =&gt; p.Name == "LLM");
+if (editEnt != null) {
+editEnt.Name = "Skynet";
+players.Update(editEnt);
+}
+foreach (var p in players.FindAll())
+{
+Console.WriteLine($" - Player: {p.Id}. {p.Name}");
+}
+public class Player
+{
+// 取名 Id 自動成為 PK，int/long 會自動跳號
+public  int Id { get; set; }
+public required string Name { get; set; }
+public required string[] SkillIds { get; set; }
+public DateTime RegDate { get; set; }
+public bool IsActive { get; set; }
+}
+public class Skill
+{
+// LiteDB 支援 int/long/Guid/objectId/string 作為 PK
+// 名稱包含 Id 會自動被視為 PK，亦可用 [BsonId] 標註
+// 完全不宣告時底層會建立 _id，但無法 FindById/Update/Delete 故不建議
+public required string Id { get; set; }
+public required string Name { get; set; }
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"></p> <p>【延伸閱讀】</p> <ul><li><a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/">C# LiteDB 全方位教學 - C# Libraries</a></li> <li><a href="https://dotblogs.com.tw/supershowwei/2018/04/25/230600">輕巧方便的 LiteDB by 軟體廚房</a></li></ul> <p data-slug="litedb" data-title-en="LiteDB tips" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/10/25/13/57/lunch-box-200762_1280.jpg#1280#720">LiteDB is a lightweight, C#-native embedded NoSQL database ideal for .NET desktop tools. It stores documents and attachments in a single file, supports indexes and transactions, and avoids native dependencies. This article demonstrates CRUD operations, BSON queries, LINQ limitations, and application-side joins.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>開發 .NET 桌面小工具時，免不了會有保存資料的需求。若筆數不多查詢不複雜，我會選擇序列化存成 JSON 檔，這是最輕巧簡便的選擇，不需第三方程式庫，資料檔還可直接人工檢視修改；若筆數偏多或涉及複雜查詢、更新或統計，我則會改用 SQLite，免安裝設定就有與 SQL/Oracle/Postgres/MySQL 同等級的關聯式資料庫功能，甚至還能把零散檔案一起放進資料庫，隨資料同步增刪，小缺點是 SQLite 通常要透過 EntityFramework / Dapper 存取，複雜度略高，加上 SQLite 依賴 C 寫的原生程式庫，部署成單一檔案桌面工具或跨平台時要花點心思處理。</p> <p>介於以上兩種資料規模之間，還有一類需求，偏向文件保存性質，筆數多到存成 JSON 太肥或需要收納零散檔案，但沒有複雜 JOIN 查詢或彙整統計需求，不需動用 SQLite。針對這類情境，有沒有 C# 原生開發的簡單資料庫，提供基本索引功能加速查詢、用單一檔案保存資料及附加檔案、使用起來比 SQLite 簡單且不依賴原生程式庫？</p> <p><a href="https://www.litedb.org/">LiteDB</a> 剛好是切中這類情境的優秀選項。</p> <p>LiteDB 是一套以 C# 開發的 Embedded NoSQL Document Database，從 2010 年代開始發展，定位介於 SQLite 與 MongoDB 之間：跟 SQLite 一樣不需要獨立的資料庫伺服器，以單一檔案儲存資料；但本質上則類似 MongoDB 的 Document 模型，適合 .NET 應用程式保存結構較彈性的資料。LiteDB 從 5.0 版加入 WAL、Transaction、多 Reader、Index 等能力，足以應付日常資料保存需求。</p> <p>以下是個簡單應用範例，LiteDB 程式寫起來比 SQLite 稍稍簡單一些，但配合 LINQ 查詢時有個重要觀念 - LiteDB 會將資料轉成 BSON 格式儲存，可運用 BSON 查詢語法更有效率地找到資料。但正如有些 LINQ 條件無法被轉成 SQL 語法便不能直接在 IQueryable / EF.Core 使用 <a href="https://learn.microsoft.com/zh-tw/ef/core/querying/how-query-works?WT.mc_id=DOP-MVP-37580">參考</a>，LiteDB 有自己一套 Query.EQ、Query.GT... 等方法，若 C# 寫法無法直接轉換成 BSON 查詢，就需改用 BSON 表示式或先載入記憶體再處理境。這部分不難，但要花點時間了解才好上手。<a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/#42_%E6%A0%B9%E6%93%9A%E6%A2%9D%E4%BB%B6%E6%9F%A5%E8%A9%A2_Find_with_Query">參考</a></p> <p>補充說明我寫在註解裡，大家直接看 Code 吧!</p> <pre><code>using LiteDB;
+var dbPath = "MyData.db";
+if (File.Exists(dbPath)) File.Delete(dbPath); // 每次刪除資料檔重新建立
+using var db = new LiteDatabase(dbPath);
+var players = db.GetCollection&lt;Player&gt;("players");
+var skills = db.GetCollection&lt;Skill&gt;("skills");
+// 新增 Skill
+skills.Insert(new Skill { Id = "CS", Name = "C#" });
+skills.Insert(new Skill { Id = "TS", Name = "TypeScript" });
+skills.Insert(new Skill { Id = "JS", Name = "JavaScript" });
+skills.Insert(new Skill { Id = "PY", Name = "Python" });
+var jeffrey = new Player
+{
+Name = "Jeffrey",
+SkillIds = new string[] { "CS", "JS" },
+RegDate = DateTime.Now,
+IsActive = true
+};
+players.Insert(jeffrey);
+var retired = new Player {
+Name = "Bob",
+SkillIds = new string[] { "JS" },
+RegDate = DateTime.Now,
+IsActive = false
+};
+players.Insert(retired);
+var llm = new Player
+{
+Name = "LLM",
+SkillIds = skills.FindAll().Select(s =&gt; s.Id).ToArray(),
+RegDate = DateTime.Now,
+IsActive = true
+};
+players.Insert(llm);
+// 使用 FindOne 查詢
+var found = players.FindOne(p =&gt; p.Name == "Jeffrey");
+Console.WriteLine($"Found Player: {found.Id}. {found?.Name}");
+// 使用 LINQ 查詢所有 Active 玩家姓名
+var activePlayers = players.Query().Where(p =&gt; p.IsActive).Select(p =&gt; p.Name).ToList();
+Console.WriteLine($"
+Active Players: {string.Join(", ", activePlayers)}");
+// 建立索引
+players.EnsureIndex(p =&gt; p.SkillIds);
+// 使用 Query.EQ 查詢，可善用索引提高查詢效能
+var jsPlayers = players.Find(Query.EQ(nameof(Player.SkillIds), "JS")).ToList();
+// 注意：不是所有 LINQ 方法都能直接轉換成 LiteDB 的 BSON 查詢，例如：
+// players.Query().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
+// Contains 不在支援之列，會產生錯誤：
+//   Method Contains not available to convert to BsonExpression
+//   (op_Implicit(Convert(p.SkillIds, String[])).Contains("JS")).
+// 另個解法是先將資料載入記憶體再查，但效能較差
+// players.Query().ToList().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
+Console.WriteLine($"
+JS Players: {string.Join(", ", jsPlayers.Select(p =&gt; p.Name))}");
+// LiteDB 不直接支援 JOIN 查詢，但可在程式端用 LINQ 操作
+// LiteDB 會盡可能翻成 BSON 查詢，不行的話會載入記憶體再處理，效能不能跟 SQLite 相提並論
+// 建議自己用 Dictionary 處理以確保效能，避免在 LINQ 裡反覆搜尋 LiteDB
+var skillNames = skills.FindAll().ToDictionary(s =&gt; s.Id, s =&gt; s.Name);
+var list = players.Query()
+.ToList()
+.Select(p =&gt; new
+{
+PlayerName = p.Name,
+Skills = p.SkillIds
+.Where(skillNames.ContainsKey)
+.Select(id =&gt; skillNames[id])
+.ToArray()
+})
+.ToList();
+foreach (var item in list)
+{
+Console.WriteLine($" - Player [{item.PlayerName}]: {string.Join(", ", item.Skills)}");
+}
+Console.WriteLine("
+After Deletions:");
+// 示範刪除及更新
+players.Delete(jeffrey.Id);
+// 亦可用條件批次刪除
+players.DeleteMany(p =&gt; p.IsActive == false);
+// 若是直接使用 LiteDB 的 Query 物件，效果相同
+players.DeleteMany(Query.EQ(nameof(Player.IsActive), false));
+var editEnt = players.FindOne(p =&gt; p.Name == "LLM");
+if (editEnt != null) {
+editEnt.Name = "Skynet";
+players.Update(editEnt);
+}
+foreach (var p in players.FindAll())
+{
+Console.WriteLine($" - Player: {p.Id}. {p.Name}");
+}
+public class Player
+{
+// 取名 Id 自動成為 PK，int/long 會自動跳號
+public  int Id { get; set; }
+public required string Name { get; set; }
+public required string[] SkillIds { get; set; }
+public DateTime RegDate { get; set; }
+public bool IsActive { get; set; }
+}
+public class Skill
+{
+// LiteDB 支援 int/long/Guid/objectId/string 作為 PK
+// 名稱包含 Id 會自動被視為 PK，亦可用 [BsonId] 標註
+// 完全不宣告時底層會建立 _id，但無法 FindById/Update/Delete 故不建議
+public required string Id { get; set; }
+public required string Name { get; set; }
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"></p> <p>【延伸閱讀】</p> <ul><li><a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/">C# LiteDB 全方位教學 - C# Libraries</a></li> <li><a href="https://dotblogs.com.tw/supershowwei/2018/04/25/230600">輕巧方便的 LiteDB by 軟體廚房</a></li></ul> <p data-slug="litedb" data-title-en="LiteDB tips" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/10/25/13/57/lunch-box-200762_1280.jpg#1280#720">LiteDB is a lightweight, C#-native embedded NoSQL database ideal for .NET desktop tools. It stores documents and attachments in a single file, supports indexes and transactions, and avoids native dependencies. This article demonstrates CRUD operations, BSON queries, LINQ limitations, and application-side joins.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp" medium="image"/>
+    <pubDate>Thu, 24 Sep 2026 12:48:22 GMT</pubDate>
+  </item><item>
     <title><![CDATA[VSCode / Github Copliot 透過 LiteLLM 轉接雲端/地端 AI 模型]]></title>
     <link>https://blog.darkthread.net/blog/github-copilot-w-litellm/</link>
     <itunes:title><![CDATA[VSCode / Github Copliot 透過 LiteLLM 轉接雲端/地端 AI 模型]]></itunes:title>
@@ -942,20 +1278,5 @@ Run 'docker run --help' for more information
 </code></pre> <p>這題沒有簡單解法，要走多套一層 Proxy 之類的把戲，之後再分享。</p> <p data-slug="ubuntu-2404-ca-cert-issue" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360"> </p>]]></content:encoded>
     
     <pubDate>Fri, 04 Sep 2026 13:54:39 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[新手機 S25 Ultra 入手心得]]></title>
-    <link>https://blog.darkthread.net/blog/s25-ultra/</link>
-    <itunes:title><![CDATA[新手機 S25 Ultra 入手心得]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>繼續嚴守<a href="/blog/dell-p3225qe/">敗家要 PO 文</a>紀律，<a href="/blog/fifine-k688/">無三不成禮</a>，再來一發!</p> <p>2022 年購入的兩支 S21 FE 今年在不到半年間接連<a href="https://www.facebook.com/share/p/1H3LV5g85y/">冒出綠線比翼雙飛</a>。太座的手機先壞，閃電換了 S25 Ultra，主要是目前價格已從定價跌掉一萬五，不到三萬入手入手前一代旗艦感覺挺划算。</p> <p>輪到我的手機壞掉，也是優先考慮 S25 Ultra (這裡有個直男易踩陷阱，若選擇更平價機型恐有影射女方奢侈之嫌，記得做出正確判斷)，本先觀望了一陣子想再等降價，但依目前記憶體漲勢，等等黨早已潰不成軍，前陣子電商平台還賣到斷貨，最後在家裡附近的連鎖通訊行開到現金價再便宜兩千價格，算算還行就入手了。(在通訊行排隊時，驚訝發現通訊行的服務項目真廣泛，買新手機幫你做資料移轉、教你 LINE 帳號被盜怎麼辦，是一些長輩不可或缺的好夥伴。)</p> <p>網路上的精美評比、開箱文章影片汗牛充棟，我就不班門弄斧，用這張照片交差。S21 FE 的 CPU 不算高階，S25 Ultra 則是去年旗艦，我沒在玩遊戲不懂門道 (查資料二者跑分相差二到三倍，製程由 5 奈米改成 3 奈米，發熱問題明顯改善)，但手機滑起來的順暢度確實有差。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639235752553419856.jpg" alt="thumbnail"></p> <p>分享本次換機過程的一些眉角與踩坑：</p> <ul><li>Samsung 有個 Smart Switch 工具，可以無縫轉移 App 及設定，等個一小時，舊手機 App 與帳號設定便能在新手機重現，連桌面圖示位置都精準還原。BUT! 基於安全，大部分 App 要重新登入、認證裝置、設定生物識別快速登入，一輪設完花了我超過一小時。(狂收 OTP 簡訊數十則)</li> <li>LINE 的帳號移動功能不完整，雖然掃 QRCode 就能把帳號、好友、群組帶過去，但聊天室記錄只有文字訊息，照片、影片、語音不會搬過去，導致想回顧歷史對話記錄，照片部分要考驗記憶與推理。靠付費會員的進階備份功能才能完整移轉聊天室內容(難怪<a href="https://money.udn.com/money/story/124512/9717222?dark_mode=1">陳幸妤跟小孩改用 Discord</a>)，發現 Premium 有免費一個月，就開了訂閱能完整搬家再說。 <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639235752696142702.webp"></li> <li>LINE 聊天室資料量超乎預期，超過 5G，而備份速度比預期慢，我家上行頻寬 40 Mbps (約 5MB/s)，理論上限為每小時 18G，但實測備 5G 需 4 小時。<br> 至於誰吃掉空間得靠 Premium 進階備份的管理空間功能才容易分析，主要是被一堆照片、影片佔用，我的案例許多一次性轉傳用完可拋，但看不到就無從清理。因為 App 的安全原則無法自由檢視，官方沒內建要課金才有，有種「我的資料不是我的資料」的哀傷，但是這是雲端與 App 安全時代的潮流吧。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639235752557381271.webp"></li> <li>買錯保護貼後才發現，過去 S21 FE 也有螢幕指紋解鎖，但 S21 FE 版較陽春用的是光學指紋識別，正常版乃至於新版是用超音波指紋識別，當玻璃保護貼太厚會完全失效。故買保護貼時要挑強調「指紋秒解」的款式，這是繳學費得到的知識。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639235752559961982.jpg"><br> 而且，即便強調秒解，還是常會因手指太乾失效，失敗時設法沾點水或皮膚油脂(手汗族或臉易出油體質的意外優勢)可改善，再不行就要考慮數鈔票舔手指的招式了(大誤)。</li> <li>指紋識別之外的常用生物識別技術解鎖是臉孔識別，但目前只有 Apple FaceID 有用 3D 結構光技術(投射 30,000 個隱形紅外線點，建立臉部 3D 深度模型)，Android 手機是靠鏡頭 2D 解析，安全等級及防偽性較差，許多行動支付、銀行 App 不接受，建議只用於解鎖螢幕。</li> <li>實際經歷才學到的冷知識：生物識別設定修改後(包含增刪手指)，行動支援、銀行 App 的快速登入都要重設一次... 修改前要有心理準備跟預留時間。</li></ul> <p data-slug="s25-ultra" data-fbimg="https://i.postimg.cc/HsJ84g9N/image.png#800#800"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>繼續嚴守<a href="/blog/dell-p3225qe/">敗家要 PO 文</a>紀律，<a href="/blog/fifine-k688/">無三不成禮</a>，再來一發!</p> <p>2022 年購入的兩支 S21 FE 今年在不到半年間接連<a href="https://www.facebook.com/share/p/1H3LV5g85y/">冒出綠線比翼雙飛</a>。太座的手機先壞，閃電換了 S25 Ultra，主要是目前價格已從定價跌掉一萬五，不到三萬入手入手前一代旗艦感覺挺划算。</p> <p>輪到我的手機壞掉，也是優先考慮 S25 Ultra (這裡有個直男易踩陷阱，若選擇更平價機型恐有影射女方奢侈之嫌，記得做出正確判斷)，本先觀望了一陣子想再等降價，但依目前記憶體漲勢，等等黨早已潰不成軍，前陣子電商平台還賣到斷貨，最後在家裡附近的連鎖通訊行開到現金價再便宜兩千價格，算算還行就入手了。(在通訊行排隊時，驚訝發現通訊行的服務項目真廣泛，買新手機幫你做資料移轉、教你 LINE 帳號被盜怎麼辦，是一些長輩不可或缺的好夥伴。)</p> <p>網路上的精美評比、開箱文章影片汗牛充棟，我就不班門弄斧，用這張照片交差。S21 FE 的 CPU 不算高階，S25 Ultra 則是去年旗艦，我沒在玩遊戲不懂門道 (查資料二者跑分相差二到三倍，製程由 5 奈米改成 3 奈米，發熱問題明顯改善)，但手機滑起來的順暢度確實有差。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639235752553419856.jpg" alt="thumbnail"></p> <p>分享本次換機過程的一些眉角與踩坑：</p> <ul><li>Samsung 有個 Smart Switch 工具，可以無縫轉移 App 及設定，等個一小時，舊手機 App 與帳號設定便能在新手機重現，連桌面圖示位置都精準還原。BUT! 基於安全，大部分 App 要重新登入、認證裝置、設定生物識別快速登入，一輪設完花了我超過一小時。(狂收 OTP 簡訊數十則)</li> <li>LINE 的帳號移動功能不完整，雖然掃 QRCode 就能把帳號、好友、群組帶過去，但聊天室記錄只有文字訊息，照片、影片、語音不會搬過去，導致想回顧歷史對話記錄，照片部分要考驗記憶與推理。靠付費會員的進階備份功能才能完整移轉聊天室內容(難怪<a href="https://money.udn.com/money/story/124512/9717222?dark_mode=1">陳幸妤跟小孩改用 Discord</a>)，發現 Premium 有免費一個月，就開了訂閱能完整搬家再說。 <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639235752696142702.webp"></li> <li>LINE 聊天室資料量超乎預期，超過 5G，而備份速度比預期慢，我家上行頻寬 40 Mbps (約 5MB/s)，理論上限為每小時 18G，但實測備 5G 需 4 小時。<br> 至於誰吃掉空間得靠 Premium 進階備份的管理空間功能才容易分析，主要是被一堆照片、影片佔用，我的案例許多一次性轉傳用完可拋，但看不到就無從清理。因為 App 的安全原則無法自由檢視，官方沒內建要課金才有，有種「我的資料不是我的資料」的哀傷，但是這是雲端與 App 安全時代的潮流吧。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639235752557381271.webp"></li> <li>買錯保護貼後才發現，過去 S21 FE 也有螢幕指紋解鎖，但 S21 FE 版較陽春用的是光學指紋識別，正常版乃至於新版是用超音波指紋識別，當玻璃保護貼太厚會完全失效。故買保護貼時要挑強調「指紋秒解」的款式，這是繳學費得到的知識。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639235752559961982.jpg"><br> 而且，即便強調秒解，還是常會因手指太乾失效，失敗時設法沾點水或皮膚油脂(手汗族或臉易出油體質的意外優勢)可改善，再不行就要考慮數鈔票舔手指的招式了(大誤)。</li> <li>指紋識別之外的常用生物識別技術解鎖是臉孔識別，但目前只有 Apple FaceID 有用 3D 結構光技術(投射 30,000 個隱形紅外線點，建立臉部 3D 深度模型)，Android 手機是靠鏡頭 2D 解析，安全等級及防偽性較差，許多行動支付、銀行 App 不接受，建議只用於解鎖螢幕。</li> <li>實際經歷才學到的冷知識：生物識別設定修改後(包含增刪手指)，行動支援、銀行 App 的快速登入都要重設一次... 修改前要有心理準備跟預留時間。</li></ul> <p data-slug="s25-ultra" data-fbimg="https://i.postimg.cc/HsJ84g9N/image.png#800#800"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>繼續嚴守<a href="/blog/dell-p3225qe/">敗家要 PO 文</a>紀律，<a href="/blog/fifine-k688/">無三不成禮</a>，再來一發!</p> <p>2022 年購入的兩支 S21 FE 今年在不到半年間接連<a href="https://www.facebook.com/share/p/1H3LV5g85y/">冒出綠線比翼雙飛</a>。太座的手機先壞，閃電換了 S25 Ultra，主要是目前價格已從定價跌掉一萬五，不到三萬入手入手前一代旗艦感覺挺划算。</p> <p>輪到我的手機壞掉，也是優先考慮 S25 Ultra (這裡有個直男易踩陷阱，若選擇更平價機型恐有影射女方奢侈之嫌，記得做出正確判斷)，本先觀望了一陣子想再等降價，但依目前記憶體漲勢，等等黨早已潰不成軍，前陣子電商平台還賣到斷貨，最後在家裡附近的連鎖通訊行開到現金價再便宜兩千價格，算算還行就入手了。(在通訊行排隊時，驚訝發現通訊行的服務項目真廣泛，買新手機幫你做資料移轉、教你 LINE 帳號被盜怎麼辦，是一些長輩不可或缺的好夥伴。)</p> <p>網路上的精美評比、開箱文章影片汗牛充棟，我就不班門弄斧，用這張照片交差。S21 FE 的 CPU 不算高階，S25 Ultra 則是去年旗艦，我沒在玩遊戲不懂門道 (查資料二者跑分相差二到三倍，製程由 5 奈米改成 3 奈米，發熱問題明顯改善)，但手機滑起來的順暢度確實有差。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639235752553419856.jpg" alt="thumbnail"></p> <p>分享本次換機過程的一些眉角與踩坑：</p> <ul><li>Samsung 有個 Smart Switch 工具，可以無縫轉移 App 及設定，等個一小時，舊手機 App 與帳號設定便能在新手機重現，連桌面圖示位置都精準還原。BUT! 基於安全，大部分 App 要重新登入、認證裝置、設定生物識別快速登入，一輪設完花了我超過一小時。(狂收 OTP 簡訊數十則)</li> <li>LINE 的帳號移動功能不完整，雖然掃 QRCode 就能把帳號、好友、群組帶過去，但聊天室記錄只有文字訊息，照片、影片、語音不會搬過去，導致想回顧歷史對話記錄，照片部分要考驗記憶與推理。靠付費會員的進階備份功能才能完整移轉聊天室內容(難怪<a href="https://money.udn.com/money/story/124512/9717222?dark_mode=1">陳幸妤跟小孩改用 Discord</a>)，發現 Premium 有免費一個月，就開了訂閱能完整搬家再說。 <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639235752696142702.webp"></li> <li>LINE 聊天室資料量超乎預期，超過 5G，而備份速度比預期慢，我家上行頻寬 40 Mbps (約 5MB/s)，理論上限為每小時 18G，但實測備 5G 需 4 小時。<br> 至於誰吃掉空間得靠 Premium 進階備份的管理空間功能才容易分析，主要是被一堆照片、影片佔用，我的案例許多一次性轉傳用完可拋，但看不到就無從清理。因為 App 的安全原則無法自由檢視，官方沒內建要課金才有，有種「我的資料不是我的資料」的哀傷，但是這是雲端與 App 安全時代的潮流吧。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639235752557381271.webp"></li> <li>買錯保護貼後才發現，過去 S21 FE 也有螢幕指紋解鎖，但 S21 FE 版較陽春用的是光學指紋識別，正常版乃至於新版是用超音波指紋識別，當玻璃保護貼太厚會完全失效。故買保護貼時要挑強調「指紋秒解」的款式，這是繳學費得到的知識。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639235752559961982.jpg"><br> 而且，即便強調秒解，還是常會因手指太乾失效，失敗時設法沾點水或皮膚油脂(手汗族或臉易出油體質的意外優勢)可改善，再不行就要考慮數鈔票舔手指的招式了(大誤)。</li> <li>指紋識別之外的常用生物識別技術解鎖是臉孔識別，但目前只有 Apple FaceID 有用 3D 結構光技術(投射 30,000 個隱形紅外線點，建立臉部 3D 深度模型)，Android 手機是靠鏡頭 2D 解析，安全等級及防偽性較差，許多行動支付、銀行 App 不接受，建議只用於解鎖螢幕。</li> <li>實際經歷才學到的冷知識：生物識別設定修改後(包含增刪手指)，行動支援、銀行 App 的快速登入都要重設一次... 修改前要有心理準備跟預留時間。</li></ul> <p data-slug="s25-ultra" data-fbimg="https://i.postimg.cc/HsJ84g9N/image.png#800#800"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig4_639235752553419856.jpg"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig4_639235752553419856.jpg" medium="image"/>
-    <pubDate>Sat, 29 Aug 2026 04:41:05 GMT</pubDate>
   </item></channel>
 </rss>
