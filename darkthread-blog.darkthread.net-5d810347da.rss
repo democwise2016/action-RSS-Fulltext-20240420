@@ -30,6 +30,237 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[.NET AI 應用練習 1 - 整合 MCP]]></title>
+    <link>https://blog.darkthread.net/blog/mslearn-mcp-w-dotnet/</link>
+    <itunes:title><![CDATA[.NET AI 應用練習 1 - 整合 MCP]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>雖說現在寫程式有 AI，程式語言不一定要綁死開發者(或者該說使用者)本身的技能，但只要還需要「人」參與協作(包含 Code Review、修改及除錯)，選開發者擅長的語言多半還是利多於弊。基於這個理念，這系列文章我會以 C# 開發者視角，整理 .NET 開發 AI 應用程式範例，打算留在這個航道上的同學可以參考。</p> <p>微軟針對 AI 應用開發有提供了一系列 .NET 官方框架或程式庫(MAF/MEAI/ONNX... 還不認識的同學可看這篇：<a href="/blog/dotnet-ai-guide/">.NET 開發 AI 應用程式之新手指南</a>)，本系列也會以其為基礎出發。</p> <p>第一個練習來試試用 .NET 整合 MCP 服務，輔助 AI 執行作業或回答問題，我選的練習對象是為 AI Coding 提供微軟官方文件的 <a href="/blog/ms-learn-mcp/">MS Learn MCP</a>。</p> <p>程式運作概念很簡單，用 MEAI 建立 IChatClient，開啟自動調用工具功能(.UseFunctionInvocation())，生成回應時一併傳入 MS Learn MCP 提供的工具清單，MEAI 程式庫呼叫 AI 模型時，模型將視需要使用 MS Learn MCP 提供的工具查詢官方文件或程式範例，據以生成回答。</p> <p>Microsoft Learn 為遠端 HTTP MCP Server，故用 McpClient.CreateAsync() 傳入 URL 即可建立 McpClient 物件，不需特別在本機跑網站或服務，而 McpClient 型別有個 .ListToolsAsync() 方法可傳回 McpClientTool 型別的工具清單，將其列為聊天時傳入的工具項目，MEAI 便會在背後幫我們搞定呼叫工具、將執行結果餵給 AI 模型... 等繁瑣細節，輕鬆整合 MCP。</p> <p>範例程式是<a href="/blog/foundry-models-with-litellm/">透過 LiteLLM 存取 gpt-5.6-luna 模型</a>，專案有用到以下套件：DotNetEnv、Microsoft.Extensions.AI、Microsoft.Extensions.AI.OpenAI、ModelContextProtocol、OpenAI。複雜的部分 MEAI 已包辦，要寫的程式不多，不到 100 行搞定。</p> <pre><code>using System.ClientModel;
+using System.Diagnostics;
+using DotNetEnv;
+using Microsoft.Extensions.AI;
+using ModelContextProtocol.Client;
+using OpenAI;
+Env.Load();
+// 以 LiteLLM Azure Provider 為例
+var apiKey = Environment.GetEnvironmentVariable("LITELLM_KEY") ??
+throw new InvalidOperationException("LITELLM_KEY environment variable is not set.");
+var liteLlmUrl = Environment.GetEnvironmentVariable("LITELLM_URL") ??
+throw new InvalidOperationException("LITELLM_URL environment variable is not set.");
+var endpoint = liteLlmUrl.TrimEnd('/') + "/v1";
+// Microsoft Learn 是遠端 HTTP MCP Server，不需要跑本機程序
+await using var learnMcpClient = await McpClient.CreateAsync(
+new HttpClientTransport(
+new HttpClientTransportOptions
+{
+Endpoint = new Uri(
+"https://learn.microsoft.com/api/mcp")
+}));
+// 呼叫 MCP 方法取得所有工具列表
+IList&lt;McpClientTool&gt; learnTools = await learnMcpClient.ListToolsAsync();
+// 觀察 MCP 之工具列表
+if (args.Any(o =&gt; o == "--list-mcp-tools"))
+{
+Console.WriteLine("Microsoft Learn MCP 工具列表:");
+foreach (var tool in learnTools)
+{
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"- {tool.Name}");
+Console.ResetColor();
+Console.WriteLine($"  {tool.Description}");
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"{tool.JsonSchema}");
+Console.ResetColor();
+}
+return;
+}
+IChatClient chatClient = new OpenAIClient(
+new ApiKeyCredential(apiKey),
+new OpenAIClientOptions { Endpoint = new Uri(endpoint) })
+.GetChatClient("gpt-5.6-luna")
+.AsIChatClient().AsBuilder()
+// 啟用自動化調用工具功能。自動解析 AI 回應工具請求，執行相應工具呼叫，並將結果返回給 AI。
+.UseFunctionInvocation()
+.Build();
+const string systemPrompt = """
+你是 Microsoft 技術文件助理。回答時請優先使用 Microsoft Learn MCP 工具搜尋官方文件與程式碼範例。
+遵循以下規則：
+1. 使用繁體中文。
+2. 不要捏造 API。
+3. 明確列出參考文件的標題與 URL。
+4. 如果文件內容不足，請直接說明。
+""";
+const string userQuery = "查詢 Microsoft 官方文件，提供以 MEAI 連接 OpenAI API 回答問題的最精簡範例及參考網址。";
+var sw = new Stopwatch();
+sw.Start();
+var response = await chatClient.GetResponseAsync(
+new List&lt;ChatMessage&gt;
+{
+new(ChatRole.System, systemPrompt),
+new(ChatRole.User, userQuery)
+},
+new ChatOptions
+{
+// 將 MCP 提供工具清單設為聊天的可用工具
+Tools = [.. learnTools]
+});
+sw.Stop();
+Console.WriteLine($"Response time: {sw.ElapsedMilliseconds} ms");
+Console.WriteLine(response.Text);
+</code></pre> <p>程式多加了一個 --list-mcp-tools 參數可用來偷看 MS Learn MCP 是如何定義 microsoft_docs_search、microsoft_code_sample_search、microsoft_docs_fetch 這幾個工具函式。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639259390046537248.webp"></p> <p>實測 gpt-5.6-luna 模型確實調用了 MS Learn MCP 取得程式範例及參考連結生成回答，成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639259390048431030.webp"></p> <p data-slug="mslearn-mcp-w-dotnet" data-title-en="Building .NET AI application with MEAI and MSLearn MCP" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/17/01/people-2566684_960_720.jpg#960#720">Build a .NET AI application using MEAI and Microsoft Learn MCP. The C# example automatically invokes remote MCP tools to search official documentation and code samples, enabling an OpenAI-compatible model to generate reliable, referenced answers.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>雖說現在寫程式有 AI，程式語言不一定要綁死開發者(或者該說使用者)本身的技能，但只要還需要「人」參與協作(包含 Code Review、修改及除錯)，選開發者擅長的語言多半還是利多於弊。基於這個理念，這系列文章我會以 C# 開發者視角，整理 .NET 開發 AI 應用程式範例，打算留在這個航道上的同學可以參考。</p> <p>微軟針對 AI 應用開發有提供了一系列 .NET 官方框架或程式庫(MAF/MEAI/ONNX... 還不認識的同學可看這篇：<a href="/blog/dotnet-ai-guide/">.NET 開發 AI 應用程式之新手指南</a>)，本系列也會以其為基礎出發。</p> <p>第一個練習來試試用 .NET 整合 MCP 服務，輔助 AI 執行作業或回答問題，我選的練習對象是為 AI Coding 提供微軟官方文件的 <a href="/blog/ms-learn-mcp/">MS Learn MCP</a>。</p> <p>程式運作概念很簡單，用 MEAI 建立 IChatClient，開啟自動調用工具功能(.UseFunctionInvocation())，生成回應時一併傳入 MS Learn MCP 提供的工具清單，MEAI 程式庫呼叫 AI 模型時，模型將視需要使用 MS Learn MCP 提供的工具查詢官方文件或程式範例，據以生成回答。</p> <p>Microsoft Learn 為遠端 HTTP MCP Server，故用 McpClient.CreateAsync() 傳入 URL 即可建立 McpClient 物件，不需特別在本機跑網站或服務，而 McpClient 型別有個 .ListToolsAsync() 方法可傳回 McpClientTool 型別的工具清單，將其列為聊天時傳入的工具項目，MEAI 便會在背後幫我們搞定呼叫工具、將執行結果餵給 AI 模型... 等繁瑣細節，輕鬆整合 MCP。</p> <p>範例程式是<a href="/blog/foundry-models-with-litellm/">透過 LiteLLM 存取 gpt-5.6-luna 模型</a>，專案有用到以下套件：DotNetEnv、Microsoft.Extensions.AI、Microsoft.Extensions.AI.OpenAI、ModelContextProtocol、OpenAI。複雜的部分 MEAI 已包辦，要寫的程式不多，不到 100 行搞定。</p> <pre><code>using System.ClientModel;
+using System.Diagnostics;
+using DotNetEnv;
+using Microsoft.Extensions.AI;
+using ModelContextProtocol.Client;
+using OpenAI;
+Env.Load();
+// 以 LiteLLM Azure Provider 為例
+var apiKey = Environment.GetEnvironmentVariable("LITELLM_KEY") ??
+throw new InvalidOperationException("LITELLM_KEY environment variable is not set.");
+var liteLlmUrl = Environment.GetEnvironmentVariable("LITELLM_URL") ??
+throw new InvalidOperationException("LITELLM_URL environment variable is not set.");
+var endpoint = liteLlmUrl.TrimEnd('/') + "/v1";
+// Microsoft Learn 是遠端 HTTP MCP Server，不需要跑本機程序
+await using var learnMcpClient = await McpClient.CreateAsync(
+new HttpClientTransport(
+new HttpClientTransportOptions
+{
+Endpoint = new Uri(
+"https://learn.microsoft.com/api/mcp")
+}));
+// 呼叫 MCP 方法取得所有工具列表
+IList&lt;McpClientTool&gt; learnTools = await learnMcpClient.ListToolsAsync();
+// 觀察 MCP 之工具列表
+if (args.Any(o =&gt; o == "--list-mcp-tools"))
+{
+Console.WriteLine("Microsoft Learn MCP 工具列表:");
+foreach (var tool in learnTools)
+{
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"- {tool.Name}");
+Console.ResetColor();
+Console.WriteLine($"  {tool.Description}");
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"{tool.JsonSchema}");
+Console.ResetColor();
+}
+return;
+}
+IChatClient chatClient = new OpenAIClient(
+new ApiKeyCredential(apiKey),
+new OpenAIClientOptions { Endpoint = new Uri(endpoint) })
+.GetChatClient("gpt-5.6-luna")
+.AsIChatClient().AsBuilder()
+// 啟用自動化調用工具功能。自動解析 AI 回應工具請求，執行相應工具呼叫，並將結果返回給 AI。
+.UseFunctionInvocation()
+.Build();
+const string systemPrompt = """
+你是 Microsoft 技術文件助理。回答時請優先使用 Microsoft Learn MCP 工具搜尋官方文件與程式碼範例。
+遵循以下規則：
+1. 使用繁體中文。
+2. 不要捏造 API。
+3. 明確列出參考文件的標題與 URL。
+4. 如果文件內容不足，請直接說明。
+""";
+const string userQuery = "查詢 Microsoft 官方文件，提供以 MEAI 連接 OpenAI API 回答問題的最精簡範例及參考網址。";
+var sw = new Stopwatch();
+sw.Start();
+var response = await chatClient.GetResponseAsync(
+new List&lt;ChatMessage&gt;
+{
+new(ChatRole.System, systemPrompt),
+new(ChatRole.User, userQuery)
+},
+new ChatOptions
+{
+// 將 MCP 提供工具清單設為聊天的可用工具
+Tools = [.. learnTools]
+});
+sw.Stop();
+Console.WriteLine($"Response time: {sw.ElapsedMilliseconds} ms");
+Console.WriteLine(response.Text);
+</code></pre> <p>程式多加了一個 --list-mcp-tools 參數可用來偷看 MS Learn MCP 是如何定義 microsoft_docs_search、microsoft_code_sample_search、microsoft_docs_fetch 這幾個工具函式。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639259390046537248.webp"></p> <p>實測 gpt-5.6-luna 模型確實調用了 MS Learn MCP 取得程式範例及參考連結生成回答，成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639259390048431030.webp"></p> <p data-slug="mslearn-mcp-w-dotnet" data-title-en="Building .NET AI application with MEAI and MSLearn MCP" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/17/01/people-2566684_960_720.jpg#960#720">Build a .NET AI application using MEAI and Microsoft Learn MCP. The C# example automatically invokes remote MCP tools to search official documentation and code samples, enabling an OpenAI-compatible model to generate reliable, referenced answers.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>雖說現在寫程式有 AI，程式語言不一定要綁死開發者(或者該說使用者)本身的技能，但只要還需要「人」參與協作(包含 Code Review、修改及除錯)，選開發者擅長的語言多半還是利多於弊。基於這個理念，這系列文章我會以 C# 開發者視角，整理 .NET 開發 AI 應用程式範例，打算留在這個航道上的同學可以參考。</p> <p>微軟針對 AI 應用開發有提供了一系列 .NET 官方框架或程式庫(MAF/MEAI/ONNX... 還不認識的同學可看這篇：<a href="/blog/dotnet-ai-guide/">.NET 開發 AI 應用程式之新手指南</a>)，本系列也會以其為基礎出發。</p> <p>第一個練習來試試用 .NET 整合 MCP 服務，輔助 AI 執行作業或回答問題，我選的練習對象是為 AI Coding 提供微軟官方文件的 <a href="/blog/ms-learn-mcp/">MS Learn MCP</a>。</p> <p>程式運作概念很簡單，用 MEAI 建立 IChatClient，開啟自動調用工具功能(.UseFunctionInvocation())，生成回應時一併傳入 MS Learn MCP 提供的工具清單，MEAI 程式庫呼叫 AI 模型時，模型將視需要使用 MS Learn MCP 提供的工具查詢官方文件或程式範例，據以生成回答。</p> <p>Microsoft Learn 為遠端 HTTP MCP Server，故用 McpClient.CreateAsync() 傳入 URL 即可建立 McpClient 物件，不需特別在本機跑網站或服務，而 McpClient 型別有個 .ListToolsAsync() 方法可傳回 McpClientTool 型別的工具清單，將其列為聊天時傳入的工具項目，MEAI 便會在背後幫我們搞定呼叫工具、將執行結果餵給 AI 模型... 等繁瑣細節，輕鬆整合 MCP。</p> <p>範例程式是<a href="/blog/foundry-models-with-litellm/">透過 LiteLLM 存取 gpt-5.6-luna 模型</a>，專案有用到以下套件：DotNetEnv、Microsoft.Extensions.AI、Microsoft.Extensions.AI.OpenAI、ModelContextProtocol、OpenAI。複雜的部分 MEAI 已包辦，要寫的程式不多，不到 100 行搞定。</p> <pre><code>using System.ClientModel;
+using System.Diagnostics;
+using DotNetEnv;
+using Microsoft.Extensions.AI;
+using ModelContextProtocol.Client;
+using OpenAI;
+Env.Load();
+// 以 LiteLLM Azure Provider 為例
+var apiKey = Environment.GetEnvironmentVariable("LITELLM_KEY") ??
+throw new InvalidOperationException("LITELLM_KEY environment variable is not set.");
+var liteLlmUrl = Environment.GetEnvironmentVariable("LITELLM_URL") ??
+throw new InvalidOperationException("LITELLM_URL environment variable is not set.");
+var endpoint = liteLlmUrl.TrimEnd('/') + "/v1";
+// Microsoft Learn 是遠端 HTTP MCP Server，不需要跑本機程序
+await using var learnMcpClient = await McpClient.CreateAsync(
+new HttpClientTransport(
+new HttpClientTransportOptions
+{
+Endpoint = new Uri(
+"https://learn.microsoft.com/api/mcp")
+}));
+// 呼叫 MCP 方法取得所有工具列表
+IList&lt;McpClientTool&gt; learnTools = await learnMcpClient.ListToolsAsync();
+// 觀察 MCP 之工具列表
+if (args.Any(o =&gt; o == "--list-mcp-tools"))
+{
+Console.WriteLine("Microsoft Learn MCP 工具列表:");
+foreach (var tool in learnTools)
+{
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine($"- {tool.Name}");
+Console.ResetColor();
+Console.WriteLine($"  {tool.Description}");
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine($"{tool.JsonSchema}");
+Console.ResetColor();
+}
+return;
+}
+IChatClient chatClient = new OpenAIClient(
+new ApiKeyCredential(apiKey),
+new OpenAIClientOptions { Endpoint = new Uri(endpoint) })
+.GetChatClient("gpt-5.6-luna")
+.AsIChatClient().AsBuilder()
+// 啟用自動化調用工具功能。自動解析 AI 回應工具請求，執行相應工具呼叫，並將結果返回給 AI。
+.UseFunctionInvocation()
+.Build();
+const string systemPrompt = """
+你是 Microsoft 技術文件助理。回答時請優先使用 Microsoft Learn MCP 工具搜尋官方文件與程式碼範例。
+遵循以下規則：
+1. 使用繁體中文。
+2. 不要捏造 API。
+3. 明確列出參考文件的標題與 URL。
+4. 如果文件內容不足，請直接說明。
+""";
+const string userQuery = "查詢 Microsoft 官方文件，提供以 MEAI 連接 OpenAI API 回答問題的最精簡範例及參考網址。";
+var sw = new Stopwatch();
+sw.Start();
+var response = await chatClient.GetResponseAsync(
+new List&lt;ChatMessage&gt;
+{
+new(ChatRole.System, systemPrompt),
+new(ChatRole.User, userQuery)
+},
+new ChatOptions
+{
+// 將 MCP 提供工具清單設為聊天的可用工具
+Tools = [.. learnTools]
+});
+sw.Stop();
+Console.WriteLine($"Response time: {sw.ElapsedMilliseconds} ms");
+Console.WriteLine(response.Text);
+</code></pre> <p>程式多加了一個 --list-mcp-tools 參數可用來偷看 MS Learn MCP 是如何定義 microsoft_docs_search、microsoft_code_sample_search、microsoft_docs_fetch 這幾個工具函式。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639259390046537248.webp"></p> <p>實測 gpt-5.6-luna 模型確實調用了 MS Learn MCP 取得程式範例及參考連結生成回答，成功!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639259390048431030.webp"></p> <p data-slug="mslearn-mcp-w-dotnet" data-title-en="Building .NET AI application with MEAI and MSLearn MCP" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/08/01/17/01/people-2566684_960_720.jpg#960#720">Build a .NET AI application using MEAI and Microsoft Learn MCP. The C# example automatically invokes remote MCP tools to search official documentation and code samples, enabling an OpenAI-compatible model to generate reliable, referenced answers.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639259390046537248.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639259390046537248.webp" medium="image"/>
+    <pubDate>Fri, 25 Sep 2026 13:14:35 GMT</pubDate>
+  </item><item>
     <title><![CDATA[介於 JSON 與 SQLite 的中間選擇 - LiteDB]]></title>
     <link>https://blog.darkthread.net/blog/litedb/</link>
     <itunes:title><![CDATA[介於 JSON 與 SQLite 的中間選擇 - LiteDB]]></itunes:title>
@@ -1192,91 +1423,5 @@ e.SetResponseBodyString(newBody);
     <content:encoded><![CDATA[<p>手邊沒設備沒機會實地玩 Qwen 3.8 27B 這類地端開源模型，沒吃過豬肉也要看過豬走路，無意滑到這支 YouTube 影片 - <a href="https://www.youtube.com/watch?v=-950rN-33eU">不用 5090，Mac 也能实现 Token 自由！Qwen3.8 27B 本地实测</a>，創作者新人首發，簡報動畫應為 AI 製作但樸素不花俏、解說口白慢到讓人心焦加上不斷吃螺絲，但我看了很是喜歡 😄 我愛這種真人實戰心得整理勝過 AI 吞一堆資料吐出精美卻沒靈魂的生成品。影片介紹在 Mac 64G 等級硬體跑 Qwen 3.8 27B 模型的一些實戰技巧，涵蓋不少地端跑模型必學術語，寫篇筆記整理一下。</p> <ul><li>Qwen 3.8 27B 模型量化版只有十幾 GB，能用 24GB Mac 跑嗎？乍看可以，但可能會遇到載入失敗、生成時記憶體不足、生成速度低於 10 Token，開了 MTP (一次預測多個 Token) 沒加速反而更慢，影片內容可幫助解答這些疑惑。</li> <li>影片展示在 Mac 完整部署 Qwen 3.8 27B，計算所需記憶體，決定採用的量化版本，使用 Hugging Face 平行下載工具先跑基礎版，再安裝 DFlash 2 加速。</li> <li>Qwen 3.8 27B 代表 270 億個參數，而 Qwen 3.8 屬於稠密模型(Dense Model)，每生成一個 Token 都要用到這 270 億個參數。 註：另一種類型是 MoE 混合專家模型(或稱 Sparse Model 稀疏模型)，處理每個 Token 時會透過門控網路 (Router/Gating Network) 只挑選少數幾個「專家層 (Experts)」參與運算，代表：Mixtral 8x7B、DeepSeek-V2/V3、Grok-1。</li> <li>MoE 35B-A3B 則為 MoE，35B-A3B 代表總共有 350 億個參數，但每次只選擇性激活 (Activate) 50 億個，計算量較小，記憶體需求較低速度較快。</li> <li>稠密模型的優點是所有能力都集中在同一套參數，在輸出穩定性、複雜任務和知識調用表現較好。</li> <li>本地模型規模簡單分類：3B ~ 8B 輕量模型，速度很快但無法勝任複雜任務；14B ~ 30B 能力較能處理複雜程式開發、文章生成和工具調用，以及 Agent 任務，是最實用的大小；70B+ 表現更好能力更強，但所需記憶體大小及頻寬一般個人電腦扛不住。</li> <li>Qwen 3.8 27B 在部分任務(如寫程式、調用工具)的表現已接近閉源模型，但無法完全取代閉源旗艦模型(尤其在開放推理、知識廣庿、長任務方面)。</li> <li>27B 使用 BF16 光原始權重就要 54GB，這還不包含 Cache、推理過程耗用的記憶體，64G Mac 只能放下權重，幾乎無法實際運行。</li> <li>以支援視覺版 Qwen 3.5 27B 模型 FP8 量化版為例，運行耗用記憶體包含： <ol><li>模型權限 (29GB)</li> <li>KV Cache (上下文狀態) 與上下文長度相關，32K = 2GB、64K = 4GB ... 256K = 16GB，這裡還沒算進線性注意力狀態</li> <li>計算過程的緩衝區，隨輸入長度和併發變化，第一次讀取大段 Pormpt 時會急速上升</li> <li>視覺編碼器 (只做純文字可省)</li> <li>DFlash2 草稿模型，啟用時再加 2B Drafter 總耗用量 = 權重 + Cache + Buffer + 系統 + Drafter FP8 版本至少 48G，建議 64G；若 UMA 只有 24G 或 32G，跑 FP4 已很拼(模型本身已 16G)。</li></ol> </li> <li>有 GGUF + llama.cpp 跟 MLX 兩種版本，Mac 建議用 MLX 有針對 Apple 晶片優化</li> <li>先跑基礎版，取得 Baseline 基準數據，再安裝 DFlash2 加速 (2B 草稿模型一次預測一組 Token，27B 主模型驗證，接受答案可省五六次模型)</li> <li>Baseline 數據：Load Time、Prompt tok/s、TTFT (第一個 Token 回應時間)、Decode tok/s</li> <li>草稿模式在 Mac 的主要實作叫 mlx-dspark 支援 DSpark/DFlash/DFlash2，用 <code>mlx-dspark benchmark --model Qwen3.8-27B-4bit --trials 3</code> 測試找出最佳參數，不同 CPU (M1/M3/M4/M5 不同)最佳參數不同。</li> <li>草稿接受率低時，主模型不斷拒絕和重新生成，反而更慢</li></ul> <p data-slug="run-qwen38-27b-on-mac" data-fbimg="https://i.imgur.com/lHaxDw3.jpg#1280#720"> </p>]]></content:encoded>
     
     <pubDate>Sat, 05 Sep 2026 08:29:05 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Ubuntu 24.04 信任自訂 CA 憑證問題]]></title>
-    <link>https://blog.darkthread.net/blog/ubuntu-2404-ca-cert-issue/</link>
-    <itunes:title><![CDATA[Ubuntu 24.04 信任自訂 CA 憑證問題]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>五年前分享過<a href="/blog/install-caroot-cert-in-linux/">如何在 Linux 信任自訂 CA 根憑證</a>，隨著作業系統及軟體版本更新，試裝 Ubuntu 24.04 遇到新狀況。</p> <h3>憑證金鑰強度不足</h3> <p>這些年，對於憑證金鑰長度要求變高，新版 OpenSSL Security Level 預設值調高為 2，RSA 金鑰長度至少要 2048。原本可被接受的 RSA 1024 Intermediate CA 會得到 CA certificate key too weak 錯誤。</p> <table><thead><tr><th>Security Level</th><th>RSA 最低強度概念</th></tr></thead><tbody><tr><td>Level 0</td><td>幾乎不限制</td></tr><tr><td>Level 1</td><td>約 80-bit security</td></tr><tr><td>Level 2</td><td>約 112-bit security</td></tr><tr><td>Level 3</td><td>約 128-bit security</td></tr><tr><td>Level 4</td><td>約 192-bit security</td></tr><tr><td>Level 5</td><td>約 256-bit security</td></tr></tbody></table> <p>即便信任了憑證，curl 仍會噴錯：</p> <pre><code>$curl https://www.google.com
-curl: (60) SSL certificate problem: CA certificate key too weak
-More details here: https://curl.se/docs/sslcerts.html
-curl failed to verify the legitimacy of the server and therefore could not
-establish a secure connection to it. To learn more about this situation and
-how to fix it, please visit the web page mentioned above.
-</code></pre> <p>若憑證一時無法換新，另個解決方向是調低 OpenSSL 門檻，恢復到 Security Level 1，修改方法是先用 <code>openssl version -d</code> 找到 OPENSSLDIR (如 <code>/usr/lib/ssl</code>) 下的 openssl.cnf，各版 Linux 的設計不同，Ubuntu 24.04 的修改方式如下：</p> <ol><li>循 openssl_conf = openssl_init 找到 [openssl_init]</li> <li>加上 ssl_conf = ssl_sect</li> <li>在檔案最後補上一段 <pre><code>[ssl_sect]
-system_default = system_default_sect
-[system_default_sect]
-MinProtocol = TLSv1.0
-CipherString = DEFAULT@SECLEVEL=1
-</code></pre> </li></ol> <h3>apt update 時憑證驗證失敗</h3> <p>即使信任過自訂 CA 根憑證也調成 SECLEVEL 1，apt update 時還是會出錯：</p> <pre><code>$sudo apt update
-Err:1 https://download.docker.com/linux/ubuntu noble InRelease
-Certificate verification failed: The certificate is NOT trusted.
-The certificate chain uses insecure algorithm.
-Could not handshake: Error in the certificate verification.
-https://download.docker.com/linux/ubuntu
-</code></pre> <p>解法是在 apt 指令加上參數不驗證 TLS 憑證：</p> <p><code>$sudo apt -o "Acquire::https::Verify-Peer=false" update</code></p> <h3>docker pull 反應憑證無效</h3> <p>docker pull 下載時抱怨憑證序號是負值。GO 1.23 起 crypto/x509 依規範要求序號必須為正整數，原本有個過渡參數 GODEBUG=x509netativeserial=1 可當 Workaround，但 1.24+ 拿掉了。</p> <pre><code>$ docker run hello-world
-Unable to find image 'hello-world:latest' locally
-docker: Error response from daemon: failed to resolve reference "docker.io/library/hello-world:latest":
-failed to authorize: failed to fetch anonymous token:
-Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fhello-world%3Apull&amp;service=registry.docker.io":
-tls: failed to parse certificate from server: x509: negative serial number
-Run 'docker run --help' for more information
-</code></pre> <p>這題沒有簡單解法，要走多套一層 Proxy 之類的把戲，之後再分享。</p> <p data-slug="ubuntu-2404-ca-cert-issue" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>五年前分享過<a href="/blog/install-caroot-cert-in-linux/">如何在 Linux 信任自訂 CA 根憑證</a>，隨著作業系統及軟體版本更新，試裝 Ubuntu 24.04 遇到新狀況。</p> <h3>憑證金鑰強度不足</h3> <p>這些年，對於憑證金鑰長度要求變高，新版 OpenSSL Security Level 預設值調高為 2，RSA 金鑰長度至少要 2048。原本可被接受的 RSA 1024 Intermediate CA 會得到 CA certificate key too weak 錯誤。</p> <table><thead><tr><th>Security Level</th><th>RSA 最低強度概念</th></tr></thead><tbody><tr><td>Level 0</td><td>幾乎不限制</td></tr><tr><td>Level 1</td><td>約 80-bit security</td></tr><tr><td>Level 2</td><td>約 112-bit security</td></tr><tr><td>Level 3</td><td>約 128-bit security</td></tr><tr><td>Level 4</td><td>約 192-bit security</td></tr><tr><td>Level 5</td><td>約 256-bit security</td></tr></tbody></table> <p>即便信任了憑證，curl 仍會噴錯：</p> <pre><code>$curl https://www.google.com
-curl: (60) SSL certificate problem: CA certificate key too weak
-More details here: https://curl.se/docs/sslcerts.html
-curl failed to verify the legitimacy of the server and therefore could not
-establish a secure connection to it. To learn more about this situation and
-how to fix it, please visit the web page mentioned above.
-</code></pre> <p>若憑證一時無法換新，另個解決方向是調低 OpenSSL 門檻，恢復到 Security Level 1，修改方法是先用 <code>openssl version -d</code> 找到 OPENSSLDIR (如 <code>/usr/lib/ssl</code>) 下的 openssl.cnf，各版 Linux 的設計不同，Ubuntu 24.04 的修改方式如下：</p> <ol><li>循 openssl_conf = openssl_init 找到 [openssl_init]</li> <li>加上 ssl_conf = ssl_sect</li> <li>在檔案最後補上一段 <pre><code>[ssl_sect]
-system_default = system_default_sect
-[system_default_sect]
-MinProtocol = TLSv1.0
-CipherString = DEFAULT@SECLEVEL=1
-</code></pre> </li></ol> <h3>apt update 時憑證驗證失敗</h3> <p>即使信任過自訂 CA 根憑證也調成 SECLEVEL 1，apt update 時還是會出錯：</p> <pre><code>$sudo apt update
-Err:1 https://download.docker.com/linux/ubuntu noble InRelease
-Certificate verification failed: The certificate is NOT trusted.
-The certificate chain uses insecure algorithm.
-Could not handshake: Error in the certificate verification.
-https://download.docker.com/linux/ubuntu
-</code></pre> <p>解法是在 apt 指令加上參數不驗證 TLS 憑證：</p> <p><code>$sudo apt -o "Acquire::https::Verify-Peer=false" update</code></p> <h3>docker pull 反應憑證無效</h3> <p>docker pull 下載時抱怨憑證序號是負值。GO 1.23 起 crypto/x509 依規範要求序號必須為正整數，原本有個過渡參數 GODEBUG=x509netativeserial=1 可當 Workaround，但 1.24+ 拿掉了。</p> <pre><code>$ docker run hello-world
-Unable to find image 'hello-world:latest' locally
-docker: Error response from daemon: failed to resolve reference "docker.io/library/hello-world:latest":
-failed to authorize: failed to fetch anonymous token:
-Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fhello-world%3Apull&amp;service=registry.docker.io":
-tls: failed to parse certificate from server: x509: negative serial number
-Run 'docker run --help' for more information
-</code></pre> <p>這題沒有簡單解法，要走多套一層 Proxy 之類的把戲，之後再分享。</p> <p data-slug="ubuntu-2404-ca-cert-issue" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>五年前分享過<a href="/blog/install-caroot-cert-in-linux/">如何在 Linux 信任自訂 CA 根憑證</a>，隨著作業系統及軟體版本更新，試裝 Ubuntu 24.04 遇到新狀況。</p> <h3>憑證金鑰強度不足</h3> <p>這些年，對於憑證金鑰長度要求變高，新版 OpenSSL Security Level 預設值調高為 2，RSA 金鑰長度至少要 2048。原本可被接受的 RSA 1024 Intermediate CA 會得到 CA certificate key too weak 錯誤。</p> <table><thead><tr><th>Security Level</th><th>RSA 最低強度概念</th></tr></thead><tbody><tr><td>Level 0</td><td>幾乎不限制</td></tr><tr><td>Level 1</td><td>約 80-bit security</td></tr><tr><td>Level 2</td><td>約 112-bit security</td></tr><tr><td>Level 3</td><td>約 128-bit security</td></tr><tr><td>Level 4</td><td>約 192-bit security</td></tr><tr><td>Level 5</td><td>約 256-bit security</td></tr></tbody></table> <p>即便信任了憑證，curl 仍會噴錯：</p> <pre><code>$curl https://www.google.com
-curl: (60) SSL certificate problem: CA certificate key too weak
-More details here: https://curl.se/docs/sslcerts.html
-curl failed to verify the legitimacy of the server and therefore could not
-establish a secure connection to it. To learn more about this situation and
-how to fix it, please visit the web page mentioned above.
-</code></pre> <p>若憑證一時無法換新，另個解決方向是調低 OpenSSL 門檻，恢復到 Security Level 1，修改方法是先用 <code>openssl version -d</code> 找到 OPENSSLDIR (如 <code>/usr/lib/ssl</code>) 下的 openssl.cnf，各版 Linux 的設計不同，Ubuntu 24.04 的修改方式如下：</p> <ol><li>循 openssl_conf = openssl_init 找到 [openssl_init]</li> <li>加上 ssl_conf = ssl_sect</li> <li>在檔案最後補上一段 <pre><code>[ssl_sect]
-system_default = system_default_sect
-[system_default_sect]
-MinProtocol = TLSv1.0
-CipherString = DEFAULT@SECLEVEL=1
-</code></pre> </li></ol> <h3>apt update 時憑證驗證失敗</h3> <p>即使信任過自訂 CA 根憑證也調成 SECLEVEL 1，apt update 時還是會出錯：</p> <pre><code>$sudo apt update
-Err:1 https://download.docker.com/linux/ubuntu noble InRelease
-Certificate verification failed: The certificate is NOT trusted.
-The certificate chain uses insecure algorithm.
-Could not handshake: Error in the certificate verification.
-https://download.docker.com/linux/ubuntu
-</code></pre> <p>解法是在 apt 指令加上參數不驗證 TLS 憑證：</p> <p><code>$sudo apt -o "Acquire::https::Verify-Peer=false" update</code></p> <h3>docker pull 反應憑證無效</h3> <p>docker pull 下載時抱怨憑證序號是負值。GO 1.23 起 crypto/x509 依規範要求序號必須為正整數，原本有個過渡參數 GODEBUG=x509netativeserial=1 可當 Workaround，但 1.24+ 拿掉了。</p> <pre><code>$ docker run hello-world
-Unable to find image 'hello-world:latest' locally
-docker: Error response from daemon: failed to resolve reference "docker.io/library/hello-world:latest":
-failed to authorize: failed to fetch anonymous token:
-Get "https://auth.docker.io/token?scope=repository%3Alibrary%2Fhello-world%3Apull&amp;service=registry.docker.io":
-tls: failed to parse certificate from server: x509: negative serial number
-Run 'docker run --help' for more information
-</code></pre> <p>這題沒有簡單解法，要走多套一層 Proxy 之類的把戲，之後再分享。</p> <p data-slug="ubuntu-2404-ca-cert-issue" data-fbimg="https://ichef.bbci.co.uk/images/ic/640x360/p028vvt9.jpg#640#360"> </p>]]></content:encoded>
-    
-    <pubDate>Fri, 04 Sep 2026 13:54:39 GMT</pubDate>
   </item></channel>
 </rss>
