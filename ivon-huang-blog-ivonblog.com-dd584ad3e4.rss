@@ -1,0 +1,2676 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[Ivon的部落格[RSS+]]]></title>
+    <link>https://ivonblog.com/index.xml</link>
+    <image>
+      <url>https://fastly.picsum.photos/id/472/800/800.jpg?hmac=d4kokIYOvlvxzQHPsKdq0GRUEkDZbsS1kzs9NuEUrMw</url>
+      <title>Ivon的部落格[RSS+]</title>
+      <link>https://ivonblog.com/index.xml</link>
+    </image>
+    <language>zh-TW</language>
+    <atom:link href="https://ivonblog.com/index.xml" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[Ivon的部落格[RSS+]]]></copyright>
+    <itunes:author><![CDATA[Ivon的部落格[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      Recent content on Ivon的部落格<br />
+<br />
+<a href="https://ivonblog.com/index.xml" target="_blank">https://ivonblog.com/index.xml</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      Recent content on Ivon的部落格<br />
+<br />
+<a href="https://ivonblog.com/index.xml" target="_blank">https://ivonblog.com/index.xml</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://fastly.picsum.photos/id/472/800/800.jpg?hmac=d4kokIYOvlvxzQHPsKdq0GRUEkDZbsS1kzs9NuEUrMw"/>
+<item>
+    <title><![CDATA[Sony手機Root教學，以Xperia 1 III爲例，刷入Magisk]]></title>
+    <link>https://ivonblog.com/posts/sony-xperia-1-iii-root/</link>
+    <itunes:title><![CDATA[Sony手機Root教學，以Xperia 1 III爲例，刷入Magisk]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-1-iii-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2983c8da3c.webp"></a></p>
+<p>在Sony Xperia 1 III手機取得Root權限，藉此安裝各種Magisk模組與Xposed框架，任你喜好修改系統。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f817ae19e.webp"></p>
+<p>本文內容的步驟也適用於所有Xperia 1系列的手機，包括Xperia 1 (J9110)、Xperia 1 II、Xperia 1 IV、Xperia 1 V、Xperia 1 VI、Xperia 1 VII、Xperia 1 VIII。</p>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<h2>2. 確認手機是否能解鎖Bootloader
+<span>
+<a href="#2-%e7%a2%ba%e8%aa%8d%e6%89%8b%e6%a9%9f%e6%98%af%e5%90%a6%e8%83%bd%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>不使用漏洞的場合，解鎖Bootloader是取得Root權限的第一要件。</p>
+</li>
+<li>
+<p>通常，國際版Xperia允許解鎖Bootloader。而日版電信商的Xperia多半禁止解鎖Bootloader。</p>
+</li>
+<li>
+<p>Xperia 1 III市面販售的型號有XQ-BC42、XQ-BC52、XQ-BC62、XQ-BC72、SO-51B、SOG03、A101SO，除了部份日本電信版之外應該都能夠解除Bootloader鎖並刷入LineageOS。</p>
+</li>
+<li>
+<p>要確認的話，開啟Sony撥號APP，輸入<code>*#*#7378423#*#*</code>，開啟service info → configuration，查看Bootloader unlock allowed是否為Yes，才可以繼續。</p>
+</li>
+</ol>
+<h2>3. 準備工具
+<span>
+<a href="#3-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>4. 到Sony官網申請解鎖Bootloader
+<span>
+<a href="#4-%e5%88%b0sony%e5%ae%98%e7%b6%b2%e7%94%b3%e8%ab%8b%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root前的重要步驟。Android系統爲了確保安全性，解鎖Bootloader後會清除所有手機資料，請先備份好重要資料。</p>
+</li>
+<li>
+<p>Root前建議先將原廠韌體升級到最新Android版本免得融合OTA更新不便。</p>
+</li>
+<li>
+<p>將Google帳號全數登出。</p>
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的畫面紀錄手機的IMEI碼
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-46a2791062.webp"></p>
+</li>
+<li>
+<p>到<a href="https://developer.sony.com/open-source/aosp-on-xperia-open-devices/get-started/unlock-bootloader" target="_blank">Sony Unlock Bootloader官網</a>，滑到下面，選取手機型號，填寫IMEI取得解鎖碼。把它記錄下來。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98779cd18d.webp">
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的「版本號碼」點5下，啟用「開發人員選項」。</p>
+</li>
+<li>
+<p>在開發人員選項裡面開啟「允許OEM解鎖」與「允許ADB偵錯」
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b282fa129c.webp"></p>
+</li>
+<li>
+<p>將手機連到電腦，使用ADB指令配對，在手機允許USB偵錯</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices</span></span></code></pre></div></div>
+<ol start="8">
+<li>重新啟動進入Fastboot</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb -d reboot bootloader</span></span></code></pre></div></div>
+<ol start="9">
+<li>
+<p>手機螢幕應該會出現藍色燈號
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0f2ba0d948.webp">
+</li>
+<li>
+<p>確認連接狀態</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="11">
+<li>開始解鎖。解鎖碼前面要加上<code>0x</code></li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="12">
+<li>重開機，拔掉傳輸線，等待手機自動清除資料，重開機後再關機。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot reboot</span></span></code></pre></div></div>
+<h2>5. 刷入Magisk取得Root權限
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5magisk%e5%8f%96%e5%be%97root%e6%ac%8a%e9%99%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>說到Root，<a href="https://ivonblog.com/posts/magisk-android-root/" target="_blank">Magisk</a>是最主流的Root方案之一，另請參考隱藏Root能力較強的<a href="https://ivonblog.com/posts/kernelsu-android-root/" target="_blank">KernelSU</a>與<a href="https://ivonblog.com/posts/apatch-android-root/" target="_blank">APatch</a>。</p>
+<ol>
+<li>
+<p>使用<a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>，從Sony原廠韌體解出boot.img</p>
+</li>
+<li>
+<p>用MTP將boot.img傳到手機</p>
+</li>
+<li>
+<p>在手機上安裝<a href="https://github.com/topjohnwu/Magisk/releases" target="_blank">Magisk Manager</a> APK。此時尚未取得root權限。</p>
+</li>
+<li>
+<p>開啓Magisk Manager，點選右上角的安裝 → 選擇並修補檔案</p>
+</li>
+<li>
+<p>選擇boot.img，修補並安裝Magisk。檔案會位於<code>內部儲存空間/Download</code>資料夾，名稱以magisk_patched_開頭。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-34ff91030d.webp"></p>
+</li>
+<li>
+<p>將修補的boot.img用MTP傳到電腦</p>
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的「版本號碼」點5下，啟用「開發人員選項」。</p>
+</li>
+<li>
+<p>在開發人員選項裡面開啟「允許OEM解鎖」與「允許ADB偵錯」</p>
+</li>
+<li>
+<p>將手機連到電腦，使用ADB指令配對，在手機允許USB偵錯</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices</span></span></code></pre></div></div>
+<ol start="10">
+<li>重新啟動進入Fastboot</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb -d reboot bootloader</span></span></code></pre></div></div>
+<ol start="11">
+<li>
+<p>手機螢幕應該會出現藍色燈號</p>
+</li>
+<li>
+<p>確認連接狀態</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="13">
+<li>將含有Magisk的boot.img刷入boot分區</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot magisk_patched_*.img</span></span></code></pre></div></div>
+<ol start="14">
+<li>
+<p>重開機。</p>
+</li>
+<li>
+<p>開啓Magisk Manager，看狀態是否顯示爲「已安裝」。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9cd4938db4.webp"></p>
+</li>
+</ol>
+<h2>6. 刷機爲第三方ROM
+<span>
+<a href="#6-%e5%88%b7%e6%a9%9f%e7%88%b2%e7%ac%ac%e4%b8%89%e6%96%b9rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>選擇性步驟，如果Sony官方停止提供Android更新，可以刷LineageOS續命，不過不見得比原廠系統穩定就是了。</p>
+<p>Xperia 1 III有官方LineageOS支援，參照：<a href="https://ivonblog.com/posts/sony-xperia-1-iii-lineageos/" target="_blank">Xperia 1 III刷LineageOS + Root解決SD888過熱問題</a></p>
+<h2>7. 解除Root並刷回原廠ROM
+<span>
+<a href="#7-%e8%a7%a3%e9%99%a4root%e4%b8%a6%e5%88%b7%e5%9b%9e%e5%8e%9f%e5%bb%a0rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由於Play Integrity會抓Bootloader解鎖狀態，單單把Magisk移除並不算完全的解除root，系統狀態還是不乾淨。</p>
+<p>需要清除手機資料，刷機回原廠韌體，將Bootloader重新上鎖才能回覆原廠系統。</p>
+<p>參照：<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom/" target="_blank">NewFlasher + XperiFirm教學，將Sony Xperia 1/5/10系列手機強制刷回原廠ROM</a></p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-1-iii-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2983c8da3c.webp"></a></p>
+<p>在Sony Xperia 1 III手機取得Root權限，藉此安裝各種Magisk模組與Xposed框架，任你喜好修改系統。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f817ae19e.webp"></p>
+<p>本文內容的步驟也適用於所有Xperia 1系列的手機，包括Xperia 1 (J9110)、Xperia 1 II、Xperia 1 IV、Xperia 1 V、Xperia 1 VI、Xperia 1 VII、Xperia 1 VIII。</p>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<h2>2. 確認手機是否能解鎖Bootloader
+<span>
+<a href="#2-%e7%a2%ba%e8%aa%8d%e6%89%8b%e6%a9%9f%e6%98%af%e5%90%a6%e8%83%bd%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>不使用漏洞的場合，解鎖Bootloader是取得Root權限的第一要件。</p>
+</li>
+<li>
+<p>通常，國際版Xperia允許解鎖Bootloader。而日版電信商的Xperia多半禁止解鎖Bootloader。</p>
+</li>
+<li>
+<p>Xperia 1 III市面販售的型號有XQ-BC42、XQ-BC52、XQ-BC62、XQ-BC72、SO-51B、SOG03、A101SO，除了部份日本電信版之外應該都能夠解除Bootloader鎖並刷入LineageOS。</p>
+</li>
+<li>
+<p>要確認的話，開啟Sony撥號APP，輸入<code>*#*#7378423#*#*</code>，開啟service info → configuration，查看Bootloader unlock allowed是否為Yes，才可以繼續。</p>
+</li>
+</ol>
+<h2>3. 準備工具
+<span>
+<a href="#3-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>4. 到Sony官網申請解鎖Bootloader
+<span>
+<a href="#4-%e5%88%b0sony%e5%ae%98%e7%b6%b2%e7%94%b3%e8%ab%8b%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root前的重要步驟。Android系統爲了確保安全性，解鎖Bootloader後會清除所有手機資料，請先備份好重要資料。</p>
+</li>
+<li>
+<p>Root前建議先將原廠韌體升級到最新Android版本免得融合OTA更新不便。</p>
+</li>
+<li>
+<p>將Google帳號全數登出。</p>
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的畫面紀錄手機的IMEI碼
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-46a2791062.webp"></p>
+</li>
+<li>
+<p>到<a href="https://developer.sony.com/open-source/aosp-on-xperia-open-devices/get-started/unlock-bootloader" target="_blank">Sony Unlock Bootloader官網</a>，滑到下面，選取手機型號，填寫IMEI取得解鎖碼。把它記錄下來。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98779cd18d.webp">
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的「版本號碼」點5下，啟用「開發人員選項」。</p>
+</li>
+<li>
+<p>在開發人員選項裡面開啟「允許OEM解鎖」與「允許ADB偵錯」
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b282fa129c.webp"></p>
+</li>
+<li>
+<p>將手機連到電腦，使用ADB指令配對，在手機允許USB偵錯</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices</span></span></code></pre></div></div>
+<ol start="8">
+<li>重新啟動進入Fastboot</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb -d reboot bootloader</span></span></code></pre></div></div>
+<ol start="9">
+<li>
+<p>手機螢幕應該會出現藍色燈號
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0f2ba0d948.webp">
+</li>
+<li>
+<p>確認連接狀態</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="11">
+<li>開始解鎖。解鎖碼前面要加上<code>0x</code></li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="12">
+<li>重開機，拔掉傳輸線，等待手機自動清除資料，重開機後再關機。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot reboot</span></span></code></pre></div></div>
+<h2>5. 刷入Magisk取得Root權限
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5magisk%e5%8f%96%e5%be%97root%e6%ac%8a%e9%99%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>說到Root，<a href="https://ivonblog.com/posts/magisk-android-root/" target="_blank">Magisk</a>是最主流的Root方案之一，另請參考隱藏Root能力較強的<a href="https://ivonblog.com/posts/kernelsu-android-root/" target="_blank">KernelSU</a>與<a href="https://ivonblog.com/posts/apatch-android-root/" target="_blank">APatch</a>。</p>
+<ol>
+<li>
+<p>使用<a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>，從Sony原廠韌體解出boot.img</p>
+</li>
+<li>
+<p>用MTP將boot.img傳到手機</p>
+</li>
+<li>
+<p>在手機上安裝<a href="https://github.com/topjohnwu/Magisk/releases" target="_blank">Magisk Manager</a> APK。此時尚未取得root權限。</p>
+</li>
+<li>
+<p>開啓Magisk Manager，點選右上角的安裝 → 選擇並修補檔案</p>
+</li>
+<li>
+<p>選擇boot.img，修補並安裝Magisk。檔案會位於<code>內部儲存空間/Download</code>資料夾，名稱以magisk_patched_開頭。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-34ff91030d.webp"></p>
+</li>
+<li>
+<p>將修補的boot.img用MTP傳到電腦</p>
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的「版本號碼」點5下，啟用「開發人員選項」。</p>
+</li>
+<li>
+<p>在開發人員選項裡面開啟「允許OEM解鎖」與「允許ADB偵錯」</p>
+</li>
+<li>
+<p>將手機連到電腦，使用ADB指令配對，在手機允許USB偵錯</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices</span></span></code></pre></div></div>
+<ol start="10">
+<li>重新啟動進入Fastboot</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb -d reboot bootloader</span></span></code></pre></div></div>
+<ol start="11">
+<li>
+<p>手機螢幕應該會出現藍色燈號</p>
+</li>
+<li>
+<p>確認連接狀態</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="13">
+<li>將含有Magisk的boot.img刷入boot分區</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot magisk_patched_*.img</span></span></code></pre></div></div>
+<ol start="14">
+<li>
+<p>重開機。</p>
+</li>
+<li>
+<p>開啓Magisk Manager，看狀態是否顯示爲「已安裝」。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9cd4938db4.webp"></p>
+</li>
+</ol>
+<h2>6. 刷機爲第三方ROM
+<span>
+<a href="#6-%e5%88%b7%e6%a9%9f%e7%88%b2%e7%ac%ac%e4%b8%89%e6%96%b9rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>選擇性步驟，如果Sony官方停止提供Android更新，可以刷LineageOS續命，不過不見得比原廠系統穩定就是了。</p>
+<p>Xperia 1 III有官方LineageOS支援，參照：<a href="https://ivonblog.com/posts/sony-xperia-1-iii-lineageos/" target="_blank">Xperia 1 III刷LineageOS + Root解決SD888過熱問題</a></p>
+<h2>7. 解除Root並刷回原廠ROM
+<span>
+<a href="#7-%e8%a7%a3%e9%99%a4root%e4%b8%a6%e5%88%b7%e5%9b%9e%e5%8e%9f%e5%bb%a0rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由於Play Integrity會抓Bootloader解鎖狀態，單單把Magisk移除並不算完全的解除root，系統狀態還是不乾淨。</p>
+<p>需要清除手機資料，刷機回原廠韌體，將Bootloader重新上鎖才能回覆原廠系統。</p>
+<p>參照：<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom/" target="_blank">NewFlasher + XperiFirm教學，將Sony Xperia 1/5/10系列手機強制刷回原廠ROM</a></p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-1-iii-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2983c8da3c.webp"></a></p>
+<p>在Sony Xperia 1 III手機取得Root權限，藉此安裝各種Magisk模組與Xposed框架，任你喜好修改系統。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f817ae19e.webp"></p>
+<p>本文內容的步驟也適用於所有Xperia 1系列的手機，包括Xperia 1 (J9110)、Xperia 1 II、Xperia 1 IV、Xperia 1 V、Xperia 1 VI、Xperia 1 VII、Xperia 1 VIII。</p>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<h2>2. 確認手機是否能解鎖Bootloader
+<span>
+<a href="#2-%e7%a2%ba%e8%aa%8d%e6%89%8b%e6%a9%9f%e6%98%af%e5%90%a6%e8%83%bd%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>不使用漏洞的場合，解鎖Bootloader是取得Root權限的第一要件。</p>
+</li>
+<li>
+<p>通常，國際版Xperia允許解鎖Bootloader。而日版電信商的Xperia多半禁止解鎖Bootloader。</p>
+</li>
+<li>
+<p>Xperia 1 III市面販售的型號有XQ-BC42、XQ-BC52、XQ-BC62、XQ-BC72、SO-51B、SOG03、A101SO，除了部份日本電信版之外應該都能夠解除Bootloader鎖並刷入LineageOS。</p>
+</li>
+<li>
+<p>要確認的話，開啟Sony撥號APP，輸入<code>*#*#7378423#*#*</code>，開啟service info → configuration，查看Bootloader unlock allowed是否為Yes，才可以繼續。</p>
+</li>
+</ol>
+<h2>3. 準備工具
+<span>
+<a href="#3-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>4. 到Sony官網申請解鎖Bootloader
+<span>
+<a href="#4-%e5%88%b0sony%e5%ae%98%e7%b6%b2%e7%94%b3%e8%ab%8b%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root前的重要步驟。Android系統爲了確保安全性，解鎖Bootloader後會清除所有手機資料，請先備份好重要資料。</p>
+</li>
+<li>
+<p>Root前建議先將原廠韌體升級到最新Android版本免得融合OTA更新不便。</p>
+</li>
+<li>
+<p>將Google帳號全數登出。</p>
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的畫面紀錄手機的IMEI碼
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-46a2791062.webp"></p>
+</li>
+<li>
+<p>到<a href="https://developer.sony.com/open-source/aosp-on-xperia-open-devices/get-started/unlock-bootloader" target="_blank">Sony Unlock Bootloader官網</a>，滑到下面，選取手機型號，填寫IMEI取得解鎖碼。把它記錄下來。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-98779cd18d.webp">
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的「版本號碼」點5下，啟用「開發人員選項」。</p>
+</li>
+<li>
+<p>在開發人員選項裡面開啟「允許OEM解鎖」與「允許ADB偵錯」
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b282fa129c.webp"></p>
+</li>
+<li>
+<p>將手機連到電腦，使用ADB指令配對，在手機允許USB偵錯</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices</span></span></code></pre></div></div>
+<ol start="8">
+<li>重新啟動進入Fastboot</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb -d reboot bootloader</span></span></code></pre></div></div>
+<ol start="9">
+<li>
+<p>手機螢幕應該會出現藍色燈號
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0f2ba0d948.webp">
+</li>
+<li>
+<p>確認連接狀態</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="11">
+<li>開始解鎖。解鎖碼前面要加上<code>0x</code></li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="12">
+<li>重開機，拔掉傳輸線，等待手機自動清除資料，重開機後再關機。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot reboot</span></span></code></pre></div></div>
+<h2>5. 刷入Magisk取得Root權限
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5magisk%e5%8f%96%e5%be%97root%e6%ac%8a%e9%99%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>說到Root，<a href="https://ivonblog.com/posts/magisk-android-root/" target="_blank">Magisk</a>是最主流的Root方案之一，另請參考隱藏Root能力較強的<a href="https://ivonblog.com/posts/kernelsu-android-root/" target="_blank">KernelSU</a>與<a href="https://ivonblog.com/posts/apatch-android-root/" target="_blank">APatch</a>。</p>
+<ol>
+<li>
+<p>使用<a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>，從Sony原廠韌體解出boot.img</p>
+</li>
+<li>
+<p>用MTP將boot.img傳到手機</p>
+</li>
+<li>
+<p>在手機上安裝<a href="https://github.com/topjohnwu/Magisk/releases" target="_blank">Magisk Manager</a> APK。此時尚未取得root權限。</p>
+</li>
+<li>
+<p>開啓Magisk Manager，點選右上角的安裝 → 選擇並修補檔案</p>
+</li>
+<li>
+<p>選擇boot.img，修補並安裝Magisk。檔案會位於<code>內部儲存空間/Download</code>資料夾，名稱以magisk_patched_開頭。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-34ff91030d.webp"></p>
+</li>
+<li>
+<p>將修補的boot.img用MTP傳到電腦</p>
+</li>
+<li>
+<p>開啟Android系統設定，在「關於手機」的「版本號碼」點5下，啟用「開發人員選項」。</p>
+</li>
+<li>
+<p>在開發人員選項裡面開啟「允許OEM解鎖」與「允許ADB偵錯」</p>
+</li>
+<li>
+<p>將手機連到電腦，使用ADB指令配對，在手機允許USB偵錯</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices</span></span></code></pre></div></div>
+<ol start="10">
+<li>重新啟動進入Fastboot</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb -d reboot bootloader</span></span></code></pre></div></div>
+<ol start="11">
+<li>
+<p>手機螢幕應該會出現藍色燈號</p>
+</li>
+<li>
+<p>確認連接狀態</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="13">
+<li>將含有Magisk的boot.img刷入boot分區</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot magisk_patched_*.img</span></span></code></pre></div></div>
+<ol start="14">
+<li>
+<p>重開機。</p>
+</li>
+<li>
+<p>開啓Magisk Manager，看狀態是否顯示爲「已安裝」。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9cd4938db4.webp"></p>
+</li>
+</ol>
+<h2>6. 刷機爲第三方ROM
+<span>
+<a href="#6-%e5%88%b7%e6%a9%9f%e7%88%b2%e7%ac%ac%e4%b8%89%e6%96%b9rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>選擇性步驟，如果Sony官方停止提供Android更新，可以刷LineageOS續命，不過不見得比原廠系統穩定就是了。</p>
+<p>Xperia 1 III有官方LineageOS支援，參照：<a href="https://ivonblog.com/posts/sony-xperia-1-iii-lineageos/" target="_blank">Xperia 1 III刷LineageOS + Root解決SD888過熱問題</a></p>
+<h2>7. 解除Root並刷回原廠ROM
+<span>
+<a href="#7-%e8%a7%a3%e9%99%a4root%e4%b8%a6%e5%88%b7%e5%9b%9e%e5%8e%9f%e5%bb%a0rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由於Play Integrity會抓Bootloader解鎖狀態，單單把Magisk移除並不算完全的解除root，系統狀態還是不乾淨。</p>
+<p>需要清除手機資料，刷機回原廠韌體，將Bootloader重新上鎖才能回覆原廠系統。</p>
+<p>參照：<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom/" target="_blank">NewFlasher + XperiFirm教學，將Sony Xperia 1/5/10系列手機強制刷回原廠ROM</a></p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2983c8da3c.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2983c8da3c.webp" medium="image"/>
+    <pubDate>Mon, 28 Sep 2026 01:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[嘉義「電波空間」Galgame專賣店半日遊]]></title>
+    <link>https://ivonblog.com/posts/denppakuukan-in-chayi-city/</link>
+    <itunes:title><![CDATA[嘉義「電波空間」Galgame專賣店半日遊]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/denppakuukan-in-chayi-city/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f04e77983b.webp"></a></p>
+<a aria-hidden="true"></a>
+<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
+<section>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
+<h2>
+金、暴力、SEX！年齡驗證
+</h2>
+<p>
+本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
+</p>
+<div>
+<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
+<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
+</div>
+</section>
+</div>
+<p>販賣動漫週邊的店很多，但你可曾看過有在賣Galgame的？</p>
+<p>今日戰利品：
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a992d99ac2.webp">
+<p>sprite - 《蒼之彼方的四重奏》 4K版 (2020)，非常推薦的熱血運動番</p>
+<p>黃仁宇 - 《中國大歷史》 (1988) 讓萬曆十五年的作者，美國華裔教授帶你看大歷史觀下的中國歷史</p>
+<p>李查·巴哈 - 《天地一沙鷗》 (1970)，施孝榮的經典民歌</p>
+<p>平坂讀  - 《我的朋友很少》(2011)， 剛好兩人成爲對比才買的</p>
+<p>從清華大學的Galgame同好會，耳聞有店家是專門賣Galgame而非簡單的動漫週邊的。故北上參訪之。</p>
+<p>因爲賣ACG週邊的店不稀奇，各縣市都有，但是有販售Galgame和週邊的是非常少，可能賣遊戲的店在角落的櫃子也沒有幾個。</p>
+<p>這就是在嘉義市中正路上的「電波空間」，出嘉義火車站走10分鐘就能到。對面還有遊戲王卡店（興義發）。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eb1b156c19.webp"></p>
+<p>因爲怕進去社恐發作，所以先去舊書攤晃晃。所以有了上面的幾本書。</p>
+<p>這個店面招牌不知道爲什麼很像光南大批發…
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-856ff19408.webp">
+<p>不是，是秋葉原的無線電會館…玩《Steins;Gate》的應該都知道。這裡不會有像是人造衛星的時光機卡在牆上。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2d0c969eef.webp">
+<p>店面的設計就十分簡潔寬大，在肥肥店貓「布布」的招待下可以環繞的看到許多著名Galgame作品的週邊，從經典的到年代物都有。同時也有實體遊戲片和特典CD。例如柚子社的作品，還有《蒼之彼方的四重奏》、《同級生》等等。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8a41a06b7d.webp">
+<p>門口放著一本中國出版的Galgame旮考全真試題
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ab1f066f4.webp">
+<p>還有《魔女的夜宴》的寧寧公仔！
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12bf55fa3f.webp"></p>
+<p>喔喔老闆真的是man of culture，居然店內還有Lain新出的娃娃，還是PS1形象。要推薦冷門作品也是手到擒來。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-93b6d83909.webp"></p>
+<p>然後在二樓的審美空間，有美麗的掛軸和一堆蔚藍檔案的R18本本</p>
+<p>天國！po在Facebook會被祖，在Blog就不會啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-22613431ab.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd046e9c12.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8167f99991.webp">
+<p>缺點是我介於不夠老也不夠年輕的世代，角色幾乎不認識，買不下去。</p>
+<p>在與友善的老闆閒聊之後，看到店家的誠意我就買了經典的作品的遊戲片。</p>
+<p>本來想買柚子社《千戀萬花》蕾娜的超大（意味深）滑鼠桌墊，正面是正常立繪，翻面就是超大奶子，但怕被家人看到社死，還是下次吧。</p>
+<p>我從沒買過實體Galgame遊戲片，大部分在Steam特價的時候買。原來真如傳聞中那麼貴。7000日圓耶，這是3A大作嗎，實體版價格是Steam版的3倍，而且還是沒有特典沒有色色的版本，裡面只有一片CD和序號。R18補丁應可通用。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0def65af0f.webp">
+<p>看起來超盤的，可是我還是買了。明明最近一個月才在Steam破完全線的…可是一直無法寫評測心得，大概是太感動了，所以我需要一點「刺激」然後順便買個實體產品作爲支持作者的附加價值。</p>
+<p>從店家資料來看，他們也有經營網購，所以不便到店的，買東西應該也是很方便的。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/denppakuukan-in-chayi-city/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f04e77983b.webp"></a></p>
+<a aria-hidden="true"></a>
+<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
+<section>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
+<h2>
+金、暴力、SEX！年齡驗證
+</h2>
+<p>
+本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
+</p>
+<div>
+<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
+<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
+</div>
+</section>
+</div>
+<p>販賣動漫週邊的店很多，但你可曾看過有在賣Galgame的？</p>
+<p>今日戰利品：
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a992d99ac2.webp">
+<p>sprite - 《蒼之彼方的四重奏》 4K版 (2020)，非常推薦的熱血運動番</p>
+<p>黃仁宇 - 《中國大歷史》 (1988) 讓萬曆十五年的作者，美國華裔教授帶你看大歷史觀下的中國歷史</p>
+<p>李查·巴哈 - 《天地一沙鷗》 (1970)，施孝榮的經典民歌</p>
+<p>平坂讀  - 《我的朋友很少》(2011)， 剛好兩人成爲對比才買的</p>
+<p>從清華大學的Galgame同好會，耳聞有店家是專門賣Galgame而非簡單的動漫週邊的。故北上參訪之。</p>
+<p>因爲賣ACG週邊的店不稀奇，各縣市都有，但是有販售Galgame和週邊的是非常少，可能賣遊戲的店在角落的櫃子也沒有幾個。</p>
+<p>這就是在嘉義市中正路上的「電波空間」，出嘉義火車站走10分鐘就能到。對面還有遊戲王卡店（興義發）。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eb1b156c19.webp"></p>
+<p>因爲怕進去社恐發作，所以先去舊書攤晃晃。所以有了上面的幾本書。</p>
+<p>這個店面招牌不知道爲什麼很像光南大批發…
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-856ff19408.webp">
+<p>不是，是秋葉原的無線電會館…玩《Steins;Gate》的應該都知道。這裡不會有像是人造衛星的時光機卡在牆上。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2d0c969eef.webp">
+<p>店面的設計就十分簡潔寬大，在肥肥店貓「布布」的招待下可以環繞的看到許多著名Galgame作品的週邊，從經典的到年代物都有。同時也有實體遊戲片和特典CD。例如柚子社的作品，還有《蒼之彼方的四重奏》、《同級生》等等。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8a41a06b7d.webp">
+<p>門口放著一本中國出版的Galgame旮考全真試題
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ab1f066f4.webp">
+<p>還有《魔女的夜宴》的寧寧公仔！
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12bf55fa3f.webp"></p>
+<p>喔喔老闆真的是man of culture，居然店內還有Lain新出的娃娃，還是PS1形象。要推薦冷門作品也是手到擒來。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-93b6d83909.webp"></p>
+<p>然後在二樓的審美空間，有美麗的掛軸和一堆蔚藍檔案的R18本本</p>
+<p>天國！po在Facebook會被祖，在Blog就不會啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-22613431ab.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd046e9c12.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8167f99991.webp">
+<p>缺點是我介於不夠老也不夠年輕的世代，角色幾乎不認識，買不下去。</p>
+<p>在與友善的老闆閒聊之後，看到店家的誠意我就買了經典的作品的遊戲片。</p>
+<p>本來想買柚子社《千戀萬花》蕾娜的超大（意味深）滑鼠桌墊，正面是正常立繪，翻面就是超大奶子，但怕被家人看到社死，還是下次吧。</p>
+<p>我從沒買過實體Galgame遊戲片，大部分在Steam特價的時候買。原來真如傳聞中那麼貴。7000日圓耶，這是3A大作嗎，實體版價格是Steam版的3倍，而且還是沒有特典沒有色色的版本，裡面只有一片CD和序號。R18補丁應可通用。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0def65af0f.webp">
+<p>看起來超盤的，可是我還是買了。明明最近一個月才在Steam破完全線的…可是一直無法寫評測心得，大概是太感動了，所以我需要一點「刺激」然後順便買個實體產品作爲支持作者的附加價值。</p>
+<p>從店家資料來看，他們也有經營網購，所以不便到店的，買東西應該也是很方便的。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/denppakuukan-in-chayi-city/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f04e77983b.webp"></a></p>
+<a aria-hidden="true"></a>
+<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
+<section>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
+<h2>
+金、暴力、SEX！年齡驗證
+</h2>
+<p>
+本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
+</p>
+<div>
+<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
+<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
+</div>
+</section>
+</div>
+<p>販賣動漫週邊的店很多，但你可曾看過有在賣Galgame的？</p>
+<p>今日戰利品：
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a992d99ac2.webp">
+<p>sprite - 《蒼之彼方的四重奏》 4K版 (2020)，非常推薦的熱血運動番</p>
+<p>黃仁宇 - 《中國大歷史》 (1988) 讓萬曆十五年的作者，美國華裔教授帶你看大歷史觀下的中國歷史</p>
+<p>李查·巴哈 - 《天地一沙鷗》 (1970)，施孝榮的經典民歌</p>
+<p>平坂讀  - 《我的朋友很少》(2011)， 剛好兩人成爲對比才買的</p>
+<p>從清華大學的Galgame同好會，耳聞有店家是專門賣Galgame而非簡單的動漫週邊的。故北上參訪之。</p>
+<p>因爲賣ACG週邊的店不稀奇，各縣市都有，但是有販售Galgame和週邊的是非常少，可能賣遊戲的店在角落的櫃子也沒有幾個。</p>
+<p>這就是在嘉義市中正路上的「電波空間」，出嘉義火車站走10分鐘就能到。對面還有遊戲王卡店（興義發）。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eb1b156c19.webp"></p>
+<p>因爲怕進去社恐發作，所以先去舊書攤晃晃。所以有了上面的幾本書。</p>
+<p>這個店面招牌不知道爲什麼很像光南大批發…
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-856ff19408.webp">
+<p>不是，是秋葉原的無線電會館…玩《Steins;Gate》的應該都知道。這裡不會有像是人造衛星的時光機卡在牆上。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2d0c969eef.webp">
+<p>店面的設計就十分簡潔寬大，在肥肥店貓「布布」的招待下可以環繞的看到許多著名Galgame作品的週邊，從經典的到年代物都有。同時也有實體遊戲片和特典CD。例如柚子社的作品，還有《蒼之彼方的四重奏》、《同級生》等等。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8a41a06b7d.webp">
+<p>門口放著一本中國出版的Galgame旮考全真試題
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ab1f066f4.webp">
+<p>還有《魔女的夜宴》的寧寧公仔！
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-12bf55fa3f.webp"></p>
+<p>喔喔老闆真的是man of culture，居然店內還有Lain新出的娃娃，還是PS1形象。要推薦冷門作品也是手到擒來。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-93b6d83909.webp"></p>
+<p>然後在二樓的審美空間，有美麗的掛軸和一堆蔚藍檔案的R18本本</p>
+<p>天國！po在Facebook會被祖，在Blog就不會啦。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-22613431ab.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fd046e9c12.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8167f99991.webp">
+<p>缺點是我介於不夠老也不夠年輕的世代，角色幾乎不認識，買不下去。</p>
+<p>在與友善的老闆閒聊之後，看到店家的誠意我就買了經典的作品的遊戲片。</p>
+<p>本來想買柚子社《千戀萬花》蕾娜的超大（意味深）滑鼠桌墊，正面是正常立繪，翻面就是超大奶子，但怕被家人看到社死，還是下次吧。</p>
+<p>我從沒買過實體Galgame遊戲片，大部分在Steam特價的時候買。原來真如傳聞中那麼貴。7000日圓耶，這是3A大作嗎，實體版價格是Steam版的3倍，而且還是沒有特典沒有色色的版本，裡面只有一片CD和序號。R18補丁應可通用。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0def65af0f.webp">
+<p>看起來超盤的，可是我還是買了。明明最近一個月才在Steam破完全線的…可是一直無法寫評測心得，大概是太感動了，所以我需要一點「刺激」然後順便買個實體產品作爲支持作者的附加價值。</p>
+<p>從店家資料來看，他們也有經營網購，所以不便到店的，買東西應該也是很方便的。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f04e77983b.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f04e77983b.webp" medium="image"/>
+    <pubDate>Sun, 27 Sep 2026 19:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[Sony Xperia 5 II解鎖與Root教學，刷入Magisk]]></title>
+    <link>https://ivonblog.com/posts/sony-xperia-5-ii-root/</link>
+    <itunes:title><![CDATA[Sony Xperia 5 II解鎖與Root教學，刷入Magisk]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-5-ii-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4128e3cda4.webp"></a></p>
+<p>Sony Xperia 5 II (XQ-AS72) 透過官方管道解鎖後，便可以Root和刷機(刷入第三方ROM)。</p>
+<p>操作前務必備份重要資料，解鎖bootloader後手機資料會全部清除。</p>
+<p>本文教學亦適用於Xperia 5 (J9210)、Xperia 5 III、Xperia 5 IV、Xperia 5 V。</p>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<p>於Sony Xperia 5 II刷入Magisk，取得Root權限。</p>
+<p>流程：解鎖bootloader → 刷入Magisk，完成Root。</p>
+<p>如果有需要的話，還可以將原廠系統刷成第三方ROM，這樣起碼可以擺脫被原廠放生更新的命運。</p>
+<p>根據我自己的測試，若未來想<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom" target="_blank">將Xperia 5 II刷回原廠</a>（重新上鎖）是不需要備份所謂TA分區的。</p>
+<p>解除和Root後無法運作的項目：DRM會掉到L3，影響看Netflix之類的高畫質影片，金融類APP可能也會閃退不給用。雖然其實<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">可以繞過</a>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-d4ba8bb3d3.png"></p>
+<h2>2. 準備工具
+<span>
+<a href="#2-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>3. 解鎖bootloader
+<span>
+<a href="#3-%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>手機開啟電話APP，撥號輸入：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>*#*#7378423#*#*</span></span></code></pre></div></div>
+<ol start="2">
+<li>
+<p>進入Service info → Configuration → Rooting Status，確認Bootloader unlock allowed是否為yes，代表可解鎖。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-e9371d6f12.png">
+</li>
+<li>
+<p>接下來要取得解鎖碼。到<a href="https://developer.sony.com/develop/open-devices/get-started/unlock-bootloader/" target="_blank">Sony官網</a>。於下方表單選取Xperia 5 II，輸入IMEI碼（系統設定 → 關於手機，若有雙卡填SIM 1的就好，將二個破保的警告選項都打勾。按下Submit，接著會出現一組解鎖碼，將其複製下來。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-45c97ade7a.png"></p>
+</li>
+<li>
+<p>系統設定 → 版本號碼點5下，系統設定→系統就會出現開發人員選項，點進去，開啟OEM解鎖。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-5ffac33fee.png">
+</li>
+<li>
+<p>手機關機。按著手機音量上鍵，接到電腦，進入fastboot模式，Sony手機的指示燈應會變成藍色。</p>
+</li>
+<li>
+<p>開啟終端機，用指令確認是否電腦有抓到手機：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="7">
+<li>開始解鎖bootloader，解鎖碼的格式為「0x」+剛剛網站取得的解鎖碼：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="8">
+<li>終端機回傳「Okay」就代表成功了。重開機後資料已被清除，要重新設定手機。</li>
+</ol>
+<h2>4. 刷入Magisk
+<span>
+<a href="#4-%e5%88%b7%e5%85%a5magisk" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果擔心開不了機，先備份原本的<code>boot.img</code>。</p>
+<p>Sony Xperia 5 II要刷入Magisk有二種作法：</p>
+<p>一是到<a href="https://forum.xda-developers.com/t/kernel-stock-kernel-patched-with-magisk-on-customized-hk-android-11.4247827/" target="_blank">XDA</a>下載fengmubai製作的，對應韌體版本的boot.img。</p>
+<p>二是自行抽取原廠韌體的<code>boot.img</code>給Magisk修補，參見：<a href="/posts/sony-dump-tool-usage/">Sony Dump Tool用法</a></p>
+<p>本文採用作法一。</p>
+<ol>
+<li>透過fastboot刷入boot.img到boot分區:</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot boot.img
+</span></span><span><span>
+</span></span><span><span><span># Xperia 5 V之後用這個</span>
+</span></span><span><span>fastboot flash init_boot boot.img</span></span></code></pre></div></div>
+<ol start="2">
+<li>
+<p>重開機後要到應用程式列表點選Magisk安裝更新。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-ca38b6ac84.png"></p>
+</li>
+<li>
+<p>同意修復環境，之後重開機。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-c8c304ff81.png"></p>
+</li>
+<li>
+<p>在設定中開啟Magisk Hide。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-e2939165a0.png"></p>
+</li>
+<li>
+<p>執行SafetyNet檢測：成功
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-0ca90037ce.png"></p>
+</li>
+<li>
+<p>解鎖bootloader後，每次重開機都會顯示「手機已解鎖，無法驗證是否遭竄改」的警告。</p>
+</li>
+</ol>
+<p>請看<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">這篇</a>了解如何防止APP偵測到Root。</p>
+<h2>5. 刷入第三方Recovery和ROM
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5%e7%ac%ac%e4%b8%89%e6%96%b9recovery%e5%92%8crom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>2021年曾有人移植給Xperia 5 II用的OrangeFox (TWRP的fork)，孰料作者放棄維護，於是Xperia 5 II現在沒有類似TWRP的Recovery可刷，只剩LineageOS的Recovery。</p>
+<p>LineageOS官方於2023年2月正式支援Sony Xperia 5 II。</p>
+<p>參見<a href="https://ivonblog.com/posts/sony-xperia-5-ii-lineageos/" target="_blank">給Sony Xperia 5 II刷機升上Android 13</a></p>
+<p>如果您想刷回原廠ROM，請參見<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom" target="_blank">此篇</a></p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-5-ii-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4128e3cda4.webp"></a></p>
+<p>Sony Xperia 5 II (XQ-AS72) 透過官方管道解鎖後，便可以Root和刷機(刷入第三方ROM)。</p>
+<p>操作前務必備份重要資料，解鎖bootloader後手機資料會全部清除。</p>
+<p>本文教學亦適用於Xperia 5 (J9210)、Xperia 5 III、Xperia 5 IV、Xperia 5 V。</p>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<p>於Sony Xperia 5 II刷入Magisk，取得Root權限。</p>
+<p>流程：解鎖bootloader → 刷入Magisk，完成Root。</p>
+<p>如果有需要的話，還可以將原廠系統刷成第三方ROM，這樣起碼可以擺脫被原廠放生更新的命運。</p>
+<p>根據我自己的測試，若未來想<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom" target="_blank">將Xperia 5 II刷回原廠</a>（重新上鎖）是不需要備份所謂TA分區的。</p>
+<p>解除和Root後無法運作的項目：DRM會掉到L3，影響看Netflix之類的高畫質影片，金融類APP可能也會閃退不給用。雖然其實<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">可以繞過</a>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-d4ba8bb3d3.png"></p>
+<h2>2. 準備工具
+<span>
+<a href="#2-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>3. 解鎖bootloader
+<span>
+<a href="#3-%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>手機開啟電話APP，撥號輸入：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>*#*#7378423#*#*</span></span></code></pre></div></div>
+<ol start="2">
+<li>
+<p>進入Service info → Configuration → Rooting Status，確認Bootloader unlock allowed是否為yes，代表可解鎖。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-e9371d6f12.png">
+</li>
+<li>
+<p>接下來要取得解鎖碼。到<a href="https://developer.sony.com/develop/open-devices/get-started/unlock-bootloader/" target="_blank">Sony官網</a>。於下方表單選取Xperia 5 II，輸入IMEI碼（系統設定 → 關於手機，若有雙卡填SIM 1的就好，將二個破保的警告選項都打勾。按下Submit，接著會出現一組解鎖碼，將其複製下來。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-45c97ade7a.png"></p>
+</li>
+<li>
+<p>系統設定 → 版本號碼點5下，系統設定→系統就會出現開發人員選項，點進去，開啟OEM解鎖。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-5ffac33fee.png">
+</li>
+<li>
+<p>手機關機。按著手機音量上鍵，接到電腦，進入fastboot模式，Sony手機的指示燈應會變成藍色。</p>
+</li>
+<li>
+<p>開啟終端機，用指令確認是否電腦有抓到手機：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="7">
+<li>開始解鎖bootloader，解鎖碼的格式為「0x」+剛剛網站取得的解鎖碼：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="8">
+<li>終端機回傳「Okay」就代表成功了。重開機後資料已被清除，要重新設定手機。</li>
+</ol>
+<h2>4. 刷入Magisk
+<span>
+<a href="#4-%e5%88%b7%e5%85%a5magisk" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果擔心開不了機，先備份原本的<code>boot.img</code>。</p>
+<p>Sony Xperia 5 II要刷入Magisk有二種作法：</p>
+<p>一是到<a href="https://forum.xda-developers.com/t/kernel-stock-kernel-patched-with-magisk-on-customized-hk-android-11.4247827/" target="_blank">XDA</a>下載fengmubai製作的，對應韌體版本的boot.img。</p>
+<p>二是自行抽取原廠韌體的<code>boot.img</code>給Magisk修補，參見：<a href="/posts/sony-dump-tool-usage/">Sony Dump Tool用法</a></p>
+<p>本文採用作法一。</p>
+<ol>
+<li>透過fastboot刷入boot.img到boot分區:</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot boot.img
+</span></span><span><span>
+</span></span><span><span><span># Xperia 5 V之後用這個</span>
+</span></span><span><span>fastboot flash init_boot boot.img</span></span></code></pre></div></div>
+<ol start="2">
+<li>
+<p>重開機後要到應用程式列表點選Magisk安裝更新。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-ca38b6ac84.png"></p>
+</li>
+<li>
+<p>同意修復環境，之後重開機。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-c8c304ff81.png"></p>
+</li>
+<li>
+<p>在設定中開啟Magisk Hide。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-e2939165a0.png"></p>
+</li>
+<li>
+<p>執行SafetyNet檢測：成功
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-0ca90037ce.png"></p>
+</li>
+<li>
+<p>解鎖bootloader後，每次重開機都會顯示「手機已解鎖，無法驗證是否遭竄改」的警告。</p>
+</li>
+</ol>
+<p>請看<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">這篇</a>了解如何防止APP偵測到Root。</p>
+<h2>5. 刷入第三方Recovery和ROM
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5%e7%ac%ac%e4%b8%89%e6%96%b9recovery%e5%92%8crom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>2021年曾有人移植給Xperia 5 II用的OrangeFox (TWRP的fork)，孰料作者放棄維護，於是Xperia 5 II現在沒有類似TWRP的Recovery可刷，只剩LineageOS的Recovery。</p>
+<p>LineageOS官方於2023年2月正式支援Sony Xperia 5 II。</p>
+<p>參見<a href="https://ivonblog.com/posts/sony-xperia-5-ii-lineageos/" target="_blank">給Sony Xperia 5 II刷機升上Android 13</a></p>
+<p>如果您想刷回原廠ROM，請參見<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom" target="_blank">此篇</a></p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-5-ii-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4128e3cda4.webp"></a></p>
+<p>Sony Xperia 5 II (XQ-AS72) 透過官方管道解鎖後，便可以Root和刷機(刷入第三方ROM)。</p>
+<p>操作前務必備份重要資料，解鎖bootloader後手機資料會全部清除。</p>
+<p>本文教學亦適用於Xperia 5 (J9210)、Xperia 5 III、Xperia 5 IV、Xperia 5 V。</p>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<p>於Sony Xperia 5 II刷入Magisk，取得Root權限。</p>
+<p>流程：解鎖bootloader → 刷入Magisk，完成Root。</p>
+<p>如果有需要的話，還可以將原廠系統刷成第三方ROM，這樣起碼可以擺脫被原廠放生更新的命運。</p>
+<p>根據我自己的測試，若未來想<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom" target="_blank">將Xperia 5 II刷回原廠</a>（重新上鎖）是不需要備份所謂TA分區的。</p>
+<p>解除和Root後無法運作的項目：DRM會掉到L3，影響看Netflix之類的高畫質影片，金融類APP可能也會閃退不給用。雖然其實<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">可以繞過</a>
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-d4ba8bb3d3.png"></p>
+<h2>2. 準備工具
+<span>
+<a href="#2-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>3. 解鎖bootloader
+<span>
+<a href="#3-%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>手機開啟電話APP，撥號輸入：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>*#*#7378423#*#*</span></span></code></pre></div></div>
+<ol start="2">
+<li>
+<p>進入Service info → Configuration → Rooting Status，確認Bootloader unlock allowed是否為yes，代表可解鎖。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-e9371d6f12.png">
+</li>
+<li>
+<p>接下來要取得解鎖碼。到<a href="https://developer.sony.com/develop/open-devices/get-started/unlock-bootloader/" target="_blank">Sony官網</a>。於下方表單選取Xperia 5 II，輸入IMEI碼（系統設定 → 關於手機，若有雙卡填SIM 1的就好，將二個破保的警告選項都打勾。按下Submit，接著會出現一組解鎖碼，將其複製下來。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-45c97ade7a.png"></p>
+</li>
+<li>
+<p>系統設定 → 版本號碼點5下，系統設定→系統就會出現開發人員選項，點進去，開啟OEM解鎖。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-5ffac33fee.png">
+</li>
+<li>
+<p>手機關機。按著手機音量上鍵，接到電腦，進入fastboot模式，Sony手機的指示燈應會變成藍色。</p>
+</li>
+<li>
+<p>開啟終端機，用指令確認是否電腦有抓到手機：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot devices</span></span></code></pre></div></div>
+<ol start="7">
+<li>開始解鎖bootloader，解鎖碼的格式為「0x」+剛剛網站取得的解鎖碼：</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="8">
+<li>終端機回傳「Okay」就代表成功了。重開機後資料已被清除，要重新設定手機。</li>
+</ol>
+<h2>4. 刷入Magisk
+<span>
+<a href="#4-%e5%88%b7%e5%85%a5magisk" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果擔心開不了機，先備份原本的<code>boot.img</code>。</p>
+<p>Sony Xperia 5 II要刷入Magisk有二種作法：</p>
+<p>一是到<a href="https://forum.xda-developers.com/t/kernel-stock-kernel-patched-with-magisk-on-customized-hk-android-11.4247827/" target="_blank">XDA</a>下載fengmubai製作的，對應韌體版本的boot.img。</p>
+<p>二是自行抽取原廠韌體的<code>boot.img</code>給Magisk修補，參見：<a href="/posts/sony-dump-tool-usage/">Sony Dump Tool用法</a></p>
+<p>本文採用作法一。</p>
+<ol>
+<li>透過fastboot刷入boot.img到boot分區:</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot boot.img
+</span></span><span><span>
+</span></span><span><span><span># Xperia 5 V之後用這個</span>
+</span></span><span><span>fastboot flash init_boot boot.img</span></span></code></pre></div></div>
+<ol start="2">
+<li>
+<p>重開機後要到應用程式列表點選Magisk安裝更新。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-ca38b6ac84.png"></p>
+</li>
+<li>
+<p>同意修復環境，之後重開機。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-c8c304ff81.png"></p>
+</li>
+<li>
+<p>在設定中開啟Magisk Hide。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-e2939165a0.png"></p>
+</li>
+<li>
+<p>執行SafetyNet檢測：成功
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/i.imgur.com-0ca90037ce.png"></p>
+</li>
+<li>
+<p>解鎖bootloader後，每次重開機都會顯示「手機已解鎖，無法驗證是否遭竄改」的警告。</p>
+</li>
+</ol>
+<p>請看<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">這篇</a>了解如何防止APP偵測到Root。</p>
+<h2>5. 刷入第三方Recovery和ROM
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5%e7%ac%ac%e4%b8%89%e6%96%b9recovery%e5%92%8crom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>2021年曾有人移植給Xperia 5 II用的OrangeFox (TWRP的fork)，孰料作者放棄維護，於是Xperia 5 II現在沒有類似TWRP的Recovery可刷，只剩LineageOS的Recovery。</p>
+<p>LineageOS官方於2023年2月正式支援Sony Xperia 5 II。</p>
+<p>參見<a href="https://ivonblog.com/posts/sony-xperia-5-ii-lineageos/" target="_blank">給Sony Xperia 5 II刷機升上Android 13</a></p>
+<p>如果您想刷回原廠ROM，請參見<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom" target="_blank">此篇</a></p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4128e3cda4.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4128e3cda4.webp" medium="image"/>
+    <pubDate>Sun, 27 Sep 2026 05:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[Sony Xperia 10 V的Root，安裝Magisk，改善卡頓、裝Dolby Atmos提昇喇叭外放]]></title>
+    <link>https://ivonblog.com/posts/sony-xperia-10-v-root/</link>
+    <itunes:title><![CDATA[Sony Xperia 10 V的Root，安裝Magisk，改善卡頓、裝Dolby Atmos提昇喇叭外放]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-10-v-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c6d387bb4b.webp"></a></p>
+<p>Ivon的Sony Xperia 10 V性能強化週間，改善系統延遲度、改善拍照效果、改善喇叭外放。</p>
+<p>介紹如何解鎖Sony Xperia 10 V (XQ-DC72) 的Bootloader，取得Root權限。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-da1178f92b.webp">
+<p>Ivon想Root的原因是這支明明有雙喇叭音質還是很破，想說刷杜比音效模組改善之。</p>
+<p>本文教學的步驟亦適用於Xperia 10、Xperia 10 Plus、Xperia 10 II、Xperia 10 III、Xperia 10 IV、Xperia 10 VI、Xperia 10 VII、Xperia 10 VIII。</p>
+<p>影片過程參考
+</p><div>
+<iframe src="https://www.youtube.com/embed/CwGieZnmhPM?si=Ab8kV7e-SBCdONMV" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<p>首先一定是破保的，DRM從L1掉到L3（雖然我這邊檢測還是L1）</p>
+<p>Play Integrity過不了，銀行APP閃退，部份APP不給裝，需要裝<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">模組</a>隱藏root。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f6393b65e.webp"></p>
+<p>如果使用原廠Sony ROM的場合，Root後無法直接OTA更新，需要把boot.img刷回來的迂迴方式才能保持Root。參照<a href="https://ivonblog.com/posts/sony-xperia-newflasher-ota-update/" target="_blank">透過NewFlasher安裝OTA更新</a>。</p>
+<p>除此之外的功能不影響，360 Reality Audio、原始模式螢幕色彩、相機演算法（中階機有演算法可言？）在Root後仍正常運作。</p>
+<p>未來反悔能無痛刷回原廠，不需要備份TA分區。</p>
+<p>嘛，在LineageOS出了之後，我就馬上刷成第三方ROM了，Root後更新沒那麼麻煩。</p>
+<h2>2. 準備工具
+<span>
+<a href="#2-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>3. 解鎖Bootloader
+<span>
+<a href="#3-%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將手機上該備份的都備份，Google帳號登出，等下資料會全部清除。</p>
+</li>
+<li>
+<p>到手機系統設定 → 關於，對版本號碼點5下</p>
+</li>
+<li>
+<p>搜尋「開發人員選項」，進入後勾選「允許OEM解鎖」和「啟用ADB偵錯」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-49c547ea5a.webp">
+</li>
+<li>
+<p>到手機系統設定 → 關於，記下手機的IMEI碼</p>
+</li>
+<li>
+<p>到<a href="https://developer.sony.com/open-source/aosp-on-xperia-open-devices/get-started/unlock-bootloader" target="_blank">Sony官方解鎖網頁</a>，選取Xperia 10 V，填入IMEI碼，勾選二個同意，之後會生成一組解鎖代碼
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5441fee3b9.webp">
+</li>
+<li>
+<p>將手機連接到電腦</p>
+</li>
+<li>
+<p>開啟終端機，輸入ADB指令讓手機進入bootloader</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
+</span></span><span><span>
+</span></span><span><span>adb reboot bootloader</span></span></code></pre></div></div>
+<ol start="8">
+<li>輸入指令解鎖，後面的數字規則為「0x」＋解鎖碼</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="9">
+<li>重新開機，會顯示Erasing清除手機資料。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot reboot</span></span></code></pre></div></div>
+<ol start="10">
+<li>開機後重新設定Xperia，進入桌面。</li>
+</ol>
+<h2>4. 修補過boot.img取得Root權限
+<span>
+<a href="#4-%e4%bf%ae%e8%a3%9c%e9%81%8ebootimg%e5%8f%96%e5%be%97root%e6%ac%8a%e9%99%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>選取一個Root方案，過去我是用<a href="https://ivonblog.com/posts/magisk-android-root/" target="_blank">Magisk</a>，不過現在為了更好的隱藏Root，我用<a href="https://ivonblog.com/posts/apatch-android-root/" target="_blank">APatch</a>。</p>
+</li>
+<li>
+<p>如果你使用的是Sony原廠ROM，需要使用<a href="https://ivonblog.com/posts/sony-dump-tool-usage" target="_blank">Sony Dump Tool</a>，抽取原廠韌體的boot.img。
+至於LineageOS的話，到官網下載目前版本的boot.img即可。</p>
+</li>
+<li>
+<p>修補boot.img後，將手機接到電腦，讓其進入bootloader模式：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb reboot bootloader</span></span></code></pre></div></div>
+<ol start="4">
+<li>之後，刷入修補過的boot.img</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot magisk_patched_boot.img</span></span></code></pre></div></div>
+<ol start="5">
+<li>以Magisk Manager為例，開機後檢查顯示「已安裝」，至此Root完成
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7b5ba1dbcf.webp"></li>
+</ol>
+<h2>5. 刷入第三方ROM
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5%e7%ac%ac%e4%b8%89%e6%96%b9rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>選擇性步驟。</p>
+<p>在我當初購買的時候，這支才出3個月，沒有第三方ROM能刷機，所以是Root後繼續使用Sony原廠ROM。</p>
+<p>2025年之後終於有LineageOS能刷了！LineageOS可以在Sony原廠系統停止更新之後繼續獲得系統更新，不保證穩定性。</p>
+<p>參見<a href="https://ivonblog.com/posts/sony-xperia-10-v-lineageos/" target="_blank">Xperia 10 V刷LineageOS</a></p>
+<h2>6. Xperia 10 V系統優化
+<span>
+<a href="#6-xperia-10-v%e7%b3%bb%e7%b5%b1%e5%84%aa%e5%8c%96" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這裡的系統優化方案適用Sony原廠ROM與LineageOS。有Root權限比較好操作。</p>
+<p>在進行一些優化後，Ivon的Xperia 10 V體驗好了一些，獲得更高的流暢度的同時，也沒有犧牲續航力，手機亦不發熱。續航力在一直滑的情況下SOT仍有辦法撐8個小時以上。</p>
+<h3>停用溫度控制
+<span>
+<a href="#%e5%81%9c%e7%94%a8%e6%ba%ab%e5%ba%a6%e6%8e%a7%e5%88%b6" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>溫度控制又稱過熱保護。該服務會在手機溫度過高的時候禁止使用相機。SD595本身不太會發熱，限制溫度只會導致卡頓，且Sony的溫控觸發閾值太低了。</p>
+<p>溫控保護這個機制只有Sony原廠ROM有，如果使用Scene工具箱它會自動幫你停用。</p>
+<ol>
+<li>
+<p>下載<a href="https://developer.android.com/tools/releases/platform-tools" target="_blank">Platform Tools</a></p>
+</li>
+<li>
+<p>在關於手機 → 版本號碼點三下，啟用開發人員選項</p>
+</li>
+<li>
+<p>進入開發人員選項，啟用ADB偵錯</p>
+</li>
+<li>
+<p>將手機接到電腦，啟用ADB連線</p>
+</li>
+<li>
+<p>輸入以下指令停用溫控，手機重新啟動。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb shell pm disable-user com.sonyericsson.psm.sysmonservice</span></span></code></pre></div></div>
+<h3>安裝Scene改善卡頓
+<span>
+<a href="#%e5%ae%89%e8%a3%9dscene%e6%94%b9%e5%96%84%e5%8d%a1%e9%a0%93" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>我覺得有感的是<a href="https://github.com/helloklf/vtools" target="_blank">Scene工具箱</a>，或者使用<a href="https://github.com/yinwanxi/Uperf-Game-Turbo" target="_blank">Uperf Game Turbo</a>。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d4785de82f.webp"></p>
+<p>SD695兩大核六小核的低效能帶來的隨機UI卡頓發作機率，會下降了一點。也有可能只是心理作用。</p>
+<p>到開發人員選項，勾選「停用硬體重疊圖層」讓GPU去算繪可以增加一點流暢度。</p>
+<p>Android 16以上版本到開發人員選項，關閉「允許視窗層級模糊處理」可以減少動畫卡頓感。</p>
+<h3>安裝杜比音效改善喇叭外放
+<span>
+<a href="#%e5%ae%89%e8%a3%9d%e6%9d%9c%e6%af%94%e9%9f%b3%e6%95%88%e6%94%b9%e5%96%84%e5%96%87%e5%8f%ad%e5%a4%96%e6%94%be" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>Xperia 10 V的前置雙喇叭外放普普，我需要更強的效果。</p>
+<p>八卦是，舊款Xpeira 10系列原廠其實是有杜比音效的，甚至有HDR顯示螢幕，但是新版都被偷掉了！！！</p>
+<p>既然Sony在中階機偷掉了杜比音效軟體，就用額外音效模組來補。</p>
+<p>想要杜比音效(Dolby Atmos)的請在Root後安裝reiryuki移植的<a href="https://github.com/reiryuki/Dolby-Atmos-Sony-Xperia-5-V-Magisk-Module" target="_blank">Dolby Atmos Sony Xperia 5 V Magisk Module</a>模組，這樣聲音效果就會改善許多。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1125cd997e.webp"></p>
+<p>刷這個<a href="https://github.com/reiryuki/360-Reality-Audio-Upmix-Sony-Xperia-5-V-Magisk-Module" target="_blank">360-Reality-Audio-Upmix-Sony-Xperia-5-V-Magisk-Module</a>可以取得360 Reality Audio。</p>
+<p>另請參閱<a href="https://github.com/WSTxda/ViperFX-RE-Releases" target="_blank">Vpiper4Android</a>，效果依然不賴。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6e06019e85.webp"></p>
+<p>音效模組尚有<a href="https://ivonblog.com/posts/android-jamesdsp/" target="_blank">JamesDSP</a>模組，JamesDSP我使用Root版本，全域生效。實測開Multimodal等化器+Movie Preset，手機最大音量增大約30%，聽感也有改善，不會再像原廠那樣平淡無奇。</p>
+<h2>7. 解除Root並刷回原廠ROM
+<span>
+<a href="#7-%e8%a7%a3%e9%99%a4root%e4%b8%a6%e5%88%b7%e5%9b%9e%e5%8e%9f%e5%bb%a0rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由於Play Integrity會抓Bootloader解鎖狀態，單單把Magisk移除並不算完全的解除root，系統狀態還是不乾淨。</p>
+<p>需要清除手機資料，刷機回原廠韌體，將Bootloader重新上鎖才能回覆原廠系統。</p>
+<p>參照：<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom/" target="_blank">NewFlasher + XperiFirm教學，將Sony Xperia 1/5/10系列手機強制刷回原廠ROM</a></p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-10-v-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c6d387bb4b.webp"></a></p>
+<p>Ivon的Sony Xperia 10 V性能強化週間，改善系統延遲度、改善拍照效果、改善喇叭外放。</p>
+<p>介紹如何解鎖Sony Xperia 10 V (XQ-DC72) 的Bootloader，取得Root權限。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-da1178f92b.webp">
+<p>Ivon想Root的原因是這支明明有雙喇叭音質還是很破，想說刷杜比音效模組改善之。</p>
+<p>本文教學的步驟亦適用於Xperia 10、Xperia 10 Plus、Xperia 10 II、Xperia 10 III、Xperia 10 IV、Xperia 10 VI、Xperia 10 VII、Xperia 10 VIII。</p>
+<p>影片過程參考
+</p><div>
+<iframe src="https://www.youtube.com/embed/CwGieZnmhPM?si=Ab8kV7e-SBCdONMV" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<p>首先一定是破保的，DRM從L1掉到L3（雖然我這邊檢測還是L1）</p>
+<p>Play Integrity過不了，銀行APP閃退，部份APP不給裝，需要裝<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">模組</a>隱藏root。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f6393b65e.webp"></p>
+<p>如果使用原廠Sony ROM的場合，Root後無法直接OTA更新，需要把boot.img刷回來的迂迴方式才能保持Root。參照<a href="https://ivonblog.com/posts/sony-xperia-newflasher-ota-update/" target="_blank">透過NewFlasher安裝OTA更新</a>。</p>
+<p>除此之外的功能不影響，360 Reality Audio、原始模式螢幕色彩、相機演算法（中階機有演算法可言？）在Root後仍正常運作。</p>
+<p>未來反悔能無痛刷回原廠，不需要備份TA分區。</p>
+<p>嘛，在LineageOS出了之後，我就馬上刷成第三方ROM了，Root後更新沒那麼麻煩。</p>
+<h2>2. 準備工具
+<span>
+<a href="#2-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>3. 解鎖Bootloader
+<span>
+<a href="#3-%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將手機上該備份的都備份，Google帳號登出，等下資料會全部清除。</p>
+</li>
+<li>
+<p>到手機系統設定 → 關於，對版本號碼點5下</p>
+</li>
+<li>
+<p>搜尋「開發人員選項」，進入後勾選「允許OEM解鎖」和「啟用ADB偵錯」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-49c547ea5a.webp">
+</li>
+<li>
+<p>到手機系統設定 → 關於，記下手機的IMEI碼</p>
+</li>
+<li>
+<p>到<a href="https://developer.sony.com/open-source/aosp-on-xperia-open-devices/get-started/unlock-bootloader" target="_blank">Sony官方解鎖網頁</a>，選取Xperia 10 V，填入IMEI碼，勾選二個同意，之後會生成一組解鎖代碼
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5441fee3b9.webp">
+</li>
+<li>
+<p>將手機連接到電腦</p>
+</li>
+<li>
+<p>開啟終端機，輸入ADB指令讓手機進入bootloader</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
+</span></span><span><span>
+</span></span><span><span>adb reboot bootloader</span></span></code></pre></div></div>
+<ol start="8">
+<li>輸入指令解鎖，後面的數字規則為「0x」＋解鎖碼</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="9">
+<li>重新開機，會顯示Erasing清除手機資料。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot reboot</span></span></code></pre></div></div>
+<ol start="10">
+<li>開機後重新設定Xperia，進入桌面。</li>
+</ol>
+<h2>4. 修補過boot.img取得Root權限
+<span>
+<a href="#4-%e4%bf%ae%e8%a3%9c%e9%81%8ebootimg%e5%8f%96%e5%be%97root%e6%ac%8a%e9%99%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>選取一個Root方案，過去我是用<a href="https://ivonblog.com/posts/magisk-android-root/" target="_blank">Magisk</a>，不過現在為了更好的隱藏Root，我用<a href="https://ivonblog.com/posts/apatch-android-root/" target="_blank">APatch</a>。</p>
+</li>
+<li>
+<p>如果你使用的是Sony原廠ROM，需要使用<a href="https://ivonblog.com/posts/sony-dump-tool-usage" target="_blank">Sony Dump Tool</a>，抽取原廠韌體的boot.img。
+至於LineageOS的話，到官網下載目前版本的boot.img即可。</p>
+</li>
+<li>
+<p>修補boot.img後，將手機接到電腦，讓其進入bootloader模式：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb reboot bootloader</span></span></code></pre></div></div>
+<ol start="4">
+<li>之後，刷入修補過的boot.img</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot magisk_patched_boot.img</span></span></code></pre></div></div>
+<ol start="5">
+<li>以Magisk Manager為例，開機後檢查顯示「已安裝」，至此Root完成
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7b5ba1dbcf.webp"></li>
+</ol>
+<h2>5. 刷入第三方ROM
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5%e7%ac%ac%e4%b8%89%e6%96%b9rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>選擇性步驟。</p>
+<p>在我當初購買的時候，這支才出3個月，沒有第三方ROM能刷機，所以是Root後繼續使用Sony原廠ROM。</p>
+<p>2025年之後終於有LineageOS能刷了！LineageOS可以在Sony原廠系統停止更新之後繼續獲得系統更新，不保證穩定性。</p>
+<p>參見<a href="https://ivonblog.com/posts/sony-xperia-10-v-lineageos/" target="_blank">Xperia 10 V刷LineageOS</a></p>
+<h2>6. Xperia 10 V系統優化
+<span>
+<a href="#6-xperia-10-v%e7%b3%bb%e7%b5%b1%e5%84%aa%e5%8c%96" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這裡的系統優化方案適用Sony原廠ROM與LineageOS。有Root權限比較好操作。</p>
+<p>在進行一些優化後，Ivon的Xperia 10 V體驗好了一些，獲得更高的流暢度的同時，也沒有犧牲續航力，手機亦不發熱。續航力在一直滑的情況下SOT仍有辦法撐8個小時以上。</p>
+<h3>停用溫度控制
+<span>
+<a href="#%e5%81%9c%e7%94%a8%e6%ba%ab%e5%ba%a6%e6%8e%a7%e5%88%b6" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>溫度控制又稱過熱保護。該服務會在手機溫度過高的時候禁止使用相機。SD595本身不太會發熱，限制溫度只會導致卡頓，且Sony的溫控觸發閾值太低了。</p>
+<p>溫控保護這個機制只有Sony原廠ROM有，如果使用Scene工具箱它會自動幫你停用。</p>
+<ol>
+<li>
+<p>下載<a href="https://developer.android.com/tools/releases/platform-tools" target="_blank">Platform Tools</a></p>
+</li>
+<li>
+<p>在關於手機 → 版本號碼點三下，啟用開發人員選項</p>
+</li>
+<li>
+<p>進入開發人員選項，啟用ADB偵錯</p>
+</li>
+<li>
+<p>將手機接到電腦，啟用ADB連線</p>
+</li>
+<li>
+<p>輸入以下指令停用溫控，手機重新啟動。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb shell pm disable-user com.sonyericsson.psm.sysmonservice</span></span></code></pre></div></div>
+<h3>安裝Scene改善卡頓
+<span>
+<a href="#%e5%ae%89%e8%a3%9dscene%e6%94%b9%e5%96%84%e5%8d%a1%e9%a0%93" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>我覺得有感的是<a href="https://github.com/helloklf/vtools" target="_blank">Scene工具箱</a>，或者使用<a href="https://github.com/yinwanxi/Uperf-Game-Turbo" target="_blank">Uperf Game Turbo</a>。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d4785de82f.webp"></p>
+<p>SD695兩大核六小核的低效能帶來的隨機UI卡頓發作機率，會下降了一點。也有可能只是心理作用。</p>
+<p>到開發人員選項，勾選「停用硬體重疊圖層」讓GPU去算繪可以增加一點流暢度。</p>
+<p>Android 16以上版本到開發人員選項，關閉「允許視窗層級模糊處理」可以減少動畫卡頓感。</p>
+<h3>安裝杜比音效改善喇叭外放
+<span>
+<a href="#%e5%ae%89%e8%a3%9d%e6%9d%9c%e6%af%94%e9%9f%b3%e6%95%88%e6%94%b9%e5%96%84%e5%96%87%e5%8f%ad%e5%a4%96%e6%94%be" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>Xperia 10 V的前置雙喇叭外放普普，我需要更強的效果。</p>
+<p>八卦是，舊款Xpeira 10系列原廠其實是有杜比音效的，甚至有HDR顯示螢幕，但是新版都被偷掉了！！！</p>
+<p>既然Sony在中階機偷掉了杜比音效軟體，就用額外音效模組來補。</p>
+<p>想要杜比音效(Dolby Atmos)的請在Root後安裝reiryuki移植的<a href="https://github.com/reiryuki/Dolby-Atmos-Sony-Xperia-5-V-Magisk-Module" target="_blank">Dolby Atmos Sony Xperia 5 V Magisk Module</a>模組，這樣聲音效果就會改善許多。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1125cd997e.webp"></p>
+<p>刷這個<a href="https://github.com/reiryuki/360-Reality-Audio-Upmix-Sony-Xperia-5-V-Magisk-Module" target="_blank">360-Reality-Audio-Upmix-Sony-Xperia-5-V-Magisk-Module</a>可以取得360 Reality Audio。</p>
+<p>另請參閱<a href="https://github.com/WSTxda/ViperFX-RE-Releases" target="_blank">Vpiper4Android</a>，效果依然不賴。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6e06019e85.webp"></p>
+<p>音效模組尚有<a href="https://ivonblog.com/posts/android-jamesdsp/" target="_blank">JamesDSP</a>模組，JamesDSP我使用Root版本，全域生效。實測開Multimodal等化器+Movie Preset，手機最大音量增大約30%，聽感也有改善，不會再像原廠那樣平淡無奇。</p>
+<h2>7. 解除Root並刷回原廠ROM
+<span>
+<a href="#7-%e8%a7%a3%e9%99%a4root%e4%b8%a6%e5%88%b7%e5%9b%9e%e5%8e%9f%e5%bb%a0rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由於Play Integrity會抓Bootloader解鎖狀態，單單把Magisk移除並不算完全的解除root，系統狀態還是不乾淨。</p>
+<p>需要清除手機資料，刷機回原廠韌體，將Bootloader重新上鎖才能回覆原廠系統。</p>
+<p>參照：<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom/" target="_blank">NewFlasher + XperiFirm教學，將Sony Xperia 1/5/10系列手機強制刷回原廠ROM</a></p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/sony-xperia-10-v-root/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c6d387bb4b.webp"></a></p>
+<p>Ivon的Sony Xperia 10 V性能強化週間，改善系統延遲度、改善拍照效果、改善喇叭外放。</p>
+<p>介紹如何解鎖Sony Xperia 10 V (XQ-DC72) 的Bootloader，取得Root權限。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-da1178f92b.webp">
+<p>Ivon想Root的原因是這支明明有雙喇叭音質還是很破，想說刷杜比音效模組改善之。</p>
+<p>本文教學的步驟亦適用於Xperia 10、Xperia 10 Plus、Xperia 10 II、Xperia 10 III、Xperia 10 IV、Xperia 10 VI、Xperia 10 VII、Xperia 10 VIII。</p>
+<p>影片過程參考
+</p><div>
+<iframe src="https://www.youtube.com/embed/CwGieZnmhPM?si=Ab8kV7e-SBCdONMV" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<h2>1. Root後會失去的東西
+<span>
+<a href="#1-root%e5%be%8c%e6%9c%83%e5%a4%b1%e5%8e%bb%e7%9a%84%e6%9d%b1%e8%a5%bf" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Root後會破保固。</p>
+</li>
+<li>
+<p>操作不慎會有變磚之風險。風險自負。</p>
+</li>
+<li>
+<p>Root後可能無法正常OTA更新。</p>
+</li>
+<li>
+<p>在解鎖Bootloader後，Play Integrity無法通過，導致無法使用銀行App。需要刷<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">Play Integrity Fix</a>隱藏root權限。</p>
+</li>
+<li>
+<p>是否會損失DRM key：2019年之後的Xperia，解鎖Bootloader不會損失任何原廠的照相與螢幕功能，無須備份TA分區。並且之後是能夠刷回原廠ROM，回鎖Bootloader的。</p>
+</li>
+</ol>
+<p>首先一定是破保的，DRM從L1掉到L3（雖然我這邊檢測還是L1）</p>
+<p>Play Integrity過不了，銀行APP閃退，部份APP不給裝，需要裝<a href="https://ivonblog.com/posts/android-hide-root/" target="_blank">模組</a>隱藏root。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7f6393b65e.webp"></p>
+<p>如果使用原廠Sony ROM的場合，Root後無法直接OTA更新，需要把boot.img刷回來的迂迴方式才能保持Root。參照<a href="https://ivonblog.com/posts/sony-xperia-newflasher-ota-update/" target="_blank">透過NewFlasher安裝OTA更新</a>。</p>
+<p>除此之外的功能不影響，360 Reality Audio、原始模式螢幕色彩、相機演算法（中階機有演算法可言？）在Root後仍正常運作。</p>
+<p>未來反悔能無痛刷回原廠，不需要備份TA分區。</p>
+<p>嘛，在LineageOS出了之後，我就馬上刷成第三方ROM了，Root後更新沒那麼麻煩。</p>
+<h2>2. 準備工具
+<span>
+<a href="#2-%e6%ba%96%e5%82%99%e5%b7%a5%e5%85%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>Linux電腦不需要安裝Android機驅動，不過Windows 11可能需要<a href="https://www.sony.com.tw/zh/electronics/support/other-products-xperia-smart-devices/xperia-touch/articles/SX278901" target="_blank">Sony發表的驅動</a>。</p>
+</li>
+<li>
+<p>依照你的作業系統下載<a href="https://developer.android.com/tools/releases/platform-tools?hl=zh-tw" target="_blank">ADB與Fastboot</a>工具，解壓縮使用。</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/t/tool-xperifirm-xperia-firmware-downloader-v5-6-5.2834142/" target="_blank">XperiFirm</a>：下載Sony原廠韌體</p>
+</li>
+<li>
+<p><a href="https://ivonblog.com/posts/sony-dump-tool-usage/" target="_blank">Sony Dump Tool</a>：從Sony原廠韌體解出boot.img之用</p>
+</li>
+<li>
+<p>爲什麼沒有TWRP？不是每支Sony手機都有人做第三方Recovery，直接修補boot.img比較快。</p>
+</li>
+</ol>
+<h2>3. 解鎖Bootloader
+<span>
+<a href="#3-%e8%a7%a3%e9%8e%96bootloader" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>將手機上該備份的都備份，Google帳號登出，等下資料會全部清除。</p>
+</li>
+<li>
+<p>到手機系統設定 → 關於，對版本號碼點5下</p>
+</li>
+<li>
+<p>搜尋「開發人員選項」，進入後勾選「允許OEM解鎖」和「啟用ADB偵錯」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-49c547ea5a.webp">
+</li>
+<li>
+<p>到手機系統設定 → 關於，記下手機的IMEI碼</p>
+</li>
+<li>
+<p>到<a href="https://developer.sony.com/open-source/aosp-on-xperia-open-devices/get-started/unlock-bootloader" target="_blank">Sony官方解鎖網頁</a>，選取Xperia 10 V，填入IMEI碼，勾選二個同意，之後會生成一組解鎖代碼
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5441fee3b9.webp">
+</li>
+<li>
+<p>將手機連接到電腦</p>
+</li>
+<li>
+<p>開啟終端機，輸入ADB指令讓手機進入bootloader</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb devices
+</span></span><span><span>
+</span></span><span><span>adb reboot bootloader</span></span></code></pre></div></div>
+<ol start="8">
+<li>輸入指令解鎖，後面的數字規則為「0x」＋解鎖碼</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot oem unlock 0x解鎖碼</span></span></code></pre></div></div>
+<ol start="9">
+<li>重新開機，會顯示Erasing清除手機資料。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot reboot</span></span></code></pre></div></div>
+<ol start="10">
+<li>開機後重新設定Xperia，進入桌面。</li>
+</ol>
+<h2>4. 修補過boot.img取得Root權限
+<span>
+<a href="#4-%e4%bf%ae%e8%a3%9c%e9%81%8ebootimg%e5%8f%96%e5%be%97root%e6%ac%8a%e9%99%90" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>選取一個Root方案，過去我是用<a href="https://ivonblog.com/posts/magisk-android-root/" target="_blank">Magisk</a>，不過現在為了更好的隱藏Root，我用<a href="https://ivonblog.com/posts/apatch-android-root/" target="_blank">APatch</a>。</p>
+</li>
+<li>
+<p>如果你使用的是Sony原廠ROM，需要使用<a href="https://ivonblog.com/posts/sony-dump-tool-usage" target="_blank">Sony Dump Tool</a>，抽取原廠韌體的boot.img。
+至於LineageOS的話，到官網下載目前版本的boot.img即可。</p>
+</li>
+<li>
+<p>修補boot.img後，將手機接到電腦，讓其進入bootloader模式：</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb reboot bootloader</span></span></code></pre></div></div>
+<ol start="4">
+<li>之後，刷入修補過的boot.img</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>fastboot flash boot magisk_patched_boot.img</span></span></code></pre></div></div>
+<ol start="5">
+<li>以Magisk Manager為例，開機後檢查顯示「已安裝」，至此Root完成
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7b5ba1dbcf.webp"></li>
+</ol>
+<h2>5. 刷入第三方ROM
+<span>
+<a href="#5-%e5%88%b7%e5%85%a5%e7%ac%ac%e4%b8%89%e6%96%b9rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>選擇性步驟。</p>
+<p>在我當初購買的時候，這支才出3個月，沒有第三方ROM能刷機，所以是Root後繼續使用Sony原廠ROM。</p>
+<p>2025年之後終於有LineageOS能刷了！LineageOS可以在Sony原廠系統停止更新之後繼續獲得系統更新，不保證穩定性。</p>
+<p>參見<a href="https://ivonblog.com/posts/sony-xperia-10-v-lineageos/" target="_blank">Xperia 10 V刷LineageOS</a></p>
+<h2>6. Xperia 10 V系統優化
+<span>
+<a href="#6-xperia-10-v%e7%b3%bb%e7%b5%b1%e5%84%aa%e5%8c%96" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這裡的系統優化方案適用Sony原廠ROM與LineageOS。有Root權限比較好操作。</p>
+<p>在進行一些優化後，Ivon的Xperia 10 V體驗好了一些，獲得更高的流暢度的同時，也沒有犧牲續航力，手機亦不發熱。續航力在一直滑的情況下SOT仍有辦法撐8個小時以上。</p>
+<h3>停用溫度控制
+<span>
+<a href="#%e5%81%9c%e7%94%a8%e6%ba%ab%e5%ba%a6%e6%8e%a7%e5%88%b6" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>溫度控制又稱過熱保護。該服務會在手機溫度過高的時候禁止使用相機。SD595本身不太會發熱，限制溫度只會導致卡頓，且Sony的溫控觸發閾值太低了。</p>
+<p>溫控保護這個機制只有Sony原廠ROM有，如果使用Scene工具箱它會自動幫你停用。</p>
+<ol>
+<li>
+<p>下載<a href="https://developer.android.com/tools/releases/platform-tools" target="_blank">Platform Tools</a></p>
+</li>
+<li>
+<p>在關於手機 → 版本號碼點三下，啟用開發人員選項</p>
+</li>
+<li>
+<p>進入開發人員選項，啟用ADB偵錯</p>
+</li>
+<li>
+<p>將手機接到電腦，啟用ADB連線</p>
+</li>
+<li>
+<p>輸入以下指令停用溫控，手機重新啟動。</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>adb shell pm disable-user com.sonyericsson.psm.sysmonservice</span></span></code></pre></div></div>
+<h3>安裝Scene改善卡頓
+<span>
+<a href="#%e5%ae%89%e8%a3%9dscene%e6%94%b9%e5%96%84%e5%8d%a1%e9%a0%93" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>我覺得有感的是<a href="https://github.com/helloklf/vtools" target="_blank">Scene工具箱</a>，或者使用<a href="https://github.com/yinwanxi/Uperf-Game-Turbo" target="_blank">Uperf Game Turbo</a>。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d4785de82f.webp"></p>
+<p>SD695兩大核六小核的低效能帶來的隨機UI卡頓發作機率，會下降了一點。也有可能只是心理作用。</p>
+<p>到開發人員選項，勾選「停用硬體重疊圖層」讓GPU去算繪可以增加一點流暢度。</p>
+<p>Android 16以上版本到開發人員選項，關閉「允許視窗層級模糊處理」可以減少動畫卡頓感。</p>
+<h3>安裝杜比音效改善喇叭外放
+<span>
+<a href="#%e5%ae%89%e8%a3%9d%e6%9d%9c%e6%af%94%e9%9f%b3%e6%95%88%e6%94%b9%e5%96%84%e5%96%87%e5%8f%ad%e5%a4%96%e6%94%be" aria-label="定位點">#</a>
+</span>
+</h3>
+<p>Xperia 10 V的前置雙喇叭外放普普，我需要更強的效果。</p>
+<p>八卦是，舊款Xpeira 10系列原廠其實是有杜比音效的，甚至有HDR顯示螢幕，但是新版都被偷掉了！！！</p>
+<p>既然Sony在中階機偷掉了杜比音效軟體，就用額外音效模組來補。</p>
+<p>想要杜比音效(Dolby Atmos)的請在Root後安裝reiryuki移植的<a href="https://github.com/reiryuki/Dolby-Atmos-Sony-Xperia-5-V-Magisk-Module" target="_blank">Dolby Atmos Sony Xperia 5 V Magisk Module</a>模組，這樣聲音效果就會改善許多。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-1125cd997e.webp"></p>
+<p>刷這個<a href="https://github.com/reiryuki/360-Reality-Audio-Upmix-Sony-Xperia-5-V-Magisk-Module" target="_blank">360-Reality-Audio-Upmix-Sony-Xperia-5-V-Magisk-Module</a>可以取得360 Reality Audio。</p>
+<p>另請參閱<a href="https://github.com/WSTxda/ViperFX-RE-Releases" target="_blank">Vpiper4Android</a>，效果依然不賴。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6e06019e85.webp"></p>
+<p>音效模組尚有<a href="https://ivonblog.com/posts/android-jamesdsp/" target="_blank">JamesDSP</a>模組，JamesDSP我使用Root版本，全域生效。實測開Multimodal等化器+Movie Preset，手機最大音量增大約30%，聽感也有改善，不會再像原廠那樣平淡無奇。</p>
+<h2>7. 解除Root並刷回原廠ROM
+<span>
+<a href="#7-%e8%a7%a3%e9%99%a4root%e4%b8%a6%e5%88%b7%e5%9b%9e%e5%8e%9f%e5%bb%a0rom" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由於Play Integrity會抓Bootloader解鎖狀態，單單把Magisk移除並不算完全的解除root，系統狀態還是不乾淨。</p>
+<p>需要清除手機資料，刷機回原廠韌體，將Bootloader重新上鎖才能回覆原廠系統。</p>
+<p>參照：<a href="https://ivonblog.com/posts/newflasher-flash-sony-xperia-back-to-stock-rom/" target="_blank">NewFlasher + XperiFirm教學，將Sony Xperia 1/5/10系列手機強制刷回原廠ROM</a></p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c6d387bb4b.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c6d387bb4b.webp" medium="image"/>
+    <pubDate>Sat, 26 Sep 2026 10:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[GSC 零之使魔F 露易絲 2.0黏土人開箱，拜託打我]]></title>
+    <link>https://ivonblog.com/posts/gsc-nendoroid-louise-2-0/</link>
+    <itunes:title><![CDATA[GSC 零之使魔F 露易絲 2.0黏土人開箱，拜託打我]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/gsc-nendoroid-louise-2-0/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bd147a24ea.webp"></a></p>
+<p>太好了！GSC露易絲黏土人有附鞭子！拜託，打我！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b992c77fdf.webp">
+<p>《零之使魔》（ゼロの使い魔）是山口昇創作的異世界穿越輕小說，2004年出版，後推出TV動畫《零之使魔》《零之使魔 雙月的騎士》《零之使魔 三美姬的輪舞曲》《零之使魔F》，共四季。動畫結局跟輕小說不一樣，純粹是製作組自己掰出來的。原作者還沒寫完輕小說就過世了，後由出版社另外找人根據大綱寫出《零之使魔》完結篇。</p>
+<p>真的是童年回憶，第一部在Animax頻道看入迷的動畫，算是二次元啟蒙作。現在這個劇情看起來很SM的，男主角平賀才人莫名從日本召喚到異世界當奴隸，被傲嬌女主角露易絲使喚當狗，還一副很爽的樣子，然後兩人莫名就成為情人，還拿乞丐大劍開無雙～明明是魔法世界，作品裡面卻有日本零戰與蘇聯核潛艇登場。</p>
+<p>露易絲雖然個性不好，卻也是想讓人保護的可愛女生。</p>
+<p>在看到GSC宣佈新黏土人的當天就預購了。這是電視動畫版第四季《零之使魔F》的「露易絲」黏土人2.0，2026年9月發售。其實2012年GSC就出過一次露易絲的黏土人了，這個是翻新版本。少了坦誠相見的表情，多了跪下動作的零件。</p>
+<p>今年正好是《零之使魔》動畫播映20週年！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1cd530ab49.webp">
+<p>本來我想說，讓露易絲與Samsung Note 7合影，看誰碰到先爆炸XD 啊不過有看原作的話就會知道露易絲的魔法屬性是虛無，才會有強大破壞力。或者加上背景應該傑作機的零戰五二型模型？怪怪的，沒有才人，她也不會開呀。所以我就…比較單調的背景。</p>
+<p>包裝是現代的配色，模型的髮色其實沒有包裝上那麼粉
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-973d5643b9.webp">
+<p>可惜的是紙盒裡面沒有印製任何背景呢，就是粉紅色。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-510142d59e.webp">
+<p>完整組裝樣子，右手有關節零件，雙腳可彎曲跪下。斗篷可開闔，像是甲蟲翅膀一樣，可展開，擺出施法的時候被風吹起來的樣子。而且斗篷的好處是，可以協助黏土人站立，不需要架子。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-439ab929bc.webp">
+<p>露易絲頭髮有美麗的漸層色，證實了做工精緻。不過這個頭髮結構太複雜，限制了手部關節能做的動作。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e927e76ca3.webp">
+<p>內褲是粉紅色的，嗯，確實原作就是蕾絲三角褲，但這裡礙於技術因素，只能做實心的阿嬤內褲。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f3d56f7a81.webp">
+<p>有露易絲的場合，身邊就要有忠實的狗！</p>
+<p>但是我當下找不到小狗，只好用GSC小豬。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0d4abc3100.webp">
+<p>「首先是好人課程第一課….」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5727033cdd.webp">
+<p>「拜託打我。」「哈…？」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d1f5c5528f.webp">
+<p>接下來是獎勵時間！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2d5cfa57f8.webp">
+<p>「這傢伙，居然主動躺好了！！！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4517c947e3.webp">
+<p>「這樣算不算虐待動物啊」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-fa29eac916.webp">
+<p>「我要打了喔！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0d8a422429.webp">
+<p>「誒！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a18485924a.webp">
+<p>「以上畫面禁播！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-97cabba56b.webp">
+<p>（腳跪下的零件的用法，好像是要結合鞭子，做出給寵物獎勵的動作，但我只能想到這個）</p>
+<p>「來讓我看看！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3388b6dee9.webp">
+<p>「妳很勇嘛！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a81c1b5746.webp">
+<p>「不要過來啊啊！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4842a76495.webp">
+<p>以上就是本日的課程內容。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e3cbd578b0.webp">
+<p>對了，《零之使魔》和《涼宮春日的憂鬱》同為2006年播出的動畫，都推出了2.0版黏土人，當然要兩人連動一下。</p>
+<p>「誒誒，聽說用這個就能讓男人乖乖聽話？我也要給阿虛買一個！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-90d6cd583f.webp">]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/gsc-nendoroid-louise-2-0/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bd147a24ea.webp"></a></p>
+<p>太好了！GSC露易絲黏土人有附鞭子！拜託，打我！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b992c77fdf.webp">
+<p>《零之使魔》（ゼロの使い魔）是山口昇創作的異世界穿越輕小說，2004年出版，後推出TV動畫《零之使魔》《零之使魔 雙月的騎士》《零之使魔 三美姬的輪舞曲》《零之使魔F》，共四季。動畫結局跟輕小說不一樣，純粹是製作組自己掰出來的。原作者還沒寫完輕小說就過世了，後由出版社另外找人根據大綱寫出《零之使魔》完結篇。</p>
+<p>真的是童年回憶，第一部在Animax頻道看入迷的動畫，算是二次元啟蒙作。現在這個劇情看起來很SM的，男主角平賀才人莫名從日本召喚到異世界當奴隸，被傲嬌女主角露易絲使喚當狗，還一副很爽的樣子，然後兩人莫名就成為情人，還拿乞丐大劍開無雙～明明是魔法世界，作品裡面卻有日本零戰與蘇聯核潛艇登場。</p>
+<p>露易絲雖然個性不好，卻也是想讓人保護的可愛女生。</p>
+<p>在看到GSC宣佈新黏土人的當天就預購了。這是電視動畫版第四季《零之使魔F》的「露易絲」黏土人2.0，2026年9月發售。其實2012年GSC就出過一次露易絲的黏土人了，這個是翻新版本。少了坦誠相見的表情，多了跪下動作的零件。</p>
+<p>今年正好是《零之使魔》動畫播映20週年！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1cd530ab49.webp">
+<p>本來我想說，讓露易絲與Samsung Note 7合影，看誰碰到先爆炸XD 啊不過有看原作的話就會知道露易絲的魔法屬性是虛無，才會有強大破壞力。或者加上背景應該傑作機的零戰五二型模型？怪怪的，沒有才人，她也不會開呀。所以我就…比較單調的背景。</p>
+<p>包裝是現代的配色，模型的髮色其實沒有包裝上那麼粉
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-973d5643b9.webp">
+<p>可惜的是紙盒裡面沒有印製任何背景呢，就是粉紅色。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-510142d59e.webp">
+<p>完整組裝樣子，右手有關節零件，雙腳可彎曲跪下。斗篷可開闔，像是甲蟲翅膀一樣，可展開，擺出施法的時候被風吹起來的樣子。而且斗篷的好處是，可以協助黏土人站立，不需要架子。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-439ab929bc.webp">
+<p>露易絲頭髮有美麗的漸層色，證實了做工精緻。不過這個頭髮結構太複雜，限制了手部關節能做的動作。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e927e76ca3.webp">
+<p>內褲是粉紅色的，嗯，確實原作就是蕾絲三角褲，但這裡礙於技術因素，只能做實心的阿嬤內褲。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f3d56f7a81.webp">
+<p>有露易絲的場合，身邊就要有忠實的狗！</p>
+<p>但是我當下找不到小狗，只好用GSC小豬。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0d4abc3100.webp">
+<p>「首先是好人課程第一課….」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5727033cdd.webp">
+<p>「拜託打我。」「哈…？」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d1f5c5528f.webp">
+<p>接下來是獎勵時間！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2d5cfa57f8.webp">
+<p>「這傢伙，居然主動躺好了！！！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4517c947e3.webp">
+<p>「這樣算不算虐待動物啊」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-fa29eac916.webp">
+<p>「我要打了喔！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0d8a422429.webp">
+<p>「誒！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a18485924a.webp">
+<p>「以上畫面禁播！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-97cabba56b.webp">
+<p>（腳跪下的零件的用法，好像是要結合鞭子，做出給寵物獎勵的動作，但我只能想到這個）</p>
+<p>「來讓我看看！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3388b6dee9.webp">
+<p>「妳很勇嘛！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a81c1b5746.webp">
+<p>「不要過來啊啊！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4842a76495.webp">
+<p>以上就是本日的課程內容。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e3cbd578b0.webp">
+<p>對了，《零之使魔》和《涼宮春日的憂鬱》同為2006年播出的動畫，都推出了2.0版黏土人，當然要兩人連動一下。</p>
+<p>「誒誒，聽說用這個就能讓男人乖乖聽話？我也要給阿虛買一個！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-90d6cd583f.webp">]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/gsc-nendoroid-louise-2-0/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bd147a24ea.webp"></a></p>
+<p>太好了！GSC露易絲黏土人有附鞭子！拜託，打我！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b992c77fdf.webp">
+<p>《零之使魔》（ゼロの使い魔）是山口昇創作的異世界穿越輕小說，2004年出版，後推出TV動畫《零之使魔》《零之使魔 雙月的騎士》《零之使魔 三美姬的輪舞曲》《零之使魔F》，共四季。動畫結局跟輕小說不一樣，純粹是製作組自己掰出來的。原作者還沒寫完輕小說就過世了，後由出版社另外找人根據大綱寫出《零之使魔》完結篇。</p>
+<p>真的是童年回憶，第一部在Animax頻道看入迷的動畫，算是二次元啟蒙作。現在這個劇情看起來很SM的，男主角平賀才人莫名從日本召喚到異世界當奴隸，被傲嬌女主角露易絲使喚當狗，還一副很爽的樣子，然後兩人莫名就成為情人，還拿乞丐大劍開無雙～明明是魔法世界，作品裡面卻有日本零戰與蘇聯核潛艇登場。</p>
+<p>露易絲雖然個性不好，卻也是想讓人保護的可愛女生。</p>
+<p>在看到GSC宣佈新黏土人的當天就預購了。這是電視動畫版第四季《零之使魔F》的「露易絲」黏土人2.0，2026年9月發售。其實2012年GSC就出過一次露易絲的黏土人了，這個是翻新版本。少了坦誠相見的表情，多了跪下動作的零件。</p>
+<p>今年正好是《零之使魔》動畫播映20週年！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1cd530ab49.webp">
+<p>本來我想說，讓露易絲與Samsung Note 7合影，看誰碰到先爆炸XD 啊不過有看原作的話就會知道露易絲的魔法屬性是虛無，才會有強大破壞力。或者加上背景應該傑作機的零戰五二型模型？怪怪的，沒有才人，她也不會開呀。所以我就…比較單調的背景。</p>
+<p>包裝是現代的配色，模型的髮色其實沒有包裝上那麼粉
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-973d5643b9.webp">
+<p>可惜的是紙盒裡面沒有印製任何背景呢，就是粉紅色。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-510142d59e.webp">
+<p>完整組裝樣子，右手有關節零件，雙腳可彎曲跪下。斗篷可開闔，像是甲蟲翅膀一樣，可展開，擺出施法的時候被風吹起來的樣子。而且斗篷的好處是，可以協助黏土人站立，不需要架子。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-439ab929bc.webp">
+<p>露易絲頭髮有美麗的漸層色，證實了做工精緻。不過這個頭髮結構太複雜，限制了手部關節能做的動作。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e927e76ca3.webp">
+<p>內褲是粉紅色的，嗯，確實原作就是蕾絲三角褲，但這裡礙於技術因素，只能做實心的阿嬤內褲。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f3d56f7a81.webp">
+<p>有露易絲的場合，身邊就要有忠實的狗！</p>
+<p>但是我當下找不到小狗，只好用GSC小豬。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0d4abc3100.webp">
+<p>「首先是好人課程第一課….」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5727033cdd.webp">
+<p>「拜託打我。」「哈…？」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d1f5c5528f.webp">
+<p>接下來是獎勵時間！
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2d5cfa57f8.webp">
+<p>「這傢伙，居然主動躺好了！！！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4517c947e3.webp">
+<p>「這樣算不算虐待動物啊」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-fa29eac916.webp">
+<p>「我要打了喔！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0d8a422429.webp">
+<p>「誒！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a18485924a.webp">
+<p>「以上畫面禁播！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-97cabba56b.webp">
+<p>（腳跪下的零件的用法，好像是要結合鞭子，做出給寵物獎勵的動作，但我只能想到這個）</p>
+<p>「來讓我看看！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3388b6dee9.webp">
+<p>「妳很勇嘛！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a81c1b5746.webp">
+<p>「不要過來啊啊！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4842a76495.webp">
+<p>以上就是本日的課程內容。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e3cbd578b0.webp">
+<p>對了，《零之使魔》和《涼宮春日的憂鬱》同為2006年播出的動畫，都推出了2.0版黏土人，當然要兩人連動一下。</p>
+<p>「誒誒，聽說用這個就能讓男人乖乖聽話？我也要給阿虛買一個！」
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-90d6cd583f.webp">]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bd147a24ea.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bd147a24ea.webp" medium="image"/>
+    <pubDate>Wed, 23 Sep 2026 23:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[Final E500人聲特化耳機使用心得 (ASMR + 白噪音 + 聽音樂用途)]]></title>
+    <link>https://ivonblog.com/posts/final-e500-review/</link>
+    <itunes:title><![CDATA[Final E500人聲特化耳機使用心得 (ASMR + 白噪音 + 聽音樂用途)]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/final-e500-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-faf11bf400.webp"></a></p>
+<p>Final E500是日本Final公司在2023年推出的一款便宜耳機，屬於Final e系列裡面的最低階型號，主打人聲強化，常常出現在ASMR耳機的推薦名單中。</p>
+<p>我一直好奇，為什麼沒有評測試過戴ASMR專用耳機看 會員制餐廳 (Blackhole 8) 本篇？與其聽Vtuber挖耳朵，不如聽聽挖屁眼的效果。嗯 ~ Final E500這耳機效果真好，除了近距離聆聽蔬菜棒和布丁脫出的聲音，還能聽到攝影師在偷笑和氣音。金金吼細……。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7487c292e9.webp"></p>
+<h2>1. 起
+<span>
+<a href="#1-%e8%b5%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>難怪Final E4000沒貨了，原來是出新世代耳機取代舊款了。</p>
+<p>在煩惱目前要買什麼3.5mm入耳式耳機取代線壞一邊的Final E3000，用10年了也夠本了吧。最主要是我發現藍牙耳機WF-C510容易被干擾導致音質下降到SBC以下，然後Final E3000有隨機偏音問題，所以還是需要3.5mm耳機。</p>
+<p>需求是：三頻均衡，高解析，聲音真實。不靠軟體EQ就有好聲音的。應該要直接上Final A4000（4000元）玩可換線的耳機呢，還是其實我的需求Final E500（500元）就夠了呢。話說舊款Final E5000其實還有貨，，可是要近萬元。</p>
+<p>嗯，在買Final E5000之前先試試Final E500吧！</p>
+<h2>2. 開箱
+<span>
+<a href="#2-%e9%96%8b%e7%ae%b1" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Final E500包裝就一個紙盒。嗚喔喔，好廉價…裡面只用塑膠袋將零件包起來，真是超簡潔。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-acc36baf42.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ec72b96f0.webp">
+<p>耳機塑膠做的，完全沒有質感。跟比較高階的Final E3000不鏽鋼比起來就很明顯。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bf20238108.webp">
+<p>Reddit有人說塑膠會讓耳機變很輕，但E3000也沒多重啊？</p>
+<p>L和R的字體印刷非常不顯眼，不如用不同耳機套的顏色去區分左右耳。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-678e771f08.webp">
+<p>真的是買耳機送耳塞，盒子內有5種尺寸供選擇。Final獨家研發的E套可以根據使用者喜好更換。這個耳機有6.4mm單體，並不大，搭配適合的尺寸，能夠做到服服貼貼的充滿耳道。Final E500預設的套子太大了，儘管隔音效果好但我不喜歡悶悶的，我換小一點的。</p>
+<p>因爲線比較粗勇，加上塑膠廉價外殼，應該比Final E3000還不容易壞。也不見得？看別人說法有用幾個禮拜就偏音的。應該是說，Final E500便宜，躺著睡壓壞了也沒心疼。</p>
+<h2>3. 聆聽感受
+<span>
+<a href="#3-%e8%81%86%e8%81%bd%e6%84%9f%e5%8f%97" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Final E500的特色就是用700臺幣的價格提供一個針對人聲聆聽特化的體驗。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b20ff2dd19.webp"></p>
+<p>這個屬於低阻抗耳機，任何手機都很容易推動。嗯不過我在Xperia 1 III聆聽還是要開70%以上音量才比較大聲呢。</p>
+<p>跟其他Final E系列比起來，所有的人聲相近的頻率會被拉到耳朵前面，ASMR的效果最好。</p>
+<p>如果聽挖耳朵的Youtube影片，能感受到好像侵入耳朵瘙癢的感覺～耳朵都在震動。聽雨聲和白噪音同樣溫柔。</p>
+<p>耳かきボイス　マシュの耳かき 絶対マシュー宣言！</p>
+<div>
+<iframe src="https://www.youtube.com/embed/eLtcl_Azhh4" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>雖然人們都說Final E500是ASMR專武，聽一般音樂也是可以的。</p>
+<p>Final E500可以用來聽人聲、酷炫音效爲主的Live演出。</p>
+<p>例如YMO (坂本龍一 &amp; 細野晴臣 &amp; 高橋幸宏) - Solid State Survivor的Rydeen (1980)</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Yxep-gS-Btg" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>還有許多口白的歌曲，如： 文夏 - 男性的復仇 (1960)</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Q9SmNIX-kQo" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>非常有臨場感。</p>
+<p>但大編制還有搖滾樂就不好，沒低頻，很乾又模糊。</p>
+<p>譬如槍與玫瑰 - 十一月的雨。</p>
+<div>
+<iframe src="https://www.youtube.com/embed/8SbUC-UaAxE" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>若是看電影的話，Final E500能強化對白，空間感不錯，可是震撼力差一點，大概得加個EQ。</p>
+<p>【機動警察PATLABOR 2】攔截F-16 (JSDF Intercepts Wyvern) 1993</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Sa1HZVUxAzM" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>聽音樂部分，跟同價位耳機比起來，因爲三頻均衡，聽起來沒什麼特色。跟Final E3000比起來，就是犧牲樂器細節，換取人聲十分接近。故其實不差的說。當然有人聲的話，因為Final E500的特性，就會被搶佔XD 不論是歌手還是觀眾聲音，或是背景合音，還有雙聲道的殘響，都會變的十分清楚。然後其他全部模糊～</p>
+<p>Final E500聽起來讓我覺得有點像Apple EarPods？起碼這能換依照舒適度更換耳機套，不會戴起來硬硬的導致耳朵很痛。缺點是沒線控也沒麥克風。</p>
+<p>總而言之，Final E500是樂器比較模糊，但有空間感覺。Final E3000則是清楚許多。不懂得欣賞的話，會覺得聽起來乾巴巴的？但正是因為沒什麼特殊調音才說Final E3000可作為一個聆聽音樂的標準。</p>
+<p>那麼我就會想：我Final E3000有點故障但還能用，那就把它固定在家裡聽就好，出門戴Final E500上山下海吧！</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/final-e500-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-faf11bf400.webp"></a></p>
+<p>Final E500是日本Final公司在2023年推出的一款便宜耳機，屬於Final e系列裡面的最低階型號，主打人聲強化，常常出現在ASMR耳機的推薦名單中。</p>
+<p>我一直好奇，為什麼沒有評測試過戴ASMR專用耳機看 會員制餐廳 (Blackhole 8) 本篇？與其聽Vtuber挖耳朵，不如聽聽挖屁眼的效果。嗯 ~ Final E500這耳機效果真好，除了近距離聆聽蔬菜棒和布丁脫出的聲音，還能聽到攝影師在偷笑和氣音。金金吼細……。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7487c292e9.webp"></p>
+<h2>1. 起
+<span>
+<a href="#1-%e8%b5%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>難怪Final E4000沒貨了，原來是出新世代耳機取代舊款了。</p>
+<p>在煩惱目前要買什麼3.5mm入耳式耳機取代線壞一邊的Final E3000，用10年了也夠本了吧。最主要是我發現藍牙耳機WF-C510容易被干擾導致音質下降到SBC以下，然後Final E3000有隨機偏音問題，所以還是需要3.5mm耳機。</p>
+<p>需求是：三頻均衡，高解析，聲音真實。不靠軟體EQ就有好聲音的。應該要直接上Final A4000（4000元）玩可換線的耳機呢，還是其實我的需求Final E500（500元）就夠了呢。話說舊款Final E5000其實還有貨，，可是要近萬元。</p>
+<p>嗯，在買Final E5000之前先試試Final E500吧！</p>
+<h2>2. 開箱
+<span>
+<a href="#2-%e9%96%8b%e7%ae%b1" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Final E500包裝就一個紙盒。嗚喔喔，好廉價…裡面只用塑膠袋將零件包起來，真是超簡潔。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-acc36baf42.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ec72b96f0.webp">
+<p>耳機塑膠做的，完全沒有質感。跟比較高階的Final E3000不鏽鋼比起來就很明顯。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bf20238108.webp">
+<p>Reddit有人說塑膠會讓耳機變很輕，但E3000也沒多重啊？</p>
+<p>L和R的字體印刷非常不顯眼，不如用不同耳機套的顏色去區分左右耳。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-678e771f08.webp">
+<p>真的是買耳機送耳塞，盒子內有5種尺寸供選擇。Final獨家研發的E套可以根據使用者喜好更換。這個耳機有6.4mm單體，並不大，搭配適合的尺寸，能夠做到服服貼貼的充滿耳道。Final E500預設的套子太大了，儘管隔音效果好但我不喜歡悶悶的，我換小一點的。</p>
+<p>因爲線比較粗勇，加上塑膠廉價外殼，應該比Final E3000還不容易壞。也不見得？看別人說法有用幾個禮拜就偏音的。應該是說，Final E500便宜，躺著睡壓壞了也沒心疼。</p>
+<h2>3. 聆聽感受
+<span>
+<a href="#3-%e8%81%86%e8%81%bd%e6%84%9f%e5%8f%97" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Final E500的特色就是用700臺幣的價格提供一個針對人聲聆聽特化的體驗。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b20ff2dd19.webp"></p>
+<p>這個屬於低阻抗耳機，任何手機都很容易推動。嗯不過我在Xperia 1 III聆聽還是要開70%以上音量才比較大聲呢。</p>
+<p>跟其他Final E系列比起來，所有的人聲相近的頻率會被拉到耳朵前面，ASMR的效果最好。</p>
+<p>如果聽挖耳朵的Youtube影片，能感受到好像侵入耳朵瘙癢的感覺～耳朵都在震動。聽雨聲和白噪音同樣溫柔。</p>
+<p>耳かきボイス　マシュの耳かき 絶対マシュー宣言！</p>
+<div>
+<iframe src="https://www.youtube.com/embed/eLtcl_Azhh4" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>雖然人們都說Final E500是ASMR專武，聽一般音樂也是可以的。</p>
+<p>Final E500可以用來聽人聲、酷炫音效爲主的Live演出。</p>
+<p>例如YMO (坂本龍一 &amp; 細野晴臣 &amp; 高橋幸宏) - Solid State Survivor的Rydeen (1980)</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Yxep-gS-Btg" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>還有許多口白的歌曲，如： 文夏 - 男性的復仇 (1960)</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Q9SmNIX-kQo" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>非常有臨場感。</p>
+<p>但大編制還有搖滾樂就不好，沒低頻，很乾又模糊。</p>
+<p>譬如槍與玫瑰 - 十一月的雨。</p>
+<div>
+<iframe src="https://www.youtube.com/embed/8SbUC-UaAxE" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>若是看電影的話，Final E500能強化對白，空間感不錯，可是震撼力差一點，大概得加個EQ。</p>
+<p>【機動警察PATLABOR 2】攔截F-16 (JSDF Intercepts Wyvern) 1993</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Sa1HZVUxAzM" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>聽音樂部分，跟同價位耳機比起來，因爲三頻均衡，聽起來沒什麼特色。跟Final E3000比起來，就是犧牲樂器細節，換取人聲十分接近。故其實不差的說。當然有人聲的話，因為Final E500的特性，就會被搶佔XD 不論是歌手還是觀眾聲音，或是背景合音，還有雙聲道的殘響，都會變的十分清楚。然後其他全部模糊～</p>
+<p>Final E500聽起來讓我覺得有點像Apple EarPods？起碼這能換依照舒適度更換耳機套，不會戴起來硬硬的導致耳朵很痛。缺點是沒線控也沒麥克風。</p>
+<p>總而言之，Final E500是樂器比較模糊，但有空間感覺。Final E3000則是清楚許多。不懂得欣賞的話，會覺得聽起來乾巴巴的？但正是因為沒什麼特殊調音才說Final E3000可作為一個聆聽音樂的標準。</p>
+<p>那麼我就會想：我Final E3000有點故障但還能用，那就把它固定在家裡聽就好，出門戴Final E500上山下海吧！</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/final-e500-review/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-faf11bf400.webp"></a></p>
+<p>Final E500是日本Final公司在2023年推出的一款便宜耳機，屬於Final e系列裡面的最低階型號，主打人聲強化，常常出現在ASMR耳機的推薦名單中。</p>
+<p>我一直好奇，為什麼沒有評測試過戴ASMR專用耳機看 會員制餐廳 (Blackhole 8) 本篇？與其聽Vtuber挖耳朵，不如聽聽挖屁眼的效果。嗯 ~ Final E500這耳機效果真好，除了近距離聆聽蔬菜棒和布丁脫出的聲音，還能聽到攝影師在偷笑和氣音。金金吼細……。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7487c292e9.webp"></p>
+<h2>1. 起
+<span>
+<a href="#1-%e8%b5%b7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>難怪Final E4000沒貨了，原來是出新世代耳機取代舊款了。</p>
+<p>在煩惱目前要買什麼3.5mm入耳式耳機取代線壞一邊的Final E3000，用10年了也夠本了吧。最主要是我發現藍牙耳機WF-C510容易被干擾導致音質下降到SBC以下，然後Final E3000有隨機偏音問題，所以還是需要3.5mm耳機。</p>
+<p>需求是：三頻均衡，高解析，聲音真實。不靠軟體EQ就有好聲音的。應該要直接上Final A4000（4000元）玩可換線的耳機呢，還是其實我的需求Final E500（500元）就夠了呢。話說舊款Final E5000其實還有貨，，可是要近萬元。</p>
+<p>嗯，在買Final E5000之前先試試Final E500吧！</p>
+<h2>2. 開箱
+<span>
+<a href="#2-%e9%96%8b%e7%ae%b1" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Final E500包裝就一個紙盒。嗚喔喔，好廉價…裡面只用塑膠袋將零件包起來，真是超簡潔。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-acc36baf42.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3ec72b96f0.webp">
+<p>耳機塑膠做的，完全沒有質感。跟比較高階的Final E3000不鏽鋼比起來就很明顯。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-bf20238108.webp">
+<p>Reddit有人說塑膠會讓耳機變很輕，但E3000也沒多重啊？</p>
+<p>L和R的字體印刷非常不顯眼，不如用不同耳機套的顏色去區分左右耳。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-678e771f08.webp">
+<p>真的是買耳機送耳塞，盒子內有5種尺寸供選擇。Final獨家研發的E套可以根據使用者喜好更換。這個耳機有6.4mm單體，並不大，搭配適合的尺寸，能夠做到服服貼貼的充滿耳道。Final E500預設的套子太大了，儘管隔音效果好但我不喜歡悶悶的，我換小一點的。</p>
+<p>因爲線比較粗勇，加上塑膠廉價外殼，應該比Final E3000還不容易壞。也不見得？看別人說法有用幾個禮拜就偏音的。應該是說，Final E500便宜，躺著睡壓壞了也沒心疼。</p>
+<h2>3. 聆聽感受
+<span>
+<a href="#3-%e8%81%86%e8%81%bd%e6%84%9f%e5%8f%97" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Final E500的特色就是用700臺幣的價格提供一個針對人聲聆聽特化的體驗。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b20ff2dd19.webp"></p>
+<p>這個屬於低阻抗耳機，任何手機都很容易推動。嗯不過我在Xperia 1 III聆聽還是要開70%以上音量才比較大聲呢。</p>
+<p>跟其他Final E系列比起來，所有的人聲相近的頻率會被拉到耳朵前面，ASMR的效果最好。</p>
+<p>如果聽挖耳朵的Youtube影片，能感受到好像侵入耳朵瘙癢的感覺～耳朵都在震動。聽雨聲和白噪音同樣溫柔。</p>
+<p>耳かきボイス　マシュの耳かき 絶対マシュー宣言！</p>
+<div>
+<iframe src="https://www.youtube.com/embed/eLtcl_Azhh4" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>雖然人們都說Final E500是ASMR專武，聽一般音樂也是可以的。</p>
+<p>Final E500可以用來聽人聲、酷炫音效爲主的Live演出。</p>
+<p>例如YMO (坂本龍一 &amp; 細野晴臣 &amp; 高橋幸宏) - Solid State Survivor的Rydeen (1980)</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Yxep-gS-Btg" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>還有許多口白的歌曲，如： 文夏 - 男性的復仇 (1960)</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Q9SmNIX-kQo" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>非常有臨場感。</p>
+<p>但大編制還有搖滾樂就不好，沒低頻，很乾又模糊。</p>
+<p>譬如槍與玫瑰 - 十一月的雨。</p>
+<div>
+<iframe src="https://www.youtube.com/embed/8SbUC-UaAxE" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>若是看電影的話，Final E500能強化對白，空間感不錯，可是震撼力差一點，大概得加個EQ。</p>
+<p>【機動警察PATLABOR 2】攔截F-16 (JSDF Intercepts Wyvern) 1993</p>
+<div>
+<iframe src="https://www.youtube.com/embed/Sa1HZVUxAzM" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>聽音樂部分，跟同價位耳機比起來，因爲三頻均衡，聽起來沒什麼特色。跟Final E3000比起來，就是犧牲樂器細節，換取人聲十分接近。故其實不差的說。當然有人聲的話，因為Final E500的特性，就會被搶佔XD 不論是歌手還是觀眾聲音，或是背景合音，還有雙聲道的殘響，都會變的十分清楚。然後其他全部模糊～</p>
+<p>Final E500聽起來讓我覺得有點像Apple EarPods？起碼這能換依照舒適度更換耳機套，不會戴起來硬硬的導致耳朵很痛。缺點是沒線控也沒麥克風。</p>
+<p>總而言之，Final E500是樂器比較模糊，但有空間感覺。Final E3000則是清楚許多。不懂得欣賞的話，會覺得聽起來乾巴巴的？但正是因為沒什麼特殊調音才說Final E3000可作為一個聆聽音樂的標準。</p>
+<p>那麼我就會想：我Final E3000有點故障但還能用，那就把它固定在家裡聽就好，出門戴Final E500上山下海吧！</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-faf11bf400.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-faf11bf400.webp" medium="image"/>
+    <pubDate>Tue, 22 Sep 2026 22:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[沉迷過甲蟲王者、恐龍王、百獸大戰的卡片，現在他們還能玩嗎]]></title>
+    <link>https://ivonblog.com/posts/mushiking-and-dinosaur-king-and-animal-kaiser/</link>
+    <itunes:title><![CDATA[沉迷過甲蟲王者、恐龍王、百獸大戰的卡片，現在他們還能玩嗎]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/mushiking-and-dinosaur-king-and-animal-kaiser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-95a47ef93a.webp"></a></p>
+<p>到Youtube看了小時候很沉迷的機臺遊戲的遊玩畫面，包含甲蟲王者（甲虫王者ムシキング）、恐龍王（古代王者 恐竜キング）、百獸大戰（百獣大戦アニマルカイザー）最早的已經是2003年推出的。臺灣SEGA大量從日本引進。</p>
+<p>圖片來自SEGA &amp; BANDAI官網
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4d96fcff2a.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cdddd548ee.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7ca626cfad.webp">
+<p>在我接觸電腦和手機之前，這是我認知範圍內最棒的電子遊戲了啊。</p>
+<p>現在在附近的超商頂多就看到寶可夢機臺了。</p>
+<p>可是，我越看越覺得這是三小，昆蟲打架還好，但恐龍為什麼會噴火，動物為什麼有奇怪紋身，還有超中二劇情，完全子供向。科幻程度堪比《閃電十一人》。</p>
+<p>遊戲的3D品質只有PSP等級的粗糙，對戰方法是剪刀石頭布，為什麼我還玩的那麼開心。</p>
+<p>其實，小時候因為沒什麼錢，即使玩一次只要投30塊，對小學的我來說就像是300塊一樣貴。玩機臺的次數是彌足珍貴的啊，可能一年去百貨公司玩不到10次，而且通常是前三關就輸了。剩下時間都在收集與欣賞卡片居多。</p>
+<p>甲蟲王者和恐龍王都有推出TV改編動畫，所以我當時同樣是很愛看。</p>
+<p>不得不說，甲蟲王者動畫OP真的超好聽的，印象深刻到現在還記得。</p>
+<p>Kiroro - 生きてこそ</p>
+<div>
+<iframe src="https://www.youtube.com/embed/PrRyJBo7VEw" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>不幸的是，因為盜版太好買了，文具店100塊就能買到50張以上的卡包（想想遊戲王的盜版卡，更誇張），所以我九成的卡片都是盜版的，還沾沾自喜。那時的機臺好像沒有防偽措施，所以盜版卡條碼都是能刷的。有的盜版卡還會提前移植日版機臺的卡片過來www 但正版卡還是有價值的啦，因為盜版卡材質粗糙，而且不能參加店家舉辦的比賽，當然不比正版卡要好。</p>
+<p>當時班上很流行恐龍卡，小朋友流行到處找人「決鬥」，就像玩神奇寶貝戰鬥圓盤一樣，比卡片猜拳來奪取卡片，我曾經輸到只剩一張牌，呵。</p>
+<p>當年甲蟲王者這類機臺的熱門程度，讓很多小朋友把錢花在上面，引起社會議論。還有超商老闆看不下去，主動要求撤除機臺。<a href="https://news.tvbs.com.tw/life/134246" target="_blank">「玩到賒帳」　超商擬撤卡片機</a></p>
+<p>小時候能延續到現在的卡牌興趣，大概就剩《遊戲王》了，大人小孩都愛玩。不過我對遊戲王規則的印象還停留在5D’s，手遊也是玩不太起來，只能欣賞卡片背景的故事。</p>
+<p>至於那些停止營運的SEGA機臺，多半會有愛好者從特殊管道購買，專門買回家收藏。更有人將其抽取ROM，並透過<a href="https://www.mamedev.org/" target="_blank">MAME模擬器</a>在電腦上玩。</p>
+<p>到現在，新甲蟲王者 (新甲虫王者ムシキング) 的動畫得加點二次元元素才賣的動了，譬如那個把淫紋印在臉上的加賀美。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4b1949ee4e.webp">]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/mushiking-and-dinosaur-king-and-animal-kaiser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-95a47ef93a.webp"></a></p>
+<p>到Youtube看了小時候很沉迷的機臺遊戲的遊玩畫面，包含甲蟲王者（甲虫王者ムシキング）、恐龍王（古代王者 恐竜キング）、百獸大戰（百獣大戦アニマルカイザー）最早的已經是2003年推出的。臺灣SEGA大量從日本引進。</p>
+<p>圖片來自SEGA &amp; BANDAI官網
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4d96fcff2a.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cdddd548ee.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7ca626cfad.webp">
+<p>在我接觸電腦和手機之前，這是我認知範圍內最棒的電子遊戲了啊。</p>
+<p>現在在附近的超商頂多就看到寶可夢機臺了。</p>
+<p>可是，我越看越覺得這是三小，昆蟲打架還好，但恐龍為什麼會噴火，動物為什麼有奇怪紋身，還有超中二劇情，完全子供向。科幻程度堪比《閃電十一人》。</p>
+<p>遊戲的3D品質只有PSP等級的粗糙，對戰方法是剪刀石頭布，為什麼我還玩的那麼開心。</p>
+<p>其實，小時候因為沒什麼錢，即使玩一次只要投30塊，對小學的我來說就像是300塊一樣貴。玩機臺的次數是彌足珍貴的啊，可能一年去百貨公司玩不到10次，而且通常是前三關就輸了。剩下時間都在收集與欣賞卡片居多。</p>
+<p>甲蟲王者和恐龍王都有推出TV改編動畫，所以我當時同樣是很愛看。</p>
+<p>不得不說，甲蟲王者動畫OP真的超好聽的，印象深刻到現在還記得。</p>
+<p>Kiroro - 生きてこそ</p>
+<div>
+<iframe src="https://www.youtube.com/embed/PrRyJBo7VEw" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>不幸的是，因為盜版太好買了，文具店100塊就能買到50張以上的卡包（想想遊戲王的盜版卡，更誇張），所以我九成的卡片都是盜版的，還沾沾自喜。那時的機臺好像沒有防偽措施，所以盜版卡條碼都是能刷的。有的盜版卡還會提前移植日版機臺的卡片過來www 但正版卡還是有價值的啦，因為盜版卡材質粗糙，而且不能參加店家舉辦的比賽，當然不比正版卡要好。</p>
+<p>當時班上很流行恐龍卡，小朋友流行到處找人「決鬥」，就像玩神奇寶貝戰鬥圓盤一樣，比卡片猜拳來奪取卡片，我曾經輸到只剩一張牌，呵。</p>
+<p>當年甲蟲王者這類機臺的熱門程度，讓很多小朋友把錢花在上面，引起社會議論。還有超商老闆看不下去，主動要求撤除機臺。<a href="https://news.tvbs.com.tw/life/134246" target="_blank">「玩到賒帳」　超商擬撤卡片機</a></p>
+<p>小時候能延續到現在的卡牌興趣，大概就剩《遊戲王》了，大人小孩都愛玩。不過我對遊戲王規則的印象還停留在5D’s，手遊也是玩不太起來，只能欣賞卡片背景的故事。</p>
+<p>至於那些停止營運的SEGA機臺，多半會有愛好者從特殊管道購買，專門買回家收藏。更有人將其抽取ROM，並透過<a href="https://www.mamedev.org/" target="_blank">MAME模擬器</a>在電腦上玩。</p>
+<p>到現在，新甲蟲王者 (新甲虫王者ムシキング) 的動畫得加點二次元元素才賣的動了，譬如那個把淫紋印在臉上的加賀美。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4b1949ee4e.webp">]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/mushiking-and-dinosaur-king-and-animal-kaiser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-95a47ef93a.webp"></a></p>
+<p>到Youtube看了小時候很沉迷的機臺遊戲的遊玩畫面，包含甲蟲王者（甲虫王者ムシキング）、恐龍王（古代王者 恐竜キング）、百獸大戰（百獣大戦アニマルカイザー）最早的已經是2003年推出的。臺灣SEGA大量從日本引進。</p>
+<p>圖片來自SEGA &amp; BANDAI官網
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4d96fcff2a.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-cdddd548ee.webp">
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7ca626cfad.webp">
+<p>在我接觸電腦和手機之前，這是我認知範圍內最棒的電子遊戲了啊。</p>
+<p>現在在附近的超商頂多就看到寶可夢機臺了。</p>
+<p>可是，我越看越覺得這是三小，昆蟲打架還好，但恐龍為什麼會噴火，動物為什麼有奇怪紋身，還有超中二劇情，完全子供向。科幻程度堪比《閃電十一人》。</p>
+<p>遊戲的3D品質只有PSP等級的粗糙，對戰方法是剪刀石頭布，為什麼我還玩的那麼開心。</p>
+<p>其實，小時候因為沒什麼錢，即使玩一次只要投30塊，對小學的我來說就像是300塊一樣貴。玩機臺的次數是彌足珍貴的啊，可能一年去百貨公司玩不到10次，而且通常是前三關就輸了。剩下時間都在收集與欣賞卡片居多。</p>
+<p>甲蟲王者和恐龍王都有推出TV改編動畫，所以我當時同樣是很愛看。</p>
+<p>不得不說，甲蟲王者動畫OP真的超好聽的，印象深刻到現在還記得。</p>
+<p>Kiroro - 生きてこそ</p>
+<div>
+<iframe src="https://www.youtube.com/embed/PrRyJBo7VEw" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>不幸的是，因為盜版太好買了，文具店100塊就能買到50張以上的卡包（想想遊戲王的盜版卡，更誇張），所以我九成的卡片都是盜版的，還沾沾自喜。那時的機臺好像沒有防偽措施，所以盜版卡條碼都是能刷的。有的盜版卡還會提前移植日版機臺的卡片過來www 但正版卡還是有價值的啦，因為盜版卡材質粗糙，而且不能參加店家舉辦的比賽，當然不比正版卡要好。</p>
+<p>當時班上很流行恐龍卡，小朋友流行到處找人「決鬥」，就像玩神奇寶貝戰鬥圓盤一樣，比卡片猜拳來奪取卡片，我曾經輸到只剩一張牌，呵。</p>
+<p>當年甲蟲王者這類機臺的熱門程度，讓很多小朋友把錢花在上面，引起社會議論。還有超商老闆看不下去，主動要求撤除機臺。<a href="https://news.tvbs.com.tw/life/134246" target="_blank">「玩到賒帳」　超商擬撤卡片機</a></p>
+<p>小時候能延續到現在的卡牌興趣，大概就剩《遊戲王》了，大人小孩都愛玩。不過我對遊戲王規則的印象還停留在5D’s，手遊也是玩不太起來，只能欣賞卡片背景的故事。</p>
+<p>至於那些停止營運的SEGA機臺，多半會有愛好者從特殊管道購買，專門買回家收藏。更有人將其抽取ROM，並透過<a href="https://www.mamedev.org/" target="_blank">MAME模擬器</a>在電腦上玩。</p>
+<p>到現在，新甲蟲王者 (新甲虫王者ムシキング) 的動畫得加點二次元元素才賣的動了，譬如那個把淫紋印在臉上的加賀美。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4b1949ee4e.webp">]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-95a47ef93a.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-95a47ef93a.webp" medium="image"/>
+    <pubDate>Tue, 22 Sep 2026 16:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[買手機應該追求極致旗艦機，還是夠用的中階就好？]]></title>
+    <link>https://ivonblog.com/posts/buy-phone-high-end-or-good-enough/</link>
+    <itunes:title><![CDATA[買手機應該追求極致旗艦機，還是夠用的中階就好？]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/buy-phone-high-end-or-good-enough/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48d38ea388.webp"></a></p>
+<p>對一個手頭不算寬裕，但又有一些消費能力的人來說，購買3C產品到底該追求夠用，還是極致一步到位？</p>
+<p>先來聽： MC HotDog - 貧民百萬歌星</p>
+<div>
+<iframe src="https://www.youtube.com/embed/e87RsA9Y5lI" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>在追求高級產品時，我意識到一件事，追求完美是無窮無盡的偏執。產品一定都會有分級，高端與低端，通常會用價格決定品質。</p>
+<p>譬如買耳機，你會被發燒友慫恿，直上最好的IE800。而如果你預算只有1000元他們會用憐憫的眼神看著你，叫你直接去買原道算了。然後你會覺得，便宜貨丟臉，盡力存錢想換更好的。</p>
+<p>換個更明顯的例子好了：買手機。你會覺得自己應該買最好的旗艦機，iPhone或三星，並認為其他的便宜貨都是垃圾。</p>
+<p>究竟是一萬多的小米就好，還是五萬的iPhone才能用的安心？
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a57efc84f9.webp">
+<p>＊以下都是以「錢只夠買一臺手機作爲主力機」的前提下去討論，不考慮雙機黨，或者 <a href="https://zh.wikipedia.org/zh-tw/%E9%99%B3%E6%B8%85%E6%B3%A2_%28%E9%A2%A8%E6%B0%B4%E5%B8%AB%29" target="_blank">寶可夢阿伯</a> 的富裕情況。</p>
+<p>你看很多Youtuber的開箱，就會覺得喔喔，一定要多花錢買旗艦手機，盯著能效比曲線，這次高通晶片終於沒翻車了。或者起碼得CP值最高的那款Poco才不虧。（備註：Poco是旗艦晶片，但其他方面並非旗艦）</p>
+<p>YouTuber經常以規格差異、旗艦功能、跑分、相機能力作為內容，觀看者容易把這些差異當成購買決策的重要指標，進一步產生「規格越高越不虧」的心理。此外，還有從眾效應、同儕壓力等因素。</p>
+<p>如果看到別人買的手機是中階，就會質疑別人為何要一次付清買便宜手機，而不是像你寧願分24期也要換新iPhone。買不起iPhone 18 Pro Max還不是你不努力？</p>
+<p>這種心態對有點經濟能力的窮人（包含我在內）來說就是一種毒藥。</p>
+<p>這終歸是錢的問題，還有打算投入多少心力研究規格的問題。「這是不是我真正需要的？」</p>
+<p>買最好嘛，即使你覺得好像東西買太貴，但總比需要用到某個功能的時候發現手上裝置竟然很快就到極限了要好吧。例如，長焦也許平時用不到，很多中階機沒有也沒差，但當看到街頭藝人的表演時就突然用得到了。演唱會坐最後一排就只能眼饞。</p>
+<blockquote><p>所有你從不需要的那些玩意兒。</p>
+<p>悄悄填滿了你空空如也的胸膛。</p>
+<p>（汪峰 - 薄霧）</p>
+</blockquote><p>可是，那個光頭說過，莫忘世上苦人多啊。東西應該夠用就好，買那麼貴幹嘛，脫離無產階級成爲小布爾喬亞讓你驕傲了是麼。所以很多中國品牌的東西，能提供歐美品牌的高價產品六七成的功能就差不多夠用了。只要產品能滿足自己的主要需求，就沒有必要為自己不會使用的功能支付額外溢價。在售後服務都差不多的情況下，品牌溢價就跟人的面子一樣是最不值錢的東西。</p>
+<p>我很容易因為一直看高階產品，而產生自己應該屬於那個世界的錯覺。從而產生我是在裝闊，很容易有冒牌生症候群出現。</p>
+<p>如果買高性價比，譬如小米的東西，能讓更多普羅大眾便利的享受科技，才能算是成功。壞了就換新的。實用主義應該勝過品牌迷思吧。我用著差不多的螢幕，差不多的電池，差不多的相機，差不多的OS，差不多的處理器，就夠用了。</p>
+<p>但是……如果你覺得將就在目前的位置就好，你又會被人家說是MC Hotdog - 差不多先生。
+</p><div>
+<iframe src="https://www.youtube.com/embed/mrqKvu-rqIc" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>那我還是當貧民百萬歌星就好。</p>
+<p>知道高階產品存在，可是我優先選擇服務我的需求。</p>
+<p>這就是為何，我會選擇Pixel a系列吧。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/buy-phone-high-end-or-good-enough/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48d38ea388.webp"></a></p>
+<p>對一個手頭不算寬裕，但又有一些消費能力的人來說，購買3C產品到底該追求夠用，還是極致一步到位？</p>
+<p>先來聽： MC HotDog - 貧民百萬歌星</p>
+<div>
+<iframe src="https://www.youtube.com/embed/e87RsA9Y5lI" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>在追求高級產品時，我意識到一件事，追求完美是無窮無盡的偏執。產品一定都會有分級，高端與低端，通常會用價格決定品質。</p>
+<p>譬如買耳機，你會被發燒友慫恿，直上最好的IE800。而如果你預算只有1000元他們會用憐憫的眼神看著你，叫你直接去買原道算了。然後你會覺得，便宜貨丟臉，盡力存錢想換更好的。</p>
+<p>換個更明顯的例子好了：買手機。你會覺得自己應該買最好的旗艦機，iPhone或三星，並認為其他的便宜貨都是垃圾。</p>
+<p>究竟是一萬多的小米就好，還是五萬的iPhone才能用的安心？
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a57efc84f9.webp">
+<p>＊以下都是以「錢只夠買一臺手機作爲主力機」的前提下去討論，不考慮雙機黨，或者 <a href="https://zh.wikipedia.org/zh-tw/%E9%99%B3%E6%B8%85%E6%B3%A2_%28%E9%A2%A8%E6%B0%B4%E5%B8%AB%29" target="_blank">寶可夢阿伯</a> 的富裕情況。</p>
+<p>你看很多Youtuber的開箱，就會覺得喔喔，一定要多花錢買旗艦手機，盯著能效比曲線，這次高通晶片終於沒翻車了。或者起碼得CP值最高的那款Poco才不虧。（備註：Poco是旗艦晶片，但其他方面並非旗艦）</p>
+<p>YouTuber經常以規格差異、旗艦功能、跑分、相機能力作為內容，觀看者容易把這些差異當成購買決策的重要指標，進一步產生「規格越高越不虧」的心理。此外，還有從眾效應、同儕壓力等因素。</p>
+<p>如果看到別人買的手機是中階，就會質疑別人為何要一次付清買便宜手機，而不是像你寧願分24期也要換新iPhone。買不起iPhone 18 Pro Max還不是你不努力？</p>
+<p>這種心態對有點經濟能力的窮人（包含我在內）來說就是一種毒藥。</p>
+<p>這終歸是錢的問題，還有打算投入多少心力研究規格的問題。「這是不是我真正需要的？」</p>
+<p>買最好嘛，即使你覺得好像東西買太貴，但總比需要用到某個功能的時候發現手上裝置竟然很快就到極限了要好吧。例如，長焦也許平時用不到，很多中階機沒有也沒差，但當看到街頭藝人的表演時就突然用得到了。演唱會坐最後一排就只能眼饞。</p>
+<blockquote><p>所有你從不需要的那些玩意兒。</p>
+<p>悄悄填滿了你空空如也的胸膛。</p>
+<p>（汪峰 - 薄霧）</p>
+</blockquote><p>可是，那個光頭說過，莫忘世上苦人多啊。東西應該夠用就好，買那麼貴幹嘛，脫離無產階級成爲小布爾喬亞讓你驕傲了是麼。所以很多中國品牌的東西，能提供歐美品牌的高價產品六七成的功能就差不多夠用了。只要產品能滿足自己的主要需求，就沒有必要為自己不會使用的功能支付額外溢價。在售後服務都差不多的情況下，品牌溢價就跟人的面子一樣是最不值錢的東西。</p>
+<p>我很容易因為一直看高階產品，而產生自己應該屬於那個世界的錯覺。從而產生我是在裝闊，很容易有冒牌生症候群出現。</p>
+<p>如果買高性價比，譬如小米的東西，能讓更多普羅大眾便利的享受科技，才能算是成功。壞了就換新的。實用主義應該勝過品牌迷思吧。我用著差不多的螢幕，差不多的電池，差不多的相機，差不多的OS，差不多的處理器，就夠用了。</p>
+<p>但是……如果你覺得將就在目前的位置就好，你又會被人家說是MC Hotdog - 差不多先生。
+</p><div>
+<iframe src="https://www.youtube.com/embed/mrqKvu-rqIc" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>那我還是當貧民百萬歌星就好。</p>
+<p>知道高階產品存在，可是我優先選擇服務我的需求。</p>
+<p>這就是為何，我會選擇Pixel a系列吧。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/buy-phone-high-end-or-good-enough/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48d38ea388.webp"></a></p>
+<p>對一個手頭不算寬裕，但又有一些消費能力的人來說，購買3C產品到底該追求夠用，還是極致一步到位？</p>
+<p>先來聽： MC HotDog - 貧民百萬歌星</p>
+<div>
+<iframe src="https://www.youtube.com/embed/e87RsA9Y5lI" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>在追求高級產品時，我意識到一件事，追求完美是無窮無盡的偏執。產品一定都會有分級，高端與低端，通常會用價格決定品質。</p>
+<p>譬如買耳機，你會被發燒友慫恿，直上最好的IE800。而如果你預算只有1000元他們會用憐憫的眼神看著你，叫你直接去買原道算了。然後你會覺得，便宜貨丟臉，盡力存錢想換更好的。</p>
+<p>換個更明顯的例子好了：買手機。你會覺得自己應該買最好的旗艦機，iPhone或三星，並認為其他的便宜貨都是垃圾。</p>
+<p>究竟是一萬多的小米就好，還是五萬的iPhone才能用的安心？
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a57efc84f9.webp">
+<p>＊以下都是以「錢只夠買一臺手機作爲主力機」的前提下去討論，不考慮雙機黨，或者 <a href="https://zh.wikipedia.org/zh-tw/%E9%99%B3%E6%B8%85%E6%B3%A2_%28%E9%A2%A8%E6%B0%B4%E5%B8%AB%29" target="_blank">寶可夢阿伯</a> 的富裕情況。</p>
+<p>你看很多Youtuber的開箱，就會覺得喔喔，一定要多花錢買旗艦手機，盯著能效比曲線，這次高通晶片終於沒翻車了。或者起碼得CP值最高的那款Poco才不虧。（備註：Poco是旗艦晶片，但其他方面並非旗艦）</p>
+<p>YouTuber經常以規格差異、旗艦功能、跑分、相機能力作為內容，觀看者容易把這些差異當成購買決策的重要指標，進一步產生「規格越高越不虧」的心理。此外，還有從眾效應、同儕壓力等因素。</p>
+<p>如果看到別人買的手機是中階，就會質疑別人為何要一次付清買便宜手機，而不是像你寧願分24期也要換新iPhone。買不起iPhone 18 Pro Max還不是你不努力？</p>
+<p>這種心態對有點經濟能力的窮人（包含我在內）來說就是一種毒藥。</p>
+<p>這終歸是錢的問題，還有打算投入多少心力研究規格的問題。「這是不是我真正需要的？」</p>
+<p>買最好嘛，即使你覺得好像東西買太貴，但總比需要用到某個功能的時候發現手上裝置竟然很快就到極限了要好吧。例如，長焦也許平時用不到，很多中階機沒有也沒差，但當看到街頭藝人的表演時就突然用得到了。演唱會坐最後一排就只能眼饞。</p>
+<blockquote><p>所有你從不需要的那些玩意兒。</p>
+<p>悄悄填滿了你空空如也的胸膛。</p>
+<p>（汪峰 - 薄霧）</p>
+</blockquote><p>可是，那個光頭說過，莫忘世上苦人多啊。東西應該夠用就好，買那麼貴幹嘛，脫離無產階級成爲小布爾喬亞讓你驕傲了是麼。所以很多中國品牌的東西，能提供歐美品牌的高價產品六七成的功能就差不多夠用了。只要產品能滿足自己的主要需求，就沒有必要為自己不會使用的功能支付額外溢價。在售後服務都差不多的情況下，品牌溢價就跟人的面子一樣是最不值錢的東西。</p>
+<p>我很容易因為一直看高階產品，而產生自己應該屬於那個世界的錯覺。從而產生我是在裝闊，很容易有冒牌生症候群出現。</p>
+<p>如果買高性價比，譬如小米的東西，能讓更多普羅大眾便利的享受科技，才能算是成功。壞了就換新的。實用主義應該勝過品牌迷思吧。我用著差不多的螢幕，差不多的電池，差不多的相機，差不多的OS，差不多的處理器，就夠用了。</p>
+<p>但是……如果你覺得將就在目前的位置就好，你又會被人家說是MC Hotdog - 差不多先生。
+</p><div>
+<iframe src="https://www.youtube.com/embed/mrqKvu-rqIc" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<p>那我還是當貧民百萬歌星就好。</p>
+<p>知道高階產品存在，可是我優先選擇服務我的需求。</p>
+<p>這就是為何，我會選擇Pixel a系列吧。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48d38ea388.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-48d38ea388.webp" medium="image"/>
+    <pubDate>Mon, 21 Sep 2026 18:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[用Root模組解決Android SRC重取樣Apple Music導致音質上不去的問題]]></title>
+    <link>https://ivonblog.com/posts/android-usb-sample-rate-unlocker/</link>
+    <itunes:title><![CDATA[用Root模組解決Android SRC重取樣Apple Music導致音質上不去的問題]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/android-usb-sample-rate-unlocker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0b7b6a1261.webp"></a></p>
+<p>＊＊只要Apple Music新增這個功能，本文討論的內容就沒什麼意義了。＊＊</p>
+<p>似乎Android版Apple Music早就能繞過SRC了？可是我在Sony Xperia 1 III (LineageOS 23) 測不出來。根據<a href="nyanako0129">nyanako0129協助提供的測試</a>，原廠ROM的Xperia 1 III，是可以用Apple Music輸出192kHz的。</p>
+<hr>
+<p>嘗試透過Magisk模組「USB Sample Rate Unlocker」解決Android聽Apple Music音質上不去的問題。</p>
+<p>Android有SRC問題，系統的音訊伺服器會將所有音訊輸出重取樣到48kHz，這會影響到96kHz與192kHz的HiFi音樂的播放。即使App本身播放到192kHz，外接DAC也有支援192kHz，你聽到的也只是48 kHz。</p>
+<p>Android 14以前只有少數App能透過USB外接DAC繞過48kHz。而Android 14之後就有獨佔模式(Lossless USB Audio)了，就看App要不要支援。</p>
+<p>2026年，Tidal做了獨佔模式，但Apple Music (6.5.2) 卻遲遲不支援呢，致使在Android聽Apple Music的無損還是會被降低到48kHz。</p>
+<p>那些不支援獨佔模式的音樂App同樣也會被卡在48kHz。</p>
+<p>我在Linux的PipeWire觀察到一樣的問題呢，它預設是將全系統的音訊鎖定在48kHz。但是，PipeWire可以改設定檔解放取樣率。</p>
+<p>除了花錢買USB Audio Player去錄製Apple Music繞過Android SRC外，還有Root的手段。</p>
+<p>透過Magisk模組將Android允許的預設取樣率提高。Apple Music雖然會偵測Root裝置，但還沒有依賴Play Integrity，簡單Root hide就能騙過偵測。</p>
+<p>安裝<a href="https://github.com/Magisk-Modules-Alt-Repo/usb-samplerate-unlocker" target="_blank">usb-samplerate-unlocker</a>。若使用KernelSU或APatch需要補<a href="https://github.com/Magisk-Modules-Alt-Repo/compatible-magisk-mirroring" target="_blank">Compatible Magisk-mirroring</a>。這個模組沒辦法做到bit perfect。</p>
+<p>搭配Sample Rate Checker看是否有變化。</p>
+<p>或是看<code>su -c 'dumpsys media.audio_flinger | grep -Ei "Output thread|Sample rate|HAL format|Format|SRate|active tracks"'</code>結果，看看有無出現48kHz以上輸出。</p>
+<p>我確認是有的，我的Type-C鐵三角CKS330NC支援96kHz輸出，證實這個模組有用。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ae5f39fac0.webp">
+<p>如果我買個支援數顯的DAC應該能更準確的觀測到。</p>
+<p>開啓192kHz會增加手機耗電量。</p>
+<p>另外我注意到，好像播放HiFi就預設了一定要用外接DAC呢，爲何不用3.5mm聽48kHz以上的音樂呢呢？事實是Android手機的推力就那樣低落，有內建專業DAC的幾乎沒有，所以3.5mm輸出的品質不會好過外接的獨立DAC。</p>
+<p>加上現在手機幾乎沒有3.5mm耳機孔了，因此幾乎沒人談論這種用法。</p>
+<p>如果有人問我說，我根本沒有好器材，手上只有Apple小尾巴(最高只能轉換48kHz)和Final E3000耳機，追求這些極致參數有何意義的話，我會說，這是奇檬子問題！嗯嗯儘管人類耳朵根本聽不到192kHz就是了。<a href="https://zhuanlan.zhihu.com/p/2057405793117508944" target="_blank">在音频回放中，24bit/192kHz 音频毫无意义</a></p>
+<p>喔我現在才發現原來Apple小尾巴最高只能USB轉換輸出48kHz啊，結果鐵三角CKS330NC自身的USB反而能輸出96kHz！？終於找到這個迫真降噪耳機的另一個優勢了。看來得買高級一點的小尾巴了，最好一路支援到192kHz！</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/android-usb-sample-rate-unlocker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0b7b6a1261.webp"></a></p>
+<p>＊＊只要Apple Music新增這個功能，本文討論的內容就沒什麼意義了。＊＊</p>
+<p>似乎Android版Apple Music早就能繞過SRC了？可是我在Sony Xperia 1 III (LineageOS 23) 測不出來。根據<a href="nyanako0129">nyanako0129協助提供的測試</a>，原廠ROM的Xperia 1 III，是可以用Apple Music輸出192kHz的。</p>
+<hr>
+<p>嘗試透過Magisk模組「USB Sample Rate Unlocker」解決Android聽Apple Music音質上不去的問題。</p>
+<p>Android有SRC問題，系統的音訊伺服器會將所有音訊輸出重取樣到48kHz，這會影響到96kHz與192kHz的HiFi音樂的播放。即使App本身播放到192kHz，外接DAC也有支援192kHz，你聽到的也只是48 kHz。</p>
+<p>Android 14以前只有少數App能透過USB外接DAC繞過48kHz。而Android 14之後就有獨佔模式(Lossless USB Audio)了，就看App要不要支援。</p>
+<p>2026年，Tidal做了獨佔模式，但Apple Music (6.5.2) 卻遲遲不支援呢，致使在Android聽Apple Music的無損還是會被降低到48kHz。</p>
+<p>那些不支援獨佔模式的音樂App同樣也會被卡在48kHz。</p>
+<p>我在Linux的PipeWire觀察到一樣的問題呢，它預設是將全系統的音訊鎖定在48kHz。但是，PipeWire可以改設定檔解放取樣率。</p>
+<p>除了花錢買USB Audio Player去錄製Apple Music繞過Android SRC外，還有Root的手段。</p>
+<p>透過Magisk模組將Android允許的預設取樣率提高。Apple Music雖然會偵測Root裝置，但還沒有依賴Play Integrity，簡單Root hide就能騙過偵測。</p>
+<p>安裝<a href="https://github.com/Magisk-Modules-Alt-Repo/usb-samplerate-unlocker" target="_blank">usb-samplerate-unlocker</a>。若使用KernelSU或APatch需要補<a href="https://github.com/Magisk-Modules-Alt-Repo/compatible-magisk-mirroring" target="_blank">Compatible Magisk-mirroring</a>。這個模組沒辦法做到bit perfect。</p>
+<p>搭配Sample Rate Checker看是否有變化。</p>
+<p>或是看<code>su -c 'dumpsys media.audio_flinger | grep -Ei "Output thread|Sample rate|HAL format|Format|SRate|active tracks"'</code>結果，看看有無出現48kHz以上輸出。</p>
+<p>我確認是有的，我的Type-C鐵三角CKS330NC支援96kHz輸出，證實這個模組有用。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ae5f39fac0.webp">
+<p>如果我買個支援數顯的DAC應該能更準確的觀測到。</p>
+<p>開啓192kHz會增加手機耗電量。</p>
+<p>另外我注意到，好像播放HiFi就預設了一定要用外接DAC呢，爲何不用3.5mm聽48kHz以上的音樂呢呢？事實是Android手機的推力就那樣低落，有內建專業DAC的幾乎沒有，所以3.5mm輸出的品質不會好過外接的獨立DAC。</p>
+<p>加上現在手機幾乎沒有3.5mm耳機孔了，因此幾乎沒人談論這種用法。</p>
+<p>如果有人問我說，我根本沒有好器材，手上只有Apple小尾巴(最高只能轉換48kHz)和Final E3000耳機，追求這些極致參數有何意義的話，我會說，這是奇檬子問題！嗯嗯儘管人類耳朵根本聽不到192kHz就是了。<a href="https://zhuanlan.zhihu.com/p/2057405793117508944" target="_blank">在音频回放中，24bit/192kHz 音频毫无意义</a></p>
+<p>喔我現在才發現原來Apple小尾巴最高只能USB轉換輸出48kHz啊，結果鐵三角CKS330NC自身的USB反而能輸出96kHz！？終於找到這個迫真降噪耳機的另一個優勢了。看來得買高級一點的小尾巴了，最好一路支援到192kHz！</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/android-usb-sample-rate-unlocker/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0b7b6a1261.webp"></a></p>
+<p>＊＊只要Apple Music新增這個功能，本文討論的內容就沒什麼意義了。＊＊</p>
+<p>似乎Android版Apple Music早就能繞過SRC了？可是我在Sony Xperia 1 III (LineageOS 23) 測不出來。根據<a href="nyanako0129">nyanako0129協助提供的測試</a>，原廠ROM的Xperia 1 III，是可以用Apple Music輸出192kHz的。</p>
+<hr>
+<p>嘗試透過Magisk模組「USB Sample Rate Unlocker」解決Android聽Apple Music音質上不去的問題。</p>
+<p>Android有SRC問題，系統的音訊伺服器會將所有音訊輸出重取樣到48kHz，這會影響到96kHz與192kHz的HiFi音樂的播放。即使App本身播放到192kHz，外接DAC也有支援192kHz，你聽到的也只是48 kHz。</p>
+<p>Android 14以前只有少數App能透過USB外接DAC繞過48kHz。而Android 14之後就有獨佔模式(Lossless USB Audio)了，就看App要不要支援。</p>
+<p>2026年，Tidal做了獨佔模式，但Apple Music (6.5.2) 卻遲遲不支援呢，致使在Android聽Apple Music的無損還是會被降低到48kHz。</p>
+<p>那些不支援獨佔模式的音樂App同樣也會被卡在48kHz。</p>
+<p>我在Linux的PipeWire觀察到一樣的問題呢，它預設是將全系統的音訊鎖定在48kHz。但是，PipeWire可以改設定檔解放取樣率。</p>
+<p>除了花錢買USB Audio Player去錄製Apple Music繞過Android SRC外，還有Root的手段。</p>
+<p>透過Magisk模組將Android允許的預設取樣率提高。Apple Music雖然會偵測Root裝置，但還沒有依賴Play Integrity，簡單Root hide就能騙過偵測。</p>
+<p>安裝<a href="https://github.com/Magisk-Modules-Alt-Repo/usb-samplerate-unlocker" target="_blank">usb-samplerate-unlocker</a>。若使用KernelSU或APatch需要補<a href="https://github.com/Magisk-Modules-Alt-Repo/compatible-magisk-mirroring" target="_blank">Compatible Magisk-mirroring</a>。這個模組沒辦法做到bit perfect。</p>
+<p>搭配Sample Rate Checker看是否有變化。</p>
+<p>或是看<code>su -c 'dumpsys media.audio_flinger | grep -Ei "Output thread|Sample rate|HAL format|Format|SRate|active tracks"'</code>結果，看看有無出現48kHz以上輸出。</p>
+<p>我確認是有的，我的Type-C鐵三角CKS330NC支援96kHz輸出，證實這個模組有用。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ae5f39fac0.webp">
+<p>如果我買個支援數顯的DAC應該能更準確的觀測到。</p>
+<p>開啓192kHz會增加手機耗電量。</p>
+<p>另外我注意到，好像播放HiFi就預設了一定要用外接DAC呢，爲何不用3.5mm聽48kHz以上的音樂呢呢？事實是Android手機的推力就那樣低落，有內建專業DAC的幾乎沒有，所以3.5mm輸出的品質不會好過外接的獨立DAC。</p>
+<p>加上現在手機幾乎沒有3.5mm耳機孔了，因此幾乎沒人談論這種用法。</p>
+<p>如果有人問我說，我根本沒有好器材，手上只有Apple小尾巴(最高只能轉換48kHz)和Final E3000耳機，追求這些極致參數有何意義的話，我會說，這是奇檬子問題！嗯嗯儘管人類耳朵根本聽不到192kHz就是了。<a href="https://zhuanlan.zhihu.com/p/2057405793117508944" target="_blank">在音频回放中，24bit/192kHz 音频毫无意义</a></p>
+<p>喔我現在才發現原來Apple小尾巴最高只能USB轉換輸出48kHz啊，結果鐵三角CKS330NC自身的USB反而能輸出96kHz！？終於找到這個迫真降噪耳機的另一個優勢了。看來得買高級一點的小尾巴了，最好一路支援到192kHz！</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0b7b6a1261.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-0b7b6a1261.webp" medium="image"/>
+    <pubDate>Sun, 20 Sep 2026 09:10:00 +0800</pubDate>
+  </item></channel>
+</rss>
