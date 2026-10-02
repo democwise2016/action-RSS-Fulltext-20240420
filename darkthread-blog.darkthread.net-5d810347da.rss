@@ -30,6 +30,144 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【野外求生系列】在離線環境安裝 Jupyter Lab / Notebook]]></title>
+    <link>https://blog.darkthread.net/blog/install-jupyter-offline/</link>
+    <itunes:title><![CDATA[【野外求生系列】在離線環境安裝 Jupyter Lab / Notebook]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>網際網路如同電與自來水成為理所當然，現代軟體幾乎全靠網路現場下載安裝，那些印刷精美的盒子與安裝光碟的五彩斑斕，只留在老人回憶裡已不復返。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"></p> <p>但說來有趣，基於安全，偏偏有些電腦的字典裡沒有「上網下載東西」這檔事兒，於是如何在不能上網的環境完成原本即時下載的安裝程序，有時便是個實用的野外求生技巧。</p> <p>這篇筆記如何在離線 RHEL 8 安裝 Python 及 Jupyter。</p> <p>新版的 JupyterLab 4.x 需要 Python 3.10+。我找到一篇教學 <a href="https://www.linkedin.com/pulse/simple-python-311-install-rhel8-public-internet-repo-vm-marco-bambili-pnlgf/">Simple python 3.11 install in Rhel8 with no public internet repo vm</a>，做法是準備一台 RHEL 8 VM 或 Docker 容器負責下載必要檔案，再複製到到離線主機主機安裝。RHEL 有個人開發者的免費授權，但要申請，不想麻煩的話，可用以下 docker-compose.yml 建一台 Rocky Linux 8 容器省點事。在本地開個 downloads 資料，映對到 Rocky Linux 的 /downloads 用來放下載的檔案：</p> <pre><code>services:
+rocky8:
+image: rockylinux:8
+container_name: rocky8-offline
+command: bash -c "sleep infinity"
+volumes:
+- ./downloads:/downloads
+</code></pre> <p><code>docker compose up -d</code> 執行後，用 <code>docker compose exec -it rocky8 /bin/sh</code> 登入操作：</p> <ol><li>在 Rocky Liunx 安裝 python3.11.x86_64<br> <code>yum install --downloadonly --downloaddir=/downloads/python python3.11.x86_64</code></li> <li>將檔案 scp 上傳到離線 RHEL 8，使用 <code>rpm -ivh</code> 安裝 <pre><code>rpm -ivh python3.11-setuptools-wheel-65.5.1-2.el8.noarch.rpm
+rpm -ivh python3.11-pip-wheel-22.3.1-4.el8.noarch.rpm
+rpm -ivh mpdecimal-2.5.1-3.el8.x86_64.rpm
+rpm -ivh python3.11-libs-3.11.5-1.el8_9.x86_64.rpm
+rpm -ivh python3.11-3.11.5-1.el8_9.x86_64.rpm
+</code></pre> 安裝完成後改 python3 別名指向 3.11： <pre><code>update-alternatives --install /usr/bin/python3 python3 /usr/bin/pytnon3.11 1
+update-alternatives --config python3
+# 該主機原本 python3 已指向 3.6，修改為
+# There are 2 programs which provide 'python3'.
+#
+# Selection Command
+# *+ 1           /usr/bin/python3.6
+#   2           /usr/bin/python3.11
+#
+# Enter to keep the current selection[+], or type selection number: 2
+python3 --version # 檢查版本
+</code></pre> </li> <li>回到 Rocky Linux，重跑 <code>yum install python3.11.x86_64</code> 也裝好 Python 3.11，建立下載用的虛擬環境： <pre><code>yum install python3.11.x86_64
+mkdir -p /downloads/jupyter
+python3.11 -m venv ~/jupyter-download-env
+~/jupyter-download-env/bin/python -m pip install --upgrade pip
+</code></pre> </li> <li>下載 Jupyter Lab、Jupyter Notebook、Python Kernel 及 pip，--only-binary=:all: 指定只下載 wheel，避免離線安裝時還要編譯或下載建置工具 <pre><code>~/jupyter-download-env/bin/python -m pip download --only-binary=:all: --dest /downloads/jupyter pip jupyterlab notebook ipykernel
+</code></pre> </li> <li>將 ./downloads/jupyter 下的檔案複製到 RHEL ~/jupyter 目錄，登入 RHEL 操作： <pre><code># 建立並切換虛擬環境
+python3 -m venv ~/venv/jupyter
+source ~/venvs/jupyter/bin/activate
+# 更新 pip
+python -m pip install --no-index --find-links="$HOME/jupyter" --upgrade pip
+# 安裝 Jupyter Notebook 相關套件
+python -m pip install --no-index --find-links="$HOME/jupyter" jupyterlab notebook ipykernel
+# 檢查是否有缺，正常要看到 No broken requirements found.
+python -m pip check
+# 檢查版本
+jupyter lab --version
+# 執行 Jupyter Lab，會出現帶有 ?token=... 的連結，如 http://localhost:8888/lab?token=9a8b7...
+jupyter lab --no-browser --ip=127.0.0.1 --port=8888
+</code></pre> </li></ol> <p>為了安全，我讓 Jupyter Lab 只限本機存取，再用 SSH Tunnel 將 RHEL 本機的 8888 Port 導到我的客戶端，<code>ssh -N -L 8888:127.0.0.1:8888 user@offline-host</code> <a href="/blog/jupyter-on-remote-linux/">參考</a>，完成後在客戶端用瀏覽器連上 <code>http://localhost:8888/lab?token=9a8b7...</code> 進入 Jupyter Lab 介面，大功告成!</p> <p data-slug="install-jupyter-offline" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>網際網路如同電與自來水成為理所當然，現代軟體幾乎全靠網路現場下載安裝，那些印刷精美的盒子與安裝光碟的五彩斑斕，只留在老人回憶裡已不復返。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"></p> <p>但說來有趣，基於安全，偏偏有些電腦的字典裡沒有「上網下載東西」這檔事兒，於是如何在不能上網的環境完成原本即時下載的安裝程序，有時便是個實用的野外求生技巧。</p> <p>這篇筆記如何在離線 RHEL 8 安裝 Python 及 Jupyter。</p> <p>新版的 JupyterLab 4.x 需要 Python 3.10+。我找到一篇教學 <a href="https://www.linkedin.com/pulse/simple-python-311-install-rhel8-public-internet-repo-vm-marco-bambili-pnlgf/">Simple python 3.11 install in Rhel8 with no public internet repo vm</a>，做法是準備一台 RHEL 8 VM 或 Docker 容器負責下載必要檔案，再複製到到離線主機主機安裝。RHEL 有個人開發者的免費授權，但要申請，不想麻煩的話，可用以下 docker-compose.yml 建一台 Rocky Linux 8 容器省點事。在本地開個 downloads 資料，映對到 Rocky Linux 的 /downloads 用來放下載的檔案：</p> <pre><code>services:
+rocky8:
+image: rockylinux:8
+container_name: rocky8-offline
+command: bash -c "sleep infinity"
+volumes:
+- ./downloads:/downloads
+</code></pre> <p><code>docker compose up -d</code> 執行後，用 <code>docker compose exec -it rocky8 /bin/sh</code> 登入操作：</p> <ol><li>在 Rocky Liunx 安裝 python3.11.x86_64<br> <code>yum install --downloadonly --downloaddir=/downloads/python python3.11.x86_64</code></li> <li>將檔案 scp 上傳到離線 RHEL 8，使用 <code>rpm -ivh</code> 安裝 <pre><code>rpm -ivh python3.11-setuptools-wheel-65.5.1-2.el8.noarch.rpm
+rpm -ivh python3.11-pip-wheel-22.3.1-4.el8.noarch.rpm
+rpm -ivh mpdecimal-2.5.1-3.el8.x86_64.rpm
+rpm -ivh python3.11-libs-3.11.5-1.el8_9.x86_64.rpm
+rpm -ivh python3.11-3.11.5-1.el8_9.x86_64.rpm
+</code></pre> 安裝完成後改 python3 別名指向 3.11： <pre><code>update-alternatives --install /usr/bin/python3 python3 /usr/bin/pytnon3.11 1
+update-alternatives --config python3
+# 該主機原本 python3 已指向 3.6，修改為
+# There are 2 programs which provide 'python3'.
+#
+# Selection Command
+# *+ 1           /usr/bin/python3.6
+#   2           /usr/bin/python3.11
+#
+# Enter to keep the current selection[+], or type selection number: 2
+python3 --version # 檢查版本
+</code></pre> </li> <li>回到 Rocky Linux，重跑 <code>yum install python3.11.x86_64</code> 也裝好 Python 3.11，建立下載用的虛擬環境： <pre><code>yum install python3.11.x86_64
+mkdir -p /downloads/jupyter
+python3.11 -m venv ~/jupyter-download-env
+~/jupyter-download-env/bin/python -m pip install --upgrade pip
+</code></pre> </li> <li>下載 Jupyter Lab、Jupyter Notebook、Python Kernel 及 pip，--only-binary=:all: 指定只下載 wheel，避免離線安裝時還要編譯或下載建置工具 <pre><code>~/jupyter-download-env/bin/python -m pip download --only-binary=:all: --dest /downloads/jupyter pip jupyterlab notebook ipykernel
+</code></pre> </li> <li>將 ./downloads/jupyter 下的檔案複製到 RHEL ~/jupyter 目錄，登入 RHEL 操作： <pre><code># 建立並切換虛擬環境
+python3 -m venv ~/venv/jupyter
+source ~/venvs/jupyter/bin/activate
+# 更新 pip
+python -m pip install --no-index --find-links="$HOME/jupyter" --upgrade pip
+# 安裝 Jupyter Notebook 相關套件
+python -m pip install --no-index --find-links="$HOME/jupyter" jupyterlab notebook ipykernel
+# 檢查是否有缺，正常要看到 No broken requirements found.
+python -m pip check
+# 檢查版本
+jupyter lab --version
+# 執行 Jupyter Lab，會出現帶有 ?token=... 的連結，如 http://localhost:8888/lab?token=9a8b7...
+jupyter lab --no-browser --ip=127.0.0.1 --port=8888
+</code></pre> </li></ol> <p>為了安全，我讓 Jupyter Lab 只限本機存取，再用 SSH Tunnel 將 RHEL 本機的 8888 Port 導到我的客戶端，<code>ssh -N -L 8888:127.0.0.1:8888 user@offline-host</code> <a href="/blog/jupyter-on-remote-linux/">參考</a>，完成後在客戶端用瀏覽器連上 <code>http://localhost:8888/lab?token=9a8b7...</code> 進入 Jupyter Lab 介面，大功告成!</p> <p data-slug="install-jupyter-offline" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>網際網路如同電與自來水成為理所當然，現代軟體幾乎全靠網路現場下載安裝，那些印刷精美的盒子與安裝光碟的五彩斑斕，只留在老人回憶裡已不復返。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"></p> <p>但說來有趣，基於安全，偏偏有些電腦的字典裡沒有「上網下載東西」這檔事兒，於是如何在不能上網的環境完成原本即時下載的安裝程序，有時便是個實用的野外求生技巧。</p> <p>這篇筆記如何在離線 RHEL 8 安裝 Python 及 Jupyter。</p> <p>新版的 JupyterLab 4.x 需要 Python 3.10+。我找到一篇教學 <a href="https://www.linkedin.com/pulse/simple-python-311-install-rhel8-public-internet-repo-vm-marco-bambili-pnlgf/">Simple python 3.11 install in Rhel8 with no public internet repo vm</a>，做法是準備一台 RHEL 8 VM 或 Docker 容器負責下載必要檔案，再複製到到離線主機主機安裝。RHEL 有個人開發者的免費授權，但要申請，不想麻煩的話，可用以下 docker-compose.yml 建一台 Rocky Linux 8 容器省點事。在本地開個 downloads 資料，映對到 Rocky Linux 的 /downloads 用來放下載的檔案：</p> <pre><code>services:
+rocky8:
+image: rockylinux:8
+container_name: rocky8-offline
+command: bash -c "sleep infinity"
+volumes:
+- ./downloads:/downloads
+</code></pre> <p><code>docker compose up -d</code> 執行後，用 <code>docker compose exec -it rocky8 /bin/sh</code> 登入操作：</p> <ol><li>在 Rocky Liunx 安裝 python3.11.x86_64<br> <code>yum install --downloadonly --downloaddir=/downloads/python python3.11.x86_64</code></li> <li>將檔案 scp 上傳到離線 RHEL 8，使用 <code>rpm -ivh</code> 安裝 <pre><code>rpm -ivh python3.11-setuptools-wheel-65.5.1-2.el8.noarch.rpm
+rpm -ivh python3.11-pip-wheel-22.3.1-4.el8.noarch.rpm
+rpm -ivh mpdecimal-2.5.1-3.el8.x86_64.rpm
+rpm -ivh python3.11-libs-3.11.5-1.el8_9.x86_64.rpm
+rpm -ivh python3.11-3.11.5-1.el8_9.x86_64.rpm
+</code></pre> 安裝完成後改 python3 別名指向 3.11： <pre><code>update-alternatives --install /usr/bin/python3 python3 /usr/bin/pytnon3.11 1
+update-alternatives --config python3
+# 該主機原本 python3 已指向 3.6，修改為
+# There are 2 programs which provide 'python3'.
+#
+# Selection Command
+# *+ 1           /usr/bin/python3.6
+#   2           /usr/bin/python3.11
+#
+# Enter to keep the current selection[+], or type selection number: 2
+python3 --version # 檢查版本
+</code></pre> </li> <li>回到 Rocky Linux，重跑 <code>yum install python3.11.x86_64</code> 也裝好 Python 3.11，建立下載用的虛擬環境： <pre><code>yum install python3.11.x86_64
+mkdir -p /downloads/jupyter
+python3.11 -m venv ~/jupyter-download-env
+~/jupyter-download-env/bin/python -m pip install --upgrade pip
+</code></pre> </li> <li>下載 Jupyter Lab、Jupyter Notebook、Python Kernel 及 pip，--only-binary=:all: 指定只下載 wheel，避免離線安裝時還要編譯或下載建置工具 <pre><code>~/jupyter-download-env/bin/python -m pip download --only-binary=:all: --dest /downloads/jupyter pip jupyterlab notebook ipykernel
+</code></pre> </li> <li>將 ./downloads/jupyter 下的檔案複製到 RHEL ~/jupyter 目錄，登入 RHEL 操作： <pre><code># 建立並切換虛擬環境
+python3 -m venv ~/venv/jupyter
+source ~/venvs/jupyter/bin/activate
+# 更新 pip
+python -m pip install --no-index --find-links="$HOME/jupyter" --upgrade pip
+# 安裝 Jupyter Notebook 相關套件
+python -m pip install --no-index --find-links="$HOME/jupyter" jupyterlab notebook ipykernel
+# 檢查是否有缺，正常要看到 No broken requirements found.
+python -m pip check
+# 檢查版本
+jupyter lab --version
+# 執行 Jupyter Lab，會出現帶有 ?token=... 的連結，如 http://localhost:8888/lab?token=9a8b7...
+jupyter lab --no-browser --ip=127.0.0.1 --port=8888
+</code></pre> </li></ol> <p>為了安全，我讓 Jupyter Lab 只限本機存取，再用 SSH Tunnel 將 RHEL 本機的 8888 Port 導到我的客戶端，<code>ssh -N -L 8888:127.0.0.1:8888 user@offline-host</code> <a href="/blog/jupyter-on-remote-linux/">參考</a>，完成後在客戶端用瀏覽器連上 <code>http://localhost:8888/lab?token=9a8b7...</code> 進入 Jupyter Lab 介面，大功告成!</p> <p data-slug="install-jupyter-offline" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg" medium="image"/>
+    <pubDate>Fri, 02 Oct 2026 13:19:04 GMT</pubDate>
+  </item><item>
     <title><![CDATA[Windows 桌面程式自動化測試利器 - FlaUI]]></title>
     <link>https://blog.darkthread.net/blog/flatui/</link>
     <itunes:title><![CDATA[Windows 桌面程式自動化測試利器 - FlaUI]]></itunes:title>
@@ -2015,23 +2153,5 @@ rm -rf ~/tmp-node-test
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp" medium="image"/>
     <pubDate>Sat, 12 Sep 2026 12:25:47 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[了解 WSL NAT 模式運作原理]]></title>
-    <link>https://blog.darkthread.net/blog/wsl-nat-mode/</link>
-    <itunes:title><![CDATA[了解 WSL NAT 模式運作原理]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>由於 WSL 跟 Windows 整合得太緊密，常讓我有兩個作業系統是同一台機器的幻覺，以為在 Windows 用 <code>http://localhost:5000</code> 跑網站，從 WSL 可以用 <code>curl http://localhost:5000</code> 存取，結果踢到鐵板，WSL 的 localhost 不一定是 Windows 的 localhost。</p> <p>WSL 有兩種網路模式：NAT 跟鏡像(Mirrored)模式。參考：<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#default-networking-mode-nat">使用 WSL 存取網路應用程式</a></p> <p>預設安裝，WSL 會採用 NAT 模式，可想像成 WSL 位於一個虛擬網段，對外連線要透過 Windows 轉送。以我的機器為例，在 WSL 用 <code>hostname -I</code> 及 <code>ip route</code> 可以看到 WSL 的 IP 為 172.18.136.74，而 Gateway 是指向 172.18.128.1：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639245591116942790.webp"></p> <p>至於 172.18.128.1，你沒猜測，它是 Windows 上的一張虛擬網卡，已設好路由及內部 IP 轉換，可將 WSL 的上網需求轉到 Windows 真正的對外網卡：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639245591118725830.webp"></p> <p>若要允許外部連上 WSL 的特定 Port，則需使用 netsh 設定 Port Proxy，例如以下指令可將 Windows 對外 IP 及 localhost 的 8080 Port 導向 WSL 的 80 Port：<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#accessing-a-wsl-2-distribution-from-your-local-area-network-lan">參考</a></p> <pre><code>netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=80 connectaddress=172.18.136.74
-</code></pre> <p>另外，WSL 有個內建機制，在 NAT 模式下，在 WSL 聽 localhost 的某個 Port，有支 wsrelay.exe 程式會將它轉送到 Windows 的 localhost。<a href="https://wsl.dev/technical-documentation/localhost/">參考</a> 例如：WSL 裡用 Docker 跑網站聽 localhost 5050，在 Windows 可直接用 <code>http://localhost:5050</code> 連上它。有時很方便，但有時這行為會跟 Windows 端 TCP Port 使用衝突，沒經驗的話可能會被迷惑一陣子。</p> <p>因此在 NAT 模式下，WSL 的網路跟 Windows 的網路彼此獨立，Windows 擔任 Gateway 協助 WSL 上網，因此二者的 localhost 是完全不同的東西。</p> <p>回到最開始的問題，WSL 要如何存取 Windows 的 localhost？</p> <p>Windows 11 22H2 之後的 WSL2 加入所謂鏡像模式 Mirrored Mode，將 Windows 上的網路介面「鏡像」到 Linux，以新增網路功能並改善相容性。啟用後 WSL 可支援 IPv6、Linux 與 Windows 的 127.0.0.1/localhost 可互通、外部也可直接透過 Windows 對外 IP 連上 WSL、對 VPN 的支援也更好。<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#accessing-a-wsl-2-distribution-from-your-local-area-network-lan">參考</a></p> <p>但我個人比較喜歡原本 NAT 模式明確區分兩個作業系統網路環境的做法，不會出現 Windows/WSL Port 衝突或混淆，管理或除錯時比較簡單明瞭，另外 WSL 不直接對外曝露感覺更安全些，所以還是會選用 NAT 模式。我想到的解法有二：一個是 Windows 端改聽 WSL Gateway IP，二是用 SSH Tunnel <code>ssh -R 8888:localhost:8888 user@wsl</code> 將 Windows localhost 的 8888 Port 導向 WSL localhost 的 8888 Port。</p> <p data-slug="wsl-nat-mode" data-fbimg="https://images.pexels.com/photos/2881233/pexels-photo-2881233.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>由於 WSL 跟 Windows 整合得太緊密，常讓我有兩個作業系統是同一台機器的幻覺，以為在 Windows 用 <code>http://localhost:5000</code> 跑網站，從 WSL 可以用 <code>curl http://localhost:5000</code> 存取，結果踢到鐵板，WSL 的 localhost 不一定是 Windows 的 localhost。</p> <p>WSL 有兩種網路模式：NAT 跟鏡像(Mirrored)模式。參考：<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#default-networking-mode-nat">使用 WSL 存取網路應用程式</a></p> <p>預設安裝，WSL 會採用 NAT 模式，可想像成 WSL 位於一個虛擬網段，對外連線要透過 Windows 轉送。以我的機器為例，在 WSL 用 <code>hostname -I</code> 及 <code>ip route</code> 可以看到 WSL 的 IP 為 172.18.136.74，而 Gateway 是指向 172.18.128.1：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639245591116942790.webp"></p> <p>至於 172.18.128.1，你沒猜測，它是 Windows 上的一張虛擬網卡，已設好路由及內部 IP 轉換，可將 WSL 的上網需求轉到 Windows 真正的對外網卡：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639245591118725830.webp"></p> <p>若要允許外部連上 WSL 的特定 Port，則需使用 netsh 設定 Port Proxy，例如以下指令可將 Windows 對外 IP 及 localhost 的 8080 Port 導向 WSL 的 80 Port：<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#accessing-a-wsl-2-distribution-from-your-local-area-network-lan">參考</a></p> <pre><code>netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=80 connectaddress=172.18.136.74
-</code></pre> <p>另外，WSL 有個內建機制，在 NAT 模式下，在 WSL 聽 localhost 的某個 Port，有支 wsrelay.exe 程式會將它轉送到 Windows 的 localhost。<a href="https://wsl.dev/technical-documentation/localhost/">參考</a> 例如：WSL 裡用 Docker 跑網站聽 localhost 5050，在 Windows 可直接用 <code>http://localhost:5050</code> 連上它。有時很方便，但有時這行為會跟 Windows 端 TCP Port 使用衝突，沒經驗的話可能會被迷惑一陣子。</p> <p>因此在 NAT 模式下，WSL 的網路跟 Windows 的網路彼此獨立，Windows 擔任 Gateway 協助 WSL 上網，因此二者的 localhost 是完全不同的東西。</p> <p>回到最開始的問題，WSL 要如何存取 Windows 的 localhost？</p> <p>Windows 11 22H2 之後的 WSL2 加入所謂鏡像模式 Mirrored Mode，將 Windows 上的網路介面「鏡像」到 Linux，以新增網路功能並改善相容性。啟用後 WSL 可支援 IPv6、Linux 與 Windows 的 127.0.0.1/localhost 可互通、外部也可直接透過 Windows 對外 IP 連上 WSL、對 VPN 的支援也更好。<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#accessing-a-wsl-2-distribution-from-your-local-area-network-lan">參考</a></p> <p>但我個人比較喜歡原本 NAT 模式明確區分兩個作業系統網路環境的做法，不會出現 Windows/WSL Port 衝突或混淆，管理或除錯時比較簡單明瞭，另外 WSL 不直接對外曝露感覺更安全些，所以還是會選用 NAT 模式。我想到的解法有二：一個是 Windows 端改聽 WSL Gateway IP，二是用 SSH Tunnel <code>ssh -R 8888:localhost:8888 user@wsl</code> 將 Windows localhost 的 8888 Port 導向 WSL localhost 的 8888 Port。</p> <p data-slug="wsl-nat-mode" data-fbimg="https://images.pexels.com/photos/2881233/pexels-photo-2881233.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>由於 WSL 跟 Windows 整合得太緊密，常讓我有兩個作業系統是同一台機器的幻覺，以為在 Windows 用 <code>http://localhost:5000</code> 跑網站，從 WSL 可以用 <code>curl http://localhost:5000</code> 存取，結果踢到鐵板，WSL 的 localhost 不一定是 Windows 的 localhost。</p> <p>WSL 有兩種網路模式：NAT 跟鏡像(Mirrored)模式。參考：<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#default-networking-mode-nat">使用 WSL 存取網路應用程式</a></p> <p>預設安裝，WSL 會採用 NAT 模式，可想像成 WSL 位於一個虛擬網段，對外連線要透過 Windows 轉送。以我的機器為例，在 WSL 用 <code>hostname -I</code> 及 <code>ip route</code> 可以看到 WSL 的 IP 為 172.18.136.74，而 Gateway 是指向 172.18.128.1：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639245591116942790.webp"></p> <p>至於 172.18.128.1，你沒猜測，它是 Windows 上的一張虛擬網卡，已設好路由及內部 IP 轉換，可將 WSL 的上網需求轉到 Windows 真正的對外網卡：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639245591118725830.webp"></p> <p>若要允許外部連上 WSL 的特定 Port，則需使用 netsh 設定 Port Proxy，例如以下指令可將 Windows 對外 IP 及 localhost 的 8080 Port 導向 WSL 的 80 Port：<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#accessing-a-wsl-2-distribution-from-your-local-area-network-lan">參考</a></p> <pre><code>netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=80 connectaddress=172.18.136.74
-</code></pre> <p>另外，WSL 有個內建機制，在 NAT 模式下，在 WSL 聽 localhost 的某個 Port，有支 wsrelay.exe 程式會將它轉送到 Windows 的 localhost。<a href="https://wsl.dev/technical-documentation/localhost/">參考</a> 例如：WSL 裡用 Docker 跑網站聽 localhost 5050，在 Windows 可直接用 <code>http://localhost:5050</code> 連上它。有時很方便，但有時這行為會跟 Windows 端 TCP Port 使用衝突，沒經驗的話可能會被迷惑一陣子。</p> <p>因此在 NAT 模式下，WSL 的網路跟 Windows 的網路彼此獨立，Windows 擔任 Gateway 協助 WSL 上網，因此二者的 localhost 是完全不同的東西。</p> <p>回到最開始的問題，WSL 要如何存取 Windows 的 localhost？</p> <p>Windows 11 22H2 之後的 WSL2 加入所謂鏡像模式 Mirrored Mode，將 Windows 上的網路介面「鏡像」到 Linux，以新增網路功能並改善相容性。啟用後 WSL 可支援 IPv6、Linux 與 Windows 的 127.0.0.1/localhost 可互通、外部也可直接透過 Windows 對外 IP 連上 WSL、對 VPN 的支援也更好。<a href="https://learn.microsoft.com/zh-tw/windows/wsl/networking?WT.mc_id=DOP-MVP-37580#accessing-a-wsl-2-distribution-from-your-local-area-network-lan">參考</a></p> <p>但我個人比較喜歡原本 NAT 模式明確區分兩個作業系統網路環境的做法，不會出現 Windows/WSL Port 衝突或混淆，管理或除錯時比較簡單明瞭，另外 WSL 不直接對外曝露感覺更安全些，所以還是會選用 NAT 模式。我想到的解法有二：一個是 Windows 端改聽 WSL Gateway IP，二是用 SSH Tunnel <code>ssh -R 8888:localhost:8888 user@wsl</code> 將 Windows localhost 的 8888 Port 導向 WSL localhost 的 8888 Port。</p> <p data-slug="wsl-nat-mode" data-fbimg="https://images.pexels.com/photos/2881233/pexels-photo-2881233.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=2&amp;h=750&amp;w=1260#1260#750"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639245591116942790.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639245591116942790.webp" medium="image"/>
-    <pubDate>Wed, 09 Sep 2026 13:56:29 GMT</pubDate>
   </item></channel>
 </rss>
