@@ -30,6 +30,93 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手日記】難抓的 XML 多餘字元]]></title>
+    <link>https://blog.darkthread.net/blog/xml-textnode-issue/</link>
+    <itunes:title><![CDATA[【茶包射手日記】難抓的 XML 多餘字元]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;s
+&lt;add key="AppName" value="MyApp" /&gt;
+&lt;add key="Environment" value="Development" /&gt;
+&lt;/appSettings&gt;
+&lt;/configuration&gt;
+</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
+using System.Configuration;
+internal static class Program
+{
+private static int Main()
+{
+try
+{
+string appName = ConfigurationManager.AppSettings["AppName"];
+Console.WriteLine(appName);
+}
+catch (Exception exception)
+{
+Console.Error.WriteLine(exception.ToString());
+}
+}
+}
+</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;s
+&lt;add key="AppName" value="MyApp" /&gt;
+&lt;add key="Environment" value="Development" /&gt;
+&lt;/appSettings&gt;
+&lt;/configuration&gt;
+</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
+using System.Configuration;
+internal static class Program
+{
+private static int Main()
+{
+try
+{
+string appName = ConfigurationManager.AppSettings["AppName"];
+Console.WriteLine(appName);
+}
+catch (Exception exception)
+{
+Console.Error.WriteLine(exception.ToString());
+}
+}
+}
+</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;s
+&lt;add key="AppName" value="MyApp" /&gt;
+&lt;add key="Environment" value="Development" /&gt;
+&lt;/appSettings&gt;
+&lt;/configuration&gt;
+</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
+using System.Configuration;
+internal static class Program
+{
+private static int Main()
+{
+try
+{
+string appName = ConfigurationManager.AppSettings["AppName"];
+Console.WriteLine(appName);
+}
+catch (Exception exception)
+{
+Console.Error.WriteLine(exception.ToString());
+}
+}
+}
+</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp" medium="image"/>
+    <pubDate>Sat, 03 Oct 2026 09:54:08 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【野外求生系列】在離線環境安裝 Jupyter Lab / Notebook]]></title>
     <link>https://blog.darkthread.net/blog/install-jupyter-offline/</link>
     <itunes:title><![CDATA[【野外求生系列】在離線環境安裝 Jupyter Lab / Notebook]]></itunes:title>
@@ -1850,308 +1937,5 @@ reader.readAsArrayBuffer(file);
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639253377328131242.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639253377328131242.webp" medium="image"/>
     <pubDate>Fri, 18 Sep 2026 14:14:11 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Debian 13 (Trixie) Docker 環境快速安裝]]></title>
-    <link>https://blog.darkthread.net/blog/trixie-docker-quick-setup/</link>
-    <itunes:title><![CDATA[Debian 13 (Trixie) Docker 環境快速安裝]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>這陣子常需要新建 VM 跑 Docker 做實驗，純伺服器靠 ssh 操作不需桌面，我習慣裝 Debian 13 (代號 Trixie，2025/8 發行，是目前 Debian 最新穩定版)。</p> <p>建好 VM 還需要安裝 Docker Engine、設定 Nginx、搞定 TLS 憑證等一連串步驟才能跑 HTTPS 網站，幾年前寫過 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>，當時是 Debian 11，資料有點過時；加上我愛用的 Nginx + Certbot Docker 輕巧精簡但改設定檔偏麻煩，正式環境沒話說，若是不需要精細控制 Nginx 設定又常要異動的測試環境，<a href="/blog/nginx-proxy-manager/">Nginx Proxy Manager</a> 是更方便的選擇。</p> <p>為簡化每次 Docker VM 安裝作業提升效率，整理成一份快速安裝腳本備忘。</p> <p>以下是安裝 Docker Engine、在 ~/dockers/nginx-proxy-manager 建立 docker-compose.yml 到運行 Nginx Proxy Manager 的完成指令：</p> <pre><code># 1. 作業系統更新
-sudo apt update -y
-sudo apt full-upgrade -y
-sudo apt install -y unzip
-# 2. 安裝 Docker Engine https://docs.docker.com/engine/install/debian/
-# 設定 Docker apt 來源
-sudo apt install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-# 加入 apt 來源
-sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
-Types: deb
-URIs: https://download.docker.com/linux/debian
-Suites: $(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME")
-Components: stable
-Architectures: $(dpkg --print-architecture)
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-sudo apt update
-# 安裝 Docker Engine
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo systemctl status docker
-sudo systemctl start docker
-# 允許目前使用者不需 sudo 直接執行 docker (重新登入後生效)
-sudo usermod -aG docker $USER
-# 3. 安裝 Nginx Proxy Manager
-# Docker 設定統一儲存於 dockers 資料夾
-mkdir -p ~/dockers/nginx-proxy-manager
-cd ~/dockers/nginx-proxy-manager
-mkdir data
-mkdir letsencrypt
-tee ~/dockers/nginx-proxy-manager/docker-compose.yml &lt;&lt;EOF
-services:
-app:
-image: 'jc21/nginx-proxy-manager:latest'
-restart: unless-stopped
-ports:
-- '80:80'
-- '81:81'
-- '443:443'
-volumes:
-- ./data:/data
-- ./letsencrypt:/etc/letsencrypt
-EOF
-sudo docker compose up -d
-</code></pre> <p>若是 Azure VM 且要對外開放服務，要記得防火牆開放 80/443，可從 Azure Portal 資源設定頁面 Networking/Network settings 新增 Network Security Group (NSG) 規則或是使用 az CLI 指令：<a href="https://learn.microsoft.com/zh-tw/azure/virtual-machines/windows/quick-create-cli?WT.mc_id=DOP-MVP-37580#open-port-80-for-web-traffic">參考</a></p> <pre><code>az vm open-port --resource-group MyResourceGroup --name MyVm --port 80,443 --priority 101
-</code></pre> <p>至於管理用的 81 Port，我傾向不對 Internet 開放，需要使用時，用 SSH Remote Port Forwarding 將遠端的 81 Port 導到本機 81 Port 使用，指令為 <code>ssh -L 81:localhost:81 user@remote-server</code> (語法為<code>ssh -L [本機 IP(可省略)]:[本機 Port]:[目標 IP]:[目標 Port] [遠端 User]@[遠端主機]</code>) 若本地 81 Port 已被佔用要換成 8081，則可寫 <code>ssh -L 8081:localhost:81 user@remote-server</code>)，接著用 <code>http://localhost:81</code> 可進入 Nginx Proxy Manager 初始設定，輸入管理者資訊後開始使用：<a href="/blog/nginx-proxy-manager/">相關文章</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"></p> <p>順便記錄可能用到的開發環境安裝：</p> <ol><li>PowerShell 7.6 LTS <a href="https://learn.microsoft.com/en-us/powershell/scripting/install/install-debian?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>
-# Update the list of packages
-sudo apt-get update
-# Install pre-requisite packages.
-sudo apt-get install -y wget
-# Download the PowerShell package file
-wget https://github.com/PowerShell/PowerShell/releases/download/v7.6.1/powershell_7.6.1-1.deb_amd64.deb
-# Resolve missing dependencies and finish the install (if necessary)
-sudo dpkg -i powershell_7.6.1-1.deb_amd64.deb
-# Resolve missing dependencies and finish the install (if necessary)
-sudo apt-get install -f
-# Delete the downloaded package file
-rm powershell_7.6.1-1.deb_amd64.deb
-# 測試
-pwsh
-</code></pre> <ol start="2"><li>安裝 .NET 10 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-debian?tabs=dotnet10&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-sudo dpkg -i packages-microsoft-prod.deb
-rm packages-microsoft-prod.deb
-sudo apt-get update &amp;&amp; sudo apt-get install -y dotnet-sdk-10.0
-dotnet --version
-</code></pre> <ol start="3"><li>安裝 uv (<a href="https://blog.darkthread.net/blog/uv/">Python 版本管理/套件安裝/虛擬環境 極速神器</a>)</li></ol> <pre><code>curl -LsSf https://astral.sh/uv/install.sh | sh
-source $HOME/.local/bin/env
-# 安裝最新版 Python
-uv python install
-# 測試 (含 venv)
-mkdir -p ~/tmp-uv-test &amp;&amp; cd ~/tmp-uv-test
-uv venv # 建立虛擬環境
-source .venv/bin/activate # 啟用虛擬環境
-uv pip install requests  # 安裝套件
-python -c "import requests; print(requests.__version__)"  # 執行並印出版本
-deactivate # 退出虛擬環境
-cd ~
-rm -rf ~/tmp-uv-test
-</code></pre> <ol start="4"><li>安裝 Node.js（版本管理用 <strong>fnm</strong>，套件安裝用 <strong>pnpm</strong>）</li></ol> <pre><code># 安裝 fnm (Fast Node Manager，Rust 撰寫，對應 uv python install)
-curl -fsSL https://fnm.vercel.app/install | bash
-source ~/.bashrc
-fnm install --lts       # 安裝最新 LTS
-fnm use lts-latest      # 切換至 LTS 版本
-node -v
-# 安裝 pnpm (對應 uv pip，節省磁碟空間、支援 monorepo)
-npm install -g pnpm
-pnpm -v
-# 測試：建立專案並安裝套件
-mkdir -p ~/tmp-node-test &amp;&amp; cd ~/tmp-node-test
-pnpm init -y
-pnpm add axios
-node -e "const a = require('axios'); console.log(a.VERSION)"
-cd ~
-rm -rf ~/tmp-node-test
-</code></pre> <p data-slug="trixie-docker-quick-setup" data-fbimg="https://i.postimg.cc/KjzNRQmq/image.png#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>這陣子常需要新建 VM 跑 Docker 做實驗，純伺服器靠 ssh 操作不需桌面，我習慣裝 Debian 13 (代號 Trixie，2025/8 發行，是目前 Debian 最新穩定版)。</p> <p>建好 VM 還需要安裝 Docker Engine、設定 Nginx、搞定 TLS 憑證等一連串步驟才能跑 HTTPS 網站，幾年前寫過 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>，當時是 Debian 11，資料有點過時；加上我愛用的 Nginx + Certbot Docker 輕巧精簡但改設定檔偏麻煩，正式環境沒話說，若是不需要精細控制 Nginx 設定又常要異動的測試環境，<a href="/blog/nginx-proxy-manager/">Nginx Proxy Manager</a> 是更方便的選擇。</p> <p>為簡化每次 Docker VM 安裝作業提升效率，整理成一份快速安裝腳本備忘。</p> <p>以下是安裝 Docker Engine、在 ~/dockers/nginx-proxy-manager 建立 docker-compose.yml 到運行 Nginx Proxy Manager 的完成指令：</p> <pre><code># 1. 作業系統更新
-sudo apt update -y
-sudo apt full-upgrade -y
-sudo apt install -y unzip
-# 2. 安裝 Docker Engine https://docs.docker.com/engine/install/debian/
-# 設定 Docker apt 來源
-sudo apt install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-# 加入 apt 來源
-sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
-Types: deb
-URIs: https://download.docker.com/linux/debian
-Suites: $(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME")
-Components: stable
-Architectures: $(dpkg --print-architecture)
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-sudo apt update
-# 安裝 Docker Engine
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo systemctl status docker
-sudo systemctl start docker
-# 允許目前使用者不需 sudo 直接執行 docker (重新登入後生效)
-sudo usermod -aG docker $USER
-# 3. 安裝 Nginx Proxy Manager
-# Docker 設定統一儲存於 dockers 資料夾
-mkdir -p ~/dockers/nginx-proxy-manager
-cd ~/dockers/nginx-proxy-manager
-mkdir data
-mkdir letsencrypt
-tee ~/dockers/nginx-proxy-manager/docker-compose.yml &lt;&lt;EOF
-services:
-app:
-image: 'jc21/nginx-proxy-manager:latest'
-restart: unless-stopped
-ports:
-- '80:80'
-- '81:81'
-- '443:443'
-volumes:
-- ./data:/data
-- ./letsencrypt:/etc/letsencrypt
-EOF
-sudo docker compose up -d
-</code></pre> <p>若是 Azure VM 且要對外開放服務，要記得防火牆開放 80/443，可從 Azure Portal 資源設定頁面 Networking/Network settings 新增 Network Security Group (NSG) 規則或是使用 az CLI 指令：<a href="https://learn.microsoft.com/zh-tw/azure/virtual-machines/windows/quick-create-cli?WT.mc_id=DOP-MVP-37580#open-port-80-for-web-traffic">參考</a></p> <pre><code>az vm open-port --resource-group MyResourceGroup --name MyVm --port 80,443 --priority 101
-</code></pre> <p>至於管理用的 81 Port，我傾向不對 Internet 開放，需要使用時，用 SSH Remote Port Forwarding 將遠端的 81 Port 導到本機 81 Port 使用，指令為 <code>ssh -L 81:localhost:81 user@remote-server</code> (語法為<code>ssh -L [本機 IP(可省略)]:[本機 Port]:[目標 IP]:[目標 Port] [遠端 User]@[遠端主機]</code>) 若本地 81 Port 已被佔用要換成 8081，則可寫 <code>ssh -L 8081:localhost:81 user@remote-server</code>)，接著用 <code>http://localhost:81</code> 可進入 Nginx Proxy Manager 初始設定，輸入管理者資訊後開始使用：<a href="/blog/nginx-proxy-manager/">相關文章</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"></p> <p>順便記錄可能用到的開發環境安裝：</p> <ol><li>PowerShell 7.6 LTS <a href="https://learn.microsoft.com/en-us/powershell/scripting/install/install-debian?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>
-# Update the list of packages
-sudo apt-get update
-# Install pre-requisite packages.
-sudo apt-get install -y wget
-# Download the PowerShell package file
-wget https://github.com/PowerShell/PowerShell/releases/download/v7.6.1/powershell_7.6.1-1.deb_amd64.deb
-# Resolve missing dependencies and finish the install (if necessary)
-sudo dpkg -i powershell_7.6.1-1.deb_amd64.deb
-# Resolve missing dependencies and finish the install (if necessary)
-sudo apt-get install -f
-# Delete the downloaded package file
-rm powershell_7.6.1-1.deb_amd64.deb
-# 測試
-pwsh
-</code></pre> <ol start="2"><li>安裝 .NET 10 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-debian?tabs=dotnet10&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-sudo dpkg -i packages-microsoft-prod.deb
-rm packages-microsoft-prod.deb
-sudo apt-get update &amp;&amp; sudo apt-get install -y dotnet-sdk-10.0
-dotnet --version
-</code></pre> <ol start="3"><li>安裝 uv (<a href="https://blog.darkthread.net/blog/uv/">Python 版本管理/套件安裝/虛擬環境 極速神器</a>)</li></ol> <pre><code>curl -LsSf https://astral.sh/uv/install.sh | sh
-source $HOME/.local/bin/env
-# 安裝最新版 Python
-uv python install
-# 測試 (含 venv)
-mkdir -p ~/tmp-uv-test &amp;&amp; cd ~/tmp-uv-test
-uv venv # 建立虛擬環境
-source .venv/bin/activate # 啟用虛擬環境
-uv pip install requests  # 安裝套件
-python -c "import requests; print(requests.__version__)"  # 執行並印出版本
-deactivate # 退出虛擬環境
-cd ~
-rm -rf ~/tmp-uv-test
-</code></pre> <ol start="4"><li>安裝 Node.js（版本管理用 <strong>fnm</strong>，套件安裝用 <strong>pnpm</strong>）</li></ol> <pre><code># 安裝 fnm (Fast Node Manager，Rust 撰寫，對應 uv python install)
-curl -fsSL https://fnm.vercel.app/install | bash
-source ~/.bashrc
-fnm install --lts       # 安裝最新 LTS
-fnm use lts-latest      # 切換至 LTS 版本
-node -v
-# 安裝 pnpm (對應 uv pip，節省磁碟空間、支援 monorepo)
-npm install -g pnpm
-pnpm -v
-# 測試：建立專案並安裝套件
-mkdir -p ~/tmp-node-test &amp;&amp; cd ~/tmp-node-test
-pnpm init -y
-pnpm add axios
-node -e "const a = require('axios'); console.log(a.VERSION)"
-cd ~
-rm -rf ~/tmp-node-test
-</code></pre> <p data-slug="trixie-docker-quick-setup" data-fbimg="https://i.postimg.cc/KjzNRQmq/image.png#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>這陣子常需要新建 VM 跑 Docker 做實驗，純伺服器靠 ssh 操作不需桌面，我習慣裝 Debian 13 (代號 Trixie，2025/8 發行，是目前 Debian 最新穩定版)。</p> <p>建好 VM 還需要安裝 Docker Engine、設定 Nginx、搞定 TLS 憑證等一連串步驟才能跑 HTTPS 網站，幾年前寫過 <a href="/blog/nginx-certbot-auto-setup/">HTTPS Nginx Docker 之懶人安裝法</a>，當時是 Debian 11，資料有點過時；加上我愛用的 Nginx + Certbot Docker 輕巧精簡但改設定檔偏麻煩，正式環境沒話說，若是不需要精細控制 Nginx 設定又常要異動的測試環境，<a href="/blog/nginx-proxy-manager/">Nginx Proxy Manager</a> 是更方便的選擇。</p> <p>為簡化每次 Docker VM 安裝作業提升效率，整理成一份快速安裝腳本備忘。</p> <p>以下是安裝 Docker Engine、在 ~/dockers/nginx-proxy-manager 建立 docker-compose.yml 到運行 Nginx Proxy Manager 的完成指令：</p> <pre><code># 1. 作業系統更新
-sudo apt update -y
-sudo apt full-upgrade -y
-sudo apt install -y unzip
-# 2. 安裝 Docker Engine https://docs.docker.com/engine/install/debian/
-# 設定 Docker apt 來源
-sudo apt install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-# 加入 apt 來源
-sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
-Types: deb
-URIs: https://download.docker.com/linux/debian
-Suites: $(. /etc/os-release &amp;&amp; echo "$VERSION_CODENAME")
-Components: stable
-Architectures: $(dpkg --print-architecture)
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-sudo apt update
-# 安裝 Docker Engine
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo systemctl status docker
-sudo systemctl start docker
-# 允許目前使用者不需 sudo 直接執行 docker (重新登入後生效)
-sudo usermod -aG docker $USER
-# 3. 安裝 Nginx Proxy Manager
-# Docker 設定統一儲存於 dockers 資料夾
-mkdir -p ~/dockers/nginx-proxy-manager
-cd ~/dockers/nginx-proxy-manager
-mkdir data
-mkdir letsencrypt
-tee ~/dockers/nginx-proxy-manager/docker-compose.yml &lt;&lt;EOF
-services:
-app:
-image: 'jc21/nginx-proxy-manager:latest'
-restart: unless-stopped
-ports:
-- '80:80'
-- '81:81'
-- '443:443'
-volumes:
-- ./data:/data
-- ./letsencrypt:/etc/letsencrypt
-EOF
-sudo docker compose up -d
-</code></pre> <p>若是 Azure VM 且要對外開放服務，要記得防火牆開放 80/443，可從 Azure Portal 資源設定頁面 Networking/Network settings 新增 Network Security Group (NSG) 規則或是使用 az CLI 指令：<a href="https://learn.microsoft.com/zh-tw/azure/virtual-machines/windows/quick-create-cli?WT.mc_id=DOP-MVP-37580#open-port-80-for-web-traffic">參考</a></p> <pre><code>az vm open-port --resource-group MyResourceGroup --name MyVm --port 80,443 --priority 101
-</code></pre> <p>至於管理用的 81 Port，我傾向不對 Internet 開放，需要使用時，用 SSH Remote Port Forwarding 將遠端的 81 Port 導到本機 81 Port 使用，指令為 <code>ssh -L 81:localhost:81 user@remote-server</code> (語法為<code>ssh -L [本機 IP(可省略)]:[本機 Port]:[目標 IP]:[目標 Port] [遠端 User]@[遠端主機]</code>) 若本地 81 Port 已被佔用要換成 8081，則可寫 <code>ssh -L 8081:localhost:81 user@remote-server</code>)，接著用 <code>http://localhost:81</code> 可進入 Nginx Proxy Manager 初始設定，輸入管理者資訊後開始使用：<a href="/blog/nginx-proxy-manager/">相關文章</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"></p> <p>順便記錄可能用到的開發環境安裝：</p> <ol><li>PowerShell 7.6 LTS <a href="https://learn.microsoft.com/en-us/powershell/scripting/install/install-debian?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>
-# Update the list of packages
-sudo apt-get update
-# Install pre-requisite packages.
-sudo apt-get install -y wget
-# Download the PowerShell package file
-wget https://github.com/PowerShell/PowerShell/releases/download/v7.6.1/powershell_7.6.1-1.deb_amd64.deb
-# Resolve missing dependencies and finish the install (if necessary)
-sudo dpkg -i powershell_7.6.1-1.deb_amd64.deb
-# Resolve missing dependencies and finish the install (if necessary)
-sudo apt-get install -f
-# Delete the downloaded package file
-rm powershell_7.6.1-1.deb_amd64.deb
-# 測試
-pwsh
-</code></pre> <ol start="2"><li>安裝 .NET 10 <a href="https://learn.microsoft.com/zh-tw/dotnet/core/install/linux-debian?tabs=dotnet10&amp;WT.mc_id=DOP-MVP-37580">參考</a></li></ol> <pre><code>wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-sudo dpkg -i packages-microsoft-prod.deb
-rm packages-microsoft-prod.deb
-sudo apt-get update &amp;&amp; sudo apt-get install -y dotnet-sdk-10.0
-dotnet --version
-</code></pre> <ol start="3"><li>安裝 uv (<a href="https://blog.darkthread.net/blog/uv/">Python 版本管理/套件安裝/虛擬環境 極速神器</a>)</li></ol> <pre><code>curl -LsSf https://astral.sh/uv/install.sh | sh
-source $HOME/.local/bin/env
-# 安裝最新版 Python
-uv python install
-# 測試 (含 venv)
-mkdir -p ~/tmp-uv-test &amp;&amp; cd ~/tmp-uv-test
-uv venv # 建立虛擬環境
-source .venv/bin/activate # 啟用虛擬環境
-uv pip install requests  # 安裝套件
-python -c "import requests; print(requests.__version__)"  # 執行並印出版本
-deactivate # 退出虛擬環境
-cd ~
-rm -rf ~/tmp-uv-test
-</code></pre> <ol start="4"><li>安裝 Node.js（版本管理用 <strong>fnm</strong>，套件安裝用 <strong>pnpm</strong>）</li></ol> <pre><code># 安裝 fnm (Fast Node Manager，Rust 撰寫，對應 uv python install)
-curl -fsSL https://fnm.vercel.app/install | bash
-source ~/.bashrc
-fnm install --lts       # 安裝最新 LTS
-fnm use lts-latest      # 切換至 LTS 版本
-node -v
-# 安裝 pnpm (對應 uv pip，節省磁碟空間、支援 monorepo)
-npm install -g pnpm
-pnpm -v
-# 測試：建立專案並安裝套件
-mkdir -p ~/tmp-node-test &amp;&amp; cd ~/tmp-node-test
-pnpm init -y
-pnpm add axios
-node -e "const a = require('axios'); console.log(a.VERSION)"
-cd ~
-rm -rf ~/tmp-node-test
-</code></pre> <p data-slug="trixie-docker-quick-setup" data-fbimg="https://i.postimg.cc/KjzNRQmq/image.png#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639248160640378181.webp" medium="image"/>
-    <pubDate>Sat, 12 Sep 2026 12:25:47 GMT</pubDate>
   </item></channel>
 </rss>
