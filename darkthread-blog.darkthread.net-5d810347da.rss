@@ -30,6 +30,21 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[WiFi 無線卡速度不穩或瞬斷案例再一則]]></title>
+    <link>https://blog.darkthread.net/blog/wifi-qos-issue/</link>
+    <itunes:title><![CDATA[WiFi 無線卡速度不穩或瞬斷案例再一則]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" medium="image"/>
+    <pubDate>Tue, 06 Oct 2026 14:12:06 GMT</pubDate>
+  </item><item>
     <title><![CDATA[HTTP Proxy 模式使用 Docker 小技巧]]></title>
     <link>https://blog.darkthread.net/blog/docker-w-http-proxy/</link>
     <itunes:title><![CDATA[HTTP Proxy 模式使用 Docker 小技巧]]></itunes:title>
@@ -1759,194 +1774,5 @@ fnm completions --shell powershell | Out-String | Invoke-Expression
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639256822042959426.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639256822042959426.webp" medium="image"/>
     <pubDate>Tue, 22 Sep 2026 13:55:00 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[透過 LiteLLM 轉接 AOAI / Azure AI Foundry 模型實現進階管理]]></title>
-    <link>https://blog.darkthread.net/blog/foundry-models-with-litellm/</link>
-    <itunes:title><![CDATA[透過 LiteLLM 轉接 AOAI / Azure AI Foundry 模型實現進階管理]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>企業的 AI 模型整合開發應用，資安治理上有許多額外要求，例如身分驗證、金鑰管理、資料隱私、法規遵循... 等，考量多如牛毛，使用 Azure AI Foundry (更早前叫 AOAI，現更名為 Microsoft Foundry) 這類 MaaS (Model as a Service 模型即服務) 是省時省力的做法。(懂的都懂)</p> <p>若直接用 Foundry 專案共用的 API Key，一把金鑰可存取專案所有模型，很難再細分使用者、程式、系統，個別設定權限及統計用量。要實現這個目標，最簡單直覺的解法是在 Foundry 模型與客戶端之間插入一個中間層，也就是所謂 LLM Proxy 或 LLM Gateway 角色，在這層我們可任意加上想要的管理功能。</p> <p>評估了一下，LiteLLM 是這類需求中受歡迎的解決方案，它支援一百種以上的 LLM 模型，提供負載平衡、故障自動轉移(Fallback) 等高可用性機制，能建立虛擬金鑰 (Virtual Keys)，分別設定預算上限、統計使用量，具敏感個資遮蔽等安全護欄 (Guardrails)功能，有完整 Log 能詳細追蹤請求及 Token 消耗，還支援 Prometheus 等主流觀測監控平台，功能應有盡有，是值得學習的 LLM 應用工具。</p> <p>這篇來簡單筆記如何透過 LiteLLM 串接 Foundry 的 GPT 模型。</p> <p>要跑 LiteLLM 服務，用 Docker Compose 是首選，以下的 docker-compose.yml 會建立兩個容器分別跑 LiteLLM 及 Posgres 資料庫：</p> <pre><code>services:
-litellm:
-image: docker.litellm.ai/berriai/litellm-database:latest
-container_name: litellm # 指定容器名稱
-ports:
-- "4000:4000"
-environment:
-LITELLM_MASTER_KEY: sk-1234567
-LITELLM_SALT_KEY: sk-7654321 # 啟用後勿改，否則會導致加密資料無法讀取
-# 小訣竅： Composer 內部有 DNS，可由服務名稱(如：db)轉換對應 IP 地址
-# 而 db 未設 ports 對外開放，只供內部服務存取，保障安全性
-DATABASE_URL: postgresql://litellm:litellm@db:5432/litellm
-STORE_MODEL_IN_DB: "True"
-depends_on:
-db:
-condition: service_healthy # 確認資料庫服務健康後再啟動 litellm
-db:
-image: postgres:16
-container_name: litellm-db # 指定容器名稱
-environment:
-POSTGRES_USER: litellm
-POSTGRES_PASSWORD: litellm
-POSTGRES_DB: litellm
-healthcheck: # 檢查資料庫服務是否健康
-test: ["CMD-SHELL", "pg_isready -U litellm"]
-interval: 5s
-timeout: 5s
-retries: 10
-volumes: # 設定將資料存在本地目錄方便備份及搬移 (不然可存 Docker Volume)
-- ./postgres_data:/var/lib/postgresql/data
-</code></pre> <p>啟動後，使用 <code>http://&lt;litellm-ip&gt;:4000/ui</code> 可連上管理介面，LiteLLM 的教學很多，操作上也挺直覺，這裡不多著墨。但實際使用過程，我卡在不知道 Foundry 模型要怎麼選擇 Provider？Endpoint 網址要輸入什麼？這段比較值得筆記。</p> <p>在 LiteLLM 新增模型時，Provider 清單中有 Azure、Azure AI Foundry (Studio)、Azure Text 三種 Azure 相關選項，三者有什麼不同？</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639254181319469842.webp"></p> <ol><li><strong>Azure</strong><br> 對應 Azure OpenAI Service，在 LiteLLM 會加上 azure/ 前綴，例如 azure/gpt-4o、azure/gpt-5.6-luna，適用微軟託管的 OpenAI 對話與多模態模型，API 路徑 /chat/completions (OpenAI 規格) 背後呼叫的是標準的 Azure OpenAI Chat Completions 端點 <code>.../openai/deployments/{deployment_id}/chat/completions?api-version=...）</code>，需要設定：AZURE_API_KEY, AZURE_API_BASE, AZURE_API_VERSION。</li> <li><strong>Azure AI Foundry (Studio)</strong><br> 對應 Azure AI Foundry (前身為 Azure AI Studio) 代管的第三方非 OpenAI 模型 (如 Meta Llama、Cohere、Anthropic Claude、Mistral 等)，前綴為 azure_ai/，例如：azure_ai/claude-3-5-sonnet, azure_ai/command-r-plus，API 路徑 /models 或各廠商原生 Messages 格式。 這類 API 端點與 OpenAI 傳統路徑不同（網址通常為 <code>https://&lt;resource&gt;.services.ai.azure.com/...</code>）</li> <li><strong>Azure Text</strong><br> 對應 Azure OpenAI 舊版 Completion 古老的單字/純文字補齊 (Instruct) 模型，前綴為 azure_text/，例如：azure_text/gpt-3.5-turbo-instruct。只需傳 prompt 內容，不支援 <code>messsage: [ { "role": "user", ... } ]</code> 對話結構，這個現在應該沒人在用了。</li></ol> <p>簡單來說，OpenAI 的模型選 Azure、非 OpenAI 模型如 Anthropic、Meta、Mistral... 選 Azure AI Foundry，二者端點網址不同。至於 Azure Text 是 gpt-3.5-turbo-instruct 等上古模型在用的，可略過。</p> <p>在 Azure Foundry 專案介面可以查到 API Key 及 OpenAI Endpoint 網址，新增模型時會用到：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639254181324653471.webp"></p> <p>千萬不要每次新增模型都重新輸入端點網址跟 API Key，未來要輪替更換金鑰時，會換到你想抓狂。LiteLLM 當然有想到這點，允許我們在 LLM Credentials 輸入 API Key 新增一筆認證資料，未來新增模型時，指定使用這組認證：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639254181326612832.webp"></p> <p>設定時，Provider 選 Azure，輸入 API Base (不用加 openai/v1) 跟 Azure API Key 即可，其他欄位不用填：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639254181328707765.webp"></p> <p>建好認證資料，在新增模型時，選擇使用現有認證，就不用重複輸入下方的 API Base、API Key，未來要修改端點 Url 或更新 API Key，只需修改認證，所有模型一次更新，這是符合實務應用的做法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639254181330924143.webp"></p> <p>另外，新增模型時，要選擇模型的模式，有 Chat、Complete... 等選項，用途整理以下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig10_639254181332672458.webp"></p> <table><thead><tr><th>Mode</th><th>Endpoint</th><th>主要用途</th><th>輸入 → 輸出</th></tr></thead><tbody><tr><td>Chat</td><td><code>/chat/completions</code></td><td>對話式文字生成，絕大部分應用都是這個</td><td>文字/圖片等 → 文字</td></tr><tr><td>Completion</td><td><code>/completions</code></td><td>傳統 Prompt 接 Completion，上古模型適用</td><td>Prompt → 文字</td></tr><tr><td>Embedding</td><td><code>/embeddings</code></td><td>將文字轉成向量，用於 RAG、語意搜尋、相似度比對</td><td>文字 → Vector</td></tr><tr><td>Audio Speech</td><td><code>/audio/speech</code></td><td>Text-to-Speech，將文字轉成語音</td><td>文字 → 音訊</td></tr><tr><td>Audio Transcription</td><td><code>/audio/transcriptions</code></td><td>Speech-to-Text，將錄音/語音轉成文字</td><td>音訊 → 文字</td></tr><tr><td>Image Generation</td><td><code>/images/generations</code></td><td>根據 Prompt 產生新圖片</td><td>文字 → 圖片</td></tr><tr><td>Image Edit</td><td><code>/images/edits</code></td><td>編輯既有圖片，例如修改、補圖、移除/加入元素</td><td>圖片 + Prompt → 圖片</td></tr><tr><td>Video Generation</td><td><code>/videos</code></td><td>根據文字或其他輸入產生影片</td><td>Prompt/素材 → 影片</td></tr><tr><td>Rerank</td><td><code>/rerank</code></td><td>將搜尋/RAG 找到的候選文件重新排序，提升相關性</td><td>Query + Documents → 排名結果</td></tr><tr><td>Realtime</td><td><code>/realtime</code></td><td>即時、低延遲的互動，例如語音對話、串流輸入輸出</td><td>即時多模態 ↔ 即時輸出</td></tr><tr><td>Batch</td><td><code>/batch</code></td><td>大量 API 工作的非同步批次處理，適合不要求即時回應的任務</td><td>大量 Requests → 批次結果</td></tr><tr><td>OCR</td><td><code>/ocr</code></td><td>從圖片、掃描文件等擷取文字</td><td>圖片/文件 → 文字</td></tr></tbody></table> <p>設定好模型，接著我們就可以建立多把虛擬金鑰，指定其可使用的模型、可用預算上限，進行細緻化管理。至於使用上，跟標準 OpenAI 模型一模一樣，只是把 Endpoint 換成 <code>http://&lt;litellm-ip&gt;:4000</code>，API Key 換成在 LiteLLM 建立的虛擬金鑰，其餘照舊，以下用<a href="/blog/dotnet-ai-guide/">微軟官方 AI 程式庫</a> MEAI 示範：</p> <pre><code>using System.ClientModel;
-using System.Diagnostics;
-using DotNetEnv;
-using Microsoft.Extensions.AI;
-using OpenAI;
-Env.Load();
-var apiKey = Environment.GetEnvironmentVariable("LITELLM_KEY"); // http://&lt;litellm-ip&gt;:4000
-var liteLlmUrl = Environment.GetEnvironmentVariable("LITELLM_URL"); // 例: sk-QQ9-FpEq8w1MiuqlNZItxm
-if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(liteLlmUrl))
-{
-throw new InvalidOperationException(
-"請在 .env 設定 LITELLM_KEY 與 LITELLM_URL。");
-}
-var baseUrl = liteLlmUrl.TrimEnd('/');
-var endpoint = baseUrl.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)
-? $"{baseUrl}/"
-: $"{baseUrl}/v1/"; // 補上 v1
-IChatClient chatClient = new OpenAIClient(
-new ApiKeyCredential(apiKey),
-new OpenAIClientOptions { Endpoint = new Uri(endpoint) })
-.GetChatClient("gpt-5.6-luna")
-.AsIChatClient();
-var prompt = "一句話介紹 LiteLLM？";
-var sw = new Stopwatch();
-sw.Start();
-var response = await chatClient.GetResponseAsync(prompt);
-sw.Stop();
-Console.WriteLine($"({sw.ElapsedMilliseconds:n0} ms) {response.Text}");
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig7_639254181334758078.webp"></p> <p>除了可建立多組金鑰作細部管控，LiteLLM 有豐富的統計報表可查：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig8_639254181337065018.webp"></p> <p>甚至可深入追查每一筆呼叫的軌跡：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig9_639254181338957356.webp"></p> <p>透過 LiteLLM 存取 AI 模型，模型管理自此進入新境界~ 讚!</p> <p data-slug="foundry-models-with-litellm" data-title-en="Using Foundry models with LiteLLM" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/06/30/15/03/table-5356682_960_720.jpg#960#720">A concise guide to using LiteLLM as an LLM gateway for Azure AI Foundry, covering Docker setup, Azure provider selection, credential management, model modes, virtual keys, usage tracking, and OpenAI-compatible client integration for better governance and observability.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>企業的 AI 模型整合開發應用，資安治理上有許多額外要求，例如身分驗證、金鑰管理、資料隱私、法規遵循... 等，考量多如牛毛，使用 Azure AI Foundry (更早前叫 AOAI，現更名為 Microsoft Foundry) 這類 MaaS (Model as a Service 模型即服務) 是省時省力的做法。(懂的都懂)</p> <p>若直接用 Foundry 專案共用的 API Key，一把金鑰可存取專案所有模型，很難再細分使用者、程式、系統，個別設定權限及統計用量。要實現這個目標，最簡單直覺的解法是在 Foundry 模型與客戶端之間插入一個中間層，也就是所謂 LLM Proxy 或 LLM Gateway 角色，在這層我們可任意加上想要的管理功能。</p> <p>評估了一下，LiteLLM 是這類需求中受歡迎的解決方案，它支援一百種以上的 LLM 模型，提供負載平衡、故障自動轉移(Fallback) 等高可用性機制，能建立虛擬金鑰 (Virtual Keys)，分別設定預算上限、統計使用量，具敏感個資遮蔽等安全護欄 (Guardrails)功能，有完整 Log 能詳細追蹤請求及 Token 消耗，還支援 Prometheus 等主流觀測監控平台，功能應有盡有，是值得學習的 LLM 應用工具。</p> <p>這篇來簡單筆記如何透過 LiteLLM 串接 Foundry 的 GPT 模型。</p> <p>要跑 LiteLLM 服務，用 Docker Compose 是首選，以下的 docker-compose.yml 會建立兩個容器分別跑 LiteLLM 及 Posgres 資料庫：</p> <pre><code>services:
-litellm:
-image: docker.litellm.ai/berriai/litellm-database:latest
-container_name: litellm # 指定容器名稱
-ports:
-- "4000:4000"
-environment:
-LITELLM_MASTER_KEY: sk-1234567
-LITELLM_SALT_KEY: sk-7654321 # 啟用後勿改，否則會導致加密資料無法讀取
-# 小訣竅： Composer 內部有 DNS，可由服務名稱(如：db)轉換對應 IP 地址
-# 而 db 未設 ports 對外開放，只供內部服務存取，保障安全性
-DATABASE_URL: postgresql://litellm:litellm@db:5432/litellm
-STORE_MODEL_IN_DB: "True"
-depends_on:
-db:
-condition: service_healthy # 確認資料庫服務健康後再啟動 litellm
-db:
-image: postgres:16
-container_name: litellm-db # 指定容器名稱
-environment:
-POSTGRES_USER: litellm
-POSTGRES_PASSWORD: litellm
-POSTGRES_DB: litellm
-healthcheck: # 檢查資料庫服務是否健康
-test: ["CMD-SHELL", "pg_isready -U litellm"]
-interval: 5s
-timeout: 5s
-retries: 10
-volumes: # 設定將資料存在本地目錄方便備份及搬移 (不然可存 Docker Volume)
-- ./postgres_data:/var/lib/postgresql/data
-</code></pre> <p>啟動後，使用 <code>http://&lt;litellm-ip&gt;:4000/ui</code> 可連上管理介面，LiteLLM 的教學很多，操作上也挺直覺，這裡不多著墨。但實際使用過程，我卡在不知道 Foundry 模型要怎麼選擇 Provider？Endpoint 網址要輸入什麼？這段比較值得筆記。</p> <p>在 LiteLLM 新增模型時，Provider 清單中有 Azure、Azure AI Foundry (Studio)、Azure Text 三種 Azure 相關選項，三者有什麼不同？</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639254181319469842.webp"></p> <ol><li><strong>Azure</strong><br> 對應 Azure OpenAI Service，在 LiteLLM 會加上 azure/ 前綴，例如 azure/gpt-4o、azure/gpt-5.6-luna，適用微軟託管的 OpenAI 對話與多模態模型，API 路徑 /chat/completions (OpenAI 規格) 背後呼叫的是標準的 Azure OpenAI Chat Completions 端點 <code>.../openai/deployments/{deployment_id}/chat/completions?api-version=...）</code>，需要設定：AZURE_API_KEY, AZURE_API_BASE, AZURE_API_VERSION。</li> <li><strong>Azure AI Foundry (Studio)</strong><br> 對應 Azure AI Foundry (前身為 Azure AI Studio) 代管的第三方非 OpenAI 模型 (如 Meta Llama、Cohere、Anthropic Claude、Mistral 等)，前綴為 azure_ai/，例如：azure_ai/claude-3-5-sonnet, azure_ai/command-r-plus，API 路徑 /models 或各廠商原生 Messages 格式。 這類 API 端點與 OpenAI 傳統路徑不同（網址通常為 <code>https://&lt;resource&gt;.services.ai.azure.com/...</code>）</li> <li><strong>Azure Text</strong><br> 對應 Azure OpenAI 舊版 Completion 古老的單字/純文字補齊 (Instruct) 模型，前綴為 azure_text/，例如：azure_text/gpt-3.5-turbo-instruct。只需傳 prompt 內容，不支援 <code>messsage: [ { "role": "user", ... } ]</code> 對話結構，這個現在應該沒人在用了。</li></ol> <p>簡單來說，OpenAI 的模型選 Azure、非 OpenAI 模型如 Anthropic、Meta、Mistral... 選 Azure AI Foundry，二者端點網址不同。至於 Azure Text 是 gpt-3.5-turbo-instruct 等上古模型在用的，可略過。</p> <p>在 Azure Foundry 專案介面可以查到 API Key 及 OpenAI Endpoint 網址，新增模型時會用到：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639254181324653471.webp"></p> <p>千萬不要每次新增模型都重新輸入端點網址跟 API Key，未來要輪替更換金鑰時，會換到你想抓狂。LiteLLM 當然有想到這點，允許我們在 LLM Credentials 輸入 API Key 新增一筆認證資料，未來新增模型時，指定使用這組認證：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639254181326612832.webp"></p> <p>設定時，Provider 選 Azure，輸入 API Base (不用加 openai/v1) 跟 Azure API Key 即可，其他欄位不用填：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639254181328707765.webp"></p> <p>建好認證資料，在新增模型時，選擇使用現有認證，就不用重複輸入下方的 API Base、API Key，未來要修改端點 Url 或更新 API Key，只需修改認證，所有模型一次更新，這是符合實務應用的做法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639254181330924143.webp"></p> <p>另外，新增模型時，要選擇模型的模式，有 Chat、Complete... 等選項，用途整理以下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig10_639254181332672458.webp"></p> <table><thead><tr><th>Mode</th><th>Endpoint</th><th>主要用途</th><th>輸入 → 輸出</th></tr></thead><tbody><tr><td>Chat</td><td><code>/chat/completions</code></td><td>對話式文字生成，絕大部分應用都是這個</td><td>文字/圖片等 → 文字</td></tr><tr><td>Completion</td><td><code>/completions</code></td><td>傳統 Prompt 接 Completion，上古模型適用</td><td>Prompt → 文字</td></tr><tr><td>Embedding</td><td><code>/embeddings</code></td><td>將文字轉成向量，用於 RAG、語意搜尋、相似度比對</td><td>文字 → Vector</td></tr><tr><td>Audio Speech</td><td><code>/audio/speech</code></td><td>Text-to-Speech，將文字轉成語音</td><td>文字 → 音訊</td></tr><tr><td>Audio Transcription</td><td><code>/audio/transcriptions</code></td><td>Speech-to-Text，將錄音/語音轉成文字</td><td>音訊 → 文字</td></tr><tr><td>Image Generation</td><td><code>/images/generations</code></td><td>根據 Prompt 產生新圖片</td><td>文字 → 圖片</td></tr><tr><td>Image Edit</td><td><code>/images/edits</code></td><td>編輯既有圖片，例如修改、補圖、移除/加入元素</td><td>圖片 + Prompt → 圖片</td></tr><tr><td>Video Generation</td><td><code>/videos</code></td><td>根據文字或其他輸入產生影片</td><td>Prompt/素材 → 影片</td></tr><tr><td>Rerank</td><td><code>/rerank</code></td><td>將搜尋/RAG 找到的候選文件重新排序，提升相關性</td><td>Query + Documents → 排名結果</td></tr><tr><td>Realtime</td><td><code>/realtime</code></td><td>即時、低延遲的互動，例如語音對話、串流輸入輸出</td><td>即時多模態 ↔ 即時輸出</td></tr><tr><td>Batch</td><td><code>/batch</code></td><td>大量 API 工作的非同步批次處理，適合不要求即時回應的任務</td><td>大量 Requests → 批次結果</td></tr><tr><td>OCR</td><td><code>/ocr</code></td><td>從圖片、掃描文件等擷取文字</td><td>圖片/文件 → 文字</td></tr></tbody></table> <p>設定好模型，接著我們就可以建立多把虛擬金鑰，指定其可使用的模型、可用預算上限，進行細緻化管理。至於使用上，跟標準 OpenAI 模型一模一樣，只是把 Endpoint 換成 <code>http://&lt;litellm-ip&gt;:4000</code>，API Key 換成在 LiteLLM 建立的虛擬金鑰，其餘照舊，以下用<a href="/blog/dotnet-ai-guide/">微軟官方 AI 程式庫</a> MEAI 示範：</p> <pre><code>using System.ClientModel;
-using System.Diagnostics;
-using DotNetEnv;
-using Microsoft.Extensions.AI;
-using OpenAI;
-Env.Load();
-var apiKey = Environment.GetEnvironmentVariable("LITELLM_KEY"); // http://&lt;litellm-ip&gt;:4000
-var liteLlmUrl = Environment.GetEnvironmentVariable("LITELLM_URL"); // 例: sk-QQ9-FpEq8w1MiuqlNZItxm
-if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(liteLlmUrl))
-{
-throw new InvalidOperationException(
-"請在 .env 設定 LITELLM_KEY 與 LITELLM_URL。");
-}
-var baseUrl = liteLlmUrl.TrimEnd('/');
-var endpoint = baseUrl.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)
-? $"{baseUrl}/"
-: $"{baseUrl}/v1/"; // 補上 v1
-IChatClient chatClient = new OpenAIClient(
-new ApiKeyCredential(apiKey),
-new OpenAIClientOptions { Endpoint = new Uri(endpoint) })
-.GetChatClient("gpt-5.6-luna")
-.AsIChatClient();
-var prompt = "一句話介紹 LiteLLM？";
-var sw = new Stopwatch();
-sw.Start();
-var response = await chatClient.GetResponseAsync(prompt);
-sw.Stop();
-Console.WriteLine($"({sw.ElapsedMilliseconds:n0} ms) {response.Text}");
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig7_639254181334758078.webp"></p> <p>除了可建立多組金鑰作細部管控，LiteLLM 有豐富的統計報表可查：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig8_639254181337065018.webp"></p> <p>甚至可深入追查每一筆呼叫的軌跡：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig9_639254181338957356.webp"></p> <p>透過 LiteLLM 存取 AI 模型，模型管理自此進入新境界~ 讚!</p> <p data-slug="foundry-models-with-litellm" data-title-en="Using Foundry models with LiteLLM" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/06/30/15/03/table-5356682_960_720.jpg#960#720">A concise guide to using LiteLLM as an LLM gateway for Azure AI Foundry, covering Docker setup, Azure provider selection, credential management, model modes, virtual keys, usage tracking, and OpenAI-compatible client integration for better governance and observability.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>企業的 AI 模型整合開發應用，資安治理上有許多額外要求，例如身分驗證、金鑰管理、資料隱私、法規遵循... 等，考量多如牛毛，使用 Azure AI Foundry (更早前叫 AOAI，現更名為 Microsoft Foundry) 這類 MaaS (Model as a Service 模型即服務) 是省時省力的做法。(懂的都懂)</p> <p>若直接用 Foundry 專案共用的 API Key，一把金鑰可存取專案所有模型，很難再細分使用者、程式、系統，個別設定權限及統計用量。要實現這個目標，最簡單直覺的解法是在 Foundry 模型與客戶端之間插入一個中間層，也就是所謂 LLM Proxy 或 LLM Gateway 角色，在這層我們可任意加上想要的管理功能。</p> <p>評估了一下，LiteLLM 是這類需求中受歡迎的解決方案，它支援一百種以上的 LLM 模型，提供負載平衡、故障自動轉移(Fallback) 等高可用性機制，能建立虛擬金鑰 (Virtual Keys)，分別設定預算上限、統計使用量，具敏感個資遮蔽等安全護欄 (Guardrails)功能，有完整 Log 能詳細追蹤請求及 Token 消耗，還支援 Prometheus 等主流觀測監控平台，功能應有盡有，是值得學習的 LLM 應用工具。</p> <p>這篇來簡單筆記如何透過 LiteLLM 串接 Foundry 的 GPT 模型。</p> <p>要跑 LiteLLM 服務，用 Docker Compose 是首選，以下的 docker-compose.yml 會建立兩個容器分別跑 LiteLLM 及 Posgres 資料庫：</p> <pre><code>services:
-litellm:
-image: docker.litellm.ai/berriai/litellm-database:latest
-container_name: litellm # 指定容器名稱
-ports:
-- "4000:4000"
-environment:
-LITELLM_MASTER_KEY: sk-1234567
-LITELLM_SALT_KEY: sk-7654321 # 啟用後勿改，否則會導致加密資料無法讀取
-# 小訣竅： Composer 內部有 DNS，可由服務名稱(如：db)轉換對應 IP 地址
-# 而 db 未設 ports 對外開放，只供內部服務存取，保障安全性
-DATABASE_URL: postgresql://litellm:litellm@db:5432/litellm
-STORE_MODEL_IN_DB: "True"
-depends_on:
-db:
-condition: service_healthy # 確認資料庫服務健康後再啟動 litellm
-db:
-image: postgres:16
-container_name: litellm-db # 指定容器名稱
-environment:
-POSTGRES_USER: litellm
-POSTGRES_PASSWORD: litellm
-POSTGRES_DB: litellm
-healthcheck: # 檢查資料庫服務是否健康
-test: ["CMD-SHELL", "pg_isready -U litellm"]
-interval: 5s
-timeout: 5s
-retries: 10
-volumes: # 設定將資料存在本地目錄方便備份及搬移 (不然可存 Docker Volume)
-- ./postgres_data:/var/lib/postgresql/data
-</code></pre> <p>啟動後，使用 <code>http://&lt;litellm-ip&gt;:4000/ui</code> 可連上管理介面，LiteLLM 的教學很多，操作上也挺直覺，這裡不多著墨。但實際使用過程，我卡在不知道 Foundry 模型要怎麼選擇 Provider？Endpoint 網址要輸入什麼？這段比較值得筆記。</p> <p>在 LiteLLM 新增模型時，Provider 清單中有 Azure、Azure AI Foundry (Studio)、Azure Text 三種 Azure 相關選項，三者有什麼不同？</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639254181319469842.webp"></p> <ol><li><strong>Azure</strong><br> 對應 Azure OpenAI Service，在 LiteLLM 會加上 azure/ 前綴，例如 azure/gpt-4o、azure/gpt-5.6-luna，適用微軟託管的 OpenAI 對話與多模態模型，API 路徑 /chat/completions (OpenAI 規格) 背後呼叫的是標準的 Azure OpenAI Chat Completions 端點 <code>.../openai/deployments/{deployment_id}/chat/completions?api-version=...）</code>，需要設定：AZURE_API_KEY, AZURE_API_BASE, AZURE_API_VERSION。</li> <li><strong>Azure AI Foundry (Studio)</strong><br> 對應 Azure AI Foundry (前身為 Azure AI Studio) 代管的第三方非 OpenAI 模型 (如 Meta Llama、Cohere、Anthropic Claude、Mistral 等)，前綴為 azure_ai/，例如：azure_ai/claude-3-5-sonnet, azure_ai/command-r-plus，API 路徑 /models 或各廠商原生 Messages 格式。 這類 API 端點與 OpenAI 傳統路徑不同（網址通常為 <code>https://&lt;resource&gt;.services.ai.azure.com/...</code>）</li> <li><strong>Azure Text</strong><br> 對應 Azure OpenAI 舊版 Completion 古老的單字/純文字補齊 (Instruct) 模型，前綴為 azure_text/，例如：azure_text/gpt-3.5-turbo-instruct。只需傳 prompt 內容，不支援 <code>messsage: [ { "role": "user", ... } ]</code> 對話結構，這個現在應該沒人在用了。</li></ol> <p>簡單來說，OpenAI 的模型選 Azure、非 OpenAI 模型如 Anthropic、Meta、Mistral... 選 Azure AI Foundry，二者端點網址不同。至於 Azure Text 是 gpt-3.5-turbo-instruct 等上古模型在用的，可略過。</p> <p>在 Azure Foundry 專案介面可以查到 API Key 及 OpenAI Endpoint 網址，新增模型時會用到：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639254181324653471.webp"></p> <p>千萬不要每次新增模型都重新輸入端點網址跟 API Key，未來要輪替更換金鑰時，會換到你想抓狂。LiteLLM 當然有想到這點，允許我們在 LLM Credentials 輸入 API Key 新增一筆認證資料，未來新增模型時，指定使用這組認證：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639254181326612832.webp"></p> <p>設定時，Provider 選 Azure，輸入 API Base (不用加 openai/v1) 跟 Azure API Key 即可，其他欄位不用填：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639254181328707765.webp"></p> <p>建好認證資料，在新增模型時，選擇使用現有認證，就不用重複輸入下方的 API Base、API Key，未來要修改端點 Url 或更新 API Key，只需修改認證，所有模型一次更新，這是符合實務應用的做法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639254181330924143.webp"></p> <p>另外，新增模型時，要選擇模型的模式，有 Chat、Complete... 等選項，用途整理以下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig10_639254181332672458.webp"></p> <table><thead><tr><th>Mode</th><th>Endpoint</th><th>主要用途</th><th>輸入 → 輸出</th></tr></thead><tbody><tr><td>Chat</td><td><code>/chat/completions</code></td><td>對話式文字生成，絕大部分應用都是這個</td><td>文字/圖片等 → 文字</td></tr><tr><td>Completion</td><td><code>/completions</code></td><td>傳統 Prompt 接 Completion，上古模型適用</td><td>Prompt → 文字</td></tr><tr><td>Embedding</td><td><code>/embeddings</code></td><td>將文字轉成向量，用於 RAG、語意搜尋、相似度比對</td><td>文字 → Vector</td></tr><tr><td>Audio Speech</td><td><code>/audio/speech</code></td><td>Text-to-Speech，將文字轉成語音</td><td>文字 → 音訊</td></tr><tr><td>Audio Transcription</td><td><code>/audio/transcriptions</code></td><td>Speech-to-Text，將錄音/語音轉成文字</td><td>音訊 → 文字</td></tr><tr><td>Image Generation</td><td><code>/images/generations</code></td><td>根據 Prompt 產生新圖片</td><td>文字 → 圖片</td></tr><tr><td>Image Edit</td><td><code>/images/edits</code></td><td>編輯既有圖片，例如修改、補圖、移除/加入元素</td><td>圖片 + Prompt → 圖片</td></tr><tr><td>Video Generation</td><td><code>/videos</code></td><td>根據文字或其他輸入產生影片</td><td>Prompt/素材 → 影片</td></tr><tr><td>Rerank</td><td><code>/rerank</code></td><td>將搜尋/RAG 找到的候選文件重新排序，提升相關性</td><td>Query + Documents → 排名結果</td></tr><tr><td>Realtime</td><td><code>/realtime</code></td><td>即時、低延遲的互動，例如語音對話、串流輸入輸出</td><td>即時多模態 ↔ 即時輸出</td></tr><tr><td>Batch</td><td><code>/batch</code></td><td>大量 API 工作的非同步批次處理，適合不要求即時回應的任務</td><td>大量 Requests → 批次結果</td></tr><tr><td>OCR</td><td><code>/ocr</code></td><td>從圖片、掃描文件等擷取文字</td><td>圖片/文件 → 文字</td></tr></tbody></table> <p>設定好模型，接著我們就可以建立多把虛擬金鑰，指定其可使用的模型、可用預算上限，進行細緻化管理。至於使用上，跟標準 OpenAI 模型一模一樣，只是把 Endpoint 換成 <code>http://&lt;litellm-ip&gt;:4000</code>，API Key 換成在 LiteLLM 建立的虛擬金鑰，其餘照舊，以下用<a href="/blog/dotnet-ai-guide/">微軟官方 AI 程式庫</a> MEAI 示範：</p> <pre><code>using System.ClientModel;
-using System.Diagnostics;
-using DotNetEnv;
-using Microsoft.Extensions.AI;
-using OpenAI;
-Env.Load();
-var apiKey = Environment.GetEnvironmentVariable("LITELLM_KEY"); // http://&lt;litellm-ip&gt;:4000
-var liteLlmUrl = Environment.GetEnvironmentVariable("LITELLM_URL"); // 例: sk-QQ9-FpEq8w1MiuqlNZItxm
-if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(liteLlmUrl))
-{
-throw new InvalidOperationException(
-"請在 .env 設定 LITELLM_KEY 與 LITELLM_URL。");
-}
-var baseUrl = liteLlmUrl.TrimEnd('/');
-var endpoint = baseUrl.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)
-? $"{baseUrl}/"
-: $"{baseUrl}/v1/"; // 補上 v1
-IChatClient chatClient = new OpenAIClient(
-new ApiKeyCredential(apiKey),
-new OpenAIClientOptions { Endpoint = new Uri(endpoint) })
-.GetChatClient("gpt-5.6-luna")
-.AsIChatClient();
-var prompt = "一句話介紹 LiteLLM？";
-var sw = new Stopwatch();
-sw.Start();
-var response = await chatClient.GetResponseAsync(prompt);
-sw.Stop();
-Console.WriteLine($"({sw.ElapsedMilliseconds:n0} ms) {response.Text}");
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig7_639254181334758078.webp"></p> <p>除了可建立多組金鑰作細部管控，LiteLLM 有豐富的統計報表可查：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig8_639254181337065018.webp"></p> <p>甚至可深入追查每一筆呼叫的軌跡：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig9_639254181338957356.webp"></p> <p>透過 LiteLLM 存取 AI 模型，模型管理自此進入新境界~ 讚!</p> <p data-slug="foundry-models-with-litellm" data-title-en="Using Foundry models with LiteLLM" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2020/06/30/15/03/table-5356682_960_720.jpg#960#720">A concise guide to using LiteLLM as an LLM gateway for Azure AI Foundry, covering Docker setup, Azure provider selection, credential management, model modes, virtual keys, usage tracking, and OpenAI-compatible client integration for better governance and observability.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig2_639254181319469842.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig2_639254181319469842.webp" medium="image"/>
-    <pubDate>Sat, 19 Sep 2026 12:24:42 GMT</pubDate>
   </item></channel>
 </rss>
