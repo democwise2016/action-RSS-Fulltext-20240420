@@ -30,6 +30,771 @@
     </itunes:owner>
     <itunes:image href="https://www.minwt.com/images/Icon@2.png"/>
 <item>
+    <title><![CDATA[ArtCraft 開源免費軟體全系列：7 套對應 Photoshop、Illustrator、Premiere、After Effects 的新一代 Adobe 替代軟體]]></title>
+    <link>https://www.minwt.com/pc/24452.html</link>
+    <itunes:title><![CDATA[ArtCraft 開源免費軟體全系列：7 套對應 Photoshop、Illustrator、Premiere、After Effects 的新一代 Adobe 替代軟體]]></itunes:title>
+    <itunes:author><![CDATA[梅問題．教學網[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<div><img src="https://photo.minwt.com/img/Content/software/artcraft-apps/00.webp" alt="梅問題－ArtCraft 開源免費軟體全系列：7 套對應 Photoshop、Illustrator、Premiere 的 Adobe 替代軟體"></div>
+<p>　　說到 Adobe 的免費替代軟體，大家想到的大多是 GIMP、Inkscape、DaVinci Resolve 這些老面孔，每套都來自不同的開發團隊，操作邏輯也各不相同，要一套一套重新學習。不過最近梅干發現，原本做 AI 影像工作室的 ArtCraft 團隊，竟然一口氣推出了 7 套開源軟體，從修圖、向量、剪輯、特效、相片管理、排版到 PDF，剛好對應 Adobe 最常用的幾套軟體。<br>
+</p>
+<br>
+這系列軟體全部用 Rust 從零開始打造，不是套網頁殼的 Electron，而是原生的桌面軟體，介面也刻意做得跟 Adobe 很像，用慣 Adobe 的朋友上手會比較快。而且完全免費、不用註冊帳號、不會回傳使用資料，檔案也都在自己的電腦上處理。雖然目前都還在 0.2 版的開發階段，但已經可以下載試用，因此梅干就來一套一套介紹給大家囉！
+<hr>
+<h2>ArtCraft 軟體與 Adobe 對照表</h2>
+<div>下表為 <b>2026 年 10 月</b>官網的資料，7 套軟體目前都是 <b>0.2.0 版</b>，支援 Windows、Mac、Linux。</div>
+<br>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>ArtCraft 軟體</th><th>對應 Adobe</th><th>用途</th><th>開發狀態</th></tr>
+<tr><td><b>PhotoCraft</b></td><td>Photoshop</td><td>影像編輯、修圖</td><td>早期測試版</td></tr>
+<tr><td><b>VectorCraft</b></td><td>Illustrator</td><td>向量插圖、Logo</td><td>開發中</td></tr>
+<tr><td><b>FilmCraft</b></td><td>Premiere Pro</td><td>影片剪輯、調色</td><td>開發中</td></tr>
+<tr><td><b>EffectCraft</b></td><td>After Effects</td><td>動態圖像、特效合成</td><td>開發中</td></tr>
+<tr><td><b>LightCraft</b></td><td>Lightroom</td><td>相片管理、RAW 顯影</td><td>開發中</td></tr>
+<tr><td><b>DesignCraft</b></td><td>InDesign</td><td>排版、出版</td><td>開發中</td></tr>
+<tr><td><b>PrintCraft</b></td><td>Acrobat Pro</td><td>PDF 閱讀、合併、分割、加密</td><td>早期測試版</td></tr>
+</tbody></table>
+<div>
+官方網址：<a href="https://getartcraft.com/apps" target="_blank">ArtCraft Apps</a><br>
+授權：開源（MIT 或 Apache-2.0），免費使用<br>
+平台：Windows、Mac、Linux（另提供可自行架設的網頁版）
+</div>
+<hr>
+<h2>PhotoCraft：Photoshop 替代</h2>
+<p>PhotoCraft 是這系列中最受矚目的一套，選單、快速鍵、面板與工具的位置，都跟 Photoshop 非常接近。除了圖層、遮色片、圖層樣式之外，還有 16 種調整圖層、70 多種可即時預覽的濾鏡，以及智慧型物件，支援 8、16、32 位元的 RGB、CMYK、Lab 色彩模式。最厲害的是 PSD 相容性，可以開啟和儲存含圖層的 PSD、PSB 檔，官方測試 135 個 PSD 檔，有 134 個存回去後跟原檔完全一樣，另外選取與遮色片工具也都在本機運算，不會把圖片上傳到伺服器。</p>
+<div><b>注意：</b>官方也很老實地表示，PhotoCraft 目前還不能取代 Photoshop 用在每天的專業工作，像生成式 AI 功能、外掛、進階文字排版都還沒有，也還少了約 20 種工具。</div>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/photocraft" target="_blank">PhotoCraft</a><br>
+下載：<a href="https://github.com/storytold/photocraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>VectorCraft：Illustrator 替代</h2>
+<p>VectorCraft 是向量繪圖軟體，鋼筆工具、直接選取、形狀合併、智慧參考線、外觀面板都有，官方特別強調路徑運算是精確計算，不會再出現 Illustrator 常見的「無法執行此操作」。另外還有漸變、封套扭曲、漸層網格、重複排列、陰影光暈等即時效果，以及 12 種預設的影像描圖。效能也相當驚人，2 萬個物件只要約 27 毫秒就能繪製完成。可以匯入匯出 SVG、PDF，並輸出 PNG、JPG、WebP。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/vectorcraft" target="_blank">VectorCraft</a><br>
+下載：<a href="https://github.com/storytold/vectorcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>FilmCraft：Premiere Pro 替代</h2>
+<p>FilmCraft 是影片剪輯軟體，有來源與節目監看視窗、三點剪輯、各種修剪模式，也支援 J、K、L 快速鍵，用過 Premiere 的朋友應該很快就能上手。調色功能也很完整，曲線、色輪、HSL、LUT、HDR 與 Log 素材、示波器都有，另外內建約 55 種影片效果、30 種轉場，以及混音器與響度表。比較特別的是，它沒有使用 FFmpeg，H.264、HEVC、ProRes 等格式都是自己寫的解碼器。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/filmcraft" target="_blank">FilmCraft</a><br>
+下載：<a href="https://github.com/storytold/filmcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>EffectCraft：After Effects 替代</h2>
+<p>EffectCraft 是動態圖像與特效合成軟體，合成、圖層、關鍵影格、圖表編輯器的概念跟 After Effects 一樣，內建 259 種效果，包含模糊、調色、扭曲、去背、粒子等，還支援 3D 攝影機與燈光、38 種混合模式，以及 JavaScript 表達式，常用的 wiggle、loop 都能使用。輸出可以選擇 H.264、含透明背景的 ProRes、PNG 序列、GIF，甚至還能匯入匯出 Lottie 動畫。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/effectcraft" target="_blank">EffectCraft</a><br>
+下載：<a href="https://github.com/storytold/effectcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>LightCraft：Lightroom 替代</h2>
+<p>LightCraft 是相片管理與 RAW 檔顯影軟體，可以建立相簿、評分、標記、搜尋，大量相片也能流暢瀏覽。編修的部分有曝光、色彩、色調曲線、8 色混色器、三向色輪，以及筆刷、漸層、天空、主體、背景等遮色片，調整一張 2400 萬畫素的 RAW 檔，每拉一次滑桿只要約 4 毫秒。目前支援 DNG、CR2、ARW、NEF、RAF、RW2、PEF、ORF 等格式，Canon、Sony、Nikon、Fujifilm、Panasonic、Pentax、Olympus 的相機都能用。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/lightcraft" target="_blank">LightCraft</a><br>
+下載：<a href="https://github.com/storytold/lightcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>DesignCraft：InDesign 替代</h2>
+<p>DesignCraft 是排版軟體，跨頁、主版頁面、文字串接、文繞圖都有，還有段落最佳化排列、自動斷字、視覺邊界對齊與基線網格，輸出可以選擇可選取文字的 PDF、CMYK 與特別色，以及 PDF/A 存檔格式。另外它還內建 MCP 伺服器，可以讓 AI 直接操作排版，這點倒是 InDesign 目前還沒有的。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/designcraft" target="_blank">DesignCraft</a><br>
+下載：<a href="https://github.com/storytold/designcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>PrintCraft：Acrobat 替代</h2>
+<p>PrintCraft 是 PDF 工具，可以閱讀、搜尋 PDF，也能旋轉、刪除、插入、重新排列頁面，合併、擷取與分割時，會保留原本的連結、表單欄位、圖層與書籤。另外支援 RC4 到 AES-256 的加密，存檔時也有自動儲存與當機復原，比較不用擔心檔案損毀。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/printcraft" target="_blank">PrintCraft</a><br>
+下載：<a href="https://github.com/storytold/printcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>如何下載安裝</h2>
+<p>7 套軟體的下載方式都一樣，進入各軟體的 GitHub Releases 頁面，依自己的作業系統選擇檔案即可：</p>
+<div>
+Mac：下載 <b>.dmg</b>（Apple Silicon 與 Intel 共用）<br>
+Windows：下載 <b>x64 安裝檔</b>，或免安裝的 portable 版本<br>
+Linux：提供 AppImage、Deb、RPM 等格式
+</div>
+<hr>
+<h2>常見問題</h2>
+<b>Q1：ArtCraft 的軟體真的免費嗎？</b><br>
+是的。PhotoCraft、VectorCraft、FilmCraft 等 7 套軟體都是開源軟體，採 MIT 或 Apache-2.0 授權，免費下載使用，不需要註冊帳號，也沒有訂閱費用。
+<br><br>
+<b>Q2：ArtCraft 的軟體可以取代 Adobe 嗎？</b><br>
+目前還不行。7 套軟體都還在 0.2 版的開發階段，PhotoCraft 官方也表示還不能取代 Photoshop 用在每天的專業工作，適合先下載試用、觀察後續發展，正式案子建議還是用穩定的軟體。
+<br><br>
+<b>Q3：PhotoCraft 可以開啟 PSD 檔嗎？</b><br>
+可以。PhotoCraft 能開啟與儲存含圖層的 PSD、PSB 檔，官方測試 135 個 PSD 檔中，有 134 個存回去後與原檔完全一致。
+<br><br>
+<b>Q4：ArtCraft 的軟體支援哪些作業系統？</b><br>
+7 套軟體都支援 Windows、Mac（Apple Silicon 與 Intel）與 Linux，Windows 另外提供免安裝版，官方也提供可自行架設的網頁版。
+<hr>
+<p>　　以往要找 Adobe 的免費替代軟體，總要東拼西湊好幾家的軟體，現在 ArtCraft 一次推出整個系列，介面風格一致、又都是開源免費，對想擺脫訂閱制的朋友來說，是很值得關注的新選擇。雖然目前還在開發初期，難免會遇到一些問題，正式的案子建議還是先用穩定的軟體，但可以先下載來玩玩看，說不定再過一陣子，就真的能取代 Adobe 了。如果想找目前就能穩定使用的免費軟體，也可以參考梅干整理的 <a href="/pc/24451.html">Adobe 免費替代軟體推薦</a>。</p>
+<br>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<div><img src="https://photo.minwt.com/img/Content/software/artcraft-apps/00.webp" alt="梅問題－ArtCraft 開源免費軟體全系列：7 套對應 Photoshop、Illustrator、Premiere 的 Adobe 替代軟體"></div>
+<p>　　說到 Adobe 的免費替代軟體，大家想到的大多是 GIMP、Inkscape、DaVinci Resolve 這些老面孔，每套都來自不同的開發團隊，操作邏輯也各不相同，要一套一套重新學習。不過最近梅干發現，原本做 AI 影像工作室的 ArtCraft 團隊，竟然一口氣推出了 7 套開源軟體，從修圖、向量、剪輯、特效、相片管理、排版到 PDF，剛好對應 Adobe 最常用的幾套軟體。<br>
+</p>
+<br>
+這系列軟體全部用 Rust 從零開始打造，不是套網頁殼的 Electron，而是原生的桌面軟體，介面也刻意做得跟 Adobe 很像，用慣 Adobe 的朋友上手會比較快。而且完全免費、不用註冊帳號、不會回傳使用資料，檔案也都在自己的電腦上處理。雖然目前都還在 0.2 版的開發階段，但已經可以下載試用，因此梅干就來一套一套介紹給大家囉！
+<hr>
+<h2>ArtCraft 軟體與 Adobe 對照表</h2>
+<div>下表為 <b>2026 年 10 月</b>官網的資料，7 套軟體目前都是 <b>0.2.0 版</b>，支援 Windows、Mac、Linux。</div>
+<br>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>ArtCraft 軟體</th><th>對應 Adobe</th><th>用途</th><th>開發狀態</th></tr>
+<tr><td><b>PhotoCraft</b></td><td>Photoshop</td><td>影像編輯、修圖</td><td>早期測試版</td></tr>
+<tr><td><b>VectorCraft</b></td><td>Illustrator</td><td>向量插圖、Logo</td><td>開發中</td></tr>
+<tr><td><b>FilmCraft</b></td><td>Premiere Pro</td><td>影片剪輯、調色</td><td>開發中</td></tr>
+<tr><td><b>EffectCraft</b></td><td>After Effects</td><td>動態圖像、特效合成</td><td>開發中</td></tr>
+<tr><td><b>LightCraft</b></td><td>Lightroom</td><td>相片管理、RAW 顯影</td><td>開發中</td></tr>
+<tr><td><b>DesignCraft</b></td><td>InDesign</td><td>排版、出版</td><td>開發中</td></tr>
+<tr><td><b>PrintCraft</b></td><td>Acrobat Pro</td><td>PDF 閱讀、合併、分割、加密</td><td>早期測試版</td></tr>
+</tbody></table>
+<div>
+官方網址：<a href="https://getartcraft.com/apps" target="_blank">ArtCraft Apps</a><br>
+授權：開源（MIT 或 Apache-2.0），免費使用<br>
+平台：Windows、Mac、Linux（另提供可自行架設的網頁版）
+</div>
+<hr>
+<h2>PhotoCraft：Photoshop 替代</h2>
+<p>PhotoCraft 是這系列中最受矚目的一套，選單、快速鍵、面板與工具的位置，都跟 Photoshop 非常接近。除了圖層、遮色片、圖層樣式之外，還有 16 種調整圖層、70 多種可即時預覽的濾鏡，以及智慧型物件，支援 8、16、32 位元的 RGB、CMYK、Lab 色彩模式。最厲害的是 PSD 相容性，可以開啟和儲存含圖層的 PSD、PSB 檔，官方測試 135 個 PSD 檔，有 134 個存回去後跟原檔完全一樣，另外選取與遮色片工具也都在本機運算，不會把圖片上傳到伺服器。</p>
+<div><b>注意：</b>官方也很老實地表示，PhotoCraft 目前還不能取代 Photoshop 用在每天的專業工作，像生成式 AI 功能、外掛、進階文字排版都還沒有，也還少了約 20 種工具。</div>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/photocraft" target="_blank">PhotoCraft</a><br>
+下載：<a href="https://github.com/storytold/photocraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>VectorCraft：Illustrator 替代</h2>
+<p>VectorCraft 是向量繪圖軟體，鋼筆工具、直接選取、形狀合併、智慧參考線、外觀面板都有，官方特別強調路徑運算是精確計算，不會再出現 Illustrator 常見的「無法執行此操作」。另外還有漸變、封套扭曲、漸層網格、重複排列、陰影光暈等即時效果，以及 12 種預設的影像描圖。效能也相當驚人，2 萬個物件只要約 27 毫秒就能繪製完成。可以匯入匯出 SVG、PDF，並輸出 PNG、JPG、WebP。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/vectorcraft" target="_blank">VectorCraft</a><br>
+下載：<a href="https://github.com/storytold/vectorcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>FilmCraft：Premiere Pro 替代</h2>
+<p>FilmCraft 是影片剪輯軟體，有來源與節目監看視窗、三點剪輯、各種修剪模式，也支援 J、K、L 快速鍵，用過 Premiere 的朋友應該很快就能上手。調色功能也很完整，曲線、色輪、HSL、LUT、HDR 與 Log 素材、示波器都有，另外內建約 55 種影片效果、30 種轉場，以及混音器與響度表。比較特別的是，它沒有使用 FFmpeg，H.264、HEVC、ProRes 等格式都是自己寫的解碼器。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/filmcraft" target="_blank">FilmCraft</a><br>
+下載：<a href="https://github.com/storytold/filmcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>EffectCraft：After Effects 替代</h2>
+<p>EffectCraft 是動態圖像與特效合成軟體，合成、圖層、關鍵影格、圖表編輯器的概念跟 After Effects 一樣，內建 259 種效果，包含模糊、調色、扭曲、去背、粒子等，還支援 3D 攝影機與燈光、38 種混合模式，以及 JavaScript 表達式，常用的 wiggle、loop 都能使用。輸出可以選擇 H.264、含透明背景的 ProRes、PNG 序列、GIF，甚至還能匯入匯出 Lottie 動畫。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/effectcraft" target="_blank">EffectCraft</a><br>
+下載：<a href="https://github.com/storytold/effectcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>LightCraft：Lightroom 替代</h2>
+<p>LightCraft 是相片管理與 RAW 檔顯影軟體，可以建立相簿、評分、標記、搜尋，大量相片也能流暢瀏覽。編修的部分有曝光、色彩、色調曲線、8 色混色器、三向色輪，以及筆刷、漸層、天空、主體、背景等遮色片，調整一張 2400 萬畫素的 RAW 檔，每拉一次滑桿只要約 4 毫秒。目前支援 DNG、CR2、ARW、NEF、RAF、RW2、PEF、ORF 等格式，Canon、Sony、Nikon、Fujifilm、Panasonic、Pentax、Olympus 的相機都能用。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/lightcraft" target="_blank">LightCraft</a><br>
+下載：<a href="https://github.com/storytold/lightcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>DesignCraft：InDesign 替代</h2>
+<p>DesignCraft 是排版軟體，跨頁、主版頁面、文字串接、文繞圖都有，還有段落最佳化排列、自動斷字、視覺邊界對齊與基線網格，輸出可以選擇可選取文字的 PDF、CMYK 與特別色，以及 PDF/A 存檔格式。另外它還內建 MCP 伺服器，可以讓 AI 直接操作排版，這點倒是 InDesign 目前還沒有的。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/designcraft" target="_blank">DesignCraft</a><br>
+下載：<a href="https://github.com/storytold/designcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>PrintCraft：Acrobat 替代</h2>
+<p>PrintCraft 是 PDF 工具，可以閱讀、搜尋 PDF，也能旋轉、刪除、插入、重新排列頁面，合併、擷取與分割時，會保留原本的連結、表單欄位、圖層與書籤。另外支援 RC4 到 AES-256 的加密，存檔時也有自動儲存與當機復原，比較不用擔心檔案損毀。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/printcraft" target="_blank">PrintCraft</a><br>
+下載：<a href="https://github.com/storytold/printcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>如何下載安裝</h2>
+<p>7 套軟體的下載方式都一樣，進入各軟體的 GitHub Releases 頁面，依自己的作業系統選擇檔案即可：</p>
+<div>
+Mac：下載 <b>.dmg</b>（Apple Silicon 與 Intel 共用）<br>
+Windows：下載 <b>x64 安裝檔</b>，或免安裝的 portable 版本<br>
+Linux：提供 AppImage、Deb、RPM 等格式
+</div>
+<hr>
+<h2>常見問題</h2>
+<b>Q1：ArtCraft 的軟體真的免費嗎？</b><br>
+是的。PhotoCraft、VectorCraft、FilmCraft 等 7 套軟體都是開源軟體，採 MIT 或 Apache-2.0 授權，免費下載使用，不需要註冊帳號，也沒有訂閱費用。
+<br><br>
+<b>Q2：ArtCraft 的軟體可以取代 Adobe 嗎？</b><br>
+目前還不行。7 套軟體都還在 0.2 版的開發階段，PhotoCraft 官方也表示還不能取代 Photoshop 用在每天的專業工作，適合先下載試用、觀察後續發展，正式案子建議還是用穩定的軟體。
+<br><br>
+<b>Q3：PhotoCraft 可以開啟 PSD 檔嗎？</b><br>
+可以。PhotoCraft 能開啟與儲存含圖層的 PSD、PSB 檔，官方測試 135 個 PSD 檔中，有 134 個存回去後與原檔完全一致。
+<br><br>
+<b>Q4：ArtCraft 的軟體支援哪些作業系統？</b><br>
+7 套軟體都支援 Windows、Mac（Apple Silicon 與 Intel）與 Linux，Windows 另外提供免安裝版，官方也提供可自行架設的網頁版。
+<hr>
+<p>　　以往要找 Adobe 的免費替代軟體，總要東拼西湊好幾家的軟體，現在 ArtCraft 一次推出整個系列，介面風格一致、又都是開源免費，對想擺脫訂閱制的朋友來說，是很值得關注的新選擇。雖然目前還在開發初期，難免會遇到一些問題，正式的案子建議還是先用穩定的軟體，但可以先下載來玩玩看，說不定再過一陣子，就真的能取代 Adobe 了。如果想找目前就能穩定使用的免費軟體，也可以參考梅干整理的 <a href="/pc/24451.html">Adobe 免費替代軟體推薦</a>。</p>
+<br>]]>
+    </description>
+    <content:encoded><![CDATA[<div><img src="https://photo.minwt.com/img/Content/software/artcraft-apps/00.webp" alt="梅問題－ArtCraft 開源免費軟體全系列：7 套對應 Photoshop、Illustrator、Premiere 的 Adobe 替代軟體"></div>
+<p>　　說到 Adobe 的免費替代軟體，大家想到的大多是 GIMP、Inkscape、DaVinci Resolve 這些老面孔，每套都來自不同的開發團隊，操作邏輯也各不相同，要一套一套重新學習。不過最近梅干發現，原本做 AI 影像工作室的 ArtCraft 團隊，竟然一口氣推出了 7 套開源軟體，從修圖、向量、剪輯、特效、相片管理、排版到 PDF，剛好對應 Adobe 最常用的幾套軟體。<br>
+</p>
+<br>
+這系列軟體全部用 Rust 從零開始打造，不是套網頁殼的 Electron，而是原生的桌面軟體，介面也刻意做得跟 Adobe 很像，用慣 Adobe 的朋友上手會比較快。而且完全免費、不用註冊帳號、不會回傳使用資料，檔案也都在自己的電腦上處理。雖然目前都還在 0.2 版的開發階段，但已經可以下載試用，因此梅干就來一套一套介紹給大家囉！
+<hr>
+<h2>ArtCraft 軟體與 Adobe 對照表</h2>
+<div>下表為 <b>2026 年 10 月</b>官網的資料，7 套軟體目前都是 <b>0.2.0 版</b>，支援 Windows、Mac、Linux。</div>
+<br>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>ArtCraft 軟體</th><th>對應 Adobe</th><th>用途</th><th>開發狀態</th></tr>
+<tr><td><b>PhotoCraft</b></td><td>Photoshop</td><td>影像編輯、修圖</td><td>早期測試版</td></tr>
+<tr><td><b>VectorCraft</b></td><td>Illustrator</td><td>向量插圖、Logo</td><td>開發中</td></tr>
+<tr><td><b>FilmCraft</b></td><td>Premiere Pro</td><td>影片剪輯、調色</td><td>開發中</td></tr>
+<tr><td><b>EffectCraft</b></td><td>After Effects</td><td>動態圖像、特效合成</td><td>開發中</td></tr>
+<tr><td><b>LightCraft</b></td><td>Lightroom</td><td>相片管理、RAW 顯影</td><td>開發中</td></tr>
+<tr><td><b>DesignCraft</b></td><td>InDesign</td><td>排版、出版</td><td>開發中</td></tr>
+<tr><td><b>PrintCraft</b></td><td>Acrobat Pro</td><td>PDF 閱讀、合併、分割、加密</td><td>早期測試版</td></tr>
+</tbody></table>
+<div>
+官方網址：<a href="https://getartcraft.com/apps" target="_blank">ArtCraft Apps</a><br>
+授權：開源（MIT 或 Apache-2.0），免費使用<br>
+平台：Windows、Mac、Linux（另提供可自行架設的網頁版）
+</div>
+<hr>
+<h2>PhotoCraft：Photoshop 替代</h2>
+<p>PhotoCraft 是這系列中最受矚目的一套，選單、快速鍵、面板與工具的位置，都跟 Photoshop 非常接近。除了圖層、遮色片、圖層樣式之外，還有 16 種調整圖層、70 多種可即時預覽的濾鏡，以及智慧型物件，支援 8、16、32 位元的 RGB、CMYK、Lab 色彩模式。最厲害的是 PSD 相容性，可以開啟和儲存含圖層的 PSD、PSB 檔，官方測試 135 個 PSD 檔，有 134 個存回去後跟原檔完全一樣，另外選取與遮色片工具也都在本機運算，不會把圖片上傳到伺服器。</p>
+<div><b>注意：</b>官方也很老實地表示，PhotoCraft 目前還不能取代 Photoshop 用在每天的專業工作，像生成式 AI 功能、外掛、進階文字排版都還沒有，也還少了約 20 種工具。</div>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/photocraft" target="_blank">PhotoCraft</a><br>
+下載：<a href="https://github.com/storytold/photocraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>VectorCraft：Illustrator 替代</h2>
+<p>VectorCraft 是向量繪圖軟體，鋼筆工具、直接選取、形狀合併、智慧參考線、外觀面板都有，官方特別強調路徑運算是精確計算，不會再出現 Illustrator 常見的「無法執行此操作」。另外還有漸變、封套扭曲、漸層網格、重複排列、陰影光暈等即時效果，以及 12 種預設的影像描圖。效能也相當驚人，2 萬個物件只要約 27 毫秒就能繪製完成。可以匯入匯出 SVG、PDF，並輸出 PNG、JPG、WebP。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/vectorcraft" target="_blank">VectorCraft</a><br>
+下載：<a href="https://github.com/storytold/vectorcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>FilmCraft：Premiere Pro 替代</h2>
+<p>FilmCraft 是影片剪輯軟體，有來源與節目監看視窗、三點剪輯、各種修剪模式，也支援 J、K、L 快速鍵，用過 Premiere 的朋友應該很快就能上手。調色功能也很完整，曲線、色輪、HSL、LUT、HDR 與 Log 素材、示波器都有，另外內建約 55 種影片效果、30 種轉場，以及混音器與響度表。比較特別的是，它沒有使用 FFmpeg，H.264、HEVC、ProRes 等格式都是自己寫的解碼器。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/filmcraft" target="_blank">FilmCraft</a><br>
+下載：<a href="https://github.com/storytold/filmcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>EffectCraft：After Effects 替代</h2>
+<p>EffectCraft 是動態圖像與特效合成軟體，合成、圖層、關鍵影格、圖表編輯器的概念跟 After Effects 一樣，內建 259 種效果，包含模糊、調色、扭曲、去背、粒子等，還支援 3D 攝影機與燈光、38 種混合模式，以及 JavaScript 表達式，常用的 wiggle、loop 都能使用。輸出可以選擇 H.264、含透明背景的 ProRes、PNG 序列、GIF，甚至還能匯入匯出 Lottie 動畫。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/effectcraft" target="_blank">EffectCraft</a><br>
+下載：<a href="https://github.com/storytold/effectcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>LightCraft：Lightroom 替代</h2>
+<p>LightCraft 是相片管理與 RAW 檔顯影軟體，可以建立相簿、評分、標記、搜尋，大量相片也能流暢瀏覽。編修的部分有曝光、色彩、色調曲線、8 色混色器、三向色輪，以及筆刷、漸層、天空、主體、背景等遮色片，調整一張 2400 萬畫素的 RAW 檔，每拉一次滑桿只要約 4 毫秒。目前支援 DNG、CR2、ARW、NEF、RAF、RW2、PEF、ORF 等格式，Canon、Sony、Nikon、Fujifilm、Panasonic、Pentax、Olympus 的相機都能用。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/lightcraft" target="_blank">LightCraft</a><br>
+下載：<a href="https://github.com/storytold/lightcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>DesignCraft：InDesign 替代</h2>
+<p>DesignCraft 是排版軟體，跨頁、主版頁面、文字串接、文繞圖都有，還有段落最佳化排列、自動斷字、視覺邊界對齊與基線網格，輸出可以選擇可選取文字的 PDF、CMYK 與特別色，以及 PDF/A 存檔格式。另外它還內建 MCP 伺服器，可以讓 AI 直接操作排版，這點倒是 InDesign 目前還沒有的。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/designcraft" target="_blank">DesignCraft</a><br>
+下載：<a href="https://github.com/storytold/designcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>PrintCraft：Acrobat 替代</h2>
+<p>PrintCraft 是 PDF 工具，可以閱讀、搜尋 PDF，也能旋轉、刪除、插入、重新排列頁面，合併、擷取與分割時，會保留原本的連結、表單欄位、圖層與書籤。另外支援 RC4 到 AES-256 的加密，存檔時也有自動儲存與當機復原，比較不用擔心檔案損毀。</p>
+<div>
+官方介紹：<a href="https://getartcraft.com/apps/printcraft" target="_blank">PrintCraft</a><br>
+下載：<a href="https://github.com/storytold/printcraft/releases" target="_blank">GitHub Releases</a>
+</div>
+<hr>
+<h2>如何下載安裝</h2>
+<p>7 套軟體的下載方式都一樣，進入各軟體的 GitHub Releases 頁面，依自己的作業系統選擇檔案即可：</p>
+<div>
+Mac：下載 <b>.dmg</b>（Apple Silicon 與 Intel 共用）<br>
+Windows：下載 <b>x64 安裝檔</b>，或免安裝的 portable 版本<br>
+Linux：提供 AppImage、Deb、RPM 等格式
+</div>
+<hr>
+<h2>常見問題</h2>
+<b>Q1：ArtCraft 的軟體真的免費嗎？</b><br>
+是的。PhotoCraft、VectorCraft、FilmCraft 等 7 套軟體都是開源軟體，採 MIT 或 Apache-2.0 授權，免費下載使用，不需要註冊帳號，也沒有訂閱費用。
+<br><br>
+<b>Q2：ArtCraft 的軟體可以取代 Adobe 嗎？</b><br>
+目前還不行。7 套軟體都還在 0.2 版的開發階段，PhotoCraft 官方也表示還不能取代 Photoshop 用在每天的專業工作，適合先下載試用、觀察後續發展，正式案子建議還是用穩定的軟體。
+<br><br>
+<b>Q3：PhotoCraft 可以開啟 PSD 檔嗎？</b><br>
+可以。PhotoCraft 能開啟與儲存含圖層的 PSD、PSB 檔，官方測試 135 個 PSD 檔中，有 134 個存回去後與原檔完全一致。
+<br><br>
+<b>Q4：ArtCraft 的軟體支援哪些作業系統？</b><br>
+7 套軟體都支援 Windows、Mac（Apple Silicon 與 Intel）與 Linux，Windows 另外提供免安裝版，官方也提供可自行架設的網頁版。
+<hr>
+<p>　　以往要找 Adobe 的免費替代軟體，總要東拼西湊好幾家的軟體，現在 ArtCraft 一次推出整個系列，介面風格一致、又都是開源免費，對想擺脫訂閱制的朋友來說，是很值得關注的新選擇。雖然目前還在開發初期，難免會遇到一些問題，正式的案子建議還是先用穩定的軟體，但可以先下載來玩玩看，說不定再過一陣子，就真的能取代 Adobe 了。如果想找目前就能穩定使用的免費軟體，也可以參考梅干整理的 <a href="/pc/24451.html">Adobe 免費替代軟體推薦</a>。</p>
+<br>]]></content:encoded>
+    <itunes:image href="https://photo.minwt.com/img/Content/software/artcraft-apps/00.webp"/>
+          <media:content url="https://photo.minwt.com/img/Content/software/artcraft-apps/00.webp" medium="image"/>
+    <pubDate>Tue, 06 Oct 2026 08:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[Adobe 免費替代軟體推薦：Photoshop、Illustrator、Premiere 等 12 套對應的免費軟體一次整理（2026）]]></title>
+    <link>https://www.minwt.com/pc/24451.html</link>
+    <itunes:title><![CDATA[Adobe 免費替代軟體推薦：Photoshop、Illustrator、Premiere 等 12 套對應的免費軟體一次整理（2026）]]></itunes:title>
+    <itunes:author><![CDATA[梅問題．教學網[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<div><img src="https://photo.minwt.com/img/Content/software/adobe-free-alternatives/00.webp" alt="梅問題－Adobe 免費替代軟體推薦：Photoshop、Illustrator、Premiere 等 12 套對應的免費軟體一次整理"></div>
+<p>　　相信有在做設計、剪影片的朋友都知道，Adobe 的軟體雖然好用，但訂閱費用一年下來也是一筆不小的開銷，尤其只是偶爾修個圖、剪支影片，或是剛開始學習的朋友，每個月固定繳費，總覺得有點不划算。好在這幾年免費軟體進步非常多，像 Canva 直接把 Affinity 改成免費、DaVinci Resolve 免費版就能剪 4K 影片，功能早已不輸付費軟體。<br>
+</p>
+<br>
+因此梅干就把 Adobe 常用的軟體，一套一套找出對應的免費替代品，並附上適合的對象與官方載點，不論是要修圖、畫向量、排版、剪影片，還是用 AI 生圖，都可以在這邊找到合適的軟體，有需要的朋友不妨參考看看囉！
+<hr>
+<h2>Adobe 免費替代軟體對照表</h2>
+<div>下表為 <b>2026 年 10 月</b>確認的現況，想直接挑一套來用，先看這張表就好。</div>
+<br>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>Adobe 軟體</th><th>免費替代軟體</th><th>平台</th></tr>
+<tr><td><b>Photoshop</b></td><td>Affinity、Photopea、GIMP</td><td>Win / Mac／瀏覽器</td></tr>
+<tr><td><b>Illustrator</b></td><td>Affinity、Inkscape</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>InDesign</b></td><td>Affinity、Scribus</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Premiere Pro</b></td><td>DaVinci Resolve</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>After Effects</b></td><td>DaVinci Resolve（Fusion）、Blender</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Lightroom</b></td><td>darktable、RawTherapee</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Audition</b></td><td>Audacity</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Acrobat</b></td><td>PDF24 Creator</td><td>Win／瀏覽器</td></tr>
+<tr><td><b>Animate</b></td><td>OpenToonz、Krita</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Fresco</b></td><td>Krita</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>XD</b></td><td>Penpot、Figma 免費方案</td><td>瀏覽器</td></tr>
+<tr><td><b>Firefly</b></td><td>ArtCraft</td><td>Win / Mac</td></tr>
+</tbody></table>
+<hr>
+<h2>Photoshop 免費替代：Affinity、Photopea、GIMP</h2>
+<h3>Affinity（修圖、向量、排版三合一）</h3>
+<p>Affinity 原本分成 Photo、Designer、Publisher 三套付費軟體，被 Canva 收購後，在 2025 年 10 月合併成一套，而且核心功能永久免費。一套軟體就能切換點陣修圖、向量繪圖與排版，可以開啟 PSD、AI、PDF、IDML 等格式，等於一次取代 Photoshop、Illustrator 與 InDesign，是目前最推薦的 Adobe 替代軟體。唯一要注意的是，生成式填色、AI 去背等 AI 功能，需要 Canva 付費方案才能使用。</p>
+<div>
+官方載點：<a href="https://www.affinity.studio/" target="_blank">Affinity</a><br>
+平台：Windows、Mac<br>
+適合：想要一套搞定修圖、向量與排版的人
+</div>
+<p>延伸閱讀：<a href="/pc/16697.html">「Affinity Photo」被Apple獲選為2015年最佳影像軟體</a></p>
+<hr>
+<h3>Photopea（免安裝，介面最像 Photoshop）</h3>
+<p>Photopea 是網頁版的影像編輯器，打開瀏覽器就能用，操作介面跟 Photoshop 幾乎一模一樣，圖層、遮色片、調整圖層、快速鍵都有，還能直接開啟與儲存 PSD 檔。對於用慣 Photoshop 的朋友來說，幾乎不用重新學習，臨時要改個檔案，用它最方便。免費版會有廣告，但功能沒有限制。</p>
+<div>
+官方網址：<a href="https://www.photopea.com/" target="_blank">Photopea</a><br>
+平台：瀏覽器（不用安裝）<br>
+適合：用慣 Photoshop、臨時要修圖或開 PSD 的人
+</div>
+<p>延伸閱讀：<a href="/life/cloud-app/19180.html">Photopea 可編輯PSD的雲端版影像軟體</a>、<a href="/life/23648.html">如何將 Photopea 變成離線版影像編輯器</a></p>
+<hr>
+<h3>GIMP（老牌開源修圖軟體）</h3>
+<p>GIMP 是歷史最悠久的開源影像軟體，2025 年推出 3.0 版後，終於支援非破壞性濾鏡，2026 年的 3.2 版更加入了向量圖層。雖然操作邏輯跟 Photoshop 不太一樣，需要花點時間適應，但功能完整、完全免費，還能透過外掛擴充功能。</p>
+<div>
+官方載點：<a href="https://www.gimp.org/downloads/" target="_blank">GIMP</a><br>
+平台：Windows、Mac、Linux<br>
+適合：偏好開源軟體、願意花時間學習的人
+</div>
+<hr>
+<h2>Illustrator 免費替代：Inkscape</h2>
+<p>除了前面提到的 Affinity 之外，Inkscape 是最多人用的免費開源向量軟體，以 SVG 為主要格式，鋼筆工具、路徑運算、文字工具、漸層都有，也能匯入 AI、PDF 檔。目前已更新到 1.4 版，介面支援繁體中文，用來畫 Logo、插圖、icon 都沒問題。</p>
+<div>
+官方載點：<a href="https://inkscape.org/release/" target="_blank">Inkscape</a><br>
+平台：Windows、Mac、Linux<br>
+適合：畫 Logo、icon、需要輸出 SVG 的人
+</div>
+<p>延伸閱讀：<a href="/pc/13607.html">Inkscape媲美Adobe Illustrator免費向量軟體</a></p>
+<hr>
+<h2>InDesign 免費替代：Scribus</h2>
+<p>排版軟體首推 Affinity，若想找開源軟體，可以用 Scribus。Scribus 支援 CMYK、特別色、PDF/X 輸出，做 DM、型錄、小誌都可以，不過介面比較陽春，中文排版也需要多花點時間設定。</p>
+<div>
+官方載點：<a href="https://www.scribus.net/downloads/" target="_blank">Scribus</a><br>
+平台：Windows、Mac、Linux<br>
+適合：要做印刷排版，又偏好開源軟體的人
+</div>
+<hr>
+<h2>Premiere Pro 與 After Effects 免費替代：DaVinci Resolve</h2>
+<p>DaVinci Resolve 達芬奇是許多電影公司在用的專業剪輯軟體，免費版沒有浮水印、沒有使用期限，剪輯、調色、Fusion 特效、Fairlight 混音全都有，輸出最高支援 4K 60fps。2026 年推出的 21 版還新增了相片頁面，可以直接修相片。一套就能取代 Premiere Pro 加 After Effects，是免費剪輯軟體的首選。</p>
+<div>
+官方載點：<a href="https://www.blackmagicdesign.com/products/davinciresolve" target="_blank">DaVinci Resolve</a><br>
+平台：Windows、Mac、Linux<br>
+適合：剪輯、調色、做特效的影片創作者
+</div>
+<p>延伸閱讀：<a href="/pc/16523.html">DaVinci Resolve 達芬奇專業剪輯軟體免費下載</a>、<a href="/pc/mediatools/23501.html">DaVinci Resolve 設定社群專用的方形影片格式</a></p>
+<p>若要做 3D 動態、粒子特效，也可以搭配免費開源的 <a href="/free/9538.html">Blender</a>。</p>
+<hr>
+<h2>Lightroom 免費替代：darktable、RawTherapee</h2>
+<p>喜歡拍照、會拍 RAW 檔的朋友，可以用 darktable，它有相片管理、非破壞性編輯、色調曲線、局部調整等功能，操作概念跟 Lightroom 很接近。另一套 RawTherapee 則專注在 RAW 檔的顯影，細節與色彩處理表現也很好。</p>
+<div>
+官方載點：<a href="https://www.darktable.org/install/" target="_blank">darktable</a>、<a href="https://www.rawtherapee.com/downloads/" target="_blank">RawTherapee</a><br>
+平台：Windows、Mac、Linux<br>
+適合：拍 RAW 檔、需要管理大量相片的人
+</div>
+<p>延伸閱讀：<a href="/pc/922.html">媲美LightRoom等級的免費相片RAW檔編輯軟體RAWTherapee</a></p>
+<hr>
+<h2>Audition 免費替代：Audacity</h2>
+<p>Audacity 是老牌的免費錄音與音訊編輯軟體，剪輯、降噪、淡入淡出、調整音量、轉檔都很簡單，錄 Podcast、整理旁白非常好用。如果需要多軌混音，DaVinci Resolve 內建的 Fairlight 也是不錯的選擇。</p>
+<div>
+官方載點：<a href="https://www.audacityteam.org/download/" target="_blank">Audacity</a><br>
+平台：Windows、Mac、Linux<br>
+適合：錄音、Podcast、簡單音訊剪輯
+</div>
+<hr>
+<h2>Acrobat 免費替代：PDF24 Creator</h2>
+<p>PDF24 Creator 可以合併、分割、壓縮、轉檔、加密 PDF，也能做 OCR 文字辨識，功能相當齊全，而且完全免費、沒有浮水印。Mac 的朋友則可以使用線上版的 PDF24 Tools，或直接用系統內建的「預覽程式」做簡單的編輯。</p>
+<div>
+官方載點：<a href="https://tools.pdf24.org/zh/creator" target="_blank">PDF24 Creator</a><br>
+平台：Windows（Mac 可用線上版）<br>
+適合：常需要合併、壓縮、轉檔 PDF 的人
+</div>
+<hr>
+<h2>Animate、Fresco 免費替代：Krita、OpenToonz</h2>
+<p>Krita 是專為繪畫設計的開源軟體，內建上百種筆刷、透視尺規與防手震，還有動畫時間軸與洋蔥皮功能，畫插圖、做簡單的逐格動畫都可以。如果要做比較正式的 2D 動畫，OpenToonz 是吉卜力工作室曾使用的動畫軟體 Toonz 的開源版本，功能更專業。</p>
+<div>
+官方載點：<a href="https://krita.org/zh-tw/download/" target="_blank">Krita</a>、<a href="https://opentoonz.github.io/e/" target="_blank">OpenToonz</a><br>
+平台：Windows、Mac、Linux<br>
+適合：數位繪圖、插畫、2D 動畫
+</div>
+<p>延伸閱讀：<a href="/pc/14836.html">媲美Painter等級！免費專業手繪軟體Krita</a></p>
+<hr>
+<h2>XD 免費替代：Penpot、Figma</h2>
+<p>Adobe XD 已經停止開發，目前做 UI 設計大多改用 Figma，免費方案就能滿足個人使用。若想要完全免費、開源，也可以選擇 Penpot，它同樣是網頁版，支援元件、自動排版與原型連結，還能自行架設伺服器。</p>
+<div>
+官方網址：<a href="https://penpot.app/" target="_blank">Penpot</a>、<a href="https://www.figma.com/" target="_blank">Figma</a><br>
+平台：瀏覽器<br>
+適合：網頁、App 介面設計與原型製作
+</div>
+<hr>
+<h2>Firefly 免費替代：ArtCraft</h2>
+<p>ArtCraft 是一套開源的 AI 圖像與影片工作室，跟一般只能輸入提示詞的 AI 生圖工具不同，它可以先在 2D 畫布或 3D 場景中擺放角色、調整姿勢與鏡頭位置，再交給 AI 生成圖片或影片，畫面更容易照自己想要的方向走。另外也有去背、圖片轉 3D 模型等功能，並可串接 Nano Banana、Seedance、Kling、Veo、Sora 等多種 AI 模型。</p>
+<div><b>注意：</b>ArtCraft 軟體本身免費、開源，但使用各家 AI 模型生成圖片或影片時，通常需要該服務的點數或付費訂閱，下載前要先有這個心理準備。</div>
+<div>
+官方網址：<a href="https://getartcraft.com/" target="_blank">ArtCraft</a><br>
+平台：Windows、Mac（Linux 可自行編譯）<br>
+適合：想用 AI 生圖、生影片，又希望能精準控制畫面的人
+</div>
+<p>另外，ArtCraft 團隊還推出了 PhotoCraft、VectorCraft、FilmCraft 等 7 套開源軟體，分別對應 Photoshop、Illustrator、Premiere 等 Adobe 軟體，目前還在開發階段，有興趣的朋友可以參考：<a href="/pc/24452.html">ArtCraft 開源免費軟體全系列介紹</a>。</p>
+<hr>
+<h2>常見問題</h2>
+<b>Q1：有可以完全取代 Adobe 的免費軟體嗎？</b><br>
+沒有一套能全包，但每個 Adobe 軟體幾乎都有對應的免費替代品。修圖、向量、排版可以用 Affinity 一套搞定；剪輯、調色、特效用 DaVinci Resolve；其餘再依需求搭配 Photopea、Inkscape、darktable、Audacity 等軟體。
+<br><br>
+<b>Q2：Affinity 真的免費嗎？</b><br>
+是的。Canva 在 2025 年 10 月把 Affinity Photo、Designer、Publisher 合併成一套 Affinity，核心功能永久免費，支援 Windows 與 Mac；只有生成式填色、AI 去背等 AI 功能需要 Canva 付費方案。
+<br><br>
+<b>Q3：Photoshop 的免費替代軟體推薦哪一套？</b><br>
+想要介面和 Photoshop 最像、打開瀏覽器就能用，選 Photopea；想要功能完整的桌面軟體，選 Affinity；偏好開源軟體可以用 GIMP。三套都能開啟 PSD 檔。
+<br><br>
+<b>Q4：免費剪輯軟體推薦哪一套可以取代 Premiere？</b><br>
+推薦 DaVinci Resolve 達芬奇。免費版沒有浮水印、沒有使用期限，剪輯、調色、特效、混音都有，輸出最高支援 4K 60fps，對一般創作者來說已經非常足夠。
+<br><br>
+<b>Q5：Adobe Firefly 有免費的替代工具嗎？</b><br>
+可以試試開源的 ArtCraft，它能用 2D、3D 擺放場景與角色，再交給 AI 生成圖片或影片。軟體本身免費，但使用各家 AI 模型生成時，通常需要該服務的點數或訂閱。
+<hr>
+<p>　　以上就是梅干整理的 Adobe 免費替代軟體，如果只想裝最少的軟體，建議先裝 Affinity 和 DaVinci Resolve，修圖、向量、排版、剪輯、調色就幾乎都能搞定了，其他再依自己的需求慢慢補上。雖然這些軟體跟 Adobe 的操作習慣多少有些不同，但功能都相當完整，花點時間熟悉一下，每年就能省下一筆訂閱費用，有需要的朋友也趕快來試試看囉！</p>
+<br>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<div><img src="https://photo.minwt.com/img/Content/software/adobe-free-alternatives/00.webp" alt="梅問題－Adobe 免費替代軟體推薦：Photoshop、Illustrator、Premiere 等 12 套對應的免費軟體一次整理"></div>
+<p>　　相信有在做設計、剪影片的朋友都知道，Adobe 的軟體雖然好用，但訂閱費用一年下來也是一筆不小的開銷，尤其只是偶爾修個圖、剪支影片，或是剛開始學習的朋友，每個月固定繳費，總覺得有點不划算。好在這幾年免費軟體進步非常多，像 Canva 直接把 Affinity 改成免費、DaVinci Resolve 免費版就能剪 4K 影片，功能早已不輸付費軟體。<br>
+</p>
+<br>
+因此梅干就把 Adobe 常用的軟體，一套一套找出對應的免費替代品，並附上適合的對象與官方載點，不論是要修圖、畫向量、排版、剪影片，還是用 AI 生圖，都可以在這邊找到合適的軟體，有需要的朋友不妨參考看看囉！
+<hr>
+<h2>Adobe 免費替代軟體對照表</h2>
+<div>下表為 <b>2026 年 10 月</b>確認的現況，想直接挑一套來用，先看這張表就好。</div>
+<br>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>Adobe 軟體</th><th>免費替代軟體</th><th>平台</th></tr>
+<tr><td><b>Photoshop</b></td><td>Affinity、Photopea、GIMP</td><td>Win / Mac／瀏覽器</td></tr>
+<tr><td><b>Illustrator</b></td><td>Affinity、Inkscape</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>InDesign</b></td><td>Affinity、Scribus</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Premiere Pro</b></td><td>DaVinci Resolve</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>After Effects</b></td><td>DaVinci Resolve（Fusion）、Blender</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Lightroom</b></td><td>darktable、RawTherapee</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Audition</b></td><td>Audacity</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Acrobat</b></td><td>PDF24 Creator</td><td>Win／瀏覽器</td></tr>
+<tr><td><b>Animate</b></td><td>OpenToonz、Krita</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Fresco</b></td><td>Krita</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>XD</b></td><td>Penpot、Figma 免費方案</td><td>瀏覽器</td></tr>
+<tr><td><b>Firefly</b></td><td>ArtCraft</td><td>Win / Mac</td></tr>
+</tbody></table>
+<hr>
+<h2>Photoshop 免費替代：Affinity、Photopea、GIMP</h2>
+<h3>Affinity（修圖、向量、排版三合一）</h3>
+<p>Affinity 原本分成 Photo、Designer、Publisher 三套付費軟體，被 Canva 收購後，在 2025 年 10 月合併成一套，而且核心功能永久免費。一套軟體就能切換點陣修圖、向量繪圖與排版，可以開啟 PSD、AI、PDF、IDML 等格式，等於一次取代 Photoshop、Illustrator 與 InDesign，是目前最推薦的 Adobe 替代軟體。唯一要注意的是，生成式填色、AI 去背等 AI 功能，需要 Canva 付費方案才能使用。</p>
+<div>
+官方載點：<a href="https://www.affinity.studio/" target="_blank">Affinity</a><br>
+平台：Windows、Mac<br>
+適合：想要一套搞定修圖、向量與排版的人
+</div>
+<p>延伸閱讀：<a href="/pc/16697.html">「Affinity Photo」被Apple獲選為2015年最佳影像軟體</a></p>
+<hr>
+<h3>Photopea（免安裝，介面最像 Photoshop）</h3>
+<p>Photopea 是網頁版的影像編輯器，打開瀏覽器就能用，操作介面跟 Photoshop 幾乎一模一樣，圖層、遮色片、調整圖層、快速鍵都有，還能直接開啟與儲存 PSD 檔。對於用慣 Photoshop 的朋友來說，幾乎不用重新學習，臨時要改個檔案，用它最方便。免費版會有廣告，但功能沒有限制。</p>
+<div>
+官方網址：<a href="https://www.photopea.com/" target="_blank">Photopea</a><br>
+平台：瀏覽器（不用安裝）<br>
+適合：用慣 Photoshop、臨時要修圖或開 PSD 的人
+</div>
+<p>延伸閱讀：<a href="/life/cloud-app/19180.html">Photopea 可編輯PSD的雲端版影像軟體</a>、<a href="/life/23648.html">如何將 Photopea 變成離線版影像編輯器</a></p>
+<hr>
+<h3>GIMP（老牌開源修圖軟體）</h3>
+<p>GIMP 是歷史最悠久的開源影像軟體，2025 年推出 3.0 版後，終於支援非破壞性濾鏡，2026 年的 3.2 版更加入了向量圖層。雖然操作邏輯跟 Photoshop 不太一樣，需要花點時間適應，但功能完整、完全免費，還能透過外掛擴充功能。</p>
+<div>
+官方載點：<a href="https://www.gimp.org/downloads/" target="_blank">GIMP</a><br>
+平台：Windows、Mac、Linux<br>
+適合：偏好開源軟體、願意花時間學習的人
+</div>
+<hr>
+<h2>Illustrator 免費替代：Inkscape</h2>
+<p>除了前面提到的 Affinity 之外，Inkscape 是最多人用的免費開源向量軟體，以 SVG 為主要格式，鋼筆工具、路徑運算、文字工具、漸層都有，也能匯入 AI、PDF 檔。目前已更新到 1.4 版，介面支援繁體中文，用來畫 Logo、插圖、icon 都沒問題。</p>
+<div>
+官方載點：<a href="https://inkscape.org/release/" target="_blank">Inkscape</a><br>
+平台：Windows、Mac、Linux<br>
+適合：畫 Logo、icon、需要輸出 SVG 的人
+</div>
+<p>延伸閱讀：<a href="/pc/13607.html">Inkscape媲美Adobe Illustrator免費向量軟體</a></p>
+<hr>
+<h2>InDesign 免費替代：Scribus</h2>
+<p>排版軟體首推 Affinity，若想找開源軟體，可以用 Scribus。Scribus 支援 CMYK、特別色、PDF/X 輸出，做 DM、型錄、小誌都可以，不過介面比較陽春，中文排版也需要多花點時間設定。</p>
+<div>
+官方載點：<a href="https://www.scribus.net/downloads/" target="_blank">Scribus</a><br>
+平台：Windows、Mac、Linux<br>
+適合：要做印刷排版，又偏好開源軟體的人
+</div>
+<hr>
+<h2>Premiere Pro 與 After Effects 免費替代：DaVinci Resolve</h2>
+<p>DaVinci Resolve 達芬奇是許多電影公司在用的專業剪輯軟體，免費版沒有浮水印、沒有使用期限，剪輯、調色、Fusion 特效、Fairlight 混音全都有，輸出最高支援 4K 60fps。2026 年推出的 21 版還新增了相片頁面，可以直接修相片。一套就能取代 Premiere Pro 加 After Effects，是免費剪輯軟體的首選。</p>
+<div>
+官方載點：<a href="https://www.blackmagicdesign.com/products/davinciresolve" target="_blank">DaVinci Resolve</a><br>
+平台：Windows、Mac、Linux<br>
+適合：剪輯、調色、做特效的影片創作者
+</div>
+<p>延伸閱讀：<a href="/pc/16523.html">DaVinci Resolve 達芬奇專業剪輯軟體免費下載</a>、<a href="/pc/mediatools/23501.html">DaVinci Resolve 設定社群專用的方形影片格式</a></p>
+<p>若要做 3D 動態、粒子特效，也可以搭配免費開源的 <a href="/free/9538.html">Blender</a>。</p>
+<hr>
+<h2>Lightroom 免費替代：darktable、RawTherapee</h2>
+<p>喜歡拍照、會拍 RAW 檔的朋友，可以用 darktable，它有相片管理、非破壞性編輯、色調曲線、局部調整等功能，操作概念跟 Lightroom 很接近。另一套 RawTherapee 則專注在 RAW 檔的顯影，細節與色彩處理表現也很好。</p>
+<div>
+官方載點：<a href="https://www.darktable.org/install/" target="_blank">darktable</a>、<a href="https://www.rawtherapee.com/downloads/" target="_blank">RawTherapee</a><br>
+平台：Windows、Mac、Linux<br>
+適合：拍 RAW 檔、需要管理大量相片的人
+</div>
+<p>延伸閱讀：<a href="/pc/922.html">媲美LightRoom等級的免費相片RAW檔編輯軟體RAWTherapee</a></p>
+<hr>
+<h2>Audition 免費替代：Audacity</h2>
+<p>Audacity 是老牌的免費錄音與音訊編輯軟體，剪輯、降噪、淡入淡出、調整音量、轉檔都很簡單，錄 Podcast、整理旁白非常好用。如果需要多軌混音，DaVinci Resolve 內建的 Fairlight 也是不錯的選擇。</p>
+<div>
+官方載點：<a href="https://www.audacityteam.org/download/" target="_blank">Audacity</a><br>
+平台：Windows、Mac、Linux<br>
+適合：錄音、Podcast、簡單音訊剪輯
+</div>
+<hr>
+<h2>Acrobat 免費替代：PDF24 Creator</h2>
+<p>PDF24 Creator 可以合併、分割、壓縮、轉檔、加密 PDF，也能做 OCR 文字辨識，功能相當齊全，而且完全免費、沒有浮水印。Mac 的朋友則可以使用線上版的 PDF24 Tools，或直接用系統內建的「預覽程式」做簡單的編輯。</p>
+<div>
+官方載點：<a href="https://tools.pdf24.org/zh/creator" target="_blank">PDF24 Creator</a><br>
+平台：Windows（Mac 可用線上版）<br>
+適合：常需要合併、壓縮、轉檔 PDF 的人
+</div>
+<hr>
+<h2>Animate、Fresco 免費替代：Krita、OpenToonz</h2>
+<p>Krita 是專為繪畫設計的開源軟體，內建上百種筆刷、透視尺規與防手震，還有動畫時間軸與洋蔥皮功能，畫插圖、做簡單的逐格動畫都可以。如果要做比較正式的 2D 動畫，OpenToonz 是吉卜力工作室曾使用的動畫軟體 Toonz 的開源版本，功能更專業。</p>
+<div>
+官方載點：<a href="https://krita.org/zh-tw/download/" target="_blank">Krita</a>、<a href="https://opentoonz.github.io/e/" target="_blank">OpenToonz</a><br>
+平台：Windows、Mac、Linux<br>
+適合：數位繪圖、插畫、2D 動畫
+</div>
+<p>延伸閱讀：<a href="/pc/14836.html">媲美Painter等級！免費專業手繪軟體Krita</a></p>
+<hr>
+<h2>XD 免費替代：Penpot、Figma</h2>
+<p>Adobe XD 已經停止開發，目前做 UI 設計大多改用 Figma，免費方案就能滿足個人使用。若想要完全免費、開源，也可以選擇 Penpot，它同樣是網頁版，支援元件、自動排版與原型連結，還能自行架設伺服器。</p>
+<div>
+官方網址：<a href="https://penpot.app/" target="_blank">Penpot</a>、<a href="https://www.figma.com/" target="_blank">Figma</a><br>
+平台：瀏覽器<br>
+適合：網頁、App 介面設計與原型製作
+</div>
+<hr>
+<h2>Firefly 免費替代：ArtCraft</h2>
+<p>ArtCraft 是一套開源的 AI 圖像與影片工作室，跟一般只能輸入提示詞的 AI 生圖工具不同，它可以先在 2D 畫布或 3D 場景中擺放角色、調整姿勢與鏡頭位置，再交給 AI 生成圖片或影片，畫面更容易照自己想要的方向走。另外也有去背、圖片轉 3D 模型等功能，並可串接 Nano Banana、Seedance、Kling、Veo、Sora 等多種 AI 模型。</p>
+<div><b>注意：</b>ArtCraft 軟體本身免費、開源，但使用各家 AI 模型生成圖片或影片時，通常需要該服務的點數或付費訂閱，下載前要先有這個心理準備。</div>
+<div>
+官方網址：<a href="https://getartcraft.com/" target="_blank">ArtCraft</a><br>
+平台：Windows、Mac（Linux 可自行編譯）<br>
+適合：想用 AI 生圖、生影片，又希望能精準控制畫面的人
+</div>
+<p>另外，ArtCraft 團隊還推出了 PhotoCraft、VectorCraft、FilmCraft 等 7 套開源軟體，分別對應 Photoshop、Illustrator、Premiere 等 Adobe 軟體，目前還在開發階段，有興趣的朋友可以參考：<a href="/pc/24452.html">ArtCraft 開源免費軟體全系列介紹</a>。</p>
+<hr>
+<h2>常見問題</h2>
+<b>Q1：有可以完全取代 Adobe 的免費軟體嗎？</b><br>
+沒有一套能全包，但每個 Adobe 軟體幾乎都有對應的免費替代品。修圖、向量、排版可以用 Affinity 一套搞定；剪輯、調色、特效用 DaVinci Resolve；其餘再依需求搭配 Photopea、Inkscape、darktable、Audacity 等軟體。
+<br><br>
+<b>Q2：Affinity 真的免費嗎？</b><br>
+是的。Canva 在 2025 年 10 月把 Affinity Photo、Designer、Publisher 合併成一套 Affinity，核心功能永久免費，支援 Windows 與 Mac；只有生成式填色、AI 去背等 AI 功能需要 Canva 付費方案。
+<br><br>
+<b>Q3：Photoshop 的免費替代軟體推薦哪一套？</b><br>
+想要介面和 Photoshop 最像、打開瀏覽器就能用，選 Photopea；想要功能完整的桌面軟體，選 Affinity；偏好開源軟體可以用 GIMP。三套都能開啟 PSD 檔。
+<br><br>
+<b>Q4：免費剪輯軟體推薦哪一套可以取代 Premiere？</b><br>
+推薦 DaVinci Resolve 達芬奇。免費版沒有浮水印、沒有使用期限，剪輯、調色、特效、混音都有，輸出最高支援 4K 60fps，對一般創作者來說已經非常足夠。
+<br><br>
+<b>Q5：Adobe Firefly 有免費的替代工具嗎？</b><br>
+可以試試開源的 ArtCraft，它能用 2D、3D 擺放場景與角色，再交給 AI 生成圖片或影片。軟體本身免費，但使用各家 AI 模型生成時，通常需要該服務的點數或訂閱。
+<hr>
+<p>　　以上就是梅干整理的 Adobe 免費替代軟體，如果只想裝最少的軟體，建議先裝 Affinity 和 DaVinci Resolve，修圖、向量、排版、剪輯、調色就幾乎都能搞定了，其他再依自己的需求慢慢補上。雖然這些軟體跟 Adobe 的操作習慣多少有些不同，但功能都相當完整，花點時間熟悉一下，每年就能省下一筆訂閱費用，有需要的朋友也趕快來試試看囉！</p>
+<br>]]>
+    </description>
+    <content:encoded><![CDATA[<div><img src="https://photo.minwt.com/img/Content/software/adobe-free-alternatives/00.webp" alt="梅問題－Adobe 免費替代軟體推薦：Photoshop、Illustrator、Premiere 等 12 套對應的免費軟體一次整理"></div>
+<p>　　相信有在做設計、剪影片的朋友都知道，Adobe 的軟體雖然好用，但訂閱費用一年下來也是一筆不小的開銷，尤其只是偶爾修個圖、剪支影片，或是剛開始學習的朋友，每個月固定繳費，總覺得有點不划算。好在這幾年免費軟體進步非常多，像 Canva 直接把 Affinity 改成免費、DaVinci Resolve 免費版就能剪 4K 影片，功能早已不輸付費軟體。<br>
+</p>
+<br>
+因此梅干就把 Adobe 常用的軟體，一套一套找出對應的免費替代品，並附上適合的對象與官方載點，不論是要修圖、畫向量、排版、剪影片，還是用 AI 生圖，都可以在這邊找到合適的軟體，有需要的朋友不妨參考看看囉！
+<hr>
+<h2>Adobe 免費替代軟體對照表</h2>
+<div>下表為 <b>2026 年 10 月</b>確認的現況，想直接挑一套來用，先看這張表就好。</div>
+<br>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>Adobe 軟體</th><th>免費替代軟體</th><th>平台</th></tr>
+<tr><td><b>Photoshop</b></td><td>Affinity、Photopea、GIMP</td><td>Win / Mac／瀏覽器</td></tr>
+<tr><td><b>Illustrator</b></td><td>Affinity、Inkscape</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>InDesign</b></td><td>Affinity、Scribus</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Premiere Pro</b></td><td>DaVinci Resolve</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>After Effects</b></td><td>DaVinci Resolve（Fusion）、Blender</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Lightroom</b></td><td>darktable、RawTherapee</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Audition</b></td><td>Audacity</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Acrobat</b></td><td>PDF24 Creator</td><td>Win／瀏覽器</td></tr>
+<tr><td><b>Animate</b></td><td>OpenToonz、Krita</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>Fresco</b></td><td>Krita</td><td>Win / Mac / Linux</td></tr>
+<tr><td><b>XD</b></td><td>Penpot、Figma 免費方案</td><td>瀏覽器</td></tr>
+<tr><td><b>Firefly</b></td><td>ArtCraft</td><td>Win / Mac</td></tr>
+</tbody></table>
+<hr>
+<h2>Photoshop 免費替代：Affinity、Photopea、GIMP</h2>
+<h3>Affinity（修圖、向量、排版三合一）</h3>
+<p>Affinity 原本分成 Photo、Designer、Publisher 三套付費軟體，被 Canva 收購後，在 2025 年 10 月合併成一套，而且核心功能永久免費。一套軟體就能切換點陣修圖、向量繪圖與排版，可以開啟 PSD、AI、PDF、IDML 等格式，等於一次取代 Photoshop、Illustrator 與 InDesign，是目前最推薦的 Adobe 替代軟體。唯一要注意的是，生成式填色、AI 去背等 AI 功能，需要 Canva 付費方案才能使用。</p>
+<div>
+官方載點：<a href="https://www.affinity.studio/" target="_blank">Affinity</a><br>
+平台：Windows、Mac<br>
+適合：想要一套搞定修圖、向量與排版的人
+</div>
+<p>延伸閱讀：<a href="/pc/16697.html">「Affinity Photo」被Apple獲選為2015年最佳影像軟體</a></p>
+<hr>
+<h3>Photopea（免安裝，介面最像 Photoshop）</h3>
+<p>Photopea 是網頁版的影像編輯器，打開瀏覽器就能用，操作介面跟 Photoshop 幾乎一模一樣，圖層、遮色片、調整圖層、快速鍵都有，還能直接開啟與儲存 PSD 檔。對於用慣 Photoshop 的朋友來說，幾乎不用重新學習，臨時要改個檔案，用它最方便。免費版會有廣告，但功能沒有限制。</p>
+<div>
+官方網址：<a href="https://www.photopea.com/" target="_blank">Photopea</a><br>
+平台：瀏覽器（不用安裝）<br>
+適合：用慣 Photoshop、臨時要修圖或開 PSD 的人
+</div>
+<p>延伸閱讀：<a href="/life/cloud-app/19180.html">Photopea 可編輯PSD的雲端版影像軟體</a>、<a href="/life/23648.html">如何將 Photopea 變成離線版影像編輯器</a></p>
+<hr>
+<h3>GIMP（老牌開源修圖軟體）</h3>
+<p>GIMP 是歷史最悠久的開源影像軟體，2025 年推出 3.0 版後，終於支援非破壞性濾鏡，2026 年的 3.2 版更加入了向量圖層。雖然操作邏輯跟 Photoshop 不太一樣，需要花點時間適應，但功能完整、完全免費，還能透過外掛擴充功能。</p>
+<div>
+官方載點：<a href="https://www.gimp.org/downloads/" target="_blank">GIMP</a><br>
+平台：Windows、Mac、Linux<br>
+適合：偏好開源軟體、願意花時間學習的人
+</div>
+<hr>
+<h2>Illustrator 免費替代：Inkscape</h2>
+<p>除了前面提到的 Affinity 之外，Inkscape 是最多人用的免費開源向量軟體，以 SVG 為主要格式，鋼筆工具、路徑運算、文字工具、漸層都有，也能匯入 AI、PDF 檔。目前已更新到 1.4 版，介面支援繁體中文，用來畫 Logo、插圖、icon 都沒問題。</p>
+<div>
+官方載點：<a href="https://inkscape.org/release/" target="_blank">Inkscape</a><br>
+平台：Windows、Mac、Linux<br>
+適合：畫 Logo、icon、需要輸出 SVG 的人
+</div>
+<p>延伸閱讀：<a href="/pc/13607.html">Inkscape媲美Adobe Illustrator免費向量軟體</a></p>
+<hr>
+<h2>InDesign 免費替代：Scribus</h2>
+<p>排版軟體首推 Affinity，若想找開源軟體，可以用 Scribus。Scribus 支援 CMYK、特別色、PDF/X 輸出，做 DM、型錄、小誌都可以，不過介面比較陽春，中文排版也需要多花點時間設定。</p>
+<div>
+官方載點：<a href="https://www.scribus.net/downloads/" target="_blank">Scribus</a><br>
+平台：Windows、Mac、Linux<br>
+適合：要做印刷排版，又偏好開源軟體的人
+</div>
+<hr>
+<h2>Premiere Pro 與 After Effects 免費替代：DaVinci Resolve</h2>
+<p>DaVinci Resolve 達芬奇是許多電影公司在用的專業剪輯軟體，免費版沒有浮水印、沒有使用期限，剪輯、調色、Fusion 特效、Fairlight 混音全都有，輸出最高支援 4K 60fps。2026 年推出的 21 版還新增了相片頁面，可以直接修相片。一套就能取代 Premiere Pro 加 After Effects，是免費剪輯軟體的首選。</p>
+<div>
+官方載點：<a href="https://www.blackmagicdesign.com/products/davinciresolve" target="_blank">DaVinci Resolve</a><br>
+平台：Windows、Mac、Linux<br>
+適合：剪輯、調色、做特效的影片創作者
+</div>
+<p>延伸閱讀：<a href="/pc/16523.html">DaVinci Resolve 達芬奇專業剪輯軟體免費下載</a>、<a href="/pc/mediatools/23501.html">DaVinci Resolve 設定社群專用的方形影片格式</a></p>
+<p>若要做 3D 動態、粒子特效，也可以搭配免費開源的 <a href="/free/9538.html">Blender</a>。</p>
+<hr>
+<h2>Lightroom 免費替代：darktable、RawTherapee</h2>
+<p>喜歡拍照、會拍 RAW 檔的朋友，可以用 darktable，它有相片管理、非破壞性編輯、色調曲線、局部調整等功能，操作概念跟 Lightroom 很接近。另一套 RawTherapee 則專注在 RAW 檔的顯影，細節與色彩處理表現也很好。</p>
+<div>
+官方載點：<a href="https://www.darktable.org/install/" target="_blank">darktable</a>、<a href="https://www.rawtherapee.com/downloads/" target="_blank">RawTherapee</a><br>
+平台：Windows、Mac、Linux<br>
+適合：拍 RAW 檔、需要管理大量相片的人
+</div>
+<p>延伸閱讀：<a href="/pc/922.html">媲美LightRoom等級的免費相片RAW檔編輯軟體RAWTherapee</a></p>
+<hr>
+<h2>Audition 免費替代：Audacity</h2>
+<p>Audacity 是老牌的免費錄音與音訊編輯軟體，剪輯、降噪、淡入淡出、調整音量、轉檔都很簡單，錄 Podcast、整理旁白非常好用。如果需要多軌混音，DaVinci Resolve 內建的 Fairlight 也是不錯的選擇。</p>
+<div>
+官方載點：<a href="https://www.audacityteam.org/download/" target="_blank">Audacity</a><br>
+平台：Windows、Mac、Linux<br>
+適合：錄音、Podcast、簡單音訊剪輯
+</div>
+<hr>
+<h2>Acrobat 免費替代：PDF24 Creator</h2>
+<p>PDF24 Creator 可以合併、分割、壓縮、轉檔、加密 PDF，也能做 OCR 文字辨識，功能相當齊全，而且完全免費、沒有浮水印。Mac 的朋友則可以使用線上版的 PDF24 Tools，或直接用系統內建的「預覽程式」做簡單的編輯。</p>
+<div>
+官方載點：<a href="https://tools.pdf24.org/zh/creator" target="_blank">PDF24 Creator</a><br>
+平台：Windows（Mac 可用線上版）<br>
+適合：常需要合併、壓縮、轉檔 PDF 的人
+</div>
+<hr>
+<h2>Animate、Fresco 免費替代：Krita、OpenToonz</h2>
+<p>Krita 是專為繪畫設計的開源軟體，內建上百種筆刷、透視尺規與防手震，還有動畫時間軸與洋蔥皮功能，畫插圖、做簡單的逐格動畫都可以。如果要做比較正式的 2D 動畫，OpenToonz 是吉卜力工作室曾使用的動畫軟體 Toonz 的開源版本，功能更專業。</p>
+<div>
+官方載點：<a href="https://krita.org/zh-tw/download/" target="_blank">Krita</a>、<a href="https://opentoonz.github.io/e/" target="_blank">OpenToonz</a><br>
+平台：Windows、Mac、Linux<br>
+適合：數位繪圖、插畫、2D 動畫
+</div>
+<p>延伸閱讀：<a href="/pc/14836.html">媲美Painter等級！免費專業手繪軟體Krita</a></p>
+<hr>
+<h2>XD 免費替代：Penpot、Figma</h2>
+<p>Adobe XD 已經停止開發，目前做 UI 設計大多改用 Figma，免費方案就能滿足個人使用。若想要完全免費、開源，也可以選擇 Penpot，它同樣是網頁版，支援元件、自動排版與原型連結，還能自行架設伺服器。</p>
+<div>
+官方網址：<a href="https://penpot.app/" target="_blank">Penpot</a>、<a href="https://www.figma.com/" target="_blank">Figma</a><br>
+平台：瀏覽器<br>
+適合：網頁、App 介面設計與原型製作
+</div>
+<hr>
+<h2>Firefly 免費替代：ArtCraft</h2>
+<p>ArtCraft 是一套開源的 AI 圖像與影片工作室，跟一般只能輸入提示詞的 AI 生圖工具不同，它可以先在 2D 畫布或 3D 場景中擺放角色、調整姿勢與鏡頭位置，再交給 AI 生成圖片或影片，畫面更容易照自己想要的方向走。另外也有去背、圖片轉 3D 模型等功能，並可串接 Nano Banana、Seedance、Kling、Veo、Sora 等多種 AI 模型。</p>
+<div><b>注意：</b>ArtCraft 軟體本身免費、開源，但使用各家 AI 模型生成圖片或影片時，通常需要該服務的點數或付費訂閱，下載前要先有這個心理準備。</div>
+<div>
+官方網址：<a href="https://getartcraft.com/" target="_blank">ArtCraft</a><br>
+平台：Windows、Mac（Linux 可自行編譯）<br>
+適合：想用 AI 生圖、生影片，又希望能精準控制畫面的人
+</div>
+<p>另外，ArtCraft 團隊還推出了 PhotoCraft、VectorCraft、FilmCraft 等 7 套開源軟體，分別對應 Photoshop、Illustrator、Premiere 等 Adobe 軟體，目前還在開發階段，有興趣的朋友可以參考：<a href="/pc/24452.html">ArtCraft 開源免費軟體全系列介紹</a>。</p>
+<hr>
+<h2>常見問題</h2>
+<b>Q1：有可以完全取代 Adobe 的免費軟體嗎？</b><br>
+沒有一套能全包，但每個 Adobe 軟體幾乎都有對應的免費替代品。修圖、向量、排版可以用 Affinity 一套搞定；剪輯、調色、特效用 DaVinci Resolve；其餘再依需求搭配 Photopea、Inkscape、darktable、Audacity 等軟體。
+<br><br>
+<b>Q2：Affinity 真的免費嗎？</b><br>
+是的。Canva 在 2025 年 10 月把 Affinity Photo、Designer、Publisher 合併成一套 Affinity，核心功能永久免費，支援 Windows 與 Mac；只有生成式填色、AI 去背等 AI 功能需要 Canva 付費方案。
+<br><br>
+<b>Q3：Photoshop 的免費替代軟體推薦哪一套？</b><br>
+想要介面和 Photoshop 最像、打開瀏覽器就能用，選 Photopea；想要功能完整的桌面軟體，選 Affinity；偏好開源軟體可以用 GIMP。三套都能開啟 PSD 檔。
+<br><br>
+<b>Q4：免費剪輯軟體推薦哪一套可以取代 Premiere？</b><br>
+推薦 DaVinci Resolve 達芬奇。免費版沒有浮水印、沒有使用期限，剪輯、調色、特效、混音都有，輸出最高支援 4K 60fps，對一般創作者來說已經非常足夠。
+<br><br>
+<b>Q5：Adobe Firefly 有免費的替代工具嗎？</b><br>
+可以試試開源的 ArtCraft，它能用 2D、3D 擺放場景與角色，再交給 AI 生成圖片或影片。軟體本身免費，但使用各家 AI 模型生成時，通常需要該服務的點數或訂閱。
+<hr>
+<p>　　以上就是梅干整理的 Adobe 免費替代軟體，如果只想裝最少的軟體，建議先裝 Affinity 和 DaVinci Resolve，修圖、向量、排版、剪輯、調色就幾乎都能搞定了，其他再依自己的需求慢慢補上。雖然這些軟體跟 Adobe 的操作習慣多少有些不同，但功能都相當完整，花點時間熟悉一下，每年就能省下一筆訂閱費用，有需要的朋友也趕快來試試看囉！</p>
+<br>]]></content:encoded>
+    <itunes:image href="https://photo.minwt.com/img/Content/software/adobe-free-alternatives/00.webp"/>
+          <media:content url="https://photo.minwt.com/img/Content/software/adobe-free-alternatives/00.webp" medium="image"/>
+    <pubDate>Mon, 05 Oct 2026 08:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[網頁樣式吸管：快速查看文字與區塊樣式，即時編輯修改]]></title>
     <link>https://www.minwt.com/minwt-2/myapp/24450.html</link>
     <itunes:title><![CDATA[網頁樣式吸管：快速查看文字與區塊樣式，即時編輯修改]]></itunes:title>
@@ -1499,146 +2264,5 @@ PDF 加入後，再按下方的「開始檢測」鈕。<br>
     <itunes:image href="https://photo.minwt.com/img/Content/ai/gemini-yolo/00.jpg"/>
           <media:content url="https://photo.minwt.com/img/Content/ai/gemini-yolo/00.jpg" medium="image"/>
     <pubDate>Thu, 07 May 2026 10:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成]]></title>
-    <link>https://www.minwt.com/life/24413.html</link>
-    <itunes:title><![CDATA[懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成]]></itunes:title>
-    <itunes:author><![CDATA[梅問題．教學網[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<div><img alt="梅問題－懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/00.jpg"></div>
-上星期五一連假，一連放了三天，梅干也趁著這個連假來自製梅酒，但因為購買這批梅干的品項實在有點差，所以梅干就將挑剩下的梅子，拿來製作Q梅，上網爬了許多的教學，感覺好像有點厚工，但卻無意間發現了一個超簡單的懶人作法，且製作完畢立即就可食用，這也太對梅干的味口，於是梅干就跟著照作，不但完成了Q梅，甚至梅子露也完成了，由於真的是太簡單了，因此想自製Q梅的朋友，也趕快來看看。
-<hr>
-<font size="3"><b>Step1</b></font><br>
-首先，要準備一個罐子、稱子、糖、梅子，梅子在購買時建議買大顆一點，品項好一點的。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/01.jpg">
-<hr>
-<font size="3"><b>Step2</b></font><br>
-接著就是開始挑梅子，把品項較差以及有傷的梅子挑出來。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-接著用竹籤把蒂頭給挖掉。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-挖完後就開始洗梅子，一般只要洗到跟清水一樣就好了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-接著直接把洗好的梅子放入鍋中，而梅子與糖的比例是1:1，另外糖的部分，梅干個人比較喜愛冰糖的味道，而大部分是使用紅砂糖，因為作出來的色也會比較漂亮，所以糖就看各位的喜好了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-都弄好後，再把鍋子放入電鍋中，同時電鍋裡面不用加任何水。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-接著將電鍋的開關，放在保溫的位置。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-蓋上鍋蓋，就等冰糖慢慢的溶化，而網路有不少朋友分享，糖的話分批加梅子比較不會皺巴巴，但梅干是自用沒這麼講究，所以就一次到位。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-由於冰糖的溶解有點慢，所以過個七、八小時，打開鍋子用湯匙把還沒溶解的冰糖攪拌覺拌，由於梅干是用冰糖，因此顏色會比較青一點，同時也比較皺一些，而這邊湯的部分就是梅子露，梅子就是Q梅，當糖都溶解後，梅干建議放個二、三天再把Q梅入罐，剛作起來吃的時候，一樣QQ的，但吃到尾巴會有點苦苦的，放個二、三天後，苦味就會慢慢的消失。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/09.jpg">
-<hr>
-<font size="3"><b>Step10</b></font><br>
-再把作好的Q梅與梅子露裝瓶後，當要喝時只要對水跟加冰塊，就是好喝，其實自製梅子露，比你想像的還簡單啦！而這個懶人法，梅干今年作的梅露比梅酒多，因此想作的朋友也要快囉！再晚梅子的產季就要結束了，就要等明年了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/010.jpg">
-<br>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<div><img alt="梅問題－懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/00.jpg"></div>
-上星期五一連假，一連放了三天，梅干也趁著這個連假來自製梅酒，但因為購買這批梅干的品項實在有點差，所以梅干就將挑剩下的梅子，拿來製作Q梅，上網爬了許多的教學，感覺好像有點厚工，但卻無意間發現了一個超簡單的懶人作法，且製作完畢立即就可食用，這也太對梅干的味口，於是梅干就跟著照作，不但完成了Q梅，甚至梅子露也完成了，由於真的是太簡單了，因此想自製Q梅的朋友，也趕快來看看。
-<hr>
-<font size="3"><b>Step1</b></font><br>
-首先，要準備一個罐子、稱子、糖、梅子，梅子在購買時建議買大顆一點，品項好一點的。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/01.jpg">
-<hr>
-<font size="3"><b>Step2</b></font><br>
-接著就是開始挑梅子，把品項較差以及有傷的梅子挑出來。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-接著用竹籤把蒂頭給挖掉。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-挖完後就開始洗梅子，一般只要洗到跟清水一樣就好了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-接著直接把洗好的梅子放入鍋中，而梅子與糖的比例是1:1，另外糖的部分，梅干個人比較喜愛冰糖的味道，而大部分是使用紅砂糖，因為作出來的色也會比較漂亮，所以糖就看各位的喜好了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-都弄好後，再把鍋子放入電鍋中，同時電鍋裡面不用加任何水。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-接著將電鍋的開關，放在保溫的位置。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-蓋上鍋蓋，就等冰糖慢慢的溶化，而網路有不少朋友分享，糖的話分批加梅子比較不會皺巴巴，但梅干是自用沒這麼講究，所以就一次到位。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-由於冰糖的溶解有點慢，所以過個七、八小時，打開鍋子用湯匙把還沒溶解的冰糖攪拌覺拌，由於梅干是用冰糖，因此顏色會比較青一點，同時也比較皺一些，而這邊湯的部分就是梅子露，梅子就是Q梅，當糖都溶解後，梅干建議放個二、三天再把Q梅入罐，剛作起來吃的時候，一樣QQ的，但吃到尾巴會有點苦苦的，放個二、三天後，苦味就會慢慢的消失。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/09.jpg">
-<hr>
-<font size="3"><b>Step10</b></font><br>
-再把作好的Q梅與梅子露裝瓶後，當要喝時只要對水跟加冰塊，就是好喝，其實自製梅子露，比你想像的還簡單啦！而這個懶人法，梅干今年作的梅露比梅酒多，因此想作的朋友也要快囉！再晚梅子的產季就要結束了，就要等明年了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/010.jpg">
-<br>]]>
-    </description>
-    <content:encoded><![CDATA[<div><img alt="梅問題－懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/00.jpg"></div>
-上星期五一連假，一連放了三天，梅干也趁著這個連假來自製梅酒，但因為購買這批梅干的品項實在有點差，所以梅干就將挑剩下的梅子，拿來製作Q梅，上網爬了許多的教學，感覺好像有點厚工，但卻無意間發現了一個超簡單的懶人作法，且製作完畢立即就可食用，這也太對梅干的味口，於是梅干就跟著照作，不但完成了Q梅，甚至梅子露也完成了，由於真的是太簡單了，因此想自製Q梅的朋友，也趕快來看看。
-<hr>
-<font size="3"><b>Step1</b></font><br>
-首先，要準備一個罐子、稱子、糖、梅子，梅子在購買時建議買大顆一點，品項好一點的。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/01.jpg">
-<hr>
-<font size="3"><b>Step2</b></font><br>
-接著就是開始挑梅子，把品項較差以及有傷的梅子挑出來。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-接著用竹籤把蒂頭給挖掉。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-挖完後就開始洗梅子，一般只要洗到跟清水一樣就好了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-接著直接把洗好的梅子放入鍋中，而梅子與糖的比例是1:1，另外糖的部分，梅干個人比較喜愛冰糖的味道，而大部分是使用紅砂糖，因為作出來的色也會比較漂亮，所以糖就看各位的喜好了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-都弄好後，再把鍋子放入電鍋中，同時電鍋裡面不用加任何水。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-接著將電鍋的開關，放在保溫的位置。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-蓋上鍋蓋，就等冰糖慢慢的溶化，而網路有不少朋友分享，糖的話分批加梅子比較不會皺巴巴，但梅干是自用沒這麼講究，所以就一次到位。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-由於冰糖的溶解有點慢，所以過個七、八小時，打開鍋子用湯匙把還沒溶解的冰糖攪拌覺拌，由於梅干是用冰糖，因此顏色會比較青一點，同時也比較皺一些，而這邊湯的部分就是梅子露，梅子就是Q梅，當糖都溶解後，梅干建議放個二、三天再把Q梅入罐，剛作起來吃的時候，一樣QQ的，但吃到尾巴會有點苦苦的，放個二、三天後，苦味就會慢慢的消失。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/09.jpg">
-<hr>
-<font size="3"><b>Step10</b></font><br>
-再把作好的Q梅與梅子露裝瓶後，當要喝時只要對水跟加冰塊，就是好喝，其實自製梅子露，比你想像的還簡單啦！而這個懶人法，梅干今年作的梅露比梅酒多，因此想作的朋友也要快囉！再晚梅子的產季就要結束了，就要等明年了。<br>
-<img alt="梅問題-懶人版自製 Q 梅／梅子露，免殺青、免日曬，用電鍋輕鬆完成" src="https://photo.minwt.com/img/Content/life/homemade-plum/010.jpg">
-<br>]]></content:encoded>
-    <itunes:image href="https://photo.minwt.com/img/Content/life/homemade-plum/00.jpg"/>
-          <media:content url="https://photo.minwt.com/img/Content/life/homemade-plum/00.jpg" medium="image"/>
-    <pubDate>Mon, 04 May 2026 10:00:00 +0800</pubDate>
   </item></channel>
 </rss>
