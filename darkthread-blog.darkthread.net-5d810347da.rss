@@ -30,6 +30,144 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[使用 MAUI HybridWebView 開發網頁介面桌面小工具]]></title>
+    <link>https://blog.darkthread.net/blog/maui-hybridwebview/</link>
+    <itunes:title><![CDATA[使用 MAUI HybridWebView 開發網頁介面桌面小工具]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>看過 <a href="/blog/hello-tauri/">Tauri</a> 後，繼續探索將網站轉成桌面小工具的主題。想利用前端技術寫桌面程式，但 Electron 包了 Chromium 太肥，借用內建瀏覽器輕量化的想法大家都有，這篇來看微軟的解決方案 - MAUI HybridWebView。</p> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/maui/user-interface/controls/hybridwebview?view=net-maui-10.0&amp;WT.mc_id=DOP-MVP-37580">HybridWebView</a> 是 .NET MAUI 技術框架提供的控制項，可在原生 Web 檢視中載入 HTML、JavaScript 與 CSS 內容，並讓 JavaScript 與 C# 雙向通訊。例如，既有的 Vue/React/jQuery 應用程式可直接嵌入跨平台 MAUI 應用程式，後端則以 C# 與 .NET 實作 [^1]。</p> <p>Web 內容預設放在 <code>Resources/Raw/wwwroot</code>，並以 <code>index.html</code> 作為預設檔案。整個應用程式連同 Web 內容會封裝在裝置本機執行，不一定需要連線外部網路。C# 端透過 <code>InvokeJavaScriptAsync</code> 呼叫 JavaScript 方法，JavaScript 端則以 <code>window.HybridWebView.InvokeDotNet</code> 呼叫 C# 方法。這個做法，也呼應了上回 Tauri 的 Invoke() 方法，意味著若要同一套前端介面同時用於網站及桌面程式，需要適度改寫將前後端溝通部分抽取出來，寫成兩套模組，再視情境抽換。</p> <p>同樣做法，在 Github Copilot 要求 Opus 5.5 參考我的 ASP.NET Core 轉桌面小工具文章跟範例專案，改寫成 MAUI HybridWebView 版進行對照，有助於更快理解其架構。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp"></p> <ul><li>AesEncryptorMaui/ <ul><li>AesEncryptorMaui.csproj：MAUI 專案設定，只鎖定 Windows / Mac Catalyst 桌面平台</li> <li>MauiProgram.cs：App 進入點與 DI 設定，Debug 時開啟 WebView DevTools</li> <li>App.xaml / App.xaml.cs：建立唯一的主視窗，設定標題與尺寸</li> <li>MainPage.xaml / MainPage.xaml.cs：放置 HybridWebView，並指定 JS 可呼叫的 .NET 物件</li> <li>AesBridge.cs：提供給 JS 呼叫的方法，對應原本的 <code>MapPost("/aes")</code> <pre><code>public sealed class AesBridge
+{
+public AesResult Aes(string mode, string key, string data)
+{
+var encMode = mode != "decrypt";
+var result = new AesResult();
+try
+{
+if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(data))
+throw new ArgumentException("parameter missing");
+result.Result = encMode ? CodecNetFx.AesEncrypt(key, data) : CodecNetFx.AesDecrypt(key, data);
+}
+catch (Exception ex) { result.Message = ex.Message; }
+return result;
+}
+}
+public sealed class AesResult
+{
+public string Result { get; set; } = string.Empty;
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> </li> <li>CodecNetFx.cs：AES 加解密，沿用原範例</li> <li>Resources/Raw/wwwroot/：前端網頁資源</li> <li>index.html：前端介面，使用 Vue 3 <pre><code>async Run(mode, data, resProp) {
+try {
+// 取代原本 &lt;form action="/aes" target="iframe"&gt; 的 POST
+const res = await window.HybridWebView.InvokeDotNet('Aes', [mode, this.EncKey, data]);
+this[resProp] = res.Result;
+this.Message = res.Message;
+this.Highlight(resProp);
+}
+catch (e) {
+this.Message = e.message || String(e);
+}
+},
+</code></pre> <ul><li>vue.global.prod.min.js：Vue 程式庫壓縮檔</li></ul> </li> <li>Platforms/Windows/App.xaml.cs：設定 WebView2 使用者資料夾 <pre><code>public App()
+{
+// 未封裝 (unpackaged) 的 exe 若被安裝到 Program Files，WebView2 無法在 exe 目錄寫入快取，
+// 故在 WebView 建立前將使用者資料夾指到可寫入的 AppData
+var userDataFolder = Path.Combine(FileSystem.AppDataDirectory, "WebView2");
+Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
+this.InitializeComponent();
+}
+</code></pre> </li></ul> </li></ul> <p>成功執行!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639272239686406042.webp"></p> <p>將網頁裝進 .exe 執行沒問題，但直接說結論：MAUI HybridWebView 較適合一般應用程式，不適合用來寫桌面小工具。</p> <p>原因是體積。雖然使用作業系統內建的 WebView (Windows：WebView2 (Chromium Edge)、Mac Catalyst / iOS：WKWebView (Safari WebKit) 、Android：android.webkit.WebView (Chromium))，但開發時需要 <code>dotnet workload install maui</code> 安裝 MAUI Workload，發佈時若連同 .NET 10 + Windows App Runtime 1.8 打包，體積會高達 157MB，若不含 Windows App SDK（<code>WindowsAppSDKSelfContained=false</code>）約 70MB。<a href="https://learn.microsoft.com/zh-tw/windows/apps/package-and-deploy/unpackage-winui-app?tabs=csharp&amp;WT.mc_id=DOP-MVP-37580">參考</a> 在很多企業環境，客戶端若已統一部署 .NET Runtime，WinForm / WPF 有機會選擇 Runtime Dependency 只部署程式本體，將體積縮小到數 MB，卻不太能期望客戶端已裝好 Windows App Runtime (<code>winget install Microsoft.WindowsAppRuntime.1.8</code>)，會變成需要額外部署及確認，或改用 MSIX、傳統安裝程式 (WiX、Inno Setup)，無法實現單一檔案，隨 Copy 隨用。想打包桌面小工具，宜另謀他法。</p> <p data-slug="maui-hybridwebview" data-title-en="Hello MAUI HybridWebView: Great for Apps, Too Heavy for Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/03/12/19/33/red-deer-7847697_1280.jpg#1280#720">MAUI HybridWebView lets you embed web frontends in a cross-platform .NET desktop app with two-way JS and C# communication. It works well, but packaged sizes reach 70 to 157MB, making it unsuitable for lightweight desktop tools.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>看過 <a href="/blog/hello-tauri/">Tauri</a> 後，繼續探索將網站轉成桌面小工具的主題。想利用前端技術寫桌面程式，但 Electron 包了 Chromium 太肥，借用內建瀏覽器輕量化的想法大家都有，這篇來看微軟的解決方案 - MAUI HybridWebView。</p> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/maui/user-interface/controls/hybridwebview?view=net-maui-10.0&amp;WT.mc_id=DOP-MVP-37580">HybridWebView</a> 是 .NET MAUI 技術框架提供的控制項，可在原生 Web 檢視中載入 HTML、JavaScript 與 CSS 內容，並讓 JavaScript 與 C# 雙向通訊。例如，既有的 Vue/React/jQuery 應用程式可直接嵌入跨平台 MAUI 應用程式，後端則以 C# 與 .NET 實作 [^1]。</p> <p>Web 內容預設放在 <code>Resources/Raw/wwwroot</code>，並以 <code>index.html</code> 作為預設檔案。整個應用程式連同 Web 內容會封裝在裝置本機執行，不一定需要連線外部網路。C# 端透過 <code>InvokeJavaScriptAsync</code> 呼叫 JavaScript 方法，JavaScript 端則以 <code>window.HybridWebView.InvokeDotNet</code> 呼叫 C# 方法。這個做法，也呼應了上回 Tauri 的 Invoke() 方法，意味著若要同一套前端介面同時用於網站及桌面程式，需要適度改寫將前後端溝通部分抽取出來，寫成兩套模組，再視情境抽換。</p> <p>同樣做法，在 Github Copilot 要求 Opus 5.5 參考我的 ASP.NET Core 轉桌面小工具文章跟範例專案，改寫成 MAUI HybridWebView 版進行對照，有助於更快理解其架構。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp"></p> <ul><li>AesEncryptorMaui/ <ul><li>AesEncryptorMaui.csproj：MAUI 專案設定，只鎖定 Windows / Mac Catalyst 桌面平台</li> <li>MauiProgram.cs：App 進入點與 DI 設定，Debug 時開啟 WebView DevTools</li> <li>App.xaml / App.xaml.cs：建立唯一的主視窗，設定標題與尺寸</li> <li>MainPage.xaml / MainPage.xaml.cs：放置 HybridWebView，並指定 JS 可呼叫的 .NET 物件</li> <li>AesBridge.cs：提供給 JS 呼叫的方法，對應原本的 <code>MapPost("/aes")</code> <pre><code>public sealed class AesBridge
+{
+public AesResult Aes(string mode, string key, string data)
+{
+var encMode = mode != "decrypt";
+var result = new AesResult();
+try
+{
+if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(data))
+throw new ArgumentException("parameter missing");
+result.Result = encMode ? CodecNetFx.AesEncrypt(key, data) : CodecNetFx.AesDecrypt(key, data);
+}
+catch (Exception ex) { result.Message = ex.Message; }
+return result;
+}
+}
+public sealed class AesResult
+{
+public string Result { get; set; } = string.Empty;
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> </li> <li>CodecNetFx.cs：AES 加解密，沿用原範例</li> <li>Resources/Raw/wwwroot/：前端網頁資源</li> <li>index.html：前端介面，使用 Vue 3 <pre><code>async Run(mode, data, resProp) {
+try {
+// 取代原本 &lt;form action="/aes" target="iframe"&gt; 的 POST
+const res = await window.HybridWebView.InvokeDotNet('Aes', [mode, this.EncKey, data]);
+this[resProp] = res.Result;
+this.Message = res.Message;
+this.Highlight(resProp);
+}
+catch (e) {
+this.Message = e.message || String(e);
+}
+},
+</code></pre> <ul><li>vue.global.prod.min.js：Vue 程式庫壓縮檔</li></ul> </li> <li>Platforms/Windows/App.xaml.cs：設定 WebView2 使用者資料夾 <pre><code>public App()
+{
+// 未封裝 (unpackaged) 的 exe 若被安裝到 Program Files，WebView2 無法在 exe 目錄寫入快取，
+// 故在 WebView 建立前將使用者資料夾指到可寫入的 AppData
+var userDataFolder = Path.Combine(FileSystem.AppDataDirectory, "WebView2");
+Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
+this.InitializeComponent();
+}
+</code></pre> </li></ul> </li></ul> <p>成功執行!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639272239686406042.webp"></p> <p>將網頁裝進 .exe 執行沒問題，但直接說結論：MAUI HybridWebView 較適合一般應用程式，不適合用來寫桌面小工具。</p> <p>原因是體積。雖然使用作業系統內建的 WebView (Windows：WebView2 (Chromium Edge)、Mac Catalyst / iOS：WKWebView (Safari WebKit) 、Android：android.webkit.WebView (Chromium))，但開發時需要 <code>dotnet workload install maui</code> 安裝 MAUI Workload，發佈時若連同 .NET 10 + Windows App Runtime 1.8 打包，體積會高達 157MB，若不含 Windows App SDK（<code>WindowsAppSDKSelfContained=false</code>）約 70MB。<a href="https://learn.microsoft.com/zh-tw/windows/apps/package-and-deploy/unpackage-winui-app?tabs=csharp&amp;WT.mc_id=DOP-MVP-37580">參考</a> 在很多企業環境，客戶端若已統一部署 .NET Runtime，WinForm / WPF 有機會選擇 Runtime Dependency 只部署程式本體，將體積縮小到數 MB，卻不太能期望客戶端已裝好 Windows App Runtime (<code>winget install Microsoft.WindowsAppRuntime.1.8</code>)，會變成需要額外部署及確認，或改用 MSIX、傳統安裝程式 (WiX、Inno Setup)，無法實現單一檔案，隨 Copy 隨用。想打包桌面小工具，宜另謀他法。</p> <p data-slug="maui-hybridwebview" data-title-en="Hello MAUI HybridWebView: Great for Apps, Too Heavy for Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/03/12/19/33/red-deer-7847697_1280.jpg#1280#720">MAUI HybridWebView lets you embed web frontends in a cross-platform .NET desktop app with two-way JS and C# communication. It works well, but packaged sizes reach 70 to 157MB, making it unsuitable for lightweight desktop tools.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>看過 <a href="/blog/hello-tauri/">Tauri</a> 後，繼續探索將網站轉成桌面小工具的主題。想利用前端技術寫桌面程式，但 Electron 包了 Chromium 太肥，借用內建瀏覽器輕量化的想法大家都有，這篇來看微軟的解決方案 - MAUI HybridWebView。</p> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/maui/user-interface/controls/hybridwebview?view=net-maui-10.0&amp;WT.mc_id=DOP-MVP-37580">HybridWebView</a> 是 .NET MAUI 技術框架提供的控制項，可在原生 Web 檢視中載入 HTML、JavaScript 與 CSS 內容，並讓 JavaScript 與 C# 雙向通訊。例如，既有的 Vue/React/jQuery 應用程式可直接嵌入跨平台 MAUI 應用程式，後端則以 C# 與 .NET 實作 [^1]。</p> <p>Web 內容預設放在 <code>Resources/Raw/wwwroot</code>，並以 <code>index.html</code> 作為預設檔案。整個應用程式連同 Web 內容會封裝在裝置本機執行，不一定需要連線外部網路。C# 端透過 <code>InvokeJavaScriptAsync</code> 呼叫 JavaScript 方法，JavaScript 端則以 <code>window.HybridWebView.InvokeDotNet</code> 呼叫 C# 方法。這個做法，也呼應了上回 Tauri 的 Invoke() 方法，意味著若要同一套前端介面同時用於網站及桌面程式，需要適度改寫將前後端溝通部分抽取出來，寫成兩套模組，再視情境抽換。</p> <p>同樣做法，在 Github Copilot 要求 Opus 5.5 參考我的 ASP.NET Core 轉桌面小工具文章跟範例專案，改寫成 MAUI HybridWebView 版進行對照，有助於更快理解其架構。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp"></p> <ul><li>AesEncryptorMaui/ <ul><li>AesEncryptorMaui.csproj：MAUI 專案設定，只鎖定 Windows / Mac Catalyst 桌面平台</li> <li>MauiProgram.cs：App 進入點與 DI 設定，Debug 時開啟 WebView DevTools</li> <li>App.xaml / App.xaml.cs：建立唯一的主視窗，設定標題與尺寸</li> <li>MainPage.xaml / MainPage.xaml.cs：放置 HybridWebView，並指定 JS 可呼叫的 .NET 物件</li> <li>AesBridge.cs：提供給 JS 呼叫的方法，對應原本的 <code>MapPost("/aes")</code> <pre><code>public sealed class AesBridge
+{
+public AesResult Aes(string mode, string key, string data)
+{
+var encMode = mode != "decrypt";
+var result = new AesResult();
+try
+{
+if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(data))
+throw new ArgumentException("parameter missing");
+result.Result = encMode ? CodecNetFx.AesEncrypt(key, data) : CodecNetFx.AesDecrypt(key, data);
+}
+catch (Exception ex) { result.Message = ex.Message; }
+return result;
+}
+}
+public sealed class AesResult
+{
+public string Result { get; set; } = string.Empty;
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> </li> <li>CodecNetFx.cs：AES 加解密，沿用原範例</li> <li>Resources/Raw/wwwroot/：前端網頁資源</li> <li>index.html：前端介面，使用 Vue 3 <pre><code>async Run(mode, data, resProp) {
+try {
+// 取代原本 &lt;form action="/aes" target="iframe"&gt; 的 POST
+const res = await window.HybridWebView.InvokeDotNet('Aes', [mode, this.EncKey, data]);
+this[resProp] = res.Result;
+this.Message = res.Message;
+this.Highlight(resProp);
+}
+catch (e) {
+this.Message = e.message || String(e);
+}
+},
+</code></pre> <ul><li>vue.global.prod.min.js：Vue 程式庫壓縮檔</li></ul> </li> <li>Platforms/Windows/App.xaml.cs：設定 WebView2 使用者資料夾 <pre><code>public App()
+{
+// 未封裝 (unpackaged) 的 exe 若被安裝到 Program Files，WebView2 無法在 exe 目錄寫入快取，
+// 故在 WebView 建立前將使用者資料夾指到可寫入的 AppData
+var userDataFolder = Path.Combine(FileSystem.AppDataDirectory, "WebView2");
+Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
+this.InitializeComponent();
+}
+</code></pre> </li></ul> </li></ul> <p>成功執行!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639272239686406042.webp"></p> <p>將網頁裝進 .exe 執行沒問題，但直接說結論：MAUI HybridWebView 較適合一般應用程式，不適合用來寫桌面小工具。</p> <p>原因是體積。雖然使用作業系統內建的 WebView (Windows：WebView2 (Chromium Edge)、Mac Catalyst / iOS：WKWebView (Safari WebKit) 、Android：android.webkit.WebView (Chromium))，但開發時需要 <code>dotnet workload install maui</code> 安裝 MAUI Workload，發佈時若連同 .NET 10 + Windows App Runtime 1.8 打包，體積會高達 157MB，若不含 Windows App SDK（<code>WindowsAppSDKSelfContained=false</code>）約 70MB。<a href="https://learn.microsoft.com/zh-tw/windows/apps/package-and-deploy/unpackage-winui-app?tabs=csharp&amp;WT.mc_id=DOP-MVP-37580">參考</a> 在很多企業環境，客戶端若已統一部署 .NET Runtime，WinForm / WPF 有機會選擇 Runtime Dependency 只部署程式本體，將體積縮小到數 MB，卻不太能期望客戶端已裝好 Windows App Runtime (<code>winget install Microsoft.WindowsAppRuntime.1.8</code>)，會變成需要額外部署及確認，或改用 MSIX、傳統安裝程式 (WiX、Inno Setup)，無法實現單一檔案，隨 Copy 隨用。想打包桌面小工具，宜另謀他法。</p> <p data-slug="maui-hybridwebview" data-title-en="Hello MAUI HybridWebView: Great for Apps, Too Heavy for Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/03/12/19/33/red-deer-7847697_1280.jpg#1280#720">MAUI HybridWebView lets you embed web frontends in a cross-platform .NET desktop app with two-way JS and C# communication. It works well, but packaged sizes reach 70 to 157MB, making it unsuitable for lightweight desktop tools.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp" medium="image"/>
+    <pubDate>Sat, 10 Oct 2026 10:12:50 GMT</pubDate>
+  </item><item>
     <title><![CDATA[初試 Tauri - 移植 ASP.NET Core 桌面小工具範例]]></title>
     <link>https://blog.darkthread.net/blog/hello-tauri/</link>
     <itunes:title><![CDATA[初試 Tauri - 移植 ASP.NET Core 桌面小工具範例]]></itunes:title>
@@ -1576,341 +1714,5 @@ Console.WriteLine(response.Text);
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639259390046537248.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639259390046537248.webp" medium="image"/>
     <pubDate>Fri, 25 Sep 2026 13:14:35 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[介於 JSON 與 SQLite 的中間選擇 - LiteDB]]></title>
-    <link>https://blog.darkthread.net/blog/litedb/</link>
-    <itunes:title><![CDATA[介於 JSON 與 SQLite 的中間選擇 - LiteDB]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>開發 .NET 桌面小工具時，免不了會有保存資料的需求。若筆數不多查詢不複雜，我會選擇序列化存成 JSON 檔，這是最輕巧簡便的選擇，不需第三方程式庫，資料檔還可直接人工檢視修改；若筆數偏多或涉及複雜查詢、更新或統計，我則會改用 SQLite，免安裝設定就有與 SQL/Oracle/Postgres/MySQL 同等級的關聯式資料庫功能，甚至還能把零散檔案一起放進資料庫，隨資料同步增刪，小缺點是 SQLite 通常要透過 EntityFramework / Dapper 存取，複雜度略高，加上 SQLite 依賴 C 寫的原生程式庫，部署成單一檔案桌面工具或跨平台時要花點心思處理。</p> <p>介於以上兩種資料規模之間，還有一類需求，偏向文件保存性質，筆數多到存成 JSON 太肥或需要收納零散檔案，但沒有複雜 JOIN 查詢或彙整統計需求，不需動用 SQLite。針對這類情境，有沒有 C# 原生開發的簡單資料庫，提供基本索引功能加速查詢、用單一檔案保存資料及附加檔案、使用起來比 SQLite 簡單且不依賴原生程式庫？</p> <p><a href="https://www.litedb.org/">LiteDB</a> 剛好是切中這類情境的優秀選項。</p> <p>LiteDB 是一套以 C# 開發的 Embedded NoSQL Document Database，從 2010 年代開始發展，定位介於 SQLite 與 MongoDB 之間：跟 SQLite 一樣不需要獨立的資料庫伺服器，以單一檔案儲存資料；但本質上則類似 MongoDB 的 Document 模型，適合 .NET 應用程式保存結構較彈性的資料。LiteDB 從 5.0 版加入 WAL、Transaction、多 Reader、Index 等能力，足以應付日常資料保存需求。</p> <p>以下是個簡單應用範例，LiteDB 程式寫起來比 SQLite 稍稍簡單一些，但配合 LINQ 查詢時有個重要觀念 - LiteDB 會將資料轉成 BSON 格式儲存，可運用 BSON 查詢語法更有效率地找到資料。但正如有些 LINQ 條件無法被轉成 SQL 語法便不能直接在 IQueryable / EF.Core 使用 <a href="https://learn.microsoft.com/zh-tw/ef/core/querying/how-query-works?WT.mc_id=DOP-MVP-37580">參考</a>，LiteDB 有自己一套 Query.EQ、Query.GT... 等方法，若 C# 寫法無法直接轉換成 BSON 查詢，就需改用 BSON 表示式或先載入記憶體再處理境。這部分不難，但要花點時間了解才好上手。<a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/#42_%E6%A0%B9%E6%93%9A%E6%A2%9D%E4%BB%B6%E6%9F%A5%E8%A9%A2_Find_with_Query">參考</a></p> <p>補充說明我寫在註解裡，大家直接看 Code 吧!</p> <pre><code>using LiteDB;
-var dbPath = "MyData.db";
-if (File.Exists(dbPath)) File.Delete(dbPath); // 每次刪除資料檔重新建立
-using var db = new LiteDatabase(dbPath);
-var players = db.GetCollection&lt;Player&gt;("players");
-var skills = db.GetCollection&lt;Skill&gt;("skills");
-// 新增 Skill
-skills.Insert(new Skill { Id = "CS", Name = "C#" });
-skills.Insert(new Skill { Id = "TS", Name = "TypeScript" });
-skills.Insert(new Skill { Id = "JS", Name = "JavaScript" });
-skills.Insert(new Skill { Id = "PY", Name = "Python" });
-var jeffrey = new Player
-{
-Name = "Jeffrey",
-SkillIds = new string[] { "CS", "JS" },
-RegDate = DateTime.Now,
-IsActive = true
-};
-players.Insert(jeffrey);
-var retired = new Player {
-Name = "Bob",
-SkillIds = new string[] { "JS" },
-RegDate = DateTime.Now,
-IsActive = false
-};
-players.Insert(retired);
-var llm = new Player
-{
-Name = "LLM",
-SkillIds = skills.FindAll().Select(s =&gt; s.Id).ToArray(),
-RegDate = DateTime.Now,
-IsActive = true
-};
-players.Insert(llm);
-// 使用 FindOne 查詢
-var found = players.FindOne(p =&gt; p.Name == "Jeffrey");
-Console.WriteLine($"Found Player: {found.Id}. {found?.Name}");
-// 使用 LINQ 查詢所有 Active 玩家姓名
-var activePlayers = players.Query().Where(p =&gt; p.IsActive).Select(p =&gt; p.Name).ToList();
-Console.WriteLine($"
-Active Players: {string.Join(", ", activePlayers)}");
-// 建立索引
-players.EnsureIndex(p =&gt; p.SkillIds);
-// 使用 Query.EQ 查詢，可善用索引提高查詢效能
-var jsPlayers = players.Find(Query.EQ(nameof(Player.SkillIds), "JS")).ToList();
-// 注意：不是所有 LINQ 方法都能直接轉換成 LiteDB 的 BSON 查詢，例如：
-// players.Query().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
-// Contains 不在支援之列，會產生錯誤：
-//   Method Contains not available to convert to BsonExpression
-//   (op_Implicit(Convert(p.SkillIds, String[])).Contains("JS")).
-// 另個解法是先將資料載入記憶體再查，但效能較差
-// players.Query().ToList().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
-Console.WriteLine($"
-JS Players: {string.Join(", ", jsPlayers.Select(p =&gt; p.Name))}");
-// LiteDB 不直接支援 JOIN 查詢，但可在程式端用 LINQ 操作
-// LiteDB 會盡可能翻成 BSON 查詢，不行的話會載入記憶體再處理，效能不能跟 SQLite 相提並論
-// 建議自己用 Dictionary 處理以確保效能，避免在 LINQ 裡反覆搜尋 LiteDB
-var skillNames = skills.FindAll().ToDictionary(s =&gt; s.Id, s =&gt; s.Name);
-var list = players.Query()
-.ToList()
-.Select(p =&gt; new
-{
-PlayerName = p.Name,
-Skills = p.SkillIds
-.Where(skillNames.ContainsKey)
-.Select(id =&gt; skillNames[id])
-.ToArray()
-})
-.ToList();
-foreach (var item in list)
-{
-Console.WriteLine($" - Player [{item.PlayerName}]: {string.Join(", ", item.Skills)}");
-}
-Console.WriteLine("
-After Deletions:");
-// 示範刪除及更新
-players.Delete(jeffrey.Id);
-// 亦可用條件批次刪除
-players.DeleteMany(p =&gt; p.IsActive == false);
-// 若是直接使用 LiteDB 的 Query 物件，效果相同
-players.DeleteMany(Query.EQ(nameof(Player.IsActive), false));
-var editEnt = players.FindOne(p =&gt; p.Name == "LLM");
-if (editEnt != null) {
-editEnt.Name = "Skynet";
-players.Update(editEnt);
-}
-foreach (var p in players.FindAll())
-{
-Console.WriteLine($" - Player: {p.Id}. {p.Name}");
-}
-public class Player
-{
-// 取名 Id 自動成為 PK，int/long 會自動跳號
-public  int Id { get; set; }
-public required string Name { get; set; }
-public required string[] SkillIds { get; set; }
-public DateTime RegDate { get; set; }
-public bool IsActive { get; set; }
-}
-public class Skill
-{
-// LiteDB 支援 int/long/Guid/objectId/string 作為 PK
-// 名稱包含 Id 會自動被視為 PK，亦可用 [BsonId] 標註
-// 完全不宣告時底層會建立 _id，但無法 FindById/Update/Delete 故不建議
-public required string Id { get; set; }
-public required string Name { get; set; }
-}
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"></p> <p>【延伸閱讀】</p> <ul><li><a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/">C# LiteDB 全方位教學 - C# Libraries</a></li> <li><a href="https://dotblogs.com.tw/supershowwei/2018/04/25/230600">輕巧方便的 LiteDB by 軟體廚房</a></li></ul> <p data-slug="litedb" data-title-en="LiteDB tips" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/10/25/13/57/lunch-box-200762_1280.jpg#1280#720">LiteDB is a lightweight, C#-native embedded NoSQL database ideal for .NET desktop tools. It stores documents and attachments in a single file, supports indexes and transactions, and avoids native dependencies. This article demonstrates CRUD operations, BSON queries, LINQ limitations, and application-side joins.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>開發 .NET 桌面小工具時，免不了會有保存資料的需求。若筆數不多查詢不複雜，我會選擇序列化存成 JSON 檔，這是最輕巧簡便的選擇，不需第三方程式庫，資料檔還可直接人工檢視修改；若筆數偏多或涉及複雜查詢、更新或統計，我則會改用 SQLite，免安裝設定就有與 SQL/Oracle/Postgres/MySQL 同等級的關聯式資料庫功能，甚至還能把零散檔案一起放進資料庫，隨資料同步增刪，小缺點是 SQLite 通常要透過 EntityFramework / Dapper 存取，複雜度略高，加上 SQLite 依賴 C 寫的原生程式庫，部署成單一檔案桌面工具或跨平台時要花點心思處理。</p> <p>介於以上兩種資料規模之間，還有一類需求，偏向文件保存性質，筆數多到存成 JSON 太肥或需要收納零散檔案，但沒有複雜 JOIN 查詢或彙整統計需求，不需動用 SQLite。針對這類情境，有沒有 C# 原生開發的簡單資料庫，提供基本索引功能加速查詢、用單一檔案保存資料及附加檔案、使用起來比 SQLite 簡單且不依賴原生程式庫？</p> <p><a href="https://www.litedb.org/">LiteDB</a> 剛好是切中這類情境的優秀選項。</p> <p>LiteDB 是一套以 C# 開發的 Embedded NoSQL Document Database，從 2010 年代開始發展，定位介於 SQLite 與 MongoDB 之間：跟 SQLite 一樣不需要獨立的資料庫伺服器，以單一檔案儲存資料；但本質上則類似 MongoDB 的 Document 模型，適合 .NET 應用程式保存結構較彈性的資料。LiteDB 從 5.0 版加入 WAL、Transaction、多 Reader、Index 等能力，足以應付日常資料保存需求。</p> <p>以下是個簡單應用範例，LiteDB 程式寫起來比 SQLite 稍稍簡單一些，但配合 LINQ 查詢時有個重要觀念 - LiteDB 會將資料轉成 BSON 格式儲存，可運用 BSON 查詢語法更有效率地找到資料。但正如有些 LINQ 條件無法被轉成 SQL 語法便不能直接在 IQueryable / EF.Core 使用 <a href="https://learn.microsoft.com/zh-tw/ef/core/querying/how-query-works?WT.mc_id=DOP-MVP-37580">參考</a>，LiteDB 有自己一套 Query.EQ、Query.GT... 等方法，若 C# 寫法無法直接轉換成 BSON 查詢，就需改用 BSON 表示式或先載入記憶體再處理境。這部分不難，但要花點時間了解才好上手。<a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/#42_%E6%A0%B9%E6%93%9A%E6%A2%9D%E4%BB%B6%E6%9F%A5%E8%A9%A2_Find_with_Query">參考</a></p> <p>補充說明我寫在註解裡，大家直接看 Code 吧!</p> <pre><code>using LiteDB;
-var dbPath = "MyData.db";
-if (File.Exists(dbPath)) File.Delete(dbPath); // 每次刪除資料檔重新建立
-using var db = new LiteDatabase(dbPath);
-var players = db.GetCollection&lt;Player&gt;("players");
-var skills = db.GetCollection&lt;Skill&gt;("skills");
-// 新增 Skill
-skills.Insert(new Skill { Id = "CS", Name = "C#" });
-skills.Insert(new Skill { Id = "TS", Name = "TypeScript" });
-skills.Insert(new Skill { Id = "JS", Name = "JavaScript" });
-skills.Insert(new Skill { Id = "PY", Name = "Python" });
-var jeffrey = new Player
-{
-Name = "Jeffrey",
-SkillIds = new string[] { "CS", "JS" },
-RegDate = DateTime.Now,
-IsActive = true
-};
-players.Insert(jeffrey);
-var retired = new Player {
-Name = "Bob",
-SkillIds = new string[] { "JS" },
-RegDate = DateTime.Now,
-IsActive = false
-};
-players.Insert(retired);
-var llm = new Player
-{
-Name = "LLM",
-SkillIds = skills.FindAll().Select(s =&gt; s.Id).ToArray(),
-RegDate = DateTime.Now,
-IsActive = true
-};
-players.Insert(llm);
-// 使用 FindOne 查詢
-var found = players.FindOne(p =&gt; p.Name == "Jeffrey");
-Console.WriteLine($"Found Player: {found.Id}. {found?.Name}");
-// 使用 LINQ 查詢所有 Active 玩家姓名
-var activePlayers = players.Query().Where(p =&gt; p.IsActive).Select(p =&gt; p.Name).ToList();
-Console.WriteLine($"
-Active Players: {string.Join(", ", activePlayers)}");
-// 建立索引
-players.EnsureIndex(p =&gt; p.SkillIds);
-// 使用 Query.EQ 查詢，可善用索引提高查詢效能
-var jsPlayers = players.Find(Query.EQ(nameof(Player.SkillIds), "JS")).ToList();
-// 注意：不是所有 LINQ 方法都能直接轉換成 LiteDB 的 BSON 查詢，例如：
-// players.Query().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
-// Contains 不在支援之列，會產生錯誤：
-//   Method Contains not available to convert to BsonExpression
-//   (op_Implicit(Convert(p.SkillIds, String[])).Contains("JS")).
-// 另個解法是先將資料載入記憶體再查，但效能較差
-// players.Query().ToList().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
-Console.WriteLine($"
-JS Players: {string.Join(", ", jsPlayers.Select(p =&gt; p.Name))}");
-// LiteDB 不直接支援 JOIN 查詢，但可在程式端用 LINQ 操作
-// LiteDB 會盡可能翻成 BSON 查詢，不行的話會載入記憶體再處理，效能不能跟 SQLite 相提並論
-// 建議自己用 Dictionary 處理以確保效能，避免在 LINQ 裡反覆搜尋 LiteDB
-var skillNames = skills.FindAll().ToDictionary(s =&gt; s.Id, s =&gt; s.Name);
-var list = players.Query()
-.ToList()
-.Select(p =&gt; new
-{
-PlayerName = p.Name,
-Skills = p.SkillIds
-.Where(skillNames.ContainsKey)
-.Select(id =&gt; skillNames[id])
-.ToArray()
-})
-.ToList();
-foreach (var item in list)
-{
-Console.WriteLine($" - Player [{item.PlayerName}]: {string.Join(", ", item.Skills)}");
-}
-Console.WriteLine("
-After Deletions:");
-// 示範刪除及更新
-players.Delete(jeffrey.Id);
-// 亦可用條件批次刪除
-players.DeleteMany(p =&gt; p.IsActive == false);
-// 若是直接使用 LiteDB 的 Query 物件，效果相同
-players.DeleteMany(Query.EQ(nameof(Player.IsActive), false));
-var editEnt = players.FindOne(p =&gt; p.Name == "LLM");
-if (editEnt != null) {
-editEnt.Name = "Skynet";
-players.Update(editEnt);
-}
-foreach (var p in players.FindAll())
-{
-Console.WriteLine($" - Player: {p.Id}. {p.Name}");
-}
-public class Player
-{
-// 取名 Id 自動成為 PK，int/long 會自動跳號
-public  int Id { get; set; }
-public required string Name { get; set; }
-public required string[] SkillIds { get; set; }
-public DateTime RegDate { get; set; }
-public bool IsActive { get; set; }
-}
-public class Skill
-{
-// LiteDB 支援 int/long/Guid/objectId/string 作為 PK
-// 名稱包含 Id 會自動被視為 PK，亦可用 [BsonId] 標註
-// 完全不宣告時底層會建立 _id，但無法 FindById/Update/Delete 故不建議
-public required string Id { get; set; }
-public required string Name { get; set; }
-}
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"></p> <p>【延伸閱讀】</p> <ul><li><a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/">C# LiteDB 全方位教學 - C# Libraries</a></li> <li><a href="https://dotblogs.com.tw/supershowwei/2018/04/25/230600">輕巧方便的 LiteDB by 軟體廚房</a></li></ul> <p data-slug="litedb" data-title-en="LiteDB tips" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/10/25/13/57/lunch-box-200762_1280.jpg#1280#720">LiteDB is a lightweight, C#-native embedded NoSQL database ideal for .NET desktop tools. It stores documents and attachments in a single file, supports indexes and transactions, and avoids native dependencies. This article demonstrates CRUD operations, BSON queries, LINQ limitations, and application-side joins.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>開發 .NET 桌面小工具時，免不了會有保存資料的需求。若筆數不多查詢不複雜，我會選擇序列化存成 JSON 檔，這是最輕巧簡便的選擇，不需第三方程式庫，資料檔還可直接人工檢視修改；若筆數偏多或涉及複雜查詢、更新或統計，我則會改用 SQLite，免安裝設定就有與 SQL/Oracle/Postgres/MySQL 同等級的關聯式資料庫功能，甚至還能把零散檔案一起放進資料庫，隨資料同步增刪，小缺點是 SQLite 通常要透過 EntityFramework / Dapper 存取，複雜度略高，加上 SQLite 依賴 C 寫的原生程式庫，部署成單一檔案桌面工具或跨平台時要花點心思處理。</p> <p>介於以上兩種資料規模之間，還有一類需求，偏向文件保存性質，筆數多到存成 JSON 太肥或需要收納零散檔案，但沒有複雜 JOIN 查詢或彙整統計需求，不需動用 SQLite。針對這類情境，有沒有 C# 原生開發的簡單資料庫，提供基本索引功能加速查詢、用單一檔案保存資料及附加檔案、使用起來比 SQLite 簡單且不依賴原生程式庫？</p> <p><a href="https://www.litedb.org/">LiteDB</a> 剛好是切中這類情境的優秀選項。</p> <p>LiteDB 是一套以 C# 開發的 Embedded NoSQL Document Database，從 2010 年代開始發展，定位介於 SQLite 與 MongoDB 之間：跟 SQLite 一樣不需要獨立的資料庫伺服器，以單一檔案儲存資料；但本質上則類似 MongoDB 的 Document 模型，適合 .NET 應用程式保存結構較彈性的資料。LiteDB 從 5.0 版加入 WAL、Transaction、多 Reader、Index 等能力，足以應付日常資料保存需求。</p> <p>以下是個簡單應用範例，LiteDB 程式寫起來比 SQLite 稍稍簡單一些，但配合 LINQ 查詢時有個重要觀念 - LiteDB 會將資料轉成 BSON 格式儲存，可運用 BSON 查詢語法更有效率地找到資料。但正如有些 LINQ 條件無法被轉成 SQL 語法便不能直接在 IQueryable / EF.Core 使用 <a href="https://learn.microsoft.com/zh-tw/ef/core/querying/how-query-works?WT.mc_id=DOP-MVP-37580">參考</a>，LiteDB 有自己一套 Query.EQ、Query.GT... 等方法，若 C# 寫法無法直接轉換成 BSON 查詢，就需改用 BSON 表示式或先載入記憶體再處理境。這部分不難，但要花點時間了解才好上手。<a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/#42_%E6%A0%B9%E6%93%9A%E6%A2%9D%E4%BB%B6%E6%9F%A5%E8%A9%A2_Find_with_Query">參考</a></p> <p>補充說明我寫在註解裡，大家直接看 Code 吧!</p> <pre><code>using LiteDB;
-var dbPath = "MyData.db";
-if (File.Exists(dbPath)) File.Delete(dbPath); // 每次刪除資料檔重新建立
-using var db = new LiteDatabase(dbPath);
-var players = db.GetCollection&lt;Player&gt;("players");
-var skills = db.GetCollection&lt;Skill&gt;("skills");
-// 新增 Skill
-skills.Insert(new Skill { Id = "CS", Name = "C#" });
-skills.Insert(new Skill { Id = "TS", Name = "TypeScript" });
-skills.Insert(new Skill { Id = "JS", Name = "JavaScript" });
-skills.Insert(new Skill { Id = "PY", Name = "Python" });
-var jeffrey = new Player
-{
-Name = "Jeffrey",
-SkillIds = new string[] { "CS", "JS" },
-RegDate = DateTime.Now,
-IsActive = true
-};
-players.Insert(jeffrey);
-var retired = new Player {
-Name = "Bob",
-SkillIds = new string[] { "JS" },
-RegDate = DateTime.Now,
-IsActive = false
-};
-players.Insert(retired);
-var llm = new Player
-{
-Name = "LLM",
-SkillIds = skills.FindAll().Select(s =&gt; s.Id).ToArray(),
-RegDate = DateTime.Now,
-IsActive = true
-};
-players.Insert(llm);
-// 使用 FindOne 查詢
-var found = players.FindOne(p =&gt; p.Name == "Jeffrey");
-Console.WriteLine($"Found Player: {found.Id}. {found?.Name}");
-// 使用 LINQ 查詢所有 Active 玩家姓名
-var activePlayers = players.Query().Where(p =&gt; p.IsActive).Select(p =&gt; p.Name).ToList();
-Console.WriteLine($"
-Active Players: {string.Join(", ", activePlayers)}");
-// 建立索引
-players.EnsureIndex(p =&gt; p.SkillIds);
-// 使用 Query.EQ 查詢，可善用索引提高查詢效能
-var jsPlayers = players.Find(Query.EQ(nameof(Player.SkillIds), "JS")).ToList();
-// 注意：不是所有 LINQ 方法都能直接轉換成 LiteDB 的 BSON 查詢，例如：
-// players.Query().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
-// Contains 不在支援之列，會產生錯誤：
-//   Method Contains not available to convert to BsonExpression
-//   (op_Implicit(Convert(p.SkillIds, String[])).Contains("JS")).
-// 另個解法是先將資料載入記憶體再查，但效能較差
-// players.Query().ToList().Where(p =&gt; p.SkillIds.Contains("JS")).ToList();
-Console.WriteLine($"
-JS Players: {string.Join(", ", jsPlayers.Select(p =&gt; p.Name))}");
-// LiteDB 不直接支援 JOIN 查詢，但可在程式端用 LINQ 操作
-// LiteDB 會盡可能翻成 BSON 查詢，不行的話會載入記憶體再處理，效能不能跟 SQLite 相提並論
-// 建議自己用 Dictionary 處理以確保效能，避免在 LINQ 裡反覆搜尋 LiteDB
-var skillNames = skills.FindAll().ToDictionary(s =&gt; s.Id, s =&gt; s.Name);
-var list = players.Query()
-.ToList()
-.Select(p =&gt; new
-{
-PlayerName = p.Name,
-Skills = p.SkillIds
-.Where(skillNames.ContainsKey)
-.Select(id =&gt; skillNames[id])
-.ToArray()
-})
-.ToList();
-foreach (var item in list)
-{
-Console.WriteLine($" - Player [{item.PlayerName}]: {string.Join(", ", item.Skills)}");
-}
-Console.WriteLine("
-After Deletions:");
-// 示範刪除及更新
-players.Delete(jeffrey.Id);
-// 亦可用條件批次刪除
-players.DeleteMany(p =&gt; p.IsActive == false);
-// 若是直接使用 LiteDB 的 Query 物件，效果相同
-players.DeleteMany(Query.EQ(nameof(Player.IsActive), false));
-var editEnt = players.FindOne(p =&gt; p.Name == "LLM");
-if (editEnt != null) {
-editEnt.Name = "Skynet";
-players.Update(editEnt);
-}
-foreach (var p in players.FindAll())
-{
-Console.WriteLine($" - Player: {p.Id}. {p.Name}");
-}
-public class Player
-{
-// 取名 Id 自動成為 PK，int/long 會自動跳號
-public  int Id { get; set; }
-public required string Name { get; set; }
-public required string[] SkillIds { get; set; }
-public DateTime RegDate { get; set; }
-public bool IsActive { get; set; }
-}
-public class Skill
-{
-// LiteDB 支援 int/long/Guid/objectId/string 作為 PK
-// 名稱包含 Id 會自動被視為 PK，亦可用 [BsonId] 標註
-// 完全不宣告時底層會建立 _id，但無法 FindById/Update/Delete 故不建議
-public required string Id { get; set; }
-public required string Name { get; set; }
-}
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"></p> <p>【延伸閱讀】</p> <ul><li><a href="https://learncode.com.tw/c-litedb-%E5%85%A8%E6%96%B9%E4%BD%8D%E6%95%99%E5%AD%B8/">C# LiteDB 全方位教學 - C# Libraries</a></li> <li><a href="https://dotblogs.com.tw/supershowwei/2018/04/25/230600">輕巧方便的 LiteDB by 軟體廚房</a></li></ul> <p data-slug="litedb" data-title-en="LiteDB tips" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2013/10/25/13/57/lunch-box-200762_1280.jpg#1280#720">LiteDB is a lightweight, C#-native embedded NoSQL database ideal for .NET desktop tools. It stores documents and attachments in a single file, supports indexes and transactions, and avoids native dependencies. This article demonstrates CRUD operations, BSON queries, LINQ limitations, and application-side joins.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp" medium="image"/>
-    <pubDate>Thu, 24 Sep 2026 12:48:22 GMT</pubDate>
   </item></channel>
 </rss>
