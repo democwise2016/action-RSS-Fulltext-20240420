@@ -30,6 +30,153 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[初試 Tauri - 移植 ASP.NET Core 桌面小工具範例]]></title>
+    <link>https://blog.darkthread.net/blog/hello-tauri/</link>
+    <itunes:title><![CDATA[初試 Tauri - 移植 ASP.NET Core 桌面小工具範例]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>對略懂前端的全端攻城獅來說，把網頁前端加 WebAPI 包成桌面程式，可省下學習摸索 WinForm/WPF 的時間，是絕佳的技能再利用典範。Electron 要包進整個 Chromium 導致程式高達數百 MB 太痴肥，不適合用來寫小工具。熟悉 ASP.NET Core 與 Vue 的我，幾年前想出將 ASP.NET Core 網站轉成單一檔案 exe 寫桌面小工具的點子，執行時叫出內建瀏覽器當 UI，網頁關閉時自動結束程式，在標準 ASP.NET Core Minimal API 專案引用 NuGet Package，改幾行程式便能華麗變身為桌面小工具，體積可低到幾 MB，成效讓我非常滿意。<a href="/blog/electron-net-alternative/">Electron.NET 太笨重？用 ASP.NET Core Minimal API 寫桌面小工具的快速做法</a></p> <p>時間來到 2026，以 Rust 作為後端的 Tauri 框架漸成寫桌面程式的流行做法。Tauri 後端使用 Rust，前端可沿用 HTML、CSS、JavaScript，透過作業系統內建的 WebView 呈現 UI，不像 Electron 必須包進 Chromium 而過胖。加上靠著 Rust 語言特性，能做到執行檔僅數 MB 至數十 MB，執行效率極高記憶體用量又低，攻擊面小且高度記憶體安全，並能支援 iOS/Android 跨平台。唯一的缺點大概是 Rust 是門艱澀難學的程式語言，非凡夫俗子可輕鬆駕御。Tauri 早在 2022 年就發佈 1.0 版，必須要會 Rust 成為阻擋凡人接近的高聳城牆；直到 Vibe Coding 時代來臨，「人不一定要會程式語言，AI 會就好」讓 Rust 門檻瞬間消失，只要 AI 在手，人人都能用 Tauri，於是用 Tauri 開發的程式開始多了起來。</p> <p>我的立場偏保守，評估開發方式時還是想保留人工介入的後路，從這個角度出發，桌面小工具要嘛續用 .NET 為基礎的做法，要嘛認真學好 Rust 放心擁抱 Tauri。</p> <p>在搞懂 Rust 之前，這篇會先體驗 Tauri 長什麼樣子，以<a href="/blog/electron-net-alternative/">上回文章</a>的 AES 加解密工具當範例，看看若改用 Tauri 寫長什麼樣子，有具體參照物，更能快速理解 Tauri 的架構與運作原理。</p> <p>開了 Github Copilot 請 Claude Opus 5.5 參考 ASP.NET Core 版本專案及我的部落格文章，翻寫出一個 Tauri 版本，耗時約半小時(含安裝套件)，花費近 2 塊美金。與人工開發相比，這成本低到不可思議~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"></p> <p>都用上 Opus 等級，毫無意外，一次搞定且功能正確。(說不定用 Sonnet 也成，AI 強成這樣，我該告老還鄉了...)</p> <p>檔案僅 3MB，不需其他 dll 或附屬檔案，這是 Rust 的迷人之處。</p> <p>專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639271891117389325.webp"></p> <ul><li><strong><code>hello-tauri/</code></strong>：專案根目錄 <ul><li><code>.gitignore</code>：排除 <code>src-tauri/target/</code> 與 <code>src-tauri/gen/schemas/</code> 等建置產物</li> <li><strong><code>ui/</code></strong>：前端靜態檔，對應原專案的 <code>ui/</code> 資料夾；由 <code>tauri.conf.json</code> 的 <code>frontendDist</code> 指定，編譯時嵌入 exe <ul><li><code>index.html</code>：畫面版面，CSS 與 Vue 模板沿用原版；移除 <code>&lt;form&gt;</code>、隱藏 <code>&lt;iframe&gt;</code> 及 <code>/sse.js</code></li> <li><code>app.js</code>：Vue app 邏輯，以 <code>window.__TAURI__.core.invoke('aes', …)</code> 呼叫後端（原版的 inline script 移到這裡，以便 CSP 不需開 <code>'unsafe-inline'</code>）</li> <li><code>vue.global.prod.min.js</code>：Vue 3 執行檔，直接從原專案複製</li></ul> </li> <li><strong><code>src-tauri/</code></strong>：Rust 後端與 Tauri 設定，對應原專案的 <code>Program.cs</code>、<code>AesEncryptor.csproj</code> <ul><li><code>Cargo.toml</code>：套件名稱與相依套件（<code>tauri</code>、<code>serde</code>、<code>aes</code>、<code>cbc</code>、<code>sha2</code>、<code>base64</code>），以及 release 縮小體積的設定（LTO、<code>opt-level = "s"</code>、strip）；相當於 <code>.csproj</code></li> <li><code>Cargo.lock</code>：鎖定所有相依套件的實際版本，確保每次建置結果一致；應納入版控（相當於 <code>packages.lock.json</code>）</li> <li><code>build.rs</code>：建置腳本，呼叫 <code>tauri_build::build()</code>，負責讀取 <code>tauri.conf.json</code>、把圖示與版本資訊寫入 Windows 資源、產生權限 schema</li> <li><code>tauri.conf.json</code>：Tauri 主設定檔，包含產品名稱/識別碼、前端目錄、<code>withGlobalTauri</code>、視窗標題與大小、CSP、打包格式及圖示清單</li> <li><code>app-icon.png</code>：1024×1024 的圖示原始檔，用來產生 <code>icons/</code> 下各尺寸圖示（也可交給 <code>cargo tauri icon</code> 產生）</li> <li><strong><code>capabilities/</code></strong>：Tauri 2 的權限設定 <ul><li><code>default.json</code>：授予 <code>main</code> 視窗 <code>core:default</code> 權限</li></ul> </li> <li><strong><code>icons/</code></strong>：程式圖示，由 <code>tauri.conf.json</code> 的 <code>bundle.icon</code> 引用 <ul><li><code>icon.ico</code>：Windows 執行檔與視窗圖示（內含 16～256 px 多種尺寸），<strong>Windows 建置必備</strong></li> <li><code>32x32.png</code>、<code>128x128.png</code>、<code><a href="/cdn-cgi/l/email-protection" data-cfemail="bd8c8f85c58c8f85fd8fc593cdd3da">[email&nbsp;protected]</a></code>：Linux 等平台與安裝檔使用的 PNG 圖示</li></ul> </li> <li><strong><code>src/</code></strong>：Rust 原始碼 <ul><li><code>main.rs</code>：程式進入點；release 版隱藏主控台視窗，定義 <code>#[tauri::command] fn aes</code>（對應 <code>MapPost("/aes")</code>），建立 Tauri 應用程式並註冊 command</li> <li><code>crypto.rs</code>：<code>CodecNetFx</code> 的 Rust 版 AES-128-CBC 加解密，以及用 .NET 實算結果驗證相容性的單元測試</li></ul> </li> <li><strong><code>gen/schemas/</code></strong>：<code>build.rs</code> 產生的 JSON schema（<code>acl-manifests.json</code>、<code>capabilities.json</code>、<code>desktop-schema.json</code>、<code>windows-schema.json</code>），讓編輯器能檢查 <code>capabilities/*.json</code> 的內容 (版控排除)</li> <li><strong><code>target/</code></strong>：Cargo 建置輸出 (版控排除) <ul><li><code>debug/</code>：<code>cargo run</code> / <code>cargo test</code> 的產物（有主控台、可開 DevTools）</li> <li><code>release/</code>：<code>cargo build --release</code> 的產物，最終成品為 <code>release/aes-encryptor.exe</code>（約 3.1 MB）</li></ul> </li></ul> </li></ul> </li></ul> <p>補充一些小心得：</p> <ol><li><code>cargo install tauri-cli</code> 比預期耗時，有 870 個套件要下載並編譯：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"><br> 編譯過程可看到所有 CPU 一起衝上 100% 的盛況，總耗時約 10 分鐘：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271891119369577.webp"></li> <li>Tauri 有嚴格的權限控制 (畢竟要在 Android/iOS 跑，權限必須明確宣告)，capabilities.json 讓 main 視窗可以使用 Tauri 核心的預設功能。若要使用檔案系統、對話框、shell 等外掛功能，需要在 permissions 中另外加入，例如 "fs:default"、"dialog:default"。 <pre><code>{
+"default": {
+"identifier": "default",
+"description": "Permissions for the main window",
+"local": true,
+"windows": [
+"main"
+],
+"permissions": [
+"core:default"
+]
+}
+}
+</code></pre> </li> <li>Tauri 雖然可以跑網頁，開啟網址為 <code>http://tauri.localhost/</code> (macOS/Linux 為 <code>tauri://localhost/</code>)，走 WebView 的自訂協定處理器，這類網址只在 WebView 中有效。<br> 開發模式（tauri dev）時則是用 dev server，例如 Vite 的 <code>http://localhost:1420/</code> (由 tauri.conf.json 的 build.devUrl 決定) 。這個網址就可以直接用瀏覽器打開，但瀏覽器中無法使用 Tauri 的 API (invoke 等) ，因為沒有 Tauri 的 IPC 橋接。</li> <li>網頁與後端溝通，預設並不是透過 WebAPI 溝通，要改用 Tauri 提供的 invoke() 方法，例如： <pre><code>const { invoke } = window.__TAURI__.core;   // withGlobalTauri: true 才會注入
+result = await invoke('aes', { mode, key: this.EncKey, data });
+</code></pre> 後端寫法如下，其中<code>#[tauri::command]</code> 是 Tauri 的屬性巨集 (Attribute Macro)，用來把一個 Rust 函式標記成「可以被前端 JavaScript/TypeScript 呼叫的指令」： <pre><code>/// Equivalent of `app.MapPost("/aes", ...)` in the ASP.NET Core version.
+/// Called from JavaScript with `invoke('aes', { mode, key, data })`.
+#[tauri::command]
+fn aes(mode: String, key: String, data: String) -&gt; Result&lt;String, String&gt; {
+if key.is_empty() || data.is_empty() {
+return Err("parameter missing".into());
+}
+if mode == "decrypt" {
+crypto::aes_decrypt(&amp;key, &amp;data)
+} else {
+Ok(crypto::aes_encrypt(&amp;key, &amp;data))
+}
+}
+</code></pre> </li> <li>Rust 然是用 <code>rustc</code> 編譯，但要產生 Windows 執行檔仍需由 linker (連結器) 將編譯結果與原生函式庫連結起來。Windows 上的 Rust 有兩種常見工具鏈： <ul><li><code>stable-x86_64-pc-windows-msvc</code>：Microsoft 的 MSVC linker、Windows SDK 與相關函式庫，由 Visual Studio / Build Tools 提供 (與微軟原生元件整合，也是 Tauri 在 Windows 上的標準建置環境)</li> <li><code>stable-x86_64-pc-windows-gnu</code>：MinGW-w64／GNU 工具與相關函式庫 可使用以下 CLI 檢查工具鏈</li></ul> <pre><code>rustup toolchain list         # 列出已安裝的工具鏈
+rustup toolchain install stable-x86_64-pc-windows-msvc # 若沒有 MSVC 裝這個，但 C++ 編譯工具要先自己裝好
+rustup show active-toolchain  # 顯示目前目錄實際使用的工具鏈 (預設 GNU 版)
+cargo +stable-x86_64-pc-windows-msvc build # 指定本次使用 MSVC 版
+</code></pre> 兩者都能編譯 Rust、產生 Windows exe，編譯 Windows 平台執行檔選擇 stable-x86_64-pc-windows-msvc 的好處在於 MSVC 是官方文件採用的工具鏈，較容易照文件建置、排除問題，可避開 MinGW 環境安裝設定問題。要使用 MSVC，開發環境需安裝 Build Tools for Visual Studio 2022。</li> <li>編譯、測試、執行、發行 <pre><code># 編譯
+cargo +stable-x86_64-pc-windows-msvc build
+# 設定本專案用 MSVC，之後可免加 +stable-x86_64-pc-windows-msvc
+rustup override set stable-x86_64-pc-windows-msvc
+# 全機預設用 MSVC
+ustup default stable-x86_64-pc-windows-msvc
+# 單元測試（驗證與 .NET 版相容）
+cargo +stable-x86_64-pc-windows-msvc test
+# 開發執行（有主控台、可開 DevTools）
+cargo +stable-x86_64-pc-windows-msvc run
+# 正式版：產生 target\release\aes-encryptor.exe（約 3 MB，可直接複製使用）
+cargo +stable-x86_64-pc-windows-msvc build --release --features tauri/custom-protocol
+</code></pre> </li></ol> <p>實際了解 Tauri 的做法，會發現雖然 HTML / JavaScript 可以沿用，但原本的 fetch、GET/POST 等 AJAX 互動方式要修改，改走 invoke()，若希望網頁與 Tauri 共用一套，理想做法應該是先將網頁與後端互動全部收攏成少數介面或共用函式，再開發 Web 版及 Tauri 版，如此前端其他不用動，在不同情境抽換介面或共用函式即可在兩個平台順利運行。</p> <p>體驗完畢~</p> <p data-slug="hello-tauri" data-title-en="Tauri in 2026: Building a 3 MB Desktop App with Rust and AI, Compared to ASP.NET Core" data-catg="Front End Web Dev" data-fbimg="https://cdn.pixabay.com/photo/2023/06/13/11/35/crab-8060744_1280.jpg#1280#720">Revisiting earlier ASP.NET Core approach to desktop tools and tries Tauri, a Rust-based framework that uses the OS’s built-in WebView instead of bundling Chromium. By having Claude Opus port an AES encryption tool to Tauri in about half an hour, the author gets a correct 3 MB executable. The post walks through the project structure, permissions, the invoke() bridge, MSVC toolchain setup, and build commands.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>對略懂前端的全端攻城獅來說，把網頁前端加 WebAPI 包成桌面程式，可省下學習摸索 WinForm/WPF 的時間，是絕佳的技能再利用典範。Electron 要包進整個 Chromium 導致程式高達數百 MB 太痴肥，不適合用來寫小工具。熟悉 ASP.NET Core 與 Vue 的我，幾年前想出將 ASP.NET Core 網站轉成單一檔案 exe 寫桌面小工具的點子，執行時叫出內建瀏覽器當 UI，網頁關閉時自動結束程式，在標準 ASP.NET Core Minimal API 專案引用 NuGet Package，改幾行程式便能華麗變身為桌面小工具，體積可低到幾 MB，成效讓我非常滿意。<a href="/blog/electron-net-alternative/">Electron.NET 太笨重？用 ASP.NET Core Minimal API 寫桌面小工具的快速做法</a></p> <p>時間來到 2026，以 Rust 作為後端的 Tauri 框架漸成寫桌面程式的流行做法。Tauri 後端使用 Rust，前端可沿用 HTML、CSS、JavaScript，透過作業系統內建的 WebView 呈現 UI，不像 Electron 必須包進 Chromium 而過胖。加上靠著 Rust 語言特性，能做到執行檔僅數 MB 至數十 MB，執行效率極高記憶體用量又低，攻擊面小且高度記憶體安全，並能支援 iOS/Android 跨平台。唯一的缺點大概是 Rust 是門艱澀難學的程式語言，非凡夫俗子可輕鬆駕御。Tauri 早在 2022 年就發佈 1.0 版，必須要會 Rust 成為阻擋凡人接近的高聳城牆；直到 Vibe Coding 時代來臨，「人不一定要會程式語言，AI 會就好」讓 Rust 門檻瞬間消失，只要 AI 在手，人人都能用 Tauri，於是用 Tauri 開發的程式開始多了起來。</p> <p>我的立場偏保守，評估開發方式時還是想保留人工介入的後路，從這個角度出發，桌面小工具要嘛續用 .NET 為基礎的做法，要嘛認真學好 Rust 放心擁抱 Tauri。</p> <p>在搞懂 Rust 之前，這篇會先體驗 Tauri 長什麼樣子，以<a href="/blog/electron-net-alternative/">上回文章</a>的 AES 加解密工具當範例，看看若改用 Tauri 寫長什麼樣子，有具體參照物，更能快速理解 Tauri 的架構與運作原理。</p> <p>開了 Github Copilot 請 Claude Opus 5.5 參考 ASP.NET Core 版本專案及我的部落格文章，翻寫出一個 Tauri 版本，耗時約半小時(含安裝套件)，花費近 2 塊美金。與人工開發相比，這成本低到不可思議~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"></p> <p>都用上 Opus 等級，毫無意外，一次搞定且功能正確。(說不定用 Sonnet 也成，AI 強成這樣，我該告老還鄉了...)</p> <p>檔案僅 3MB，不需其他 dll 或附屬檔案，這是 Rust 的迷人之處。</p> <p>專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639271891117389325.webp"></p> <ul><li><strong><code>hello-tauri/</code></strong>：專案根目錄 <ul><li><code>.gitignore</code>：排除 <code>src-tauri/target/</code> 與 <code>src-tauri/gen/schemas/</code> 等建置產物</li> <li><strong><code>ui/</code></strong>：前端靜態檔，對應原專案的 <code>ui/</code> 資料夾；由 <code>tauri.conf.json</code> 的 <code>frontendDist</code> 指定，編譯時嵌入 exe <ul><li><code>index.html</code>：畫面版面，CSS 與 Vue 模板沿用原版；移除 <code>&lt;form&gt;</code>、隱藏 <code>&lt;iframe&gt;</code> 及 <code>/sse.js</code></li> <li><code>app.js</code>：Vue app 邏輯，以 <code>window.__TAURI__.core.invoke('aes', …)</code> 呼叫後端（原版的 inline script 移到這裡，以便 CSP 不需開 <code>'unsafe-inline'</code>）</li> <li><code>vue.global.prod.min.js</code>：Vue 3 執行檔，直接從原專案複製</li></ul> </li> <li><strong><code>src-tauri/</code></strong>：Rust 後端與 Tauri 設定，對應原專案的 <code>Program.cs</code>、<code>AesEncryptor.csproj</code> <ul><li><code>Cargo.toml</code>：套件名稱與相依套件（<code>tauri</code>、<code>serde</code>、<code>aes</code>、<code>cbc</code>、<code>sha2</code>、<code>base64</code>），以及 release 縮小體積的設定（LTO、<code>opt-level = "s"</code>、strip）；相當於 <code>.csproj</code></li> <li><code>Cargo.lock</code>：鎖定所有相依套件的實際版本，確保每次建置結果一致；應納入版控（相當於 <code>packages.lock.json</code>）</li> <li><code>build.rs</code>：建置腳本，呼叫 <code>tauri_build::build()</code>，負責讀取 <code>tauri.conf.json</code>、把圖示與版本資訊寫入 Windows 資源、產生權限 schema</li> <li><code>tauri.conf.json</code>：Tauri 主設定檔，包含產品名稱/識別碼、前端目錄、<code>withGlobalTauri</code>、視窗標題與大小、CSP、打包格式及圖示清單</li> <li><code>app-icon.png</code>：1024×1024 的圖示原始檔，用來產生 <code>icons/</code> 下各尺寸圖示（也可交給 <code>cargo tauri icon</code> 產生）</li> <li><strong><code>capabilities/</code></strong>：Tauri 2 的權限設定 <ul><li><code>default.json</code>：授予 <code>main</code> 視窗 <code>core:default</code> 權限</li></ul> </li> <li><strong><code>icons/</code></strong>：程式圖示，由 <code>tauri.conf.json</code> 的 <code>bundle.icon</code> 引用 <ul><li><code>icon.ico</code>：Windows 執行檔與視窗圖示（內含 16～256 px 多種尺寸），<strong>Windows 建置必備</strong></li> <li><code>32x32.png</code>、<code>128x128.png</code>、<code><a href="/cdn-cgi/l/email-protection" data-cfemail="bd8c8f85c58c8f85fd8fc593cdd3da">[email&nbsp;protected]</a></code>：Linux 等平台與安裝檔使用的 PNG 圖示</li></ul> </li> <li><strong><code>src/</code></strong>：Rust 原始碼 <ul><li><code>main.rs</code>：程式進入點；release 版隱藏主控台視窗，定義 <code>#[tauri::command] fn aes</code>（對應 <code>MapPost("/aes")</code>），建立 Tauri 應用程式並註冊 command</li> <li><code>crypto.rs</code>：<code>CodecNetFx</code> 的 Rust 版 AES-128-CBC 加解密，以及用 .NET 實算結果驗證相容性的單元測試</li></ul> </li> <li><strong><code>gen/schemas/</code></strong>：<code>build.rs</code> 產生的 JSON schema（<code>acl-manifests.json</code>、<code>capabilities.json</code>、<code>desktop-schema.json</code>、<code>windows-schema.json</code>），讓編輯器能檢查 <code>capabilities/*.json</code> 的內容 (版控排除)</li> <li><strong><code>target/</code></strong>：Cargo 建置輸出 (版控排除) <ul><li><code>debug/</code>：<code>cargo run</code> / <code>cargo test</code> 的產物（有主控台、可開 DevTools）</li> <li><code>release/</code>：<code>cargo build --release</code> 的產物，最終成品為 <code>release/aes-encryptor.exe</code>（約 3.1 MB）</li></ul> </li></ul> </li></ul> </li></ul> <p>補充一些小心得：</p> <ol><li><code>cargo install tauri-cli</code> 比預期耗時，有 870 個套件要下載並編譯：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"><br> 編譯過程可看到所有 CPU 一起衝上 100% 的盛況，總耗時約 10 分鐘：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271891119369577.webp"></li> <li>Tauri 有嚴格的權限控制 (畢竟要在 Android/iOS 跑，權限必須明確宣告)，capabilities.json 讓 main 視窗可以使用 Tauri 核心的預設功能。若要使用檔案系統、對話框、shell 等外掛功能，需要在 permissions 中另外加入，例如 "fs:default"、"dialog:default"。 <pre><code>{
+"default": {
+"identifier": "default",
+"description": "Permissions for the main window",
+"local": true,
+"windows": [
+"main"
+],
+"permissions": [
+"core:default"
+]
+}
+}
+</code></pre> </li> <li>Tauri 雖然可以跑網頁，開啟網址為 <code>http://tauri.localhost/</code> (macOS/Linux 為 <code>tauri://localhost/</code>)，走 WebView 的自訂協定處理器，這類網址只在 WebView 中有效。<br> 開發模式（tauri dev）時則是用 dev server，例如 Vite 的 <code>http://localhost:1420/</code> (由 tauri.conf.json 的 build.devUrl 決定) 。這個網址就可以直接用瀏覽器打開，但瀏覽器中無法使用 Tauri 的 API (invoke 等) ，因為沒有 Tauri 的 IPC 橋接。</li> <li>網頁與後端溝通，預設並不是透過 WebAPI 溝通，要改用 Tauri 提供的 invoke() 方法，例如： <pre><code>const { invoke } = window.__TAURI__.core;   // withGlobalTauri: true 才會注入
+result = await invoke('aes', { mode, key: this.EncKey, data });
+</code></pre> 後端寫法如下，其中<code>#[tauri::command]</code> 是 Tauri 的屬性巨集 (Attribute Macro)，用來把一個 Rust 函式標記成「可以被前端 JavaScript/TypeScript 呼叫的指令」： <pre><code>/// Equivalent of `app.MapPost("/aes", ...)` in the ASP.NET Core version.
+/// Called from JavaScript with `invoke('aes', { mode, key, data })`.
+#[tauri::command]
+fn aes(mode: String, key: String, data: String) -&gt; Result&lt;String, String&gt; {
+if key.is_empty() || data.is_empty() {
+return Err("parameter missing".into());
+}
+if mode == "decrypt" {
+crypto::aes_decrypt(&amp;key, &amp;data)
+} else {
+Ok(crypto::aes_encrypt(&amp;key, &amp;data))
+}
+}
+</code></pre> </li> <li>Rust 然是用 <code>rustc</code> 編譯，但要產生 Windows 執行檔仍需由 linker (連結器) 將編譯結果與原生函式庫連結起來。Windows 上的 Rust 有兩種常見工具鏈： <ul><li><code>stable-x86_64-pc-windows-msvc</code>：Microsoft 的 MSVC linker、Windows SDK 與相關函式庫，由 Visual Studio / Build Tools 提供 (與微軟原生元件整合，也是 Tauri 在 Windows 上的標準建置環境)</li> <li><code>stable-x86_64-pc-windows-gnu</code>：MinGW-w64／GNU 工具與相關函式庫 可使用以下 CLI 檢查工具鏈</li></ul> <pre><code>rustup toolchain list         # 列出已安裝的工具鏈
+rustup toolchain install stable-x86_64-pc-windows-msvc # 若沒有 MSVC 裝這個，但 C++ 編譯工具要先自己裝好
+rustup show active-toolchain  # 顯示目前目錄實際使用的工具鏈 (預設 GNU 版)
+cargo +stable-x86_64-pc-windows-msvc build # 指定本次使用 MSVC 版
+</code></pre> 兩者都能編譯 Rust、產生 Windows exe，編譯 Windows 平台執行檔選擇 stable-x86_64-pc-windows-msvc 的好處在於 MSVC 是官方文件採用的工具鏈，較容易照文件建置、排除問題，可避開 MinGW 環境安裝設定問題。要使用 MSVC，開發環境需安裝 Build Tools for Visual Studio 2022。</li> <li>編譯、測試、執行、發行 <pre><code># 編譯
+cargo +stable-x86_64-pc-windows-msvc build
+# 設定本專案用 MSVC，之後可免加 +stable-x86_64-pc-windows-msvc
+rustup override set stable-x86_64-pc-windows-msvc
+# 全機預設用 MSVC
+ustup default stable-x86_64-pc-windows-msvc
+# 單元測試（驗證與 .NET 版相容）
+cargo +stable-x86_64-pc-windows-msvc test
+# 開發執行（有主控台、可開 DevTools）
+cargo +stable-x86_64-pc-windows-msvc run
+# 正式版：產生 target\release\aes-encryptor.exe（約 3 MB，可直接複製使用）
+cargo +stable-x86_64-pc-windows-msvc build --release --features tauri/custom-protocol
+</code></pre> </li></ol> <p>實際了解 Tauri 的做法，會發現雖然 HTML / JavaScript 可以沿用，但原本的 fetch、GET/POST 等 AJAX 互動方式要修改，改走 invoke()，若希望網頁與 Tauri 共用一套，理想做法應該是先將網頁與後端互動全部收攏成少數介面或共用函式，再開發 Web 版及 Tauri 版，如此前端其他不用動，在不同情境抽換介面或共用函式即可在兩個平台順利運行。</p> <p>體驗完畢~</p> <p data-slug="hello-tauri" data-title-en="Tauri in 2026: Building a 3 MB Desktop App with Rust and AI, Compared to ASP.NET Core" data-catg="Front End Web Dev" data-fbimg="https://cdn.pixabay.com/photo/2023/06/13/11/35/crab-8060744_1280.jpg#1280#720">Revisiting earlier ASP.NET Core approach to desktop tools and tries Tauri, a Rust-based framework that uses the OS’s built-in WebView instead of bundling Chromium. By having Claude Opus port an AES encryption tool to Tauri in about half an hour, the author gets a correct 3 MB executable. The post walks through the project structure, permissions, the invoke() bridge, MSVC toolchain setup, and build commands.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>對略懂前端的全端攻城獅來說，把網頁前端加 WebAPI 包成桌面程式，可省下學習摸索 WinForm/WPF 的時間，是絕佳的技能再利用典範。Electron 要包進整個 Chromium 導致程式高達數百 MB 太痴肥，不適合用來寫小工具。熟悉 ASP.NET Core 與 Vue 的我，幾年前想出將 ASP.NET Core 網站轉成單一檔案 exe 寫桌面小工具的點子，執行時叫出內建瀏覽器當 UI，網頁關閉時自動結束程式，在標準 ASP.NET Core Minimal API 專案引用 NuGet Package，改幾行程式便能華麗變身為桌面小工具，體積可低到幾 MB，成效讓我非常滿意。<a href="/blog/electron-net-alternative/">Electron.NET 太笨重？用 ASP.NET Core Minimal API 寫桌面小工具的快速做法</a></p> <p>時間來到 2026，以 Rust 作為後端的 Tauri 框架漸成寫桌面程式的流行做法。Tauri 後端使用 Rust，前端可沿用 HTML、CSS、JavaScript，透過作業系統內建的 WebView 呈現 UI，不像 Electron 必須包進 Chromium 而過胖。加上靠著 Rust 語言特性，能做到執行檔僅數 MB 至數十 MB，執行效率極高記憶體用量又低，攻擊面小且高度記憶體安全，並能支援 iOS/Android 跨平台。唯一的缺點大概是 Rust 是門艱澀難學的程式語言，非凡夫俗子可輕鬆駕御。Tauri 早在 2022 年就發佈 1.0 版，必須要會 Rust 成為阻擋凡人接近的高聳城牆；直到 Vibe Coding 時代來臨，「人不一定要會程式語言，AI 會就好」讓 Rust 門檻瞬間消失，只要 AI 在手，人人都能用 Tauri，於是用 Tauri 開發的程式開始多了起來。</p> <p>我的立場偏保守，評估開發方式時還是想保留人工介入的後路，從這個角度出發，桌面小工具要嘛續用 .NET 為基礎的做法，要嘛認真學好 Rust 放心擁抱 Tauri。</p> <p>在搞懂 Rust 之前，這篇會先體驗 Tauri 長什麼樣子，以<a href="/blog/electron-net-alternative/">上回文章</a>的 AES 加解密工具當範例，看看若改用 Tauri 寫長什麼樣子，有具體參照物，更能快速理解 Tauri 的架構與運作原理。</p> <p>開了 Github Copilot 請 Claude Opus 5.5 參考 ASP.NET Core 版本專案及我的部落格文章，翻寫出一個 Tauri 版本，耗時約半小時(含安裝套件)，花費近 2 塊美金。與人工開發相比，這成本低到不可思議~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"></p> <p>都用上 Opus 等級，毫無意外，一次搞定且功能正確。(說不定用 Sonnet 也成，AI 強成這樣，我該告老還鄉了...)</p> <p>檔案僅 3MB，不需其他 dll 或附屬檔案，這是 Rust 的迷人之處。</p> <p>專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639271891117389325.webp"></p> <ul><li><strong><code>hello-tauri/</code></strong>：專案根目錄 <ul><li><code>.gitignore</code>：排除 <code>src-tauri/target/</code> 與 <code>src-tauri/gen/schemas/</code> 等建置產物</li> <li><strong><code>ui/</code></strong>：前端靜態檔，對應原專案的 <code>ui/</code> 資料夾；由 <code>tauri.conf.json</code> 的 <code>frontendDist</code> 指定，編譯時嵌入 exe <ul><li><code>index.html</code>：畫面版面，CSS 與 Vue 模板沿用原版；移除 <code>&lt;form&gt;</code>、隱藏 <code>&lt;iframe&gt;</code> 及 <code>/sse.js</code></li> <li><code>app.js</code>：Vue app 邏輯，以 <code>window.__TAURI__.core.invoke('aes', …)</code> 呼叫後端（原版的 inline script 移到這裡，以便 CSP 不需開 <code>'unsafe-inline'</code>）</li> <li><code>vue.global.prod.min.js</code>：Vue 3 執行檔，直接從原專案複製</li></ul> </li> <li><strong><code>src-tauri/</code></strong>：Rust 後端與 Tauri 設定，對應原專案的 <code>Program.cs</code>、<code>AesEncryptor.csproj</code> <ul><li><code>Cargo.toml</code>：套件名稱與相依套件（<code>tauri</code>、<code>serde</code>、<code>aes</code>、<code>cbc</code>、<code>sha2</code>、<code>base64</code>），以及 release 縮小體積的設定（LTO、<code>opt-level = "s"</code>、strip）；相當於 <code>.csproj</code></li> <li><code>Cargo.lock</code>：鎖定所有相依套件的實際版本，確保每次建置結果一致；應納入版控（相當於 <code>packages.lock.json</code>）</li> <li><code>build.rs</code>：建置腳本，呼叫 <code>tauri_build::build()</code>，負責讀取 <code>tauri.conf.json</code>、把圖示與版本資訊寫入 Windows 資源、產生權限 schema</li> <li><code>tauri.conf.json</code>：Tauri 主設定檔，包含產品名稱/識別碼、前端目錄、<code>withGlobalTauri</code>、視窗標題與大小、CSP、打包格式及圖示清單</li> <li><code>app-icon.png</code>：1024×1024 的圖示原始檔，用來產生 <code>icons/</code> 下各尺寸圖示（也可交給 <code>cargo tauri icon</code> 產生）</li> <li><strong><code>capabilities/</code></strong>：Tauri 2 的權限設定 <ul><li><code>default.json</code>：授予 <code>main</code> 視窗 <code>core:default</code> 權限</li></ul> </li> <li><strong><code>icons/</code></strong>：程式圖示，由 <code>tauri.conf.json</code> 的 <code>bundle.icon</code> 引用 <ul><li><code>icon.ico</code>：Windows 執行檔與視窗圖示（內含 16～256 px 多種尺寸），<strong>Windows 建置必備</strong></li> <li><code>32x32.png</code>、<code>128x128.png</code>、<code><a href="/cdn-cgi/l/email-protection" data-cfemail="bd8c8f85c58c8f85fd8fc593cdd3da">[email&nbsp;protected]</a></code>：Linux 等平台與安裝檔使用的 PNG 圖示</li></ul> </li> <li><strong><code>src/</code></strong>：Rust 原始碼 <ul><li><code>main.rs</code>：程式進入點；release 版隱藏主控台視窗，定義 <code>#[tauri::command] fn aes</code>（對應 <code>MapPost("/aes")</code>），建立 Tauri 應用程式並註冊 command</li> <li><code>crypto.rs</code>：<code>CodecNetFx</code> 的 Rust 版 AES-128-CBC 加解密，以及用 .NET 實算結果驗證相容性的單元測試</li></ul> </li> <li><strong><code>gen/schemas/</code></strong>：<code>build.rs</code> 產生的 JSON schema（<code>acl-manifests.json</code>、<code>capabilities.json</code>、<code>desktop-schema.json</code>、<code>windows-schema.json</code>），讓編輯器能檢查 <code>capabilities/*.json</code> 的內容 (版控排除)</li> <li><strong><code>target/</code></strong>：Cargo 建置輸出 (版控排除) <ul><li><code>debug/</code>：<code>cargo run</code> / <code>cargo test</code> 的產物（有主控台、可開 DevTools）</li> <li><code>release/</code>：<code>cargo build --release</code> 的產物，最終成品為 <code>release/aes-encryptor.exe</code>（約 3.1 MB）</li></ul> </li></ul> </li></ul> </li></ul> <p>補充一些小心得：</p> <ol><li><code>cargo install tauri-cli</code> 比預期耗時，有 870 個套件要下載並編譯：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"><br> 編譯過程可看到所有 CPU 一起衝上 100% 的盛況，總耗時約 10 分鐘：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271891119369577.webp"></li> <li>Tauri 有嚴格的權限控制 (畢竟要在 Android/iOS 跑，權限必須明確宣告)，capabilities.json 讓 main 視窗可以使用 Tauri 核心的預設功能。若要使用檔案系統、對話框、shell 等外掛功能，需要在 permissions 中另外加入，例如 "fs:default"、"dialog:default"。 <pre><code>{
+"default": {
+"identifier": "default",
+"description": "Permissions for the main window",
+"local": true,
+"windows": [
+"main"
+],
+"permissions": [
+"core:default"
+]
+}
+}
+</code></pre> </li> <li>Tauri 雖然可以跑網頁，開啟網址為 <code>http://tauri.localhost/</code> (macOS/Linux 為 <code>tauri://localhost/</code>)，走 WebView 的自訂協定處理器，這類網址只在 WebView 中有效。<br> 開發模式（tauri dev）時則是用 dev server，例如 Vite 的 <code>http://localhost:1420/</code> (由 tauri.conf.json 的 build.devUrl 決定) 。這個網址就可以直接用瀏覽器打開，但瀏覽器中無法使用 Tauri 的 API (invoke 等) ，因為沒有 Tauri 的 IPC 橋接。</li> <li>網頁與後端溝通，預設並不是透過 WebAPI 溝通，要改用 Tauri 提供的 invoke() 方法，例如： <pre><code>const { invoke } = window.__TAURI__.core;   // withGlobalTauri: true 才會注入
+result = await invoke('aes', { mode, key: this.EncKey, data });
+</code></pre> 後端寫法如下，其中<code>#[tauri::command]</code> 是 Tauri 的屬性巨集 (Attribute Macro)，用來把一個 Rust 函式標記成「可以被前端 JavaScript/TypeScript 呼叫的指令」： <pre><code>/// Equivalent of `app.MapPost("/aes", ...)` in the ASP.NET Core version.
+/// Called from JavaScript with `invoke('aes', { mode, key, data })`.
+#[tauri::command]
+fn aes(mode: String, key: String, data: String) -&gt; Result&lt;String, String&gt; {
+if key.is_empty() || data.is_empty() {
+return Err("parameter missing".into());
+}
+if mode == "decrypt" {
+crypto::aes_decrypt(&amp;key, &amp;data)
+} else {
+Ok(crypto::aes_encrypt(&amp;key, &amp;data))
+}
+}
+</code></pre> </li> <li>Rust 然是用 <code>rustc</code> 編譯，但要產生 Windows 執行檔仍需由 linker (連結器) 將編譯結果與原生函式庫連結起來。Windows 上的 Rust 有兩種常見工具鏈： <ul><li><code>stable-x86_64-pc-windows-msvc</code>：Microsoft 的 MSVC linker、Windows SDK 與相關函式庫，由 Visual Studio / Build Tools 提供 (與微軟原生元件整合，也是 Tauri 在 Windows 上的標準建置環境)</li> <li><code>stable-x86_64-pc-windows-gnu</code>：MinGW-w64／GNU 工具與相關函式庫 可使用以下 CLI 檢查工具鏈</li></ul> <pre><code>rustup toolchain list         # 列出已安裝的工具鏈
+rustup toolchain install stable-x86_64-pc-windows-msvc # 若沒有 MSVC 裝這個，但 C++ 編譯工具要先自己裝好
+rustup show active-toolchain  # 顯示目前目錄實際使用的工具鏈 (預設 GNU 版)
+cargo +stable-x86_64-pc-windows-msvc build # 指定本次使用 MSVC 版
+</code></pre> 兩者都能編譯 Rust、產生 Windows exe，編譯 Windows 平台執行檔選擇 stable-x86_64-pc-windows-msvc 的好處在於 MSVC 是官方文件採用的工具鏈，較容易照文件建置、排除問題，可避開 MinGW 環境安裝設定問題。要使用 MSVC，開發環境需安裝 Build Tools for Visual Studio 2022。</li> <li>編譯、測試、執行、發行 <pre><code># 編譯
+cargo +stable-x86_64-pc-windows-msvc build
+# 設定本專案用 MSVC，之後可免加 +stable-x86_64-pc-windows-msvc
+rustup override set stable-x86_64-pc-windows-msvc
+# 全機預設用 MSVC
+ustup default stable-x86_64-pc-windows-msvc
+# 單元測試（驗證與 .NET 版相容）
+cargo +stable-x86_64-pc-windows-msvc test
+# 開發執行（有主控台、可開 DevTools）
+cargo +stable-x86_64-pc-windows-msvc run
+# 正式版：產生 target\release\aes-encryptor.exe（約 3 MB，可直接複製使用）
+cargo +stable-x86_64-pc-windows-msvc build --release --features tauri/custom-protocol
+</code></pre> </li></ol> <p>實際了解 Tauri 的做法，會發現雖然 HTML / JavaScript 可以沿用，但原本的 fetch、GET/POST 等 AJAX 互動方式要修改，改走 invoke()，若希望網頁與 Tauri 共用一套，理想做法應該是先將網頁與後端互動全部收攏成少數介面或共用函式，再開發 Web 版及 Tauri 版，如此前端其他不用動，在不同情境抽換介面或共用函式即可在兩個平台順利運行。</p> <p>體驗完畢~</p> <p data-slug="hello-tauri" data-title-en="Tauri in 2026: Building a 3 MB Desktop App with Rust and AI, Compared to ASP.NET Core" data-catg="Front End Web Dev" data-fbimg="https://cdn.pixabay.com/photo/2023/06/13/11/35/crab-8060744_1280.jpg#1280#720">Revisiting earlier ASP.NET Core approach to desktop tools and tries Tauri, a Rust-based framework that uses the OS’s built-in WebView instead of bundling Chromium. By having Claude Opus port an AES encryption tool to Tauri in about half an hour, the author gets a correct 3 MB executable. The post walks through the project structure, permissions, the invoke() bridge, MSVC toolchain setup, and build commands.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp" medium="image"/>
+    <pubDate>Sat, 10 Oct 2026 00:31:02 GMT</pubDate>
+  </item><item>
     <title><![CDATA[為 Github Copilot 加上 uv 偏好規則]]></title>
     <link>https://blog.darkthread.net/blog/copilot-uv-instruction/</link>
     <itunes:title><![CDATA[為 Github Copilot 加上 uv 偏好規則]]></itunes:title>
@@ -1765,38 +1912,5 @@ public required string Name { get; set; }
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639258512643980572.webp" medium="image"/>
     <pubDate>Thu, 24 Sep 2026 12:48:22 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[VSCode / Github Copliot 透過 LiteLLM 轉接雲端/地端 AI 模型]]></title>
-    <link>https://blog.darkthread.net/blog/github-copilot-w-litellm/</link>
-    <itunes:title><![CDATA[VSCode / Github Copliot 透過 LiteLLM 轉接雲端/地端 AI 模型]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>前幾天介紹過好用的 LiteLLM，允許在多人或多系統<a href="/blog/foundry-models-with-litellm/">共用 Azure Foundry / OpenAI / Claude 模型 API</a>，透過建立多把 Virtual Key 區分權限、設定額度及統計用量。而 VSCode Github Copilot 可串接第三方雲端或地端 AI 模型，能把 LiteLLM 當成模型服務提供者。這篇就來說說如何在 VSCode 設定讓 Github Copilot 透過 LiteLLM 轉接雲端或地端模型。</p> <p>LiteLLM 有篇<a href="https://docs.litellm.ai/docs/tutorials/github_copilot_integration">專文</a>介紹在 VS Code 的聊天中使用 LiteLLM Proxy 的做法，第一種是安裝延伸套件增加模型來源，第二種是將 LiteLLM 設成的 Proxy 攔截 Github Copilot 的上網流量。前者等同在現有的 Copilot 或 Foundry 模型外，多一組來自 LiteLLM 的模型清單，比較彈性直覺，是我選擇的做法。</p> <p>依據官方教學，建議 git clone 專案自己編譯製作 VSCode 套件安裝檔 <code>litellm-vscode-0.1.0.vsix</code>，VSCode 套件庫有一些網友已經包好的安裝檔，我個人偏好從官方來源取得自己製作，專案體積比想像大，超過 2.2GB，編譯需要準備 Node.js 環境，麻煩些但用起來安心。</p> <pre><code>git clone https://github.com/BerriAI/litellm.git
-cd litellm/vscode-extension
-npm ci
-npm run package
-# 使用指令安裝
-code --install-extension litellm-vscode-0.1.0.vsix
-</code></pre> <p>安裝完成後，按 Ctrl-Shift-P 找到 Chat: Manage Language Models：</p> <p><img src="Fig1webp"></p> <p>在模型管理介面，按【Add Models】選 【LiteLLM】，輸入 LiteLLM 網址(如 <code>http://litellm-ip:4000</code>) 及 Virtual API Key：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639257704740360487.webp"></p> <p>設定完成後，模型選單便會出現 LiteLLM 群組，裡面有該 Virtual Key 可存取的模型清單：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639257704742120056.webp"></p> <p>然後就可點 LiteLLM 的模型出來聊天囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639257704743937424.webp"></p> <p data-slug="github-copilot-w-litellm" data-fbimg="https://cdn.pixabay.com/photo/2017/09/15/11/56/animal-2751981_960_720.jpg#960#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>前幾天介紹過好用的 LiteLLM，允許在多人或多系統<a href="/blog/foundry-models-with-litellm/">共用 Azure Foundry / OpenAI / Claude 模型 API</a>，透過建立多把 Virtual Key 區分權限、設定額度及統計用量。而 VSCode Github Copilot 可串接第三方雲端或地端 AI 模型，能把 LiteLLM 當成模型服務提供者。這篇就來說說如何在 VSCode 設定讓 Github Copilot 透過 LiteLLM 轉接雲端或地端模型。</p> <p>LiteLLM 有篇<a href="https://docs.litellm.ai/docs/tutorials/github_copilot_integration">專文</a>介紹在 VS Code 的聊天中使用 LiteLLM Proxy 的做法，第一種是安裝延伸套件增加模型來源，第二種是將 LiteLLM 設成的 Proxy 攔截 Github Copilot 的上網流量。前者等同在現有的 Copilot 或 Foundry 模型外，多一組來自 LiteLLM 的模型清單，比較彈性直覺，是我選擇的做法。</p> <p>依據官方教學，建議 git clone 專案自己編譯製作 VSCode 套件安裝檔 <code>litellm-vscode-0.1.0.vsix</code>，VSCode 套件庫有一些網友已經包好的安裝檔，我個人偏好從官方來源取得自己製作，專案體積比想像大，超過 2.2GB，編譯需要準備 Node.js 環境，麻煩些但用起來安心。</p> <pre><code>git clone https://github.com/BerriAI/litellm.git
-cd litellm/vscode-extension
-npm ci
-npm run package
-# 使用指令安裝
-code --install-extension litellm-vscode-0.1.0.vsix
-</code></pre> <p>安裝完成後，按 Ctrl-Shift-P 找到 Chat: Manage Language Models：</p> <p><img src="Fig1webp"></p> <p>在模型管理介面，按【Add Models】選 【LiteLLM】，輸入 LiteLLM 網址(如 <code>http://litellm-ip:4000</code>) 及 Virtual API Key：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639257704740360487.webp"></p> <p>設定完成後，模型選單便會出現 LiteLLM 群組，裡面有該 Virtual Key 可存取的模型清單：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639257704742120056.webp"></p> <p>然後就可點 LiteLLM 的模型出來聊天囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639257704743937424.webp"></p> <p data-slug="github-copilot-w-litellm" data-fbimg="https://cdn.pixabay.com/photo/2017/09/15/11/56/animal-2751981_960_720.jpg#960#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>前幾天介紹過好用的 LiteLLM，允許在多人或多系統<a href="/blog/foundry-models-with-litellm/">共用 Azure Foundry / OpenAI / Claude 模型 API</a>，透過建立多把 Virtual Key 區分權限、設定額度及統計用量。而 VSCode Github Copilot 可串接第三方雲端或地端 AI 模型，能把 LiteLLM 當成模型服務提供者。這篇就來說說如何在 VSCode 設定讓 Github Copilot 透過 LiteLLM 轉接雲端或地端模型。</p> <p>LiteLLM 有篇<a href="https://docs.litellm.ai/docs/tutorials/github_copilot_integration">專文</a>介紹在 VS Code 的聊天中使用 LiteLLM Proxy 的做法，第一種是安裝延伸套件增加模型來源，第二種是將 LiteLLM 設成的 Proxy 攔截 Github Copilot 的上網流量。前者等同在現有的 Copilot 或 Foundry 模型外，多一組來自 LiteLLM 的模型清單，比較彈性直覺，是我選擇的做法。</p> <p>依據官方教學，建議 git clone 專案自己編譯製作 VSCode 套件安裝檔 <code>litellm-vscode-0.1.0.vsix</code>，VSCode 套件庫有一些網友已經包好的安裝檔，我個人偏好從官方來源取得自己製作，專案體積比想像大，超過 2.2GB，編譯需要準備 Node.js 環境，麻煩些但用起來安心。</p> <pre><code>git clone https://github.com/BerriAI/litellm.git
-cd litellm/vscode-extension
-npm ci
-npm run package
-# 使用指令安裝
-code --install-extension litellm-vscode-0.1.0.vsix
-</code></pre> <p>安裝完成後，按 Ctrl-Shift-P 找到 Chat: Manage Language Models：</p> <p><img src="Fig1webp"></p> <p>在模型管理介面，按【Add Models】選 【LiteLLM】，輸入 LiteLLM 網址(如 <code>http://litellm-ip:4000</code>) 及 Virtual API Key：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639257704740360487.webp"></p> <p>設定完成後，模型選單便會出現 LiteLLM 群組，裡面有該 Virtual Key 可存取的模型清單：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639257704742120056.webp"></p> <p>然後就可點 LiteLLM 的模型出來聊天囉~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639257704743937424.webp"></p> <p data-slug="github-copilot-w-litellm" data-fbimg="https://cdn.pixabay.com/photo/2017/09/15/11/56/animal-2751981_960_720.jpg#960#720"> </p>]]></content:encoded>
-    <itunes:image href="Fig1webp"/>
-          <media:content url="Fig1webp" medium="image"/>
-    <pubDate>Wed, 23 Sep 2026 14:27:08 GMT</pubDate>
   </item></channel>
 </rss>
