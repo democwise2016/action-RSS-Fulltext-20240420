@@ -1,0 +1,1817 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:media="http://www.rssboard.org/media-rss" version="2.0">
+  <channel>
+    <title><![CDATA[黑暗執行緒[RSS+]]]></title>
+    <link>undefined</link>
+    <image>
+      <url>https://blog.darkthread.net/img/icon512x512.png</url>
+      <title>黑暗執行緒[RSS+]</title>
+      <link>undefined</link>
+    </image>
+    <language>en-us</language>
+    <atom:link href="https://blog.darkthread.net/feed/rss/" rel="self" type="application/rss+xml"/>
+    <copyright><![CDATA[黑暗執行緒[RSS+]]]></copyright>
+    <itunes:author><![CDATA[黑暗執行緒[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[
+      黑暗執行緒部落格 - 一位在技術領域打滾多年老士官長的生活點滴<br />
+<br />
+<a href="https://blog.darkthread.net/feed/rss/" target="_blank">https://blog.darkthread.net/feed/rss/</a>
+      ]]>
+    </description>
+    <itunes:owner>
+      <itunes:name><![CDATA[黑暗執行緒[RSS+]]]></itunes:name>
+    </itunes:owner>
+    <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
+<item>
+    <title><![CDATA[Tauri 概念的 .NET 實現 - 輕巧好用的 Photino.NET]]></title>
+    <link>https://blog.darkthread.net/blog/hello-photino-net/</link>
+    <itunes:title><![CDATA[Tauri 概念的 .NET 實現 - 輕巧好用的 Photino.NET]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>陸續看過 <a href="/blog/hello-tauri/">Tauri</a>、<a href="/blog/maui-hybridwebview/">MAUI HybridWebView</a>，繼續探索用網頁寫桌面小工具的賽道，這篇來介紹 Photino.NET。</p> <p><a href="https://www.tryphotino.io/">Photino</a> 是個輕量級開源框架，可用來建構介面採用 Web UI 技術 (HTML、JavaScript、CSS) 的跨平台桌面應用程式。專案受 Electron 啟發，目標也是讓開發者沿用前端技術跨平台，不必學習各平台的專屬 UI 技術。專案由 CODE Magazine 與開源社群共同維護，活躍度還行，到今年三月都還有更新。<br> (題外話：官方在 2026/3/26 公告，因團隊時間有限，將引進 AI 代理輔助維護流程：先用 GitHub Copilot 協助審查 PR 與分類 Issue。看來所有開發人員都免不了因應 AI 改變，才能趕上這個時代。)</p> <p>Photino 由多個 NuGet 套件組成：</p> <ul><li>Photino.Native：各平台的原生封裝層，以 C++ (及 Objective-C) 撰寫，包裝作業系統內建的瀏覽器控制項，並針對各平台編譯</li> <li>Photino.NET：為 Photino.Native 加上 .NET 支援，後端使用 C#，前端可搭配任何 Web 框架 (React、Vue、Angular 等)</li> <li>Photino.Blazor：建構於 Photino.NET 之上，可完全不用 JavaScript 或 TypeScript 開發</li></ul> <p>Photino 理論上也能用於 C++、Go、Rust、Java 等語言，但目前以 .NET 為主要重心。</p> <p>Photino 不是歷史悠久的成熟專案，但簡單試用後，我個人喜歡它的輕巧與簡單易用，原有網站程式不需大幅修改就能套用。一樣以我的 <a href="/blog/electron-net-alternative/">ASP.NET Core Minimal API 桌面小工具範例</a>當例子，改用 Photino.NET 後的專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639273251674996385.webp"></p> <p>幾乎跟原本 ASP.NET Core 專案結構一模一樣。只有改動幾個小地方：</p> <ol><li>引用 Photino.NET 套件：<code>dotnet package add Photino.NET</code></li> <li>小幅改寫 Program.cs <pre><code>using System.Reflection;
+using System.Text.Json;
+using Photino.NET;
+static class Program
+{
+// Web 預設：讀取不分大小寫、輸出 camelCase，與前端 JSON 慣例一致
+static readonly JsonSerializerOptions JsonOpt = new(JsonSerializerDefaults.Web);
+// Windows 的 WebView2 需要 STA 執行緒
+[STAThread]
+static void Main()
+{
+var window = new PhotinoWindow()
+.SetTitle("AES Encryptor")
+.SetUseOsDefaultSize(false)
+.SetSize(640, 480)
+.SetMinSize(400, 300)
+.Center()
+.SetResizable(true)
+.SetContextMenuEnabled(false)
+// app:// 自訂 Scheme 負責提供頁面引用的內嵌資源（如 vue.global.prod.min.js）
+.RegisterCustomSchemeHandler("app", (object sender, string scheme, string url, out string contentType) =&gt;
+LoadEmbeddedFile(url, out contentType))
+// 前端以 window.external.sendMessage(json) 傳入，處理後用 SendWebMessage 回傳
+.RegisterWebMessageReceivedHandler((sender, message) =&gt;
+((PhotinoWindow)sender!).SendWebMessage(HandleAes(message)))
+// 主頁面 HTML 從內嵌資源讀出後直接載入
+.LoadRawString(ReadEmbeddedText("index.html"));
+// 視窗關閉時 WaitForClose 返回，程式隨之結束，不需要額外偵測
+window.WaitForClose();
+}
+static Stream? OpenEmbedded(string name) =&gt;
+Assembly.GetExecutingAssembly().GetManifestResourceStream($"ui/{name}");
+static string ReadEmbeddedText(string name)
+{
+using var reader = new StreamReader(OpenEmbedded(name)!);
+return reader.ReadToEnd();
+}
+static Stream? LoadEmbeddedFile(string url, out string contentType)
+{
+var path = new Uri(url).AbsolutePath.TrimStart('/');
+contentType = Path.GetExtension(path).ToLowerInvariant() switch
+{
+".html" =&gt; "text/html",
+".js" =&gt; "text/javascript",
+".css" =&gt; "text/css",
+_ =&gt; "application/octet-stream"
+};
+return OpenEmbedded(path);
+}
+// 取代原本的 MapPost("/aes")
+static string HandleAes(string json)
+{
+var req = JsonSerializer.Deserialize&lt;AesRequest&gt;(json, JsonOpt)!;
+var encMode = req.Mode != "decrypt";
+var result = string.Empty;
+var message = string.Empty;
+try
+{
+if (string.IsNullOrEmpty(req.Key) || string.IsNullOrEmpty(req.Data))
+throw new ArgumentException("parameter missing");
+result = encMode
+? CodecNetFx.AesEncrypt(req.Key, req.Data)
+: CodecNetFx.AesDecrypt(req.Key, req.Data);
+}
+catch (Exception ex) { message = ex.Message; }
+return JsonSerializer.Serialize(
+new AesResponse(encMode ? "Encrypted" : "Plain", result, message), JsonOpt);
+}
+}
+record AesRequest(string? Mode, string? Key, string? Data);
+record AesResponse(string Target, string Result, string Message);
+</code></pre> 至於想從 C# 端主動呼叫 JavaScript 端，呼叫 PhotinoWindow.SendWebMessage() 即可。</li> <li>瀏覽器中使用 <code>app://localhost/</code> 取代 <code>http://localhost</code> 存取後端，index.html 修改如下： <pre><code>&lt;script src="app://localhost/vue.global.prod.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+var vm = Vue.createApp({
+data() {
+return {
+EncKey: 'ThisIsEncryptKey',
+Plain: 'Hello World',
+Encrypted: '',
+Message: '',
+HighlightTarget: ''
+}
+},
+methods: {
+// 透過 Photino 的 IPC 將 JSON 傳給 .NET，取代原本的 form POST
+Send(mode, data) {
+window.external.sendMessage(JSON.stringify({ mode, key: this.EncKey, data }));
+},
+Encrypt() { this.Send('encrypt', this.Plain); },
+Decrypt() { this.Send('decrypt', this.Encrypted); },
+Highlight(target) {
+this.HighlightTarget = target;
+let self = this;
+setTimeout(() =&gt; self.HighlightTarget = '', 800);
+}
+}
+}).mount('#app');
+// 接收 .NET 以 SendWebMessage 回傳的結果
+window.external.receiveMessage(json =&gt; {
+const res = JSON.parse(json);
+vm[res.target] = res.result;
+vm.Message = res.message;
+vm.Highlight(res.target);
+});
+&lt;/script&gt;
+</code></pre> </li> <li>Photino.NET 程式依賴原生程式庫 Photino.Native.dll、WebView2Loader.dll 才能運作，若想做到單一執行檔，除了 <code>dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained</code>，.csproj 還要加上 <code>&lt;IncludeNativeLibrariesForSelfExtract&gt;true&lt;/IncludeNativeLibrariesForSelfExtract&gt;</code> <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/single-file/overview?tabs=cli&amp;WT.mc_id=DOP-MVP-37580#native-libraries">參考</a>，將兩個原生程式庫 .dll 也包進去，程式啟動時會被自動解壓到暫存目錄(<code>%TEMP%\.net\AesEncryptor.Photino\&lt;hash&gt;\</code>)並載入。</li></ol> <p>實測，若客戶端已有 .NET Runtime，單檔程式體積可以小到不足 1MB，我很滿意!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639273251678496534.webp"></p> <p>Photino 的簡潔設計與輕巧易用，符合我偏愛的 KISS 極簡風格，我打算將它收進程式工具箱，未來就試著用它開發桌面小工具，若有心得再來分享。</p> <p data-slug="hello-photino-net" data-title-en="Photino.NET: Turning Web Apps into Lightweight Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2025/04/09/16/13/sparrow-9524499_1280.jpg#1280#720">An introduction to Photino.NET, a lightweight open-source framework for building cross-platform desktop apps with Web UI. Using an ASP.NET Core Minimal API example, it shows how few changes are needed and how to publish a single-file executable under 1MB.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>陸續看過 <a href="/blog/hello-tauri/">Tauri</a>、<a href="/blog/maui-hybridwebview/">MAUI HybridWebView</a>，繼續探索用網頁寫桌面小工具的賽道，這篇來介紹 Photino.NET。</p> <p><a href="https://www.tryphotino.io/">Photino</a> 是個輕量級開源框架，可用來建構介面採用 Web UI 技術 (HTML、JavaScript、CSS) 的跨平台桌面應用程式。專案受 Electron 啟發，目標也是讓開發者沿用前端技術跨平台，不必學習各平台的專屬 UI 技術。專案由 CODE Magazine 與開源社群共同維護，活躍度還行，到今年三月都還有更新。<br> (題外話：官方在 2026/3/26 公告，因團隊時間有限，將引進 AI 代理輔助維護流程：先用 GitHub Copilot 協助審查 PR 與分類 Issue。看來所有開發人員都免不了因應 AI 改變，才能趕上這個時代。)</p> <p>Photino 由多個 NuGet 套件組成：</p> <ul><li>Photino.Native：各平台的原生封裝層，以 C++ (及 Objective-C) 撰寫，包裝作業系統內建的瀏覽器控制項，並針對各平台編譯</li> <li>Photino.NET：為 Photino.Native 加上 .NET 支援，後端使用 C#，前端可搭配任何 Web 框架 (React、Vue、Angular 等)</li> <li>Photino.Blazor：建構於 Photino.NET 之上，可完全不用 JavaScript 或 TypeScript 開發</li></ul> <p>Photino 理論上也能用於 C++、Go、Rust、Java 等語言，但目前以 .NET 為主要重心。</p> <p>Photino 不是歷史悠久的成熟專案，但簡單試用後，我個人喜歡它的輕巧與簡單易用，原有網站程式不需大幅修改就能套用。一樣以我的 <a href="/blog/electron-net-alternative/">ASP.NET Core Minimal API 桌面小工具範例</a>當例子，改用 Photino.NET 後的專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639273251674996385.webp"></p> <p>幾乎跟原本 ASP.NET Core 專案結構一模一樣。只有改動幾個小地方：</p> <ol><li>引用 Photino.NET 套件：<code>dotnet package add Photino.NET</code></li> <li>小幅改寫 Program.cs <pre><code>using System.Reflection;
+using System.Text.Json;
+using Photino.NET;
+static class Program
+{
+// Web 預設：讀取不分大小寫、輸出 camelCase，與前端 JSON 慣例一致
+static readonly JsonSerializerOptions JsonOpt = new(JsonSerializerDefaults.Web);
+// Windows 的 WebView2 需要 STA 執行緒
+[STAThread]
+static void Main()
+{
+var window = new PhotinoWindow()
+.SetTitle("AES Encryptor")
+.SetUseOsDefaultSize(false)
+.SetSize(640, 480)
+.SetMinSize(400, 300)
+.Center()
+.SetResizable(true)
+.SetContextMenuEnabled(false)
+// app:// 自訂 Scheme 負責提供頁面引用的內嵌資源（如 vue.global.prod.min.js）
+.RegisterCustomSchemeHandler("app", (object sender, string scheme, string url, out string contentType) =&gt;
+LoadEmbeddedFile(url, out contentType))
+// 前端以 window.external.sendMessage(json) 傳入，處理後用 SendWebMessage 回傳
+.RegisterWebMessageReceivedHandler((sender, message) =&gt;
+((PhotinoWindow)sender!).SendWebMessage(HandleAes(message)))
+// 主頁面 HTML 從內嵌資源讀出後直接載入
+.LoadRawString(ReadEmbeddedText("index.html"));
+// 視窗關閉時 WaitForClose 返回，程式隨之結束，不需要額外偵測
+window.WaitForClose();
+}
+static Stream? OpenEmbedded(string name) =&gt;
+Assembly.GetExecutingAssembly().GetManifestResourceStream($"ui/{name}");
+static string ReadEmbeddedText(string name)
+{
+using var reader = new StreamReader(OpenEmbedded(name)!);
+return reader.ReadToEnd();
+}
+static Stream? LoadEmbeddedFile(string url, out string contentType)
+{
+var path = new Uri(url).AbsolutePath.TrimStart('/');
+contentType = Path.GetExtension(path).ToLowerInvariant() switch
+{
+".html" =&gt; "text/html",
+".js" =&gt; "text/javascript",
+".css" =&gt; "text/css",
+_ =&gt; "application/octet-stream"
+};
+return OpenEmbedded(path);
+}
+// 取代原本的 MapPost("/aes")
+static string HandleAes(string json)
+{
+var req = JsonSerializer.Deserialize&lt;AesRequest&gt;(json, JsonOpt)!;
+var encMode = req.Mode != "decrypt";
+var result = string.Empty;
+var message = string.Empty;
+try
+{
+if (string.IsNullOrEmpty(req.Key) || string.IsNullOrEmpty(req.Data))
+throw new ArgumentException("parameter missing");
+result = encMode
+? CodecNetFx.AesEncrypt(req.Key, req.Data)
+: CodecNetFx.AesDecrypt(req.Key, req.Data);
+}
+catch (Exception ex) { message = ex.Message; }
+return JsonSerializer.Serialize(
+new AesResponse(encMode ? "Encrypted" : "Plain", result, message), JsonOpt);
+}
+}
+record AesRequest(string? Mode, string? Key, string? Data);
+record AesResponse(string Target, string Result, string Message);
+</code></pre> 至於想從 C# 端主動呼叫 JavaScript 端，呼叫 PhotinoWindow.SendWebMessage() 即可。</li> <li>瀏覽器中使用 <code>app://localhost/</code> 取代 <code>http://localhost</code> 存取後端，index.html 修改如下： <pre><code>&lt;script src="app://localhost/vue.global.prod.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+var vm = Vue.createApp({
+data() {
+return {
+EncKey: 'ThisIsEncryptKey',
+Plain: 'Hello World',
+Encrypted: '',
+Message: '',
+HighlightTarget: ''
+}
+},
+methods: {
+// 透過 Photino 的 IPC 將 JSON 傳給 .NET，取代原本的 form POST
+Send(mode, data) {
+window.external.sendMessage(JSON.stringify({ mode, key: this.EncKey, data }));
+},
+Encrypt() { this.Send('encrypt', this.Plain); },
+Decrypt() { this.Send('decrypt', this.Encrypted); },
+Highlight(target) {
+this.HighlightTarget = target;
+let self = this;
+setTimeout(() =&gt; self.HighlightTarget = '', 800);
+}
+}
+}).mount('#app');
+// 接收 .NET 以 SendWebMessage 回傳的結果
+window.external.receiveMessage(json =&gt; {
+const res = JSON.parse(json);
+vm[res.target] = res.result;
+vm.Message = res.message;
+vm.Highlight(res.target);
+});
+&lt;/script&gt;
+</code></pre> </li> <li>Photino.NET 程式依賴原生程式庫 Photino.Native.dll、WebView2Loader.dll 才能運作，若想做到單一執行檔，除了 <code>dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained</code>，.csproj 還要加上 <code>&lt;IncludeNativeLibrariesForSelfExtract&gt;true&lt;/IncludeNativeLibrariesForSelfExtract&gt;</code> <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/single-file/overview?tabs=cli&amp;WT.mc_id=DOP-MVP-37580#native-libraries">參考</a>，將兩個原生程式庫 .dll 也包進去，程式啟動時會被自動解壓到暫存目錄(<code>%TEMP%\.net\AesEncryptor.Photino\&lt;hash&gt;\</code>)並載入。</li></ol> <p>實測，若客戶端已有 .NET Runtime，單檔程式體積可以小到不足 1MB，我很滿意!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639273251678496534.webp"></p> <p>Photino 的簡潔設計與輕巧易用，符合我偏愛的 KISS 極簡風格，我打算將它收進程式工具箱，未來就試著用它開發桌面小工具，若有心得再來分享。</p> <p data-slug="hello-photino-net" data-title-en="Photino.NET: Turning Web Apps into Lightweight Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2025/04/09/16/13/sparrow-9524499_1280.jpg#1280#720">An introduction to Photino.NET, a lightweight open-source framework for building cross-platform desktop apps with Web UI. Using an ASP.NET Core Minimal API example, it shows how few changes are needed and how to publish a single-file executable under 1MB.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>陸續看過 <a href="/blog/hello-tauri/">Tauri</a>、<a href="/blog/maui-hybridwebview/">MAUI HybridWebView</a>，繼續探索用網頁寫桌面小工具的賽道，這篇來介紹 Photino.NET。</p> <p><a href="https://www.tryphotino.io/">Photino</a> 是個輕量級開源框架，可用來建構介面採用 Web UI 技術 (HTML、JavaScript、CSS) 的跨平台桌面應用程式。專案受 Electron 啟發，目標也是讓開發者沿用前端技術跨平台，不必學習各平台的專屬 UI 技術。專案由 CODE Magazine 與開源社群共同維護，活躍度還行，到今年三月都還有更新。<br> (題外話：官方在 2026/3/26 公告，因團隊時間有限，將引進 AI 代理輔助維護流程：先用 GitHub Copilot 協助審查 PR 與分類 Issue。看來所有開發人員都免不了因應 AI 改變，才能趕上這個時代。)</p> <p>Photino 由多個 NuGet 套件組成：</p> <ul><li>Photino.Native：各平台的原生封裝層，以 C++ (及 Objective-C) 撰寫，包裝作業系統內建的瀏覽器控制項，並針對各平台編譯</li> <li>Photino.NET：為 Photino.Native 加上 .NET 支援，後端使用 C#，前端可搭配任何 Web 框架 (React、Vue、Angular 等)</li> <li>Photino.Blazor：建構於 Photino.NET 之上，可完全不用 JavaScript 或 TypeScript 開發</li></ul> <p>Photino 理論上也能用於 C++、Go、Rust、Java 等語言，但目前以 .NET 為主要重心。</p> <p>Photino 不是歷史悠久的成熟專案，但簡單試用後，我個人喜歡它的輕巧與簡單易用，原有網站程式不需大幅修改就能套用。一樣以我的 <a href="/blog/electron-net-alternative/">ASP.NET Core Minimal API 桌面小工具範例</a>當例子，改用 Photino.NET 後的專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639273251674996385.webp"></p> <p>幾乎跟原本 ASP.NET Core 專案結構一模一樣。只有改動幾個小地方：</p> <ol><li>引用 Photino.NET 套件：<code>dotnet package add Photino.NET</code></li> <li>小幅改寫 Program.cs <pre><code>using System.Reflection;
+using System.Text.Json;
+using Photino.NET;
+static class Program
+{
+// Web 預設：讀取不分大小寫、輸出 camelCase，與前端 JSON 慣例一致
+static readonly JsonSerializerOptions JsonOpt = new(JsonSerializerDefaults.Web);
+// Windows 的 WebView2 需要 STA 執行緒
+[STAThread]
+static void Main()
+{
+var window = new PhotinoWindow()
+.SetTitle("AES Encryptor")
+.SetUseOsDefaultSize(false)
+.SetSize(640, 480)
+.SetMinSize(400, 300)
+.Center()
+.SetResizable(true)
+.SetContextMenuEnabled(false)
+// app:// 自訂 Scheme 負責提供頁面引用的內嵌資源（如 vue.global.prod.min.js）
+.RegisterCustomSchemeHandler("app", (object sender, string scheme, string url, out string contentType) =&gt;
+LoadEmbeddedFile(url, out contentType))
+// 前端以 window.external.sendMessage(json) 傳入，處理後用 SendWebMessage 回傳
+.RegisterWebMessageReceivedHandler((sender, message) =&gt;
+((PhotinoWindow)sender!).SendWebMessage(HandleAes(message)))
+// 主頁面 HTML 從內嵌資源讀出後直接載入
+.LoadRawString(ReadEmbeddedText("index.html"));
+// 視窗關閉時 WaitForClose 返回，程式隨之結束，不需要額外偵測
+window.WaitForClose();
+}
+static Stream? OpenEmbedded(string name) =&gt;
+Assembly.GetExecutingAssembly().GetManifestResourceStream($"ui/{name}");
+static string ReadEmbeddedText(string name)
+{
+using var reader = new StreamReader(OpenEmbedded(name)!);
+return reader.ReadToEnd();
+}
+static Stream? LoadEmbeddedFile(string url, out string contentType)
+{
+var path = new Uri(url).AbsolutePath.TrimStart('/');
+contentType = Path.GetExtension(path).ToLowerInvariant() switch
+{
+".html" =&gt; "text/html",
+".js" =&gt; "text/javascript",
+".css" =&gt; "text/css",
+_ =&gt; "application/octet-stream"
+};
+return OpenEmbedded(path);
+}
+// 取代原本的 MapPost("/aes")
+static string HandleAes(string json)
+{
+var req = JsonSerializer.Deserialize&lt;AesRequest&gt;(json, JsonOpt)!;
+var encMode = req.Mode != "decrypt";
+var result = string.Empty;
+var message = string.Empty;
+try
+{
+if (string.IsNullOrEmpty(req.Key) || string.IsNullOrEmpty(req.Data))
+throw new ArgumentException("parameter missing");
+result = encMode
+? CodecNetFx.AesEncrypt(req.Key, req.Data)
+: CodecNetFx.AesDecrypt(req.Key, req.Data);
+}
+catch (Exception ex) { message = ex.Message; }
+return JsonSerializer.Serialize(
+new AesResponse(encMode ? "Encrypted" : "Plain", result, message), JsonOpt);
+}
+}
+record AesRequest(string? Mode, string? Key, string? Data);
+record AesResponse(string Target, string Result, string Message);
+</code></pre> 至於想從 C# 端主動呼叫 JavaScript 端，呼叫 PhotinoWindow.SendWebMessage() 即可。</li> <li>瀏覽器中使用 <code>app://localhost/</code> 取代 <code>http://localhost</code> 存取後端，index.html 修改如下： <pre><code>&lt;script src="app://localhost/vue.global.prod.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+var vm = Vue.createApp({
+data() {
+return {
+EncKey: 'ThisIsEncryptKey',
+Plain: 'Hello World',
+Encrypted: '',
+Message: '',
+HighlightTarget: ''
+}
+},
+methods: {
+// 透過 Photino 的 IPC 將 JSON 傳給 .NET，取代原本的 form POST
+Send(mode, data) {
+window.external.sendMessage(JSON.stringify({ mode, key: this.EncKey, data }));
+},
+Encrypt() { this.Send('encrypt', this.Plain); },
+Decrypt() { this.Send('decrypt', this.Encrypted); },
+Highlight(target) {
+this.HighlightTarget = target;
+let self = this;
+setTimeout(() =&gt; self.HighlightTarget = '', 800);
+}
+}
+}).mount('#app');
+// 接收 .NET 以 SendWebMessage 回傳的結果
+window.external.receiveMessage(json =&gt; {
+const res = JSON.parse(json);
+vm[res.target] = res.result;
+vm.Message = res.message;
+vm.Highlight(res.target);
+});
+&lt;/script&gt;
+</code></pre> </li> <li>Photino.NET 程式依賴原生程式庫 Photino.Native.dll、WebView2Loader.dll 才能運作，若想做到單一執行檔，除了 <code>dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained</code>，.csproj 還要加上 <code>&lt;IncludeNativeLibrariesForSelfExtract&gt;true&lt;/IncludeNativeLibrariesForSelfExtract&gt;</code> <a href="https://learn.microsoft.com/zh-tw/dotnet/core/deploying/single-file/overview?tabs=cli&amp;WT.mc_id=DOP-MVP-37580#native-libraries">參考</a>，將兩個原生程式庫 .dll 也包進去，程式啟動時會被自動解壓到暫存目錄(<code>%TEMP%\.net\AesEncryptor.Photino\&lt;hash&gt;\</code>)並載入。</li></ol> <p>實測，若客戶端已有 .NET Runtime，單檔程式體積可以小到不足 1MB，我很滿意!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639273251678496534.webp"></p> <p>Photino 的簡潔設計與輕巧易用，符合我偏愛的 KISS 極簡風格，我打算將它收進程式工具箱，未來就試著用它開發桌面小工具，若有心得再來分享。</p> <p data-slug="hello-photino-net" data-title-en="Photino.NET: Turning Web Apps into Lightweight Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2025/04/09/16/13/sparrow-9524499_1280.jpg#1280#720">An introduction to Photino.NET, a lightweight open-source framework for building cross-platform desktop apps with Web UI. Using an ASP.NET Core Minimal API example, it shows how few changes are needed and how to publish a single-file executable under 1MB.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639273251674996385.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639273251674996385.webp" medium="image"/>
+    <pubDate>Sun, 11 Oct 2026 14:18:00 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[使用 MAUI HybridWebView 開發網頁介面桌面小工具]]></title>
+    <link>https://blog.darkthread.net/blog/maui-hybridwebview/</link>
+    <itunes:title><![CDATA[使用 MAUI HybridWebView 開發網頁介面桌面小工具]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>看過 <a href="/blog/hello-tauri/">Tauri</a> 後，繼續探索將網站轉成桌面小工具的主題。想利用前端技術寫桌面程式，但 Electron 包了 Chromium 太肥，借用內建瀏覽器輕量化的想法大家都有，這篇來看微軟的解決方案 - MAUI HybridWebView。</p> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/maui/user-interface/controls/hybridwebview?view=net-maui-10.0&amp;WT.mc_id=DOP-MVP-37580">HybridWebView</a> 是 .NET MAUI 技術框架提供的控制項，可在原生 Web 檢視中載入 HTML、JavaScript 與 CSS 內容，並讓 JavaScript 與 C# 雙向通訊。例如，既有的 Vue/React/jQuery 應用程式可直接嵌入跨平台 MAUI 應用程式，後端則以 C# 與 .NET 實作 [^1]。</p> <p>Web 內容預設放在 <code>Resources/Raw/wwwroot</code>，並以 <code>index.html</code> 作為預設檔案。整個應用程式連同 Web 內容會封裝在裝置本機執行，不一定需要連線外部網路。C# 端透過 <code>InvokeJavaScriptAsync</code> 呼叫 JavaScript 方法，JavaScript 端則以 <code>window.HybridWebView.InvokeDotNet</code> 呼叫 C# 方法。這個做法，也呼應了上回 Tauri 的 Invoke() 方法，意味著若要同一套前端介面同時用於網站及桌面程式，需要適度改寫將前後端溝通部分抽取出來，寫成兩套模組，再視情境抽換。</p> <p>同樣做法，在 Github Copilot 要求 Opus 5.5 參考我的 ASP.NET Core 轉桌面小工具文章跟範例專案，改寫成 MAUI HybridWebView 版進行對照，有助於更快理解其架構。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp"></p> <ul><li>AesEncryptorMaui/ <ul><li>AesEncryptorMaui.csproj：MAUI 專案設定，只鎖定 Windows / Mac Catalyst 桌面平台</li> <li>MauiProgram.cs：App 進入點與 DI 設定，Debug 時開啟 WebView DevTools</li> <li>App.xaml / App.xaml.cs：建立唯一的主視窗，設定標題與尺寸</li> <li>MainPage.xaml / MainPage.xaml.cs：放置 HybridWebView，並指定 JS 可呼叫的 .NET 物件</li> <li>AesBridge.cs：提供給 JS 呼叫的方法，對應原本的 <code>MapPost("/aes")</code> <pre><code>public sealed class AesBridge
+{
+public AesResult Aes(string mode, string key, string data)
+{
+var encMode = mode != "decrypt";
+var result = new AesResult();
+try
+{
+if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(data))
+throw new ArgumentException("parameter missing");
+result.Result = encMode ? CodecNetFx.AesEncrypt(key, data) : CodecNetFx.AesDecrypt(key, data);
+}
+catch (Exception ex) { result.Message = ex.Message; }
+return result;
+}
+}
+public sealed class AesResult
+{
+public string Result { get; set; } = string.Empty;
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> </li> <li>CodecNetFx.cs：AES 加解密，沿用原範例</li> <li>Resources/Raw/wwwroot/：前端網頁資源</li> <li>index.html：前端介面，使用 Vue 3 <pre><code>async Run(mode, data, resProp) {
+try {
+// 取代原本 &lt;form action="/aes" target="iframe"&gt; 的 POST
+const res = await window.HybridWebView.InvokeDotNet('Aes', [mode, this.EncKey, data]);
+this[resProp] = res.Result;
+this.Message = res.Message;
+this.Highlight(resProp);
+}
+catch (e) {
+this.Message = e.message || String(e);
+}
+},
+</code></pre> <ul><li>vue.global.prod.min.js：Vue 程式庫壓縮檔</li></ul> </li> <li>Platforms/Windows/App.xaml.cs：設定 WebView2 使用者資料夾 <pre><code>public App()
+{
+// 未封裝 (unpackaged) 的 exe 若被安裝到 Program Files，WebView2 無法在 exe 目錄寫入快取，
+// 故在 WebView 建立前將使用者資料夾指到可寫入的 AppData
+var userDataFolder = Path.Combine(FileSystem.AppDataDirectory, "WebView2");
+Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
+this.InitializeComponent();
+}
+</code></pre> </li></ul> </li></ul> <p>成功執行!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639272239686406042.webp"></p> <p>將網頁裝進 .exe 執行沒問題，但直接說結論：MAUI HybridWebView 較適合一般應用程式，不適合用來寫桌面小工具。</p> <p>原因是體積。雖然使用作業系統內建的 WebView (Windows：WebView2 (Chromium Edge)、Mac Catalyst / iOS：WKWebView (Safari WebKit) 、Android：android.webkit.WebView (Chromium))，但開發時需要 <code>dotnet workload install maui</code> 安裝 MAUI Workload，發佈時若連同 .NET 10 + Windows App Runtime 1.8 打包，體積會高達 157MB，若不含 Windows App SDK（<code>WindowsAppSDKSelfContained=false</code>）約 70MB。<a href="https://learn.microsoft.com/zh-tw/windows/apps/package-and-deploy/unpackage-winui-app?tabs=csharp&amp;WT.mc_id=DOP-MVP-37580">參考</a> 在很多企業環境，客戶端若已統一部署 .NET Runtime，WinForm / WPF 有機會選擇 Runtime Dependency 只部署程式本體，將體積縮小到數 MB，卻不太能期望客戶端已裝好 Windows App Runtime (<code>winget install Microsoft.WindowsAppRuntime.1.8</code>)，會變成需要額外部署及確認，或改用 MSIX、傳統安裝程式 (WiX、Inno Setup)，無法實現單一檔案，隨 Copy 隨用。想打包桌面小工具，宜另謀他法。</p> <p data-slug="maui-hybridwebview" data-title-en="Hello MAUI HybridWebView: Great for Apps, Too Heavy for Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/03/12/19/33/red-deer-7847697_1280.jpg#1280#720">MAUI HybridWebView lets you embed web frontends in a cross-platform .NET desktop app with two-way JS and C# communication. It works well, but packaged sizes reach 70 to 157MB, making it unsuitable for lightweight desktop tools.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>看過 <a href="/blog/hello-tauri/">Tauri</a> 後，繼續探索將網站轉成桌面小工具的主題。想利用前端技術寫桌面程式，但 Electron 包了 Chromium 太肥，借用內建瀏覽器輕量化的想法大家都有，這篇來看微軟的解決方案 - MAUI HybridWebView。</p> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/maui/user-interface/controls/hybridwebview?view=net-maui-10.0&amp;WT.mc_id=DOP-MVP-37580">HybridWebView</a> 是 .NET MAUI 技術框架提供的控制項，可在原生 Web 檢視中載入 HTML、JavaScript 與 CSS 內容，並讓 JavaScript 與 C# 雙向通訊。例如，既有的 Vue/React/jQuery 應用程式可直接嵌入跨平台 MAUI 應用程式，後端則以 C# 與 .NET 實作 [^1]。</p> <p>Web 內容預設放在 <code>Resources/Raw/wwwroot</code>，並以 <code>index.html</code> 作為預設檔案。整個應用程式連同 Web 內容會封裝在裝置本機執行，不一定需要連線外部網路。C# 端透過 <code>InvokeJavaScriptAsync</code> 呼叫 JavaScript 方法，JavaScript 端則以 <code>window.HybridWebView.InvokeDotNet</code> 呼叫 C# 方法。這個做法，也呼應了上回 Tauri 的 Invoke() 方法，意味著若要同一套前端介面同時用於網站及桌面程式，需要適度改寫將前後端溝通部分抽取出來，寫成兩套模組，再視情境抽換。</p> <p>同樣做法，在 Github Copilot 要求 Opus 5.5 參考我的 ASP.NET Core 轉桌面小工具文章跟範例專案，改寫成 MAUI HybridWebView 版進行對照，有助於更快理解其架構。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp"></p> <ul><li>AesEncryptorMaui/ <ul><li>AesEncryptorMaui.csproj：MAUI 專案設定，只鎖定 Windows / Mac Catalyst 桌面平台</li> <li>MauiProgram.cs：App 進入點與 DI 設定，Debug 時開啟 WebView DevTools</li> <li>App.xaml / App.xaml.cs：建立唯一的主視窗，設定標題與尺寸</li> <li>MainPage.xaml / MainPage.xaml.cs：放置 HybridWebView，並指定 JS 可呼叫的 .NET 物件</li> <li>AesBridge.cs：提供給 JS 呼叫的方法，對應原本的 <code>MapPost("/aes")</code> <pre><code>public sealed class AesBridge
+{
+public AesResult Aes(string mode, string key, string data)
+{
+var encMode = mode != "decrypt";
+var result = new AesResult();
+try
+{
+if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(data))
+throw new ArgumentException("parameter missing");
+result.Result = encMode ? CodecNetFx.AesEncrypt(key, data) : CodecNetFx.AesDecrypt(key, data);
+}
+catch (Exception ex) { result.Message = ex.Message; }
+return result;
+}
+}
+public sealed class AesResult
+{
+public string Result { get; set; } = string.Empty;
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> </li> <li>CodecNetFx.cs：AES 加解密，沿用原範例</li> <li>Resources/Raw/wwwroot/：前端網頁資源</li> <li>index.html：前端介面，使用 Vue 3 <pre><code>async Run(mode, data, resProp) {
+try {
+// 取代原本 &lt;form action="/aes" target="iframe"&gt; 的 POST
+const res = await window.HybridWebView.InvokeDotNet('Aes', [mode, this.EncKey, data]);
+this[resProp] = res.Result;
+this.Message = res.Message;
+this.Highlight(resProp);
+}
+catch (e) {
+this.Message = e.message || String(e);
+}
+},
+</code></pre> <ul><li>vue.global.prod.min.js：Vue 程式庫壓縮檔</li></ul> </li> <li>Platforms/Windows/App.xaml.cs：設定 WebView2 使用者資料夾 <pre><code>public App()
+{
+// 未封裝 (unpackaged) 的 exe 若被安裝到 Program Files，WebView2 無法在 exe 目錄寫入快取，
+// 故在 WebView 建立前將使用者資料夾指到可寫入的 AppData
+var userDataFolder = Path.Combine(FileSystem.AppDataDirectory, "WebView2");
+Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
+this.InitializeComponent();
+}
+</code></pre> </li></ul> </li></ul> <p>成功執行!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639272239686406042.webp"></p> <p>將網頁裝進 .exe 執行沒問題，但直接說結論：MAUI HybridWebView 較適合一般應用程式，不適合用來寫桌面小工具。</p> <p>原因是體積。雖然使用作業系統內建的 WebView (Windows：WebView2 (Chromium Edge)、Mac Catalyst / iOS：WKWebView (Safari WebKit) 、Android：android.webkit.WebView (Chromium))，但開發時需要 <code>dotnet workload install maui</code> 安裝 MAUI Workload，發佈時若連同 .NET 10 + Windows App Runtime 1.8 打包，體積會高達 157MB，若不含 Windows App SDK（<code>WindowsAppSDKSelfContained=false</code>）約 70MB。<a href="https://learn.microsoft.com/zh-tw/windows/apps/package-and-deploy/unpackage-winui-app?tabs=csharp&amp;WT.mc_id=DOP-MVP-37580">參考</a> 在很多企業環境，客戶端若已統一部署 .NET Runtime，WinForm / WPF 有機會選擇 Runtime Dependency 只部署程式本體，將體積縮小到數 MB，卻不太能期望客戶端已裝好 Windows App Runtime (<code>winget install Microsoft.WindowsAppRuntime.1.8</code>)，會變成需要額外部署及確認，或改用 MSIX、傳統安裝程式 (WiX、Inno Setup)，無法實現單一檔案，隨 Copy 隨用。想打包桌面小工具，宜另謀他法。</p> <p data-slug="maui-hybridwebview" data-title-en="Hello MAUI HybridWebView: Great for Apps, Too Heavy for Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/03/12/19/33/red-deer-7847697_1280.jpg#1280#720">MAUI HybridWebView lets you embed web frontends in a cross-platform .NET desktop app with two-way JS and C# communication. It works well, but packaged sizes reach 70 to 157MB, making it unsuitable for lightweight desktop tools.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>看過 <a href="/blog/hello-tauri/">Tauri</a> 後，繼續探索將網站轉成桌面小工具的主題。想利用前端技術寫桌面程式，但 Electron 包了 Chromium 太肥，借用內建瀏覽器輕量化的想法大家都有，這篇來看微軟的解決方案 - MAUI HybridWebView。</p> <p><a href="https://learn.microsoft.com/zh-tw/dotnet/maui/user-interface/controls/hybridwebview?view=net-maui-10.0&amp;WT.mc_id=DOP-MVP-37580">HybridWebView</a> 是 .NET MAUI 技術框架提供的控制項，可在原生 Web 檢視中載入 HTML、JavaScript 與 CSS 內容，並讓 JavaScript 與 C# 雙向通訊。例如，既有的 Vue/React/jQuery 應用程式可直接嵌入跨平台 MAUI 應用程式，後端則以 C# 與 .NET 實作 [^1]。</p> <p>Web 內容預設放在 <code>Resources/Raw/wwwroot</code>，並以 <code>index.html</code> 作為預設檔案。整個應用程式連同 Web 內容會封裝在裝置本機執行，不一定需要連線外部網路。C# 端透過 <code>InvokeJavaScriptAsync</code> 呼叫 JavaScript 方法，JavaScript 端則以 <code>window.HybridWebView.InvokeDotNet</code> 呼叫 C# 方法。這個做法，也呼應了上回 Tauri 的 Invoke() 方法，意味著若要同一套前端介面同時用於網站及桌面程式，需要適度改寫將前後端溝通部分抽取出來，寫成兩套模組，再視情境抽換。</p> <p>同樣做法，在 Github Copilot 要求 Opus 5.5 參考我的 ASP.NET Core 轉桌面小工具文章跟範例專案，改寫成 MAUI HybridWebView 版進行對照，有助於更快理解其架構。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp"></p> <ul><li>AesEncryptorMaui/ <ul><li>AesEncryptorMaui.csproj：MAUI 專案設定，只鎖定 Windows / Mac Catalyst 桌面平台</li> <li>MauiProgram.cs：App 進入點與 DI 設定，Debug 時開啟 WebView DevTools</li> <li>App.xaml / App.xaml.cs：建立唯一的主視窗，設定標題與尺寸</li> <li>MainPage.xaml / MainPage.xaml.cs：放置 HybridWebView，並指定 JS 可呼叫的 .NET 物件</li> <li>AesBridge.cs：提供給 JS 呼叫的方法，對應原本的 <code>MapPost("/aes")</code> <pre><code>public sealed class AesBridge
+{
+public AesResult Aes(string mode, string key, string data)
+{
+var encMode = mode != "decrypt";
+var result = new AesResult();
+try
+{
+if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(data))
+throw new ArgumentException("parameter missing");
+result.Result = encMode ? CodecNetFx.AesEncrypt(key, data) : CodecNetFx.AesDecrypt(key, data);
+}
+catch (Exception ex) { result.Message = ex.Message; }
+return result;
+}
+}
+public sealed class AesResult
+{
+public string Result { get; set; } = string.Empty;
+public string Message { get; set; } = string.Empty;
+}
+</code></pre> </li> <li>CodecNetFx.cs：AES 加解密，沿用原範例</li> <li>Resources/Raw/wwwroot/：前端網頁資源</li> <li>index.html：前端介面，使用 Vue 3 <pre><code>async Run(mode, data, resProp) {
+try {
+// 取代原本 &lt;form action="/aes" target="iframe"&gt; 的 POST
+const res = await window.HybridWebView.InvokeDotNet('Aes', [mode, this.EncKey, data]);
+this[resProp] = res.Result;
+this.Message = res.Message;
+this.Highlight(resProp);
+}
+catch (e) {
+this.Message = e.message || String(e);
+}
+},
+</code></pre> <ul><li>vue.global.prod.min.js：Vue 程式庫壓縮檔</li></ul> </li> <li>Platforms/Windows/App.xaml.cs：設定 WebView2 使用者資料夾 <pre><code>public App()
+{
+// 未封裝 (unpackaged) 的 exe 若被安裝到 Program Files，WebView2 無法在 exe 目錄寫入快取，
+// 故在 WebView 建立前將使用者資料夾指到可寫入的 AppData
+var userDataFolder = Path.Combine(FileSystem.AppDataDirectory, "WebView2");
+Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", userDataFolder);
+this.InitializeComponent();
+}
+</code></pre> </li></ul> </li></ul> <p>成功執行!</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639272239686406042.webp"></p> <p>將網頁裝進 .exe 執行沒問題，但直接說結論：MAUI HybridWebView 較適合一般應用程式，不適合用來寫桌面小工具。</p> <p>原因是體積。雖然使用作業系統內建的 WebView (Windows：WebView2 (Chromium Edge)、Mac Catalyst / iOS：WKWebView (Safari WebKit) 、Android：android.webkit.WebView (Chromium))，但開發時需要 <code>dotnet workload install maui</code> 安裝 MAUI Workload，發佈時若連同 .NET 10 + Windows App Runtime 1.8 打包，體積會高達 157MB，若不含 Windows App SDK（<code>WindowsAppSDKSelfContained=false</code>）約 70MB。<a href="https://learn.microsoft.com/zh-tw/windows/apps/package-and-deploy/unpackage-winui-app?tabs=csharp&amp;WT.mc_id=DOP-MVP-37580">參考</a> 在很多企業環境，客戶端若已統一部署 .NET Runtime，WinForm / WPF 有機會選擇 Runtime Dependency 只部署程式本體，將體積縮小到數 MB，卻不太能期望客戶端已裝好 Windows App Runtime (<code>winget install Microsoft.WindowsAppRuntime.1.8</code>)，會變成需要額外部署及確認，或改用 MSIX、傳統安裝程式 (WiX、Inno Setup)，無法實現單一檔案，隨 Copy 隨用。想打包桌面小工具，宜另謀他法。</p> <p data-slug="maui-hybridwebview" data-title-en="Hello MAUI HybridWebView: Great for Apps, Too Heavy for Desktop Tools" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2023/03/12/19/33/red-deer-7847697_1280.jpg#1280#720">MAUI HybridWebView lets you embed web frontends in a cross-platform .NET desktop app with two-way JS and C# communication. It works well, but packaged sizes reach 70 to 157MB, making it unsuitable for lightweight desktop tools.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639272239684597273.webp" medium="image"/>
+    <pubDate>Sat, 10 Oct 2026 10:12:50 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[初試 Tauri - 移植 ASP.NET Core 桌面小工具範例]]></title>
+    <link>https://blog.darkthread.net/blog/hello-tauri/</link>
+    <itunes:title><![CDATA[初試 Tauri - 移植 ASP.NET Core 桌面小工具範例]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>對略懂前端的全端攻城獅來說，把網頁前端加 WebAPI 包成桌面程式，可省下學習摸索 WinForm/WPF 的時間，是絕佳的技能再利用典範。Electron 要包進整個 Chromium 導致程式高達數百 MB 太痴肥，不適合用來寫小工具。熟悉 ASP.NET Core 與 Vue 的我，幾年前想出將 ASP.NET Core 網站轉成單一檔案 exe 寫桌面小工具的點子，執行時叫出內建瀏覽器當 UI，網頁關閉時自動結束程式，在標準 ASP.NET Core Minimal API 專案引用 NuGet Package，改幾行程式便能華麗變身為桌面小工具，體積可低到幾 MB，成效讓我非常滿意。<a href="/blog/electron-net-alternative/">Electron.NET 太笨重？用 ASP.NET Core Minimal API 寫桌面小工具的快速做法</a></p> <p>時間來到 2026，以 Rust 作為後端的 Tauri 框架漸成寫桌面程式的流行做法。Tauri 後端使用 Rust，前端可沿用 HTML、CSS、JavaScript，透過作業系統內建的 WebView 呈現 UI，不像 Electron 必須包進 Chromium 而過胖。加上靠著 Rust 語言特性，能做到執行檔僅數 MB 至數十 MB，執行效率極高記憶體用量又低，攻擊面小且高度記憶體安全，並能支援 iOS/Android 跨平台。唯一的缺點大概是 Rust 是門艱澀難學的程式語言，非凡夫俗子可輕鬆駕御。Tauri 早在 2022 年就發佈 1.0 版，必須要會 Rust 成為阻擋凡人接近的高聳城牆；直到 Vibe Coding 時代來臨，「人不一定要會程式語言，AI 會就好」讓 Rust 門檻瞬間消失，只要 AI 在手，人人都能用 Tauri，於是用 Tauri 開發的程式開始多了起來。</p> <p>我的立場偏保守，評估開發方式時還是想保留人工介入的後路，從這個角度出發，桌面小工具要嘛續用 .NET 為基礎的做法，要嘛認真學好 Rust 放心擁抱 Tauri。</p> <p>在搞懂 Rust 之前，這篇會先體驗 Tauri 長什麼樣子，以<a href="/blog/electron-net-alternative/">上回文章</a>的 AES 加解密工具當範例，看看若改用 Tauri 寫長什麼樣子，有具體參照物，更能快速理解 Tauri 的架構與運作原理。</p> <p>開了 Github Copilot 請 Claude Opus 5.5 參考 ASP.NET Core 版本專案及我的部落格文章，翻寫出一個 Tauri 版本，耗時約半小時(含安裝套件)，花費近 2 塊美金。與人工開發相比，這成本低到不可思議~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"></p> <p>都用上 Opus 等級，毫無意外，一次搞定且功能正確。(說不定用 Sonnet 也成，AI 強成這樣，我該告老還鄉了...)</p> <p>檔案僅 3MB，不需其他 dll 或附屬檔案，這是 Rust 的迷人之處。</p> <p>專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639271891117389325.webp"></p> <ul><li><strong><code>hello-tauri/</code></strong>：專案根目錄 <ul><li><code>.gitignore</code>：排除 <code>src-tauri/target/</code> 與 <code>src-tauri/gen/schemas/</code> 等建置產物</li> <li><strong><code>ui/</code></strong>：前端靜態檔，對應原專案的 <code>ui/</code> 資料夾；由 <code>tauri.conf.json</code> 的 <code>frontendDist</code> 指定，編譯時嵌入 exe <ul><li><code>index.html</code>：畫面版面，CSS 與 Vue 模板沿用原版；移除 <code>&lt;form&gt;</code>、隱藏 <code>&lt;iframe&gt;</code> 及 <code>/sse.js</code></li> <li><code>app.js</code>：Vue app 邏輯，以 <code>window.__TAURI__.core.invoke('aes', …)</code> 呼叫後端（原版的 inline script 移到這裡，以便 CSP 不需開 <code>'unsafe-inline'</code>）</li> <li><code>vue.global.prod.min.js</code>：Vue 3 執行檔，直接從原專案複製</li></ul> </li> <li><strong><code>src-tauri/</code></strong>：Rust 後端與 Tauri 設定，對應原專案的 <code>Program.cs</code>、<code>AesEncryptor.csproj</code> <ul><li><code>Cargo.toml</code>：套件名稱與相依套件（<code>tauri</code>、<code>serde</code>、<code>aes</code>、<code>cbc</code>、<code>sha2</code>、<code>base64</code>），以及 release 縮小體積的設定（LTO、<code>opt-level = "s"</code>、strip）；相當於 <code>.csproj</code></li> <li><code>Cargo.lock</code>：鎖定所有相依套件的實際版本，確保每次建置結果一致；應納入版控（相當於 <code>packages.lock.json</code>）</li> <li><code>build.rs</code>：建置腳本，呼叫 <code>tauri_build::build()</code>，負責讀取 <code>tauri.conf.json</code>、把圖示與版本資訊寫入 Windows 資源、產生權限 schema</li> <li><code>tauri.conf.json</code>：Tauri 主設定檔，包含產品名稱/識別碼、前端目錄、<code>withGlobalTauri</code>、視窗標題與大小、CSP、打包格式及圖示清單</li> <li><code>app-icon.png</code>：1024×1024 的圖示原始檔，用來產生 <code>icons/</code> 下各尺寸圖示（也可交給 <code>cargo tauri icon</code> 產生）</li> <li><strong><code>capabilities/</code></strong>：Tauri 2 的權限設定 <ul><li><code>default.json</code>：授予 <code>main</code> 視窗 <code>core:default</code> 權限</li></ul> </li> <li><strong><code>icons/</code></strong>：程式圖示，由 <code>tauri.conf.json</code> 的 <code>bundle.icon</code> 引用 <ul><li><code>icon.ico</code>：Windows 執行檔與視窗圖示（內含 16～256 px 多種尺寸），<strong>Windows 建置必備</strong></li> <li><code>32x32.png</code>、<code>128x128.png</code>、<code><a href="/cdn-cgi/l/email-protection" data-cfemail="bd8c8f85c58c8f85fd8fc593cdd3da">[email&nbsp;protected]</a></code>：Linux 等平台與安裝檔使用的 PNG 圖示</li></ul> </li> <li><strong><code>src/</code></strong>：Rust 原始碼 <ul><li><code>main.rs</code>：程式進入點；release 版隱藏主控台視窗，定義 <code>#[tauri::command] fn aes</code>（對應 <code>MapPost("/aes")</code>），建立 Tauri 應用程式並註冊 command</li> <li><code>crypto.rs</code>：<code>CodecNetFx</code> 的 Rust 版 AES-128-CBC 加解密，以及用 .NET 實算結果驗證相容性的單元測試</li></ul> </li> <li><strong><code>gen/schemas/</code></strong>：<code>build.rs</code> 產生的 JSON schema（<code>acl-manifests.json</code>、<code>capabilities.json</code>、<code>desktop-schema.json</code>、<code>windows-schema.json</code>），讓編輯器能檢查 <code>capabilities/*.json</code> 的內容 (版控排除)</li> <li><strong><code>target/</code></strong>：Cargo 建置輸出 (版控排除) <ul><li><code>debug/</code>：<code>cargo run</code> / <code>cargo test</code> 的產物（有主控台、可開 DevTools）</li> <li><code>release/</code>：<code>cargo build --release</code> 的產物，最終成品為 <code>release/aes-encryptor.exe</code>（約 3.1 MB）</li></ul> </li></ul> </li></ul> </li></ul> <p>補充一些小心得：</p> <ol><li><code>cargo install tauri-cli</code> 比預期耗時，有 870 個套件要下載並編譯：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"><br> 編譯過程可看到所有 CPU 一起衝上 100% 的盛況，總耗時約 10 分鐘：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271891119369577.webp"></li> <li>Tauri 有嚴格的權限控制 (畢竟要在 Android/iOS 跑，權限必須明確宣告)，capabilities.json 讓 main 視窗可以使用 Tauri 核心的預設功能。若要使用檔案系統、對話框、shell 等外掛功能，需要在 permissions 中另外加入，例如 "fs:default"、"dialog:default"。 <pre><code>{
+"default": {
+"identifier": "default",
+"description": "Permissions for the main window",
+"local": true,
+"windows": [
+"main"
+],
+"permissions": [
+"core:default"
+]
+}
+}
+</code></pre> </li> <li>Tauri 雖然可以跑網頁，開啟網址為 <code>http://tauri.localhost/</code> (macOS/Linux 為 <code>tauri://localhost/</code>)，走 WebView 的自訂協定處理器，這類網址只在 WebView 中有效。<br> 開發模式（tauri dev）時則是用 dev server，例如 Vite 的 <code>http://localhost:1420/</code> (由 tauri.conf.json 的 build.devUrl 決定) 。這個網址就可以直接用瀏覽器打開，但瀏覽器中無法使用 Tauri 的 API (invoke 等) ，因為沒有 Tauri 的 IPC 橋接。</li> <li>網頁與後端溝通，預設並不是透過 WebAPI 溝通，要改用 Tauri 提供的 invoke() 方法，例如： <pre><code>const { invoke } = window.__TAURI__.core;   // withGlobalTauri: true 才會注入
+result = await invoke('aes', { mode, key: this.EncKey, data });
+</code></pre> 後端寫法如下，其中<code>#[tauri::command]</code> 是 Tauri 的屬性巨集 (Attribute Macro)，用來把一個 Rust 函式標記成「可以被前端 JavaScript/TypeScript 呼叫的指令」： <pre><code>/// Equivalent of `app.MapPost("/aes", ...)` in the ASP.NET Core version.
+/// Called from JavaScript with `invoke('aes', { mode, key, data })`.
+#[tauri::command]
+fn aes(mode: String, key: String, data: String) -&gt; Result&lt;String, String&gt; {
+if key.is_empty() || data.is_empty() {
+return Err("parameter missing".into());
+}
+if mode == "decrypt" {
+crypto::aes_decrypt(&amp;key, &amp;data)
+} else {
+Ok(crypto::aes_encrypt(&amp;key, &amp;data))
+}
+}
+</code></pre> </li> <li>Rust 然是用 <code>rustc</code> 編譯，但要產生 Windows 執行檔仍需由 linker (連結器) 將編譯結果與原生函式庫連結起來。Windows 上的 Rust 有兩種常見工具鏈： <ul><li><code>stable-x86_64-pc-windows-msvc</code>：Microsoft 的 MSVC linker、Windows SDK 與相關函式庫，由 Visual Studio / Build Tools 提供 (與微軟原生元件整合，也是 Tauri 在 Windows 上的標準建置環境)</li> <li><code>stable-x86_64-pc-windows-gnu</code>：MinGW-w64／GNU 工具與相關函式庫 可使用以下 CLI 檢查工具鏈</li></ul> <pre><code>rustup toolchain list         # 列出已安裝的工具鏈
+rustup toolchain install stable-x86_64-pc-windows-msvc # 若沒有 MSVC 裝這個，但 C++ 編譯工具要先自己裝好
+rustup show active-toolchain  # 顯示目前目錄實際使用的工具鏈 (預設 GNU 版)
+cargo +stable-x86_64-pc-windows-msvc build # 指定本次使用 MSVC 版
+</code></pre> 兩者都能編譯 Rust、產生 Windows exe，編譯 Windows 平台執行檔選擇 stable-x86_64-pc-windows-msvc 的好處在於 MSVC 是官方文件採用的工具鏈，較容易照文件建置、排除問題，可避開 MinGW 環境安裝設定問題。要使用 MSVC，開發環境需安裝 Build Tools for Visual Studio 2022。</li> <li>編譯、測試、執行、發行 <pre><code># 編譯
+cargo +stable-x86_64-pc-windows-msvc build
+# 設定本專案用 MSVC，之後可免加 +stable-x86_64-pc-windows-msvc
+rustup override set stable-x86_64-pc-windows-msvc
+# 全機預設用 MSVC
+ustup default stable-x86_64-pc-windows-msvc
+# 單元測試（驗證與 .NET 版相容）
+cargo +stable-x86_64-pc-windows-msvc test
+# 開發執行（有主控台、可開 DevTools）
+cargo +stable-x86_64-pc-windows-msvc run
+# 正式版：產生 target\release\aes-encryptor.exe（約 3 MB，可直接複製使用）
+cargo +stable-x86_64-pc-windows-msvc build --release --features tauri/custom-protocol
+</code></pre> </li></ol> <p>實際了解 Tauri 的做法，會發現雖然 HTML / JavaScript 可以沿用，但原本的 fetch、GET/POST 等 AJAX 互動方式要修改，改走 invoke()，若希望網頁與 Tauri 共用一套，理想做法應該是先將網頁與後端互動全部收攏成少數介面或共用函式，再開發 Web 版及 Tauri 版，如此前端其他不用動，在不同情境抽換介面或共用函式即可在兩個平台順利運行。</p> <p>體驗完畢~</p> <p data-slug="hello-tauri" data-title-en="Tauri in 2026: Building a 3 MB Desktop App with Rust and AI, Compared to ASP.NET Core" data-catg="Front End Web Dev" data-fbimg="https://cdn.pixabay.com/photo/2023/06/13/11/35/crab-8060744_1280.jpg#1280#720">Revisiting earlier ASP.NET Core approach to desktop tools and tries Tauri, a Rust-based framework that uses the OS’s built-in WebView instead of bundling Chromium. By having Claude Opus port an AES encryption tool to Tauri in about half an hour, the author gets a correct 3 MB executable. The post walks through the project structure, permissions, the invoke() bridge, MSVC toolchain setup, and build commands.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>對略懂前端的全端攻城獅來說，把網頁前端加 WebAPI 包成桌面程式，可省下學習摸索 WinForm/WPF 的時間，是絕佳的技能再利用典範。Electron 要包進整個 Chromium 導致程式高達數百 MB 太痴肥，不適合用來寫小工具。熟悉 ASP.NET Core 與 Vue 的我，幾年前想出將 ASP.NET Core 網站轉成單一檔案 exe 寫桌面小工具的點子，執行時叫出內建瀏覽器當 UI，網頁關閉時自動結束程式，在標準 ASP.NET Core Minimal API 專案引用 NuGet Package，改幾行程式便能華麗變身為桌面小工具，體積可低到幾 MB，成效讓我非常滿意。<a href="/blog/electron-net-alternative/">Electron.NET 太笨重？用 ASP.NET Core Minimal API 寫桌面小工具的快速做法</a></p> <p>時間來到 2026，以 Rust 作為後端的 Tauri 框架漸成寫桌面程式的流行做法。Tauri 後端使用 Rust，前端可沿用 HTML、CSS、JavaScript，透過作業系統內建的 WebView 呈現 UI，不像 Electron 必須包進 Chromium 而過胖。加上靠著 Rust 語言特性，能做到執行檔僅數 MB 至數十 MB，執行效率極高記憶體用量又低，攻擊面小且高度記憶體安全，並能支援 iOS/Android 跨平台。唯一的缺點大概是 Rust 是門艱澀難學的程式語言，非凡夫俗子可輕鬆駕御。Tauri 早在 2022 年就發佈 1.0 版，必須要會 Rust 成為阻擋凡人接近的高聳城牆；直到 Vibe Coding 時代來臨，「人不一定要會程式語言，AI 會就好」讓 Rust 門檻瞬間消失，只要 AI 在手，人人都能用 Tauri，於是用 Tauri 開發的程式開始多了起來。</p> <p>我的立場偏保守，評估開發方式時還是想保留人工介入的後路，從這個角度出發，桌面小工具要嘛續用 .NET 為基礎的做法，要嘛認真學好 Rust 放心擁抱 Tauri。</p> <p>在搞懂 Rust 之前，這篇會先體驗 Tauri 長什麼樣子，以<a href="/blog/electron-net-alternative/">上回文章</a>的 AES 加解密工具當範例，看看若改用 Tauri 寫長什麼樣子，有具體參照物，更能快速理解 Tauri 的架構與運作原理。</p> <p>開了 Github Copilot 請 Claude Opus 5.5 參考 ASP.NET Core 版本專案及我的部落格文章，翻寫出一個 Tauri 版本，耗時約半小時(含安裝套件)，花費近 2 塊美金。與人工開發相比，這成本低到不可思議~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"></p> <p>都用上 Opus 等級，毫無意外，一次搞定且功能正確。(說不定用 Sonnet 也成，AI 強成這樣，我該告老還鄉了...)</p> <p>檔案僅 3MB，不需其他 dll 或附屬檔案，這是 Rust 的迷人之處。</p> <p>專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639271891117389325.webp"></p> <ul><li><strong><code>hello-tauri/</code></strong>：專案根目錄 <ul><li><code>.gitignore</code>：排除 <code>src-tauri/target/</code> 與 <code>src-tauri/gen/schemas/</code> 等建置產物</li> <li><strong><code>ui/</code></strong>：前端靜態檔，對應原專案的 <code>ui/</code> 資料夾；由 <code>tauri.conf.json</code> 的 <code>frontendDist</code> 指定，編譯時嵌入 exe <ul><li><code>index.html</code>：畫面版面，CSS 與 Vue 模板沿用原版；移除 <code>&lt;form&gt;</code>、隱藏 <code>&lt;iframe&gt;</code> 及 <code>/sse.js</code></li> <li><code>app.js</code>：Vue app 邏輯，以 <code>window.__TAURI__.core.invoke('aes', …)</code> 呼叫後端（原版的 inline script 移到這裡，以便 CSP 不需開 <code>'unsafe-inline'</code>）</li> <li><code>vue.global.prod.min.js</code>：Vue 3 執行檔，直接從原專案複製</li></ul> </li> <li><strong><code>src-tauri/</code></strong>：Rust 後端與 Tauri 設定，對應原專案的 <code>Program.cs</code>、<code>AesEncryptor.csproj</code> <ul><li><code>Cargo.toml</code>：套件名稱與相依套件（<code>tauri</code>、<code>serde</code>、<code>aes</code>、<code>cbc</code>、<code>sha2</code>、<code>base64</code>），以及 release 縮小體積的設定（LTO、<code>opt-level = "s"</code>、strip）；相當於 <code>.csproj</code></li> <li><code>Cargo.lock</code>：鎖定所有相依套件的實際版本，確保每次建置結果一致；應納入版控（相當於 <code>packages.lock.json</code>）</li> <li><code>build.rs</code>：建置腳本，呼叫 <code>tauri_build::build()</code>，負責讀取 <code>tauri.conf.json</code>、把圖示與版本資訊寫入 Windows 資源、產生權限 schema</li> <li><code>tauri.conf.json</code>：Tauri 主設定檔，包含產品名稱/識別碼、前端目錄、<code>withGlobalTauri</code>、視窗標題與大小、CSP、打包格式及圖示清單</li> <li><code>app-icon.png</code>：1024×1024 的圖示原始檔，用來產生 <code>icons/</code> 下各尺寸圖示（也可交給 <code>cargo tauri icon</code> 產生）</li> <li><strong><code>capabilities/</code></strong>：Tauri 2 的權限設定 <ul><li><code>default.json</code>：授予 <code>main</code> 視窗 <code>core:default</code> 權限</li></ul> </li> <li><strong><code>icons/</code></strong>：程式圖示，由 <code>tauri.conf.json</code> 的 <code>bundle.icon</code> 引用 <ul><li><code>icon.ico</code>：Windows 執行檔與視窗圖示（內含 16～256 px 多種尺寸），<strong>Windows 建置必備</strong></li> <li><code>32x32.png</code>、<code>128x128.png</code>、<code><a href="/cdn-cgi/l/email-protection" data-cfemail="bd8c8f85c58c8f85fd8fc593cdd3da">[email&nbsp;protected]</a></code>：Linux 等平台與安裝檔使用的 PNG 圖示</li></ul> </li> <li><strong><code>src/</code></strong>：Rust 原始碼 <ul><li><code>main.rs</code>：程式進入點；release 版隱藏主控台視窗，定義 <code>#[tauri::command] fn aes</code>（對應 <code>MapPost("/aes")</code>），建立 Tauri 應用程式並註冊 command</li> <li><code>crypto.rs</code>：<code>CodecNetFx</code> 的 Rust 版 AES-128-CBC 加解密，以及用 .NET 實算結果驗證相容性的單元測試</li></ul> </li> <li><strong><code>gen/schemas/</code></strong>：<code>build.rs</code> 產生的 JSON schema（<code>acl-manifests.json</code>、<code>capabilities.json</code>、<code>desktop-schema.json</code>、<code>windows-schema.json</code>），讓編輯器能檢查 <code>capabilities/*.json</code> 的內容 (版控排除)</li> <li><strong><code>target/</code></strong>：Cargo 建置輸出 (版控排除) <ul><li><code>debug/</code>：<code>cargo run</code> / <code>cargo test</code> 的產物（有主控台、可開 DevTools）</li> <li><code>release/</code>：<code>cargo build --release</code> 的產物，最終成品為 <code>release/aes-encryptor.exe</code>（約 3.1 MB）</li></ul> </li></ul> </li></ul> </li></ul> <p>補充一些小心得：</p> <ol><li><code>cargo install tauri-cli</code> 比預期耗時，有 870 個套件要下載並編譯：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"><br> 編譯過程可看到所有 CPU 一起衝上 100% 的盛況，總耗時約 10 分鐘：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271891119369577.webp"></li> <li>Tauri 有嚴格的權限控制 (畢竟要在 Android/iOS 跑，權限必須明確宣告)，capabilities.json 讓 main 視窗可以使用 Tauri 核心的預設功能。若要使用檔案系統、對話框、shell 等外掛功能，需要在 permissions 中另外加入，例如 "fs:default"、"dialog:default"。 <pre><code>{
+"default": {
+"identifier": "default",
+"description": "Permissions for the main window",
+"local": true,
+"windows": [
+"main"
+],
+"permissions": [
+"core:default"
+]
+}
+}
+</code></pre> </li> <li>Tauri 雖然可以跑網頁，開啟網址為 <code>http://tauri.localhost/</code> (macOS/Linux 為 <code>tauri://localhost/</code>)，走 WebView 的自訂協定處理器，這類網址只在 WebView 中有效。<br> 開發模式（tauri dev）時則是用 dev server，例如 Vite 的 <code>http://localhost:1420/</code> (由 tauri.conf.json 的 build.devUrl 決定) 。這個網址就可以直接用瀏覽器打開，但瀏覽器中無法使用 Tauri 的 API (invoke 等) ，因為沒有 Tauri 的 IPC 橋接。</li> <li>網頁與後端溝通，預設並不是透過 WebAPI 溝通，要改用 Tauri 提供的 invoke() 方法，例如： <pre><code>const { invoke } = window.__TAURI__.core;   // withGlobalTauri: true 才會注入
+result = await invoke('aes', { mode, key: this.EncKey, data });
+</code></pre> 後端寫法如下，其中<code>#[tauri::command]</code> 是 Tauri 的屬性巨集 (Attribute Macro)，用來把一個 Rust 函式標記成「可以被前端 JavaScript/TypeScript 呼叫的指令」： <pre><code>/// Equivalent of `app.MapPost("/aes", ...)` in the ASP.NET Core version.
+/// Called from JavaScript with `invoke('aes', { mode, key, data })`.
+#[tauri::command]
+fn aes(mode: String, key: String, data: String) -&gt; Result&lt;String, String&gt; {
+if key.is_empty() || data.is_empty() {
+return Err("parameter missing".into());
+}
+if mode == "decrypt" {
+crypto::aes_decrypt(&amp;key, &amp;data)
+} else {
+Ok(crypto::aes_encrypt(&amp;key, &amp;data))
+}
+}
+</code></pre> </li> <li>Rust 然是用 <code>rustc</code> 編譯，但要產生 Windows 執行檔仍需由 linker (連結器) 將編譯結果與原生函式庫連結起來。Windows 上的 Rust 有兩種常見工具鏈： <ul><li><code>stable-x86_64-pc-windows-msvc</code>：Microsoft 的 MSVC linker、Windows SDK 與相關函式庫，由 Visual Studio / Build Tools 提供 (與微軟原生元件整合，也是 Tauri 在 Windows 上的標準建置環境)</li> <li><code>stable-x86_64-pc-windows-gnu</code>：MinGW-w64／GNU 工具與相關函式庫 可使用以下 CLI 檢查工具鏈</li></ul> <pre><code>rustup toolchain list         # 列出已安裝的工具鏈
+rustup toolchain install stable-x86_64-pc-windows-msvc # 若沒有 MSVC 裝這個，但 C++ 編譯工具要先自己裝好
+rustup show active-toolchain  # 顯示目前目錄實際使用的工具鏈 (預設 GNU 版)
+cargo +stable-x86_64-pc-windows-msvc build # 指定本次使用 MSVC 版
+</code></pre> 兩者都能編譯 Rust、產生 Windows exe，編譯 Windows 平台執行檔選擇 stable-x86_64-pc-windows-msvc 的好處在於 MSVC 是官方文件採用的工具鏈，較容易照文件建置、排除問題，可避開 MinGW 環境安裝設定問題。要使用 MSVC，開發環境需安裝 Build Tools for Visual Studio 2022。</li> <li>編譯、測試、執行、發行 <pre><code># 編譯
+cargo +stable-x86_64-pc-windows-msvc build
+# 設定本專案用 MSVC，之後可免加 +stable-x86_64-pc-windows-msvc
+rustup override set stable-x86_64-pc-windows-msvc
+# 全機預設用 MSVC
+ustup default stable-x86_64-pc-windows-msvc
+# 單元測試（驗證與 .NET 版相容）
+cargo +stable-x86_64-pc-windows-msvc test
+# 開發執行（有主控台、可開 DevTools）
+cargo +stable-x86_64-pc-windows-msvc run
+# 正式版：產生 target\release\aes-encryptor.exe（約 3 MB，可直接複製使用）
+cargo +stable-x86_64-pc-windows-msvc build --release --features tauri/custom-protocol
+</code></pre> </li></ol> <p>實際了解 Tauri 的做法，會發現雖然 HTML / JavaScript 可以沿用，但原本的 fetch、GET/POST 等 AJAX 互動方式要修改，改走 invoke()，若希望網頁與 Tauri 共用一套，理想做法應該是先將網頁與後端互動全部收攏成少數介面或共用函式，再開發 Web 版及 Tauri 版，如此前端其他不用動，在不同情境抽換介面或共用函式即可在兩個平台順利運行。</p> <p>體驗完畢~</p> <p data-slug="hello-tauri" data-title-en="Tauri in 2026: Building a 3 MB Desktop App with Rust and AI, Compared to ASP.NET Core" data-catg="Front End Web Dev" data-fbimg="https://cdn.pixabay.com/photo/2023/06/13/11/35/crab-8060744_1280.jpg#1280#720">Revisiting earlier ASP.NET Core approach to desktop tools and tries Tauri, a Rust-based framework that uses the OS’s built-in WebView instead of bundling Chromium. By having Claude Opus port an AES encryption tool to Tauri in about half an hour, the author gets a correct 3 MB executable. The post walks through the project structure, permissions, the invoke() bridge, MSVC toolchain setup, and build commands.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>對略懂前端的全端攻城獅來說，把網頁前端加 WebAPI 包成桌面程式，可省下學習摸索 WinForm/WPF 的時間，是絕佳的技能再利用典範。Electron 要包進整個 Chromium 導致程式高達數百 MB 太痴肥，不適合用來寫小工具。熟悉 ASP.NET Core 與 Vue 的我，幾年前想出將 ASP.NET Core 網站轉成單一檔案 exe 寫桌面小工具的點子，執行時叫出內建瀏覽器當 UI，網頁關閉時自動結束程式，在標準 ASP.NET Core Minimal API 專案引用 NuGet Package，改幾行程式便能華麗變身為桌面小工具，體積可低到幾 MB，成效讓我非常滿意。<a href="/blog/electron-net-alternative/">Electron.NET 太笨重？用 ASP.NET Core Minimal API 寫桌面小工具的快速做法</a></p> <p>時間來到 2026，以 Rust 作為後端的 Tauri 框架漸成寫桌面程式的流行做法。Tauri 後端使用 Rust，前端可沿用 HTML、CSS、JavaScript，透過作業系統內建的 WebView 呈現 UI，不像 Electron 必須包進 Chromium 而過胖。加上靠著 Rust 語言特性，能做到執行檔僅數 MB 至數十 MB，執行效率極高記憶體用量又低，攻擊面小且高度記憶體安全，並能支援 iOS/Android 跨平台。唯一的缺點大概是 Rust 是門艱澀難學的程式語言，非凡夫俗子可輕鬆駕御。Tauri 早在 2022 年就發佈 1.0 版，必須要會 Rust 成為阻擋凡人接近的高聳城牆；直到 Vibe Coding 時代來臨，「人不一定要會程式語言，AI 會就好」讓 Rust 門檻瞬間消失，只要 AI 在手，人人都能用 Tauri，於是用 Tauri 開發的程式開始多了起來。</p> <p>我的立場偏保守，評估開發方式時還是想保留人工介入的後路，從這個角度出發，桌面小工具要嘛續用 .NET 為基礎的做法，要嘛認真學好 Rust 放心擁抱 Tauri。</p> <p>在搞懂 Rust 之前，這篇會先體驗 Tauri 長什麼樣子，以<a href="/blog/electron-net-alternative/">上回文章</a>的 AES 加解密工具當範例，看看若改用 Tauri 寫長什麼樣子，有具體參照物，更能快速理解 Tauri 的架構與運作原理。</p> <p>開了 Github Copilot 請 Claude Opus 5.5 參考 ASP.NET Core 版本專案及我的部落格文章，翻寫出一個 Tauri 版本，耗時約半小時(含安裝套件)，花費近 2 塊美金。與人工開發相比，這成本低到不可思議~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"></p> <p>都用上 Opus 等級，毫無意外，一次搞定且功能正確。(說不定用 Sonnet 也成，AI 強成這樣，我該告老還鄉了...)</p> <p>檔案僅 3MB，不需其他 dll 或附屬檔案，這是 Rust 的迷人之處。</p> <p>專案結構如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639271891117389325.webp"></p> <ul><li><strong><code>hello-tauri/</code></strong>：專案根目錄 <ul><li><code>.gitignore</code>：排除 <code>src-tauri/target/</code> 與 <code>src-tauri/gen/schemas/</code> 等建置產物</li> <li><strong><code>ui/</code></strong>：前端靜態檔，對應原專案的 <code>ui/</code> 資料夾；由 <code>tauri.conf.json</code> 的 <code>frontendDist</code> 指定，編譯時嵌入 exe <ul><li><code>index.html</code>：畫面版面，CSS 與 Vue 模板沿用原版；移除 <code>&lt;form&gt;</code>、隱藏 <code>&lt;iframe&gt;</code> 及 <code>/sse.js</code></li> <li><code>app.js</code>：Vue app 邏輯，以 <code>window.__TAURI__.core.invoke('aes', …)</code> 呼叫後端（原版的 inline script 移到這裡，以便 CSP 不需開 <code>'unsafe-inline'</code>）</li> <li><code>vue.global.prod.min.js</code>：Vue 3 執行檔，直接從原專案複製</li></ul> </li> <li><strong><code>src-tauri/</code></strong>：Rust 後端與 Tauri 設定，對應原專案的 <code>Program.cs</code>、<code>AesEncryptor.csproj</code> <ul><li><code>Cargo.toml</code>：套件名稱與相依套件（<code>tauri</code>、<code>serde</code>、<code>aes</code>、<code>cbc</code>、<code>sha2</code>、<code>base64</code>），以及 release 縮小體積的設定（LTO、<code>opt-level = "s"</code>、strip）；相當於 <code>.csproj</code></li> <li><code>Cargo.lock</code>：鎖定所有相依套件的實際版本，確保每次建置結果一致；應納入版控（相當於 <code>packages.lock.json</code>）</li> <li><code>build.rs</code>：建置腳本，呼叫 <code>tauri_build::build()</code>，負責讀取 <code>tauri.conf.json</code>、把圖示與版本資訊寫入 Windows 資源、產生權限 schema</li> <li><code>tauri.conf.json</code>：Tauri 主設定檔，包含產品名稱/識別碼、前端目錄、<code>withGlobalTauri</code>、視窗標題與大小、CSP、打包格式及圖示清單</li> <li><code>app-icon.png</code>：1024×1024 的圖示原始檔，用來產生 <code>icons/</code> 下各尺寸圖示（也可交給 <code>cargo tauri icon</code> 產生）</li> <li><strong><code>capabilities/</code></strong>：Tauri 2 的權限設定 <ul><li><code>default.json</code>：授予 <code>main</code> 視窗 <code>core:default</code> 權限</li></ul> </li> <li><strong><code>icons/</code></strong>：程式圖示，由 <code>tauri.conf.json</code> 的 <code>bundle.icon</code> 引用 <ul><li><code>icon.ico</code>：Windows 執行檔與視窗圖示（內含 16～256 px 多種尺寸），<strong>Windows 建置必備</strong></li> <li><code>32x32.png</code>、<code>128x128.png</code>、<code><a href="/cdn-cgi/l/email-protection" data-cfemail="bd8c8f85c58c8f85fd8fc593cdd3da">[email&nbsp;protected]</a></code>：Linux 等平台與安裝檔使用的 PNG 圖示</li></ul> </li> <li><strong><code>src/</code></strong>：Rust 原始碼 <ul><li><code>main.rs</code>：程式進入點；release 版隱藏主控台視窗，定義 <code>#[tauri::command] fn aes</code>（對應 <code>MapPost("/aes")</code>），建立 Tauri 應用程式並註冊 command</li> <li><code>crypto.rs</code>：<code>CodecNetFx</code> 的 Rust 版 AES-128-CBC 加解密，以及用 .NET 實算結果驗證相容性的單元測試</li></ul> </li> <li><strong><code>gen/schemas/</code></strong>：<code>build.rs</code> 產生的 JSON schema（<code>acl-manifests.json</code>、<code>capabilities.json</code>、<code>desktop-schema.json</code>、<code>windows-schema.json</code>），讓編輯器能檢查 <code>capabilities/*.json</code> 的內容 (版控排除)</li> <li><strong><code>target/</code></strong>：Cargo 建置輸出 (版控排除) <ul><li><code>debug/</code>：<code>cargo run</code> / <code>cargo test</code> 的產物（有主控台、可開 DevTools）</li> <li><code>release/</code>：<code>cargo build --release</code> 的產物，最終成品為 <code>release/aes-encryptor.exe</code>（約 3.1 MB）</li></ul> </li></ul> </li></ul> </li></ul> <p>補充一些小心得：</p> <ol><li><code>cargo install tauri-cli</code> 比預期耗時，有 870 個套件要下載並編譯：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"><br> 編譯過程可看到所有 CPU 一起衝上 100% 的盛況，總耗時約 10 分鐘：<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271891119369577.webp"></li> <li>Tauri 有嚴格的權限控制 (畢竟要在 Android/iOS 跑，權限必須明確宣告)，capabilities.json 讓 main 視窗可以使用 Tauri 核心的預設功能。若要使用檔案系統、對話框、shell 等外掛功能，需要在 permissions 中另外加入，例如 "fs:default"、"dialog:default"。 <pre><code>{
+"default": {
+"identifier": "default",
+"description": "Permissions for the main window",
+"local": true,
+"windows": [
+"main"
+],
+"permissions": [
+"core:default"
+]
+}
+}
+</code></pre> </li> <li>Tauri 雖然可以跑網頁，開啟網址為 <code>http://tauri.localhost/</code> (macOS/Linux 為 <code>tauri://localhost/</code>)，走 WebView 的自訂協定處理器，這類網址只在 WebView 中有效。<br> 開發模式（tauri dev）時則是用 dev server，例如 Vite 的 <code>http://localhost:1420/</code> (由 tauri.conf.json 的 build.devUrl 決定) 。這個網址就可以直接用瀏覽器打開，但瀏覽器中無法使用 Tauri 的 API (invoke 等) ，因為沒有 Tauri 的 IPC 橋接。</li> <li>網頁與後端溝通，預設並不是透過 WebAPI 溝通，要改用 Tauri 提供的 invoke() 方法，例如： <pre><code>const { invoke } = window.__TAURI__.core;   // withGlobalTauri: true 才會注入
+result = await invoke('aes', { mode, key: this.EncKey, data });
+</code></pre> 後端寫法如下，其中<code>#[tauri::command]</code> 是 Tauri 的屬性巨集 (Attribute Macro)，用來把一個 Rust 函式標記成「可以被前端 JavaScript/TypeScript 呼叫的指令」： <pre><code>/// Equivalent of `app.MapPost("/aes", ...)` in the ASP.NET Core version.
+/// Called from JavaScript with `invoke('aes', { mode, key, data })`.
+#[tauri::command]
+fn aes(mode: String, key: String, data: String) -&gt; Result&lt;String, String&gt; {
+if key.is_empty() || data.is_empty() {
+return Err("parameter missing".into());
+}
+if mode == "decrypt" {
+crypto::aes_decrypt(&amp;key, &amp;data)
+} else {
+Ok(crypto::aes_encrypt(&amp;key, &amp;data))
+}
+}
+</code></pre> </li> <li>Rust 然是用 <code>rustc</code> 編譯，但要產生 Windows 執行檔仍需由 linker (連結器) 將編譯結果與原生函式庫連結起來。Windows 上的 Rust 有兩種常見工具鏈： <ul><li><code>stable-x86_64-pc-windows-msvc</code>：Microsoft 的 MSVC linker、Windows SDK 與相關函式庫，由 Visual Studio / Build Tools 提供 (與微軟原生元件整合，也是 Tauri 在 Windows 上的標準建置環境)</li> <li><code>stable-x86_64-pc-windows-gnu</code>：MinGW-w64／GNU 工具與相關函式庫 可使用以下 CLI 檢查工具鏈</li></ul> <pre><code>rustup toolchain list         # 列出已安裝的工具鏈
+rustup toolchain install stable-x86_64-pc-windows-msvc # 若沒有 MSVC 裝這個，但 C++ 編譯工具要先自己裝好
+rustup show active-toolchain  # 顯示目前目錄實際使用的工具鏈 (預設 GNU 版)
+cargo +stable-x86_64-pc-windows-msvc build # 指定本次使用 MSVC 版
+</code></pre> 兩者都能編譯 Rust、產生 Windows exe，編譯 Windows 平台執行檔選擇 stable-x86_64-pc-windows-msvc 的好處在於 MSVC 是官方文件採用的工具鏈，較容易照文件建置、排除問題，可避開 MinGW 環境安裝設定問題。要使用 MSVC，開發環境需安裝 Build Tools for Visual Studio 2022。</li> <li>編譯、測試、執行、發行 <pre><code># 編譯
+cargo +stable-x86_64-pc-windows-msvc build
+# 設定本專案用 MSVC，之後可免加 +stable-x86_64-pc-windows-msvc
+rustup override set stable-x86_64-pc-windows-msvc
+# 全機預設用 MSVC
+ustup default stable-x86_64-pc-windows-msvc
+# 單元測試（驗證與 .NET 版相容）
+cargo +stable-x86_64-pc-windows-msvc test
+# 開發執行（有主控台、可開 DevTools）
+cargo +stable-x86_64-pc-windows-msvc run
+# 正式版：產生 target\release\aes-encryptor.exe（約 3 MB，可直接複製使用）
+cargo +stable-x86_64-pc-windows-msvc build --release --features tauri/custom-protocol
+</code></pre> </li></ol> <p>實際了解 Tauri 的做法，會發現雖然 HTML / JavaScript 可以沿用，但原本的 fetch、GET/POST 等 AJAX 互動方式要修改，改走 invoke()，若希望網頁與 Tauri 共用一套，理想做法應該是先將網頁與後端互動全部收攏成少數介面或共用函式，再開發 Web 版及 Tauri 版，如此前端其他不用動，在不同情境抽換介面或共用函式即可在兩個平台順利運行。</p> <p>體驗完畢~</p> <p data-slug="hello-tauri" data-title-en="Tauri in 2026: Building a 3 MB Desktop App with Rust and AI, Compared to ASP.NET Core" data-catg="Front End Web Dev" data-fbimg="https://cdn.pixabay.com/photo/2023/06/13/11/35/crab-8060744_1280.jpg#1280#720">Revisiting earlier ASP.NET Core approach to desktop tools and tries Tauri, a Rust-based framework that uses the OS’s built-in WebView instead of bundling Chromium. By having Claude Opus port an AES encryption tool to Tauri in about half an hour, the author gets a correct 3 MB executable. The post walks through the project structure, permissions, the invoke() bridge, MSVC toolchain setup, and build commands.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639271891115281420.webp" medium="image"/>
+    <pubDate>Sat, 10 Oct 2026 00:31:02 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[為 Github Copilot 加上 uv 偏好規則]]></title>
+    <link>https://blog.darkthread.net/blog/copilot-uv-instruction/</link>
+    <itunes:title><![CDATA[為 Github Copilot 加上 uv 偏好規則]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>AI 很愛用 Python 解決問題，常常一言不合就開始寫 Python 程式、裝套件、跑腳本。我個人偏愛用 <a href="/blog/uv/">uv</a> 光速下載安裝套件及節省空間，也習慣要開 venv 虛擬環境避免版本打架。但 AI 模型預設會用傳統 python、pip，起手式往往還要檢查 Python 版本安裝位置等，很沒效率。</p> <p>鄉愿了很久，每次都是遇到了才緊急暫停補說明，今天決心動手根本解決這個問題。其實超簡單，加段 Instruction 就好。</p> <p>在 VS Code 的設定方法：</p> <ol><li>按 Ctrl + Shift + P</li> <li>執行 Chat: New Instructions File</li> <li>選擇使用者層級的儲存位置 (User Data)</li> <li>將以下內容存檔為 python-uv.instructions.md</li></ol> <pre><code>---
+description: Python tooling rules. Always use uv.
+applyTo: "**"
+---
+Python: always use uv.
+- Run: `uv run &lt;script|cmd&gt;` (ad-hoc deps: `uv run --with &lt;pkg&gt;`; outside a project: `--no-project`)
+- Deps: `uv add` / `uv remove` / `uv sync`; CLI tools: `uvx`
+- uv manages `.venv` automatically: no `uv venv`, `python -m venv`, or activate
+- Never use bare `python`, `pip`, `virtualenv`, `poetry`
+- If uv is missing, ask before installing or falling back
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271310672189086.webp"></p> <p>補充說明：</p> <ol><li>applyTo: "**" 指定常駐載入，Python 指令常在還沒有任何 .py 檔時就被執行(例如 Agent 思考過程)。用 *.py 比對或靠 description 判斷很可能漏載。此段內容只有約 100 token，用 100 token 換取穩定可靠划算。 註：寫成 Skill？User 層級不支援放 Skill，Skill 靠模型判斷是否載入，強制性弱，命中後需多一次載入動作，內容不長反而是浪費</li> <li>正面指令 + 負面指令：告訴模型用 uv run、uv add、uvx，不要用 python、pip、virtualenv、poetry。模型的預設習慣是 pip install，只寫正面規則可能壓不過去。</li> <li>一行一個決策：每行對應模型會遇到的一種情境，依序為執行、管理依賴、環境、禁用清單、失敗處理。模型容易對照，也省 token。</li> <li>venv 交由 uv 自己管理，要求模型不要手動介入，故明確禁止。 註：專案模式下，uv run、uv sync、uv add 等指令會自動處理 venv、若為 <code>uv run script.py</code> 等一次性臨時腳本，會使用 uv 管理的暫時環境，同樣不需要手動建立 venv。</li> <li>uv 不存在時，模型最常見的行為是自行改用 pip。要求先詢問，避免環境被弄亂。</li> <li>只寫模型不會自己知道的：pytest、--dev 等通用知識不用寫，把 token 留給「偏好」和「禁令」。</li> <li>Instruction 屬引導無絕對強制性。若要全面禁用則可考慮改用 Hooks，例如 PreToolUse 偵測並阻擋 pip install。</li></ol> <p>【後記】Python 菜鳥如我，能寫出如此專業的 uv 提示全靠 AI，花少少錢就能請到世界頂尖水準的 Python 專家出主意給建議當私人教練，這是熱愛學習者的黃金年代無誤!! (如果你還沒放棄學習的話 XD)</p> <p data-slug="copilot-uv-instruction" data-fbimg="https://i.postimg.cc/TP4gn3b8/image.png#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>AI 很愛用 Python 解決問題，常常一言不合就開始寫 Python 程式、裝套件、跑腳本。我個人偏愛用 <a href="/blog/uv/">uv</a> 光速下載安裝套件及節省空間，也習慣要開 venv 虛擬環境避免版本打架。但 AI 模型預設會用傳統 python、pip，起手式往往還要檢查 Python 版本安裝位置等，很沒效率。</p> <p>鄉愿了很久，每次都是遇到了才緊急暫停補說明，今天決心動手根本解決這個問題。其實超簡單，加段 Instruction 就好。</p> <p>在 VS Code 的設定方法：</p> <ol><li>按 Ctrl + Shift + P</li> <li>執行 Chat: New Instructions File</li> <li>選擇使用者層級的儲存位置 (User Data)</li> <li>將以下內容存檔為 python-uv.instructions.md</li></ol> <pre><code>---
+description: Python tooling rules. Always use uv.
+applyTo: "**"
+---
+Python: always use uv.
+- Run: `uv run &lt;script|cmd&gt;` (ad-hoc deps: `uv run --with &lt;pkg&gt;`; outside a project: `--no-project`)
+- Deps: `uv add` / `uv remove` / `uv sync`; CLI tools: `uvx`
+- uv manages `.venv` automatically: no `uv venv`, `python -m venv`, or activate
+- Never use bare `python`, `pip`, `virtualenv`, `poetry`
+- If uv is missing, ask before installing or falling back
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271310672189086.webp"></p> <p>補充說明：</p> <ol><li>applyTo: "**" 指定常駐載入，Python 指令常在還沒有任何 .py 檔時就被執行(例如 Agent 思考過程)。用 *.py 比對或靠 description 判斷很可能漏載。此段內容只有約 100 token，用 100 token 換取穩定可靠划算。 註：寫成 Skill？User 層級不支援放 Skill，Skill 靠模型判斷是否載入，強制性弱，命中後需多一次載入動作，內容不長反而是浪費</li> <li>正面指令 + 負面指令：告訴模型用 uv run、uv add、uvx，不要用 python、pip、virtualenv、poetry。模型的預設習慣是 pip install，只寫正面規則可能壓不過去。</li> <li>一行一個決策：每行對應模型會遇到的一種情境，依序為執行、管理依賴、環境、禁用清單、失敗處理。模型容易對照，也省 token。</li> <li>venv 交由 uv 自己管理，要求模型不要手動介入，故明確禁止。 註：專案模式下，uv run、uv sync、uv add 等指令會自動處理 venv、若為 <code>uv run script.py</code> 等一次性臨時腳本，會使用 uv 管理的暫時環境，同樣不需要手動建立 venv。</li> <li>uv 不存在時，模型最常見的行為是自行改用 pip。要求先詢問，避免環境被弄亂。</li> <li>只寫模型不會自己知道的：pytest、--dev 等通用知識不用寫，把 token 留給「偏好」和「禁令」。</li> <li>Instruction 屬引導無絕對強制性。若要全面禁用則可考慮改用 Hooks，例如 PreToolUse 偵測並阻擋 pip install。</li></ol> <p>【後記】Python 菜鳥如我，能寫出如此專業的 uv 提示全靠 AI，花少少錢就能請到世界頂尖水準的 Python 專家出主意給建議當私人教練，這是熱愛學習者的黃金年代無誤!! (如果你還沒放棄學習的話 XD)</p> <p data-slug="copilot-uv-instruction" data-fbimg="https://i.postimg.cc/TP4gn3b8/image.png#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>AI 很愛用 Python 解決問題，常常一言不合就開始寫 Python 程式、裝套件、跑腳本。我個人偏愛用 <a href="/blog/uv/">uv</a> 光速下載安裝套件及節省空間，也習慣要開 venv 虛擬環境避免版本打架。但 AI 模型預設會用傳統 python、pip，起手式往往還要檢查 Python 版本安裝位置等，很沒效率。</p> <p>鄉愿了很久，每次都是遇到了才緊急暫停補說明，今天決心動手根本解決這個問題。其實超簡單，加段 Instruction 就好。</p> <p>在 VS Code 的設定方法：</p> <ol><li>按 Ctrl + Shift + P</li> <li>執行 Chat: New Instructions File</li> <li>選擇使用者層級的儲存位置 (User Data)</li> <li>將以下內容存檔為 python-uv.instructions.md</li></ol> <pre><code>---
+description: Python tooling rules. Always use uv.
+applyTo: "**"
+---
+Python: always use uv.
+- Run: `uv run &lt;script|cmd&gt;` (ad-hoc deps: `uv run --with &lt;pkg&gt;`; outside a project: `--no-project`)
+- Deps: `uv add` / `uv remove` / `uv sync`; CLI tools: `uvx`
+- uv manages `.venv` automatically: no `uv venv`, `python -m venv`, or activate
+- Never use bare `python`, `pip`, `virtualenv`, `poetry`
+- If uv is missing, ask before installing or falling back
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639271310672189086.webp"></p> <p>補充說明：</p> <ol><li>applyTo: "**" 指定常駐載入，Python 指令常在還沒有任何 .py 檔時就被執行(例如 Agent 思考過程)。用 *.py 比對或靠 description 判斷很可能漏載。此段內容只有約 100 token，用 100 token 換取穩定可靠划算。 註：寫成 Skill？User 層級不支援放 Skill，Skill 靠模型判斷是否載入，強制性弱，命中後需多一次載入動作，內容不長反而是浪費</li> <li>正面指令 + 負面指令：告訴模型用 uv run、uv add、uvx，不要用 python、pip、virtualenv、poetry。模型的預設習慣是 pip install，只寫正面規則可能壓不過去。</li> <li>一行一個決策：每行對應模型會遇到的一種情境，依序為執行、管理依賴、環境、禁用清單、失敗處理。模型容易對照，也省 token。</li> <li>venv 交由 uv 自己管理，要求模型不要手動介入，故明確禁止。 註：專案模式下，uv run、uv sync、uv add 等指令會自動處理 venv、若為 <code>uv run script.py</code> 等一次性臨時腳本，會使用 uv 管理的暫時環境，同樣不需要手動建立 venv。</li> <li>uv 不存在時，模型最常見的行為是自行改用 pip。要求先詢問，避免環境被弄亂。</li> <li>只寫模型不會自己知道的：pytest、--dev 等通用知識不用寫，把 token 留給「偏好」和「禁令」。</li> <li>Instruction 屬引導無絕對強制性。若要全面禁用則可考慮改用 Hooks，例如 PreToolUse 偵測並阻擋 pip install。</li></ol> <p>【後記】Python 菜鳥如我，能寫出如此專業的 uv 提示全靠 AI，花少少錢就能請到世界頂尖水準的 Python 專家出主意給建議當私人教練，這是熱愛學習者的黃金年代無誤!! (如果你還沒放棄學習的話 XD)</p> <p data-slug="copilot-uv-instruction" data-fbimg="https://i.postimg.cc/TP4gn3b8/image.png#1280#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig2_639271310672189086.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig2_639271310672189086.webp" medium="image"/>
+    <pubDate>Fri, 09 Oct 2026 08:16:54 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[WiFi 無線卡速度不穩或瞬斷案例再一則]]></title>
+    <link>https://blog.darkthread.net/blog/wifi-qos-issue/</link>
+    <itunes:title><![CDATA[WiFi 無線卡速度不穩或瞬斷案例再一則]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" medium="image"/>
+    <pubDate>Tue, 06 Oct 2026 14:12:06 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[HTTP Proxy 模式使用 Docker 小技巧]]></title>
+    <link>https://blog.darkthread.net/blog/docker-w-http-proxy/</link>
+    <itunes:title><![CDATA[HTTP Proxy 模式使用 Docker 小技巧]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>簡單記一下如何 Ubuntu 設定 Docker 透過 HTTP Proxy 抓取映像檔，在無法直接連網環境的求生技巧。</p> <p>做法也簡單，先建立 <code>/etc/systemd/system/docker.service.d</code> 目錄，<code>sudo nano /etc/systemd/system/docker.service.d/http-proxy.conf</code> 寫入以下內容：</p> <pre><code>[Service]
+Environment="HTTP_PROXY=http://your_proxy_ip:port"
+Environment="HTTPS_PROXY=http://your_proxy_ip:port"
+Environment="NO_PROXY=localhost,127.0.0.1,docker-registry.local"
+</code></pre> <p>接著重新載入並重啟 Docker：</p> <pre><code>sudo systemctl daemon-reload
+sudo systemctl restart docker
+</code></pre> <p>若 HTTP Proxy 有置換成自己簽發的 CA 根憑證，記得透過以下程序加入系統信任區：(學到新指令 install，-D 可自動建立目錄、-m 0644 設定擁有者可讀寫，其他人唯讀，一次搞定)</p> <pre><code>sudo install -D -m 0644 proxy-root-ca.pem /usr/local/share/ca-certificates/proxy.root-ca.crt
+sudo update-ca-certificates
+</code></pre> <p>補充記錄用 openssl 擷取及驗證 HTTP Proxy 憑證的小技巧：</p> <pre><code># 先透過 Proxy 連 Google，用 showcerts 顯示憑證內容
+openssl s_client -proxy your_proxy_ip:port -connect google.com:443 -showcerts &lt;/dev/null 2&gt;/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' &gt; proxy-root-ca.crt
+</code></pre> <p>如此 docker pull 時就能順利透過 HTTP Proxy 上網抓取映像檔囉~</p> <p>【同場加映】若要該 Ubuntu 用 docker build 建置 .NET / ASP.NET Core Docker 容器，編譯時 NuGet Restore 需要設定 HTTP Proxy。以下是範例：</p> <pre><code>FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+ARG HTTP_PROXY
+COPY my-app.csproj ./
+# 只在本次 RUN 期間掛載檔案，使用 BuildKit 的 secret 功能，預設出現在 /run/secrets，不寫入 Image
+RUN --mount=type=secret,id=proxy_ca,required=true \
+install -m 0644 /run/secrets/proxy_ca /usr/local/share/ca-certificates/proxy.root-ca.crt &amp;&amp; \
+update-ca-certificates &amp;&amp; \
+HTTP_PROXY="$HTTP_PROXY" \
+HTTPS_PROXY="$HTTP_PROXY" \
+http_proxy="$HTTP_PROXY" \
+https_proxy="$HTTP_PROXY" \
+dotnet restore
+COPY . ./
+RUN dotnet publish -c Release -o /app/publish --no-restore \
+/p:UseAppHost=false
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
+WORKDIR /app
+# 如果容器運行期間也需要透過 Proxy 對外發送請求，加入以下這段設定
+ARG HTTP_PROXY
+ENV HTTP_PROXY="$HTTP_PROXY" \
+HTTPS_PROXY="$HTTP_PROXY" \
+http_proxy="$HTTP_PROXY" \
+https_proxy="$HTTP_PROXY"
+COPY --from=build /usr/local/share/ca-certificates/proxy.root-ca.crt /usr/local/share/ca-certificates/proxy.root-ca.crt
+RUN update-ca-certificates
+COPY --from=build /app/publish ./
+EXPOSE 12345
+ENTRYPOINT ["dotnet", "my-app.dll"]
+</code></pre> <p>而建置參數為 <code>docker build --add-host=host.docker.internal:host-gateway --build-arg HTTP_PROXY=http://host.docker.internal:8000 --secret id=proxy_ca,src=proxy.root-ca.crt .</code></p> <p>補上說明：</p> <ol><li>憑證透過 BuildKit secret 傳遞，<code>docker build --secret id=proxy_ca,src=rootCert.crt</code> 將 proxy.root-ca.crt 暫時掛載為 BuildKit secret，在 Dockerfile 則透過 <code>--mount=type=secret,id=proxy_ca</code> 取得檔案。<br> 註：BuildKit 的 secret 功能是 Docker 為映像檔建置提供的敏感資料(例如私密憑證、API 金鑰、SSH 金鑰、資料庫密碼等)安全機制，其優點是不會寫入 Docker 映象檔或歷史記錄，比 ARG/ENV 更安全。</li> <li>要讓 Docker 存取宿主機 IP，做法是用 <code>--add-host=host.docker.internal:host-gateway</code> 將 host.docker.internal 指向宿主機，HTTP Proxy Url 則以 <code>--build-arg HTTP_PROXY=http://host.docker.internal:8000</code> 參數方式傳入，在 Dockerfile 以變數 $HTTP_PROXY 取用。</li> <li>複製 Root CA 憑證、update-ca-certificates、設定 HTTP_PROXY 等環境變數的方式與在 Ubuntu 宿主相同。</li> <li>若執行時也要透過 HTTP Proxy 對外存取網站，則 runtime 時也要安裝憑證及設定 HTTP_PROXY 等環境變數。</li> <li>建議 HTTP_PROXY 及 http_proxy 都要設定，許多 Linux 工具、系統級套件或 POSIX 標準程式習慣讀取大寫，而 Python 的 requests、Node.js、cURL 等或 Linux 內的網頁瀏覽工具預設會優先讀取小寫。</li></ol> <p data-slug="docker-w-http-proxy" data-title-en="Tips of using (.NET) docker with http proxy" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/07/16/22/27/straw-bale-2510792_960_720.jpg#960#720">Configure Docker on Ubuntu to pull images through an HTTP proxy, trust a custom CA certificate, and verify proxy certificates with OpenSSL. Also learn to build .NET containers using proxy settings, BuildKit secrets, and host access without exposing sensitive certificates in image history.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>簡單記一下如何 Ubuntu 設定 Docker 透過 HTTP Proxy 抓取映像檔，在無法直接連網環境的求生技巧。</p> <p>做法也簡單，先建立 <code>/etc/systemd/system/docker.service.d</code> 目錄，<code>sudo nano /etc/systemd/system/docker.service.d/http-proxy.conf</code> 寫入以下內容：</p> <pre><code>[Service]
+Environment="HTTP_PROXY=http://your_proxy_ip:port"
+Environment="HTTPS_PROXY=http://your_proxy_ip:port"
+Environment="NO_PROXY=localhost,127.0.0.1,docker-registry.local"
+</code></pre> <p>接著重新載入並重啟 Docker：</p> <pre><code>sudo systemctl daemon-reload
+sudo systemctl restart docker
+</code></pre> <p>若 HTTP Proxy 有置換成自己簽發的 CA 根憑證，記得透過以下程序加入系統信任區：(學到新指令 install，-D 可自動建立目錄、-m 0644 設定擁有者可讀寫，其他人唯讀，一次搞定)</p> <pre><code>sudo install -D -m 0644 proxy-root-ca.pem /usr/local/share/ca-certificates/proxy.root-ca.crt
+sudo update-ca-certificates
+</code></pre> <p>補充記錄用 openssl 擷取及驗證 HTTP Proxy 憑證的小技巧：</p> <pre><code># 先透過 Proxy 連 Google，用 showcerts 顯示憑證內容
+openssl s_client -proxy your_proxy_ip:port -connect google.com:443 -showcerts &lt;/dev/null 2&gt;/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' &gt; proxy-root-ca.crt
+</code></pre> <p>如此 docker pull 時就能順利透過 HTTP Proxy 上網抓取映像檔囉~</p> <p>【同場加映】若要該 Ubuntu 用 docker build 建置 .NET / ASP.NET Core Docker 容器，編譯時 NuGet Restore 需要設定 HTTP Proxy。以下是範例：</p> <pre><code>FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+ARG HTTP_PROXY
+COPY my-app.csproj ./
+# 只在本次 RUN 期間掛載檔案，使用 BuildKit 的 secret 功能，預設出現在 /run/secrets，不寫入 Image
+RUN --mount=type=secret,id=proxy_ca,required=true \
+install -m 0644 /run/secrets/proxy_ca /usr/local/share/ca-certificates/proxy.root-ca.crt &amp;&amp; \
+update-ca-certificates &amp;&amp; \
+HTTP_PROXY="$HTTP_PROXY" \
+HTTPS_PROXY="$HTTP_PROXY" \
+http_proxy="$HTTP_PROXY" \
+https_proxy="$HTTP_PROXY" \
+dotnet restore
+COPY . ./
+RUN dotnet publish -c Release -o /app/publish --no-restore \
+/p:UseAppHost=false
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
+WORKDIR /app
+# 如果容器運行期間也需要透過 Proxy 對外發送請求，加入以下這段設定
+ARG HTTP_PROXY
+ENV HTTP_PROXY="$HTTP_PROXY" \
+HTTPS_PROXY="$HTTP_PROXY" \
+http_proxy="$HTTP_PROXY" \
+https_proxy="$HTTP_PROXY"
+COPY --from=build /usr/local/share/ca-certificates/proxy.root-ca.crt /usr/local/share/ca-certificates/proxy.root-ca.crt
+RUN update-ca-certificates
+COPY --from=build /app/publish ./
+EXPOSE 12345
+ENTRYPOINT ["dotnet", "my-app.dll"]
+</code></pre> <p>而建置參數為 <code>docker build --add-host=host.docker.internal:host-gateway --build-arg HTTP_PROXY=http://host.docker.internal:8000 --secret id=proxy_ca,src=proxy.root-ca.crt .</code></p> <p>補上說明：</p> <ol><li>憑證透過 BuildKit secret 傳遞，<code>docker build --secret id=proxy_ca,src=rootCert.crt</code> 將 proxy.root-ca.crt 暫時掛載為 BuildKit secret，在 Dockerfile 則透過 <code>--mount=type=secret,id=proxy_ca</code> 取得檔案。<br> 註：BuildKit 的 secret 功能是 Docker 為映像檔建置提供的敏感資料(例如私密憑證、API 金鑰、SSH 金鑰、資料庫密碼等)安全機制，其優點是不會寫入 Docker 映象檔或歷史記錄，比 ARG/ENV 更安全。</li> <li>要讓 Docker 存取宿主機 IP，做法是用 <code>--add-host=host.docker.internal:host-gateway</code> 將 host.docker.internal 指向宿主機，HTTP Proxy Url 則以 <code>--build-arg HTTP_PROXY=http://host.docker.internal:8000</code> 參數方式傳入，在 Dockerfile 以變數 $HTTP_PROXY 取用。</li> <li>複製 Root CA 憑證、update-ca-certificates、設定 HTTP_PROXY 等環境變數的方式與在 Ubuntu 宿主相同。</li> <li>若執行時也要透過 HTTP Proxy 對外存取網站，則 runtime 時也要安裝憑證及設定 HTTP_PROXY 等環境變數。</li> <li>建議 HTTP_PROXY 及 http_proxy 都要設定，許多 Linux 工具、系統級套件或 POSIX 標準程式習慣讀取大寫，而 Python 的 requests、Node.js、cURL 等或 Linux 內的網頁瀏覽工具預設會優先讀取小寫。</li></ol> <p data-slug="docker-w-http-proxy" data-title-en="Tips of using (.NET) docker with http proxy" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/07/16/22/27/straw-bale-2510792_960_720.jpg#960#720">Configure Docker on Ubuntu to pull images through an HTTP proxy, trust a custom CA certificate, and verify proxy certificates with OpenSSL. Also learn to build .NET containers using proxy settings, BuildKit secrets, and host access without exposing sensitive certificates in image history.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>簡單記一下如何 Ubuntu 設定 Docker 透過 HTTP Proxy 抓取映像檔，在無法直接連網環境的求生技巧。</p> <p>做法也簡單，先建立 <code>/etc/systemd/system/docker.service.d</code> 目錄，<code>sudo nano /etc/systemd/system/docker.service.d/http-proxy.conf</code> 寫入以下內容：</p> <pre><code>[Service]
+Environment="HTTP_PROXY=http://your_proxy_ip:port"
+Environment="HTTPS_PROXY=http://your_proxy_ip:port"
+Environment="NO_PROXY=localhost,127.0.0.1,docker-registry.local"
+</code></pre> <p>接著重新載入並重啟 Docker：</p> <pre><code>sudo systemctl daemon-reload
+sudo systemctl restart docker
+</code></pre> <p>若 HTTP Proxy 有置換成自己簽發的 CA 根憑證，記得透過以下程序加入系統信任區：(學到新指令 install，-D 可自動建立目錄、-m 0644 設定擁有者可讀寫，其他人唯讀，一次搞定)</p> <pre><code>sudo install -D -m 0644 proxy-root-ca.pem /usr/local/share/ca-certificates/proxy.root-ca.crt
+sudo update-ca-certificates
+</code></pre> <p>補充記錄用 openssl 擷取及驗證 HTTP Proxy 憑證的小技巧：</p> <pre><code># 先透過 Proxy 連 Google，用 showcerts 顯示憑證內容
+openssl s_client -proxy your_proxy_ip:port -connect google.com:443 -showcerts &lt;/dev/null 2&gt;/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' &gt; proxy-root-ca.crt
+</code></pre> <p>如此 docker pull 時就能順利透過 HTTP Proxy 上網抓取映像檔囉~</p> <p>【同場加映】若要該 Ubuntu 用 docker build 建置 .NET / ASP.NET Core Docker 容器，編譯時 NuGet Restore 需要設定 HTTP Proxy。以下是範例：</p> <pre><code>FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+ARG HTTP_PROXY
+COPY my-app.csproj ./
+# 只在本次 RUN 期間掛載檔案，使用 BuildKit 的 secret 功能，預設出現在 /run/secrets，不寫入 Image
+RUN --mount=type=secret,id=proxy_ca,required=true \
+install -m 0644 /run/secrets/proxy_ca /usr/local/share/ca-certificates/proxy.root-ca.crt &amp;&amp; \
+update-ca-certificates &amp;&amp; \
+HTTP_PROXY="$HTTP_PROXY" \
+HTTPS_PROXY="$HTTP_PROXY" \
+http_proxy="$HTTP_PROXY" \
+https_proxy="$HTTP_PROXY" \
+dotnet restore
+COPY . ./
+RUN dotnet publish -c Release -o /app/publish --no-restore \
+/p:UseAppHost=false
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
+WORKDIR /app
+# 如果容器運行期間也需要透過 Proxy 對外發送請求，加入以下這段設定
+ARG HTTP_PROXY
+ENV HTTP_PROXY="$HTTP_PROXY" \
+HTTPS_PROXY="$HTTP_PROXY" \
+http_proxy="$HTTP_PROXY" \
+https_proxy="$HTTP_PROXY"
+COPY --from=build /usr/local/share/ca-certificates/proxy.root-ca.crt /usr/local/share/ca-certificates/proxy.root-ca.crt
+RUN update-ca-certificates
+COPY --from=build /app/publish ./
+EXPOSE 12345
+ENTRYPOINT ["dotnet", "my-app.dll"]
+</code></pre> <p>而建置參數為 <code>docker build --add-host=host.docker.internal:host-gateway --build-arg HTTP_PROXY=http://host.docker.internal:8000 --secret id=proxy_ca,src=proxy.root-ca.crt .</code></p> <p>補上說明：</p> <ol><li>憑證透過 BuildKit secret 傳遞，<code>docker build --secret id=proxy_ca,src=rootCert.crt</code> 將 proxy.root-ca.crt 暫時掛載為 BuildKit secret，在 Dockerfile 則透過 <code>--mount=type=secret,id=proxy_ca</code> 取得檔案。<br> 註：BuildKit 的 secret 功能是 Docker 為映像檔建置提供的敏感資料(例如私密憑證、API 金鑰、SSH 金鑰、資料庫密碼等)安全機制，其優點是不會寫入 Docker 映象檔或歷史記錄，比 ARG/ENV 更安全。</li> <li>要讓 Docker 存取宿主機 IP，做法是用 <code>--add-host=host.docker.internal:host-gateway</code> 將 host.docker.internal 指向宿主機，HTTP Proxy Url 則以 <code>--build-arg HTTP_PROXY=http://host.docker.internal:8000</code> 參數方式傳入，在 Dockerfile 以變數 $HTTP_PROXY 取用。</li> <li>複製 Root CA 憑證、update-ca-certificates、設定 HTTP_PROXY 等環境變數的方式與在 Ubuntu 宿主相同。</li> <li>若執行時也要透過 HTTP Proxy 對外存取網站，則 runtime 時也要安裝憑證及設定 HTTP_PROXY 等環境變數。</li> <li>建議 HTTP_PROXY 及 http_proxy 都要設定，許多 Linux 工具、系統級套件或 POSIX 標準程式習慣讀取大寫，而 Python 的 requests、Node.js、cURL 等或 Linux 內的網頁瀏覽工具預設會優先讀取小寫。</li></ol> <p data-slug="docker-w-http-proxy" data-title-en="Tips of using (.NET) docker with http proxy" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/07/16/22/27/straw-bale-2510792_960_720.jpg#960#720">Configure Docker on Ubuntu to pull images through an HTTP proxy, trust a custom CA certificate, and verify proxy certificates with OpenSSL. Also learn to build .NET containers using proxy settings, BuildKit secrets, and host access without exposing sensitive certificates in image history.</p>]]></content:encoded>
+    
+    <pubDate>Sun, 04 Oct 2026 02:45:27 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【茶包射手日記】難抓的 XML 多餘字元]]></title>
+    <link>https://blog.darkthread.net/blog/xml-textnode-issue/</link>
+    <itunes:title><![CDATA[【茶包射手日記】難抓的 XML 多餘字元]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;s
+&lt;add key="AppName" value="MyApp" /&gt;
+&lt;add key="Environment" value="Development" /&gt;
+&lt;/appSettings&gt;
+&lt;/configuration&gt;
+</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
+using System.Configuration;
+internal static class Program
+{
+private static int Main()
+{
+try
+{
+string appName = ConfigurationManager.AppSettings["AppName"];
+Console.WriteLine(appName);
+}
+catch (Exception exception)
+{
+Console.Error.WriteLine(exception.ToString());
+}
+}
+}
+</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;s
+&lt;add key="AppName" value="MyApp" /&gt;
+&lt;add key="Environment" value="Development" /&gt;
+&lt;/appSettings&gt;
+&lt;/configuration&gt;
+</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
+using System.Configuration;
+internal static class Program
+{
+private static int Main()
+{
+try
+{
+string appName = ConfigurationManager.AppSettings["AppName"];
+Console.WriteLine(appName);
+}
+catch (Exception exception)
+{
+Console.Error.WriteLine(exception.ToString());
+}
+}
+}
+</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;configuration&gt;
+&lt;appSettings&gt;s
+&lt;add key="AppName" value="MyApp" /&gt;
+&lt;add key="Environment" value="Development" /&gt;
+&lt;/appSettings&gt;
+&lt;/configuration&gt;
+</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
+using System.Configuration;
+internal static class Program
+{
+private static int Main()
+{
+try
+{
+string appName = ConfigurationManager.AppSettings["AppName"];
+Console.WriteLine(appName);
+}
+catch (Exception exception)
+{
+Console.Error.WriteLine(exception.ToString());
+}
+}
+}
+</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp" medium="image"/>
+    <pubDate>Sat, 03 Oct 2026 09:54:08 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[【野外求生系列】在離線環境安裝 Jupyter Lab / Notebook]]></title>
+    <link>https://blog.darkthread.net/blog/install-jupyter-offline/</link>
+    <itunes:title><![CDATA[【野外求生系列】在離線環境安裝 Jupyter Lab / Notebook]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>網際網路如同電與自來水成為理所當然，現代軟體幾乎全靠網路現場下載安裝，那些印刷精美的盒子與安裝光碟的五彩斑斕，只留在老人回憶裡已不復返。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"></p> <p>但說來有趣，基於安全，偏偏有些電腦的字典裡沒有「上網下載東西」這檔事兒，於是如何在不能上網的環境完成原本即時下載的安裝程序，有時便是個實用的野外求生技巧。</p> <p>這篇筆記如何在離線 RHEL 8 安裝 Python 及 Jupyter。</p> <p>新版的 JupyterLab 4.x 需要 Python 3.10+。我找到一篇教學 <a href="https://www.linkedin.com/pulse/simple-python-311-install-rhel8-public-internet-repo-vm-marco-bambili-pnlgf/">Simple python 3.11 install in Rhel8 with no public internet repo vm</a>，做法是準備一台 RHEL 8 VM 或 Docker 容器負責下載必要檔案，再複製到到離線主機主機安裝。RHEL 有個人開發者的免費授權，但要申請，不想麻煩的話，可用以下 docker-compose.yml 建一台 Rocky Linux 8 容器省點事。在本地開個 downloads 資料，映對到 Rocky Linux 的 /downloads 用來放下載的檔案：</p> <pre><code>services:
+rocky8:
+image: rockylinux:8
+container_name: rocky8-offline
+command: bash -c "sleep infinity"
+volumes:
+- ./downloads:/downloads
+</code></pre> <p><code>docker compose up -d</code> 執行後，用 <code>docker compose exec -it rocky8 /bin/sh</code> 登入操作：</p> <ol><li>在 Rocky Liunx 安裝 python3.11.x86_64<br> <code>yum install --downloadonly --downloaddir=/downloads/python python3.11.x86_64</code></li> <li>將檔案 scp 上傳到離線 RHEL 8，使用 <code>rpm -ivh</code> 安裝 <pre><code>rpm -ivh python3.11-setuptools-wheel-65.5.1-2.el8.noarch.rpm
+rpm -ivh python3.11-pip-wheel-22.3.1-4.el8.noarch.rpm
+rpm -ivh mpdecimal-2.5.1-3.el8.x86_64.rpm
+rpm -ivh python3.11-libs-3.11.5-1.el8_9.x86_64.rpm
+rpm -ivh python3.11-3.11.5-1.el8_9.x86_64.rpm
+</code></pre> 安裝完成後改 python3 別名指向 3.11： <pre><code>update-alternatives --install /usr/bin/python3 python3 /usr/bin/pytnon3.11 1
+update-alternatives --config python3
+# 該主機原本 python3 已指向 3.6，修改為
+# There are 2 programs which provide 'python3'.
+#
+# Selection Command
+# *+ 1           /usr/bin/python3.6
+#   2           /usr/bin/python3.11
+#
+# Enter to keep the current selection[+], or type selection number: 2
+python3 --version # 檢查版本
+</code></pre> </li> <li>回到 Rocky Linux，重跑 <code>yum install python3.11.x86_64</code> 也裝好 Python 3.11，建立下載用的虛擬環境： <pre><code>yum install python3.11.x86_64
+mkdir -p /downloads/jupyter
+python3.11 -m venv ~/jupyter-download-env
+~/jupyter-download-env/bin/python -m pip install --upgrade pip
+</code></pre> </li> <li>下載 Jupyter Lab、Jupyter Notebook、Python Kernel 及 pip，--only-binary=:all: 指定只下載 wheel，避免離線安裝時還要編譯或下載建置工具 <pre><code>~/jupyter-download-env/bin/python -m pip download --only-binary=:all: --dest /downloads/jupyter pip jupyterlab notebook ipykernel
+</code></pre> </li> <li>將 ./downloads/jupyter 下的檔案複製到 RHEL ~/jupyter 目錄，登入 RHEL 操作： <pre><code># 建立並切換虛擬環境
+python3 -m venv ~/venv/jupyter
+source ~/venvs/jupyter/bin/activate
+# 更新 pip
+python -m pip install --no-index --find-links="$HOME/jupyter" --upgrade pip
+# 安裝 Jupyter Notebook 相關套件
+python -m pip install --no-index --find-links="$HOME/jupyter" jupyterlab notebook ipykernel
+# 檢查是否有缺，正常要看到 No broken requirements found.
+python -m pip check
+# 檢查版本
+jupyter lab --version
+# 執行 Jupyter Lab，會出現帶有 ?token=... 的連結，如 http://localhost:8888/lab?token=9a8b7...
+jupyter lab --no-browser --ip=127.0.0.1 --port=8888
+</code></pre> </li></ol> <p>為了安全，我讓 Jupyter Lab 只限本機存取，再用 SSH Tunnel 將 RHEL 本機的 8888 Port 導到我的客戶端，<code>ssh -N -L 8888:127.0.0.1:8888 user@offline-host</code> <a href="/blog/jupyter-on-remote-linux/">參考</a>，完成後在客戶端用瀏覽器連上 <code>http://localhost:8888/lab?token=9a8b7...</code> 進入 Jupyter Lab 介面，大功告成!</p> <p data-slug="install-jupyter-offline" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>網際網路如同電與自來水成為理所當然，現代軟體幾乎全靠網路現場下載安裝，那些印刷精美的盒子與安裝光碟的五彩斑斕，只留在老人回憶裡已不復返。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"></p> <p>但說來有趣，基於安全，偏偏有些電腦的字典裡沒有「上網下載東西」這檔事兒，於是如何在不能上網的環境完成原本即時下載的安裝程序，有時便是個實用的野外求生技巧。</p> <p>這篇筆記如何在離線 RHEL 8 安裝 Python 及 Jupyter。</p> <p>新版的 JupyterLab 4.x 需要 Python 3.10+。我找到一篇教學 <a href="https://www.linkedin.com/pulse/simple-python-311-install-rhel8-public-internet-repo-vm-marco-bambili-pnlgf/">Simple python 3.11 install in Rhel8 with no public internet repo vm</a>，做法是準備一台 RHEL 8 VM 或 Docker 容器負責下載必要檔案，再複製到到離線主機主機安裝。RHEL 有個人開發者的免費授權，但要申請，不想麻煩的話，可用以下 docker-compose.yml 建一台 Rocky Linux 8 容器省點事。在本地開個 downloads 資料，映對到 Rocky Linux 的 /downloads 用來放下載的檔案：</p> <pre><code>services:
+rocky8:
+image: rockylinux:8
+container_name: rocky8-offline
+command: bash -c "sleep infinity"
+volumes:
+- ./downloads:/downloads
+</code></pre> <p><code>docker compose up -d</code> 執行後，用 <code>docker compose exec -it rocky8 /bin/sh</code> 登入操作：</p> <ol><li>在 Rocky Liunx 安裝 python3.11.x86_64<br> <code>yum install --downloadonly --downloaddir=/downloads/python python3.11.x86_64</code></li> <li>將檔案 scp 上傳到離線 RHEL 8，使用 <code>rpm -ivh</code> 安裝 <pre><code>rpm -ivh python3.11-setuptools-wheel-65.5.1-2.el8.noarch.rpm
+rpm -ivh python3.11-pip-wheel-22.3.1-4.el8.noarch.rpm
+rpm -ivh mpdecimal-2.5.1-3.el8.x86_64.rpm
+rpm -ivh python3.11-libs-3.11.5-1.el8_9.x86_64.rpm
+rpm -ivh python3.11-3.11.5-1.el8_9.x86_64.rpm
+</code></pre> 安裝完成後改 python3 別名指向 3.11： <pre><code>update-alternatives --install /usr/bin/python3 python3 /usr/bin/pytnon3.11 1
+update-alternatives --config python3
+# 該主機原本 python3 已指向 3.6，修改為
+# There are 2 programs which provide 'python3'.
+#
+# Selection Command
+# *+ 1           /usr/bin/python3.6
+#   2           /usr/bin/python3.11
+#
+# Enter to keep the current selection[+], or type selection number: 2
+python3 --version # 檢查版本
+</code></pre> </li> <li>回到 Rocky Linux，重跑 <code>yum install python3.11.x86_64</code> 也裝好 Python 3.11，建立下載用的虛擬環境： <pre><code>yum install python3.11.x86_64
+mkdir -p /downloads/jupyter
+python3.11 -m venv ~/jupyter-download-env
+~/jupyter-download-env/bin/python -m pip install --upgrade pip
+</code></pre> </li> <li>下載 Jupyter Lab、Jupyter Notebook、Python Kernel 及 pip，--only-binary=:all: 指定只下載 wheel，避免離線安裝時還要編譯或下載建置工具 <pre><code>~/jupyter-download-env/bin/python -m pip download --only-binary=:all: --dest /downloads/jupyter pip jupyterlab notebook ipykernel
+</code></pre> </li> <li>將 ./downloads/jupyter 下的檔案複製到 RHEL ~/jupyter 目錄，登入 RHEL 操作： <pre><code># 建立並切換虛擬環境
+python3 -m venv ~/venv/jupyter
+source ~/venvs/jupyter/bin/activate
+# 更新 pip
+python -m pip install --no-index --find-links="$HOME/jupyter" --upgrade pip
+# 安裝 Jupyter Notebook 相關套件
+python -m pip install --no-index --find-links="$HOME/jupyter" jupyterlab notebook ipykernel
+# 檢查是否有缺，正常要看到 No broken requirements found.
+python -m pip check
+# 檢查版本
+jupyter lab --version
+# 執行 Jupyter Lab，會出現帶有 ?token=... 的連結，如 http://localhost:8888/lab?token=9a8b7...
+jupyter lab --no-browser --ip=127.0.0.1 --port=8888
+</code></pre> </li></ol> <p>為了安全，我讓 Jupyter Lab 只限本機存取，再用 SSH Tunnel 將 RHEL 本機的 8888 Port 導到我的客戶端，<code>ssh -N -L 8888:127.0.0.1:8888 user@offline-host</code> <a href="/blog/jupyter-on-remote-linux/">參考</a>，完成後在客戶端用瀏覽器連上 <code>http://localhost:8888/lab?token=9a8b7...</code> 進入 Jupyter Lab 介面，大功告成!</p> <p data-slug="install-jupyter-offline" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>網際網路如同電與自來水成為理所當然，現代軟體幾乎全靠網路現場下載安裝，那些印刷精美的盒子與安裝光碟的五彩斑斕，只留在老人回憶裡已不復返。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"></p> <p>但說來有趣，基於安全，偏偏有些電腦的字典裡沒有「上網下載東西」這檔事兒，於是如何在不能上網的環境完成原本即時下載的安裝程序，有時便是個實用的野外求生技巧。</p> <p>這篇筆記如何在離線 RHEL 8 安裝 Python 及 Jupyter。</p> <p>新版的 JupyterLab 4.x 需要 Python 3.10+。我找到一篇教學 <a href="https://www.linkedin.com/pulse/simple-python-311-install-rhel8-public-internet-repo-vm-marco-bambili-pnlgf/">Simple python 3.11 install in Rhel8 with no public internet repo vm</a>，做法是準備一台 RHEL 8 VM 或 Docker 容器負責下載必要檔案，再複製到到離線主機主機安裝。RHEL 有個人開發者的免費授權，但要申請，不想麻煩的話，可用以下 docker-compose.yml 建一台 Rocky Linux 8 容器省點事。在本地開個 downloads 資料，映對到 Rocky Linux 的 /downloads 用來放下載的檔案：</p> <pre><code>services:
+rocky8:
+image: rockylinux:8
+container_name: rocky8-offline
+command: bash -c "sleep infinity"
+volumes:
+- ./downloads:/downloads
+</code></pre> <p><code>docker compose up -d</code> 執行後，用 <code>docker compose exec -it rocky8 /bin/sh</code> 登入操作：</p> <ol><li>在 Rocky Liunx 安裝 python3.11.x86_64<br> <code>yum install --downloadonly --downloaddir=/downloads/python python3.11.x86_64</code></li> <li>將檔案 scp 上傳到離線 RHEL 8，使用 <code>rpm -ivh</code> 安裝 <pre><code>rpm -ivh python3.11-setuptools-wheel-65.5.1-2.el8.noarch.rpm
+rpm -ivh python3.11-pip-wheel-22.3.1-4.el8.noarch.rpm
+rpm -ivh mpdecimal-2.5.1-3.el8.x86_64.rpm
+rpm -ivh python3.11-libs-3.11.5-1.el8_9.x86_64.rpm
+rpm -ivh python3.11-3.11.5-1.el8_9.x86_64.rpm
+</code></pre> 安裝完成後改 python3 別名指向 3.11： <pre><code>update-alternatives --install /usr/bin/python3 python3 /usr/bin/pytnon3.11 1
+update-alternatives --config python3
+# 該主機原本 python3 已指向 3.6，修改為
+# There are 2 programs which provide 'python3'.
+#
+# Selection Command
+# *+ 1           /usr/bin/python3.6
+#   2           /usr/bin/python3.11
+#
+# Enter to keep the current selection[+], or type selection number: 2
+python3 --version # 檢查版本
+</code></pre> </li> <li>回到 Rocky Linux，重跑 <code>yum install python3.11.x86_64</code> 也裝好 Python 3.11，建立下載用的虛擬環境： <pre><code>yum install python3.11.x86_64
+mkdir -p /downloads/jupyter
+python3.11 -m venv ~/jupyter-download-env
+~/jupyter-download-env/bin/python -m pip install --upgrade pip
+</code></pre> </li> <li>下載 Jupyter Lab、Jupyter Notebook、Python Kernel 及 pip，--only-binary=:all: 指定只下載 wheel，避免離線安裝時還要編譯或下載建置工具 <pre><code>~/jupyter-download-env/bin/python -m pip download --only-binary=:all: --dest /downloads/jupyter pip jupyterlab notebook ipykernel
+</code></pre> </li> <li>將 ./downloads/jupyter 下的檔案複製到 RHEL ~/jupyter 目錄，登入 RHEL 操作： <pre><code># 建立並切換虛擬環境
+python3 -m venv ~/venv/jupyter
+source ~/venvs/jupyter/bin/activate
+# 更新 pip
+python -m pip install --no-index --find-links="$HOME/jupyter" --upgrade pip
+# 安裝 Jupyter Notebook 相關套件
+python -m pip install --no-index --find-links="$HOME/jupyter" jupyterlab notebook ipykernel
+# 檢查是否有缺，正常要看到 No broken requirements found.
+python -m pip check
+# 檢查版本
+jupyter lab --version
+# 執行 Jupyter Lab，會出現帶有 ?token=... 的連結，如 http://localhost:8888/lab?token=9a8b7...
+jupyter lab --no-browser --ip=127.0.0.1 --port=8888
+</code></pre> </li></ol> <p>為了安全，我讓 Jupyter Lab 只限本機存取，再用 SSH Tunnel 將 RHEL 本機的 8888 Port 導到我的客戶端，<code>ssh -N -L 8888:127.0.0.1:8888 user@offline-host</code> <a href="/blog/jupyter-on-remote-linux/">參考</a>，完成後在客戶端用瀏覽器連上 <code>http://localhost:8888/lab?token=9a8b7...</code> 進入 Jupyter Lab 介面，大功告成!</p> <p data-slug="install-jupyter-offline" data-fbimg="https://i.imgur.com/vlOOUEn.png#1055#692"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg" medium="image"/>
+    <pubDate>Fri, 02 Oct 2026 13:19:04 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[Windows 桌面程式自動化測試利器 - FlaUI]]></title>
+    <link>https://blog.darkthread.net/blog/flatui/</link>
+    <itunes:title><![CDATA[Windows 桌面程式自動化測試利器 - FlaUI]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>講到自動測試，網頁這塊已超級成熟，基本上只要 <a href="/blog/playwright-notes/">Playwright</a> 在手，幾乎沒有不能自動化的操作。相形之下，桌面程式 Windows Form、WPF 的可自動化性就落後一大截。近年來 AI Computer Use 能力突飛猛進，局面才算有一點改變。不過，靠電腦視覺或 AI 處理 GUI 操作成本偏高，反應速度較慢，拿來處理非固定性需智慧判斷的複雜事務才有價值。像是日常排程、程式自動化測試，操作情境固定，寫支程式依預先設計好的流程快速完成，會比每次擷取畫面動用 AI 分析，來得有效率又不浪費 Token，是較聰明選擇。</p> <p>桌面程式自動化操作這塊原本是 RPA 軟體的重點轄區，專業軟體如 UiPath/PowerAutomate 功能強大但授權費用可觀。如果願意學點程式動點腦筋，不要死守 No Code，靠開源程式庫我們也能做到 Windows Form / WPF 程式的自動化操作或自動測試，沒想像中困難。這篇就用「將記筆本(Notepad)新增文件並存檔作業自動化」的簡單範例來實地體驗。</p> <p><a href="https://github.com/FlaUI/FlaUI">FlaUI</a> 是一套開源 .NET Windows UI 自動化函式庫，主要用於以 C# 控制及測試 Windows 桌面應用程式。它建立在 Windows UI Automation（UIA）之上，提供較易使用的 API，可搜尋視窗、按鈕、文字框、選單等 UI 元件，並執行點擊、輸入文字、選取等操作。</p> <p>FlaUI 支援 Win32、WPF、WinForms 等常見 Windows 桌面技術，並利用 UIA2 與 UIA3 兩種微軟官方提供的 <a href="https://learn.microsoft.com/zh-tw/dotnet/framework/ui-automation/ui-automation-overview?WT.mc_id=DOP-MVP-37580">UI 自動化技術</a>(註：Windows 10/11 基本上都用 UIA3)。相較於傳統的 SendKeys 或滑鼠座標操作，FlaUI 可以透過 UI 元件的 AutomationId、Name、ControlType 等屬性精準定位元件，可以建立穩定且高效率的 UI 自動化測試、RPA 與桌面應用程式整合工具。</p> <p>想用 FlaUI 操作桌面程式，第一步要先了解桌面程式的結構，方法是使用 <a href="https://github.com/FlaUI/FlaUInspect">FlaUInspect 工具</a>解析視窗物件的樹狀結構，找到要點選的按鈕、填寫文字的文字欄位所在位置，設法用名稱、型別鎖定它，再模擬滑鼠點擊、按鍵輸入，若為 .NET 物件，甚至可以直接修改內容，藉此實現用程式操作程式的自動化目標。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp"></p> <p>熟悉使用 FlaUInspect 工具很重要，它能幫助你在複雜樹狀結構中鎖定要操作對象，再構怎麼有效率地用程式找到它。下面介紹操作按鈕的用法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639261153751058710.webp"></p> <ol><li>重新選擇要檢視的視窗</li> <li>重新整理資料，視窗內容改變時可重新生成樹狀圖</li> <li>元素查詢功能，啟用時會顯示 [12] 位置的操作區，可輸入文字用名稱、型別、文字等當條件搜尋元素</li> <li>Hover 定位模式，啟用時，將滑鼠移到特定元素上按 Ctrl，可自動在樹狀圖選取該元素</li> <li>Highlight 模式，啟用時，已選取元素會出現綠色矩形標示其位置及大小範圍</li> <li>Focus 模式，啟用時，會自動在樹狀圖選取取得焦點的元素</li> <li>匯出元素的擷圖</li> <li>將元素資料複製到剪貼簿</li> <li>將元素完整屬性資料複製到剪貼簿</li> <li>顯示選取元素的 XPATH (顯示在 [11] 的位置)</li></ol> <p>活用 FlaUInspect，你可以找到任何想操作的元素。</p> <p>我寫了一個簡單的 Notepad 操作範例，步驟為啟動或連上執行中的 Notepad 程式，按 Ctrl-N 開新文件，用設定值跟模擬打字方式輸入一段文字，透過 FlaUI API 選取一段內容，改成粗體，將顯示模式切換成 Markdown 檢視，按 Ctrl-Shift-S 存檔，選擇存成 Markdown，指定檔案路徑，存檔完成。</p> <p>練習過程發現一些眉角，在中文 Windows，打字及按鍵很容易被中文輸入法吃掉，安裝並由程式強切成純英文輸入可以避免一些困擾。若畫面元素完全固定，用 XPATH 最快，程式嘗試了不同技巧，用 Name、ControlType 甚至座標位置去找元素；另外輸入部分也試了直接設定文字欄位 Text 屬性、模擬按鍵、呼叫按鈕 .Click() 方法、移動滑鼠與點擊等多種做法，在同一範例涵蓋各式做法，方便日後應用參考。</p> <p>完整程式如下：</p> <pre><code>using System;
+using FlaUI.Core;
+using FlaUI.UIA3; // 除非古老 Windows 程式，建議用 UIA3
+using System.Diagnostics;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Input;
+using FlaUI.Core.WindowsAPI;
+using FlaUI.Core.Definitions;
+// 檢查程式是否已執行，如果已啟動則取得其 Application，否則就啟動一份
+var found = Process.GetProcessesByName("notepad").FirstOrDefault(process =&gt; process.MainWindowHandle != IntPtr.Zero);
+// 如果程式尚未啟動，則啟動應用程式
+var app = found == null ? Application.Launch("notepad.exe") : Application.Attach(found);
+try
+{
+// 初始化 UIA3 自動化物件
+using (var automation = new UIA3Automation())
+{
+// 取得主視窗（設定 5 秒逾時）
+var mainWindow = app.GetMainWindow(automation, TimeSpan.FromSeconds(5));
+if (mainWindow == null)
+{
+Console.WriteLine("無法取得主視窗。");
+return;
+}
+// 按 Ctrl-N 新增文件
+mainWindow.Focus();
+await Task.Delay(500); // 等待 0.5 秒，確保新文件已建立
+Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
+Wait.UntilInputIsProcessed();
+// 尋找文字編輯框並輸入文字
+var textBox = mainWindow.FindFirstDescendant(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Document))?.AsTextBox();
+if (textBox != null)
+{
+textBox.Focus();
+// 使用 Text 屬性直接設定文字最可靠，不受輸入法影響
+textBox.Text = "FlaUI 自動操作測試 ";
+textBox.Focus();
+// FlaUI Keyboard 模擬按鍵操作極易被中文輸入法干擾，建議新增英文鍵盤
+// 並在執行模擬按鍵操作前切換到英文鍵盤
+NativeMethods.SwitchTargetWindowToEnglish(mainWindow.Properties.NativeWindowHandle.Value);
+await Task.Delay(500); // 等待 1 秒，確保切換到英文鍵盤完成
+// 游標移到文字結尾
+Keyboard.Type(VirtualKeyShort.END);
+Wait.UntilInputIsProcessed();
+Keyboard.Type(" Hello, World!");
+Wait.UntilInputIsProcessed(TimeSpan.FromSeconds(2));
+// 選取最前面13個字
+// 方法一：按著 Shift 連按方向鍵選取文字，實測易受輸入法影響
+// 方法二：使用 Text.Pattern
+textBox.Focus();
+var pattern = textBox.Patterns.Text.Pattern;
+var range = pattern.DocumentRange;
+// 複製一份範圍，準備進行選取操作
+var selection = range.Clone();
+// 將選取範圍的結尾移到最前方，準備選取文字
+selection.MoveEndpointByRange(TextPatternRangeEndpoint.End, selection, TextPatternRangeEndpoint.Start);
+// 將選取範圍的結尾移動到最前方後，再向後移動 13 個字元，完成選取操作
+selection.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 13);
+selection.Select();
+// 點擊粗體按鈕
+// 找尋 Name 為 "粗體 (Ctrl+B)" 的按鈕並點擊
+var boldButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("粗體 (Ctrl+B)"))?.AsButton();
+if (boldButton == null)
+{
+throw new Exception("找不到粗體按鈕。");
+}
+// 點擊粗體按鈕
+boldButton.Click();
+// 切換成 Markdown 語法模式
+// 嘗試另一種做法，找到狀態列(座標在最下方 Panel)的第三個控制項
+var panes = mainWindow.FindAllChildren(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
+// 找出 Y 座標最大的 Panel，通常是最下方的狀態列
+var statusBar = panes.OrderByDescending(p =&gt; p.BoundingRectangle.Y).FirstOrDefault();
+if (statusBar != null)
+{
+var innerPannel = statusBar.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
+if (innerPannel == null) throw new Exception("找不到內層 Panel。");
+var button = innerPannel.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
+if (button == null) throw new Exception("找不到按鈕。");
+// 嘗試模擬滑鼠點擊操作
+var clickablePoint = button.Properties.ClickablePoint.Value;
+Mouse.MoveTo(clickablePoint);
+Mouse.Click();
+}
+Wait.UntilInputIsProcessed();
+// 按 Ctrl-Shift-S 存檔
+Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.SHIFT, VirtualKeyShort.KEY_S);
+Wait.UntilInputIsProcessed();
+// 尋找名為「另存為 Markdown 檔案」的 Button
+var saveAsMarkdownButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存為 Markdown 檔案"))?.AsButton();
+if (saveAsMarkdownButton == null)
+{
+throw new Exception("找不到「另存為 Markdown 檔案」按鈕。");
+}
+saveAsMarkdownButton.Click();
+Wait.UntilInputIsProcessed(TimeSpan.FromMilliseconds(500));
+// 找到名為「另存新檔」的對話框，並進行後續操作
+var saveAsDialog = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存新檔"))?.AsWindow();
+if (saveAsDialog == null)
+{
+throw new Exception("找不到「另存新檔」對話框。");
+}
+// 找到名為「檔案名稱」的 Edit 輸入框
+var fileNameEdit = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("檔案名稱:").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox();
+if (fileNameEdit == null)
+{
+throw new Exception("找不到「檔案名稱」輸入框。");
+}
+// 輸入檔案名稱
+fileNameEdit.Text = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid().ToString().Substring(0, 8)}.md");
+Wait.UntilInputIsProcessed();
+// 點擊「儲存」按鈕
+var saveButton = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("存檔(S)"))?.AsButton();
+if (saveButton == null)
+{
+throw new Exception("找不到「存檔」按鈕。");
+}
+saveButton.Click();
+Wait.UntilInputIsProcessed();
+}
+}
+// 若 Notepad 為新啟動，結束後關閉
+if (found == null)
+{
+app.Close();
+}
+}
+catch (Exception ex)
+{
+Console.WriteLine($"發生錯誤: {ex.Message}");
+}
+</code></pre> <p>切英文輸入法的輔助方法我請 AI 寫，一併附上：</p> <pre><code>using System;
+using System.Runtime.InteropServices;
+public static class NativeMethods
+{
+// Loads a specified keyboard layout identifier
+[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
+// Sends a message to a window's message queue asynchronously
+[DllImport("user32.dll", CharSet = CharSet.Auto)]
+public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+// Windows Message constant for changing input language
+public const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
+// Flags for LoadKeyboardLayout
+public const uint KLF_ACTIVATE = 0x00000001;
+// Language Identifier for United States English (en-US)
+public const string KBD_US_ENGLISH = "00000409";
+public static void SwitchTargetWindowToEnglish(IntPtr windowHandle)
+{
+if (windowHandle == IntPtr.Zero)
+throw new ArgumentException("Invalid window handle.");
+// 1. Load the US English layout into memory and get its handle
+IntPtr englishLayout = NativeMethods.LoadKeyboardLayout(NativeMethods.KBD_US_ENGLISH, NativeMethods.KLF_ACTIVATE);
+if (englishLayout != IntPtr.Zero)
+{
+// 2. Post the request message to the specific application window
+// wParam: 0 = fallback allowed, 1 = strict match layout
+// lParam: The loaded layout handle
+NativeMethods.PostMessage(windowHandle, NativeMethods.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, englishLayout);
+// 3. Give Windows a small window of time to process the message queue
+System.Threading.Thread.Sleep(200);
+}
+}
+}
+</code></pre> <p>驗收成果，成功!</p> <p><a href="https://www.youtube.com/watch?v=S8D1Oz9wvnU">實際測試</a></p> <p>就醬，自動控制桌面程式就不再是難事囉~</p> <p data-slug="flatui" data-title-en="Win desktop app auto testing with FlaUI" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2026/03/14/02/39/tungart7-robot-10172912_1280.jpg#1280#720">Learn how to automate Windows desktop apps with FlaUI, an open-source .NET UI Automation library. This practical Notepad example demonstrates element inspection, text input, formatting, keyboard handling, Markdown mode, and file saving.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>講到自動測試，網頁這塊已超級成熟，基本上只要 <a href="/blog/playwright-notes/">Playwright</a> 在手，幾乎沒有不能自動化的操作。相形之下，桌面程式 Windows Form、WPF 的可自動化性就落後一大截。近年來 AI Computer Use 能力突飛猛進，局面才算有一點改變。不過，靠電腦視覺或 AI 處理 GUI 操作成本偏高，反應速度較慢，拿來處理非固定性需智慧判斷的複雜事務才有價值。像是日常排程、程式自動化測試，操作情境固定，寫支程式依預先設計好的流程快速完成，會比每次擷取畫面動用 AI 分析，來得有效率又不浪費 Token，是較聰明選擇。</p> <p>桌面程式自動化操作這塊原本是 RPA 軟體的重點轄區，專業軟體如 UiPath/PowerAutomate 功能強大但授權費用可觀。如果願意學點程式動點腦筋，不要死守 No Code，靠開源程式庫我們也能做到 Windows Form / WPF 程式的自動化操作或自動測試，沒想像中困難。這篇就用「將記筆本(Notepad)新增文件並存檔作業自動化」的簡單範例來實地體驗。</p> <p><a href="https://github.com/FlaUI/FlaUI">FlaUI</a> 是一套開源 .NET Windows UI 自動化函式庫，主要用於以 C# 控制及測試 Windows 桌面應用程式。它建立在 Windows UI Automation（UIA）之上，提供較易使用的 API，可搜尋視窗、按鈕、文字框、選單等 UI 元件，並執行點擊、輸入文字、選取等操作。</p> <p>FlaUI 支援 Win32、WPF、WinForms 等常見 Windows 桌面技術，並利用 UIA2 與 UIA3 兩種微軟官方提供的 <a href="https://learn.microsoft.com/zh-tw/dotnet/framework/ui-automation/ui-automation-overview?WT.mc_id=DOP-MVP-37580">UI 自動化技術</a>(註：Windows 10/11 基本上都用 UIA3)。相較於傳統的 SendKeys 或滑鼠座標操作，FlaUI 可以透過 UI 元件的 AutomationId、Name、ControlType 等屬性精準定位元件，可以建立穩定且高效率的 UI 自動化測試、RPA 與桌面應用程式整合工具。</p> <p>想用 FlaUI 操作桌面程式，第一步要先了解桌面程式的結構，方法是使用 <a href="https://github.com/FlaUI/FlaUInspect">FlaUInspect 工具</a>解析視窗物件的樹狀結構，找到要點選的按鈕、填寫文字的文字欄位所在位置，設法用名稱、型別鎖定它，再模擬滑鼠點擊、按鍵輸入，若為 .NET 物件，甚至可以直接修改內容，藉此實現用程式操作程式的自動化目標。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp"></p> <p>熟悉使用 FlaUInspect 工具很重要，它能幫助你在複雜樹狀結構中鎖定要操作對象，再構怎麼有效率地用程式找到它。下面介紹操作按鈕的用法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639261153751058710.webp"></p> <ol><li>重新選擇要檢視的視窗</li> <li>重新整理資料，視窗內容改變時可重新生成樹狀圖</li> <li>元素查詢功能，啟用時會顯示 [12] 位置的操作區，可輸入文字用名稱、型別、文字等當條件搜尋元素</li> <li>Hover 定位模式，啟用時，將滑鼠移到特定元素上按 Ctrl，可自動在樹狀圖選取該元素</li> <li>Highlight 模式，啟用時，已選取元素會出現綠色矩形標示其位置及大小範圍</li> <li>Focus 模式，啟用時，會自動在樹狀圖選取取得焦點的元素</li> <li>匯出元素的擷圖</li> <li>將元素資料複製到剪貼簿</li> <li>將元素完整屬性資料複製到剪貼簿</li> <li>顯示選取元素的 XPATH (顯示在 [11] 的位置)</li></ol> <p>活用 FlaUInspect，你可以找到任何想操作的元素。</p> <p>我寫了一個簡單的 Notepad 操作範例，步驟為啟動或連上執行中的 Notepad 程式，按 Ctrl-N 開新文件，用設定值跟模擬打字方式輸入一段文字，透過 FlaUI API 選取一段內容，改成粗體，將顯示模式切換成 Markdown 檢視，按 Ctrl-Shift-S 存檔，選擇存成 Markdown，指定檔案路徑，存檔完成。</p> <p>練習過程發現一些眉角，在中文 Windows，打字及按鍵很容易被中文輸入法吃掉，安裝並由程式強切成純英文輸入可以避免一些困擾。若畫面元素完全固定，用 XPATH 最快，程式嘗試了不同技巧，用 Name、ControlType 甚至座標位置去找元素；另外輸入部分也試了直接設定文字欄位 Text 屬性、模擬按鍵、呼叫按鈕 .Click() 方法、移動滑鼠與點擊等多種做法，在同一範例涵蓋各式做法，方便日後應用參考。</p> <p>完整程式如下：</p> <pre><code>using System;
+using FlaUI.Core;
+using FlaUI.UIA3; // 除非古老 Windows 程式，建議用 UIA3
+using System.Diagnostics;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Input;
+using FlaUI.Core.WindowsAPI;
+using FlaUI.Core.Definitions;
+// 檢查程式是否已執行，如果已啟動則取得其 Application，否則就啟動一份
+var found = Process.GetProcessesByName("notepad").FirstOrDefault(process =&gt; process.MainWindowHandle != IntPtr.Zero);
+// 如果程式尚未啟動，則啟動應用程式
+var app = found == null ? Application.Launch("notepad.exe") : Application.Attach(found);
+try
+{
+// 初始化 UIA3 自動化物件
+using (var automation = new UIA3Automation())
+{
+// 取得主視窗（設定 5 秒逾時）
+var mainWindow = app.GetMainWindow(automation, TimeSpan.FromSeconds(5));
+if (mainWindow == null)
+{
+Console.WriteLine("無法取得主視窗。");
+return;
+}
+// 按 Ctrl-N 新增文件
+mainWindow.Focus();
+await Task.Delay(500); // 等待 0.5 秒，確保新文件已建立
+Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
+Wait.UntilInputIsProcessed();
+// 尋找文字編輯框並輸入文字
+var textBox = mainWindow.FindFirstDescendant(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Document))?.AsTextBox();
+if (textBox != null)
+{
+textBox.Focus();
+// 使用 Text 屬性直接設定文字最可靠，不受輸入法影響
+textBox.Text = "FlaUI 自動操作測試 ";
+textBox.Focus();
+// FlaUI Keyboard 模擬按鍵操作極易被中文輸入法干擾，建議新增英文鍵盤
+// 並在執行模擬按鍵操作前切換到英文鍵盤
+NativeMethods.SwitchTargetWindowToEnglish(mainWindow.Properties.NativeWindowHandle.Value);
+await Task.Delay(500); // 等待 1 秒，確保切換到英文鍵盤完成
+// 游標移到文字結尾
+Keyboard.Type(VirtualKeyShort.END);
+Wait.UntilInputIsProcessed();
+Keyboard.Type(" Hello, World!");
+Wait.UntilInputIsProcessed(TimeSpan.FromSeconds(2));
+// 選取最前面13個字
+// 方法一：按著 Shift 連按方向鍵選取文字，實測易受輸入法影響
+// 方法二：使用 Text.Pattern
+textBox.Focus();
+var pattern = textBox.Patterns.Text.Pattern;
+var range = pattern.DocumentRange;
+// 複製一份範圍，準備進行選取操作
+var selection = range.Clone();
+// 將選取範圍的結尾移到最前方，準備選取文字
+selection.MoveEndpointByRange(TextPatternRangeEndpoint.End, selection, TextPatternRangeEndpoint.Start);
+// 將選取範圍的結尾移動到最前方後，再向後移動 13 個字元，完成選取操作
+selection.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 13);
+selection.Select();
+// 點擊粗體按鈕
+// 找尋 Name 為 "粗體 (Ctrl+B)" 的按鈕並點擊
+var boldButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("粗體 (Ctrl+B)"))?.AsButton();
+if (boldButton == null)
+{
+throw new Exception("找不到粗體按鈕。");
+}
+// 點擊粗體按鈕
+boldButton.Click();
+// 切換成 Markdown 語法模式
+// 嘗試另一種做法，找到狀態列(座標在最下方 Panel)的第三個控制項
+var panes = mainWindow.FindAllChildren(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
+// 找出 Y 座標最大的 Panel，通常是最下方的狀態列
+var statusBar = panes.OrderByDescending(p =&gt; p.BoundingRectangle.Y).FirstOrDefault();
+if (statusBar != null)
+{
+var innerPannel = statusBar.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
+if (innerPannel == null) throw new Exception("找不到內層 Panel。");
+var button = innerPannel.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
+if (button == null) throw new Exception("找不到按鈕。");
+// 嘗試模擬滑鼠點擊操作
+var clickablePoint = button.Properties.ClickablePoint.Value;
+Mouse.MoveTo(clickablePoint);
+Mouse.Click();
+}
+Wait.UntilInputIsProcessed();
+// 按 Ctrl-Shift-S 存檔
+Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.SHIFT, VirtualKeyShort.KEY_S);
+Wait.UntilInputIsProcessed();
+// 尋找名為「另存為 Markdown 檔案」的 Button
+var saveAsMarkdownButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存為 Markdown 檔案"))?.AsButton();
+if (saveAsMarkdownButton == null)
+{
+throw new Exception("找不到「另存為 Markdown 檔案」按鈕。");
+}
+saveAsMarkdownButton.Click();
+Wait.UntilInputIsProcessed(TimeSpan.FromMilliseconds(500));
+// 找到名為「另存新檔」的對話框，並進行後續操作
+var saveAsDialog = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存新檔"))?.AsWindow();
+if (saveAsDialog == null)
+{
+throw new Exception("找不到「另存新檔」對話框。");
+}
+// 找到名為「檔案名稱」的 Edit 輸入框
+var fileNameEdit = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("檔案名稱:").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox();
+if (fileNameEdit == null)
+{
+throw new Exception("找不到「檔案名稱」輸入框。");
+}
+// 輸入檔案名稱
+fileNameEdit.Text = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid().ToString().Substring(0, 8)}.md");
+Wait.UntilInputIsProcessed();
+// 點擊「儲存」按鈕
+var saveButton = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("存檔(S)"))?.AsButton();
+if (saveButton == null)
+{
+throw new Exception("找不到「存檔」按鈕。");
+}
+saveButton.Click();
+Wait.UntilInputIsProcessed();
+}
+}
+// 若 Notepad 為新啟動，結束後關閉
+if (found == null)
+{
+app.Close();
+}
+}
+catch (Exception ex)
+{
+Console.WriteLine($"發生錯誤: {ex.Message}");
+}
+</code></pre> <p>切英文輸入法的輔助方法我請 AI 寫，一併附上：</p> <pre><code>using System;
+using System.Runtime.InteropServices;
+public static class NativeMethods
+{
+// Loads a specified keyboard layout identifier
+[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
+// Sends a message to a window's message queue asynchronously
+[DllImport("user32.dll", CharSet = CharSet.Auto)]
+public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+// Windows Message constant for changing input language
+public const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
+// Flags for LoadKeyboardLayout
+public const uint KLF_ACTIVATE = 0x00000001;
+// Language Identifier for United States English (en-US)
+public const string KBD_US_ENGLISH = "00000409";
+public static void SwitchTargetWindowToEnglish(IntPtr windowHandle)
+{
+if (windowHandle == IntPtr.Zero)
+throw new ArgumentException("Invalid window handle.");
+// 1. Load the US English layout into memory and get its handle
+IntPtr englishLayout = NativeMethods.LoadKeyboardLayout(NativeMethods.KBD_US_ENGLISH, NativeMethods.KLF_ACTIVATE);
+if (englishLayout != IntPtr.Zero)
+{
+// 2. Post the request message to the specific application window
+// wParam: 0 = fallback allowed, 1 = strict match layout
+// lParam: The loaded layout handle
+NativeMethods.PostMessage(windowHandle, NativeMethods.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, englishLayout);
+// 3. Give Windows a small window of time to process the message queue
+System.Threading.Thread.Sleep(200);
+}
+}
+}
+</code></pre> <p>驗收成果，成功!</p> <p><a href="https://www.youtube.com/watch?v=S8D1Oz9wvnU">實際測試</a></p> <p>就醬，自動控制桌面程式就不再是難事囉~</p> <p data-slug="flatui" data-title-en="Win desktop app auto testing with FlaUI" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2026/03/14/02/39/tungart7-robot-10172912_1280.jpg#1280#720">Learn how to automate Windows desktop apps with FlaUI, an open-source .NET UI Automation library. This practical Notepad example demonstrates element inspection, text input, formatting, keyboard handling, Markdown mode, and file saving.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>講到自動測試，網頁這塊已超級成熟，基本上只要 <a href="/blog/playwright-notes/">Playwright</a> 在手，幾乎沒有不能自動化的操作。相形之下，桌面程式 Windows Form、WPF 的可自動化性就落後一大截。近年來 AI Computer Use 能力突飛猛進，局面才算有一點改變。不過，靠電腦視覺或 AI 處理 GUI 操作成本偏高，反應速度較慢，拿來處理非固定性需智慧判斷的複雜事務才有價值。像是日常排程、程式自動化測試，操作情境固定，寫支程式依預先設計好的流程快速完成，會比每次擷取畫面動用 AI 分析，來得有效率又不浪費 Token，是較聰明選擇。</p> <p>桌面程式自動化操作這塊原本是 RPA 軟體的重點轄區，專業軟體如 UiPath/PowerAutomate 功能強大但授權費用可觀。如果願意學點程式動點腦筋，不要死守 No Code，靠開源程式庫我們也能做到 Windows Form / WPF 程式的自動化操作或自動測試，沒想像中困難。這篇就用「將記筆本(Notepad)新增文件並存檔作業自動化」的簡單範例來實地體驗。</p> <p><a href="https://github.com/FlaUI/FlaUI">FlaUI</a> 是一套開源 .NET Windows UI 自動化函式庫，主要用於以 C# 控制及測試 Windows 桌面應用程式。它建立在 Windows UI Automation（UIA）之上，提供較易使用的 API，可搜尋視窗、按鈕、文字框、選單等 UI 元件，並執行點擊、輸入文字、選取等操作。</p> <p>FlaUI 支援 Win32、WPF、WinForms 等常見 Windows 桌面技術，並利用 UIA2 與 UIA3 兩種微軟官方提供的 <a href="https://learn.microsoft.com/zh-tw/dotnet/framework/ui-automation/ui-automation-overview?WT.mc_id=DOP-MVP-37580">UI 自動化技術</a>(註：Windows 10/11 基本上都用 UIA3)。相較於傳統的 SendKeys 或滑鼠座標操作，FlaUI 可以透過 UI 元件的 AutomationId、Name、ControlType 等屬性精準定位元件，可以建立穩定且高效率的 UI 自動化測試、RPA 與桌面應用程式整合工具。</p> <p>想用 FlaUI 操作桌面程式，第一步要先了解桌面程式的結構，方法是使用 <a href="https://github.com/FlaUI/FlaUInspect">FlaUInspect 工具</a>解析視窗物件的樹狀結構，找到要點選的按鈕、填寫文字的文字欄位所在位置，設法用名稱、型別鎖定它，再模擬滑鼠點擊、按鍵輸入，若為 .NET 物件，甚至可以直接修改內容，藉此實現用程式操作程式的自動化目標。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp"></p> <p>熟悉使用 FlaUInspect 工具很重要，它能幫助你在複雜樹狀結構中鎖定要操作對象，再構怎麼有效率地用程式找到它。下面介紹操作按鈕的用法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639261153751058710.webp"></p> <ol><li>重新選擇要檢視的視窗</li> <li>重新整理資料，視窗內容改變時可重新生成樹狀圖</li> <li>元素查詢功能，啟用時會顯示 [12] 位置的操作區，可輸入文字用名稱、型別、文字等當條件搜尋元素</li> <li>Hover 定位模式，啟用時，將滑鼠移到特定元素上按 Ctrl，可自動在樹狀圖選取該元素</li> <li>Highlight 模式，啟用時，已選取元素會出現綠色矩形標示其位置及大小範圍</li> <li>Focus 模式，啟用時，會自動在樹狀圖選取取得焦點的元素</li> <li>匯出元素的擷圖</li> <li>將元素資料複製到剪貼簿</li> <li>將元素完整屬性資料複製到剪貼簿</li> <li>顯示選取元素的 XPATH (顯示在 [11] 的位置)</li></ol> <p>活用 FlaUInspect，你可以找到任何想操作的元素。</p> <p>我寫了一個簡單的 Notepad 操作範例，步驟為啟動或連上執行中的 Notepad 程式，按 Ctrl-N 開新文件，用設定值跟模擬打字方式輸入一段文字，透過 FlaUI API 選取一段內容，改成粗體，將顯示模式切換成 Markdown 檢視，按 Ctrl-Shift-S 存檔，選擇存成 Markdown，指定檔案路徑，存檔完成。</p> <p>練習過程發現一些眉角，在中文 Windows，打字及按鍵很容易被中文輸入法吃掉，安裝並由程式強切成純英文輸入可以避免一些困擾。若畫面元素完全固定，用 XPATH 最快，程式嘗試了不同技巧，用 Name、ControlType 甚至座標位置去找元素；另外輸入部分也試了直接設定文字欄位 Text 屬性、模擬按鍵、呼叫按鈕 .Click() 方法、移動滑鼠與點擊等多種做法，在同一範例涵蓋各式做法，方便日後應用參考。</p> <p>完整程式如下：</p> <pre><code>using System;
+using FlaUI.Core;
+using FlaUI.UIA3; // 除非古老 Windows 程式，建議用 UIA3
+using System.Diagnostics;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Input;
+using FlaUI.Core.WindowsAPI;
+using FlaUI.Core.Definitions;
+// 檢查程式是否已執行，如果已啟動則取得其 Application，否則就啟動一份
+var found = Process.GetProcessesByName("notepad").FirstOrDefault(process =&gt; process.MainWindowHandle != IntPtr.Zero);
+// 如果程式尚未啟動，則啟動應用程式
+var app = found == null ? Application.Launch("notepad.exe") : Application.Attach(found);
+try
+{
+// 初始化 UIA3 自動化物件
+using (var automation = new UIA3Automation())
+{
+// 取得主視窗（設定 5 秒逾時）
+var mainWindow = app.GetMainWindow(automation, TimeSpan.FromSeconds(5));
+if (mainWindow == null)
+{
+Console.WriteLine("無法取得主視窗。");
+return;
+}
+// 按 Ctrl-N 新增文件
+mainWindow.Focus();
+await Task.Delay(500); // 等待 0.5 秒，確保新文件已建立
+Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
+Wait.UntilInputIsProcessed();
+// 尋找文字編輯框並輸入文字
+var textBox = mainWindow.FindFirstDescendant(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Document))?.AsTextBox();
+if (textBox != null)
+{
+textBox.Focus();
+// 使用 Text 屬性直接設定文字最可靠，不受輸入法影響
+textBox.Text = "FlaUI 自動操作測試 ";
+textBox.Focus();
+// FlaUI Keyboard 模擬按鍵操作極易被中文輸入法干擾，建議新增英文鍵盤
+// 並在執行模擬按鍵操作前切換到英文鍵盤
+NativeMethods.SwitchTargetWindowToEnglish(mainWindow.Properties.NativeWindowHandle.Value);
+await Task.Delay(500); // 等待 1 秒，確保切換到英文鍵盤完成
+// 游標移到文字結尾
+Keyboard.Type(VirtualKeyShort.END);
+Wait.UntilInputIsProcessed();
+Keyboard.Type(" Hello, World!");
+Wait.UntilInputIsProcessed(TimeSpan.FromSeconds(2));
+// 選取最前面13個字
+// 方法一：按著 Shift 連按方向鍵選取文字，實測易受輸入法影響
+// 方法二：使用 Text.Pattern
+textBox.Focus();
+var pattern = textBox.Patterns.Text.Pattern;
+var range = pattern.DocumentRange;
+// 複製一份範圍，準備進行選取操作
+var selection = range.Clone();
+// 將選取範圍的結尾移到最前方，準備選取文字
+selection.MoveEndpointByRange(TextPatternRangeEndpoint.End, selection, TextPatternRangeEndpoint.Start);
+// 將選取範圍的結尾移動到最前方後，再向後移動 13 個字元，完成選取操作
+selection.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 13);
+selection.Select();
+// 點擊粗體按鈕
+// 找尋 Name 為 "粗體 (Ctrl+B)" 的按鈕並點擊
+var boldButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("粗體 (Ctrl+B)"))?.AsButton();
+if (boldButton == null)
+{
+throw new Exception("找不到粗體按鈕。");
+}
+// 點擊粗體按鈕
+boldButton.Click();
+// 切換成 Markdown 語法模式
+// 嘗試另一種做法，找到狀態列(座標在最下方 Panel)的第三個控制項
+var panes = mainWindow.FindAllChildren(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
+// 找出 Y 座標最大的 Panel，通常是最下方的狀態列
+var statusBar = panes.OrderByDescending(p =&gt; p.BoundingRectangle.Y).FirstOrDefault();
+if (statusBar != null)
+{
+var innerPannel = statusBar.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
+if (innerPannel == null) throw new Exception("找不到內層 Panel。");
+var button = innerPannel.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
+if (button == null) throw new Exception("找不到按鈕。");
+// 嘗試模擬滑鼠點擊操作
+var clickablePoint = button.Properties.ClickablePoint.Value;
+Mouse.MoveTo(clickablePoint);
+Mouse.Click();
+}
+Wait.UntilInputIsProcessed();
+// 按 Ctrl-Shift-S 存檔
+Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.SHIFT, VirtualKeyShort.KEY_S);
+Wait.UntilInputIsProcessed();
+// 尋找名為「另存為 Markdown 檔案」的 Button
+var saveAsMarkdownButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存為 Markdown 檔案"))?.AsButton();
+if (saveAsMarkdownButton == null)
+{
+throw new Exception("找不到「另存為 Markdown 檔案」按鈕。");
+}
+saveAsMarkdownButton.Click();
+Wait.UntilInputIsProcessed(TimeSpan.FromMilliseconds(500));
+// 找到名為「另存新檔」的對話框，並進行後續操作
+var saveAsDialog = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存新檔"))?.AsWindow();
+if (saveAsDialog == null)
+{
+throw new Exception("找不到「另存新檔」對話框。");
+}
+// 找到名為「檔案名稱」的 Edit 輸入框
+var fileNameEdit = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("檔案名稱:").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox();
+if (fileNameEdit == null)
+{
+throw new Exception("找不到「檔案名稱」輸入框。");
+}
+// 輸入檔案名稱
+fileNameEdit.Text = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid().ToString().Substring(0, 8)}.md");
+Wait.UntilInputIsProcessed();
+// 點擊「儲存」按鈕
+var saveButton = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("存檔(S)"))?.AsButton();
+if (saveButton == null)
+{
+throw new Exception("找不到「存檔」按鈕。");
+}
+saveButton.Click();
+Wait.UntilInputIsProcessed();
+}
+}
+// 若 Notepad 為新啟動，結束後關閉
+if (found == null)
+{
+app.Close();
+}
+}
+catch (Exception ex)
+{
+Console.WriteLine($"發生錯誤: {ex.Message}");
+}
+</code></pre> <p>切英文輸入法的輔助方法我請 AI 寫，一併附上：</p> <pre><code>using System;
+using System.Runtime.InteropServices;
+public static class NativeMethods
+{
+// Loads a specified keyboard layout identifier
+[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
+// Sends a message to a window's message queue asynchronously
+[DllImport("user32.dll", CharSet = CharSet.Auto)]
+public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+// Windows Message constant for changing input language
+public const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
+// Flags for LoadKeyboardLayout
+public const uint KLF_ACTIVATE = 0x00000001;
+// Language Identifier for United States English (en-US)
+public const string KBD_US_ENGLISH = "00000409";
+public static void SwitchTargetWindowToEnglish(IntPtr windowHandle)
+{
+if (windowHandle == IntPtr.Zero)
+throw new ArgumentException("Invalid window handle.");
+// 1. Load the US English layout into memory and get its handle
+IntPtr englishLayout = NativeMethods.LoadKeyboardLayout(NativeMethods.KBD_US_ENGLISH, NativeMethods.KLF_ACTIVATE);
+if (englishLayout != IntPtr.Zero)
+{
+// 2. Post the request message to the specific application window
+// wParam: 0 = fallback allowed, 1 = strict match layout
+// lParam: The loaded layout handle
+NativeMethods.PostMessage(windowHandle, NativeMethods.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, englishLayout);
+// 3. Give Windows a small window of time to process the message queue
+System.Threading.Thread.Sleep(200);
+}
+}
+}
+</code></pre> <p>驗收成果，成功!</p> <p><a href="https://www.youtube.com/watch?v=S8D1Oz9wvnU">實際測試</a></p> <p>就醬，自動控制桌面程式就不再是難事囉~</p> <p data-slug="flatui" data-title-en="Win desktop app auto testing with FlaUI" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2026/03/14/02/39/tungart7-robot-10172912_1280.jpg#1280#720">Learn how to automate Windows desktop apps with FlaUI, an open-source .NET UI Automation library. This practical Notepad example demonstrates element inspection, text input, formatting, keyboard handling, Markdown mode, and file saving.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp" medium="image"/>
+    <pubDate>Sun, 27 Sep 2026 14:13:55 GMT</pubDate>
+  </item><item>
+    <title><![CDATA[.NET AI 應用練習 2 - 整合本地 Embedding 模型 (初識 ONNX)]]></title>
+    <link>https://blog.darkthread.net/blog/multilingual-e5-onnx/</link>
+    <itunes:title><![CDATA[.NET AI 應用練習 2 - 整合本地 Embedding 模型 (初識 ONNX)]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>雖說現在寫程式有 AI，程式語言不一定要綁死開發者(或者該說使用者)本身的技能，但只要還需要「人」參與協作(包含 Code Review、修改及除錯)，選開發者擅長的語言多半還是利多於弊。基於這個理念，這系列文章我會以 C# 開發者視角，整理 .NET 開發 AI 應用程式範例，打算留在這個航道上的同學可以參考。</p> <p>微軟針對 AI 應用開發有提供了一系列 .NET 官方框架或程式庫(MAF/MEAI/ONNX... 還不認識的同學可看這篇：<a href="/blog/dotnet-ai-guide/">.NET 開發 AI 應用程式之新手指南</a>)，本系列也會以其為基礎出發。</p> <p>要對文字內容進行向量搜索，第一步是將文字透過嵌入模型(Embedding Model)轉成高維向量，讓電腦能用數學距離判段文字的相似性，簡單說是將文字變成能代表其語意的一串數字(類似座標的概念)，例如：將一段包含「蘋果」的文字依據上下文理解成可以吃的水果還是 iPhone 手機？</p> <p>由於 Embedding 是向量搜索的基本程序，過去做過很多，但都是用 OpenAI API 完成，這篇會來試試地端 Embedding 模型。</p> <p>Python 是運作 AI 模型的主流，但若想在 .NET 專案整合 AI 模型，牽扯 Python/Docker 會增加複雜度，研究了一下，微軟、亞馬遜、Facebook 和 IBM 等共同推動的 ONNX (<a href="https://zh.wikipedia.org/zh-tw/ONNX">Open Neural Network Exchange</a>) 算是 .NET 官方建議的解決方案。</p> <p>ONNX 的概念是將訓練好的模型匯出或轉換成 ONNX 格式，透過 ONNX Runtime，模型便可在 Linux/macOS/Windows 等各種平台或裝置上執行。<a href="https://learn.microsoft.com/zh-tw/azure/machine-learning/concept-onnx?view=azureml-api-2&amp;WT.mc_id=DOP-MVP-37580">參考</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639259965364935846.webp"></p> <p>下個問題是，如果文件以繁體中文為主，該選用哪個 Embedding 模型。參考 ihower 的<a href="https://ihower.tw/blog/12167-embedding-models">評測結果</a>，voyage、微軟的 multilingual-e5 系列與北京智源的 bge-m3 是值得優先考量的選擇。我用 .NET 實作，就選擇 multilingual-e5-large。</p> <p><a href="https://www.microsoft.com/en-us/research/publication/multilingual-e5-text-embeddings-a-technical-report/?utm_source=chatgpt.com&amp;WT.mc_id=DOP-MVP-37580">Multilingual E5 Text Embeddings</a>是微軟研究院推出支援多國語言的 Embedding 模型。</p> <table><thead><tr><th></th><th>BEIR 評測</th><th># of layers</th><th>embedding dimension</th><th>Huggingface</th></tr></thead><tbody><tr><td>multilingual-e5-small</td><td>46.6</td><td>12</td><td>384</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-small">intfloat/multilingual-e5-small</a></td></tr><tr><td>multilingual-e5-base</td><td>48.9</td><td>12</td><td>768</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-base">intfloat/multilingual-e5-base</a></td></tr><tr><td>multilingual-e5-large</td><td>51.4</td><td>24</td><td>1024</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-large">intfloat/multilingual-e5-large</a></td></tr><tr><td>multilingual-e5-large-instruct</td><td>52.5</td><td>24</td><td>1024</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-large-instruct">intfloat/multilingual-e5-large-instruct</a></td></tr></tbody></table> <p>模型可從 Huggingface 下載，但官方來源 intfloat 組織提供的 <a href="https://huggingface.co/intfloat/multilingual-e5-large/tree/main/onnx">ONNX 版本</a> <code>model_qint8_avx512_vnni.onnx</code> 針對 AVX-512 及 VNNI 指令指最佳化，Xenova 有提供廣泛支援一般 CPU 的 <a href="https://huggingface.co/intfloat/multilingual-e5-large/tree/main/onnx">ONNX INT8 量化模型</a> - <code>model_quantized.onnx</code>，較不用擔心因 CPU 支援性。</p> <p>此外，E5 需配合 <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.tokenizers.sentencepiecetokenizer?view=ml-dotnet-preview&amp;WT.mc_id=DOP-MVP-37580">SenticePieceTokenizer</a> 分詞器將字串轉成 Token (並針對 XLM-RoBERTa 編碼規則微調)，執行時需下載 <a href="https://huggingface.co/Xenova/multilingual-e5-large/tree/main">sentencepiece.bpe.model</a> (大約 5MB)。</p> <p>故文字轉為 E5 Embedding 的流程會是先取得分詞模型檔及模型 ONNX 檔，建立分詞器 SenticePieceTokenizer 及 InferenceSession，將文字轉成 Token 再使用模型推理轉為 Embedding 向量 (內含 Pooling 池化及 L2 Normalization 調整)，之後便可對兩個 Embedding 進行餘弦相似計算預測相似度 (愈接近 1 愈相似，近 -1 表意思相反)。</p> <p>值得一提的是，E5 模型屬於非對稱檢索（Asymmetric Retrieval），要求文字需加上 query: 或 passage: 前綴，供模型區別文字是「尋找解答的資訊需求」或是「提供事實的知識文本」以提供更精準的語意相似度匹配；至於要用在非問題應用，純粹比較多段文字的相似性，則可一律都加上 query:。</p> <p>我做了一個送分題等級範例，共七題差異度很大的問答、七題簡答，測試在本機運行，使用 ONNX Runtime 跑 multilingual-e5-large 模型將文字轉為 Embedding 連連看，看能否正確地匹配問題及答案。</p> <ul><li>query: 「山重水複疑無路，柳暗花明又一村」描寫了怎樣的心境與情境？<br> passage: 詩句出自陸游〈遊山西村〉，描寫山路曲折、景色變化，原以為前方無路，卻突然發現柳色深綠、花色明麗的村莊。除了描寫自然景觀，也表達詩人在困境中意外發現轉機的驚喜，後來常用來比喻事情看似陷入困境，卻可能出現新的希望。</li> <li>query: 臺灣西部平原為何成為人口與農業活動較密集的地區？<br> passage: 臺灣西部平原地勢平坦，河川沖積形成肥沃土壤，適合農業發展；同時交通建設與都市發展較早，工商業活動集中，就業機會較多。因此西部平原兼具適合居住的自然條件與較完善的交通、產業機能，人口密度通常高於東部地區。</li> <li>query: 試說明鄭成功為何於1661年率軍攻打臺灣，以及此行動的歷史影響。<br> passage: 鄭成功為延續反清復明事業，需要建立穩定的根據地。當時荷蘭人控制臺灣南部，鄭成功遂於1661年率軍攻臺，翌年荷蘭人投降，結束荷蘭在臺灣南部的統治。此後鄭氏政權以臺灣為基地經營，促進漢人移民與農業發展，也使臺灣成為明鄭政權的重要據點。</li> <li>query: 在民主政治中，為何需要保障新聞自由與言論自由？<br> passage: 新聞與言論自由能讓人民取得不同觀點與公共資訊，監督政府及其他權力機構，並參與公共議題討論。如果缺乏這些自由，政府施政可能較難受到社會檢驗，人民也可能無法充分表達意見。因此保障新聞與言論自由，是民主政治中促進公共討論與權力制衡的重要條件。</li> <li>query: 為什麼水在標準大氣壓下加熱至100°C時會沸騰？<br> passage: 水受熱時，分子運動加快，溫度逐漸升高。當水的飽和蒸氣壓等於外界大氣壓力時，液體內部便能形成大量氣泡並向外逸出，此現象稱為沸騰。在標準大氣壓下，水的飽和蒸氣壓約在100°C時等於大氣壓，因此水的沸點為100°C；若外界壓力改變，沸點也會改變。</li> <li>query: 為什麼植物的根、莖、葉各具有不同的構造與功能？<br> passage: 植物的不同器官具有分工。根主要負責固定植物並吸收水分與礦物質；莖負責支撐植物，並運輸水分與養分；葉則是進行光合作用的主要場所，可利用光能製造有機養分。不同構造與功能彼此配合，使植物能有效獲取資源、製造養分並維持生長。</li> <li>query: 「滄海桑田」這個成語比喻什麼意思？<br> passage: 指世事變化很大，常用來形容世間事物經歷長久時間後發生巨大的變化。</li> <li>query: 一個三角形的底為 8 公分，高為 5 公分，請問它的面積是多少？<br> passage: 三角形面積 = 底 × 高 ÷ 2 = 8 × 5 ÷ 2 = 20 平方公分。</li> <li>query: 世界上面積最大的洲是哪一洲？<br> passage: 亞洲（Asia）是世界上面積最大的洲。</li> <li>query: 秦始皇統一六國後，建立了中國歷史上第一個中央集權的統一帝國，這個帝國是哪一個？<br> passage: 秦朝。</li> <li>query: 在民主政治中，「人民透過投票選出代表來治理國家」主要屬於哪一種制度？ passage: 代議民主制度。</li> <li>query: 水在標準大氣壓下的沸點是多少攝氏度？<br> passage: 水在標準大氣壓（1 atm）下的沸點是 100°C。</li> <li>query: 植物進行光合作用時，主要利用哪一種氣體，並釋放哪一種氣體？<br> passage: 植物主要吸收二氧化碳（CO₂），並釋放氧氣（O₂）。</li> <li>query: 地球大氣層中，主要吸收太陽紫外線、保護生物免受過量紫外線傷害的是哪一層？<br> passage: 臭氧層，主要位於平流層中。</li></ul> <p>以下說說 .NET 程式怎麼寫。</p> <p>專案要引用 Microsoft.ML.OnnxRuntime 及 Microsoft.ML.Tokenizers 套件，開始執行前先由 Huggingface 下載 model_quantized.onnx 及 sentencepiece.bpe.model。接下來先將 sentencepiece.bpe.model 分詞資料傳給 SentencePieceTokenizer 建立分詞器將文字切成 Token ID 陣列(其中有個眉角是 multilingual-e5 使用 XLM-RoBERTa 的 SentencePiece 規格需要一些客製調整，我放在 <code>long[] Encode(string text)</code> 方法中)，得到 long[]，再來用 model_quantized.onnx 建立 ONNX InferenceSession，在 <code>float[][] Embed(IReadOnlyList&lt;string&gt; texts)</code> 中將多個字串批次轉成 Embedding 向量。由於 GPU 對於大量矩陣運算有優化加速設計，故建議一次傳入多個字串一次處理，取最長字串的長度展開成固定大小的二維陣列 long[][] 填入字元資料，再用 Attention Mask 標示哪些位置有值，將此陣列交給模型進行運算，此部分邏輯我放在 MultilingualE5Model.Embed() 中。</p> <p>Program.cs 程式如下：</p> <pre><code>using System.Diagnostics;
+const string ModelBaseUrl = "https://huggingface.co/Xenova/multilingual-e5-large/resolve/main";
+string modelDirectory = Path.Combine(AppContext.BaseDirectory, "models", "multilingual-e5-large");
+string modelPath = Path.Combine(modelDirectory, "model_quantized.onnx");
+string tokenizerPath = Path.Combine(modelDirectory, "sentencepiece.bpe.model");
+Directory.CreateDirectory(modelDirectory);
+await DownloadHelper.DownloadIfMissingAsync($"{ModelBaseUrl}/onnx/model_quantized.onnx?download=true", modelPath);
+await DownloadHelper.DownloadIfMissingAsync($"{ModelBaseUrl}/sentencepiece.bpe.model?download=true", tokenizerPath);
+var lines = File.ReadAllLines("sample.txt");
+var qa = new QASet();
+List&lt;QASet&gt; faq = new List&lt;QASet&gt;();
+foreach (var line in lines)
+{
+if (line.StartsWith("query: "))
+{
+qa.Question = line;
+}
+else if (line.StartsWith("passage: "))
+{
+qa.Answer = line;
+faq.Add(qa);
+qa = new QASet();
+}
+}
+var texts = faq.SelectMany(f =&gt; new[] { f.Question, f.Answer }).ToArray();
+Console.WriteLine("載入 ONNX 模型...");
+using var tokenizer = new MultilingualE5Tokenizer(tokenizerPath);
+using var model = new MultilingualE5Model(modelPath, tokenizer);
+var stopwatch = Stopwatch.StartNew();
+float[][] embeddings = model.Embed(texts);
+stopwatch.Stop();
+Console.WriteLine($"
+產生 {embeddings.Length} 筆、每筆 {embeddings[0].Length} 維的 Embedding，耗時 {stopwatch.ElapsedMilliseconds:N0} ms。");
+// 將 Embedding 結果對映回每個 QASet
+for (int i = 0; i &lt; faq.Count; i++)
+{
+faq[i].QuestionEmbedding = embeddings[i * 2];
+faq[i].AnswerEmbedding = embeddings[i * 2 + 1];
+faq[i].CosineSimilarities = new float[faq.Count];
+}
+// 計算每個 QASet 的問題與答案之間的餘弦相似度
+for (int i = 0; i &lt; faq.Count; i++)
+{
+for (int j = 0; j &lt; faq.Count; j++)
+{
+faq[i].CosineSimilarities[j] = MultilingualE5Model.CosineSimilarity(faq[i].QuestionEmbedding, faq[j].AnswerEmbedding);
+}
+}
+Console.WriteLine("
+每個 QASet 的問題與答案餘弦相似度比對結果：");
+for (int i = 0; i &lt; faq.Count; i++)
+{
+// 找出與當前 QASet 最相似的前三名答案
+var top3MostSimilarAnswers = faq[i].CosineSimilarities
+.Select((similarity, index) =&gt; new { similarity, index })
+.OrderByDescending(x =&gt; x.similarity)
+.Take(3)
+.ToArray();
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine("Q: " + faq[i].Question);
+Console.ResetColor();
+foreach (var item in top3MostSimilarAnswers)
+{
+if (i == item.index) Console.ForegroundColor = ConsoleColor.Green;
+else Console.ResetColor();
+Console.WriteLine($"A [{item.similarity:F4}]: {faq[item.index].Answer}");
+}
+Console.WriteLine();
+}
+public class QASet
+{
+public string Question { get; set; }
+public string Answer { get; set; }
+public float[] QuestionEmbedding { get; set; }
+public float[] AnswerEmbedding { get; set; }
+public float[] CosineSimilarities { get; set; }
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639259965368810273.webp"></p> <p>完整範例專案已放上 <a href="https://github.com/darkthread/local-embedding-sample">Github</a>，有興趣研究的同學請自取。</p> <p data-slug="multilingual-e5-onnx" data-title-en="Running multilingual-e5 embedding with ONNX runtime" data-catg=".NET" data-fbimg="https://i.imgur.com/fGbeC8r.jpg#1214#683">This article demonstrates how C# developers can run Microsoft’s multilingual-e5-large embedding model locally using ONNX Runtime and SentencePieceTokenizer, generate Chinese text embeddings in batches, and match questions with answers through cosine similarity—without relying on Python, Docker, or cloud APIs.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>雖說現在寫程式有 AI，程式語言不一定要綁死開發者(或者該說使用者)本身的技能，但只要還需要「人」參與協作(包含 Code Review、修改及除錯)，選開發者擅長的語言多半還是利多於弊。基於這個理念，這系列文章我會以 C# 開發者視角，整理 .NET 開發 AI 應用程式範例，打算留在這個航道上的同學可以參考。</p> <p>微軟針對 AI 應用開發有提供了一系列 .NET 官方框架或程式庫(MAF/MEAI/ONNX... 還不認識的同學可看這篇：<a href="/blog/dotnet-ai-guide/">.NET 開發 AI 應用程式之新手指南</a>)，本系列也會以其為基礎出發。</p> <p>要對文字內容進行向量搜索，第一步是將文字透過嵌入模型(Embedding Model)轉成高維向量，讓電腦能用數學距離判段文字的相似性，簡單說是將文字變成能代表其語意的一串數字(類似座標的概念)，例如：將一段包含「蘋果」的文字依據上下文理解成可以吃的水果還是 iPhone 手機？</p> <p>由於 Embedding 是向量搜索的基本程序，過去做過很多，但都是用 OpenAI API 完成，這篇會來試試地端 Embedding 模型。</p> <p>Python 是運作 AI 模型的主流，但若想在 .NET 專案整合 AI 模型，牽扯 Python/Docker 會增加複雜度，研究了一下，微軟、亞馬遜、Facebook 和 IBM 等共同推動的 ONNX (<a href="https://zh.wikipedia.org/zh-tw/ONNX">Open Neural Network Exchange</a>) 算是 .NET 官方建議的解決方案。</p> <p>ONNX 的概念是將訓練好的模型匯出或轉換成 ONNX 格式，透過 ONNX Runtime，模型便可在 Linux/macOS/Windows 等各種平台或裝置上執行。<a href="https://learn.microsoft.com/zh-tw/azure/machine-learning/concept-onnx?view=azureml-api-2&amp;WT.mc_id=DOP-MVP-37580">參考</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639259965364935846.webp"></p> <p>下個問題是，如果文件以繁體中文為主，該選用哪個 Embedding 模型。參考 ihower 的<a href="https://ihower.tw/blog/12167-embedding-models">評測結果</a>，voyage、微軟的 multilingual-e5 系列與北京智源的 bge-m3 是值得優先考量的選擇。我用 .NET 實作，就選擇 multilingual-e5-large。</p> <p><a href="https://www.microsoft.com/en-us/research/publication/multilingual-e5-text-embeddings-a-technical-report/?utm_source=chatgpt.com&amp;WT.mc_id=DOP-MVP-37580">Multilingual E5 Text Embeddings</a>是微軟研究院推出支援多國語言的 Embedding 模型。</p> <table><thead><tr><th></th><th>BEIR 評測</th><th># of layers</th><th>embedding dimension</th><th>Huggingface</th></tr></thead><tbody><tr><td>multilingual-e5-small</td><td>46.6</td><td>12</td><td>384</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-small">intfloat/multilingual-e5-small</a></td></tr><tr><td>multilingual-e5-base</td><td>48.9</td><td>12</td><td>768</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-base">intfloat/multilingual-e5-base</a></td></tr><tr><td>multilingual-e5-large</td><td>51.4</td><td>24</td><td>1024</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-large">intfloat/multilingual-e5-large</a></td></tr><tr><td>multilingual-e5-large-instruct</td><td>52.5</td><td>24</td><td>1024</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-large-instruct">intfloat/multilingual-e5-large-instruct</a></td></tr></tbody></table> <p>模型可從 Huggingface 下載，但官方來源 intfloat 組織提供的 <a href="https://huggingface.co/intfloat/multilingual-e5-large/tree/main/onnx">ONNX 版本</a> <code>model_qint8_avx512_vnni.onnx</code> 針對 AVX-512 及 VNNI 指令指最佳化，Xenova 有提供廣泛支援一般 CPU 的 <a href="https://huggingface.co/intfloat/multilingual-e5-large/tree/main/onnx">ONNX INT8 量化模型</a> - <code>model_quantized.onnx</code>，較不用擔心因 CPU 支援性。</p> <p>此外，E5 需配合 <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.tokenizers.sentencepiecetokenizer?view=ml-dotnet-preview&amp;WT.mc_id=DOP-MVP-37580">SenticePieceTokenizer</a> 分詞器將字串轉成 Token (並針對 XLM-RoBERTa 編碼規則微調)，執行時需下載 <a href="https://huggingface.co/Xenova/multilingual-e5-large/tree/main">sentencepiece.bpe.model</a> (大約 5MB)。</p> <p>故文字轉為 E5 Embedding 的流程會是先取得分詞模型檔及模型 ONNX 檔，建立分詞器 SenticePieceTokenizer 及 InferenceSession，將文字轉成 Token 再使用模型推理轉為 Embedding 向量 (內含 Pooling 池化及 L2 Normalization 調整)，之後便可對兩個 Embedding 進行餘弦相似計算預測相似度 (愈接近 1 愈相似，近 -1 表意思相反)。</p> <p>值得一提的是，E5 模型屬於非對稱檢索（Asymmetric Retrieval），要求文字需加上 query: 或 passage: 前綴，供模型區別文字是「尋找解答的資訊需求」或是「提供事實的知識文本」以提供更精準的語意相似度匹配；至於要用在非問題應用，純粹比較多段文字的相似性，則可一律都加上 query:。</p> <p>我做了一個送分題等級範例，共七題差異度很大的問答、七題簡答，測試在本機運行，使用 ONNX Runtime 跑 multilingual-e5-large 模型將文字轉為 Embedding 連連看，看能否正確地匹配問題及答案。</p> <ul><li>query: 「山重水複疑無路，柳暗花明又一村」描寫了怎樣的心境與情境？<br> passage: 詩句出自陸游〈遊山西村〉，描寫山路曲折、景色變化，原以為前方無路，卻突然發現柳色深綠、花色明麗的村莊。除了描寫自然景觀，也表達詩人在困境中意外發現轉機的驚喜，後來常用來比喻事情看似陷入困境，卻可能出現新的希望。</li> <li>query: 臺灣西部平原為何成為人口與農業活動較密集的地區？<br> passage: 臺灣西部平原地勢平坦，河川沖積形成肥沃土壤，適合農業發展；同時交通建設與都市發展較早，工商業活動集中，就業機會較多。因此西部平原兼具適合居住的自然條件與較完善的交通、產業機能，人口密度通常高於東部地區。</li> <li>query: 試說明鄭成功為何於1661年率軍攻打臺灣，以及此行動的歷史影響。<br> passage: 鄭成功為延續反清復明事業，需要建立穩定的根據地。當時荷蘭人控制臺灣南部，鄭成功遂於1661年率軍攻臺，翌年荷蘭人投降，結束荷蘭在臺灣南部的統治。此後鄭氏政權以臺灣為基地經營，促進漢人移民與農業發展，也使臺灣成為明鄭政權的重要據點。</li> <li>query: 在民主政治中，為何需要保障新聞自由與言論自由？<br> passage: 新聞與言論自由能讓人民取得不同觀點與公共資訊，監督政府及其他權力機構，並參與公共議題討論。如果缺乏這些自由，政府施政可能較難受到社會檢驗，人民也可能無法充分表達意見。因此保障新聞與言論自由，是民主政治中促進公共討論與權力制衡的重要條件。</li> <li>query: 為什麼水在標準大氣壓下加熱至100°C時會沸騰？<br> passage: 水受熱時，分子運動加快，溫度逐漸升高。當水的飽和蒸氣壓等於外界大氣壓力時，液體內部便能形成大量氣泡並向外逸出，此現象稱為沸騰。在標準大氣壓下，水的飽和蒸氣壓約在100°C時等於大氣壓，因此水的沸點為100°C；若外界壓力改變，沸點也會改變。</li> <li>query: 為什麼植物的根、莖、葉各具有不同的構造與功能？<br> passage: 植物的不同器官具有分工。根主要負責固定植物並吸收水分與礦物質；莖負責支撐植物，並運輸水分與養分；葉則是進行光合作用的主要場所，可利用光能製造有機養分。不同構造與功能彼此配合，使植物能有效獲取資源、製造養分並維持生長。</li> <li>query: 「滄海桑田」這個成語比喻什麼意思？<br> passage: 指世事變化很大，常用來形容世間事物經歷長久時間後發生巨大的變化。</li> <li>query: 一個三角形的底為 8 公分，高為 5 公分，請問它的面積是多少？<br> passage: 三角形面積 = 底 × 高 ÷ 2 = 8 × 5 ÷ 2 = 20 平方公分。</li> <li>query: 世界上面積最大的洲是哪一洲？<br> passage: 亞洲（Asia）是世界上面積最大的洲。</li> <li>query: 秦始皇統一六國後，建立了中國歷史上第一個中央集權的統一帝國，這個帝國是哪一個？<br> passage: 秦朝。</li> <li>query: 在民主政治中，「人民透過投票選出代表來治理國家」主要屬於哪一種制度？ passage: 代議民主制度。</li> <li>query: 水在標準大氣壓下的沸點是多少攝氏度？<br> passage: 水在標準大氣壓（1 atm）下的沸點是 100°C。</li> <li>query: 植物進行光合作用時，主要利用哪一種氣體，並釋放哪一種氣體？<br> passage: 植物主要吸收二氧化碳（CO₂），並釋放氧氣（O₂）。</li> <li>query: 地球大氣層中，主要吸收太陽紫外線、保護生物免受過量紫外線傷害的是哪一層？<br> passage: 臭氧層，主要位於平流層中。</li></ul> <p>以下說說 .NET 程式怎麼寫。</p> <p>專案要引用 Microsoft.ML.OnnxRuntime 及 Microsoft.ML.Tokenizers 套件，開始執行前先由 Huggingface 下載 model_quantized.onnx 及 sentencepiece.bpe.model。接下來先將 sentencepiece.bpe.model 分詞資料傳給 SentencePieceTokenizer 建立分詞器將文字切成 Token ID 陣列(其中有個眉角是 multilingual-e5 使用 XLM-RoBERTa 的 SentencePiece 規格需要一些客製調整，我放在 <code>long[] Encode(string text)</code> 方法中)，得到 long[]，再來用 model_quantized.onnx 建立 ONNX InferenceSession，在 <code>float[][] Embed(IReadOnlyList&lt;string&gt; texts)</code> 中將多個字串批次轉成 Embedding 向量。由於 GPU 對於大量矩陣運算有優化加速設計，故建議一次傳入多個字串一次處理，取最長字串的長度展開成固定大小的二維陣列 long[][] 填入字元資料，再用 Attention Mask 標示哪些位置有值，將此陣列交給模型進行運算，此部分邏輯我放在 MultilingualE5Model.Embed() 中。</p> <p>Program.cs 程式如下：</p> <pre><code>using System.Diagnostics;
+const string ModelBaseUrl = "https://huggingface.co/Xenova/multilingual-e5-large/resolve/main";
+string modelDirectory = Path.Combine(AppContext.BaseDirectory, "models", "multilingual-e5-large");
+string modelPath = Path.Combine(modelDirectory, "model_quantized.onnx");
+string tokenizerPath = Path.Combine(modelDirectory, "sentencepiece.bpe.model");
+Directory.CreateDirectory(modelDirectory);
+await DownloadHelper.DownloadIfMissingAsync($"{ModelBaseUrl}/onnx/model_quantized.onnx?download=true", modelPath);
+await DownloadHelper.DownloadIfMissingAsync($"{ModelBaseUrl}/sentencepiece.bpe.model?download=true", tokenizerPath);
+var lines = File.ReadAllLines("sample.txt");
+var qa = new QASet();
+List&lt;QASet&gt; faq = new List&lt;QASet&gt;();
+foreach (var line in lines)
+{
+if (line.StartsWith("query: "))
+{
+qa.Question = line;
+}
+else if (line.StartsWith("passage: "))
+{
+qa.Answer = line;
+faq.Add(qa);
+qa = new QASet();
+}
+}
+var texts = faq.SelectMany(f =&gt; new[] { f.Question, f.Answer }).ToArray();
+Console.WriteLine("載入 ONNX 模型...");
+using var tokenizer = new MultilingualE5Tokenizer(tokenizerPath);
+using var model = new MultilingualE5Model(modelPath, tokenizer);
+var stopwatch = Stopwatch.StartNew();
+float[][] embeddings = model.Embed(texts);
+stopwatch.Stop();
+Console.WriteLine($"
+產生 {embeddings.Length} 筆、每筆 {embeddings[0].Length} 維的 Embedding，耗時 {stopwatch.ElapsedMilliseconds:N0} ms。");
+// 將 Embedding 結果對映回每個 QASet
+for (int i = 0; i &lt; faq.Count; i++)
+{
+faq[i].QuestionEmbedding = embeddings[i * 2];
+faq[i].AnswerEmbedding = embeddings[i * 2 + 1];
+faq[i].CosineSimilarities = new float[faq.Count];
+}
+// 計算每個 QASet 的問題與答案之間的餘弦相似度
+for (int i = 0; i &lt; faq.Count; i++)
+{
+for (int j = 0; j &lt; faq.Count; j++)
+{
+faq[i].CosineSimilarities[j] = MultilingualE5Model.CosineSimilarity(faq[i].QuestionEmbedding, faq[j].AnswerEmbedding);
+}
+}
+Console.WriteLine("
+每個 QASet 的問題與答案餘弦相似度比對結果：");
+for (int i = 0; i &lt; faq.Count; i++)
+{
+// 找出與當前 QASet 最相似的前三名答案
+var top3MostSimilarAnswers = faq[i].CosineSimilarities
+.Select((similarity, index) =&gt; new { similarity, index })
+.OrderByDescending(x =&gt; x.similarity)
+.Take(3)
+.ToArray();
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine("Q: " + faq[i].Question);
+Console.ResetColor();
+foreach (var item in top3MostSimilarAnswers)
+{
+if (i == item.index) Console.ForegroundColor = ConsoleColor.Green;
+else Console.ResetColor();
+Console.WriteLine($"A [{item.similarity:F4}]: {faq[item.index].Answer}");
+}
+Console.WriteLine();
+}
+public class QASet
+{
+public string Question { get; set; }
+public string Answer { get; set; }
+public float[] QuestionEmbedding { get; set; }
+public float[] AnswerEmbedding { get; set; }
+public float[] CosineSimilarities { get; set; }
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639259965368810273.webp"></p> <p>完整範例專案已放上 <a href="https://github.com/darkthread/local-embedding-sample">Github</a>，有興趣研究的同學請自取。</p> <p data-slug="multilingual-e5-onnx" data-title-en="Running multilingual-e5 embedding with ONNX runtime" data-catg=".NET" data-fbimg="https://i.imgur.com/fGbeC8r.jpg#1214#683">This article demonstrates how C# developers can run Microsoft’s multilingual-e5-large embedding model locally using ONNX Runtime and SentencePieceTokenizer, generate Chinese text embeddings in batches, and match questions with answers through cosine similarity—without relying on Python, Docker, or cloud APIs.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>雖說現在寫程式有 AI，程式語言不一定要綁死開發者(或者該說使用者)本身的技能，但只要還需要「人」參與協作(包含 Code Review、修改及除錯)，選開發者擅長的語言多半還是利多於弊。基於這個理念，這系列文章我會以 C# 開發者視角，整理 .NET 開發 AI 應用程式範例，打算留在這個航道上的同學可以參考。</p> <p>微軟針對 AI 應用開發有提供了一系列 .NET 官方框架或程式庫(MAF/MEAI/ONNX... 還不認識的同學可看這篇：<a href="/blog/dotnet-ai-guide/">.NET 開發 AI 應用程式之新手指南</a>)，本系列也會以其為基礎出發。</p> <p>要對文字內容進行向量搜索，第一步是將文字透過嵌入模型(Embedding Model)轉成高維向量，讓電腦能用數學距離判段文字的相似性，簡單說是將文字變成能代表其語意的一串數字(類似座標的概念)，例如：將一段包含「蘋果」的文字依據上下文理解成可以吃的水果還是 iPhone 手機？</p> <p>由於 Embedding 是向量搜索的基本程序，過去做過很多，但都是用 OpenAI API 完成，這篇會來試試地端 Embedding 模型。</p> <p>Python 是運作 AI 模型的主流，但若想在 .NET 專案整合 AI 模型，牽扯 Python/Docker 會增加複雜度，研究了一下，微軟、亞馬遜、Facebook 和 IBM 等共同推動的 ONNX (<a href="https://zh.wikipedia.org/zh-tw/ONNX">Open Neural Network Exchange</a>) 算是 .NET 官方建議的解決方案。</p> <p>ONNX 的概念是將訓練好的模型匯出或轉換成 ONNX 格式，透過 ONNX Runtime，模型便可在 Linux/macOS/Windows 等各種平台或裝置上執行。<a href="https://learn.microsoft.com/zh-tw/azure/machine-learning/concept-onnx?view=azureml-api-2&amp;WT.mc_id=DOP-MVP-37580">參考</a></p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639259965364935846.webp"></p> <p>下個問題是，如果文件以繁體中文為主，該選用哪個 Embedding 模型。參考 ihower 的<a href="https://ihower.tw/blog/12167-embedding-models">評測結果</a>，voyage、微軟的 multilingual-e5 系列與北京智源的 bge-m3 是值得優先考量的選擇。我用 .NET 實作，就選擇 multilingual-e5-large。</p> <p><a href="https://www.microsoft.com/en-us/research/publication/multilingual-e5-text-embeddings-a-technical-report/?utm_source=chatgpt.com&amp;WT.mc_id=DOP-MVP-37580">Multilingual E5 Text Embeddings</a>是微軟研究院推出支援多國語言的 Embedding 模型。</p> <table><thead><tr><th></th><th>BEIR 評測</th><th># of layers</th><th>embedding dimension</th><th>Huggingface</th></tr></thead><tbody><tr><td>multilingual-e5-small</td><td>46.6</td><td>12</td><td>384</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-small">intfloat/multilingual-e5-small</a></td></tr><tr><td>multilingual-e5-base</td><td>48.9</td><td>12</td><td>768</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-base">intfloat/multilingual-e5-base</a></td></tr><tr><td>multilingual-e5-large</td><td>51.4</td><td>24</td><td>1024</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-large">intfloat/multilingual-e5-large</a></td></tr><tr><td>multilingual-e5-large-instruct</td><td>52.5</td><td>24</td><td>1024</td><td><a href="https://huggingface.co/intfloat/multilingual-e5-large-instruct">intfloat/multilingual-e5-large-instruct</a></td></tr></tbody></table> <p>模型可從 Huggingface 下載，但官方來源 intfloat 組織提供的 <a href="https://huggingface.co/intfloat/multilingual-e5-large/tree/main/onnx">ONNX 版本</a> <code>model_qint8_avx512_vnni.onnx</code> 針對 AVX-512 及 VNNI 指令指最佳化，Xenova 有提供廣泛支援一般 CPU 的 <a href="https://huggingface.co/intfloat/multilingual-e5-large/tree/main/onnx">ONNX INT8 量化模型</a> - <code>model_quantized.onnx</code>，較不用擔心因 CPU 支援性。</p> <p>此外，E5 需配合 <a href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.ml.tokenizers.sentencepiecetokenizer?view=ml-dotnet-preview&amp;WT.mc_id=DOP-MVP-37580">SenticePieceTokenizer</a> 分詞器將字串轉成 Token (並針對 XLM-RoBERTa 編碼規則微調)，執行時需下載 <a href="https://huggingface.co/Xenova/multilingual-e5-large/tree/main">sentencepiece.bpe.model</a> (大約 5MB)。</p> <p>故文字轉為 E5 Embedding 的流程會是先取得分詞模型檔及模型 ONNX 檔，建立分詞器 SenticePieceTokenizer 及 InferenceSession，將文字轉成 Token 再使用模型推理轉為 Embedding 向量 (內含 Pooling 池化及 L2 Normalization 調整)，之後便可對兩個 Embedding 進行餘弦相似計算預測相似度 (愈接近 1 愈相似，近 -1 表意思相反)。</p> <p>值得一提的是，E5 模型屬於非對稱檢索（Asymmetric Retrieval），要求文字需加上 query: 或 passage: 前綴，供模型區別文字是「尋找解答的資訊需求」或是「提供事實的知識文本」以提供更精準的語意相似度匹配；至於要用在非問題應用，純粹比較多段文字的相似性，則可一律都加上 query:。</p> <p>我做了一個送分題等級範例，共七題差異度很大的問答、七題簡答，測試在本機運行，使用 ONNX Runtime 跑 multilingual-e5-large 模型將文字轉為 Embedding 連連看，看能否正確地匹配問題及答案。</p> <ul><li>query: 「山重水複疑無路，柳暗花明又一村」描寫了怎樣的心境與情境？<br> passage: 詩句出自陸游〈遊山西村〉，描寫山路曲折、景色變化，原以為前方無路，卻突然發現柳色深綠、花色明麗的村莊。除了描寫自然景觀，也表達詩人在困境中意外發現轉機的驚喜，後來常用來比喻事情看似陷入困境，卻可能出現新的希望。</li> <li>query: 臺灣西部平原為何成為人口與農業活動較密集的地區？<br> passage: 臺灣西部平原地勢平坦，河川沖積形成肥沃土壤，適合農業發展；同時交通建設與都市發展較早，工商業活動集中，就業機會較多。因此西部平原兼具適合居住的自然條件與較完善的交通、產業機能，人口密度通常高於東部地區。</li> <li>query: 試說明鄭成功為何於1661年率軍攻打臺灣，以及此行動的歷史影響。<br> passage: 鄭成功為延續反清復明事業，需要建立穩定的根據地。當時荷蘭人控制臺灣南部，鄭成功遂於1661年率軍攻臺，翌年荷蘭人投降，結束荷蘭在臺灣南部的統治。此後鄭氏政權以臺灣為基地經營，促進漢人移民與農業發展，也使臺灣成為明鄭政權的重要據點。</li> <li>query: 在民主政治中，為何需要保障新聞自由與言論自由？<br> passage: 新聞與言論自由能讓人民取得不同觀點與公共資訊，監督政府及其他權力機構，並參與公共議題討論。如果缺乏這些自由，政府施政可能較難受到社會檢驗，人民也可能無法充分表達意見。因此保障新聞與言論自由，是民主政治中促進公共討論與權力制衡的重要條件。</li> <li>query: 為什麼水在標準大氣壓下加熱至100°C時會沸騰？<br> passage: 水受熱時，分子運動加快，溫度逐漸升高。當水的飽和蒸氣壓等於外界大氣壓力時，液體內部便能形成大量氣泡並向外逸出，此現象稱為沸騰。在標準大氣壓下，水的飽和蒸氣壓約在100°C時等於大氣壓，因此水的沸點為100°C；若外界壓力改變，沸點也會改變。</li> <li>query: 為什麼植物的根、莖、葉各具有不同的構造與功能？<br> passage: 植物的不同器官具有分工。根主要負責固定植物並吸收水分與礦物質；莖負責支撐植物，並運輸水分與養分；葉則是進行光合作用的主要場所，可利用光能製造有機養分。不同構造與功能彼此配合，使植物能有效獲取資源、製造養分並維持生長。</li> <li>query: 「滄海桑田」這個成語比喻什麼意思？<br> passage: 指世事變化很大，常用來形容世間事物經歷長久時間後發生巨大的變化。</li> <li>query: 一個三角形的底為 8 公分，高為 5 公分，請問它的面積是多少？<br> passage: 三角形面積 = 底 × 高 ÷ 2 = 8 × 5 ÷ 2 = 20 平方公分。</li> <li>query: 世界上面積最大的洲是哪一洲？<br> passage: 亞洲（Asia）是世界上面積最大的洲。</li> <li>query: 秦始皇統一六國後，建立了中國歷史上第一個中央集權的統一帝國，這個帝國是哪一個？<br> passage: 秦朝。</li> <li>query: 在民主政治中，「人民透過投票選出代表來治理國家」主要屬於哪一種制度？ passage: 代議民主制度。</li> <li>query: 水在標準大氣壓下的沸點是多少攝氏度？<br> passage: 水在標準大氣壓（1 atm）下的沸點是 100°C。</li> <li>query: 植物進行光合作用時，主要利用哪一種氣體，並釋放哪一種氣體？<br> passage: 植物主要吸收二氧化碳（CO₂），並釋放氧氣（O₂）。</li> <li>query: 地球大氣層中，主要吸收太陽紫外線、保護生物免受過量紫外線傷害的是哪一層？<br> passage: 臭氧層，主要位於平流層中。</li></ul> <p>以下說說 .NET 程式怎麼寫。</p> <p>專案要引用 Microsoft.ML.OnnxRuntime 及 Microsoft.ML.Tokenizers 套件，開始執行前先由 Huggingface 下載 model_quantized.onnx 及 sentencepiece.bpe.model。接下來先將 sentencepiece.bpe.model 分詞資料傳給 SentencePieceTokenizer 建立分詞器將文字切成 Token ID 陣列(其中有個眉角是 multilingual-e5 使用 XLM-RoBERTa 的 SentencePiece 規格需要一些客製調整，我放在 <code>long[] Encode(string text)</code> 方法中)，得到 long[]，再來用 model_quantized.onnx 建立 ONNX InferenceSession，在 <code>float[][] Embed(IReadOnlyList&lt;string&gt; texts)</code> 中將多個字串批次轉成 Embedding 向量。由於 GPU 對於大量矩陣運算有優化加速設計，故建議一次傳入多個字串一次處理，取最長字串的長度展開成固定大小的二維陣列 long[][] 填入字元資料，再用 Attention Mask 標示哪些位置有值，將此陣列交給模型進行運算，此部分邏輯我放在 MultilingualE5Model.Embed() 中。</p> <p>Program.cs 程式如下：</p> <pre><code>using System.Diagnostics;
+const string ModelBaseUrl = "https://huggingface.co/Xenova/multilingual-e5-large/resolve/main";
+string modelDirectory = Path.Combine(AppContext.BaseDirectory, "models", "multilingual-e5-large");
+string modelPath = Path.Combine(modelDirectory, "model_quantized.onnx");
+string tokenizerPath = Path.Combine(modelDirectory, "sentencepiece.bpe.model");
+Directory.CreateDirectory(modelDirectory);
+await DownloadHelper.DownloadIfMissingAsync($"{ModelBaseUrl}/onnx/model_quantized.onnx?download=true", modelPath);
+await DownloadHelper.DownloadIfMissingAsync($"{ModelBaseUrl}/sentencepiece.bpe.model?download=true", tokenizerPath);
+var lines = File.ReadAllLines("sample.txt");
+var qa = new QASet();
+List&lt;QASet&gt; faq = new List&lt;QASet&gt;();
+foreach (var line in lines)
+{
+if (line.StartsWith("query: "))
+{
+qa.Question = line;
+}
+else if (line.StartsWith("passage: "))
+{
+qa.Answer = line;
+faq.Add(qa);
+qa = new QASet();
+}
+}
+var texts = faq.SelectMany(f =&gt; new[] { f.Question, f.Answer }).ToArray();
+Console.WriteLine("載入 ONNX 模型...");
+using var tokenizer = new MultilingualE5Tokenizer(tokenizerPath);
+using var model = new MultilingualE5Model(modelPath, tokenizer);
+var stopwatch = Stopwatch.StartNew();
+float[][] embeddings = model.Embed(texts);
+stopwatch.Stop();
+Console.WriteLine($"
+產生 {embeddings.Length} 筆、每筆 {embeddings[0].Length} 維的 Embedding，耗時 {stopwatch.ElapsedMilliseconds:N0} ms。");
+// 將 Embedding 結果對映回每個 QASet
+for (int i = 0; i &lt; faq.Count; i++)
+{
+faq[i].QuestionEmbedding = embeddings[i * 2];
+faq[i].AnswerEmbedding = embeddings[i * 2 + 1];
+faq[i].CosineSimilarities = new float[faq.Count];
+}
+// 計算每個 QASet 的問題與答案之間的餘弦相似度
+for (int i = 0; i &lt; faq.Count; i++)
+{
+for (int j = 0; j &lt; faq.Count; j++)
+{
+faq[i].CosineSimilarities[j] = MultilingualE5Model.CosineSimilarity(faq[i].QuestionEmbedding, faq[j].AnswerEmbedding);
+}
+}
+Console.WriteLine("
+每個 QASet 的問題與答案餘弦相似度比對結果：");
+for (int i = 0; i &lt; faq.Count; i++)
+{
+// 找出與當前 QASet 最相似的前三名答案
+var top3MostSimilarAnswers = faq[i].CosineSimilarities
+.Select((similarity, index) =&gt; new { similarity, index })
+.OrderByDescending(x =&gt; x.similarity)
+.Take(3)
+.ToArray();
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine("Q: " + faq[i].Question);
+Console.ResetColor();
+foreach (var item in top3MostSimilarAnswers)
+{
+if (i == item.index) Console.ForegroundColor = ConsoleColor.Green;
+else Console.ResetColor();
+Console.WriteLine($"A [{item.similarity:F4}]: {faq[item.index].Answer}");
+}
+Console.WriteLine();
+}
+public class QASet
+{
+public string Question { get; set; }
+public string Answer { get; set; }
+public float[] QuestionEmbedding { get; set; }
+public float[] AnswerEmbedding { get; set; }
+public float[] CosineSimilarities { get; set; }
+}
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639259965368810273.webp"></p> <p>完整範例專案已放上 <a href="https://github.com/darkthread/local-embedding-sample">Github</a>，有興趣研究的同學請自取。</p> <p data-slug="multilingual-e5-onnx" data-title-en="Running multilingual-e5 embedding with ONNX runtime" data-catg=".NET" data-fbimg="https://i.imgur.com/fGbeC8r.jpg#1214#683">This article demonstrates how C# developers can run Microsoft’s multilingual-e5-large embedding model locally using ONNX Runtime and SentencePieceTokenizer, generate Chinese text embeddings in batches, and match questions with answers through cosine similarity—without relying on Python, Docker, or cloud APIs.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639259965364935846.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639259965364935846.webp" medium="image"/>
+    <pubDate>Sat, 26 Sep 2026 05:14:58 GMT</pubDate>
+  </item></channel>
+</rss>
