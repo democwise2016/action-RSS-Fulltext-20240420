@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/90/800/800.jpg?hmac=dFOGHgrCALvLFP4WeefquC9FbtLCrK1fl_ICzLRSBAA</url>
+      <url>https://fastly.picsum.photos/id/766/800/800.jpg?hmac=RmPK7nSY_3U1bkkCdV40a9lGNdWrB4khqfsgSctMO70</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,7 +28,7 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/90/800/800.jpg?hmac=dFOGHgrCALvLFP4WeefquC9FbtLCrK1fl_ICzLRSBAA"/>
+    <itunes:image href="https://fastly.picsum.photos/id/766/800/800.jpg?hmac=RmPK7nSY_3U1bkkCdV40a9lGNdWrB4khqfsgSctMO70"/>
 <item>
     <title><![CDATA[Open Camera簡介：可以手動調整ISO與快門速度的Android相機APP，支援Camera2 API]]></title>
     <link>https://ivonblog.com/posts/android-open-camera/</link>
@@ -512,6 +512,111 @@
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03f38da416.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03f38da416.webp" medium="image"/>
     <pubDate>Thu, 15 Oct 2026 22:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[Android手機第三方相機拍照難看，可能要到CameraX普及才解決]]></title>
+    <link>https://ivonblog.com/posts/android-3rd-party-camera-app-issues/</link>
+    <itunes:title><![CDATA[Android手機第三方相機拍照難看，可能要到CameraX普及才解決]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/android-3rd-party-camera-app-issues/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp"></a></p>
+<p>Android手機對第三方相機支援度挺混亂的，很依賴個別廠商實作，且幾乎沒有第三方介入的餘地</p>
+<p>看看原廠 vs 第三方相機品質。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4e138cf10c.webp">
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-097cb3f080.webp"></p>
+<p>所謂第三方相機，是相對於手機系統內建的相機而言，非原廠開發的相機APP。</p>
+<p>不是有很多人反映Instagram相機的限時動態在Android拍起來很難看嗎，iPhone就不會。致使Android用戶必須用系統相機拍完再上傳。</p>
+<p>這問題到最近兩年才改善。參考：<a href="https://eu.community.samsung.com/t5/tips-how-to/why-do-my-photos-look-better-in-the-camera-app-than-on-instagram/ba-p/12648487" target="_blank">Why Do My Photos Look Better in the Camera App Than on Instagram? - Samsung Community</a> Samsung在S24之後用了叫做UniHAL+的技術，讓所有相機App拍起來都有好的成像。然而，這是Samsung的做法，其他品牌是否會採用，以及是否會成為AOSP標準尚不得而知。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e757aea263.webp">
+<p>這問題就在於Android硬體驅動混雜，沒有統一的API能遵循吧。</p>
+<p>我得修正一下看法了。本來以為Android原廠相機很廢的話，用<a href="https://ivonblog.com/posts/android-open-camera/" target="_blank">Open Camera</a>這種第三方相機就能輕鬆取代，這App功能豐富，還開源免費，也正好作為開源生態系的一劑強心劑。</p>
+<p>我的想法是我們不應該依賴特定品牌的拍照App，拍照App也不該過分依賴ROM提供的特殊韌體，否則會阻礙使用LineageOS這種第三方ROM的實用性。刷LineageOS之後，不應該有拍照變差的後果。</p>
+<p>因為<a href="https://developer.android.com/media/camera/camera2/extensions-api" target="_blank">Camera2API</a>這個標準存在10年了。但是我錯了，Android第三方相機的功能，往往沒有原廠的完善。</p>
+<p>相較之下iPhone的第三方相機拍照品質跟原相機幾乎一樣。例如我覺得iOS原相機無法精細調整白平衡，就裝Yamera，拍出來的畫面跟原廠一樣好。</p>
+<p>先別講AI後製效果，就拿基本的發色來說，Android第三方的相機會不如原生準確。我覺得可能也跟HAL所expose的功能有關。原廠相機有自己的閉源驅動存取方式，第三方相機就只能得到比較差的圖像。</p>
+<p>說來奇怪，Sony Xperia 1/5/10系列，雖然對Camera2API的支援度都顯示Full，沒到Level 3，能夠安裝Open Camera手動控制曝光，可是拍照出來的顏色，都不比原廠相機好。幾乎沒有演算法介入的Photo Pro，拍起來也比Open Camera好看，或者說顏色比較真實，接近當下場景的顏色。</p>
+<p>喔對了Open Camera無法偵測到Xperia 1 III的70mm到105mm長焦的光學變焦功能，這又是一個閉源驅動鎖定相機功能的例子。</p>
+<p>結果我才發現除了主鏡頭之外，其他鏡頭對Camera2API的支援度都是顯示LIMITED。</p>
+<p>Sony手機對Camera2API的支援度，似乎不會隨刷機為LineageOS有任何改變，需要硬體驅動配合。</p>
+<p>這樣的話第三方Android相機勢必得用超強濾鏡修圖，或者有Gcam這種神級演算法，才能挽救相機品質落差。可是這不是我要追求的。我是要在原廠相機發色上做細緻調整。可如果基礎的顏色都不對了，我使用第三方相機就不穩了。</p>
+<p>我會有這種體悟是因為，Xperia 10 V刷機為LineageOS，有段時間Sony原廠相機崩潰打不開，所以改用Open Camera。雖然有拍出不錯的照片，但總覺得預設模式下照片顏色似乎不太準。Open Camera的照片與以前未刷機的Sony原廠相機比起來，顏色似乎都偏黯淡。後來裝了XDA用戶調整過的APK才重新使用Sony原廠相機。我發現到Sony相機拍起來其實很不錯的，然後Sony針對中階10系列也有提供很陽春的手動模式。無腦拍的話原廠相機比較好。</p>
+<p>在Xperia 1 III和Xperia 5 II大抵也是類似使用體驗，原廠相機顏色比較正確。</p>
+<p>看來只有Pixel這種Camera2API完美支援到Level 3的機子，才能讓第三方相機獲得較好的照片品質了。</p>
+<p>Google還有在推叫做<a href="https://developer.android.com/media/camera/camerax?hl=zh-tw" target="_blank">CameraX</a>的新標準，給Jetpack用的，需要軟硬體驅動配合。</p>
+<p>根據我的使用經驗，Google Pixel 6a刷GrapheneOS，他們相機使用了CameraX Extensions API，令其相機與Pixel原廠相機有幾乎一樣的夜拍表現。</p>
+<p>故，現在的Google Pixel應該不會有Instagram拍起來很難看的問題了。</p>
+<p>根據CameraX官網資料，許多Android廠牌也加入了CameraX支援了，能改善第三方相機成像品質。Samsung S24之後有改善。Sony的話要Xperia 1 VI以後型號，才有CameraX支援。</p>
+<p>Open Camera其實也支援了CameraX，但好像只能在Pixel使用。也就是說CameraX不只要App開發者支援，系統和驅動也得跟上的樣子。</p>
+<p>雖然理論上CameraX最低支援到Android 5.0，但是有廠商會願意將這功能backport到老機型嗎？</p>
+<p>至於Sony舊旗艦機，即使硬體感光元件再怎麼強，還是用Sony原廠相機App拍比較好。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/android-3rd-party-camera-app-issues/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp"></a></p>
+<p>Android手機對第三方相機支援度挺混亂的，很依賴個別廠商實作，且幾乎沒有第三方介入的餘地</p>
+<p>看看原廠 vs 第三方相機品質。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4e138cf10c.webp">
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-097cb3f080.webp"></p>
+<p>所謂第三方相機，是相對於手機系統內建的相機而言，非原廠開發的相機APP。</p>
+<p>不是有很多人反映Instagram相機的限時動態在Android拍起來很難看嗎，iPhone就不會。致使Android用戶必須用系統相機拍完再上傳。</p>
+<p>這問題到最近兩年才改善。參考：<a href="https://eu.community.samsung.com/t5/tips-how-to/why-do-my-photos-look-better-in-the-camera-app-than-on-instagram/ba-p/12648487" target="_blank">Why Do My Photos Look Better in the Camera App Than on Instagram? - Samsung Community</a> Samsung在S24之後用了叫做UniHAL+的技術，讓所有相機App拍起來都有好的成像。然而，這是Samsung的做法，其他品牌是否會採用，以及是否會成為AOSP標準尚不得而知。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e757aea263.webp">
+<p>這問題就在於Android硬體驅動混雜，沒有統一的API能遵循吧。</p>
+<p>我得修正一下看法了。本來以為Android原廠相機很廢的話，用<a href="https://ivonblog.com/posts/android-open-camera/" target="_blank">Open Camera</a>這種第三方相機就能輕鬆取代，這App功能豐富，還開源免費，也正好作為開源生態系的一劑強心劑。</p>
+<p>我的想法是我們不應該依賴特定品牌的拍照App，拍照App也不該過分依賴ROM提供的特殊韌體，否則會阻礙使用LineageOS這種第三方ROM的實用性。刷LineageOS之後，不應該有拍照變差的後果。</p>
+<p>因為<a href="https://developer.android.com/media/camera/camera2/extensions-api" target="_blank">Camera2API</a>這個標準存在10年了。但是我錯了，Android第三方相機的功能，往往沒有原廠的完善。</p>
+<p>相較之下iPhone的第三方相機拍照品質跟原相機幾乎一樣。例如我覺得iOS原相機無法精細調整白平衡，就裝Yamera，拍出來的畫面跟原廠一樣好。</p>
+<p>先別講AI後製效果，就拿基本的發色來說，Android第三方的相機會不如原生準確。我覺得可能也跟HAL所expose的功能有關。原廠相機有自己的閉源驅動存取方式，第三方相機就只能得到比較差的圖像。</p>
+<p>說來奇怪，Sony Xperia 1/5/10系列，雖然對Camera2API的支援度都顯示Full，沒到Level 3，能夠安裝Open Camera手動控制曝光，可是拍照出來的顏色，都不比原廠相機好。幾乎沒有演算法介入的Photo Pro，拍起來也比Open Camera好看，或者說顏色比較真實，接近當下場景的顏色。</p>
+<p>喔對了Open Camera無法偵測到Xperia 1 III的70mm到105mm長焦的光學變焦功能，這又是一個閉源驅動鎖定相機功能的例子。</p>
+<p>結果我才發現除了主鏡頭之外，其他鏡頭對Camera2API的支援度都是顯示LIMITED。</p>
+<p>Sony手機對Camera2API的支援度，似乎不會隨刷機為LineageOS有任何改變，需要硬體驅動配合。</p>
+<p>這樣的話第三方Android相機勢必得用超強濾鏡修圖，或者有Gcam這種神級演算法，才能挽救相機品質落差。可是這不是我要追求的。我是要在原廠相機發色上做細緻調整。可如果基礎的顏色都不對了，我使用第三方相機就不穩了。</p>
+<p>我會有這種體悟是因為，Xperia 10 V刷機為LineageOS，有段時間Sony原廠相機崩潰打不開，所以改用Open Camera。雖然有拍出不錯的照片，但總覺得預設模式下照片顏色似乎不太準。Open Camera的照片與以前未刷機的Sony原廠相機比起來，顏色似乎都偏黯淡。後來裝了XDA用戶調整過的APK才重新使用Sony原廠相機。我發現到Sony相機拍起來其實很不錯的，然後Sony針對中階10系列也有提供很陽春的手動模式。無腦拍的話原廠相機比較好。</p>
+<p>在Xperia 1 III和Xperia 5 II大抵也是類似使用體驗，原廠相機顏色比較正確。</p>
+<p>看來只有Pixel這種Camera2API完美支援到Level 3的機子，才能讓第三方相機獲得較好的照片品質了。</p>
+<p>Google還有在推叫做<a href="https://developer.android.com/media/camera/camerax?hl=zh-tw" target="_blank">CameraX</a>的新標準，給Jetpack用的，需要軟硬體驅動配合。</p>
+<p>根據我的使用經驗，Google Pixel 6a刷GrapheneOS，他們相機使用了CameraX Extensions API，令其相機與Pixel原廠相機有幾乎一樣的夜拍表現。</p>
+<p>故，現在的Google Pixel應該不會有Instagram拍起來很難看的問題了。</p>
+<p>根據CameraX官網資料，許多Android廠牌也加入了CameraX支援了，能改善第三方相機成像品質。Samsung S24之後有改善。Sony的話要Xperia 1 VI以後型號，才有CameraX支援。</p>
+<p>Open Camera其實也支援了CameraX，但好像只能在Pixel使用。也就是說CameraX不只要App開發者支援，系統和驅動也得跟上的樣子。</p>
+<p>雖然理論上CameraX最低支援到Android 5.0，但是有廠商會願意將這功能backport到老機型嗎？</p>
+<p>至於Sony舊旗艦機，即使硬體感光元件再怎麼強，還是用Sony原廠相機App拍比較好。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/android-3rd-party-camera-app-issues/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp"></a></p>
+<p>Android手機對第三方相機支援度挺混亂的，很依賴個別廠商實作，且幾乎沒有第三方介入的餘地</p>
+<p>看看原廠 vs 第三方相機品質。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4e138cf10c.webp">
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-097cb3f080.webp"></p>
+<p>所謂第三方相機，是相對於手機系統內建的相機而言，非原廠開發的相機APP。</p>
+<p>不是有很多人反映Instagram相機的限時動態在Android拍起來很難看嗎，iPhone就不會。致使Android用戶必須用系統相機拍完再上傳。</p>
+<p>這問題到最近兩年才改善。參考：<a href="https://eu.community.samsung.com/t5/tips-how-to/why-do-my-photos-look-better-in-the-camera-app-than-on-instagram/ba-p/12648487" target="_blank">Why Do My Photos Look Better in the Camera App Than on Instagram? - Samsung Community</a> Samsung在S24之後用了叫做UniHAL+的技術，讓所有相機App拍起來都有好的成像。然而，這是Samsung的做法，其他品牌是否會採用，以及是否會成為AOSP標準尚不得而知。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e757aea263.webp">
+<p>這問題就在於Android硬體驅動混雜，沒有統一的API能遵循吧。</p>
+<p>我得修正一下看法了。本來以為Android原廠相機很廢的話，用<a href="https://ivonblog.com/posts/android-open-camera/" target="_blank">Open Camera</a>這種第三方相機就能輕鬆取代，這App功能豐富，還開源免費，也正好作為開源生態系的一劑強心劑。</p>
+<p>我的想法是我們不應該依賴特定品牌的拍照App，拍照App也不該過分依賴ROM提供的特殊韌體，否則會阻礙使用LineageOS這種第三方ROM的實用性。刷LineageOS之後，不應該有拍照變差的後果。</p>
+<p>因為<a href="https://developer.android.com/media/camera/camera2/extensions-api" target="_blank">Camera2API</a>這個標準存在10年了。但是我錯了，Android第三方相機的功能，往往沒有原廠的完善。</p>
+<p>相較之下iPhone的第三方相機拍照品質跟原相機幾乎一樣。例如我覺得iOS原相機無法精細調整白平衡，就裝Yamera，拍出來的畫面跟原廠一樣好。</p>
+<p>先別講AI後製效果，就拿基本的發色來說，Android第三方的相機會不如原生準確。我覺得可能也跟HAL所expose的功能有關。原廠相機有自己的閉源驅動存取方式，第三方相機就只能得到比較差的圖像。</p>
+<p>說來奇怪，Sony Xperia 1/5/10系列，雖然對Camera2API的支援度都顯示Full，沒到Level 3，能夠安裝Open Camera手動控制曝光，可是拍照出來的顏色，都不比原廠相機好。幾乎沒有演算法介入的Photo Pro，拍起來也比Open Camera好看，或者說顏色比較真實，接近當下場景的顏色。</p>
+<p>喔對了Open Camera無法偵測到Xperia 1 III的70mm到105mm長焦的光學變焦功能，這又是一個閉源驅動鎖定相機功能的例子。</p>
+<p>結果我才發現除了主鏡頭之外，其他鏡頭對Camera2API的支援度都是顯示LIMITED。</p>
+<p>Sony手機對Camera2API的支援度，似乎不會隨刷機為LineageOS有任何改變，需要硬體驅動配合。</p>
+<p>這樣的話第三方Android相機勢必得用超強濾鏡修圖，或者有Gcam這種神級演算法，才能挽救相機品質落差。可是這不是我要追求的。我是要在原廠相機發色上做細緻調整。可如果基礎的顏色都不對了，我使用第三方相機就不穩了。</p>
+<p>我會有這種體悟是因為，Xperia 10 V刷機為LineageOS，有段時間Sony原廠相機崩潰打不開，所以改用Open Camera。雖然有拍出不錯的照片，但總覺得預設模式下照片顏色似乎不太準。Open Camera的照片與以前未刷機的Sony原廠相機比起來，顏色似乎都偏黯淡。後來裝了XDA用戶調整過的APK才重新使用Sony原廠相機。我發現到Sony相機拍起來其實很不錯的，然後Sony針對中階10系列也有提供很陽春的手動模式。無腦拍的話原廠相機比較好。</p>
+<p>在Xperia 1 III和Xperia 5 II大抵也是類似使用體驗，原廠相機顏色比較正確。</p>
+<p>看來只有Pixel這種Camera2API完美支援到Level 3的機子，才能讓第三方相機獲得較好的照片品質了。</p>
+<p>Google還有在推叫做<a href="https://developer.android.com/media/camera/camerax?hl=zh-tw" target="_blank">CameraX</a>的新標準，給Jetpack用的，需要軟硬體驅動配合。</p>
+<p>根據我的使用經驗，Google Pixel 6a刷GrapheneOS，他們相機使用了CameraX Extensions API，令其相機與Pixel原廠相機有幾乎一樣的夜拍表現。</p>
+<p>故，現在的Google Pixel應該不會有Instagram拍起來很難看的問題了。</p>
+<p>根據CameraX官網資料，許多Android廠牌也加入了CameraX支援了，能改善第三方相機成像品質。Samsung S24之後有改善。Sony的話要Xperia 1 VI以後型號，才有CameraX支援。</p>
+<p>Open Camera其實也支援了CameraX，但好像只能在Pixel使用。也就是說CameraX不只要App開發者支援，系統和驅動也得跟上的樣子。</p>
+<p>雖然理論上CameraX最低支援到Android 5.0，但是有廠商會願意將這功能backport到老機型嗎？</p>
+<p>至於Sony舊旗艦機，即使硬體感光元件再怎麼強，還是用Sony原廠相機App拍比較好。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp" medium="image"/>
+    <pubDate>Thu, 15 Oct 2026 01:00:00 +0800</pubDate>
   </item><item>
     <title><![CDATA[Sony手機外觀顏色的設計是很有水準的]]></title>
     <link>https://ivonblog.com/posts/sony-xperia-colors/</link>
@@ -1145,248 +1250,5 @@
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2aa6587327.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2aa6587327.webp" medium="image"/>
     <pubDate>Mon, 12 Oct 2026 15:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[島風意外的大屁股，TAITO 2014 可分離支架的坐姿景品]]></title>
-    <link>https://ivonblog.com/posts/taito-figure-shimakaze-2014/</link>
-    <itunes:title><![CDATA[島風意外的大屁股，TAITO 2014 可分離支架的坐姿景品]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/taito-figure-shimakaze-2014/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82c0b0042a.webp"></a></p>
-<p>瘦小可愛的島風原來有著大屁股。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-76379ef926.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ba76e96aaf.webp">
-<p>2014年發售的BANDAI TAITO島風模型。艦隊これくしょん -艦これ-　島風フィギュア</p>
-<p>這個島風模型是坐在泳圈上。底座寫有<code>©2014 DMM.com/KADOKAWA GAMES All Rights Reserved.</code>字樣。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1777bb889e.webp">
-<p>最初的兔耳是黑色的，2019年有換成白色兔耳朵，變成「決戰mode」重新賣。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e5ced7e0ef.webp">
-<p>TAITO後續還有出這種提供游泳圈支架，然後模型能獨立拿出來的景品，也就是2016年的呂500（休日ver）。</p>
-<p>雖然一直很喜歡島風，外表淫蕩內心單純。居然都沒有買，作為人氣角色。出了很多品相。看到一個不錯的二手品買了下來。從<a href="https://home.gamer.com.tw/artwork.php?sn=2526659" target="_blank">巴哈10年前的開箱文</a>來看，全新品品質就不太穩定的樣子。</p>
-<p>這部分塗裝有缺陷，身體部分發黃，還隻算是能接受吧。</p>
-<p>這是多用途公仔，島風旁邊附贈聯裝炮醬，能全配放在一起當作擺設
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-95d9bccfc3.webp"></p>
-<p>也可以將人物單獨分離出來，坐在聯裝炮醬上
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8c9fea6d86.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-69636adf76.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8e2e2d468b.webp">
-<p>島風這個表情，真的很像湯姆貓看報紙的梗圖～
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5ed8009e4e.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d9dd48d13b.webp">
-<p>來欣賞島風之美</p>
-<p>大腿
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-658db6d248.webp">
-<p>胸部
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-978526b9c9.webp">
-<p>腋下
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7aacb32f14.webp">
-<p>腹部
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6f18a132e0.webp">
-<p>子宮
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8d2455b5.webp">
-<p>這隻島風是能與游泳圈底座分離的，這個姿勢的島風拿來蓋泡麵也可以。而由於她本身不是真正的坐姿公仔，所以屁股沒有為了放在平面上被壓扁。</p>
-<p>買完發現這個裙子是勉強可脫的！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a5c8d0b0a5.webp"></p>
-<p>提督！你看我會倒立喔！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-eb80958dfc.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-adb13c4566.webp"></p>
-<p>剛好能露出屁股蛋。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f65c73ecaa.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2d035869b0.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3561b13379.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f4518c1662.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7e92afc3fd.webp"></p>
-<p>總算發現手機超廣角鏡頭的正確用法了。</p>
-<p>真的很討厭，有些中階手機，鏡頭都只有標準和超廣角兩個鏡頭，刻意拔掉長焦。超廣角可能是拍合照用的，邊緣人幾乎用不到！</p>
-<p>…那不是就只能用來拍島風公仔的大屁股了嗎。</p>
-<p>AVGN：ASS！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1cb3e32bae.webp">
-<p>Tip：利用超廣角的變形特性，將物件靠近鏡頭邊緣，關閉相機的邊緣失真修正，就會有物體擴大的效果。這樣的話人體部位就會變得豐滿，蘿莉的平板屁股也會成為MILF的大屁屁。（雖說如此，本篇的照片是用Xperia 5 II三鏡頭手機拍的www）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-aba7c290f4.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3bd3883a74.webp">
-<p>你還要磨蹭多久啊！提督！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a06c533125.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-96e3b526dc.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-198ec449bd.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-661d4a78ad.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f64a049f62.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-15856afdbf.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-758336d106.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9e678a362a.webp">
-<p>最後來張，完事之後的…嘉豪島風！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8f9953fa0e.webp">]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/taito-figure-shimakaze-2014/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82c0b0042a.webp"></a></p>
-<p>瘦小可愛的島風原來有著大屁股。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-76379ef926.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ba76e96aaf.webp">
-<p>2014年發售的BANDAI TAITO島風模型。艦隊これくしょん -艦これ-　島風フィギュア</p>
-<p>這個島風模型是坐在泳圈上。底座寫有<code>©2014 DMM.com/KADOKAWA GAMES All Rights Reserved.</code>字樣。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1777bb889e.webp">
-<p>最初的兔耳是黑色的，2019年有換成白色兔耳朵，變成「決戰mode」重新賣。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e5ced7e0ef.webp">
-<p>TAITO後續還有出這種提供游泳圈支架，然後模型能獨立拿出來的景品，也就是2016年的呂500（休日ver）。</p>
-<p>雖然一直很喜歡島風，外表淫蕩內心單純。居然都沒有買，作為人氣角色。出了很多品相。看到一個不錯的二手品買了下來。從<a href="https://home.gamer.com.tw/artwork.php?sn=2526659" target="_blank">巴哈10年前的開箱文</a>來看，全新品品質就不太穩定的樣子。</p>
-<p>這部分塗裝有缺陷，身體部分發黃，還隻算是能接受吧。</p>
-<p>這是多用途公仔，島風旁邊附贈聯裝炮醬，能全配放在一起當作擺設
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-95d9bccfc3.webp"></p>
-<p>也可以將人物單獨分離出來，坐在聯裝炮醬上
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8c9fea6d86.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-69636adf76.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8e2e2d468b.webp">
-<p>島風這個表情，真的很像湯姆貓看報紙的梗圖～
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5ed8009e4e.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d9dd48d13b.webp">
-<p>來欣賞島風之美</p>
-<p>大腿
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-658db6d248.webp">
-<p>胸部
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-978526b9c9.webp">
-<p>腋下
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7aacb32f14.webp">
-<p>腹部
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6f18a132e0.webp">
-<p>子宮
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8d2455b5.webp">
-<p>這隻島風是能與游泳圈底座分離的，這個姿勢的島風拿來蓋泡麵也可以。而由於她本身不是真正的坐姿公仔，所以屁股沒有為了放在平面上被壓扁。</p>
-<p>買完發現這個裙子是勉強可脫的！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a5c8d0b0a5.webp"></p>
-<p>提督！你看我會倒立喔！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-eb80958dfc.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-adb13c4566.webp"></p>
-<p>剛好能露出屁股蛋。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f65c73ecaa.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2d035869b0.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3561b13379.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f4518c1662.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7e92afc3fd.webp"></p>
-<p>總算發現手機超廣角鏡頭的正確用法了。</p>
-<p>真的很討厭，有些中階手機，鏡頭都只有標準和超廣角兩個鏡頭，刻意拔掉長焦。超廣角可能是拍合照用的，邊緣人幾乎用不到！</p>
-<p>…那不是就只能用來拍島風公仔的大屁股了嗎。</p>
-<p>AVGN：ASS！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1cb3e32bae.webp">
-<p>Tip：利用超廣角的變形特性，將物件靠近鏡頭邊緣，關閉相機的邊緣失真修正，就會有物體擴大的效果。這樣的話人體部位就會變得豐滿，蘿莉的平板屁股也會成為MILF的大屁屁。（雖說如此，本篇的照片是用Xperia 5 II三鏡頭手機拍的www）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-aba7c290f4.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3bd3883a74.webp">
-<p>你還要磨蹭多久啊！提督！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a06c533125.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-96e3b526dc.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-198ec449bd.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-661d4a78ad.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f64a049f62.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-15856afdbf.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-758336d106.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9e678a362a.webp">
-<p>最後來張，完事之後的…嘉豪島風！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8f9953fa0e.webp">]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/taito-figure-shimakaze-2014/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82c0b0042a.webp"></a></p>
-<p>瘦小可愛的島風原來有著大屁股。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-76379ef926.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ba76e96aaf.webp">
-<p>2014年發售的BANDAI TAITO島風模型。艦隊これくしょん -艦これ-　島風フィギュア</p>
-<p>這個島風模型是坐在泳圈上。底座寫有<code>©2014 DMM.com/KADOKAWA GAMES All Rights Reserved.</code>字樣。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1777bb889e.webp">
-<p>最初的兔耳是黑色的，2019年有換成白色兔耳朵，變成「決戰mode」重新賣。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e5ced7e0ef.webp">
-<p>TAITO後續還有出這種提供游泳圈支架，然後模型能獨立拿出來的景品，也就是2016年的呂500（休日ver）。</p>
-<p>雖然一直很喜歡島風，外表淫蕩內心單純。居然都沒有買，作為人氣角色。出了很多品相。看到一個不錯的二手品買了下來。從<a href="https://home.gamer.com.tw/artwork.php?sn=2526659" target="_blank">巴哈10年前的開箱文</a>來看，全新品品質就不太穩定的樣子。</p>
-<p>這部分塗裝有缺陷，身體部分發黃，還隻算是能接受吧。</p>
-<p>這是多用途公仔，島風旁邊附贈聯裝炮醬，能全配放在一起當作擺設
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-95d9bccfc3.webp"></p>
-<p>也可以將人物單獨分離出來，坐在聯裝炮醬上
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8c9fea6d86.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-69636adf76.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8e2e2d468b.webp">
-<p>島風這個表情，真的很像湯姆貓看報紙的梗圖～
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5ed8009e4e.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d9dd48d13b.webp">
-<p>來欣賞島風之美</p>
-<p>大腿
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-658db6d248.webp">
-<p>胸部
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-978526b9c9.webp">
-<p>腋下
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7aacb32f14.webp">
-<p>腹部
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6f18a132e0.webp">
-<p>子宮
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9d8d2455b5.webp">
-<p>這隻島風是能與游泳圈底座分離的，這個姿勢的島風拿來蓋泡麵也可以。而由於她本身不是真正的坐姿公仔，所以屁股沒有為了放在平面上被壓扁。</p>
-<p>買完發現這個裙子是勉強可脫的！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a5c8d0b0a5.webp"></p>
-<p>提督！你看我會倒立喔！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-eb80958dfc.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-adb13c4566.webp"></p>
-<p>剛好能露出屁股蛋。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f65c73ecaa.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2d035869b0.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3561b13379.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f4518c1662.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7e92afc3fd.webp"></p>
-<p>總算發現手機超廣角鏡頭的正確用法了。</p>
-<p>真的很討厭，有些中階手機，鏡頭都只有標準和超廣角兩個鏡頭，刻意拔掉長焦。超廣角可能是拍合照用的，邊緣人幾乎用不到！</p>
-<p>…那不是就只能用來拍島風公仔的大屁股了嗎。</p>
-<p>AVGN：ASS！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1cb3e32bae.webp">
-<p>Tip：利用超廣角的變形特性，將物件靠近鏡頭邊緣，關閉相機的邊緣失真修正，就會有物體擴大的效果。這樣的話人體部位就會變得豐滿，蘿莉的平板屁股也會成為MILF的大屁屁。（雖說如此，本篇的照片是用Xperia 5 II三鏡頭手機拍的www）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-aba7c290f4.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3bd3883a74.webp">
-<p>你還要磨蹭多久啊！提督！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a06c533125.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-96e3b526dc.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-198ec449bd.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-661d4a78ad.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f64a049f62.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-15856afdbf.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-758336d106.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-9e678a362a.webp">
-<p>最後來張，完事之後的…嘉豪島風！
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8f9953fa0e.webp">]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82c0b0042a.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82c0b0042a.webp" medium="image"/>
-    <pubDate>Sun, 11 Oct 2026 21:00:00 +0800</pubDate>
   </item></channel>
 </rss>
