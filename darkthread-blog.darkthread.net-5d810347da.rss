@@ -30,6 +30,78 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[在 Windows 為 Rust、Python、C/C++ 準備 MSVC 編譯環境]]></title>
+    <link>https://blog.darkthread.net/blog/vs-dev-shell-in-copilot/</link>
+    <itunes:title><![CDATA[在 Windows 為 Rust、Python、C/C++ 準備 MSVC 編譯環境]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>AI 出現之前，寫程式比較單純的，你學習並熟悉某種程式語言，或許是 JavaScript、Java 或 C#，不管遇到任何需求，都想辦法用它開發就對了，因為這是你最有把握，成功率最高的一條路。</p> <p>現在可不一樣，跟 AI 說完需求 (小提醒：記得講需求不要直接下指令，才不會<a href="https://www.facebook.com/share/p/1F8GG8UwbR/">錯過驚喜</a>)，AI 可能會建議用 Rust 寫效能比較好、直接用 C 實作整合度最高，或是 Python 剛好有現成程式庫可以套，如果有需要可以馬上起跑，這時你還要堅持「不! 不是 C# 我不要」？</p> <p>一年前的我還會堅持，隨著 AI 不斷進化以及全面接手人類的開發工作，我現在已經<del>投降</del>認清現實：在一些特定語言具備絕對優勢的情境，開發者該調整成主管心態，允許 AI 用你沒學過的程式語言或技術更有效率完成任務。前題是你不懂細節但知道運作方式，出問題時有能力現學現賣進場協助排除問題。人人都在用 AI，心態不調整，肯定要輸給不被語言束縛的人。</p> <p>這篇說說配合 AI 切換語言時 Windows 常遇到的一個需求 - 安裝 C/C++ 編譯環境。</p> <p>Windows 不像 Linux 自帶編譯器用 apt install 就能安裝。Rust 預設使用 MSVC ABI，需要 Visual Studio 提供的 linker 與函式庫才能產生 exe；若遇到 Python 套件沒提供 wheel，pip 從原始碼安裝時需要 C/C++ 編譯器；CPython 官方版本以 Visual C++ 編譯，用 MinGW 可能有相容問題。</p> <p>綜合評比，Microsoft C++ (MSVC) Build Tools 是 Windows 準備 C 編譯工具的首選。</p> <table><thead><tr><th>方案</th><th>適用情境</th><th>備註</th></tr></thead><tbody><tr><td>MSVC Build Tools</td><td>Rust (預設)、Python 擴充套件、一般 Windows 原生開發</td><td>只裝命令列工具，不含 IDE</td></tr><tr><td>Visual Studio</td><td>需要 IDE、除錯器</td><td>也包含命令列工具</td></tr><tr><td>Clang/LLVM</td><td>需要 Clang 相容性</td><td>以 clang-cl 模式搭配 MS STL</td></tr><tr><td>MinGW-w64 (MSYS2)</td><td>需與 GNU 生態互通</td><td>Rust 需改用 GNU target</td></tr></tbody></table> <p>註：Build Tools 2022 起放寬：編譯開源 C++ 相依套件時，即使在企業內開發閉源專案，也不需 Visual Studio 授權。 若要用 Visual Studio 開發專有 C++ 程式碼，仍需授權。<a href="https://devblogs.microsoft.com/cppblog/updates-to-visual-studio-build-tools-license-for-c-and-cpp-open-source-projects/?WT.mc_id=DOP-MVP-37580">Updates to Visual Studio Build Tools license for C and C++ Open-Source projects - Microsoft C++ Team Blog</a>。rustup-init 會自動安裝 Visual Studio Community，個人、學術、開源免費，企業商業用途需確認授權。</p> <p>之前我都是<a href="/blog/vs-buildtools-offline-setup/">用安裝程式安裝 MS Build Tools</a>，時代改變了，我現在能用 CLI 就不滑鼠，需 Build Tools 可以用 winget 安裝。</p> <p>研究了一下，最新版是 VS 2026，但目前一些第三方程式的 CMake 設定、相依函式庫的下載腳本與範例指令 (例如 <code>-G "Visual Studio 17 2022"</code>) 仍以 2022 為主，決定還是先裝 2022 版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639278465930465643.webp"></p> <p>以系統管理員身分執行：</p> <pre><code>winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --wait"
+</code></pre> <ul><li><code>Microsoft.VisualStudio.Workload.VCTools</code> 為「Desktop development with C++」，包含 MSVC 核心、Windows Universal C Runtime 等；推薦元件含 MSVC x64/x86 編譯器、CMake 工具、Windows SDK、AddressSanitizer<a href="https://learn.microsoft.com/visualstudio/install/workload-component-id-vs-build-tools?WT.mc_id=DOP-MVP-37580">參考</a></li> <li><code>--override</code> 會取代 winget 預設傳給安裝程式的參數，指定 <code>--passive</code> 顯示進度但不互動；<code>--wait</code> 等安裝完成才回傳</li> <li><code>--add</code> 預設只裝必要元件，加 <code>--includeRecommended</code> 會包含推薦元件，不加的話得增加指定 CMake 跟 Windows SDK 等元件，建議加上較省事</li></ul> <p>有個麻煩的小地方是，MSVC 不能直接在一般命令提示字元使用，需要設定 <code>PATH</code>、<code>INCLUDE</code>、<code>LIB</code> 等變數。傳統做法是用開始功能表的 Developer Command Prompt 與 Developer PowerShell 捷徑(搜尋 <code>developer command prompt</code> 或 <code>developer powershell</code>)；再不然是找到 VS 或 Build Tools 安裝路徑跑 <code>&lt;vs-install-dir&gt;\VC\Auxiliary\Build\vcvars64.bat</code> (x64 原生) 或 <code>vcvarsall.bat x64</code> 或 <code>Common7\Tools\Launch-VsDevShell.ps1</code></p> <p>以下這段 PowerShell 可以自動找到有安裝 MSVC x64 工具的 Visual Studio 或 Build Tools，呼叫 Enter-VsDevShell Cmdlet 載入相關環境變數，以便直接呼叫 MSVC 編譯程式及 CMake：</p> <pre><code># 找到含 MSVC x64 工具的最新 Visual Studio / Build Tools，並載入 x64 開發者環境
+$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+if (-not (Test-Path $vswhere)) { throw "找不到 vswhere.exe：$vswhere" }
+# -products * 是必要的，否則查不到 Build Tools
+# 若需要指定版本，加上 -version，例如 VS 2022：-version '[17.0,18.0)'
+$vs = &amp; $vswhere -latest -products * `
+-requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+-property installationPath
+if (-not $vs) { throw '找不到含 MSVC x64 工具的 Visual Studio / Build Tools' }
+Import-Module (Join-Path $vs 'Common7\Tools\Microsoft.VisualStudio.DevShell.dll')
+Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation `
+-DevCmdArguments '-arch=x64 -host_arch=x64' | Out-Null
+</code></pre> <p>而為了讓 Github Copilot Agent 在執行 Rust、Python 相關作業需要 MSVC 時能啟用，我將以上 PowerShell 存成 <code>$env:USERPROFILE\.copilot\scripts\Enter-VsDevShell.ps1</code>，並加入 <code>$env:USERPROFILE\.copilot\instructions\msvc.instructions.md</code>：</p> <pre><code>---
+applyTo: "**"
+---
+On Windows, before running cl / link / cmake / ninja / nmake / msbuild,
+load the VS developer environment in the same PowerShell session, on the same line as the build:
+&amp; "$env:USERPROFILE\.copilot\scripts\Enter-VsDevShell.ps1"; cmake --build build
+</code></pre> <p>實測提示夠簡單明確，連 GPT-6.1-Luna 也能跟著照做，成功~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639278465936813315.webp"></p> <p data-slug="vs-dev-shell-in-copilot" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>AI 出現之前，寫程式比較單純的，你學習並熟悉某種程式語言，或許是 JavaScript、Java 或 C#，不管遇到任何需求，都想辦法用它開發就對了，因為這是你最有把握，成功率最高的一條路。</p> <p>現在可不一樣，跟 AI 說完需求 (小提醒：記得講需求不要直接下指令，才不會<a href="https://www.facebook.com/share/p/1F8GG8UwbR/">錯過驚喜</a>)，AI 可能會建議用 Rust 寫效能比較好、直接用 C 實作整合度最高，或是 Python 剛好有現成程式庫可以套，如果有需要可以馬上起跑，這時你還要堅持「不! 不是 C# 我不要」？</p> <p>一年前的我還會堅持，隨著 AI 不斷進化以及全面接手人類的開發工作，我現在已經<del>投降</del>認清現實：在一些特定語言具備絕對優勢的情境，開發者該調整成主管心態，允許 AI 用你沒學過的程式語言或技術更有效率完成任務。前題是你不懂細節但知道運作方式，出問題時有能力現學現賣進場協助排除問題。人人都在用 AI，心態不調整，肯定要輸給不被語言束縛的人。</p> <p>這篇說說配合 AI 切換語言時 Windows 常遇到的一個需求 - 安裝 C/C++ 編譯環境。</p> <p>Windows 不像 Linux 自帶編譯器用 apt install 就能安裝。Rust 預設使用 MSVC ABI，需要 Visual Studio 提供的 linker 與函式庫才能產生 exe；若遇到 Python 套件沒提供 wheel，pip 從原始碼安裝時需要 C/C++ 編譯器；CPython 官方版本以 Visual C++ 編譯，用 MinGW 可能有相容問題。</p> <p>綜合評比，Microsoft C++ (MSVC) Build Tools 是 Windows 準備 C 編譯工具的首選。</p> <table><thead><tr><th>方案</th><th>適用情境</th><th>備註</th></tr></thead><tbody><tr><td>MSVC Build Tools</td><td>Rust (預設)、Python 擴充套件、一般 Windows 原生開發</td><td>只裝命令列工具，不含 IDE</td></tr><tr><td>Visual Studio</td><td>需要 IDE、除錯器</td><td>也包含命令列工具</td></tr><tr><td>Clang/LLVM</td><td>需要 Clang 相容性</td><td>以 clang-cl 模式搭配 MS STL</td></tr><tr><td>MinGW-w64 (MSYS2)</td><td>需與 GNU 生態互通</td><td>Rust 需改用 GNU target</td></tr></tbody></table> <p>註：Build Tools 2022 起放寬：編譯開源 C++ 相依套件時，即使在企業內開發閉源專案，也不需 Visual Studio 授權。 若要用 Visual Studio 開發專有 C++ 程式碼，仍需授權。<a href="https://devblogs.microsoft.com/cppblog/updates-to-visual-studio-build-tools-license-for-c-and-cpp-open-source-projects/?WT.mc_id=DOP-MVP-37580">Updates to Visual Studio Build Tools license for C and C++ Open-Source projects - Microsoft C++ Team Blog</a>。rustup-init 會自動安裝 Visual Studio Community，個人、學術、開源免費，企業商業用途需確認授權。</p> <p>之前我都是<a href="/blog/vs-buildtools-offline-setup/">用安裝程式安裝 MS Build Tools</a>，時代改變了，我現在能用 CLI 就不滑鼠，需 Build Tools 可以用 winget 安裝。</p> <p>研究了一下，最新版是 VS 2026，但目前一些第三方程式的 CMake 設定、相依函式庫的下載腳本與範例指令 (例如 <code>-G "Visual Studio 17 2022"</code>) 仍以 2022 為主，決定還是先裝 2022 版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639278465930465643.webp"></p> <p>以系統管理員身分執行：</p> <pre><code>winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --wait"
+</code></pre> <ul><li><code>Microsoft.VisualStudio.Workload.VCTools</code> 為「Desktop development with C++」，包含 MSVC 核心、Windows Universal C Runtime 等；推薦元件含 MSVC x64/x86 編譯器、CMake 工具、Windows SDK、AddressSanitizer<a href="https://learn.microsoft.com/visualstudio/install/workload-component-id-vs-build-tools?WT.mc_id=DOP-MVP-37580">參考</a></li> <li><code>--override</code> 會取代 winget 預設傳給安裝程式的參數，指定 <code>--passive</code> 顯示進度但不互動；<code>--wait</code> 等安裝完成才回傳</li> <li><code>--add</code> 預設只裝必要元件，加 <code>--includeRecommended</code> 會包含推薦元件，不加的話得增加指定 CMake 跟 Windows SDK 等元件，建議加上較省事</li></ul> <p>有個麻煩的小地方是，MSVC 不能直接在一般命令提示字元使用，需要設定 <code>PATH</code>、<code>INCLUDE</code>、<code>LIB</code> 等變數。傳統做法是用開始功能表的 Developer Command Prompt 與 Developer PowerShell 捷徑(搜尋 <code>developer command prompt</code> 或 <code>developer powershell</code>)；再不然是找到 VS 或 Build Tools 安裝路徑跑 <code>&lt;vs-install-dir&gt;\VC\Auxiliary\Build\vcvars64.bat</code> (x64 原生) 或 <code>vcvarsall.bat x64</code> 或 <code>Common7\Tools\Launch-VsDevShell.ps1</code></p> <p>以下這段 PowerShell 可以自動找到有安裝 MSVC x64 工具的 Visual Studio 或 Build Tools，呼叫 Enter-VsDevShell Cmdlet 載入相關環境變數，以便直接呼叫 MSVC 編譯程式及 CMake：</p> <pre><code># 找到含 MSVC x64 工具的最新 Visual Studio / Build Tools，並載入 x64 開發者環境
+$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+if (-not (Test-Path $vswhere)) { throw "找不到 vswhere.exe：$vswhere" }
+# -products * 是必要的，否則查不到 Build Tools
+# 若需要指定版本，加上 -version，例如 VS 2022：-version '[17.0,18.0)'
+$vs = &amp; $vswhere -latest -products * `
+-requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+-property installationPath
+if (-not $vs) { throw '找不到含 MSVC x64 工具的 Visual Studio / Build Tools' }
+Import-Module (Join-Path $vs 'Common7\Tools\Microsoft.VisualStudio.DevShell.dll')
+Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation `
+-DevCmdArguments '-arch=x64 -host_arch=x64' | Out-Null
+</code></pre> <p>而為了讓 Github Copilot Agent 在執行 Rust、Python 相關作業需要 MSVC 時能啟用，我將以上 PowerShell 存成 <code>$env:USERPROFILE\.copilot\scripts\Enter-VsDevShell.ps1</code>，並加入 <code>$env:USERPROFILE\.copilot\instructions\msvc.instructions.md</code>：</p> <pre><code>---
+applyTo: "**"
+---
+On Windows, before running cl / link / cmake / ninja / nmake / msbuild,
+load the VS developer environment in the same PowerShell session, on the same line as the build:
+&amp; "$env:USERPROFILE\.copilot\scripts\Enter-VsDevShell.ps1"; cmake --build build
+</code></pre> <p>實測提示夠簡單明確，連 GPT-6.1-Luna 也能跟著照做，成功~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639278465936813315.webp"></p> <p data-slug="vs-dev-shell-in-copilot" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>AI 出現之前，寫程式比較單純的，你學習並熟悉某種程式語言，或許是 JavaScript、Java 或 C#，不管遇到任何需求，都想辦法用它開發就對了，因為這是你最有把握，成功率最高的一條路。</p> <p>現在可不一樣，跟 AI 說完需求 (小提醒：記得講需求不要直接下指令，才不會<a href="https://www.facebook.com/share/p/1F8GG8UwbR/">錯過驚喜</a>)，AI 可能會建議用 Rust 寫效能比較好、直接用 C 實作整合度最高，或是 Python 剛好有現成程式庫可以套，如果有需要可以馬上起跑，這時你還要堅持「不! 不是 C# 我不要」？</p> <p>一年前的我還會堅持，隨著 AI 不斷進化以及全面接手人類的開發工作，我現在已經<del>投降</del>認清現實：在一些特定語言具備絕對優勢的情境，開發者該調整成主管心態，允許 AI 用你沒學過的程式語言或技術更有效率完成任務。前題是你不懂細節但知道運作方式，出問題時有能力現學現賣進場協助排除問題。人人都在用 AI，心態不調整，肯定要輸給不被語言束縛的人。</p> <p>這篇說說配合 AI 切換語言時 Windows 常遇到的一個需求 - 安裝 C/C++ 編譯環境。</p> <p>Windows 不像 Linux 自帶編譯器用 apt install 就能安裝。Rust 預設使用 MSVC ABI，需要 Visual Studio 提供的 linker 與函式庫才能產生 exe；若遇到 Python 套件沒提供 wheel，pip 從原始碼安裝時需要 C/C++ 編譯器；CPython 官方版本以 Visual C++ 編譯，用 MinGW 可能有相容問題。</p> <p>綜合評比，Microsoft C++ (MSVC) Build Tools 是 Windows 準備 C 編譯工具的首選。</p> <table><thead><tr><th>方案</th><th>適用情境</th><th>備註</th></tr></thead><tbody><tr><td>MSVC Build Tools</td><td>Rust (預設)、Python 擴充套件、一般 Windows 原生開發</td><td>只裝命令列工具，不含 IDE</td></tr><tr><td>Visual Studio</td><td>需要 IDE、除錯器</td><td>也包含命令列工具</td></tr><tr><td>Clang/LLVM</td><td>需要 Clang 相容性</td><td>以 clang-cl 模式搭配 MS STL</td></tr><tr><td>MinGW-w64 (MSYS2)</td><td>需與 GNU 生態互通</td><td>Rust 需改用 GNU target</td></tr></tbody></table> <p>註：Build Tools 2022 起放寬：編譯開源 C++ 相依套件時，即使在企業內開發閉源專案，也不需 Visual Studio 授權。 若要用 Visual Studio 開發專有 C++ 程式碼，仍需授權。<a href="https://devblogs.microsoft.com/cppblog/updates-to-visual-studio-build-tools-license-for-c-and-cpp-open-source-projects/?WT.mc_id=DOP-MVP-37580">Updates to Visual Studio Build Tools license for C and C++ Open-Source projects - Microsoft C++ Team Blog</a>。rustup-init 會自動安裝 Visual Studio Community，個人、學術、開源免費，企業商業用途需確認授權。</p> <p>之前我都是<a href="/blog/vs-buildtools-offline-setup/">用安裝程式安裝 MS Build Tools</a>，時代改變了，我現在能用 CLI 就不滑鼠，需 Build Tools 可以用 winget 安裝。</p> <p>研究了一下，最新版是 VS 2026，但目前一些第三方程式的 CMake 設定、相依函式庫的下載腳本與範例指令 (例如 <code>-G "Visual Studio 17 2022"</code>) 仍以 2022 為主，決定還是先裝 2022 版本。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639278465930465643.webp"></p> <p>以系統管理員身分執行：</p> <pre><code>winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --wait"
+</code></pre> <ul><li><code>Microsoft.VisualStudio.Workload.VCTools</code> 為「Desktop development with C++」，包含 MSVC 核心、Windows Universal C Runtime 等；推薦元件含 MSVC x64/x86 編譯器、CMake 工具、Windows SDK、AddressSanitizer<a href="https://learn.microsoft.com/visualstudio/install/workload-component-id-vs-build-tools?WT.mc_id=DOP-MVP-37580">參考</a></li> <li><code>--override</code> 會取代 winget 預設傳給安裝程式的參數，指定 <code>--passive</code> 顯示進度但不互動；<code>--wait</code> 等安裝完成才回傳</li> <li><code>--add</code> 預設只裝必要元件，加 <code>--includeRecommended</code> 會包含推薦元件，不加的話得增加指定 CMake 跟 Windows SDK 等元件，建議加上較省事</li></ul> <p>有個麻煩的小地方是，MSVC 不能直接在一般命令提示字元使用，需要設定 <code>PATH</code>、<code>INCLUDE</code>、<code>LIB</code> 等變數。傳統做法是用開始功能表的 Developer Command Prompt 與 Developer PowerShell 捷徑(搜尋 <code>developer command prompt</code> 或 <code>developer powershell</code>)；再不然是找到 VS 或 Build Tools 安裝路徑跑 <code>&lt;vs-install-dir&gt;\VC\Auxiliary\Build\vcvars64.bat</code> (x64 原生) 或 <code>vcvarsall.bat x64</code> 或 <code>Common7\Tools\Launch-VsDevShell.ps1</code></p> <p>以下這段 PowerShell 可以自動找到有安裝 MSVC x64 工具的 Visual Studio 或 Build Tools，呼叫 Enter-VsDevShell Cmdlet 載入相關環境變數，以便直接呼叫 MSVC 編譯程式及 CMake：</p> <pre><code># 找到含 MSVC x64 工具的最新 Visual Studio / Build Tools，並載入 x64 開發者環境
+$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+if (-not (Test-Path $vswhere)) { throw "找不到 vswhere.exe：$vswhere" }
+# -products * 是必要的，否則查不到 Build Tools
+# 若需要指定版本，加上 -version，例如 VS 2022：-version '[17.0,18.0)'
+$vs = &amp; $vswhere -latest -products * `
+-requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+-property installationPath
+if (-not $vs) { throw '找不到含 MSVC x64 工具的 Visual Studio / Build Tools' }
+Import-Module (Join-Path $vs 'Common7\Tools\Microsoft.VisualStudio.DevShell.dll')
+Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation `
+-DevCmdArguments '-arch=x64 -host_arch=x64' | Out-Null
+</code></pre> <p>而為了讓 Github Copilot Agent 在執行 Rust、Python 相關作業需要 MSVC 時能啟用，我將以上 PowerShell 存成 <code>$env:USERPROFILE\.copilot\scripts\Enter-VsDevShell.ps1</code>，並加入 <code>$env:USERPROFILE\.copilot\instructions\msvc.instructions.md</code>：</p> <pre><code>---
+applyTo: "**"
+---
+On Windows, before running cl / link / cmake / ninja / nmake / msbuild,
+load the VS developer environment in the same PowerShell session, on the same line as the build:
+&amp; "$env:USERPROFILE\.copilot\scripts\Enter-VsDevShell.ps1"; cmake --build build
+</code></pre> <p>實測提示夠簡單明確，連 GPT-6.1-Luna 也能跟著照做，成功~</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639278465936813315.webp"></p> <p data-slug="vs-dev-shell-in-copilot" data-fbimg="https://cdn.pixabay.com/photo/2016/02/18/19/59/woman-hands-1207952_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639278465930465643.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639278465930465643.webp" medium="image"/>
+    <pubDate>Sat, 17 Oct 2026 15:06:46 GMT</pubDate>
+  </item><item>
     <title><![CDATA[C 槽空間不足另類密技 - Windows 內建 App 搬家功能]]></title>
     <link>https://blog.darkthread.net/blog/move-drivec-winapp/</link>
     <itunes:title><![CDATA[C 槽空間不足另類密技 - Windows 內建 App 搬家功能]]></itunes:title>
@@ -1075,512 +1147,5 @@ jupyter lab --no-browser --ip=127.0.0.1 --port=8888
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639265442002274491.jpg" medium="image"/>
     <pubDate>Fri, 02 Oct 2026 13:19:04 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[Windows 桌面程式自動化測試利器 - FlaUI]]></title>
-    <link>https://blog.darkthread.net/blog/flatui/</link>
-    <itunes:title><![CDATA[Windows 桌面程式自動化測試利器 - FlaUI]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>講到自動測試，網頁這塊已超級成熟，基本上只要 <a href="/blog/playwright-notes/">Playwright</a> 在手，幾乎沒有不能自動化的操作。相形之下，桌面程式 Windows Form、WPF 的可自動化性就落後一大截。近年來 AI Computer Use 能力突飛猛進，局面才算有一點改變。不過，靠電腦視覺或 AI 處理 GUI 操作成本偏高，反應速度較慢，拿來處理非固定性需智慧判斷的複雜事務才有價值。像是日常排程、程式自動化測試，操作情境固定，寫支程式依預先設計好的流程快速完成，會比每次擷取畫面動用 AI 分析，來得有效率又不浪費 Token，是較聰明選擇。</p> <p>桌面程式自動化操作這塊原本是 RPA 軟體的重點轄區，專業軟體如 UiPath/PowerAutomate 功能強大但授權費用可觀。如果願意學點程式動點腦筋，不要死守 No Code，靠開源程式庫我們也能做到 Windows Form / WPF 程式的自動化操作或自動測試，沒想像中困難。這篇就用「將記筆本(Notepad)新增文件並存檔作業自動化」的簡單範例來實地體驗。</p> <p><a href="https://github.com/FlaUI/FlaUI">FlaUI</a> 是一套開源 .NET Windows UI 自動化函式庫，主要用於以 C# 控制及測試 Windows 桌面應用程式。它建立在 Windows UI Automation（UIA）之上，提供較易使用的 API，可搜尋視窗、按鈕、文字框、選單等 UI 元件，並執行點擊、輸入文字、選取等操作。</p> <p>FlaUI 支援 Win32、WPF、WinForms 等常見 Windows 桌面技術，並利用 UIA2 與 UIA3 兩種微軟官方提供的 <a href="https://learn.microsoft.com/zh-tw/dotnet/framework/ui-automation/ui-automation-overview?WT.mc_id=DOP-MVP-37580">UI 自動化技術</a>(註：Windows 10/11 基本上都用 UIA3)。相較於傳統的 SendKeys 或滑鼠座標操作，FlaUI 可以透過 UI 元件的 AutomationId、Name、ControlType 等屬性精準定位元件，可以建立穩定且高效率的 UI 自動化測試、RPA 與桌面應用程式整合工具。</p> <p>想用 FlaUI 操作桌面程式，第一步要先了解桌面程式的結構，方法是使用 <a href="https://github.com/FlaUI/FlaUInspect">FlaUInspect 工具</a>解析視窗物件的樹狀結構，找到要點選的按鈕、填寫文字的文字欄位所在位置，設法用名稱、型別鎖定它，再模擬滑鼠點擊、按鍵輸入，若為 .NET 物件，甚至可以直接修改內容，藉此實現用程式操作程式的自動化目標。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp"></p> <p>熟悉使用 FlaUInspect 工具很重要，它能幫助你在複雜樹狀結構中鎖定要操作對象，再構怎麼有效率地用程式找到它。下面介紹操作按鈕的用法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639261153751058710.webp"></p> <ol><li>重新選擇要檢視的視窗</li> <li>重新整理資料，視窗內容改變時可重新生成樹狀圖</li> <li>元素查詢功能，啟用時會顯示 [12] 位置的操作區，可輸入文字用名稱、型別、文字等當條件搜尋元素</li> <li>Hover 定位模式，啟用時，將滑鼠移到特定元素上按 Ctrl，可自動在樹狀圖選取該元素</li> <li>Highlight 模式，啟用時，已選取元素會出現綠色矩形標示其位置及大小範圍</li> <li>Focus 模式，啟用時，會自動在樹狀圖選取取得焦點的元素</li> <li>匯出元素的擷圖</li> <li>將元素資料複製到剪貼簿</li> <li>將元素完整屬性資料複製到剪貼簿</li> <li>顯示選取元素的 XPATH (顯示在 [11] 的位置)</li></ol> <p>活用 FlaUInspect，你可以找到任何想操作的元素。</p> <p>我寫了一個簡單的 Notepad 操作範例，步驟為啟動或連上執行中的 Notepad 程式，按 Ctrl-N 開新文件，用設定值跟模擬打字方式輸入一段文字，透過 FlaUI API 選取一段內容，改成粗體，將顯示模式切換成 Markdown 檢視，按 Ctrl-Shift-S 存檔，選擇存成 Markdown，指定檔案路徑，存檔完成。</p> <p>練習過程發現一些眉角，在中文 Windows，打字及按鍵很容易被中文輸入法吃掉，安裝並由程式強切成純英文輸入可以避免一些困擾。若畫面元素完全固定，用 XPATH 最快，程式嘗試了不同技巧，用 Name、ControlType 甚至座標位置去找元素；另外輸入部分也試了直接設定文字欄位 Text 屬性、模擬按鍵、呼叫按鈕 .Click() 方法、移動滑鼠與點擊等多種做法，在同一範例涵蓋各式做法，方便日後應用參考。</p> <p>完整程式如下：</p> <pre><code>using System;
-using FlaUI.Core;
-using FlaUI.UIA3; // 除非古老 Windows 程式，建議用 UIA3
-using System.Diagnostics;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Input;
-using FlaUI.Core.WindowsAPI;
-using FlaUI.Core.Definitions;
-// 檢查程式是否已執行，如果已啟動則取得其 Application，否則就啟動一份
-var found = Process.GetProcessesByName("notepad").FirstOrDefault(process =&gt; process.MainWindowHandle != IntPtr.Zero);
-// 如果程式尚未啟動，則啟動應用程式
-var app = found == null ? Application.Launch("notepad.exe") : Application.Attach(found);
-try
-{
-// 初始化 UIA3 自動化物件
-using (var automation = new UIA3Automation())
-{
-// 取得主視窗（設定 5 秒逾時）
-var mainWindow = app.GetMainWindow(automation, TimeSpan.FromSeconds(5));
-if (mainWindow == null)
-{
-Console.WriteLine("無法取得主視窗。");
-return;
-}
-// 按 Ctrl-N 新增文件
-mainWindow.Focus();
-await Task.Delay(500); // 等待 0.5 秒，確保新文件已建立
-Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
-Wait.UntilInputIsProcessed();
-// 尋找文字編輯框並輸入文字
-var textBox = mainWindow.FindFirstDescendant(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Document))?.AsTextBox();
-if (textBox != null)
-{
-textBox.Focus();
-// 使用 Text 屬性直接設定文字最可靠，不受輸入法影響
-textBox.Text = "FlaUI 自動操作測試 ";
-textBox.Focus();
-// FlaUI Keyboard 模擬按鍵操作極易被中文輸入法干擾，建議新增英文鍵盤
-// 並在執行模擬按鍵操作前切換到英文鍵盤
-NativeMethods.SwitchTargetWindowToEnglish(mainWindow.Properties.NativeWindowHandle.Value);
-await Task.Delay(500); // 等待 1 秒，確保切換到英文鍵盤完成
-// 游標移到文字結尾
-Keyboard.Type(VirtualKeyShort.END);
-Wait.UntilInputIsProcessed();
-Keyboard.Type(" Hello, World!");
-Wait.UntilInputIsProcessed(TimeSpan.FromSeconds(2));
-// 選取最前面13個字
-// 方法一：按著 Shift 連按方向鍵選取文字，實測易受輸入法影響
-// 方法二：使用 Text.Pattern
-textBox.Focus();
-var pattern = textBox.Patterns.Text.Pattern;
-var range = pattern.DocumentRange;
-// 複製一份範圍，準備進行選取操作
-var selection = range.Clone();
-// 將選取範圍的結尾移到最前方，準備選取文字
-selection.MoveEndpointByRange(TextPatternRangeEndpoint.End, selection, TextPatternRangeEndpoint.Start);
-// 將選取範圍的結尾移動到最前方後，再向後移動 13 個字元，完成選取操作
-selection.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 13);
-selection.Select();
-// 點擊粗體按鈕
-// 找尋 Name 為 "粗體 (Ctrl+B)" 的按鈕並點擊
-var boldButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("粗體 (Ctrl+B)"))?.AsButton();
-if (boldButton == null)
-{
-throw new Exception("找不到粗體按鈕。");
-}
-// 點擊粗體按鈕
-boldButton.Click();
-// 切換成 Markdown 語法模式
-// 嘗試另一種做法，找到狀態列(座標在最下方 Panel)的第三個控制項
-var panes = mainWindow.FindAllChildren(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
-// 找出 Y 座標最大的 Panel，通常是最下方的狀態列
-var statusBar = panes.OrderByDescending(p =&gt; p.BoundingRectangle.Y).FirstOrDefault();
-if (statusBar != null)
-{
-var innerPannel = statusBar.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
-if (innerPannel == null) throw new Exception("找不到內層 Panel。");
-var button = innerPannel.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
-if (button == null) throw new Exception("找不到按鈕。");
-// 嘗試模擬滑鼠點擊操作
-var clickablePoint = button.Properties.ClickablePoint.Value;
-Mouse.MoveTo(clickablePoint);
-Mouse.Click();
-}
-Wait.UntilInputIsProcessed();
-// 按 Ctrl-Shift-S 存檔
-Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.SHIFT, VirtualKeyShort.KEY_S);
-Wait.UntilInputIsProcessed();
-// 尋找名為「另存為 Markdown 檔案」的 Button
-var saveAsMarkdownButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存為 Markdown 檔案"))?.AsButton();
-if (saveAsMarkdownButton == null)
-{
-throw new Exception("找不到「另存為 Markdown 檔案」按鈕。");
-}
-saveAsMarkdownButton.Click();
-Wait.UntilInputIsProcessed(TimeSpan.FromMilliseconds(500));
-// 找到名為「另存新檔」的對話框，並進行後續操作
-var saveAsDialog = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存新檔"))?.AsWindow();
-if (saveAsDialog == null)
-{
-throw new Exception("找不到「另存新檔」對話框。");
-}
-// 找到名為「檔案名稱」的 Edit 輸入框
-var fileNameEdit = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("檔案名稱:").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox();
-if (fileNameEdit == null)
-{
-throw new Exception("找不到「檔案名稱」輸入框。");
-}
-// 輸入檔案名稱
-fileNameEdit.Text = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid().ToString().Substring(0, 8)}.md");
-Wait.UntilInputIsProcessed();
-// 點擊「儲存」按鈕
-var saveButton = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("存檔(S)"))?.AsButton();
-if (saveButton == null)
-{
-throw new Exception("找不到「存檔」按鈕。");
-}
-saveButton.Click();
-Wait.UntilInputIsProcessed();
-}
-}
-// 若 Notepad 為新啟動，結束後關閉
-if (found == null)
-{
-app.Close();
-}
-}
-catch (Exception ex)
-{
-Console.WriteLine($"發生錯誤: {ex.Message}");
-}
-</code></pre> <p>切英文輸入法的輔助方法我請 AI 寫，一併附上：</p> <pre><code>using System;
-using System.Runtime.InteropServices;
-public static class NativeMethods
-{
-// Loads a specified keyboard layout identifier
-[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
-// Sends a message to a window's message queue asynchronously
-[DllImport("user32.dll", CharSet = CharSet.Auto)]
-public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-// Windows Message constant for changing input language
-public const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
-// Flags for LoadKeyboardLayout
-public const uint KLF_ACTIVATE = 0x00000001;
-// Language Identifier for United States English (en-US)
-public const string KBD_US_ENGLISH = "00000409";
-public static void SwitchTargetWindowToEnglish(IntPtr windowHandle)
-{
-if (windowHandle == IntPtr.Zero)
-throw new ArgumentException("Invalid window handle.");
-// 1. Load the US English layout into memory and get its handle
-IntPtr englishLayout = NativeMethods.LoadKeyboardLayout(NativeMethods.KBD_US_ENGLISH, NativeMethods.KLF_ACTIVATE);
-if (englishLayout != IntPtr.Zero)
-{
-// 2. Post the request message to the specific application window
-// wParam: 0 = fallback allowed, 1 = strict match layout
-// lParam: The loaded layout handle
-NativeMethods.PostMessage(windowHandle, NativeMethods.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, englishLayout);
-// 3. Give Windows a small window of time to process the message queue
-System.Threading.Thread.Sleep(200);
-}
-}
-}
-</code></pre> <p>驗收成果，成功!</p> <p><a href="https://www.youtube.com/watch?v=S8D1Oz9wvnU">實際測試</a></p> <p>就醬，自動控制桌面程式就不再是難事囉~</p> <p data-slug="flatui" data-title-en="Win desktop app auto testing with FlaUI" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2026/03/14/02/39/tungart7-robot-10172912_1280.jpg#1280#720">Learn how to automate Windows desktop apps with FlaUI, an open-source .NET UI Automation library. This practical Notepad example demonstrates element inspection, text input, formatting, keyboard handling, Markdown mode, and file saving.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>講到自動測試，網頁這塊已超級成熟，基本上只要 <a href="/blog/playwright-notes/">Playwright</a> 在手，幾乎沒有不能自動化的操作。相形之下，桌面程式 Windows Form、WPF 的可自動化性就落後一大截。近年來 AI Computer Use 能力突飛猛進，局面才算有一點改變。不過，靠電腦視覺或 AI 處理 GUI 操作成本偏高，反應速度較慢，拿來處理非固定性需智慧判斷的複雜事務才有價值。像是日常排程、程式自動化測試，操作情境固定，寫支程式依預先設計好的流程快速完成，會比每次擷取畫面動用 AI 分析，來得有效率又不浪費 Token，是較聰明選擇。</p> <p>桌面程式自動化操作這塊原本是 RPA 軟體的重點轄區，專業軟體如 UiPath/PowerAutomate 功能強大但授權費用可觀。如果願意學點程式動點腦筋，不要死守 No Code，靠開源程式庫我們也能做到 Windows Form / WPF 程式的自動化操作或自動測試，沒想像中困難。這篇就用「將記筆本(Notepad)新增文件並存檔作業自動化」的簡單範例來實地體驗。</p> <p><a href="https://github.com/FlaUI/FlaUI">FlaUI</a> 是一套開源 .NET Windows UI 自動化函式庫，主要用於以 C# 控制及測試 Windows 桌面應用程式。它建立在 Windows UI Automation（UIA）之上，提供較易使用的 API，可搜尋視窗、按鈕、文字框、選單等 UI 元件，並執行點擊、輸入文字、選取等操作。</p> <p>FlaUI 支援 Win32、WPF、WinForms 等常見 Windows 桌面技術，並利用 UIA2 與 UIA3 兩種微軟官方提供的 <a href="https://learn.microsoft.com/zh-tw/dotnet/framework/ui-automation/ui-automation-overview?WT.mc_id=DOP-MVP-37580">UI 自動化技術</a>(註：Windows 10/11 基本上都用 UIA3)。相較於傳統的 SendKeys 或滑鼠座標操作，FlaUI 可以透過 UI 元件的 AutomationId、Name、ControlType 等屬性精準定位元件，可以建立穩定且高效率的 UI 自動化測試、RPA 與桌面應用程式整合工具。</p> <p>想用 FlaUI 操作桌面程式，第一步要先了解桌面程式的結構，方法是使用 <a href="https://github.com/FlaUI/FlaUInspect">FlaUInspect 工具</a>解析視窗物件的樹狀結構，找到要點選的按鈕、填寫文字的文字欄位所在位置，設法用名稱、型別鎖定它，再模擬滑鼠點擊、按鍵輸入，若為 .NET 物件，甚至可以直接修改內容，藉此實現用程式操作程式的自動化目標。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp"></p> <p>熟悉使用 FlaUInspect 工具很重要，它能幫助你在複雜樹狀結構中鎖定要操作對象，再構怎麼有效率地用程式找到它。下面介紹操作按鈕的用法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639261153751058710.webp"></p> <ol><li>重新選擇要檢視的視窗</li> <li>重新整理資料，視窗內容改變時可重新生成樹狀圖</li> <li>元素查詢功能，啟用時會顯示 [12] 位置的操作區，可輸入文字用名稱、型別、文字等當條件搜尋元素</li> <li>Hover 定位模式，啟用時，將滑鼠移到特定元素上按 Ctrl，可自動在樹狀圖選取該元素</li> <li>Highlight 模式，啟用時，已選取元素會出現綠色矩形標示其位置及大小範圍</li> <li>Focus 模式，啟用時，會自動在樹狀圖選取取得焦點的元素</li> <li>匯出元素的擷圖</li> <li>將元素資料複製到剪貼簿</li> <li>將元素完整屬性資料複製到剪貼簿</li> <li>顯示選取元素的 XPATH (顯示在 [11] 的位置)</li></ol> <p>活用 FlaUInspect，你可以找到任何想操作的元素。</p> <p>我寫了一個簡單的 Notepad 操作範例，步驟為啟動或連上執行中的 Notepad 程式，按 Ctrl-N 開新文件，用設定值跟模擬打字方式輸入一段文字，透過 FlaUI API 選取一段內容，改成粗體，將顯示模式切換成 Markdown 檢視，按 Ctrl-Shift-S 存檔，選擇存成 Markdown，指定檔案路徑，存檔完成。</p> <p>練習過程發現一些眉角，在中文 Windows，打字及按鍵很容易被中文輸入法吃掉，安裝並由程式強切成純英文輸入可以避免一些困擾。若畫面元素完全固定，用 XPATH 最快，程式嘗試了不同技巧，用 Name、ControlType 甚至座標位置去找元素；另外輸入部分也試了直接設定文字欄位 Text 屬性、模擬按鍵、呼叫按鈕 .Click() 方法、移動滑鼠與點擊等多種做法，在同一範例涵蓋各式做法，方便日後應用參考。</p> <p>完整程式如下：</p> <pre><code>using System;
-using FlaUI.Core;
-using FlaUI.UIA3; // 除非古老 Windows 程式，建議用 UIA3
-using System.Diagnostics;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Input;
-using FlaUI.Core.WindowsAPI;
-using FlaUI.Core.Definitions;
-// 檢查程式是否已執行，如果已啟動則取得其 Application，否則就啟動一份
-var found = Process.GetProcessesByName("notepad").FirstOrDefault(process =&gt; process.MainWindowHandle != IntPtr.Zero);
-// 如果程式尚未啟動，則啟動應用程式
-var app = found == null ? Application.Launch("notepad.exe") : Application.Attach(found);
-try
-{
-// 初始化 UIA3 自動化物件
-using (var automation = new UIA3Automation())
-{
-// 取得主視窗（設定 5 秒逾時）
-var mainWindow = app.GetMainWindow(automation, TimeSpan.FromSeconds(5));
-if (mainWindow == null)
-{
-Console.WriteLine("無法取得主視窗。");
-return;
-}
-// 按 Ctrl-N 新增文件
-mainWindow.Focus();
-await Task.Delay(500); // 等待 0.5 秒，確保新文件已建立
-Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
-Wait.UntilInputIsProcessed();
-// 尋找文字編輯框並輸入文字
-var textBox = mainWindow.FindFirstDescendant(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Document))?.AsTextBox();
-if (textBox != null)
-{
-textBox.Focus();
-// 使用 Text 屬性直接設定文字最可靠，不受輸入法影響
-textBox.Text = "FlaUI 自動操作測試 ";
-textBox.Focus();
-// FlaUI Keyboard 模擬按鍵操作極易被中文輸入法干擾，建議新增英文鍵盤
-// 並在執行模擬按鍵操作前切換到英文鍵盤
-NativeMethods.SwitchTargetWindowToEnglish(mainWindow.Properties.NativeWindowHandle.Value);
-await Task.Delay(500); // 等待 1 秒，確保切換到英文鍵盤完成
-// 游標移到文字結尾
-Keyboard.Type(VirtualKeyShort.END);
-Wait.UntilInputIsProcessed();
-Keyboard.Type(" Hello, World!");
-Wait.UntilInputIsProcessed(TimeSpan.FromSeconds(2));
-// 選取最前面13個字
-// 方法一：按著 Shift 連按方向鍵選取文字，實測易受輸入法影響
-// 方法二：使用 Text.Pattern
-textBox.Focus();
-var pattern = textBox.Patterns.Text.Pattern;
-var range = pattern.DocumentRange;
-// 複製一份範圍，準備進行選取操作
-var selection = range.Clone();
-// 將選取範圍的結尾移到最前方，準備選取文字
-selection.MoveEndpointByRange(TextPatternRangeEndpoint.End, selection, TextPatternRangeEndpoint.Start);
-// 將選取範圍的結尾移動到最前方後，再向後移動 13 個字元，完成選取操作
-selection.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 13);
-selection.Select();
-// 點擊粗體按鈕
-// 找尋 Name 為 "粗體 (Ctrl+B)" 的按鈕並點擊
-var boldButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("粗體 (Ctrl+B)"))?.AsButton();
-if (boldButton == null)
-{
-throw new Exception("找不到粗體按鈕。");
-}
-// 點擊粗體按鈕
-boldButton.Click();
-// 切換成 Markdown 語法模式
-// 嘗試另一種做法，找到狀態列(座標在最下方 Panel)的第三個控制項
-var panes = mainWindow.FindAllChildren(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
-// 找出 Y 座標最大的 Panel，通常是最下方的狀態列
-var statusBar = panes.OrderByDescending(p =&gt; p.BoundingRectangle.Y).FirstOrDefault();
-if (statusBar != null)
-{
-var innerPannel = statusBar.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
-if (innerPannel == null) throw new Exception("找不到內層 Panel。");
-var button = innerPannel.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
-if (button == null) throw new Exception("找不到按鈕。");
-// 嘗試模擬滑鼠點擊操作
-var clickablePoint = button.Properties.ClickablePoint.Value;
-Mouse.MoveTo(clickablePoint);
-Mouse.Click();
-}
-Wait.UntilInputIsProcessed();
-// 按 Ctrl-Shift-S 存檔
-Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.SHIFT, VirtualKeyShort.KEY_S);
-Wait.UntilInputIsProcessed();
-// 尋找名為「另存為 Markdown 檔案」的 Button
-var saveAsMarkdownButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存為 Markdown 檔案"))?.AsButton();
-if (saveAsMarkdownButton == null)
-{
-throw new Exception("找不到「另存為 Markdown 檔案」按鈕。");
-}
-saveAsMarkdownButton.Click();
-Wait.UntilInputIsProcessed(TimeSpan.FromMilliseconds(500));
-// 找到名為「另存新檔」的對話框，並進行後續操作
-var saveAsDialog = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存新檔"))?.AsWindow();
-if (saveAsDialog == null)
-{
-throw new Exception("找不到「另存新檔」對話框。");
-}
-// 找到名為「檔案名稱」的 Edit 輸入框
-var fileNameEdit = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("檔案名稱:").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox();
-if (fileNameEdit == null)
-{
-throw new Exception("找不到「檔案名稱」輸入框。");
-}
-// 輸入檔案名稱
-fileNameEdit.Text = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid().ToString().Substring(0, 8)}.md");
-Wait.UntilInputIsProcessed();
-// 點擊「儲存」按鈕
-var saveButton = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("存檔(S)"))?.AsButton();
-if (saveButton == null)
-{
-throw new Exception("找不到「存檔」按鈕。");
-}
-saveButton.Click();
-Wait.UntilInputIsProcessed();
-}
-}
-// 若 Notepad 為新啟動，結束後關閉
-if (found == null)
-{
-app.Close();
-}
-}
-catch (Exception ex)
-{
-Console.WriteLine($"發生錯誤: {ex.Message}");
-}
-</code></pre> <p>切英文輸入法的輔助方法我請 AI 寫，一併附上：</p> <pre><code>using System;
-using System.Runtime.InteropServices;
-public static class NativeMethods
-{
-// Loads a specified keyboard layout identifier
-[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
-// Sends a message to a window's message queue asynchronously
-[DllImport("user32.dll", CharSet = CharSet.Auto)]
-public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-// Windows Message constant for changing input language
-public const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
-// Flags for LoadKeyboardLayout
-public const uint KLF_ACTIVATE = 0x00000001;
-// Language Identifier for United States English (en-US)
-public const string KBD_US_ENGLISH = "00000409";
-public static void SwitchTargetWindowToEnglish(IntPtr windowHandle)
-{
-if (windowHandle == IntPtr.Zero)
-throw new ArgumentException("Invalid window handle.");
-// 1. Load the US English layout into memory and get its handle
-IntPtr englishLayout = NativeMethods.LoadKeyboardLayout(NativeMethods.KBD_US_ENGLISH, NativeMethods.KLF_ACTIVATE);
-if (englishLayout != IntPtr.Zero)
-{
-// 2. Post the request message to the specific application window
-// wParam: 0 = fallback allowed, 1 = strict match layout
-// lParam: The loaded layout handle
-NativeMethods.PostMessage(windowHandle, NativeMethods.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, englishLayout);
-// 3. Give Windows a small window of time to process the message queue
-System.Threading.Thread.Sleep(200);
-}
-}
-}
-</code></pre> <p>驗收成果，成功!</p> <p><a href="https://www.youtube.com/watch?v=S8D1Oz9wvnU">實際測試</a></p> <p>就醬，自動控制桌面程式就不再是難事囉~</p> <p data-slug="flatui" data-title-en="Win desktop app auto testing with FlaUI" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2026/03/14/02/39/tungart7-robot-10172912_1280.jpg#1280#720">Learn how to automate Windows desktop apps with FlaUI, an open-source .NET UI Automation library. This practical Notepad example demonstrates element inspection, text input, formatting, keyboard handling, Markdown mode, and file saving.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>講到自動測試，網頁這塊已超級成熟，基本上只要 <a href="/blog/playwright-notes/">Playwright</a> 在手，幾乎沒有不能自動化的操作。相形之下，桌面程式 Windows Form、WPF 的可自動化性就落後一大截。近年來 AI Computer Use 能力突飛猛進，局面才算有一點改變。不過，靠電腦視覺或 AI 處理 GUI 操作成本偏高，反應速度較慢，拿來處理非固定性需智慧判斷的複雜事務才有價值。像是日常排程、程式自動化測試，操作情境固定，寫支程式依預先設計好的流程快速完成，會比每次擷取畫面動用 AI 分析，來得有效率又不浪費 Token，是較聰明選擇。</p> <p>桌面程式自動化操作這塊原本是 RPA 軟體的重點轄區，專業軟體如 UiPath/PowerAutomate 功能強大但授權費用可觀。如果願意學點程式動點腦筋，不要死守 No Code，靠開源程式庫我們也能做到 Windows Form / WPF 程式的自動化操作或自動測試，沒想像中困難。這篇就用「將記筆本(Notepad)新增文件並存檔作業自動化」的簡單範例來實地體驗。</p> <p><a href="https://github.com/FlaUI/FlaUI">FlaUI</a> 是一套開源 .NET Windows UI 自動化函式庫，主要用於以 C# 控制及測試 Windows 桌面應用程式。它建立在 Windows UI Automation（UIA）之上，提供較易使用的 API，可搜尋視窗、按鈕、文字框、選單等 UI 元件，並執行點擊、輸入文字、選取等操作。</p> <p>FlaUI 支援 Win32、WPF、WinForms 等常見 Windows 桌面技術，並利用 UIA2 與 UIA3 兩種微軟官方提供的 <a href="https://learn.microsoft.com/zh-tw/dotnet/framework/ui-automation/ui-automation-overview?WT.mc_id=DOP-MVP-37580">UI 自動化技術</a>(註：Windows 10/11 基本上都用 UIA3)。相較於傳統的 SendKeys 或滑鼠座標操作，FlaUI 可以透過 UI 元件的 AutomationId、Name、ControlType 等屬性精準定位元件，可以建立穩定且高效率的 UI 自動化測試、RPA 與桌面應用程式整合工具。</p> <p>想用 FlaUI 操作桌面程式，第一步要先了解桌面程式的結構，方法是使用 <a href="https://github.com/FlaUI/FlaUInspect">FlaUInspect 工具</a>解析視窗物件的樹狀結構，找到要點選的按鈕、填寫文字的文字欄位所在位置，設法用名稱、型別鎖定它，再模擬滑鼠點擊、按鍵輸入，若為 .NET 物件，甚至可以直接修改內容，藉此實現用程式操作程式的自動化目標。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp"></p> <p>熟悉使用 FlaUInspect 工具很重要，它能幫助你在複雜樹狀結構中鎖定要操作對象，再構怎麼有效率地用程式找到它。下面介紹操作按鈕的用法：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639261153751058710.webp"></p> <ol><li>重新選擇要檢視的視窗</li> <li>重新整理資料，視窗內容改變時可重新生成樹狀圖</li> <li>元素查詢功能，啟用時會顯示 [12] 位置的操作區，可輸入文字用名稱、型別、文字等當條件搜尋元素</li> <li>Hover 定位模式，啟用時，將滑鼠移到特定元素上按 Ctrl，可自動在樹狀圖選取該元素</li> <li>Highlight 模式，啟用時，已選取元素會出現綠色矩形標示其位置及大小範圍</li> <li>Focus 模式，啟用時，會自動在樹狀圖選取取得焦點的元素</li> <li>匯出元素的擷圖</li> <li>將元素資料複製到剪貼簿</li> <li>將元素完整屬性資料複製到剪貼簿</li> <li>顯示選取元素的 XPATH (顯示在 [11] 的位置)</li></ol> <p>活用 FlaUInspect，你可以找到任何想操作的元素。</p> <p>我寫了一個簡單的 Notepad 操作範例，步驟為啟動或連上執行中的 Notepad 程式，按 Ctrl-N 開新文件，用設定值跟模擬打字方式輸入一段文字，透過 FlaUI API 選取一段內容，改成粗體，將顯示模式切換成 Markdown 檢視，按 Ctrl-Shift-S 存檔，選擇存成 Markdown，指定檔案路徑，存檔完成。</p> <p>練習過程發現一些眉角，在中文 Windows，打字及按鍵很容易被中文輸入法吃掉，安裝並由程式強切成純英文輸入可以避免一些困擾。若畫面元素完全固定，用 XPATH 最快，程式嘗試了不同技巧，用 Name、ControlType 甚至座標位置去找元素；另外輸入部分也試了直接設定文字欄位 Text 屬性、模擬按鍵、呼叫按鈕 .Click() 方法、移動滑鼠與點擊等多種做法，在同一範例涵蓋各式做法，方便日後應用參考。</p> <p>完整程式如下：</p> <pre><code>using System;
-using FlaUI.Core;
-using FlaUI.UIA3; // 除非古老 Windows 程式，建議用 UIA3
-using System.Diagnostics;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Input;
-using FlaUI.Core.WindowsAPI;
-using FlaUI.Core.Definitions;
-// 檢查程式是否已執行，如果已啟動則取得其 Application，否則就啟動一份
-var found = Process.GetProcessesByName("notepad").FirstOrDefault(process =&gt; process.MainWindowHandle != IntPtr.Zero);
-// 如果程式尚未啟動，則啟動應用程式
-var app = found == null ? Application.Launch("notepad.exe") : Application.Attach(found);
-try
-{
-// 初始化 UIA3 自動化物件
-using (var automation = new UIA3Automation())
-{
-// 取得主視窗（設定 5 秒逾時）
-var mainWindow = app.GetMainWindow(automation, TimeSpan.FromSeconds(5));
-if (mainWindow == null)
-{
-Console.WriteLine("無法取得主視窗。");
-return;
-}
-// 按 Ctrl-N 新增文件
-mainWindow.Focus();
-await Task.Delay(500); // 等待 0.5 秒，確保新文件已建立
-Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
-Wait.UntilInputIsProcessed();
-// 尋找文字編輯框並輸入文字
-var textBox = mainWindow.FindFirstDescendant(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Document))?.AsTextBox();
-if (textBox != null)
-{
-textBox.Focus();
-// 使用 Text 屬性直接設定文字最可靠，不受輸入法影響
-textBox.Text = "FlaUI 自動操作測試 ";
-textBox.Focus();
-// FlaUI Keyboard 模擬按鍵操作極易被中文輸入法干擾，建議新增英文鍵盤
-// 並在執行模擬按鍵操作前切換到英文鍵盤
-NativeMethods.SwitchTargetWindowToEnglish(mainWindow.Properties.NativeWindowHandle.Value);
-await Task.Delay(500); // 等待 1 秒，確保切換到英文鍵盤完成
-// 游標移到文字結尾
-Keyboard.Type(VirtualKeyShort.END);
-Wait.UntilInputIsProcessed();
-Keyboard.Type(" Hello, World!");
-Wait.UntilInputIsProcessed(TimeSpan.FromSeconds(2));
-// 選取最前面13個字
-// 方法一：按著 Shift 連按方向鍵選取文字，實測易受輸入法影響
-// 方法二：使用 Text.Pattern
-textBox.Focus();
-var pattern = textBox.Patterns.Text.Pattern;
-var range = pattern.DocumentRange;
-// 複製一份範圍，準備進行選取操作
-var selection = range.Clone();
-// 將選取範圍的結尾移到最前方，準備選取文字
-selection.MoveEndpointByRange(TextPatternRangeEndpoint.End, selection, TextPatternRangeEndpoint.Start);
-// 將選取範圍的結尾移動到最前方後，再向後移動 13 個字元，完成選取操作
-selection.MoveEndpointByUnit(TextPatternRangeEndpoint.End, TextUnit.Character, 13);
-selection.Select();
-// 點擊粗體按鈕
-// 找尋 Name 為 "粗體 (Ctrl+B)" 的按鈕並點擊
-var boldButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("粗體 (Ctrl+B)"))?.AsButton();
-if (boldButton == null)
-{
-throw new Exception("找不到粗體按鈕。");
-}
-// 點擊粗體按鈕
-boldButton.Click();
-// 切換成 Markdown 語法模式
-// 嘗試另一種做法，找到狀態列(座標在最下方 Panel)的第三個控制項
-var panes = mainWindow.FindAllChildren(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
-// 找出 Y 座標最大的 Panel，通常是最下方的狀態列
-var statusBar = panes.OrderByDescending(p =&gt; p.BoundingRectangle.Y).FirstOrDefault();
-if (statusBar != null)
-{
-var innerPannel = statusBar.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Pane));
-if (innerPannel == null) throw new Exception("找不到內層 Panel。");
-var button = innerPannel.FindFirstChild(cf =&gt; cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
-if (button == null) throw new Exception("找不到按鈕。");
-// 嘗試模擬滑鼠點擊操作
-var clickablePoint = button.Properties.ClickablePoint.Value;
-Mouse.MoveTo(clickablePoint);
-Mouse.Click();
-}
-Wait.UntilInputIsProcessed();
-// 按 Ctrl-Shift-S 存檔
-Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.SHIFT, VirtualKeyShort.KEY_S);
-Wait.UntilInputIsProcessed();
-// 尋找名為「另存為 Markdown 檔案」的 Button
-var saveAsMarkdownButton = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存為 Markdown 檔案"))?.AsButton();
-if (saveAsMarkdownButton == null)
-{
-throw new Exception("找不到「另存為 Markdown 檔案」按鈕。");
-}
-saveAsMarkdownButton.Click();
-Wait.UntilInputIsProcessed(TimeSpan.FromMilliseconds(500));
-// 找到名為「另存新檔」的對話框，並進行後續操作
-var saveAsDialog = mainWindow.FindFirstDescendant(cf =&gt; cf.ByName("另存新檔"))?.AsWindow();
-if (saveAsDialog == null)
-{
-throw new Exception("找不到「另存新檔」對話框。");
-}
-// 找到名為「檔案名稱」的 Edit 輸入框
-var fileNameEdit = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("檔案名稱:").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox();
-if (fileNameEdit == null)
-{
-throw new Exception("找不到「檔案名稱」輸入框。");
-}
-// 輸入檔案名稱
-fileNameEdit.Text = Path.Combine(Path.GetTempPath(), $"test-{Guid.NewGuid().ToString().Substring(0, 8)}.md");
-Wait.UntilInputIsProcessed();
-// 點擊「儲存」按鈕
-var saveButton = saveAsDialog.FindFirstDescendant(cf =&gt; cf.ByName("存檔(S)"))?.AsButton();
-if (saveButton == null)
-{
-throw new Exception("找不到「存檔」按鈕。");
-}
-saveButton.Click();
-Wait.UntilInputIsProcessed();
-}
-}
-// 若 Notepad 為新啟動，結束後關閉
-if (found == null)
-{
-app.Close();
-}
-}
-catch (Exception ex)
-{
-Console.WriteLine($"發生錯誤: {ex.Message}");
-}
-</code></pre> <p>切英文輸入法的輔助方法我請 AI 寫，一併附上：</p> <pre><code>using System;
-using System.Runtime.InteropServices;
-public static class NativeMethods
-{
-// Loads a specified keyboard layout identifier
-[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
-// Sends a message to a window's message queue asynchronously
-[DllImport("user32.dll", CharSet = CharSet.Auto)]
-public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-// Windows Message constant for changing input language
-public const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
-// Flags for LoadKeyboardLayout
-public const uint KLF_ACTIVATE = 0x00000001;
-// Language Identifier for United States English (en-US)
-public const string KBD_US_ENGLISH = "00000409";
-public static void SwitchTargetWindowToEnglish(IntPtr windowHandle)
-{
-if (windowHandle == IntPtr.Zero)
-throw new ArgumentException("Invalid window handle.");
-// 1. Load the US English layout into memory and get its handle
-IntPtr englishLayout = NativeMethods.LoadKeyboardLayout(NativeMethods.KBD_US_ENGLISH, NativeMethods.KLF_ACTIVATE);
-if (englishLayout != IntPtr.Zero)
-{
-// 2. Post the request message to the specific application window
-// wParam: 0 = fallback allowed, 1 = strict match layout
-// lParam: The loaded layout handle
-NativeMethods.PostMessage(windowHandle, NativeMethods.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, englishLayout);
-// 3. Give Windows a small window of time to process the message queue
-System.Threading.Thread.Sleep(200);
-}
-}
-}
-</code></pre> <p>驗收成果，成功!</p> <p><a href="https://www.youtube.com/watch?v=S8D1Oz9wvnU">實際測試</a></p> <p>就醬，自動控制桌面程式就不再是難事囉~</p> <p data-slug="flatui" data-title-en="Win desktop app auto testing with FlaUI" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2026/03/14/02/39/tungart7-robot-10172912_1280.jpg#1280#720">Learn how to automate Windows desktop apps with FlaUI, an open-source .NET UI Automation library. This practical Notepad example demonstrates element inspection, text input, formatting, keyboard handling, Markdown mode, and file saving.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639261153749195110.webp" medium="image"/>
-    <pubDate>Sun, 27 Sep 2026 14:13:55 GMT</pubDate>
   </item></channel>
 </rss>
