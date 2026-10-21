@@ -30,6 +30,39 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手日記】VSCode Github Copilot Agent 找不到 OpenSpec / Node.js]]></title>
+    <link>https://blog.darkthread.net/blog/pwsh-profile-issue-in-vscode/</link>
+    <itunes:title><![CDATA[【茶包射手日記】VSCode Github Copilot Agent 找不到 OpenSpec / Node.js]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>開始在 AI Coding 應用 <a href="https://kaochenlong.com/sdd-spec-driven-development">OpenSpec</a>，有個小困擾是每次 Github Copilot Chat 視窗下達 /opsx-propose 等指令時，Agent 起手式會用 openspec CLI 查詢，但總會回報找不到 openspec 再冰雪聰明地現場下載，最近還是不辱使命達成任務。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp"></p> <p>不過，這樣是 Token、時間與頻寬的三重浪費，開發機有裝 OpenSpec，手動開 PowerShell 下 <code>openspec --version</code> 沒問題，為什麼 Agent 找不到？</p> <p>經過一番調查，學到一些 VSCode 與 PowerShell 環境整合的冷知識。平平是在 VSCode 使用 PowerShell，手動開啟終端跟由 Agent 開啟，環境是有差異的。</p> <p>從 Agent 開啟的 PowerShell Extension 終端機執行 <code>[Environment]::CommandLine</code>，由 PowerShell 啟動參數可發現一些特別之處：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281345593185017.webp"></p> <p><code>-NoProfile</code> 指定不要載入使用者 Profile，而依據<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#profile-types-and-locations">文件</a>，VSCode 會載入 <code>$PSHOME\Microsoft.VSCode_profile.ps1</code>(全域適用) 及 <code>$HOME\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code> (使用者自訂) 二處的 Profile，這部分由 <code>c:\Users\&lt;user&gt;\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1</code> 負責處理。</p> <p>而這就是 Agent 找不到 Node.js 或 openspec 的原因，我<a href="/blog/win-nodejs-setup-2026/">用 fnm 管理 Node.js 版本</a>，它會在使用者 Profile <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.PowerShell_profile.ps1</code> 加入 <code>fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression</code> 設定 PATH 及相關環境變數，VSCode 自己的 Profile 沒有這段，便無法啟用 fnm 找到 Node.js 及透過 npm 安裝的 OpenSpec。</p> <p>解決方法可以建立一份 <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code>，加入要給 AI Agent 用的相關設定。(包含 <code>fnm env --use-on-cd --shell powershell ...</code>) 或是將 <code>fnm env...</code> 設定搬到 <code>$HOME\Documents\PowerShell\profile.ps1</code>。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281345595077129.webp"></p> <p>(還有另一種狀況，若 fnm 是用 winget 安裝，系統可透過 <code>C:\Users\&lt;user&gt;\AppData\Local\WinGet\Links\fnm.exe</code> 找到 fnm，此時 Microsoft.PowerShell_profile.ps1 不需要 <code>fnm env...</code> 但有呼叫 <code>OpenSpecCompletion.ps1</code>，依相同原則處理即可。)</p> <p>調整後，Agent 開啟的 Terminal 就能順利找到 Node.exe 或 openspec 了。BUT! 問題並沒有完全解決...</p> <p>在 Chat 視窗叫 Agent 執行 <code>openspec list --json</code> 還是會出現找不到 openspec：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281345596959634.webp"></p> <p>原因是 Agent 透過 <code>run_in_terminal</code> 之類的工具呼叫的 pwsh 會加 -NoProfile，卻不像 PowerShell Extension 終端執行 <code>PowerShellEditorServices.psd1</code>，因此不會載入 <code>Microsoft.VSCode_profile.ps1</code>。</p> <p>評估了一下，只好再退到更底層，在 PATH 加上 fnm 預設存放 node.exe、openspec.cmd 的目錄：</p> <pre><code># fnm's data dir: FNM_DIR if set, else %APPDATA%\fnm (run `fnm env` to confirm)
+$fnmDir = if ($env:FNM_DIR) { $env:FNM_DIR } else { "$env:APPDATA\fnm" }
+Test-Path "$fnmDir\aliases\default
+ode.exe"   # should be True
+$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+[Environment]::SetEnvironmentVariable('Path', "$fnmDir\aliases\default;$userPath", 'User')
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639281345598955085.webp"></p> <p>再試一次，這回總算能直接在 Agent 裡執行 openspec CLI 了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639281345600767875.webp"></p> <p data-slug="pwsh-profile-issue-in-vscode" data-title-en="Why Can’t Copilot Agent Find OpenSpec? VS Code, PowerShell -NoProfile and the fnm PATH Pitfall" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">GitHub Copilot Agent in VS Code couldn’t find the openspec CLI because its PowerShell sessions run with -NoProfile, which skips the fnm setup. A VS Code profile fixes the extension terminal, but run_in_terminal still fails. Adding fnm’s default alias directory to the user PATH finally solves it.</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>開始在 AI Coding 應用 <a href="https://kaochenlong.com/sdd-spec-driven-development">OpenSpec</a>，有個小困擾是每次 Github Copilot Chat 視窗下達 /opsx-propose 等指令時，Agent 起手式會用 openspec CLI 查詢，但總會回報找不到 openspec 再冰雪聰明地現場下載，最近還是不辱使命達成任務。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp"></p> <p>不過，這樣是 Token、時間與頻寬的三重浪費，開發機有裝 OpenSpec，手動開 PowerShell 下 <code>openspec --version</code> 沒問題，為什麼 Agent 找不到？</p> <p>經過一番調查，學到一些 VSCode 與 PowerShell 環境整合的冷知識。平平是在 VSCode 使用 PowerShell，手動開啟終端跟由 Agent 開啟，環境是有差異的。</p> <p>從 Agent 開啟的 PowerShell Extension 終端機執行 <code>[Environment]::CommandLine</code>，由 PowerShell 啟動參數可發現一些特別之處：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281345593185017.webp"></p> <p><code>-NoProfile</code> 指定不要載入使用者 Profile，而依據<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#profile-types-and-locations">文件</a>，VSCode 會載入 <code>$PSHOME\Microsoft.VSCode_profile.ps1</code>(全域適用) 及 <code>$HOME\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code> (使用者自訂) 二處的 Profile，這部分由 <code>c:\Users\&lt;user&gt;\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1</code> 負責處理。</p> <p>而這就是 Agent 找不到 Node.js 或 openspec 的原因，我<a href="/blog/win-nodejs-setup-2026/">用 fnm 管理 Node.js 版本</a>，它會在使用者 Profile <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.PowerShell_profile.ps1</code> 加入 <code>fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression</code> 設定 PATH 及相關環境變數，VSCode 自己的 Profile 沒有這段，便無法啟用 fnm 找到 Node.js 及透過 npm 安裝的 OpenSpec。</p> <p>解決方法可以建立一份 <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code>，加入要給 AI Agent 用的相關設定。(包含 <code>fnm env --use-on-cd --shell powershell ...</code>) 或是將 <code>fnm env...</code> 設定搬到 <code>$HOME\Documents\PowerShell\profile.ps1</code>。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281345595077129.webp"></p> <p>(還有另一種狀況，若 fnm 是用 winget 安裝，系統可透過 <code>C:\Users\&lt;user&gt;\AppData\Local\WinGet\Links\fnm.exe</code> 找到 fnm，此時 Microsoft.PowerShell_profile.ps1 不需要 <code>fnm env...</code> 但有呼叫 <code>OpenSpecCompletion.ps1</code>，依相同原則處理即可。)</p> <p>調整後，Agent 開啟的 Terminal 就能順利找到 Node.exe 或 openspec 了。BUT! 問題並沒有完全解決...</p> <p>在 Chat 視窗叫 Agent 執行 <code>openspec list --json</code> 還是會出現找不到 openspec：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281345596959634.webp"></p> <p>原因是 Agent 透過 <code>run_in_terminal</code> 之類的工具呼叫的 pwsh 會加 -NoProfile，卻不像 PowerShell Extension 終端執行 <code>PowerShellEditorServices.psd1</code>，因此不會載入 <code>Microsoft.VSCode_profile.ps1</code>。</p> <p>評估了一下，只好再退到更底層，在 PATH 加上 fnm 預設存放 node.exe、openspec.cmd 的目錄：</p> <pre><code># fnm's data dir: FNM_DIR if set, else %APPDATA%\fnm (run `fnm env` to confirm)
+$fnmDir = if ($env:FNM_DIR) { $env:FNM_DIR } else { "$env:APPDATA\fnm" }
+Test-Path "$fnmDir\aliases\default
+ode.exe"   # should be True
+$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+[Environment]::SetEnvironmentVariable('Path', "$fnmDir\aliases\default;$userPath", 'User')
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639281345598955085.webp"></p> <p>再試一次，這回總算能直接在 Agent 裡執行 openspec CLI 了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639281345600767875.webp"></p> <p data-slug="pwsh-profile-issue-in-vscode" data-title-en="Why Can’t Copilot Agent Find OpenSpec? VS Code, PowerShell -NoProfile and the fnm PATH Pitfall" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">GitHub Copilot Agent in VS Code couldn’t find the openspec CLI because its PowerShell sessions run with -NoProfile, which skips the fnm setup. A VS Code profile fixes the extension terminal, but run_in_terminal still fails. Adding fnm’s default alias directory to the user PATH finally solves it.</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>開始在 AI Coding 應用 <a href="https://kaochenlong.com/sdd-spec-driven-development">OpenSpec</a>，有個小困擾是每次 Github Copilot Chat 視窗下達 /opsx-propose 等指令時，Agent 起手式會用 openspec CLI 查詢，但總會回報找不到 openspec 再冰雪聰明地現場下載，最近還是不辱使命達成任務。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp"></p> <p>不過，這樣是 Token、時間與頻寬的三重浪費，開發機有裝 OpenSpec，手動開 PowerShell 下 <code>openspec --version</code> 沒問題，為什麼 Agent 找不到？</p> <p>經過一番調查，學到一些 VSCode 與 PowerShell 環境整合的冷知識。平平是在 VSCode 使用 PowerShell，手動開啟終端跟由 Agent 開啟，環境是有差異的。</p> <p>從 Agent 開啟的 PowerShell Extension 終端機執行 <code>[Environment]::CommandLine</code>，由 PowerShell 啟動參數可發現一些特別之處：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281345593185017.webp"></p> <p><code>-NoProfile</code> 指定不要載入使用者 Profile，而依據<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#profile-types-and-locations">文件</a>，VSCode 會載入 <code>$PSHOME\Microsoft.VSCode_profile.ps1</code>(全域適用) 及 <code>$HOME\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code> (使用者自訂) 二處的 Profile，這部分由 <code>c:\Users\&lt;user&gt;\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1</code> 負責處理。</p> <p>而這就是 Agent 找不到 Node.js 或 openspec 的原因，我<a href="/blog/win-nodejs-setup-2026/">用 fnm 管理 Node.js 版本</a>，它會在使用者 Profile <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.PowerShell_profile.ps1</code> 加入 <code>fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression</code> 設定 PATH 及相關環境變數，VSCode 自己的 Profile 沒有這段，便無法啟用 fnm 找到 Node.js 及透過 npm 安裝的 OpenSpec。</p> <p>解決方法可以建立一份 <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code>，加入要給 AI Agent 用的相關設定。(包含 <code>fnm env --use-on-cd --shell powershell ...</code>) 或是將 <code>fnm env...</code> 設定搬到 <code>$HOME\Documents\PowerShell\profile.ps1</code>。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281345595077129.webp"></p> <p>(還有另一種狀況，若 fnm 是用 winget 安裝，系統可透過 <code>C:\Users\&lt;user&gt;\AppData\Local\WinGet\Links\fnm.exe</code> 找到 fnm，此時 Microsoft.PowerShell_profile.ps1 不需要 <code>fnm env...</code> 但有呼叫 <code>OpenSpecCompletion.ps1</code>，依相同原則處理即可。)</p> <p>調整後，Agent 開啟的 Terminal 就能順利找到 Node.exe 或 openspec 了。BUT! 問題並沒有完全解決...</p> <p>在 Chat 視窗叫 Agent 執行 <code>openspec list --json</code> 還是會出現找不到 openspec：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281345596959634.webp"></p> <p>原因是 Agent 透過 <code>run_in_terminal</code> 之類的工具呼叫的 pwsh 會加 -NoProfile，卻不像 PowerShell Extension 終端執行 <code>PowerShellEditorServices.psd1</code>，因此不會載入 <code>Microsoft.VSCode_profile.ps1</code>。</p> <p>評估了一下，只好再退到更底層，在 PATH 加上 fnm 預設存放 node.exe、openspec.cmd 的目錄：</p> <pre><code># fnm's data dir: FNM_DIR if set, else %APPDATA%\fnm (run `fnm env` to confirm)
+$fnmDir = if ($env:FNM_DIR) { $env:FNM_DIR } else { "$env:APPDATA\fnm" }
+Test-Path "$fnmDir\aliases\default
+ode.exe"   # should be True
+$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+[Environment]::SetEnvironmentVariable('Path', "$fnmDir\aliases\default;$userPath", 'User')
+</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639281345598955085.webp"></p> <p>再試一次，這回總算能直接在 Agent 裡執行 openspec CLI 了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639281345600767875.webp"></p> <p data-slug="pwsh-profile-issue-in-vscode" data-title-en="Why Can’t Copilot Agent Find OpenSpec? VS Code, PowerShell -NoProfile and the fnm PATH Pitfall" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">GitHub Copilot Agent in VS Code couldn’t find the openspec CLI because its PowerShell sessions run with -NoProfile, which skips the fnm setup. A VS Code profile fixes the extension terminal, but run_in_terminal still fails. Adding fnm’s default alias directory to the user PATH finally solves it.</p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp" medium="image"/>
+    <pubDate>Tue, 20 Oct 2026 23:08:12 GMT</pubDate>
+  </item><item>
     <title><![CDATA[桌面空間大作戰 - 256 元架個虛擬 VGA 螢幕]]></title>
     <link>https://blog.darkthread.net/blog/vga-to-usb/</link>
     <itunes:title><![CDATA[桌面空間大作戰 - 256 元架個虛擬 VGA 螢幕]]></itunes:title>
@@ -937,92 +970,5 @@ ENTRYPOINT ["dotnet", "my-app.dll"]
 </code></pre> <p>而建置參數為 <code>docker build --add-host=host.docker.internal:host-gateway --build-arg HTTP_PROXY=http://host.docker.internal:8000 --secret id=proxy_ca,src=proxy.root-ca.crt .</code></p> <p>補上說明：</p> <ol><li>憑證透過 BuildKit secret 傳遞，<code>docker build --secret id=proxy_ca,src=rootCert.crt</code> 將 proxy.root-ca.crt 暫時掛載為 BuildKit secret，在 Dockerfile 則透過 <code>--mount=type=secret,id=proxy_ca</code> 取得檔案。<br> 註：BuildKit 的 secret 功能是 Docker 為映像檔建置提供的敏感資料(例如私密憑證、API 金鑰、SSH 金鑰、資料庫密碼等)安全機制，其優點是不會寫入 Docker 映象檔或歷史記錄，比 ARG/ENV 更安全。</li> <li>要讓 Docker 存取宿主機 IP，做法是用 <code>--add-host=host.docker.internal:host-gateway</code> 將 host.docker.internal 指向宿主機，HTTP Proxy Url 則以 <code>--build-arg HTTP_PROXY=http://host.docker.internal:8000</code> 參數方式傳入，在 Dockerfile 以變數 $HTTP_PROXY 取用。</li> <li>複製 Root CA 憑證、update-ca-certificates、設定 HTTP_PROXY 等環境變數的方式與在 Ubuntu 宿主相同。</li> <li>若執行時也要透過 HTTP Proxy 對外存取網站，則 runtime 時也要安裝憑證及設定 HTTP_PROXY 等環境變數。</li> <li>建議 HTTP_PROXY 及 http_proxy 都要設定，許多 Linux 工具、系統級套件或 POSIX 標準程式習慣讀取大寫，而 Python 的 requests、Node.js、cURL 等或 Linux 內的網頁瀏覽工具預設會優先讀取小寫。</li></ol> <p data-slug="docker-w-http-proxy" data-title-en="Tips of using (.NET) docker with http proxy" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/07/16/22/27/straw-bale-2510792_960_720.jpg#960#720">Configure Docker on Ubuntu to pull images through an HTTP proxy, trust a custom CA certificate, and verify proxy certificates with OpenSSL. Also learn to build .NET containers using proxy settings, BuildKit secrets, and host access without exposing sensitive certificates in image history.</p>]]></content:encoded>
     
     <pubDate>Sun, 04 Oct 2026 02:45:27 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手日記】難抓的 XML 多餘字元]]></title>
-    <link>https://blog.darkthread.net/blog/xml-textnode-issue/</link>
-    <itunes:title><![CDATA[【茶包射手日記】難抓的 XML 多餘字元]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
-&lt;configuration&gt;
-&lt;appSettings&gt;s
-&lt;add key="AppName" value="MyApp" /&gt;
-&lt;add key="Environment" value="Development" /&gt;
-&lt;/appSettings&gt;
-&lt;/configuration&gt;
-</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
-using System.Configuration;
-internal static class Program
-{
-private static int Main()
-{
-try
-{
-string appName = ConfigurationManager.AppSettings["AppName"];
-Console.WriteLine(appName);
-}
-catch (Exception exception)
-{
-Console.Error.WriteLine(exception.ToString());
-}
-}
-}
-</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
-&lt;configuration&gt;
-&lt;appSettings&gt;s
-&lt;add key="AppName" value="MyApp" /&gt;
-&lt;add key="Environment" value="Development" /&gt;
-&lt;/appSettings&gt;
-&lt;/configuration&gt;
-</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
-using System.Configuration;
-internal static class Program
-{
-private static int Main()
-{
-try
-{
-string appName = ConfigurationManager.AppSettings["AppName"];
-Console.WriteLine(appName);
-}
-catch (Exception exception)
-{
-Console.Error.WriteLine(exception.ToString());
-}
-}
-}
-</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>在 XML 裡手滑多按一個 s，若不是出現在 Attribute 名稱、值或文字型元素(例如：<code>&lt;SomeText&gt;....&lt;/SomeText&gt;</code>)，應該可用語法檢查工具輕鬆找出來，例如 NotePad++ 的 XML Tools Plugin：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"></p> <p>或是用 PowerShell 或 .NET 也能快速抓出來：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639266181584321988.webp"></p> <p>遇到一個比較刁鑽的狀況：</p> <pre><code>&lt;?xml version="1.0" encoding="utf-8" ?&gt;
-&lt;configuration&gt;
-&lt;appSettings&gt;s
-&lt;add key="AppName" value="MyApp" /&gt;
-&lt;add key="Environment" value="Development" /&gt;
-&lt;/appSettings&gt;
-&lt;/configuration&gt;
-</code></pre> <p>s 被加在 <code>&lt;appSettings&gt;</code> 後方，我們都知道它不符合 .NET .config 規範，但這個是完全合法的 XML 格式，可通過所有 XML 語法工具檢查，甚至當成 XML 也能正常讀取。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639266181586077426.webp"></p> <p>這是因為 s 被視為一個文字節點(Text Node)，appSettings 元素包含 TextNode 對 XML 語法是合法的，雖然這不符合 .config 規範。(下圖來自 <a href="https://jsonformatter.org/xml-parser">JSON fromatter XML Parser</a>)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639266181587825448.webp"></p> <p>但用 .NET System.ConfigurationManager.AppSettings 讀取時會出錯，範例程式如下：</p> <pre><code>using System;
-using System.Configuration;
-internal static class Program
-{
-private static int Main()
-{
-try
-{
-string appName = ConfigurationManager.AppSettings["AppName"];
-Console.WriteLine(appName);
-}
-catch (Exception exception)
-{
-Console.Error.WriteLine(exception.ToString());
-}
-}
-}
-</code></pre> <p>依多餘字元插入位置不同，錯誤訊息也可能不同：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639266184084382087.webp"></p> <p>說穿了這是 XML 特性使然，XML 雖然每天在用，基本原理已離我太遙遠才會大驚小怪，藉此機會溫習一番。</p> <p>至於為什麼會多出一個 s？苦主推測可能來自受管控 RDP 連線反應遲頓，存檔快捷鍵 Ctrl - S 分家所致，IT 現場真是無奇不有。</p> <p data-slug="xml-textnode-issue" data-title-en="When valid XML breaks .NET configuration" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2017/12/17/00/04/sheep-3023520_960_720.jpg#960#720">A stray character in a .NET configuration file may form a valid XML text node, escaping XML syntax checks while breaking ConfigurationManager. This case highlights the difference between well-formed XML and schema-specific validity—and a curious risk of laggy Ctrl+S over RDP.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639266181582531109.webp" medium="image"/>
-    <pubDate>Sat, 03 Oct 2026 09:54:08 GMT</pubDate>
   </item></channel>
 </rss>
