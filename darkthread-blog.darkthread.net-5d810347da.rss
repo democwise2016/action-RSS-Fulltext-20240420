@@ -30,6 +30,192 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[自架超輕量級 Http Proxy 解決網站連線問題]]></title>
+    <link>https://blog.darkthread.net/blog/tinyproxy-n-proxy-pac-tips/</link>
+    <itunes:title><![CDATA[自架超輕量級 Http Proxy 解決網站連線問題]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>前一篇提到 <a href="/blog/hinet-2-baidu-cdn/">HiNet 連不到百度 CDN</a>，除了在客戶端開 VPN，另個解法是在雲端找台海外 VPS 裝 HTTP Proxy 當跳板。想到就做，我把它當練習題目，學會一點新東西，簡單筆記。</p> <p>上回介紹過 .NET 寫的 <a href="/blog/titanium-web-proxy/">Titanium Web Proxy</a>，優點是擴充彈性無窮，但這回我只需要標準 HTTP Proxy 功能，追求盡可能簡單輕巧，它不是最佳人選。評估後我選中 <a href="https://tinyproxy.github.io/">Tinyproxy</a>，一個用 C 撰寫的開源超輕量級 HTTP/HTTPS 代理伺服器，適用所有 POSIX 系統，資源需求極低，甚至可在嵌入式裝置上跑。其支援 CONNECT 轉送 HTTPS、透明代理、上游代理串接、網域過濾與存取控制等功能。以 Alpine 3.x 最新版當基底，映像檔可縮小到 5MB 左右，符合我愛的極簡輕巧。</p> <p>問了 AI 大神，建議的 docker-compose.yml 寫法如下：</p> <pre><code>services:
+tinyproxy:
+build:
+context: .
+dockerfile_inline: |
+FROM alpine:3
+RUN apk add --no-cache tinyproxy
+EXPOSE 8888
+CMD ["tinyproxy", "-d", "-c", "/etc/tinyproxy/tinyproxy.conf"]
+image: local/tinyproxy
+container_name: tinyproxy
+restart: unless-stopped
+ports:
+- "8888:8888"
+volumes:
+- ./tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf:ro
+logging:
+driver: json-file
+options:
+max-size: "10m"
+max-file: "3"
+</code></pre> <p>跟著學到現場 Build Docker 映像檔的技巧，AI 的理由是 Docker Hub 上的 tinyproxy 映像多是個人維護，更新頻率和可信度存疑，用 Alpine 官方映像和官方套件庫現點現做更安心。</p> <p>第一次 docker compose up 時 Compose 發現本機沒有 local/tinyproxy 映像會用 dockerfile_inline 內容現場製作 - 拉取 alpine:3，執行 apk add tinyproxy，大約十幾秒便可完成。</p> <p>之後再執行 up 會直接沿用建好的 local/tinyproxy，不需重新重置。想更新則可用 docker compose up -d --build，抓取最新的 Alpine 基底和 tinyproxy 套件。</p> <p>(若不介意拉取網友做的映像，可試試 vimagick/tinyproxy，但要先確認其設定檔路徑和啟動參數自行調整)</p> <p>Tinyproxy 設定寫在 tinyproxy.conf，應用時建議仔細確認 IP 管控與身分認證有設好，我的 VPS 外層已有防火牆限定家中對外 IP，故 Tinyproxy 可設 0.0.0.0/0，若沒有這層，建議用白名單列舉存取來源 IP 或設帳號密碼，以免主機被駭客當跳板。</p> <pre><code>Port 8888
+Listen 0.0.0.0
+Timeout 600
+# 日誌輸出到 stdout（docker logs 可看）
+LogLevel Info
+MaxClients 100
+# 策略一 雲端或 Reverse Proxy 已設防火牆 (注意：務必確認設定以防惡意利用)
+Allow 0.0.0.0/0
+# 策略二 由 TinyProxy 限定可存存來源 IP ──
+# Allow 127.0.0.1
+# Allow 192.168.0.0/16
+# Allow 10.0.0.0/8
+#Allow 172.16.0.0/12
+# Allow 1.2.3.4          # 合法客戶端的對外 IP
+# ── 帳號認證（架在公網時建議開啟）──
+# BasicAuth myuser mypassword
+# HTTPS 走 CONNECT，只放行 443
+ConnectPort 443
+# 不洩漏代理資訊
+DisableViaHeader Yes
+</code></pre> <p>然後，過去我只會在從瀏覽器設 HTTP Proxy 跟排除網站名單，Chrome/Edge/Firefox/手機需個別設定，若要修改就煩了(例如增加排除網站)。又跟 AI 偷學一招：.pac <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file">代理自動設定檔</a>，概念是用 proxy.pac 檔寫 JavaScript 函式 <code>FindProxyForURL(url, host)</code>，依網址或主機回傳 <code>PROXY host:port</code>、<code>SOCKS</code> 或 <code>DIRECT</code>，決定連線走代理或直連，多個值以分號分隔可作備援。將這個檔案放在用戶端可連到的 HTTPS 網址，在瀏覽器設定 PAC 網址即可。</p> <pre><code>function FindProxyForURL(url, host) {
+if (isPlainHostName(host) || dnsDomainIs(host, ".corp.local"))
+return "DIRECT";
+return "PROXY 192.168.1.10:8888; DIRECT";
+}
+</code></pre> <p>以下是 Windows Edge/Chrome 的設定方式：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639282737447782757.webp"></p> <p>而針對本次案例，我設定只針對百度 CDN 改走代理，其餘直接，proxy.pac 寫法如下。未來若需增加，只需修改一個地方，所有客戶端一次更新，這才是優雅的管理方式，又學到新東西囉~</p> <pre><code>// 只讓百度靜態資源、下載走 proxy，其餘直連
+function FindProxyForURL(url, host) {
+var PROXY = "PROXY &lt;tiny-proxy-ip&gt;:8888";
+if (dnsDomainIs(host, ".bdstatic.com") ||
+dnsDomainIs(host, ".bcebos.com") ||
+dnsDomainIs(host, ".baidupcs.com") ||
+dnsDomainIs(host, ".bdimg.com")) {
+return PROXY + "; DIRECT";
+}
+return "DIRECT";
+}
+</code></pre> <p data-slug="tinyproxy-n-proxy-pac-tips" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>前一篇提到 <a href="/blog/hinet-2-baidu-cdn/">HiNet 連不到百度 CDN</a>，除了在客戶端開 VPN，另個解法是在雲端找台海外 VPS 裝 HTTP Proxy 當跳板。想到就做，我把它當練習題目，學會一點新東西，簡單筆記。</p> <p>上回介紹過 .NET 寫的 <a href="/blog/titanium-web-proxy/">Titanium Web Proxy</a>，優點是擴充彈性無窮，但這回我只需要標準 HTTP Proxy 功能，追求盡可能簡單輕巧，它不是最佳人選。評估後我選中 <a href="https://tinyproxy.github.io/">Tinyproxy</a>，一個用 C 撰寫的開源超輕量級 HTTP/HTTPS 代理伺服器，適用所有 POSIX 系統，資源需求極低，甚至可在嵌入式裝置上跑。其支援 CONNECT 轉送 HTTPS、透明代理、上游代理串接、網域過濾與存取控制等功能。以 Alpine 3.x 最新版當基底，映像檔可縮小到 5MB 左右，符合我愛的極簡輕巧。</p> <p>問了 AI 大神，建議的 docker-compose.yml 寫法如下：</p> <pre><code>services:
+tinyproxy:
+build:
+context: .
+dockerfile_inline: |
+FROM alpine:3
+RUN apk add --no-cache tinyproxy
+EXPOSE 8888
+CMD ["tinyproxy", "-d", "-c", "/etc/tinyproxy/tinyproxy.conf"]
+image: local/tinyproxy
+container_name: tinyproxy
+restart: unless-stopped
+ports:
+- "8888:8888"
+volumes:
+- ./tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf:ro
+logging:
+driver: json-file
+options:
+max-size: "10m"
+max-file: "3"
+</code></pre> <p>跟著學到現場 Build Docker 映像檔的技巧，AI 的理由是 Docker Hub 上的 tinyproxy 映像多是個人維護，更新頻率和可信度存疑，用 Alpine 官方映像和官方套件庫現點現做更安心。</p> <p>第一次 docker compose up 時 Compose 發現本機沒有 local/tinyproxy 映像會用 dockerfile_inline 內容現場製作 - 拉取 alpine:3，執行 apk add tinyproxy，大約十幾秒便可完成。</p> <p>之後再執行 up 會直接沿用建好的 local/tinyproxy，不需重新重置。想更新則可用 docker compose up -d --build，抓取最新的 Alpine 基底和 tinyproxy 套件。</p> <p>(若不介意拉取網友做的映像，可試試 vimagick/tinyproxy，但要先確認其設定檔路徑和啟動參數自行調整)</p> <p>Tinyproxy 設定寫在 tinyproxy.conf，應用時建議仔細確認 IP 管控與身分認證有設好，我的 VPS 外層已有防火牆限定家中對外 IP，故 Tinyproxy 可設 0.0.0.0/0，若沒有這層，建議用白名單列舉存取來源 IP 或設帳號密碼，以免主機被駭客當跳板。</p> <pre><code>Port 8888
+Listen 0.0.0.0
+Timeout 600
+# 日誌輸出到 stdout（docker logs 可看）
+LogLevel Info
+MaxClients 100
+# 策略一 雲端或 Reverse Proxy 已設防火牆 (注意：務必確認設定以防惡意利用)
+Allow 0.0.0.0/0
+# 策略二 由 TinyProxy 限定可存存來源 IP ──
+# Allow 127.0.0.1
+# Allow 192.168.0.0/16
+# Allow 10.0.0.0/8
+#Allow 172.16.0.0/12
+# Allow 1.2.3.4          # 合法客戶端的對外 IP
+# ── 帳號認證（架在公網時建議開啟）──
+# BasicAuth myuser mypassword
+# HTTPS 走 CONNECT，只放行 443
+ConnectPort 443
+# 不洩漏代理資訊
+DisableViaHeader Yes
+</code></pre> <p>然後，過去我只會在從瀏覽器設 HTTP Proxy 跟排除網站名單，Chrome/Edge/Firefox/手機需個別設定，若要修改就煩了(例如增加排除網站)。又跟 AI 偷學一招：.pac <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file">代理自動設定檔</a>，概念是用 proxy.pac 檔寫 JavaScript 函式 <code>FindProxyForURL(url, host)</code>，依網址或主機回傳 <code>PROXY host:port</code>、<code>SOCKS</code> 或 <code>DIRECT</code>，決定連線走代理或直連，多個值以分號分隔可作備援。將這個檔案放在用戶端可連到的 HTTPS 網址，在瀏覽器設定 PAC 網址即可。</p> <pre><code>function FindProxyForURL(url, host) {
+if (isPlainHostName(host) || dnsDomainIs(host, ".corp.local"))
+return "DIRECT";
+return "PROXY 192.168.1.10:8888; DIRECT";
+}
+</code></pre> <p>以下是 Windows Edge/Chrome 的設定方式：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639282737447782757.webp"></p> <p>而針對本次案例，我設定只針對百度 CDN 改走代理，其餘直接，proxy.pac 寫法如下。未來若需增加，只需修改一個地方，所有客戶端一次更新，這才是優雅的管理方式，又學到新東西囉~</p> <pre><code>// 只讓百度靜態資源、下載走 proxy，其餘直連
+function FindProxyForURL(url, host) {
+var PROXY = "PROXY &lt;tiny-proxy-ip&gt;:8888";
+if (dnsDomainIs(host, ".bdstatic.com") ||
+dnsDomainIs(host, ".bcebos.com") ||
+dnsDomainIs(host, ".baidupcs.com") ||
+dnsDomainIs(host, ".bdimg.com")) {
+return PROXY + "; DIRECT";
+}
+return "DIRECT";
+}
+</code></pre> <p data-slug="tinyproxy-n-proxy-pac-tips" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>前一篇提到 <a href="/blog/hinet-2-baidu-cdn/">HiNet 連不到百度 CDN</a>，除了在客戶端開 VPN，另個解法是在雲端找台海外 VPS 裝 HTTP Proxy 當跳板。想到就做，我把它當練習題目，學會一點新東西，簡單筆記。</p> <p>上回介紹過 .NET 寫的 <a href="/blog/titanium-web-proxy/">Titanium Web Proxy</a>，優點是擴充彈性無窮，但這回我只需要標準 HTTP Proxy 功能，追求盡可能簡單輕巧，它不是最佳人選。評估後我選中 <a href="https://tinyproxy.github.io/">Tinyproxy</a>，一個用 C 撰寫的開源超輕量級 HTTP/HTTPS 代理伺服器，適用所有 POSIX 系統，資源需求極低，甚至可在嵌入式裝置上跑。其支援 CONNECT 轉送 HTTPS、透明代理、上游代理串接、網域過濾與存取控制等功能。以 Alpine 3.x 最新版當基底，映像檔可縮小到 5MB 左右，符合我愛的極簡輕巧。</p> <p>問了 AI 大神，建議的 docker-compose.yml 寫法如下：</p> <pre><code>services:
+tinyproxy:
+build:
+context: .
+dockerfile_inline: |
+FROM alpine:3
+RUN apk add --no-cache tinyproxy
+EXPOSE 8888
+CMD ["tinyproxy", "-d", "-c", "/etc/tinyproxy/tinyproxy.conf"]
+image: local/tinyproxy
+container_name: tinyproxy
+restart: unless-stopped
+ports:
+- "8888:8888"
+volumes:
+- ./tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf:ro
+logging:
+driver: json-file
+options:
+max-size: "10m"
+max-file: "3"
+</code></pre> <p>跟著學到現場 Build Docker 映像檔的技巧，AI 的理由是 Docker Hub 上的 tinyproxy 映像多是個人維護，更新頻率和可信度存疑，用 Alpine 官方映像和官方套件庫現點現做更安心。</p> <p>第一次 docker compose up 時 Compose 發現本機沒有 local/tinyproxy 映像會用 dockerfile_inline 內容現場製作 - 拉取 alpine:3，執行 apk add tinyproxy，大約十幾秒便可完成。</p> <p>之後再執行 up 會直接沿用建好的 local/tinyproxy，不需重新重置。想更新則可用 docker compose up -d --build，抓取最新的 Alpine 基底和 tinyproxy 套件。</p> <p>(若不介意拉取網友做的映像，可試試 vimagick/tinyproxy，但要先確認其設定檔路徑和啟動參數自行調整)</p> <p>Tinyproxy 設定寫在 tinyproxy.conf，應用時建議仔細確認 IP 管控與身分認證有設好，我的 VPS 外層已有防火牆限定家中對外 IP，故 Tinyproxy 可設 0.0.0.0/0，若沒有這層，建議用白名單列舉存取來源 IP 或設帳號密碼，以免主機被駭客當跳板。</p> <pre><code>Port 8888
+Listen 0.0.0.0
+Timeout 600
+# 日誌輸出到 stdout（docker logs 可看）
+LogLevel Info
+MaxClients 100
+# 策略一 雲端或 Reverse Proxy 已設防火牆 (注意：務必確認設定以防惡意利用)
+Allow 0.0.0.0/0
+# 策略二 由 TinyProxy 限定可存存來源 IP ──
+# Allow 127.0.0.1
+# Allow 192.168.0.0/16
+# Allow 10.0.0.0/8
+#Allow 172.16.0.0/12
+# Allow 1.2.3.4          # 合法客戶端的對外 IP
+# ── 帳號認證（架在公網時建議開啟）──
+# BasicAuth myuser mypassword
+# HTTPS 走 CONNECT，只放行 443
+ConnectPort 443
+# 不洩漏代理資訊
+DisableViaHeader Yes
+</code></pre> <p>然後，過去我只會在從瀏覽器設 HTTP Proxy 跟排除網站名單，Chrome/Edge/Firefox/手機需個別設定，若要修改就煩了(例如增加排除網站)。又跟 AI 偷學一招：.pac <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file">代理自動設定檔</a>，概念是用 proxy.pac 檔寫 JavaScript 函式 <code>FindProxyForURL(url, host)</code>，依網址或主機回傳 <code>PROXY host:port</code>、<code>SOCKS</code> 或 <code>DIRECT</code>，決定連線走代理或直連，多個值以分號分隔可作備援。將這個檔案放在用戶端可連到的 HTTPS 網址，在瀏覽器設定 PAC 網址即可。</p> <pre><code>function FindProxyForURL(url, host) {
+if (isPlainHostName(host) || dnsDomainIs(host, ".corp.local"))
+return "DIRECT";
+return "PROXY 192.168.1.10:8888; DIRECT";
+}
+</code></pre> <p>以下是 Windows Edge/Chrome 的設定方式：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639282737447782757.webp"></p> <p>而針對本次案例，我設定只針對百度 CDN 改走代理，其餘直接，proxy.pac 寫法如下。未來若需增加，只需修改一個地方，所有客戶端一次更新，這才是優雅的管理方式，又學到新東西囉~</p> <pre><code>// 只讓百度靜態資源、下載走 proxy，其餘直連
+function FindProxyForURL(url, host) {
+var PROXY = "PROXY &lt;tiny-proxy-ip&gt;:8888";
+if (dnsDomainIs(host, ".bdstatic.com") ||
+dnsDomainIs(host, ".bcebos.com") ||
+dnsDomainIs(host, ".baidupcs.com") ||
+dnsDomainIs(host, ".bdimg.com")) {
+return PROXY + "; DIRECT";
+}
+return "DIRECT";
+}
+</code></pre> <p data-slug="tinyproxy-n-proxy-pac-tips" data-fbimg="https://cdn.pixabay.com/photo/2019/07/07/18/14/straw-4323010_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639282737447782757.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639282737447782757.webp" medium="image"/>
+    <pubDate>Thu, 22 Oct 2026 02:22:12 GMT</pubDate>
+  </item><item>
     <title><![CDATA[HiNet 連不到百度 CDN]]></title>
     <link>https://blog.darkthread.net/blog/hinet-2-baidu-cdn/</link>
     <itunes:title><![CDATA[HiNet 連不到百度 CDN]]></itunes:title>
@@ -839,20 +1025,5 @@ Python: always use uv.
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig2_639271310672189086.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig2_639271310672189086.webp" medium="image"/>
     <pubDate>Fri, 09 Oct 2026 08:16:54 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[WiFi 無線卡速度不穩或瞬斷案例再一則]]></title>
-    <link>https://blog.darkthread.net/blog/wifi-qos-issue/</link>
-    <itunes:title><![CDATA[WiFi 無線卡速度不穩或瞬斷案例再一則]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>我有個 TP-Link Archer T2U USB 外接網卡，自帶 18 公分的長天線，看起來很雄壯威武，感覺傳輸能力應該超好。先前在舊 PC 服役過一陣子沒啥問題，PC 壞掉後，閒著也是閒者，就想插到小黑筆電取代內建網卡，應該能提高無線網路品質。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" alt="thumbnail"></p> <p>初測改用後 ping 的延遲確實有小降，而且可以調天線角度優化訊號強度，確實有改善效果。但有個問題：網路會偶爾發生短暫變慢，甚至中斷數秒到十來秒的狀況，出現頻率沒什麼規律，跟先前 <a href="/blog/rdp-connection-break-issue/">WiFi 頻段切換導致 RDP 瞬斷</a>的症狀有點像。基於上回的經驗，我決定先從調整網卡參數下手，因於看不到無線路由器端設計及 Log，就依直覺改看看對照 ping 的時間變化；結果原本高度懷疑的 VHT 2.4G IOT 取得了不在場證明(開啟關閉無明顯變化)，反而是 QoS Support 選項涉有重嫌：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639268927906264612.webp"></p> <p>下圖為停用 QoS Support 前、後的 ping 對照，停用後 ping 的回應時間明顯縮短，實測一陣子變慢及瞬斷的狀況也消失了：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639268927908082131.webp"></p> <p>查了一下，Wi-Fi 網卡啟用 QoS/WMM 後，可使用 802.11 的 EDCA (Enhanced Distributed Channel Access) 機制，將封包分類至四個 Access Categories：Voice、Video、Best Effort 與 Background。各類別具有不同的 AIFS、CWmin/CWmax 等競爭參數；高優先級的 Voice/Video 通常具有較短的等待時間與較小的退避視窗，因此在競爭無線媒體時具有較高的優先傳輸機率。</p> <p>而依此原理，很難解釋為何啟用後會讓 ping 變慢。爬文我沒有找到相似案例或技術文件，但實測結果擺在眼前，撰文一篇，為浩瀚宇宙多留一份文獻。</p> <p data-slug="wifi-qos-issue" data-fbimg="https://i.postimg.cc/5021xGcv/image.png#800#800"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig3_639268927904352583.webp" medium="image"/>
-    <pubDate>Tue, 06 Oct 2026 14:12:06 GMT</pubDate>
   </item></channel>
 </rss>
