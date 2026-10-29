@@ -30,6 +30,393 @@
     </itunes:owner>
     <itunes:image href="https://www.minwt.com/images/Icon@2.png"/>
 <item>
+    <title><![CDATA[教你用AI打造私人島嶼，梅問題教學島的製作過程全記錄]]></title>
+    <link>https://www.minwt.com/ai/24455.html</link>
+    <itunes:title><![CDATA[教你用AI打造私人島嶼，梅問題教學島的製作過程全記錄]]></itunes:title>
+    <itunes:author><![CDATA[梅問題．教學網[RSS+]]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<div><img src="https://photo.minwt.com/img/Content/ai/island/00.jpg" alt="梅問題－教你用AI打造私人島嶼，梅問題教學島的製作過程全記錄"></div>
+<p>　　梅問題寫到現在，文章已經累積上萬篇，但老實說，除了從 Google 搜尋進來的朋友之外，很少人會在站內慢慢逛，好文章就這樣埋在分類頁的最後面。一直想做一個比較好玩的導覽頁，讓大家可以像逛地圖一樣，一座島一座島地找到想看的教學，但 3D 網頁可不是梅干的強項，光是 three.js 的鏡頭、光影就夠讓人頭大了。<br>
+</p>
+<br>
+這次梅干就試著把這件事交給 AI，用 Claude Code 從零開始，做出了<a href="/island/" target="_blank">梅問題教學島</a>，整個 3D 場景的程式約 1,500 行，梅干一行都沒有自己寫，但從構想、分島、挑文章到上線，該做的決定一個也沒少。因此這篇就來分享整個製作過程，以及用 AI 做網頁時，哪些可以交給 AI、哪些還是得自己來，有興趣的朋友也一塊來看看！
+<div>
+<b>重點整理：</b><br>
+・使用工具：Claude Code（AI 寫程式）＋ three.js（3D 網頁）＋ Google Search Console（挑熱門文章）<br>
+・成品：11 座主題島，每座放點擊最多的 12 篇教學，可拖曳旋轉、點島、搜尋、收進行囊<br>
+・AI 負責：寫程式、做 3D 造景、修 bug、產生資料<br>
+・自己負責：找參考、決定分島與挑文章的規則、一輪一輪看成品提修改<br>
+・踩過的坑：網站要執行部署指令才會真正上線，只把程式推上 GitHub 是不會更新的
+</div>
+<hr>
+<h2>梅問題教學島是什麼？</h2>
+<p>打開<a href="/island/" target="_blank">梅問題教學島</a>後，海上會有 11 座主題小島，正中央最大的是「梅干廣場」，放全站最熱門的 10 篇文章，四周則依主題分成設計燈塔島、字型書法亭、工具小鎮、梅研發實驗室、電腦工坊、蘋果果園、生活市集、攝影觀景臺、架站港與免費資源灘，點任何一座島，鏡頭就會飛過去，左側清單也會列出那座島的文章。<br>
+<img alt="梅問題-梅問題教學島 3D 主題島導覽" src="https://photo.minwt.com/img/Content/ai/island/01.jpg"></p>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>功能</th><th>怎麼用</th></tr>
+<tr><td>逛小島</td><td>拖曳旋轉、滾輪或雙指縮放，點小島、名牌或左側清單都會飛到那座島</td></tr>
+<tr><td>搜尋</td><td>左側清單上方可以跨島搜尋文章</td></tr>
+<tr><td>收進行囊</td><td>看到想之後再讀的文章先收起來，存在自己的瀏覽器裡</td></tr>
+<tr><td>梅干帶路</td><td>梅小人會沿著沙灘、走過吊橋，一座一座島帶你逛</td></tr>
+<tr><td>日夜切換</td><td>依電腦時間自動切換，晚上 6 點到早上 6 點是夜晚，窗戶、路燈、燈塔都會亮起來</td></tr>
+</tbody></table>
+<hr>
+<h2>用到的工具</h2>
+<div>
+AI 寫程式：<a href="https://claude.com/claude-code" target="_blank">Claude Code</a>（在終端機裡跟 AI 對話，它會直接讀寫網站的檔案）<br>
+3D 網頁：<a href="https://threejs.org/" target="_blank">three.js</a>（從 CDN 載入，不用安裝）<br>
+文章資料：Google Search Console 最近 3 個月的網頁點擊數<br>
+網站：梅問題本身是 Hugo 靜態網站，教學島就是一個獨立的靜態網頁
+</div>
+<hr>
+<h2>Step1：先找參考網站，告訴 AI 要學哪裡</h2>
+<p>跟 AI 說「幫我做一個 3D 導覽頁」，做出來的東西通常會很普通，所以梅干第一步是先找參考，找一個用一座座 3D 小島來呈現不同主題、旁邊清單列也好用的網站，再跟 AI 說清楚要參考哪些地方：島嶼的呈現方式、左側索引與搜尋，其他的則照梅問題自己的內容來規劃。</p>
+<div><b>小技巧：</b>參考網站不要只丟網址，要講清楚「要學它的哪個部分」，AI 才不會整個照抄，或是抓錯重點。</div>
+<hr>
+<h2>Step2：規劃要分成哪幾座島</h2>
+<p>這一步 AI 幫不太上忙，因為只有自己最清楚網站有哪些內容，梅干最後決定分成 11 座島，大部分照網址的分類（像 /pc/、/life/）來分，但字型、設計這類跨分類的主題，就改用文章標題的關鍵字來判斷，而梅研發實驗室則直接放 <a href="https://mwt.tw/" target="_blank">mwt.tw</a> 上的 8 個工具。</p>
+<p>規則想好之後，用白話跟 AI 講就可以了，像是「標題有『字型』、『字體』的放字型書法亭」，AI 就會把它寫成程式，之後要調整也只要再跟它說一聲。</p>
+<hr>
+<h2>Step3：用 GSC 資料自動挑每座島的文章</h2>
+<p>上萬篇文章不可能一篇篇手動挑，因此梅干請 AI 寫了一支小程式，從 Google Search Console 匯出最近 3 個月的網頁點擊資料（成效 → 3 個月 → 網頁 → 匯出 → 下載 CSV），再配合網站的文章檔，自動把每篇文章分到對應的島上，每座島只留點擊最多的 12 篇，標題與摘要也會直接從文章裡讀出來。</p>
+<p>這樣做的好處是，以後要更新小島上的文章，只要重新匯出一次 CSV、再跑一次程式就好，文章改過標題，下次更新也會自動換成新標題，不用再一篇篇手改。</p>
+<hr>
+<h2>Step4：3D 場景與每座島的造景</h2>
+<p>這部分就是 AI 最厲害的地方了，three.js 的場景、鏡頭、光影、海浪全部由 AI 來寫，梅干要做的就是一直看成品、一直提意見，像是「島太單調了，每座島要有自己的特色」，AI 就幫字型書法亭加上竹林與梅花樹、梅研發實驗室加上火箭與衛星天線、生活市集掛上彩旗、攝影觀景臺旁邊飄著熱氣球，連島邊的浪花、遠方的山丘、繞島的帆船和海鷗也都是這樣一點一點加上去的。<br>
+<img alt="梅問題-用 AI 打造教學島 字型書法亭" src="https://photo.minwt.com/img/Content/ai/island/02.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 梅研發實驗室" src="https://photo.minwt.com/img/Content/ai/island/03.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 生活市集" src="https://photo.minwt.com/img/Content/ai/island/04.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 攝影觀景臺" src="https://photo.minwt.com/img/Content/ai/island/05.jpg"></p>
+<div><b>小技巧：</b>一次只提一到兩個修改，看完再提下一個，改壞了也比較容易知道是哪一步出問題。</div>
+<hr>
+<h2>Step5：加入梅小人、行囊與日夜切換</h2>
+<p>基本的島做好後，梅干希望它不只是一張會轉的地圖，所以又請 AI 加了幾個好玩的功能，照梅問題 Logo 角色做的白色豆子造型「梅小人」，會沿著沙灘、走過吊橋帶大家逛每一座島，停下來還會轉向鏡頭揮手；每座島上也有幾位路人在散步，另外依照電腦時間自動切換白天與夜晚，晚上整座島的燈都會亮起來。<br>
+<img alt="梅問題-用 AI 打造教學島 梅小人帶路" src="https://photo.minwt.com/img/Content/ai/island/06.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 夜晚模式" src="https://photo.minwt.com/img/Content/ai/island/07.jpg"></p>
+<p>而「收進行囊」是存在瀏覽器裡，不用登入，下次用同一台電腦打開，收過的文章都還在。</p>
+<hr>
+<h2>Step6：手機版與舊瀏覽器</h2>
+<p>3D 網頁最怕手機跑不動，因此請 AI 把手機版的清單改成從下方滑出，用雙指就能縮放，而如果瀏覽器不支援 WebGL（3D 繪圖），就只顯示文章清單，至少還是能正常找文章。<br>
+<img alt="梅問題-用 AI 打造教學島 手機版" src="https://photo.minwt.com/img/Content/ai/island/08.jpg"></p>
+<hr>
+<h2>Step7：上線，以及踩到的坑</h2>
+<p>教學島是一個獨立的靜態網頁，放在 Hugo 的 static 資料夾裡，網站建置時就會原樣複製過去，另外再加上 FB 分享用的縮圖，讓分享到社群時也有漂亮的預覽圖，而每篇文章的連結都會帶上 utm 參數，這樣在 GA4 就能看到有多少人是從小島點過去的。</p>
+<p>不過這次也踩到一個坑，梅干的網站是推上 GitHub 之後，還要再執行一次部署指令才會真正上線，結果有好幾天以為已經上線了，其實網站上還是舊的，因此用 AI 改完網站後，記得一定要自己打開網址確認一次，不要 AI 說完成了就當作完成了。</p>
+<hr>
+<h2>實際指令範例：做出自己的教學島</h2>
+<p>看完過程，如果也想替自己的網站做一座教學島，其實只要兩段指令就能開始，以下是梅干整理好的範例，把網站名稱、島的分類換成自己的，直接貼給 Claude Code 就可以了。</p>
+<h3>指令一：做出 3D 小島頁</h3>
+<p>第一段指令先把小島頁的骨架做出來，重點是講清楚「有幾座島、點了會發生什麼事、文章資料從哪裡讀」，AI 才知道要做成什麼樣子。</p>
+<pre><code>幫我用 three.js 做一個 3D 小島導覽頁，放在 island 資料夾，只用 HTML、CSS、JS，three.js 從 CDN 載入。
+- 海上有 11 座低多邊形風格的小島，中間一座最大，其他圍在旁邊，島跟島之間用吊橋連起來
+- 每座島上方有名牌，顯示編號和島名
+- 可以拖曳旋轉、滾輪縮放；點島或名牌時，鏡頭平滑飛到那座島
+- 左側固定一個清單列：平常顯示全部小島的索引和搜尋框，點島後改列出那座島的文章，上方有「← 全部小島」可以回去
+- 文章資料從 islands.json 讀，格式是 islands 陣列，每座島有 id、name、blurb、items（每篇文章有 title、desc、url）
+- 手機版清單改成從下方滑出
+- 先用假資料做一份 islands.json 讓我預覽</code></pre>
+<p>打開 Claude Code，把指令貼上後按 Enter 送出。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 貼上指令一" src="https://photo.minwt.com/img/Content/ai/island/09.jpg"></p>
+<p>接著 AI 就會開始寫程式，遇到要執行指令時會先詢問，確認沒問題選「Yes」繼續就可以了。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 執行中" src="https://photo.minwt.com/img/Content/ai/island/10.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 詢問是否執行" src="https://photo.minwt.com/img/Content/ai/island/11.jpg"></p>
+<p>這是 AI 依照指令一次做出來的第一版，島、吊橋、名牌、左側清單和點島飛過去都有了，手機版清單也會從下方滑出。<br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版全景" src="https://photo.minwt.com/img/Content/ai/island/12.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版點島" src="https://photo.minwt.com/img/Content/ai/island/13.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版手機版" src="https://photo.minwt.com/img/Content/ai/island/14.jpg"></p>
+<p>AI 做完後，在 island 資料夾開一個本機伺服器預覽（直接雙擊開 HTML 會讀不到 JSON），接下來就是看哪裡不滿意，再一句一句請它修改，像是「每座島要有自己的造景」、「加一個依時間切換的夜晚模式」。</p>
+<p>像是跟 AI 說「每座島要有自己的造景」後，同一座島就多了符合主題的建築與裝飾。<br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後特色造景" src="https://photo.minwt.com/img/Content/ai/island/15.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後美食島" src="https://photo.minwt.com/img/Content/ai/island/16.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後攝影島" src="https://photo.minwt.com/img/Content/ai/island/17.jpg"></p>
+<h3>指令二：把 GSC 匯出的 CSV 轉成文章清單</h3>
+<p>小島做好後，再把假資料換成真正的熱門文章，先到 Google Search Console 的「成效」，選「3 個月」、切到「網頁」，點右上角的「匯出 → 下載 CSV」，把下載的檔案放進專案資料夾，再給 AI 第二段指令。</p>
+<pre><code>這是 Google Search Console 匯出的網頁成效 CSV（網頁.csv），請寫一支 Python 程式產生 island/islands.json：
+- 依網址的第一層分到各島，例如 /pc/ 是電腦工坊、/life/ 是生活市集
+- 標題有「字型」、「字體」的放字型島，有「Photoshop」、「Illustrator」的放設計島
+- 中間最大的島放全站點擊最多的 10 篇，其他每座島放點擊最多的 12 篇
+- 文章標題和摘要從網站的文章檔讀出來，不要用網址當標題
+- 以後我只要重新匯出 CSV、再執行一次程式就能更新</code></pre>
+<p>一樣貼進 Claude Code 送出。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 貼上指令二" src="https://photo.minwt.com/img/Content/ai/island/18.jpg"></p>
+<p>完成後 AI 會回報讀了多少網址、分成幾座島，以及以後要怎麼更新。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 指令二完成" src="https://photo.minwt.com/img/Content/ai/island/19.jpg"></p>
+<p>分島的規則要依自己網站的網址與分類來改，規則講得越清楚，分出來的結果就越準，執行完重新整理小島頁，各島的文章就會換成真正的熱門文章了。</p>
+<h3>完成圖</h3>
+<p>以下就是照著這兩段指令跑出來的結果，小島上換成了網站真正的熱門文章，左側清單也會列出每座島的文章數。<br>
+<img alt="梅問題-用 AI 打造教學島 完成圖" src="https://photo.minwt.com/img/Content/ai/island/20.jpg"></p>
+<p>點進島上後，鏡頭會飛到那座島，左側就會列出這座島的熱門文章與摘要，點文章就能直接閱讀。<br>
+<img alt="梅問題-用 AI 打造教學島 點島後的文章清單" src="https://photo.minwt.com/img/Content/ai/island/21.jpg"></p>
+<hr>
+<h2>用 AI 做網頁，哪些交給 AI、哪些自己來？</h2>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>工作</th><th>誰來做</th><th>說明</th></tr>
+<tr><td>找參考、定方向</td><td>自己</td><td>要做成什麼樣子，只有自己知道</td></tr>
+<tr><td>分島、挑文章規則</td><td>自己</td><td>需要了解網站內容與讀者</td></tr>
+<tr><td>寫程式、3D 造景</td><td>AI</td><td>three.js 約 1,500 行全部由 AI 寫</td></tr>
+<tr><td>修 bug、調整細節</td><td>AI</td><td>把看到的問題描述清楚，AI 就能修</td></tr>
+<tr><td>驗收成品</td><td>自己</td><td>每一輪都要自己打開來看、點點看</td></tr>
+<tr><td>確認上線</td><td>自己</td><td>打開正式網址檢查，不要只聽 AI 說好了</td></tr>
+</tbody></table>
+<hr>
+<p>做完教學島後，梅干最大的感想是，AI 讓「做不出來」的事情變少了，但「要做什麼」還是得自己想清楚，有興趣的朋友也可以先到<a href="/island/" target="_blank">梅問題教學島</a>逛逛，看看你最常看的文章被放在哪一座島上吧！</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<div><img src="https://photo.minwt.com/img/Content/ai/island/00.jpg" alt="梅問題－教你用AI打造私人島嶼，梅問題教學島的製作過程全記錄"></div>
+<p>　　梅問題寫到現在，文章已經累積上萬篇，但老實說，除了從 Google 搜尋進來的朋友之外，很少人會在站內慢慢逛，好文章就這樣埋在分類頁的最後面。一直想做一個比較好玩的導覽頁，讓大家可以像逛地圖一樣，一座島一座島地找到想看的教學，但 3D 網頁可不是梅干的強項，光是 three.js 的鏡頭、光影就夠讓人頭大了。<br>
+</p>
+<br>
+這次梅干就試著把這件事交給 AI，用 Claude Code 從零開始，做出了<a href="/island/" target="_blank">梅問題教學島</a>，整個 3D 場景的程式約 1,500 行，梅干一行都沒有自己寫，但從構想、分島、挑文章到上線，該做的決定一個也沒少。因此這篇就來分享整個製作過程，以及用 AI 做網頁時，哪些可以交給 AI、哪些還是得自己來，有興趣的朋友也一塊來看看！
+<div>
+<b>重點整理：</b><br>
+・使用工具：Claude Code（AI 寫程式）＋ three.js（3D 網頁）＋ Google Search Console（挑熱門文章）<br>
+・成品：11 座主題島，每座放點擊最多的 12 篇教學，可拖曳旋轉、點島、搜尋、收進行囊<br>
+・AI 負責：寫程式、做 3D 造景、修 bug、產生資料<br>
+・自己負責：找參考、決定分島與挑文章的規則、一輪一輪看成品提修改<br>
+・踩過的坑：網站要執行部署指令才會真正上線，只把程式推上 GitHub 是不會更新的
+</div>
+<hr>
+<h2>梅問題教學島是什麼？</h2>
+<p>打開<a href="/island/" target="_blank">梅問題教學島</a>後，海上會有 11 座主題小島，正中央最大的是「梅干廣場」，放全站最熱門的 10 篇文章，四周則依主題分成設計燈塔島、字型書法亭、工具小鎮、梅研發實驗室、電腦工坊、蘋果果園、生活市集、攝影觀景臺、架站港與免費資源灘，點任何一座島，鏡頭就會飛過去，左側清單也會列出那座島的文章。<br>
+<img alt="梅問題-梅問題教學島 3D 主題島導覽" src="https://photo.minwt.com/img/Content/ai/island/01.jpg"></p>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>功能</th><th>怎麼用</th></tr>
+<tr><td>逛小島</td><td>拖曳旋轉、滾輪或雙指縮放，點小島、名牌或左側清單都會飛到那座島</td></tr>
+<tr><td>搜尋</td><td>左側清單上方可以跨島搜尋文章</td></tr>
+<tr><td>收進行囊</td><td>看到想之後再讀的文章先收起來，存在自己的瀏覽器裡</td></tr>
+<tr><td>梅干帶路</td><td>梅小人會沿著沙灘、走過吊橋，一座一座島帶你逛</td></tr>
+<tr><td>日夜切換</td><td>依電腦時間自動切換，晚上 6 點到早上 6 點是夜晚，窗戶、路燈、燈塔都會亮起來</td></tr>
+</tbody></table>
+<hr>
+<h2>用到的工具</h2>
+<div>
+AI 寫程式：<a href="https://claude.com/claude-code" target="_blank">Claude Code</a>（在終端機裡跟 AI 對話，它會直接讀寫網站的檔案）<br>
+3D 網頁：<a href="https://threejs.org/" target="_blank">three.js</a>（從 CDN 載入，不用安裝）<br>
+文章資料：Google Search Console 最近 3 個月的網頁點擊數<br>
+網站：梅問題本身是 Hugo 靜態網站，教學島就是一個獨立的靜態網頁
+</div>
+<hr>
+<h2>Step1：先找參考網站，告訴 AI 要學哪裡</h2>
+<p>跟 AI 說「幫我做一個 3D 導覽頁」，做出來的東西通常會很普通，所以梅干第一步是先找參考，找一個用一座座 3D 小島來呈現不同主題、旁邊清單列也好用的網站，再跟 AI 說清楚要參考哪些地方：島嶼的呈現方式、左側索引與搜尋，其他的則照梅問題自己的內容來規劃。</p>
+<div><b>小技巧：</b>參考網站不要只丟網址，要講清楚「要學它的哪個部分」，AI 才不會整個照抄，或是抓錯重點。</div>
+<hr>
+<h2>Step2：規劃要分成哪幾座島</h2>
+<p>這一步 AI 幫不太上忙，因為只有自己最清楚網站有哪些內容，梅干最後決定分成 11 座島，大部分照網址的分類（像 /pc/、/life/）來分，但字型、設計這類跨分類的主題，就改用文章標題的關鍵字來判斷，而梅研發實驗室則直接放 <a href="https://mwt.tw/" target="_blank">mwt.tw</a> 上的 8 個工具。</p>
+<p>規則想好之後，用白話跟 AI 講就可以了，像是「標題有『字型』、『字體』的放字型書法亭」，AI 就會把它寫成程式，之後要調整也只要再跟它說一聲。</p>
+<hr>
+<h2>Step3：用 GSC 資料自動挑每座島的文章</h2>
+<p>上萬篇文章不可能一篇篇手動挑，因此梅干請 AI 寫了一支小程式，從 Google Search Console 匯出最近 3 個月的網頁點擊資料（成效 → 3 個月 → 網頁 → 匯出 → 下載 CSV），再配合網站的文章檔，自動把每篇文章分到對應的島上，每座島只留點擊最多的 12 篇，標題與摘要也會直接從文章裡讀出來。</p>
+<p>這樣做的好處是，以後要更新小島上的文章，只要重新匯出一次 CSV、再跑一次程式就好，文章改過標題，下次更新也會自動換成新標題，不用再一篇篇手改。</p>
+<hr>
+<h2>Step4：3D 場景與每座島的造景</h2>
+<p>這部分就是 AI 最厲害的地方了，three.js 的場景、鏡頭、光影、海浪全部由 AI 來寫，梅干要做的就是一直看成品、一直提意見，像是「島太單調了，每座島要有自己的特色」，AI 就幫字型書法亭加上竹林與梅花樹、梅研發實驗室加上火箭與衛星天線、生活市集掛上彩旗、攝影觀景臺旁邊飄著熱氣球，連島邊的浪花、遠方的山丘、繞島的帆船和海鷗也都是這樣一點一點加上去的。<br>
+<img alt="梅問題-用 AI 打造教學島 字型書法亭" src="https://photo.minwt.com/img/Content/ai/island/02.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 梅研發實驗室" src="https://photo.minwt.com/img/Content/ai/island/03.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 生活市集" src="https://photo.minwt.com/img/Content/ai/island/04.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 攝影觀景臺" src="https://photo.minwt.com/img/Content/ai/island/05.jpg"></p>
+<div><b>小技巧：</b>一次只提一到兩個修改，看完再提下一個，改壞了也比較容易知道是哪一步出問題。</div>
+<hr>
+<h2>Step5：加入梅小人、行囊與日夜切換</h2>
+<p>基本的島做好後，梅干希望它不只是一張會轉的地圖，所以又請 AI 加了幾個好玩的功能，照梅問題 Logo 角色做的白色豆子造型「梅小人」，會沿著沙灘、走過吊橋帶大家逛每一座島，停下來還會轉向鏡頭揮手；每座島上也有幾位路人在散步，另外依照電腦時間自動切換白天與夜晚，晚上整座島的燈都會亮起來。<br>
+<img alt="梅問題-用 AI 打造教學島 梅小人帶路" src="https://photo.minwt.com/img/Content/ai/island/06.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 夜晚模式" src="https://photo.minwt.com/img/Content/ai/island/07.jpg"></p>
+<p>而「收進行囊」是存在瀏覽器裡，不用登入，下次用同一台電腦打開，收過的文章都還在。</p>
+<hr>
+<h2>Step6：手機版與舊瀏覽器</h2>
+<p>3D 網頁最怕手機跑不動，因此請 AI 把手機版的清單改成從下方滑出，用雙指就能縮放，而如果瀏覽器不支援 WebGL（3D 繪圖），就只顯示文章清單，至少還是能正常找文章。<br>
+<img alt="梅問題-用 AI 打造教學島 手機版" src="https://photo.minwt.com/img/Content/ai/island/08.jpg"></p>
+<hr>
+<h2>Step7：上線，以及踩到的坑</h2>
+<p>教學島是一個獨立的靜態網頁，放在 Hugo 的 static 資料夾裡，網站建置時就會原樣複製過去，另外再加上 FB 分享用的縮圖，讓分享到社群時也有漂亮的預覽圖，而每篇文章的連結都會帶上 utm 參數，這樣在 GA4 就能看到有多少人是從小島點過去的。</p>
+<p>不過這次也踩到一個坑，梅干的網站是推上 GitHub 之後，還要再執行一次部署指令才會真正上線，結果有好幾天以為已經上線了，其實網站上還是舊的，因此用 AI 改完網站後，記得一定要自己打開網址確認一次，不要 AI 說完成了就當作完成了。</p>
+<hr>
+<h2>實際指令範例：做出自己的教學島</h2>
+<p>看完過程，如果也想替自己的網站做一座教學島，其實只要兩段指令就能開始，以下是梅干整理好的範例，把網站名稱、島的分類換成自己的，直接貼給 Claude Code 就可以了。</p>
+<h3>指令一：做出 3D 小島頁</h3>
+<p>第一段指令先把小島頁的骨架做出來，重點是講清楚「有幾座島、點了會發生什麼事、文章資料從哪裡讀」，AI 才知道要做成什麼樣子。</p>
+<pre><code>幫我用 three.js 做一個 3D 小島導覽頁，放在 island 資料夾，只用 HTML、CSS、JS，three.js 從 CDN 載入。
+- 海上有 11 座低多邊形風格的小島，中間一座最大，其他圍在旁邊，島跟島之間用吊橋連起來
+- 每座島上方有名牌，顯示編號和島名
+- 可以拖曳旋轉、滾輪縮放；點島或名牌時，鏡頭平滑飛到那座島
+- 左側固定一個清單列：平常顯示全部小島的索引和搜尋框，點島後改列出那座島的文章，上方有「← 全部小島」可以回去
+- 文章資料從 islands.json 讀，格式是 islands 陣列，每座島有 id、name、blurb、items（每篇文章有 title、desc、url）
+- 手機版清單改成從下方滑出
+- 先用假資料做一份 islands.json 讓我預覽</code></pre>
+<p>打開 Claude Code，把指令貼上後按 Enter 送出。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 貼上指令一" src="https://photo.minwt.com/img/Content/ai/island/09.jpg"></p>
+<p>接著 AI 就會開始寫程式，遇到要執行指令時會先詢問，確認沒問題選「Yes」繼續就可以了。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 執行中" src="https://photo.minwt.com/img/Content/ai/island/10.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 詢問是否執行" src="https://photo.minwt.com/img/Content/ai/island/11.jpg"></p>
+<p>這是 AI 依照指令一次做出來的第一版，島、吊橋、名牌、左側清單和點島飛過去都有了，手機版清單也會從下方滑出。<br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版全景" src="https://photo.minwt.com/img/Content/ai/island/12.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版點島" src="https://photo.minwt.com/img/Content/ai/island/13.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版手機版" src="https://photo.minwt.com/img/Content/ai/island/14.jpg"></p>
+<p>AI 做完後，在 island 資料夾開一個本機伺服器預覽（直接雙擊開 HTML 會讀不到 JSON），接下來就是看哪裡不滿意，再一句一句請它修改，像是「每座島要有自己的造景」、「加一個依時間切換的夜晚模式」。</p>
+<p>像是跟 AI 說「每座島要有自己的造景」後，同一座島就多了符合主題的建築與裝飾。<br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後特色造景" src="https://photo.minwt.com/img/Content/ai/island/15.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後美食島" src="https://photo.minwt.com/img/Content/ai/island/16.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後攝影島" src="https://photo.minwt.com/img/Content/ai/island/17.jpg"></p>
+<h3>指令二：把 GSC 匯出的 CSV 轉成文章清單</h3>
+<p>小島做好後，再把假資料換成真正的熱門文章，先到 Google Search Console 的「成效」，選「3 個月」、切到「網頁」，點右上角的「匯出 → 下載 CSV」，把下載的檔案放進專案資料夾，再給 AI 第二段指令。</p>
+<pre><code>這是 Google Search Console 匯出的網頁成效 CSV（網頁.csv），請寫一支 Python 程式產生 island/islands.json：
+- 依網址的第一層分到各島，例如 /pc/ 是電腦工坊、/life/ 是生活市集
+- 標題有「字型」、「字體」的放字型島，有「Photoshop」、「Illustrator」的放設計島
+- 中間最大的島放全站點擊最多的 10 篇，其他每座島放點擊最多的 12 篇
+- 文章標題和摘要從網站的文章檔讀出來，不要用網址當標題
+- 以後我只要重新匯出 CSV、再執行一次程式就能更新</code></pre>
+<p>一樣貼進 Claude Code 送出。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 貼上指令二" src="https://photo.minwt.com/img/Content/ai/island/18.jpg"></p>
+<p>完成後 AI 會回報讀了多少網址、分成幾座島，以及以後要怎麼更新。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 指令二完成" src="https://photo.minwt.com/img/Content/ai/island/19.jpg"></p>
+<p>分島的規則要依自己網站的網址與分類來改，規則講得越清楚，分出來的結果就越準，執行完重新整理小島頁，各島的文章就會換成真正的熱門文章了。</p>
+<h3>完成圖</h3>
+<p>以下就是照著這兩段指令跑出來的結果，小島上換成了網站真正的熱門文章，左側清單也會列出每座島的文章數。<br>
+<img alt="梅問題-用 AI 打造教學島 完成圖" src="https://photo.minwt.com/img/Content/ai/island/20.jpg"></p>
+<p>點進島上後，鏡頭會飛到那座島，左側就會列出這座島的熱門文章與摘要，點文章就能直接閱讀。<br>
+<img alt="梅問題-用 AI 打造教學島 點島後的文章清單" src="https://photo.minwt.com/img/Content/ai/island/21.jpg"></p>
+<hr>
+<h2>用 AI 做網頁，哪些交給 AI、哪些自己來？</h2>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>工作</th><th>誰來做</th><th>說明</th></tr>
+<tr><td>找參考、定方向</td><td>自己</td><td>要做成什麼樣子，只有自己知道</td></tr>
+<tr><td>分島、挑文章規則</td><td>自己</td><td>需要了解網站內容與讀者</td></tr>
+<tr><td>寫程式、3D 造景</td><td>AI</td><td>three.js 約 1,500 行全部由 AI 寫</td></tr>
+<tr><td>修 bug、調整細節</td><td>AI</td><td>把看到的問題描述清楚，AI 就能修</td></tr>
+<tr><td>驗收成品</td><td>自己</td><td>每一輪都要自己打開來看、點點看</td></tr>
+<tr><td>確認上線</td><td>自己</td><td>打開正式網址檢查，不要只聽 AI 說好了</td></tr>
+</tbody></table>
+<hr>
+<p>做完教學島後，梅干最大的感想是，AI 讓「做不出來」的事情變少了，但「要做什麼」還是得自己想清楚，有興趣的朋友也可以先到<a href="/island/" target="_blank">梅問題教學島</a>逛逛，看看你最常看的文章被放在哪一座島上吧！</p>]]>
+    </description>
+    <content:encoded><![CDATA[<div><img src="https://photo.minwt.com/img/Content/ai/island/00.jpg" alt="梅問題－教你用AI打造私人島嶼，梅問題教學島的製作過程全記錄"></div>
+<p>　　梅問題寫到現在，文章已經累積上萬篇，但老實說，除了從 Google 搜尋進來的朋友之外，很少人會在站內慢慢逛，好文章就這樣埋在分類頁的最後面。一直想做一個比較好玩的導覽頁，讓大家可以像逛地圖一樣，一座島一座島地找到想看的教學，但 3D 網頁可不是梅干的強項，光是 three.js 的鏡頭、光影就夠讓人頭大了。<br>
+</p>
+<br>
+這次梅干就試著把這件事交給 AI，用 Claude Code 從零開始，做出了<a href="/island/" target="_blank">梅問題教學島</a>，整個 3D 場景的程式約 1,500 行，梅干一行都沒有自己寫，但從構想、分島、挑文章到上線，該做的決定一個也沒少。因此這篇就來分享整個製作過程，以及用 AI 做網頁時，哪些可以交給 AI、哪些還是得自己來，有興趣的朋友也一塊來看看！
+<div>
+<b>重點整理：</b><br>
+・使用工具：Claude Code（AI 寫程式）＋ three.js（3D 網頁）＋ Google Search Console（挑熱門文章）<br>
+・成品：11 座主題島，每座放點擊最多的 12 篇教學，可拖曳旋轉、點島、搜尋、收進行囊<br>
+・AI 負責：寫程式、做 3D 造景、修 bug、產生資料<br>
+・自己負責：找參考、決定分島與挑文章的規則、一輪一輪看成品提修改<br>
+・踩過的坑：網站要執行部署指令才會真正上線，只把程式推上 GitHub 是不會更新的
+</div>
+<hr>
+<h2>梅問題教學島是什麼？</h2>
+<p>打開<a href="/island/" target="_blank">梅問題教學島</a>後，海上會有 11 座主題小島，正中央最大的是「梅干廣場」，放全站最熱門的 10 篇文章，四周則依主題分成設計燈塔島、字型書法亭、工具小鎮、梅研發實驗室、電腦工坊、蘋果果園、生活市集、攝影觀景臺、架站港與免費資源灘，點任何一座島，鏡頭就會飛過去，左側清單也會列出那座島的文章。<br>
+<img alt="梅問題-梅問題教學島 3D 主題島導覽" src="https://photo.minwt.com/img/Content/ai/island/01.jpg"></p>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>功能</th><th>怎麼用</th></tr>
+<tr><td>逛小島</td><td>拖曳旋轉、滾輪或雙指縮放，點小島、名牌或左側清單都會飛到那座島</td></tr>
+<tr><td>搜尋</td><td>左側清單上方可以跨島搜尋文章</td></tr>
+<tr><td>收進行囊</td><td>看到想之後再讀的文章先收起來，存在自己的瀏覽器裡</td></tr>
+<tr><td>梅干帶路</td><td>梅小人會沿著沙灘、走過吊橋，一座一座島帶你逛</td></tr>
+<tr><td>日夜切換</td><td>依電腦時間自動切換，晚上 6 點到早上 6 點是夜晚，窗戶、路燈、燈塔都會亮起來</td></tr>
+</tbody></table>
+<hr>
+<h2>用到的工具</h2>
+<div>
+AI 寫程式：<a href="https://claude.com/claude-code" target="_blank">Claude Code</a>（在終端機裡跟 AI 對話，它會直接讀寫網站的檔案）<br>
+3D 網頁：<a href="https://threejs.org/" target="_blank">three.js</a>（從 CDN 載入，不用安裝）<br>
+文章資料：Google Search Console 最近 3 個月的網頁點擊數<br>
+網站：梅問題本身是 Hugo 靜態網站，教學島就是一個獨立的靜態網頁
+</div>
+<hr>
+<h2>Step1：先找參考網站，告訴 AI 要學哪裡</h2>
+<p>跟 AI 說「幫我做一個 3D 導覽頁」，做出來的東西通常會很普通，所以梅干第一步是先找參考，找一個用一座座 3D 小島來呈現不同主題、旁邊清單列也好用的網站，再跟 AI 說清楚要參考哪些地方：島嶼的呈現方式、左側索引與搜尋，其他的則照梅問題自己的內容來規劃。</p>
+<div><b>小技巧：</b>參考網站不要只丟網址，要講清楚「要學它的哪個部分」，AI 才不會整個照抄，或是抓錯重點。</div>
+<hr>
+<h2>Step2：規劃要分成哪幾座島</h2>
+<p>這一步 AI 幫不太上忙，因為只有自己最清楚網站有哪些內容，梅干最後決定分成 11 座島，大部分照網址的分類（像 /pc/、/life/）來分，但字型、設計這類跨分類的主題，就改用文章標題的關鍵字來判斷，而梅研發實驗室則直接放 <a href="https://mwt.tw/" target="_blank">mwt.tw</a> 上的 8 個工具。</p>
+<p>規則想好之後，用白話跟 AI 講就可以了，像是「標題有『字型』、『字體』的放字型書法亭」，AI 就會把它寫成程式，之後要調整也只要再跟它說一聲。</p>
+<hr>
+<h2>Step3：用 GSC 資料自動挑每座島的文章</h2>
+<p>上萬篇文章不可能一篇篇手動挑，因此梅干請 AI 寫了一支小程式，從 Google Search Console 匯出最近 3 個月的網頁點擊資料（成效 → 3 個月 → 網頁 → 匯出 → 下載 CSV），再配合網站的文章檔，自動把每篇文章分到對應的島上，每座島只留點擊最多的 12 篇，標題與摘要也會直接從文章裡讀出來。</p>
+<p>這樣做的好處是，以後要更新小島上的文章，只要重新匯出一次 CSV、再跑一次程式就好，文章改過標題，下次更新也會自動換成新標題，不用再一篇篇手改。</p>
+<hr>
+<h2>Step4：3D 場景與每座島的造景</h2>
+<p>這部分就是 AI 最厲害的地方了，three.js 的場景、鏡頭、光影、海浪全部由 AI 來寫，梅干要做的就是一直看成品、一直提意見，像是「島太單調了，每座島要有自己的特色」，AI 就幫字型書法亭加上竹林與梅花樹、梅研發實驗室加上火箭與衛星天線、生活市集掛上彩旗、攝影觀景臺旁邊飄著熱氣球，連島邊的浪花、遠方的山丘、繞島的帆船和海鷗也都是這樣一點一點加上去的。<br>
+<img alt="梅問題-用 AI 打造教學島 字型書法亭" src="https://photo.minwt.com/img/Content/ai/island/02.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 梅研發實驗室" src="https://photo.minwt.com/img/Content/ai/island/03.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 生活市集" src="https://photo.minwt.com/img/Content/ai/island/04.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 攝影觀景臺" src="https://photo.minwt.com/img/Content/ai/island/05.jpg"></p>
+<div><b>小技巧：</b>一次只提一到兩個修改，看完再提下一個，改壞了也比較容易知道是哪一步出問題。</div>
+<hr>
+<h2>Step5：加入梅小人、行囊與日夜切換</h2>
+<p>基本的島做好後，梅干希望它不只是一張會轉的地圖，所以又請 AI 加了幾個好玩的功能，照梅問題 Logo 角色做的白色豆子造型「梅小人」，會沿著沙灘、走過吊橋帶大家逛每一座島，停下來還會轉向鏡頭揮手；每座島上也有幾位路人在散步，另外依照電腦時間自動切換白天與夜晚，晚上整座島的燈都會亮起來。<br>
+<img alt="梅問題-用 AI 打造教學島 梅小人帶路" src="https://photo.minwt.com/img/Content/ai/island/06.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 夜晚模式" src="https://photo.minwt.com/img/Content/ai/island/07.jpg"></p>
+<p>而「收進行囊」是存在瀏覽器裡，不用登入，下次用同一台電腦打開，收過的文章都還在。</p>
+<hr>
+<h2>Step6：手機版與舊瀏覽器</h2>
+<p>3D 網頁最怕手機跑不動，因此請 AI 把手機版的清單改成從下方滑出，用雙指就能縮放，而如果瀏覽器不支援 WebGL（3D 繪圖），就只顯示文章清單，至少還是能正常找文章。<br>
+<img alt="梅問題-用 AI 打造教學島 手機版" src="https://photo.minwt.com/img/Content/ai/island/08.jpg"></p>
+<hr>
+<h2>Step7：上線，以及踩到的坑</h2>
+<p>教學島是一個獨立的靜態網頁，放在 Hugo 的 static 資料夾裡，網站建置時就會原樣複製過去，另外再加上 FB 分享用的縮圖，讓分享到社群時也有漂亮的預覽圖，而每篇文章的連結都會帶上 utm 參數，這樣在 GA4 就能看到有多少人是從小島點過去的。</p>
+<p>不過這次也踩到一個坑，梅干的網站是推上 GitHub 之後，還要再執行一次部署指令才會真正上線，結果有好幾天以為已經上線了，其實網站上還是舊的，因此用 AI 改完網站後，記得一定要自己打開網址確認一次，不要 AI 說完成了就當作完成了。</p>
+<hr>
+<h2>實際指令範例：做出自己的教學島</h2>
+<p>看完過程，如果也想替自己的網站做一座教學島，其實只要兩段指令就能開始，以下是梅干整理好的範例，把網站名稱、島的分類換成自己的，直接貼給 Claude Code 就可以了。</p>
+<h3>指令一：做出 3D 小島頁</h3>
+<p>第一段指令先把小島頁的骨架做出來，重點是講清楚「有幾座島、點了會發生什麼事、文章資料從哪裡讀」，AI 才知道要做成什麼樣子。</p>
+<pre><code>幫我用 three.js 做一個 3D 小島導覽頁，放在 island 資料夾，只用 HTML、CSS、JS，three.js 從 CDN 載入。
+- 海上有 11 座低多邊形風格的小島，中間一座最大，其他圍在旁邊，島跟島之間用吊橋連起來
+- 每座島上方有名牌，顯示編號和島名
+- 可以拖曳旋轉、滾輪縮放；點島或名牌時，鏡頭平滑飛到那座島
+- 左側固定一個清單列：平常顯示全部小島的索引和搜尋框，點島後改列出那座島的文章，上方有「← 全部小島」可以回去
+- 文章資料從 islands.json 讀，格式是 islands 陣列，每座島有 id、name、blurb、items（每篇文章有 title、desc、url）
+- 手機版清單改成從下方滑出
+- 先用假資料做一份 islands.json 讓我預覽</code></pre>
+<p>打開 Claude Code，把指令貼上後按 Enter 送出。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 貼上指令一" src="https://photo.minwt.com/img/Content/ai/island/09.jpg"></p>
+<p>接著 AI 就會開始寫程式，遇到要執行指令時會先詢問，確認沒問題選「Yes」繼續就可以了。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 執行中" src="https://photo.minwt.com/img/Content/ai/island/10.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 詢問是否執行" src="https://photo.minwt.com/img/Content/ai/island/11.jpg"></p>
+<p>這是 AI 依照指令一次做出來的第一版，島、吊橋、名牌、左側清單和點島飛過去都有了，手機版清單也會從下方滑出。<br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版全景" src="https://photo.minwt.com/img/Content/ai/island/12.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版點島" src="https://photo.minwt.com/img/Content/ai/island/13.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 第一版手機版" src="https://photo.minwt.com/img/Content/ai/island/14.jpg"></p>
+<p>AI 做完後，在 island 資料夾開一個本機伺服器預覽（直接雙擊開 HTML 會讀不到 JSON），接下來就是看哪裡不滿意，再一句一句請它修改，像是「每座島要有自己的造景」、「加一個依時間切換的夜晚模式」。</p>
+<p>像是跟 AI 說「每座島要有自己的造景」後，同一座島就多了符合主題的建築與裝飾。<br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後特色造景" src="https://photo.minwt.com/img/Content/ai/island/15.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後美食島" src="https://photo.minwt.com/img/Content/ai/island/16.jpg"><br>
+<img alt="梅問題-用 AI 打造教學島 AI 修改後攝影島" src="https://photo.minwt.com/img/Content/ai/island/17.jpg"></p>
+<h3>指令二：把 GSC 匯出的 CSV 轉成文章清單</h3>
+<p>小島做好後，再把假資料換成真正的熱門文章，先到 Google Search Console 的「成效」，選「3 個月」、切到「網頁」，點右上角的「匯出 → 下載 CSV」，把下載的檔案放進專案資料夾，再給 AI 第二段指令。</p>
+<pre><code>這是 Google Search Console 匯出的網頁成效 CSV（網頁.csv），請寫一支 Python 程式產生 island/islands.json：
+- 依網址的第一層分到各島，例如 /pc/ 是電腦工坊、/life/ 是生活市集
+- 標題有「字型」、「字體」的放字型島，有「Photoshop」、「Illustrator」的放設計島
+- 中間最大的島放全站點擊最多的 10 篇，其他每座島放點擊最多的 12 篇
+- 文章標題和摘要從網站的文章檔讀出來，不要用網址當標題
+- 以後我只要重新匯出 CSV、再執行一次程式就能更新</code></pre>
+<p>一樣貼進 Claude Code 送出。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 貼上指令二" src="https://photo.minwt.com/img/Content/ai/island/18.jpg"></p>
+<p>完成後 AI 會回報讀了多少網址、分成幾座島，以及以後要怎麼更新。<br>
+<img alt="梅問題-用 AI 打造教學島 Claude Code 指令二完成" src="https://photo.minwt.com/img/Content/ai/island/19.jpg"></p>
+<p>分島的規則要依自己網站的網址與分類來改，規則講得越清楚，分出來的結果就越準，執行完重新整理小島頁，各島的文章就會換成真正的熱門文章了。</p>
+<h3>完成圖</h3>
+<p>以下就是照著這兩段指令跑出來的結果，小島上換成了網站真正的熱門文章，左側清單也會列出每座島的文章數。<br>
+<img alt="梅問題-用 AI 打造教學島 完成圖" src="https://photo.minwt.com/img/Content/ai/island/20.jpg"></p>
+<p>點進島上後，鏡頭會飛到那座島，左側就會列出這座島的熱門文章與摘要，點文章就能直接閱讀。<br>
+<img alt="梅問題-用 AI 打造教學島 點島後的文章清單" src="https://photo.minwt.com/img/Content/ai/island/21.jpg"></p>
+<hr>
+<h2>用 AI 做網頁，哪些交給 AI、哪些自己來？</h2>
+<table border="1" cellpadding="6" cellspacing="0">
+<tbody><tr><th>工作</th><th>誰來做</th><th>說明</th></tr>
+<tr><td>找參考、定方向</td><td>自己</td><td>要做成什麼樣子，只有自己知道</td></tr>
+<tr><td>分島、挑文章規則</td><td>自己</td><td>需要了解網站內容與讀者</td></tr>
+<tr><td>寫程式、3D 造景</td><td>AI</td><td>three.js 約 1,500 行全部由 AI 寫</td></tr>
+<tr><td>修 bug、調整細節</td><td>AI</td><td>把看到的問題描述清楚，AI 就能修</td></tr>
+<tr><td>驗收成品</td><td>自己</td><td>每一輪都要自己打開來看、點點看</td></tr>
+<tr><td>確認上線</td><td>自己</td><td>打開正式網址檢查，不要只聽 AI 說好了</td></tr>
+</tbody></table>
+<hr>
+<p>做完教學島後，梅干最大的感想是，AI 讓「做不出來」的事情變少了，但「要做什麼」還是得自己想清楚，有興趣的朋友也可以先到<a href="/island/" target="_blank">梅問題教學島</a>逛逛，看看你最常看的文章被放在哪一座島上吧！</p>]]></content:encoded>
+    <itunes:image href="https://photo.minwt.com/img/Content/ai/island/00.jpg"/>
+          <media:content url="https://photo.minwt.com/img/Content/ai/island/00.jpg" medium="image"/>
+    <pubDate>Wed, 28 Oct 2026 14:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[PDF 免費編輯文字、簽名、合併、壓縮：PdfCraft 開源軟體實測，繁中介面、檔案不用上傳雲端]]></title>
     <link>https://www.minwt.com/pc/24454.html</link>
     <itunes:title><![CDATA[PDF 免費編輯文字、簽名、合併、壓縮：PdfCraft 開源軟體實測，繁中介面、檔案不用上傳雲端]]></itunes:title>
@@ -2618,152 +3005,5 @@ PDF 加入後，再按下方的「開始檢測」鈕。<br>
     <itunes:image href="https://photo.minwt.com/img/Content/3C/pi3b/00.jpg"/>
           <media:content url="https://photo.minwt.com/img/Content/3C/pi3b/00.jpg" medium="image"/>
     <pubDate>Mon, 06 Jul 2026 10:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表]]></title>
-    <link>https://www.minwt.com/minwt-2/myapp/24421.html</link>
-    <itunes:title><![CDATA[自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表]]></itunes:title>
-    <itunes:author><![CDATA[梅問題．教學網[RSS+]]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<div><img alt="梅問題－自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/00.jpg"></div>
-使用 WordPress 架站的朋友，對於 Jetpack 應該都不陌生，也相當習慣它所提供的網站流量分析功能。只要進入 WordPress 後台，就能立即查看網站的流量狀況，相當方便。不過隨著使用人數愈來愈多，現在 Jetpack 的流量分析功能也逐漸轉為付費項目，因此不少朋友開始改用 Koko Analytics。雖然 Koko Analytics 免費、設定也容易，但最近卻時常出現沒有資料的狀況。
-<p>　　其實大多數使用 WordPress 的朋友，網站上應該都有安裝 GA4，只是每次一想到還要特地進入 GA4 後台查看資料，就會覺得有些麻煩。再加上 GA4 的操作介面對一般使用者來說，也不是那麼直覺。因此先前梅干曾經使用過 Google Analytics Dashboard for WP by ExactMetrics，不過隨著版本更新後，許多功能也逐漸改為付費項目。<br>
-於是某天梅干便透過 AI 開發了一套 WordPress 外掛，直接將 GA4 的分析報表搬進 WordPress 後台，讓大家不用再特地登入 GA4，也能在 WordPress 後台查看相關數據。為了讓串接流程更方便，梅干也另外架設了一個中繼站，並且通過 Google 審核後。現在釋放出來給有興趣的朋友一起玩玩看。</p>
-<hr>
-<span>GA4Exact</span>
-<div><b>外掛名稱：</b>GA4Exact<br>
-<b>外掛下載：</b><a href="https://github.com/minwt/ga4exact/releases/tag/wordpress">gitHub</a></div>
-<hr>
-<font size="3"><b>Step1</b></font><br>
-首先到gitHub將外掛下載回來。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/01.jpg">
-<hr>
-<font size="3"><b>Step2</b></font><br>
-接著到外掛面板，上傳並啟用。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-啟用完畢後，在選單中就會看到<b>GA4 Exact</b>。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-點一下後，將畫面拖拉到底部，分別會看到<font color="#FF0066"><b>使用Google連線</b></font>鈕，這邊就是梅干所架設好的中繼站，因此各位只要有登入Google帳號就可直接聯動，若不放心的朋友，也可自行產生後，將憑證資訊貼到下方的輸入框中。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-這邊選擇GA4的使用者帳戶。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-啟動完畢後，在GA4的資源中就會看到該帳戶所管理的GA4的站台啦！若要切換的話，在選擇完畢後，再按下方的儲存鈕，資訊才會重新載入。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-當載入完畢後，就會看到相關的數據，　甚至30分鐘的即時人數與文章也看的到，以及大家最在乎的每日流量表也有。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-或是年紀、性別、來源…。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-或是熱門的文章有那些，如此一來就不用再進到GA4的後台，在WordPress就可將幾個重要的報表一覽無疑啦！因此有需要的朋友不妨也下載安裝看看囉！<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/09.jpg">
-<br>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<div><img alt="梅問題－自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/00.jpg"></div>
-使用 WordPress 架站的朋友，對於 Jetpack 應該都不陌生，也相當習慣它所提供的網站流量分析功能。只要進入 WordPress 後台，就能立即查看網站的流量狀況，相當方便。不過隨著使用人數愈來愈多，現在 Jetpack 的流量分析功能也逐漸轉為付費項目，因此不少朋友開始改用 Koko Analytics。雖然 Koko Analytics 免費、設定也容易，但最近卻時常出現沒有資料的狀況。
-<p>　　其實大多數使用 WordPress 的朋友，網站上應該都有安裝 GA4，只是每次一想到還要特地進入 GA4 後台查看資料，就會覺得有些麻煩。再加上 GA4 的操作介面對一般使用者來說，也不是那麼直覺。因此先前梅干曾經使用過 Google Analytics Dashboard for WP by ExactMetrics，不過隨著版本更新後，許多功能也逐漸改為付費項目。<br>
-於是某天梅干便透過 AI 開發了一套 WordPress 外掛，直接將 GA4 的分析報表搬進 WordPress 後台，讓大家不用再特地登入 GA4，也能在 WordPress 後台查看相關數據。為了讓串接流程更方便，梅干也另外架設了一個中繼站，並且通過 Google 審核後。現在釋放出來給有興趣的朋友一起玩玩看。</p>
-<hr>
-<span>GA4Exact</span>
-<div><b>外掛名稱：</b>GA4Exact<br>
-<b>外掛下載：</b><a href="https://github.com/minwt/ga4exact/releases/tag/wordpress">gitHub</a></div>
-<hr>
-<font size="3"><b>Step1</b></font><br>
-首先到gitHub將外掛下載回來。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/01.jpg">
-<hr>
-<font size="3"><b>Step2</b></font><br>
-接著到外掛面板，上傳並啟用。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-啟用完畢後，在選單中就會看到<b>GA4 Exact</b>。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-點一下後，將畫面拖拉到底部，分別會看到<font color="#FF0066"><b>使用Google連線</b></font>鈕，這邊就是梅干所架設好的中繼站，因此各位只要有登入Google帳號就可直接聯動，若不放心的朋友，也可自行產生後，將憑證資訊貼到下方的輸入框中。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-這邊選擇GA4的使用者帳戶。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-啟動完畢後，在GA4的資源中就會看到該帳戶所管理的GA4的站台啦！若要切換的話，在選擇完畢後，再按下方的儲存鈕，資訊才會重新載入。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-當載入完畢後，就會看到相關的數據，　甚至30分鐘的即時人數與文章也看的到，以及大家最在乎的每日流量表也有。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-或是年紀、性別、來源…。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-或是熱門的文章有那些，如此一來就不用再進到GA4的後台，在WordPress就可將幾個重要的報表一覽無疑啦！因此有需要的朋友不妨也下載安裝看看囉！<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/09.jpg">
-<br>]]>
-    </description>
-    <content:encoded><![CDATA[<div><img alt="梅問題－自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/00.jpg"></div>
-使用 WordPress 架站的朋友，對於 Jetpack 應該都不陌生，也相當習慣它所提供的網站流量分析功能。只要進入 WordPress 後台，就能立即查看網站的流量狀況，相當方便。不過隨著使用人數愈來愈多，現在 Jetpack 的流量分析功能也逐漸轉為付費項目，因此不少朋友開始改用 Koko Analytics。雖然 Koko Analytics 免費、設定也容易，但最近卻時常出現沒有資料的狀況。
-<p>　　其實大多數使用 WordPress 的朋友，網站上應該都有安裝 GA4，只是每次一想到還要特地進入 GA4 後台查看資料，就會覺得有些麻煩。再加上 GA4 的操作介面對一般使用者來說，也不是那麼直覺。因此先前梅干曾經使用過 Google Analytics Dashboard for WP by ExactMetrics，不過隨著版本更新後，許多功能也逐漸改為付費項目。<br>
-於是某天梅干便透過 AI 開發了一套 WordPress 外掛，直接將 GA4 的分析報表搬進 WordPress 後台，讓大家不用再特地登入 GA4，也能在 WordPress 後台查看相關數據。為了讓串接流程更方便，梅干也另外架設了一個中繼站，並且通過 Google 審核後。現在釋放出來給有興趣的朋友一起玩玩看。</p>
-<hr>
-<span>GA4Exact</span>
-<div><b>外掛名稱：</b>GA4Exact<br>
-<b>外掛下載：</b><a href="https://github.com/minwt/ga4exact/releases/tag/wordpress">gitHub</a></div>
-<hr>
-<font size="3"><b>Step1</b></font><br>
-首先到gitHub將外掛下載回來。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/01.jpg">
-<hr>
-<font size="3"><b>Step2</b></font><br>
-接著到外掛面板，上傳並啟用。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/02.jpg">
-<hr>
-<font size="3"><b>Step3</b></font><br>
-啟用完畢後，在選單中就會看到<b>GA4 Exact</b>。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/03.jpg">
-<hr>
-<font size="3"><b>Step4</b></font><br>
-點一下後，將畫面拖拉到底部，分別會看到<font color="#FF0066"><b>使用Google連線</b></font>鈕，這邊就是梅干所架設好的中繼站，因此各位只要有登入Google帳號就可直接聯動，若不放心的朋友，也可自行產生後，將憑證資訊貼到下方的輸入框中。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/04.jpg">
-<hr>
-<font size="3"><b>Step5</b></font><br>
-這邊選擇GA4的使用者帳戶。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/05.jpg">
-<hr>
-<font size="3"><b>Step6</b></font><br>
-啟動完畢後，在GA4的資源中就會看到該帳戶所管理的GA4的站台啦！若要切換的話，在選擇完畢後，再按下方的儲存鈕，資訊才會重新載入。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/06.jpg">
-<hr>
-<font size="3"><b>Step7</b></font><br>
-當載入完畢後，就會看到相關的數據，　甚至30分鐘的即時人數與文章也看的到，以及大家最在乎的每日流量表也有。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/07.jpg">
-<hr>
-<font size="3"><b>Step8</b></font><br>
-或是年紀、性別、來源…。<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/08.jpg">
-<hr>
-<font size="3"><b>Step9</b></font><br>
-或是熱門的文章有那些，如此一來就不用再進到GA4的後台，在WordPress就可將幾個重要的報表一覽無疑啦！因此有需要的朋友不妨也下載安裝看看囉！<br>
-<img alt="梅問題-自製 GA4Exact 外掛，讓 WordPress 後台直接查看 GA4 分析報表" src="https://photo.minwt.com/img/Content/myapp/ga4exact/09.jpg">
-<br>]]></content:encoded>
-    <itunes:image href="https://photo.minwt.com/img/Content/myapp/ga4exact/00.jpg"/>
-          <media:content url="https://photo.minwt.com/img/Content/myapp/ga4exact/00.jpg" medium="image"/>
-    <pubDate>Tue, 09 Jun 2026 10:00:00 +0800</pubDate>
   </item></channel>
 </rss>
