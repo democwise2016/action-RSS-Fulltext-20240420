@@ -30,9 +30,9 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
-    <title><![CDATA[Linux 高危漏泂 CVE-2026-98432]]></title>
+    <title><![CDATA[Linux 高危漏洞 CVE-2026-98432]]></title>
     <link>https://blog.darkthread.net/blog/cve-2026-98432/</link>
-    <itunes:title><![CDATA[Linux 高危漏泂 CVE-2026-98432]]></itunes:title>
+    <itunes:title><![CDATA[Linux 高危漏洞 CVE-2026-98432]]></itunes:title>
     <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
     <itunes:summary>
       <![CDATA[<p>資安的多事之秋，IT 的黑色十月，幾枚資安漏洞連環爆，從 PHP2Shell、GitLab Critical RCE、Google Brotli，到月底的 Linux 高危漏洞，個個重要又緊急，系統管理員連夜修補，忙到快升天...</p> <p>我沒在用 PHP、GitLab，影響較大的應屬 Linux <a href="https://nvd.nist.gov/vuln/detail/cve-2026-98432">CVE-2026-98432</a>，私人有幾個 Docker 跑的服務可能有危險，這篇做個簡單整理。</p> <p>漏洞原理跟細節我就不深入了，特別麻煩是因為漏洞發生在 Linux 核心，上面的所有應用程式無差別曝險。問題發生在 IPv4 TCP 三向交握時，連線請求若帶有 IP options 物件會被移交給新連線(沒採用複製)，接著由某個 CPU 呼叫 <code>kfree()</code> 釋放物件，此若某剛好有另一個 CPU 在 RCU 讀取區段內用它組 SYN-ACK，便會形成 use-after-free (UAF)。攻擊者設法讓讀取動作與釋放動作競爭 (Racing) ，可故意觸發 UAF 不安全存取。</p> <p>問題元件在 <code>net/ipv4/af_inet.c</code>、<code>net/ipv4/tcp_ipv4.c</code>，Linux 4.4 起就存在，檯面上的 Linux 核心幾乎全中，容器與主機共用同一顆核心，容器化也無法隔離核心漏洞，Red Hat 給出了 Critical 9.8 的嚴重度分數。</p> <p>TCP 交握這塊由作業系統核心掌握，所以不管你的應用程式是 C#、Go 或 Node.js，不管有沒有驗證機制，只要 IPv4 TCP port 可被連線就可能受影響。但一般 Web、SSH、郵件流量幾乎不使用 IP options，故「直接丟棄帶 options 封包」可視為一種緩解措施。</p> <p>Anthropic 在 10/27 展示一種攻擊手法 - 利用 Multipath TCP (MPTCP) 允許單一 TCP 連線同時透過多個不同的網路介面或路徑傳輸資料的特性 (例如同時用 Wi-Fi 與行動網路 4G/5G)，對啟用 MPTCP Listener 的伺服器發動攻擊，不需要帳密、不需使用者互動，歷經約一小時成功以 root 執行自訂指令。由於嘗試 Race 失敗僅會以 TCP 連線失敗收場，不影響主機也無 Log 可追，攻擊者能無限重試。</p> <p>若鎖定對象為 MPTCP，Go 開發程式會格外危險，理由是 Go 1.24 起在 Linux 上的 listen socket 預設會啟用 MPTCP，正是 Anthropic 本次展示的標的。目前已知有以下方法可以暫時停用：</p> <ul><li>執行期：在環境變數設定 <code>GODEBUG=multipathtcp=0</code></li> <li>建置期：在 main module 的 <code>go.mod</code> 加入 <code>godebug multipathtcp=0</code></li> <li>個別 socket：呼叫 <code>net.ListenConfig.SetMultipathTCP(false)</code></li></ul> <p>即使非 Go 語言或程式在 Docker 中執行，仍建議檢查主機上是否有 MPTCP listener：</p> <pre><code>uname -r                                  # 核心版本
