@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/261/800/800.jpg?hmac=-HwbCSu21Hsu6ZpO9xBJHgJQLv0GBCGPw84SSssT-JI</url>
+      <url>https://fastly.picsum.photos/id/135/800/800.jpg?hmac=UxAMRqcH_2c4eE5FaQNgNYNBxwIaBaVZVoYfpJB9tno</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,296 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/261/800/800.jpg?hmac=-HwbCSu21Hsu6ZpO9xBJHgJQLv0GBCGPw84SSssT-JI"/>
+    <itunes:image href="https://fastly.picsum.photos/id/135/800/800.jpg?hmac=UxAMRqcH_2c4eE5FaQNgNYNBxwIaBaVZVoYfpJB9tno"/>
 <item>
+    <title><![CDATA[Windows系統如何讀取Linux的BTRFS硬碟：WinBTRFS使用 + 使用者權限映射教學]]></title>
+    <link>https://ivonblog.com/posts/winbtrfs-usage/</link>
+    <itunes:title><![CDATA[Windows系統如何讀取Linux的BTRFS硬碟：WinBTRFS使用 + 使用者權限映射教學]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/winbtrfs-usage/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fe405c821.webp"></a></p>
+<p>BTRFS作為Linux最先進的的檔案系統，已經有越來越多的Linux發行版將其作為預設選項，例如Fedora、openSUSE、Arch Linux，Ubuntu未來也可能使用BTRFS取代過去預設的EXT4。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9686828f05.webp">
+<p>您可以使用<code>lsblk -f</code>指令查看目前Linux硬碟所使用的檔案系統。</p>
+<p>那麼使用BTRFS的硬碟在雙系統就會造成困擾，Ivon的Linux系統跟Windows系統分處於不同磁區，在Windows掛載（讀取）BTRFS硬碟就會出問題。要嘛不是看不到，不如就是提升你格式化。</p>
+<p>要解決Windows讀不到BTRFS硬碟的問題，除了用WSL跑Linux，用原生的BTRFS驅動去掛載之外，還可以安裝「WinBTRFS」，這是由Mark Harmstone所開發的免費開源驅動程式，支援Windows XP/7/8/10/11系統。</p>
+<p>WinBTRFS實作了BTRFS的大多數功能，包含LXSS的權限系統，使Windows系統能正常讀取Linux的BTRFS硬碟。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a1f1990ad8.webp">
+<h2>1. 安裝WinBTRFS
+<span>
+<a href="#1-%e5%ae%89%e8%a3%9dwinbtrfs" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>裝上BTRFS硬碟。在Windows 11對Windows點右鍵 → 磁碟管理員，Windows偵測到BTRFS的硬碟，因為無法辨識，會提示要新增磁區。此時請不要真的按下去，資料會不見的。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6cc88d7b39.webp">
+</li>
+<li>
+<p>參考<a href="https://github.com/maharmstone/btrfs/releases" target="_blank">WinBTRFS的Github</a>說明，下載最新版<code>btrfs.zip</code>壓縮檔
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-334187e7e8.webp">
+</li>
+<li>
+<p>解壓縮後點選btrfs.inf檔，右鍵安裝驅動程式，爾後重新開機。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f32aaf40c1.webp">
+</li>
+<li>
+<p>這樣不需要額外動作，BTRFS硬碟便會正常顯示在本機磁碟列表了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8965a4bcc5.webp">
+</li>
+<li>
+<p>用磁碟資訊軟體CrystalDiskInfo也能抓到一部分BTRFS硬碟的資訊。</p>
+</li>
+</ol>
+<h2>2. 設定UID/GID映射防止權限錯誤
+<span>
+<a href="#2-%e8%a8%ad%e5%ae%9auidgid%e6%98%a0%e5%b0%84%e9%98%b2%e6%ad%a2%e6%ac%8a%e9%99%90%e9%8c%af%e8%aa%a4" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果在Linux與Windows共用BTRFS的硬碟，Windows透過WinBTRFS存取檔案，可能會導致原有路徑的權限錯亂，讓檔案擁有者變成<code>nobody</code>，進而導致回到Linux的時候出現無法寫入的錯誤。像Steam可能出現磁碟寫入錯誤(disk write error)。如果發生了Steam遊戲無法讀取的問題，需要手動修正權限，例如：<code>ls -al Steam路徑</code>確認目錄擁有者為何，再修正：<code>chown -R 1000:1000 "Steam路徑"</code>。</p>
+<p>為避免這種情況，因此需要做GID/UID映射(Mapping)，讓WinBTRFS以正確權限存取檔案。</p>
+<ol>
+<li>在Linux系統，取得目前使用者的使用者UID與群組GID，通常是<code>uid=1000(使用者名稱) gid=1000(使用者名稱)</code>。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>id <span>"使用者名稱"</span></span></span></code></pre></div></div>
+<ol start="2">
+<li>確認BTRFS硬碟掛載路徑，Ubuntu通常是在<code>/media</code>，檢查使用者與群組擁有者。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ls -al /media/user/TOSHIBADT01ACA100</span></span></code></pre></div></div>
+<ol start="3">
+<li>若硬碟掛載路徑非目前使用者與群組，將其修改。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown -R 1000:1000 /media/user/TOSHIBADT01ACA100</span></span></code></pre></div></div>
+<ol start="4">
+<li>
+<p>開機進入Windows系統</p>
+</li>
+<li>
+<p>搜尋打開Windows終端機或Powershell</p>
+</li>
+<li>
+<p>使用以下指令，取得Windows使用者與群組的SID。通常只要複製第一個user的就好。（註解：如果你在Windows用到「以系統管理員執行」的程式，則需要取得該名Administrator使用者的SID）</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>whoami /user
+</span></span><span><span>
+</span></span><span><span>whoami /groups</span></span></code></pre></div></div>
+<ol start="5">
+<li>
+<p>按Win+R，輸入<code>regedit.exe</code>開啟登錄檔編輯器。</p>
+</li>
+<li>
+<p>找到<code>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\btrfs\Mappings</code></p>
+</li>
+<li>
+<p>右鍵，新增DWORD值，「數值名稱」輸入Windows使用者的SID，「數值資料」輸入Linux使用者的UID
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b9b96d1e8.webp">
+</li>
+<li>
+<p>重開機</p>
+</li>
+<li>
+<p>嘗試在Windows系統，於BTRFS硬碟新增檔案。再回到Linux系統，用<code>ls -al</code>看其使用者與群組是否正確。</p>
+</li>
+</ol>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/winbtrfs-usage/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fe405c821.webp"></a></p>
+<p>BTRFS作為Linux最先進的的檔案系統，已經有越來越多的Linux發行版將其作為預設選項，例如Fedora、openSUSE、Arch Linux，Ubuntu未來也可能使用BTRFS取代過去預設的EXT4。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9686828f05.webp">
+<p>您可以使用<code>lsblk -f</code>指令查看目前Linux硬碟所使用的檔案系統。</p>
+<p>那麼使用BTRFS的硬碟在雙系統就會造成困擾，Ivon的Linux系統跟Windows系統分處於不同磁區，在Windows掛載（讀取）BTRFS硬碟就會出問題。要嘛不是看不到，不如就是提升你格式化。</p>
+<p>要解決Windows讀不到BTRFS硬碟的問題，除了用WSL跑Linux，用原生的BTRFS驅動去掛載之外，還可以安裝「WinBTRFS」，這是由Mark Harmstone所開發的免費開源驅動程式，支援Windows XP/7/8/10/11系統。</p>
+<p>WinBTRFS實作了BTRFS的大多數功能，包含LXSS的權限系統，使Windows系統能正常讀取Linux的BTRFS硬碟。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a1f1990ad8.webp">
+<h2>1. 安裝WinBTRFS
+<span>
+<a href="#1-%e5%ae%89%e8%a3%9dwinbtrfs" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>裝上BTRFS硬碟。在Windows 11對Windows點右鍵 → 磁碟管理員，Windows偵測到BTRFS的硬碟，因為無法辨識，會提示要新增磁區。此時請不要真的按下去，資料會不見的。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6cc88d7b39.webp">
+</li>
+<li>
+<p>參考<a href="https://github.com/maharmstone/btrfs/releases" target="_blank">WinBTRFS的Github</a>說明，下載最新版<code>btrfs.zip</code>壓縮檔
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-334187e7e8.webp">
+</li>
+<li>
+<p>解壓縮後點選btrfs.inf檔，右鍵安裝驅動程式，爾後重新開機。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f32aaf40c1.webp">
+</li>
+<li>
+<p>這樣不需要額外動作，BTRFS硬碟便會正常顯示在本機磁碟列表了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8965a4bcc5.webp">
+</li>
+<li>
+<p>用磁碟資訊軟體CrystalDiskInfo也能抓到一部分BTRFS硬碟的資訊。</p>
+</li>
+</ol>
+<h2>2. 設定UID/GID映射防止權限錯誤
+<span>
+<a href="#2-%e8%a8%ad%e5%ae%9auidgid%e6%98%a0%e5%b0%84%e9%98%b2%e6%ad%a2%e6%ac%8a%e9%99%90%e9%8c%af%e8%aa%a4" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果在Linux與Windows共用BTRFS的硬碟，Windows透過WinBTRFS存取檔案，可能會導致原有路徑的權限錯亂，讓檔案擁有者變成<code>nobody</code>，進而導致回到Linux的時候出現無法寫入的錯誤。像Steam可能出現磁碟寫入錯誤(disk write error)。如果發生了Steam遊戲無法讀取的問題，需要手動修正權限，例如：<code>ls -al Steam路徑</code>確認目錄擁有者為何，再修正：<code>chown -R 1000:1000 "Steam路徑"</code>。</p>
+<p>為避免這種情況，因此需要做GID/UID映射(Mapping)，讓WinBTRFS以正確權限存取檔案。</p>
+<ol>
+<li>在Linux系統，取得目前使用者的使用者UID與群組GID，通常是<code>uid=1000(使用者名稱) gid=1000(使用者名稱)</code>。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>id <span>"使用者名稱"</span></span></span></code></pre></div></div>
+<ol start="2">
+<li>確認BTRFS硬碟掛載路徑，Ubuntu通常是在<code>/media</code>，檢查使用者與群組擁有者。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ls -al /media/user/TOSHIBADT01ACA100</span></span></code></pre></div></div>
+<ol start="3">
+<li>若硬碟掛載路徑非目前使用者與群組，將其修改。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown -R 1000:1000 /media/user/TOSHIBADT01ACA100</span></span></code></pre></div></div>
+<ol start="4">
+<li>
+<p>開機進入Windows系統</p>
+</li>
+<li>
+<p>搜尋打開Windows終端機或Powershell</p>
+</li>
+<li>
+<p>使用以下指令，取得Windows使用者與群組的SID。通常只要複製第一個user的就好。（註解：如果你在Windows用到「以系統管理員執行」的程式，則需要取得該名Administrator使用者的SID）</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>whoami /user
+</span></span><span><span>
+</span></span><span><span>whoami /groups</span></span></code></pre></div></div>
+<ol start="5">
+<li>
+<p>按Win+R，輸入<code>regedit.exe</code>開啟登錄檔編輯器。</p>
+</li>
+<li>
+<p>找到<code>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\btrfs\Mappings</code></p>
+</li>
+<li>
+<p>右鍵，新增DWORD值，「數值名稱」輸入Windows使用者的SID，「數值資料」輸入Linux使用者的UID
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b9b96d1e8.webp">
+</li>
+<li>
+<p>重開機</p>
+</li>
+<li>
+<p>嘗試在Windows系統，於BTRFS硬碟新增檔案。再回到Linux系統，用<code>ls -al</code>看其使用者與群組是否正確。</p>
+</li>
+</ol>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/winbtrfs-usage/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fe405c821.webp"></a></p>
+<p>BTRFS作為Linux最先進的的檔案系統，已經有越來越多的Linux發行版將其作為預設選項，例如Fedora、openSUSE、Arch Linux，Ubuntu未來也可能使用BTRFS取代過去預設的EXT4。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-9686828f05.webp">
+<p>您可以使用<code>lsblk -f</code>指令查看目前Linux硬碟所使用的檔案系統。</p>
+<p>那麼使用BTRFS的硬碟在雙系統就會造成困擾，Ivon的Linux系統跟Windows系統分處於不同磁區，在Windows掛載（讀取）BTRFS硬碟就會出問題。要嘛不是看不到，不如就是提升你格式化。</p>
+<p>要解決Windows讀不到BTRFS硬碟的問題，除了用WSL跑Linux，用原生的BTRFS驅動去掛載之外，還可以安裝「WinBTRFS」，這是由Mark Harmstone所開發的免費開源驅動程式，支援Windows XP/7/8/10/11系統。</p>
+<p>WinBTRFS實作了BTRFS的大多數功能，包含LXSS的權限系統，使Windows系統能正常讀取Linux的BTRFS硬碟。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-a1f1990ad8.webp">
+<h2>1. 安裝WinBTRFS
+<span>
+<a href="#1-%e5%ae%89%e8%a3%9dwinbtrfs" aria-label="定位點">#</a>
+</span>
+</h2>
+<ol>
+<li>
+<p>裝上BTRFS硬碟。在Windows 11對Windows點右鍵 → 磁碟管理員，Windows偵測到BTRFS的硬碟，因為無法辨識，會提示要新增磁區。此時請不要真的按下去，資料會不見的。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6cc88d7b39.webp">
+</li>
+<li>
+<p>參考<a href="https://github.com/maharmstone/btrfs/releases" target="_blank">WinBTRFS的Github</a>說明，下載最新版<code>btrfs.zip</code>壓縮檔
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-334187e7e8.webp">
+</li>
+<li>
+<p>解壓縮後點選btrfs.inf檔，右鍵安裝驅動程式，爾後重新開機。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f32aaf40c1.webp">
+</li>
+<li>
+<p>這樣不需要額外動作，BTRFS硬碟便會正常顯示在本機磁碟列表了。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-8965a4bcc5.webp">
+</li>
+<li>
+<p>用磁碟資訊軟體CrystalDiskInfo也能抓到一部分BTRFS硬碟的資訊。</p>
+</li>
+</ol>
+<h2>2. 設定UID/GID映射防止權限錯誤
+<span>
+<a href="#2-%e8%a8%ad%e5%ae%9auidgid%e6%98%a0%e5%b0%84%e9%98%b2%e6%ad%a2%e6%ac%8a%e9%99%90%e9%8c%af%e8%aa%a4" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果在Linux與Windows共用BTRFS的硬碟，Windows透過WinBTRFS存取檔案，可能會導致原有路徑的權限錯亂，讓檔案擁有者變成<code>nobody</code>，進而導致回到Linux的時候出現無法寫入的錯誤。像Steam可能出現磁碟寫入錯誤(disk write error)。如果發生了Steam遊戲無法讀取的問題，需要手動修正權限，例如：<code>ls -al Steam路徑</code>確認目錄擁有者為何，再修正：<code>chown -R 1000:1000 "Steam路徑"</code>。</p>
+<p>為避免這種情況，因此需要做GID/UID映射(Mapping)，讓WinBTRFS以正確權限存取檔案。</p>
+<ol>
+<li>在Linux系統，取得目前使用者的使用者UID與群組GID，通常是<code>uid=1000(使用者名稱) gid=1000(使用者名稱)</code>。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>id <span>"使用者名稱"</span></span></span></code></pre></div></div>
+<ol start="2">
+<li>確認BTRFS硬碟掛載路徑，Ubuntu通常是在<code>/media</code>，檢查使用者與群組擁有者。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ls -al /media/user/TOSHIBADT01ACA100</span></span></code></pre></div></div>
+<ol start="3">
+<li>若硬碟掛載路徑非目前使用者與群組，將其修改。</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>sudo chown -R 1000:1000 /media/user/TOSHIBADT01ACA100</span></span></code></pre></div></div>
+<ol start="4">
+<li>
+<p>開機進入Windows系統</p>
+</li>
+<li>
+<p>搜尋打開Windows終端機或Powershell</p>
+</li>
+<li>
+<p>使用以下指令，取得Windows使用者與群組的SID。通常只要複製第一個user的就好。（註解：如果你在Windows用到「以系統管理員執行」的程式，則需要取得該名Administrator使用者的SID）</p>
+</li>
+</ol>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>whoami /user
+</span></span><span><span>
+</span></span><span><span>whoami /groups</span></span></code></pre></div></div>
+<ol start="5">
+<li>
+<p>按Win+R，輸入<code>regedit.exe</code>開啟登錄檔編輯器。</p>
+</li>
+<li>
+<p>找到<code>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\btrfs\Mappings</code></p>
+</li>
+<li>
+<p>右鍵，新增DWORD值，「數值名稱」輸入Windows使用者的SID，「數值資料」輸入Linux使用者的UID
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5b9b96d1e8.webp">
+</li>
+<li>
+<p>重開機</p>
+</li>
+<li>
+<p>嘗試在Windows系統，於BTRFS硬碟新增檔案。再回到Linux系統，用<code>ls -al</code>看其使用者與群組是否正確。</p>
+</li>
+</ol>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fe405c821.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3fe405c821.webp" medium="image"/>
+    <pubDate>Thu, 05 Nov 2026 23:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[解決Sony Xperia 1系列長焦拍照不好的問題]]></title>
     <link>https://ivonblog.com/posts/old-xperia-1-telephoto-camera-limitations/</link>
     <itunes:title><![CDATA[解決Sony Xperia 1系列長焦拍照不好的問題]]></itunes:title>
@@ -1790,110 +2078,5 @@
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03f38da416.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-03f38da416.webp" medium="image"/>
     <pubDate>Thu, 15 Oct 2026 22:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Android手機第三方相機拍照難看，可能要到CameraX普及才解決]]></title>
-    <link>https://ivonblog.com/posts/android-3rd-party-camera-app-issues/</link>
-    <itunes:title><![CDATA[Android手機第三方相機拍照難看，可能要到CameraX普及才解決]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/android-3rd-party-camera-app-issues/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp"></a></p>
-<p>Android手機對第三方相機支援度挺混亂的，很依賴個別廠商實作，且幾乎沒有第三方介入的餘地</p>
-<p>看看原廠 vs 第三方相機品質。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4e138cf10c.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-097cb3f080.webp"></p>
-<p>所謂第三方相機，是相對於手機系統內建的相機而言，非原廠開發的相機APP。</p>
-<p>不是有很多人反映Instagram相機的限時動態在Android拍起來很難看嗎，iPhone就不會。致使Android用戶必須用系統相機拍完再上傳。</p>
-<p>這問題到最近兩年才改善。參考：<a href="https://eu.community.samsung.com/t5/tips-how-to/why-do-my-photos-look-better-in-the-camera-app-than-on-instagram/ba-p/12648487" target="_blank">Why Do My Photos Look Better in the Camera App Than on Instagram? - Samsung Community</a> Samsung在S24之後用了叫做UniHAL+的技術，讓所有相機App拍起來都有好的成像。然而，這是Samsung的做法，其他品牌是否會採用，以及是否會成為AOSP標準尚不得而知。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e757aea263.webp">
-<p>這問題就在於Android硬體驅動混雜，沒有統一的API能遵循吧。</p>
-<p>我得修正一下看法了。本來以為Android原廠相機很廢的話，用<a href="https://ivonblog.com/posts/android-open-camera/" target="_blank">Open Camera</a>這種第三方相機就能輕鬆取代，這App功能豐富，還開源免費，也正好作為開源生態系的一劑強心劑。</p>
-<p>我的想法是我們不應該依賴特定品牌的拍照App，拍照App也不該過分依賴ROM提供的特殊韌體，否則會阻礙使用LineageOS這種第三方ROM的實用性。刷LineageOS之後，不應該有拍照變差的後果。</p>
-<p>因為<a href="https://developer.android.com/media/camera/camera2/extensions-api" target="_blank">Camera2API</a>這個標準存在10年了。但是我錯了，Android第三方相機的功能，往往沒有原廠的完善。</p>
-<p>相較之下iPhone的第三方相機拍照品質跟原相機幾乎一樣。例如我覺得iOS原相機無法精細調整白平衡，就裝Yamera，拍出來的畫面跟原廠一樣好。</p>
-<p>先別講AI後製效果，就拿基本的發色來說，Android第三方的相機會不如原生準確。我覺得可能也跟HAL所expose的功能有關。原廠相機有自己的閉源驅動存取方式，第三方相機就只能得到比較差的圖像。</p>
-<p>說來奇怪，Sony Xperia 1/5/10系列，雖然對Camera2API的支援度都顯示Full，沒到Level 3，能夠安裝Open Camera手動控制曝光，可是拍照出來的顏色，都不比原廠相機好。幾乎沒有演算法介入的Photo Pro，拍起來也比Open Camera好看，或者說顏色比較真實，接近當下場景的顏色。</p>
-<p>喔對了Open Camera無法偵測到Xperia 1 III的70mm到105mm長焦的光學變焦功能，這又是一個閉源驅動鎖定相機功能的例子。</p>
-<p>結果我才發現除了主鏡頭之外，其他鏡頭對Camera2API的支援度都是顯示LIMITED。</p>
-<p>Sony手機對Camera2API的支援度，似乎不會隨刷機為LineageOS有任何改變，需要硬體驅動配合。</p>
-<p>這樣的話第三方Android相機勢必得用超強濾鏡修圖，或者有Gcam這種神級演算法，才能挽救相機品質落差。可是這不是我要追求的。我是要在原廠相機發色上做細緻調整。可如果基礎的顏色都不對了，我使用第三方相機就不穩了。</p>
-<p>我會有這種體悟是因為，Xperia 10 V刷機為LineageOS，有段時間Sony原廠相機崩潰打不開，所以改用Open Camera。雖然有拍出不錯的照片，但總覺得預設模式下照片顏色似乎不太準。Open Camera的照片與以前未刷機的Sony原廠相機比起來，顏色似乎都偏黯淡。後來裝了XDA用戶調整過的APK才重新使用Sony原廠相機。我發現到Sony相機拍起來其實很不錯的，然後Sony針對中階10系列也有提供很陽春的手動模式。無腦拍的話原廠相機比較好。</p>
-<p>在Xperia 1 III和Xperia 5 II大抵也是類似使用體驗，原廠相機顏色比較正確。</p>
-<p>看來只有Pixel這種Camera2API完美支援到Level 3的機子，才能讓第三方相機獲得較好的照片品質了。</p>
-<p>Google還有在推叫做<a href="https://developer.android.com/media/camera/camerax?hl=zh-tw" target="_blank">CameraX</a>的新標準，給Jetpack用的，需要軟硬體驅動配合。</p>
-<p>根據我的使用經驗，Google Pixel 6a刷GrapheneOS，他們相機使用了CameraX Extensions API，令其相機與Pixel原廠相機有幾乎一樣的夜拍表現。</p>
-<p>故，現在的Google Pixel應該不會有Instagram拍起來很難看的問題了。</p>
-<p>根據CameraX官網資料，許多Android廠牌也加入了CameraX支援了，能改善第三方相機成像品質。Samsung S24之後有改善。Sony的話要Xperia 1 VI以後型號，才有CameraX支援。</p>
-<p>Open Camera其實也支援了CameraX，但好像只能在Pixel使用。也就是說CameraX不只要App開發者支援，系統和驅動也得跟上的樣子。</p>
-<p>雖然理論上CameraX最低支援到Android 5.0，但是有廠商會願意將這功能backport到老機型嗎？</p>
-<p>至於Sony舊旗艦機，即使硬體感光元件再怎麼強，還是用Sony原廠相機App拍比較好。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/android-3rd-party-camera-app-issues/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp"></a></p>
-<p>Android手機對第三方相機支援度挺混亂的，很依賴個別廠商實作，且幾乎沒有第三方介入的餘地</p>
-<p>看看原廠 vs 第三方相機品質。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4e138cf10c.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-097cb3f080.webp"></p>
-<p>所謂第三方相機，是相對於手機系統內建的相機而言，非原廠開發的相機APP。</p>
-<p>不是有很多人反映Instagram相機的限時動態在Android拍起來很難看嗎，iPhone就不會。致使Android用戶必須用系統相機拍完再上傳。</p>
-<p>這問題到最近兩年才改善。參考：<a href="https://eu.community.samsung.com/t5/tips-how-to/why-do-my-photos-look-better-in-the-camera-app-than-on-instagram/ba-p/12648487" target="_blank">Why Do My Photos Look Better in the Camera App Than on Instagram? - Samsung Community</a> Samsung在S24之後用了叫做UniHAL+的技術，讓所有相機App拍起來都有好的成像。然而，這是Samsung的做法，其他品牌是否會採用，以及是否會成為AOSP標準尚不得而知。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e757aea263.webp">
-<p>這問題就在於Android硬體驅動混雜，沒有統一的API能遵循吧。</p>
-<p>我得修正一下看法了。本來以為Android原廠相機很廢的話，用<a href="https://ivonblog.com/posts/android-open-camera/" target="_blank">Open Camera</a>這種第三方相機就能輕鬆取代，這App功能豐富，還開源免費，也正好作為開源生態系的一劑強心劑。</p>
-<p>我的想法是我們不應該依賴特定品牌的拍照App，拍照App也不該過分依賴ROM提供的特殊韌體，否則會阻礙使用LineageOS這種第三方ROM的實用性。刷LineageOS之後，不應該有拍照變差的後果。</p>
-<p>因為<a href="https://developer.android.com/media/camera/camera2/extensions-api" target="_blank">Camera2API</a>這個標準存在10年了。但是我錯了，Android第三方相機的功能，往往沒有原廠的完善。</p>
-<p>相較之下iPhone的第三方相機拍照品質跟原相機幾乎一樣。例如我覺得iOS原相機無法精細調整白平衡，就裝Yamera，拍出來的畫面跟原廠一樣好。</p>
-<p>先別講AI後製效果，就拿基本的發色來說，Android第三方的相機會不如原生準確。我覺得可能也跟HAL所expose的功能有關。原廠相機有自己的閉源驅動存取方式，第三方相機就只能得到比較差的圖像。</p>
-<p>說來奇怪，Sony Xperia 1/5/10系列，雖然對Camera2API的支援度都顯示Full，沒到Level 3，能夠安裝Open Camera手動控制曝光，可是拍照出來的顏色，都不比原廠相機好。幾乎沒有演算法介入的Photo Pro，拍起來也比Open Camera好看，或者說顏色比較真實，接近當下場景的顏色。</p>
-<p>喔對了Open Camera無法偵測到Xperia 1 III的70mm到105mm長焦的光學變焦功能，這又是一個閉源驅動鎖定相機功能的例子。</p>
-<p>結果我才發現除了主鏡頭之外，其他鏡頭對Camera2API的支援度都是顯示LIMITED。</p>
-<p>Sony手機對Camera2API的支援度，似乎不會隨刷機為LineageOS有任何改變，需要硬體驅動配合。</p>
-<p>這樣的話第三方Android相機勢必得用超強濾鏡修圖，或者有Gcam這種神級演算法，才能挽救相機品質落差。可是這不是我要追求的。我是要在原廠相機發色上做細緻調整。可如果基礎的顏色都不對了，我使用第三方相機就不穩了。</p>
-<p>我會有這種體悟是因為，Xperia 10 V刷機為LineageOS，有段時間Sony原廠相機崩潰打不開，所以改用Open Camera。雖然有拍出不錯的照片，但總覺得預設模式下照片顏色似乎不太準。Open Camera的照片與以前未刷機的Sony原廠相機比起來，顏色似乎都偏黯淡。後來裝了XDA用戶調整過的APK才重新使用Sony原廠相機。我發現到Sony相機拍起來其實很不錯的，然後Sony針對中階10系列也有提供很陽春的手動模式。無腦拍的話原廠相機比較好。</p>
-<p>在Xperia 1 III和Xperia 5 II大抵也是類似使用體驗，原廠相機顏色比較正確。</p>
-<p>看來只有Pixel這種Camera2API完美支援到Level 3的機子，才能讓第三方相機獲得較好的照片品質了。</p>
-<p>Google還有在推叫做<a href="https://developer.android.com/media/camera/camerax?hl=zh-tw" target="_blank">CameraX</a>的新標準，給Jetpack用的，需要軟硬體驅動配合。</p>
-<p>根據我的使用經驗，Google Pixel 6a刷GrapheneOS，他們相機使用了CameraX Extensions API，令其相機與Pixel原廠相機有幾乎一樣的夜拍表現。</p>
-<p>故，現在的Google Pixel應該不會有Instagram拍起來很難看的問題了。</p>
-<p>根據CameraX官網資料，許多Android廠牌也加入了CameraX支援了，能改善第三方相機成像品質。Samsung S24之後有改善。Sony的話要Xperia 1 VI以後型號，才有CameraX支援。</p>
-<p>Open Camera其實也支援了CameraX，但好像只能在Pixel使用。也就是說CameraX不只要App開發者支援，系統和驅動也得跟上的樣子。</p>
-<p>雖然理論上CameraX最低支援到Android 5.0，但是有廠商會願意將這功能backport到老機型嗎？</p>
-<p>至於Sony舊旗艦機，即使硬體感光元件再怎麼強，還是用Sony原廠相機App拍比較好。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/android-3rd-party-camera-app-issues/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp"></a></p>
-<p>Android手機對第三方相機支援度挺混亂的，很依賴個別廠商實作，且幾乎沒有第三方介入的餘地</p>
-<p>看看原廠 vs 第三方相機品質。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4e138cf10c.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-097cb3f080.webp"></p>
-<p>所謂第三方相機，是相對於手機系統內建的相機而言，非原廠開發的相機APP。</p>
-<p>不是有很多人反映Instagram相機的限時動態在Android拍起來很難看嗎，iPhone就不會。致使Android用戶必須用系統相機拍完再上傳。</p>
-<p>這問題到最近兩年才改善。參考：<a href="https://eu.community.samsung.com/t5/tips-how-to/why-do-my-photos-look-better-in-the-camera-app-than-on-instagram/ba-p/12648487" target="_blank">Why Do My Photos Look Better in the Camera App Than on Instagram? - Samsung Community</a> Samsung在S24之後用了叫做UniHAL+的技術，讓所有相機App拍起來都有好的成像。然而，這是Samsung的做法，其他品牌是否會採用，以及是否會成為AOSP標準尚不得而知。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-e757aea263.webp">
-<p>這問題就在於Android硬體驅動混雜，沒有統一的API能遵循吧。</p>
-<p>我得修正一下看法了。本來以為Android原廠相機很廢的話，用<a href="https://ivonblog.com/posts/android-open-camera/" target="_blank">Open Camera</a>這種第三方相機就能輕鬆取代，這App功能豐富，還開源免費，也正好作為開源生態系的一劑強心劑。</p>
-<p>我的想法是我們不應該依賴特定品牌的拍照App，拍照App也不該過分依賴ROM提供的特殊韌體，否則會阻礙使用LineageOS這種第三方ROM的實用性。刷LineageOS之後，不應該有拍照變差的後果。</p>
-<p>因為<a href="https://developer.android.com/media/camera/camera2/extensions-api" target="_blank">Camera2API</a>這個標準存在10年了。但是我錯了，Android第三方相機的功能，往往沒有原廠的完善。</p>
-<p>相較之下iPhone的第三方相機拍照品質跟原相機幾乎一樣。例如我覺得iOS原相機無法精細調整白平衡，就裝Yamera，拍出來的畫面跟原廠一樣好。</p>
-<p>先別講AI後製效果，就拿基本的發色來說，Android第三方的相機會不如原生準確。我覺得可能也跟HAL所expose的功能有關。原廠相機有自己的閉源驅動存取方式，第三方相機就只能得到比較差的圖像。</p>
-<p>說來奇怪，Sony Xperia 1/5/10系列，雖然對Camera2API的支援度都顯示Full，沒到Level 3，能夠安裝Open Camera手動控制曝光，可是拍照出來的顏色，都不比原廠相機好。幾乎沒有演算法介入的Photo Pro，拍起來也比Open Camera好看，或者說顏色比較真實，接近當下場景的顏色。</p>
-<p>喔對了Open Camera無法偵測到Xperia 1 III的70mm到105mm長焦的光學變焦功能，這又是一個閉源驅動鎖定相機功能的例子。</p>
-<p>結果我才發現除了主鏡頭之外，其他鏡頭對Camera2API的支援度都是顯示LIMITED。</p>
-<p>Sony手機對Camera2API的支援度，似乎不會隨刷機為LineageOS有任何改變，需要硬體驅動配合。</p>
-<p>這樣的話第三方Android相機勢必得用超強濾鏡修圖，或者有Gcam這種神級演算法，才能挽救相機品質落差。可是這不是我要追求的。我是要在原廠相機發色上做細緻調整。可如果基礎的顏色都不對了，我使用第三方相機就不穩了。</p>
-<p>我會有這種體悟是因為，Xperia 10 V刷機為LineageOS，有段時間Sony原廠相機崩潰打不開，所以改用Open Camera。雖然有拍出不錯的照片，但總覺得預設模式下照片顏色似乎不太準。Open Camera的照片與以前未刷機的Sony原廠相機比起來，顏色似乎都偏黯淡。後來裝了XDA用戶調整過的APK才重新使用Sony原廠相機。我發現到Sony相機拍起來其實很不錯的，然後Sony針對中階10系列也有提供很陽春的手動模式。無腦拍的話原廠相機比較好。</p>
-<p>在Xperia 1 III和Xperia 5 II大抵也是類似使用體驗，原廠相機顏色比較正確。</p>
-<p>看來只有Pixel這種Camera2API完美支援到Level 3的機子，才能讓第三方相機獲得較好的照片品質了。</p>
-<p>Google還有在推叫做<a href="https://developer.android.com/media/camera/camerax?hl=zh-tw" target="_blank">CameraX</a>的新標準，給Jetpack用的，需要軟硬體驅動配合。</p>
-<p>根據我的使用經驗，Google Pixel 6a刷GrapheneOS，他們相機使用了CameraX Extensions API，令其相機與Pixel原廠相機有幾乎一樣的夜拍表現。</p>
-<p>故，現在的Google Pixel應該不會有Instagram拍起來很難看的問題了。</p>
-<p>根據CameraX官網資料，許多Android廠牌也加入了CameraX支援了，能改善第三方相機成像品質。Samsung S24之後有改善。Sony的話要Xperia 1 VI以後型號，才有CameraX支援。</p>
-<p>Open Camera其實也支援了CameraX，但好像只能在Pixel使用。也就是說CameraX不只要App開發者支援，系統和驅動也得跟上的樣子。</p>
-<p>雖然理論上CameraX最低支援到Android 5.0，但是有廠商會願意將這功能backport到老機型嗎？</p>
-<p>至於Sony舊旗艦機，即使硬體感光元件再怎麼強，還是用Sony原廠相機App拍比較好。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-dcef2cf181.webp" medium="image"/>
-    <pubDate>Thu, 15 Oct 2026 01:00:00 +0800</pubDate>
   </item></channel>
 </rss>
