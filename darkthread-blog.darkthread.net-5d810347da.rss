@@ -30,6 +30,332 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[nmcli 常用指令]]></title>
+    <link>https://blog.darkthread.net/blog/nmcli/</link>
+    <itunes:title><![CDATA[nmcli 常用指令]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>最近的主要工作環境搬到 RHEL，設定管理與除錯指令跟 Debian/Ubuntu 有點不同，雖然問 AI 都能解決，但問事、無腦貼指令的人肉 Proxy 當多了，覺得自己很廢。類似動作做過三五次卻沒進腦子，下次再遇到得重新問一次巴望著 AI 搞定，人沒半點能力處理，堂堂茶包射手淪落至此，令人不勝唏噓! 想想，還是花點時間把這點基本技能學起來吧。</p> <p>我對 Linux 的網路設定印象還留在古代，是用 net-tools 的 <code>ifconfig</code>、<code>route</code> 臨時設定，重開機後失效：</p> <pre><code>ifconfig eth0 192.168.1.100 netmask 255.255.255.0 up
+route add default gw 192.168.1.1
+ifconfig eth0:0 192.168.1.101 netmask 255.255.255.0          # 以別名介面加第二個 IP
+route add -net 172.16.0.0 netmask 255.255.0.0 gw 192.168.1.254
+echo "nameserver 8.8.8.8" &gt; /etc/resolv.conf
+</code></pre> <p>永久設定則要改設定檔，RHEL / CentOS：</p> <pre><code># /etc/sysconfig/network-scripts/ifcfg-eth0
+DEVICE=eth0
+BOOTPROTO=none     # dhcp 為 DHCP
+ONBOOT=yes
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+DNS1=8.8.8.8
+</code></pre> <p>用 <code>service network restart</code> 或 <code>ifdown eth0 &amp;&amp; ifup eth0</code> 套用，靜態路由另寫在 <code>route-eth0</code>。</p> <p>而 Debian / Ubuntu 則是：</p> <pre><code># /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+address 192.168.1.100
+netmask 255.255.255.0
+gateway 192.168.1.1
+</code></pre> <p><code>/etc/init.d/networking restart</code> 或 <code>ifdown eth0 &amp;&amp; ifup eth0</code> 套用。</p> <p>近代的 Linux 許多改用 NetworkManager 管理(尤其是桌面版)，ssh 登入操作則有 <code>nmcli</code> 指令，比編輯設定檔友善許多。不同 Linux 發行版採用的做法不同，整理如下：</p> <table><thead><tr><th>發行版</th><th>預設網路管理</th><th>永久設定位置</th><th>主要設定方式</th></tr></thead><tbody><tr><td>RHEL 9 / 10、Rocky、AlmaLinux、Fedora</td><td>NetworkManager</td><td><code>/etc/NetworkManager/system-connections/*.nmconnection</code></td><td><code>nmcli</code>、<code>nmtui</code></td></tr><tr><td>SLES 16、openSUSE Leap 16</td><td>NetworkManager (wicked 已移除)</td><td>同上</td><td><code>nmcli</code></td></tr><tr><td>SLES 15</td><td>wicked 或 NetworkManager</td><td><code>/etc/sysconfig/network/ifcfg-*</code> (wicked)</td><td>YaST、wicked</td></tr><tr><td>Debian 12 / 13 (未裝桌面)</td><td>ifupdown</td><td><code>/etc/network/interfaces</code></td><td>編輯檔案後 <code>ifdown</code> / <code>ifup</code></td></tr><tr><td>Debian 12 / 13 (有裝桌面)</td><td>NetworkManager</td><td>keyfile</td><td><code>nmcli</code>、GUI</td></tr><tr><td>Ubuntu Server 18.04 以後</td><td>Netplan + systemd-networkd</td><td><code>/etc/netplan/*.yaml</code></td><td>編輯 YAML 後 <code>netplan apply</code></td></tr><tr><td>Ubuntu Desktop 23.10 以後</td><td>Netplan + NetworkManager</td><td><code>/etc/netplan/</code> (NetworkManager 寫回 YAML)</td><td><code>nmcli</code>、GUI 或 Netplan</td></tr></tbody></table> <p>Red Hat 從 2014 RHEL 7 起預設使用 NetworkManager (CLI 工具為 nmcli，預設沒裝 net-tools，難怪我連 ifconfig 都找不到) 管理網卡設定。指令工具從 <code>ifconfig</code> 換成 <code>ip</code>，從手改設定檔換成由 NetworkManager 統一管理，這篇便會以 <code>nmcli</code> 為主。</p> <p><code>nmcli</code> 是 NetworkManager 的命令列工具，設定會永久保存，重開機後仍有效。操作上有兩個核心物件：</p> <ul><li>device：實體或虛擬網卡 (如 <code>eth0</code>、<code>wlan0</code>)。</li> <li>connection：連線設定檔 (profile)，IP、DNS、路由等都存在這裡，一張網卡可有多個 profile，但同時只能啟用一個。修改 connection 後須重新啟用 (<code>nmcli connection up</code>) 才會生效。</li></ul> <p>輸入指令時可善用縮寫，如 <code>nmcli c</code> = <code>nmcli connection</code>、<code>nmcli d</code> = <code>nmcli device</code>。以下假設網卡為 <code>eth0</code>、連線名稱為 <code>LAN</code>，整理常用到的操作：</p> <p>一、列舉網卡</p> <pre><code># 列出所有網卡及狀態
+nmcli device status
+# 查看指定網卡詳細資訊 (MAC、IP、閘道器、DNS)
+nmcli device show eth0
+# 列出所有連線設定檔
+nmcli connection show
+# 只列出啟用中的連線
+nmcli connection show --active
+# 查看指定連線的完整設定
+nmcli connection show LAN
+</code></pre> <p>二、啟用與停用網卡</p> <pre><code># 以 device 層級連線 / 中斷
+nmcli device connect eth0
+nmcli device disconnect eth0
+# 以 connection 層級啟用 / 停用
+nmcli connection up LAN
+nmcli connection down LAN
+# 開機時是否自動連線
+nmcli connection modify LAN connection.autoconnect yes
+# 無線網卡電源開關
+nmcli radio wifi off
+nmcli radio wifi on
+# 整體網路開關 (會中斷所有連線，遠端操作時小心)
+nmcli networking off
+nmcli networking on
+</code></pre> <p>註：<code>device disconnect</code> 會阻止該網卡自動重連，直到手動 <code>connect</code> 為止；<code>connection down</code> 則只停用該 profile。</p> <p>三、設定無線連線 (SSID 及密碼)</p> <pre><code># 掃描附近基地台
+nmcli device wifi list
+nmcli device wifi rescan
+# 一行完成連線，並自動建立 connection profile
+nmcli device wifi connect "MySSID" password "MyPassword" ifname wlan0
+# 隱藏 SSID
+nmcli device wifi connect "MySSID" password "MyPassword" hidden yes
+# 互動式輸入密碼 (避免密碼留在 shell history)
+nmcli --ask device wifi connect "MySSID"
+</code></pre> <p>以 <code>connection add</code> 手動建立 (適合寫成 script)：</p> <pre><code>nmcli connection add type wifi con-name HomeWiFi ifname wlan0 ssid "MySSID" \
+wifi-sec.key-mgmt wpa-psk wifi-sec.psk "MyPassword"
+nmcli connection up HomeWiFi
+</code></pre> <p>四、設定網卡使用 DHCP</p> <pre><code># 新建 DHCP 連線
+nmcli connection add type ethernet con-name LAN ifname eth0 ipv4.method auto
+# 將既有固定 IP 連線改回 DHCP (須清除固定設定，否則會與 DHCP 位址並存)
+nmcli connection modify LAN ipv4.method auto \
+ipv4.addresses "" ipv4.gateway "" ipv4.dns ""
+nmcli connection up LAN
+</code></pre> <p>提醒：若使用 DHCP 取得 IP，但 DNS 改用自訂值：</p> <pre><code>nmcli connection modify LAN ipv4.ignore-auto-dns yes ipv4.dns "1.1.1.1 8.8.8.8"
+</code></pre> <p>五、設定固定 IP (含閘道器、DNS)</p> <pre><code># 新建
+nmcli connection add type ethernet con-name LAN ifname eth0 \
+ipv4.method manual \
+ipv4.addresses 192.168.1.100/24 \
+ipv4.gateway 192.168.1.1 \
+ipv4.dns "192.168.1.1 8.8.8.8" \
+ipv4.dns-search "example.local"
+# 修改既有連線
+nmcli connection modify LAN ipv4.method manual \
+ipv4.addresses 192.168.1.100/24 \
+ipv4.gateway 192.168.1.1 \
+ipv4.dns "192.168.1.1 8.8.8.8"
+nmcli connection up LAN
+# 驗證
+ip addr show eth0
+ip route
+nmcli device show eth0 | grep DNS # 或 cat /etc/resolv.conf
+</code></pre> <p>注意 <code>ipv4.method manual</code> 必須搭配 <code>ipv4.addresses</code>，否則指令會失敗。</p> <p>六、為網卡加入額外 IP</p> <p>屬性前加 <code>+</code> 為附加，加 <code>-</code> 為移除；不加則整個覆寫。</p> <pre><code># 加入第二、第三個 IP
+nmcli connection modify LAN +ipv4.addresses 192.168.1.101/24
+nmcli connection modify LAN +ipv4.addresses "10.0.0.5/24, 10.0.0.6/24"
+nmcli connection up LAN
+# 移除其中一個
+nmcli connection modify LAN -ipv4.addresses 192.168.1.101/24
+nmcli connection up LAN
+</code></pre> <p>不想中斷連線時，可改用 <code>nmcli device reapply eth0</code> 套用變更。</p> <p>七、加入指定路由規則</p> <p>語法：<code>ipv4.routes "目的網段[/prefix] [下一跳] [metric] [屬性=值] ..."</code></p> <pre><code># 加入靜態路由：往 172.16.0.0/16 經 192.168.1.254
+nmcli connection modify LAN +ipv4.routes "172.16.0.0/16 192.168.1.254"
+# 指定 metric (數字小的優先)
+nmcli connection modify LAN +ipv4.routes "10.10.0.0/16 192.168.1.253 100"
+# 一次加入多筆 (逗號分隔)
+nmcli connection modify LAN +ipv4.routes "172.16.0.0/16 192.168.1.254, 10.20.0.0/16 192.168.1.253"
+# 移除指定路由
+nmcli connection modify LAN -ipv4.routes "172.16.0.0/16 192.168.1.254"
+# 套用並驗證
+nmcli connection up LAN
+ip route
+</code></pre> <p>進階：Policy-based routing (依來源位址走不同路由表)：</p> <pre><code>nmcli connection modify LAN \
+ipv4.routes "0.0.0.0/0 192.168.1.254 table=5000" \
+ipv4.routing-rules "priority 5 from 192.168.1.0/24 table 5000"
+</code></pre> <p>其他常用選項：</p> <pre><code># 此連線不作為預設閘道 (多網卡時常用)
+nmcli connection modify LAN ipv4.never-default yes
+# 忽略 DHCP 給的路由
+nmcli connection modify LAN ipv4.ignore-auto-routes yes
+</code></pre> <p data-slug="nmcli" data-fbimg="https://cdn.pixabay.com/photo/2016/08/05/16/51/network-1572617_1280.jpg#1280#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>最近的主要工作環境搬到 RHEL，設定管理與除錯指令跟 Debian/Ubuntu 有點不同，雖然問 AI 都能解決，但問事、無腦貼指令的人肉 Proxy 當多了，覺得自己很廢。類似動作做過三五次卻沒進腦子，下次再遇到得重新問一次巴望著 AI 搞定，人沒半點能力處理，堂堂茶包射手淪落至此，令人不勝唏噓! 想想，還是花點時間把這點基本技能學起來吧。</p> <p>我對 Linux 的網路設定印象還留在古代，是用 net-tools 的 <code>ifconfig</code>、<code>route</code> 臨時設定，重開機後失效：</p> <pre><code>ifconfig eth0 192.168.1.100 netmask 255.255.255.0 up
+route add default gw 192.168.1.1
+ifconfig eth0:0 192.168.1.101 netmask 255.255.255.0          # 以別名介面加第二個 IP
+route add -net 172.16.0.0 netmask 255.255.0.0 gw 192.168.1.254
+echo "nameserver 8.8.8.8" &gt; /etc/resolv.conf
+</code></pre> <p>永久設定則要改設定檔，RHEL / CentOS：</p> <pre><code># /etc/sysconfig/network-scripts/ifcfg-eth0
+DEVICE=eth0
+BOOTPROTO=none     # dhcp 為 DHCP
+ONBOOT=yes
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+DNS1=8.8.8.8
+</code></pre> <p>用 <code>service network restart</code> 或 <code>ifdown eth0 &amp;&amp; ifup eth0</code> 套用，靜態路由另寫在 <code>route-eth0</code>。</p> <p>而 Debian / Ubuntu 則是：</p> <pre><code># /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+address 192.168.1.100
+netmask 255.255.255.0
+gateway 192.168.1.1
+</code></pre> <p><code>/etc/init.d/networking restart</code> 或 <code>ifdown eth0 &amp;&amp; ifup eth0</code> 套用。</p> <p>近代的 Linux 許多改用 NetworkManager 管理(尤其是桌面版)，ssh 登入操作則有 <code>nmcli</code> 指令，比編輯設定檔友善許多。不同 Linux 發行版採用的做法不同，整理如下：</p> <table><thead><tr><th>發行版</th><th>預設網路管理</th><th>永久設定位置</th><th>主要設定方式</th></tr></thead><tbody><tr><td>RHEL 9 / 10、Rocky、AlmaLinux、Fedora</td><td>NetworkManager</td><td><code>/etc/NetworkManager/system-connections/*.nmconnection</code></td><td><code>nmcli</code>、<code>nmtui</code></td></tr><tr><td>SLES 16、openSUSE Leap 16</td><td>NetworkManager (wicked 已移除)</td><td>同上</td><td><code>nmcli</code></td></tr><tr><td>SLES 15</td><td>wicked 或 NetworkManager</td><td><code>/etc/sysconfig/network/ifcfg-*</code> (wicked)</td><td>YaST、wicked</td></tr><tr><td>Debian 12 / 13 (未裝桌面)</td><td>ifupdown</td><td><code>/etc/network/interfaces</code></td><td>編輯檔案後 <code>ifdown</code> / <code>ifup</code></td></tr><tr><td>Debian 12 / 13 (有裝桌面)</td><td>NetworkManager</td><td>keyfile</td><td><code>nmcli</code>、GUI</td></tr><tr><td>Ubuntu Server 18.04 以後</td><td>Netplan + systemd-networkd</td><td><code>/etc/netplan/*.yaml</code></td><td>編輯 YAML 後 <code>netplan apply</code></td></tr><tr><td>Ubuntu Desktop 23.10 以後</td><td>Netplan + NetworkManager</td><td><code>/etc/netplan/</code> (NetworkManager 寫回 YAML)</td><td><code>nmcli</code>、GUI 或 Netplan</td></tr></tbody></table> <p>Red Hat 從 2014 RHEL 7 起預設使用 NetworkManager (CLI 工具為 nmcli，預設沒裝 net-tools，難怪我連 ifconfig 都找不到) 管理網卡設定。指令工具從 <code>ifconfig</code> 換成 <code>ip</code>，從手改設定檔換成由 NetworkManager 統一管理，這篇便會以 <code>nmcli</code> 為主。</p> <p><code>nmcli</code> 是 NetworkManager 的命令列工具，設定會永久保存，重開機後仍有效。操作上有兩個核心物件：</p> <ul><li>device：實體或虛擬網卡 (如 <code>eth0</code>、<code>wlan0</code>)。</li> <li>connection：連線設定檔 (profile)，IP、DNS、路由等都存在這裡，一張網卡可有多個 profile，但同時只能啟用一個。修改 connection 後須重新啟用 (<code>nmcli connection up</code>) 才會生效。</li></ul> <p>輸入指令時可善用縮寫，如 <code>nmcli c</code> = <code>nmcli connection</code>、<code>nmcli d</code> = <code>nmcli device</code>。以下假設網卡為 <code>eth0</code>、連線名稱為 <code>LAN</code>，整理常用到的操作：</p> <p>一、列舉網卡</p> <pre><code># 列出所有網卡及狀態
+nmcli device status
+# 查看指定網卡詳細資訊 (MAC、IP、閘道器、DNS)
+nmcli device show eth0
+# 列出所有連線設定檔
+nmcli connection show
+# 只列出啟用中的連線
+nmcli connection show --active
+# 查看指定連線的完整設定
+nmcli connection show LAN
+</code></pre> <p>二、啟用與停用網卡</p> <pre><code># 以 device 層級連線 / 中斷
+nmcli device connect eth0
+nmcli device disconnect eth0
+# 以 connection 層級啟用 / 停用
+nmcli connection up LAN
+nmcli connection down LAN
+# 開機時是否自動連線
+nmcli connection modify LAN connection.autoconnect yes
+# 無線網卡電源開關
+nmcli radio wifi off
+nmcli radio wifi on
+# 整體網路開關 (會中斷所有連線，遠端操作時小心)
+nmcli networking off
+nmcli networking on
+</code></pre> <p>註：<code>device disconnect</code> 會阻止該網卡自動重連，直到手動 <code>connect</code> 為止；<code>connection down</code> 則只停用該 profile。</p> <p>三、設定無線連線 (SSID 及密碼)</p> <pre><code># 掃描附近基地台
+nmcli device wifi list
+nmcli device wifi rescan
+# 一行完成連線，並自動建立 connection profile
+nmcli device wifi connect "MySSID" password "MyPassword" ifname wlan0
+# 隱藏 SSID
+nmcli device wifi connect "MySSID" password "MyPassword" hidden yes
+# 互動式輸入密碼 (避免密碼留在 shell history)
+nmcli --ask device wifi connect "MySSID"
+</code></pre> <p>以 <code>connection add</code> 手動建立 (適合寫成 script)：</p> <pre><code>nmcli connection add type wifi con-name HomeWiFi ifname wlan0 ssid "MySSID" \
+wifi-sec.key-mgmt wpa-psk wifi-sec.psk "MyPassword"
+nmcli connection up HomeWiFi
+</code></pre> <p>四、設定網卡使用 DHCP</p> <pre><code># 新建 DHCP 連線
+nmcli connection add type ethernet con-name LAN ifname eth0 ipv4.method auto
+# 將既有固定 IP 連線改回 DHCP (須清除固定設定，否則會與 DHCP 位址並存)
+nmcli connection modify LAN ipv4.method auto \
+ipv4.addresses "" ipv4.gateway "" ipv4.dns ""
+nmcli connection up LAN
+</code></pre> <p>提醒：若使用 DHCP 取得 IP，但 DNS 改用自訂值：</p> <pre><code>nmcli connection modify LAN ipv4.ignore-auto-dns yes ipv4.dns "1.1.1.1 8.8.8.8"
+</code></pre> <p>五、設定固定 IP (含閘道器、DNS)</p> <pre><code># 新建
+nmcli connection add type ethernet con-name LAN ifname eth0 \
+ipv4.method manual \
+ipv4.addresses 192.168.1.100/24 \
+ipv4.gateway 192.168.1.1 \
+ipv4.dns "192.168.1.1 8.8.8.8" \
+ipv4.dns-search "example.local"
+# 修改既有連線
+nmcli connection modify LAN ipv4.method manual \
+ipv4.addresses 192.168.1.100/24 \
+ipv4.gateway 192.168.1.1 \
+ipv4.dns "192.168.1.1 8.8.8.8"
+nmcli connection up LAN
+# 驗證
+ip addr show eth0
+ip route
+nmcli device show eth0 | grep DNS # 或 cat /etc/resolv.conf
+</code></pre> <p>注意 <code>ipv4.method manual</code> 必須搭配 <code>ipv4.addresses</code>，否則指令會失敗。</p> <p>六、為網卡加入額外 IP</p> <p>屬性前加 <code>+</code> 為附加，加 <code>-</code> 為移除；不加則整個覆寫。</p> <pre><code># 加入第二、第三個 IP
+nmcli connection modify LAN +ipv4.addresses 192.168.1.101/24
+nmcli connection modify LAN +ipv4.addresses "10.0.0.5/24, 10.0.0.6/24"
+nmcli connection up LAN
+# 移除其中一個
+nmcli connection modify LAN -ipv4.addresses 192.168.1.101/24
+nmcli connection up LAN
+</code></pre> <p>不想中斷連線時，可改用 <code>nmcli device reapply eth0</code> 套用變更。</p> <p>七、加入指定路由規則</p> <p>語法：<code>ipv4.routes "目的網段[/prefix] [下一跳] [metric] [屬性=值] ..."</code></p> <pre><code># 加入靜態路由：往 172.16.0.0/16 經 192.168.1.254
+nmcli connection modify LAN +ipv4.routes "172.16.0.0/16 192.168.1.254"
+# 指定 metric (數字小的優先)
+nmcli connection modify LAN +ipv4.routes "10.10.0.0/16 192.168.1.253 100"
+# 一次加入多筆 (逗號分隔)
+nmcli connection modify LAN +ipv4.routes "172.16.0.0/16 192.168.1.254, 10.20.0.0/16 192.168.1.253"
+# 移除指定路由
+nmcli connection modify LAN -ipv4.routes "172.16.0.0/16 192.168.1.254"
+# 套用並驗證
+nmcli connection up LAN
+ip route
+</code></pre> <p>進階：Policy-based routing (依來源位址走不同路由表)：</p> <pre><code>nmcli connection modify LAN \
+ipv4.routes "0.0.0.0/0 192.168.1.254 table=5000" \
+ipv4.routing-rules "priority 5 from 192.168.1.0/24 table 5000"
+</code></pre> <p>其他常用選項：</p> <pre><code># 此連線不作為預設閘道 (多網卡時常用)
+nmcli connection modify LAN ipv4.never-default yes
+# 忽略 DHCP 給的路由
+nmcli connection modify LAN ipv4.ignore-auto-routes yes
+</code></pre> <p data-slug="nmcli" data-fbimg="https://cdn.pixabay.com/photo/2016/08/05/16/51/network-1572617_1280.jpg#1280#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>最近的主要工作環境搬到 RHEL，設定管理與除錯指令跟 Debian/Ubuntu 有點不同，雖然問 AI 都能解決，但問事、無腦貼指令的人肉 Proxy 當多了，覺得自己很廢。類似動作做過三五次卻沒進腦子，下次再遇到得重新問一次巴望著 AI 搞定，人沒半點能力處理，堂堂茶包射手淪落至此，令人不勝唏噓! 想想，還是花點時間把這點基本技能學起來吧。</p> <p>我對 Linux 的網路設定印象還留在古代，是用 net-tools 的 <code>ifconfig</code>、<code>route</code> 臨時設定，重開機後失效：</p> <pre><code>ifconfig eth0 192.168.1.100 netmask 255.255.255.0 up
+route add default gw 192.168.1.1
+ifconfig eth0:0 192.168.1.101 netmask 255.255.255.0          # 以別名介面加第二個 IP
+route add -net 172.16.0.0 netmask 255.255.0.0 gw 192.168.1.254
+echo "nameserver 8.8.8.8" &gt; /etc/resolv.conf
+</code></pre> <p>永久設定則要改設定檔，RHEL / CentOS：</p> <pre><code># /etc/sysconfig/network-scripts/ifcfg-eth0
+DEVICE=eth0
+BOOTPROTO=none     # dhcp 為 DHCP
+ONBOOT=yes
+IPADDR=192.168.1.100
+PREFIX=24
+GATEWAY=192.168.1.1
+DNS1=8.8.8.8
+</code></pre> <p>用 <code>service network restart</code> 或 <code>ifdown eth0 &amp;&amp; ifup eth0</code> 套用，靜態路由另寫在 <code>route-eth0</code>。</p> <p>而 Debian / Ubuntu 則是：</p> <pre><code># /etc/network/interfaces
+auto eth0
+iface eth0 inet static
+address 192.168.1.100
+netmask 255.255.255.0
+gateway 192.168.1.1
+</code></pre> <p><code>/etc/init.d/networking restart</code> 或 <code>ifdown eth0 &amp;&amp; ifup eth0</code> 套用。</p> <p>近代的 Linux 許多改用 NetworkManager 管理(尤其是桌面版)，ssh 登入操作則有 <code>nmcli</code> 指令，比編輯設定檔友善許多。不同 Linux 發行版採用的做法不同，整理如下：</p> <table><thead><tr><th>發行版</th><th>預設網路管理</th><th>永久設定位置</th><th>主要設定方式</th></tr></thead><tbody><tr><td>RHEL 9 / 10、Rocky、AlmaLinux、Fedora</td><td>NetworkManager</td><td><code>/etc/NetworkManager/system-connections/*.nmconnection</code></td><td><code>nmcli</code>、<code>nmtui</code></td></tr><tr><td>SLES 16、openSUSE Leap 16</td><td>NetworkManager (wicked 已移除)</td><td>同上</td><td><code>nmcli</code></td></tr><tr><td>SLES 15</td><td>wicked 或 NetworkManager</td><td><code>/etc/sysconfig/network/ifcfg-*</code> (wicked)</td><td>YaST、wicked</td></tr><tr><td>Debian 12 / 13 (未裝桌面)</td><td>ifupdown</td><td><code>/etc/network/interfaces</code></td><td>編輯檔案後 <code>ifdown</code> / <code>ifup</code></td></tr><tr><td>Debian 12 / 13 (有裝桌面)</td><td>NetworkManager</td><td>keyfile</td><td><code>nmcli</code>、GUI</td></tr><tr><td>Ubuntu Server 18.04 以後</td><td>Netplan + systemd-networkd</td><td><code>/etc/netplan/*.yaml</code></td><td>編輯 YAML 後 <code>netplan apply</code></td></tr><tr><td>Ubuntu Desktop 23.10 以後</td><td>Netplan + NetworkManager</td><td><code>/etc/netplan/</code> (NetworkManager 寫回 YAML)</td><td><code>nmcli</code>、GUI 或 Netplan</td></tr></tbody></table> <p>Red Hat 從 2014 RHEL 7 起預設使用 NetworkManager (CLI 工具為 nmcli，預設沒裝 net-tools，難怪我連 ifconfig 都找不到) 管理網卡設定。指令工具從 <code>ifconfig</code> 換成 <code>ip</code>，從手改設定檔換成由 NetworkManager 統一管理，這篇便會以 <code>nmcli</code> 為主。</p> <p><code>nmcli</code> 是 NetworkManager 的命令列工具，設定會永久保存，重開機後仍有效。操作上有兩個核心物件：</p> <ul><li>device：實體或虛擬網卡 (如 <code>eth0</code>、<code>wlan0</code>)。</li> <li>connection：連線設定檔 (profile)，IP、DNS、路由等都存在這裡，一張網卡可有多個 profile，但同時只能啟用一個。修改 connection 後須重新啟用 (<code>nmcli connection up</code>) 才會生效。</li></ul> <p>輸入指令時可善用縮寫，如 <code>nmcli c</code> = <code>nmcli connection</code>、<code>nmcli d</code> = <code>nmcli device</code>。以下假設網卡為 <code>eth0</code>、連線名稱為 <code>LAN</code>，整理常用到的操作：</p> <p>一、列舉網卡</p> <pre><code># 列出所有網卡及狀態
+nmcli device status
+# 查看指定網卡詳細資訊 (MAC、IP、閘道器、DNS)
+nmcli device show eth0
+# 列出所有連線設定檔
+nmcli connection show
+# 只列出啟用中的連線
+nmcli connection show --active
+# 查看指定連線的完整設定
+nmcli connection show LAN
+</code></pre> <p>二、啟用與停用網卡</p> <pre><code># 以 device 層級連線 / 中斷
+nmcli device connect eth0
+nmcli device disconnect eth0
+# 以 connection 層級啟用 / 停用
+nmcli connection up LAN
+nmcli connection down LAN
+# 開機時是否自動連線
+nmcli connection modify LAN connection.autoconnect yes
+# 無線網卡電源開關
+nmcli radio wifi off
+nmcli radio wifi on
+# 整體網路開關 (會中斷所有連線，遠端操作時小心)
+nmcli networking off
+nmcli networking on
+</code></pre> <p>註：<code>device disconnect</code> 會阻止該網卡自動重連，直到手動 <code>connect</code> 為止；<code>connection down</code> 則只停用該 profile。</p> <p>三、設定無線連線 (SSID 及密碼)</p> <pre><code># 掃描附近基地台
+nmcli device wifi list
+nmcli device wifi rescan
+# 一行完成連線，並自動建立 connection profile
+nmcli device wifi connect "MySSID" password "MyPassword" ifname wlan0
+# 隱藏 SSID
+nmcli device wifi connect "MySSID" password "MyPassword" hidden yes
+# 互動式輸入密碼 (避免密碼留在 shell history)
+nmcli --ask device wifi connect "MySSID"
+</code></pre> <p>以 <code>connection add</code> 手動建立 (適合寫成 script)：</p> <pre><code>nmcli connection add type wifi con-name HomeWiFi ifname wlan0 ssid "MySSID" \
+wifi-sec.key-mgmt wpa-psk wifi-sec.psk "MyPassword"
+nmcli connection up HomeWiFi
+</code></pre> <p>四、設定網卡使用 DHCP</p> <pre><code># 新建 DHCP 連線
+nmcli connection add type ethernet con-name LAN ifname eth0 ipv4.method auto
+# 將既有固定 IP 連線改回 DHCP (須清除固定設定，否則會與 DHCP 位址並存)
+nmcli connection modify LAN ipv4.method auto \
+ipv4.addresses "" ipv4.gateway "" ipv4.dns ""
+nmcli connection up LAN
+</code></pre> <p>提醒：若使用 DHCP 取得 IP，但 DNS 改用自訂值：</p> <pre><code>nmcli connection modify LAN ipv4.ignore-auto-dns yes ipv4.dns "1.1.1.1 8.8.8.8"
+</code></pre> <p>五、設定固定 IP (含閘道器、DNS)</p> <pre><code># 新建
+nmcli connection add type ethernet con-name LAN ifname eth0 \
+ipv4.method manual \
+ipv4.addresses 192.168.1.100/24 \
+ipv4.gateway 192.168.1.1 \
+ipv4.dns "192.168.1.1 8.8.8.8" \
+ipv4.dns-search "example.local"
+# 修改既有連線
+nmcli connection modify LAN ipv4.method manual \
+ipv4.addresses 192.168.1.100/24 \
+ipv4.gateway 192.168.1.1 \
+ipv4.dns "192.168.1.1 8.8.8.8"
+nmcli connection up LAN
+# 驗證
+ip addr show eth0
+ip route
+nmcli device show eth0 | grep DNS # 或 cat /etc/resolv.conf
+</code></pre> <p>注意 <code>ipv4.method manual</code> 必須搭配 <code>ipv4.addresses</code>，否則指令會失敗。</p> <p>六、為網卡加入額外 IP</p> <p>屬性前加 <code>+</code> 為附加，加 <code>-</code> 為移除；不加則整個覆寫。</p> <pre><code># 加入第二、第三個 IP
+nmcli connection modify LAN +ipv4.addresses 192.168.1.101/24
+nmcli connection modify LAN +ipv4.addresses "10.0.0.5/24, 10.0.0.6/24"
+nmcli connection up LAN
+# 移除其中一個
+nmcli connection modify LAN -ipv4.addresses 192.168.1.101/24
+nmcli connection up LAN
+</code></pre> <p>不想中斷連線時，可改用 <code>nmcli device reapply eth0</code> 套用變更。</p> <p>七、加入指定路由規則</p> <p>語法：<code>ipv4.routes "目的網段[/prefix] [下一跳] [metric] [屬性=值] ..."</code></p> <pre><code># 加入靜態路由：往 172.16.0.0/16 經 192.168.1.254
+nmcli connection modify LAN +ipv4.routes "172.16.0.0/16 192.168.1.254"
+# 指定 metric (數字小的優先)
+nmcli connection modify LAN +ipv4.routes "10.10.0.0/16 192.168.1.253 100"
+# 一次加入多筆 (逗號分隔)
+nmcli connection modify LAN +ipv4.routes "172.16.0.0/16 192.168.1.254, 10.20.0.0/16 192.168.1.253"
+# 移除指定路由
+nmcli connection modify LAN -ipv4.routes "172.16.0.0/16 192.168.1.254"
+# 套用並驗證
+nmcli connection up LAN
+ip route
+</code></pre> <p>進階：Policy-based routing (依來源位址走不同路由表)：</p> <pre><code>nmcli connection modify LAN \
+ipv4.routes "0.0.0.0/0 192.168.1.254 table=5000" \
+ipv4.routing-rules "priority 5 from 192.168.1.0/24 table 5000"
+</code></pre> <p>其他常用選項：</p> <pre><code># 此連線不作為預設閘道 (多網卡時常用)
+nmcli connection modify LAN ipv4.never-default yes
+# 忽略 DHCP 給的路由
+nmcli connection modify LAN ipv4.ignore-auto-routes yes
+</code></pre> <p data-slug="nmcli" data-fbimg="https://cdn.pixabay.com/photo/2016/08/05/16/51/network-1572617_1280.jpg#1280#720"> </p>]]></content:encoded>
+    
+    <pubDate>Fri, 20 Nov 2026 14:25:40 GMT</pubDate>
+  </item><item>
     <title><![CDATA[.NET 11 正式發佈]]></title>
     <link>https://blog.darkthread.net/blog/dotnet-11-whats-new/</link>
     <itunes:title><![CDATA[.NET 11 正式發佈]]></itunes:title>
@@ -820,20 +1146,5 @@ load the VS developer environment in the same PowerShell session, on the same li
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639278465930465643.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639278465930465643.webp" medium="image"/>
     <pubDate>Sat, 17 Oct 2026 15:06:46 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[C 槽空間不足另類密技 - Windows 內建 App 搬家功能]]></title>
-    <link>https://blog.darkthread.net/blog/move-drivec-winapp/</link>
-    <itunes:title><![CDATA[C 槽空間不足另類密技 - Windows 內建 App 搬家功能]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>Windows C 槽空間不足是惱人的<a href="/blog/release-disk-c-space/">老問題</a>，多年下來累積一堆經驗 <a href="/blog/winsxs-cleanup/">1</a> <a href="/blog/disk-space-analysis-sop/">2</a> <a href="/blog/move-wsl2-vhdx/">3</a>，沒想到今天跟 AI 聊天又多學到一招!</p> <p>註：Windows 分割 C、D 槽算是清朝遺留下來的習俗 (傳說中的 D 槽都很精彩)，當年方便 Windows 重灌、系統資料分區等優點已不復重要，現代 Windows 系統碟常隨著更新、快取暴增超出預期造成困擾，多年來負面案例無數，我以後應該不會再這麼做了。(說早了，先等記憶體跌價吧...)</p> <p>Windows 11 有個少被人提起的神秘功能，藏在「應用程式 / 已安裝的應用程式」，已安裝應用程式項目旁的三點選單，除了「修改」/「解除安裝」外，有些還會有個「移動」選項：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639274942019971266.webp"></p> <p>選擇磁碟機後，便能將應用程式移到 C 槽以外的磁碟：(或是由其他磁碟機搬回 C 槽)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639274942022399281.webp"></p> <p>不過，這招主要適用於 Microsoft Store 安裝的應用程式，不是所有應用程式都支援「移動」選項，也不是所有應用程式移動都會成功。像是 Claude 雖然有移動按鈕，執行到最後卻會發生錯誤取消。(有人回報就算搬成功 Claude 也會<a href="https://www.reddit.com/r/ClaudeAI/comments/1vgka8i/fix_claude_desktop_cowork_sandbox_wont_start_if/">壞掉</a>)</p> <p>這功能有點神秘，我沒查到正式官方說明，但在 MS Learn 討論區有<a href="https://learn.microsoft.com/en-us/answers/a/1374747?WT.mc_id=DOP-MVP-37580">客服提到</a>，第三方論壇有<a href="https://www.elevenforum.com/t/move-app-to-another-drive-in-windows-11.8700/">介紹過</a>。</p> <p>移動後，目的磁碟機會出現兩個新的資料夾：WindowsApps 與 WpSystem，約略等於應用程式的大小，C 槽也會釋放出相對的空間。(下圖為 Ubuntu 22.04.5 LTS 移動後產生)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639274942024727350.webp"></p> <p>這招非萬用，但貴在系統內建、操作簡便，要清理 C 槽空間時，可納入考慮。</p> <p data-slug="move-drivec-winapp" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>Windows C 槽空間不足是惱人的<a href="/blog/release-disk-c-space/">老問題</a>，多年下來累積一堆經驗 <a href="/blog/winsxs-cleanup/">1</a> <a href="/blog/disk-space-analysis-sop/">2</a> <a href="/blog/move-wsl2-vhdx/">3</a>，沒想到今天跟 AI 聊天又多學到一招!</p> <p>註：Windows 分割 C、D 槽算是清朝遺留下來的習俗 (傳說中的 D 槽都很精彩)，當年方便 Windows 重灌、系統資料分區等優點已不復重要，現代 Windows 系統碟常隨著更新、快取暴增超出預期造成困擾，多年來負面案例無數，我以後應該不會再這麼做了。(說早了，先等記憶體跌價吧...)</p> <p>Windows 11 有個少被人提起的神秘功能，藏在「應用程式 / 已安裝的應用程式」，已安裝應用程式項目旁的三點選單，除了「修改」/「解除安裝」外，有些還會有個「移動」選項：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639274942019971266.webp"></p> <p>選擇磁碟機後，便能將應用程式移到 C 槽以外的磁碟：(或是由其他磁碟機搬回 C 槽)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639274942022399281.webp"></p> <p>不過，這招主要適用於 Microsoft Store 安裝的應用程式，不是所有應用程式都支援「移動」選項，也不是所有應用程式移動都會成功。像是 Claude 雖然有移動按鈕，執行到最後卻會發生錯誤取消。(有人回報就算搬成功 Claude 也會<a href="https://www.reddit.com/r/ClaudeAI/comments/1vgka8i/fix_claude_desktop_cowork_sandbox_wont_start_if/">壞掉</a>)</p> <p>這功能有點神秘，我沒查到正式官方說明，但在 MS Learn 討論區有<a href="https://learn.microsoft.com/en-us/answers/a/1374747?WT.mc_id=DOP-MVP-37580">客服提到</a>，第三方論壇有<a href="https://www.elevenforum.com/t/move-app-to-another-drive-in-windows-11.8700/">介紹過</a>。</p> <p>移動後，目的磁碟機會出現兩個新的資料夾：WindowsApps 與 WpSystem，約略等於應用程式的大小，C 槽也會釋放出相對的空間。(下圖為 Ubuntu 22.04.5 LTS 移動後產生)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639274942024727350.webp"></p> <p>這招非萬用，但貴在系統內建、操作簡便，要清理 C 槽空間時，可納入考慮。</p> <p data-slug="move-drivec-winapp" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>Windows C 槽空間不足是惱人的<a href="/blog/release-disk-c-space/">老問題</a>，多年下來累積一堆經驗 <a href="/blog/winsxs-cleanup/">1</a> <a href="/blog/disk-space-analysis-sop/">2</a> <a href="/blog/move-wsl2-vhdx/">3</a>，沒想到今天跟 AI 聊天又多學到一招!</p> <p>註：Windows 分割 C、D 槽算是清朝遺留下來的習俗 (傳說中的 D 槽都很精彩)，當年方便 Windows 重灌、系統資料分區等優點已不復重要，現代 Windows 系統碟常隨著更新、快取暴增超出預期造成困擾，多年來負面案例無數，我以後應該不會再這麼做了。(說早了，先等記憶體跌價吧...)</p> <p>Windows 11 有個少被人提起的神秘功能，藏在「應用程式 / 已安裝的應用程式」，已安裝應用程式項目旁的三點選單，除了「修改」/「解除安裝」外，有些還會有個「移動」選項：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639274942019971266.webp"></p> <p>選擇磁碟機後，便能將應用程式移到 C 槽以外的磁碟：(或是由其他磁碟機搬回 C 槽)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639274942022399281.webp"></p> <p>不過，這招主要適用於 Microsoft Store 安裝的應用程式，不是所有應用程式都支援「移動」選項，也不是所有應用程式移動都會成功。像是 Claude 雖然有移動按鈕，執行到最後卻會發生錯誤取消。(有人回報就算搬成功 Claude 也會<a href="https://www.reddit.com/r/ClaudeAI/comments/1vgka8i/fix_claude_desktop_cowork_sandbox_wont_start_if/">壞掉</a>)</p> <p>這功能有點神秘，我沒查到正式官方說明，但在 MS Learn 討論區有<a href="https://learn.microsoft.com/en-us/answers/a/1374747?WT.mc_id=DOP-MVP-37580">客服提到</a>，第三方論壇有<a href="https://www.elevenforum.com/t/move-app-to-another-drive-in-windows-11.8700/">介紹過</a>。</p> <p>移動後，目的磁碟機會出現兩個新的資料夾：WindowsApps 與 WpSystem，約略等於應用程式的大小，C 槽也會釋放出相對的空間。(下圖為 Ubuntu 22.04.5 LTS 移動後產生)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639274942024727350.webp"></p> <p>這招非萬用，但貴在系統內建、操作簡便，要清理 C 槽空間時，可納入考慮。</p> <p data-slug="move-drivec-winapp" data-fbimg="https://cdn.pixabay.com/photo/2019/06/30/14/21/brewery-4308132_960_720.jpg#960#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639274942019971266.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639274942019971266.webp" medium="image"/>
-    <pubDate>Tue, 13 Oct 2026 13:14:51 GMT</pubDate>
   </item></channel>
 </rss>
