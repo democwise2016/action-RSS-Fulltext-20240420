@@ -3,7 +3,7 @@
     <title><![CDATA[Ivon的部落格[RSS+]]]></title>
     <link>https://ivonblog.com/index.xml</link>
     <image>
-      <url>https://fastly.picsum.photos/id/929/800/800.jpg?hmac=k0aRmNG6yNDpNqRZGg1zDOuEANezdzds0vaN4ABvDh0</url>
+      <url>https://fastly.picsum.photos/id/840/800/800.jpg?hmac=4t3cO9GvRtg5oMNxeC1wJ2wxU-hDouaxH_K_Eb11npA</url>
       <title>Ivon的部落格[RSS+]</title>
       <link>https://ivonblog.com/index.xml</link>
     </image>
@@ -28,8 +28,929 @@
     <itunes:owner>
       <itunes:name><![CDATA[Ivon的部落格[RSS+]]]></itunes:name>
     </itunes:owner>
-    <itunes:image href="https://fastly.picsum.photos/id/929/800/800.jpg?hmac=k0aRmNG6yNDpNqRZGg1zDOuEANezdzds0vaN4ABvDh0"/>
+    <itunes:image href="https://fastly.picsum.photos/id/840/800/800.jpg?hmac=4t3cO9GvRtg5oMNxeC1wJ2wxU-hDouaxH_K_Eb11npA"/>
 <item>
+    <title><![CDATA[Ika：適用Linux的Android模擬器，讓你安裝APK，支援GPU加速]]></title>
+    <link>https://ivonblog.com/posts/ika-android-emulator/</link>
+    <itunes:title><![CDATA[Ika：適用Linux的Android模擬器，讓你安裝APK，支援GPU加速]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ika-android-emulator/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b8b0232893.webp"></a></p>
+<p>這是一款適用於Linux的Android模擬器，叫做イカ，由DesktopECHO開發。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f6ec66472b.webp"></p>
+<p>Ika是日語花枝的意思。我看乾脆叫它花枝模擬器吧。好笑的是開發者是想取名為墨魚的日文，但是被Google翻譯誤導了zzzz</p>
+<p>有了Ika，就能在Linux系統執行Android系統，安裝APK。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-39cd2223fc.webp">
+<p>這並非基於QEMU，而是使用ChromeOS的Cuttlefish (CrosVM + KVM) 建立的方案。</p>
+<p>開源免費無廣告。</p>
+<p>我認為它提供的體驗還滿完整的。Ika安裝比Android-x86與BlissOS的虛擬機簡單許多，開箱即用不需要手動設定。支援Nvidia GPU。並且虛擬機與宿主機的隔離較好。</p>
+<p>不過畢竟是虛擬機，測試下來流暢度要比Waydroid差些。</p>
+<h2>1. 系統需求
+<span>
+<a href="#1-%e7%b3%bb%e7%b5%b1%e9%9c%80%e6%b1%82" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>x86或ARM架構的Linux發行版，需要支援KVM虛擬化</p>
+<p>Android需要Vulkan才有GPU加速，Ika現在支援Intel、Nvidia、AMD的顯卡。</p>
+<p>因為是虛擬機，建議在RAM 8GB以上電腦使用。並有4核心以上CPU。</p>
+<p>Ika支援X11與Wayland桌面環境。</p>
+<h2>2. 安裝Ika
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dika" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>作者DesktopECHO說本來是針對Macbook ARM平臺的Fedora Asahi Remix開發的，現在也可以在x86平臺的Linux使用。Windows的WSL亦可。</p>
+<p>參考<a href="https://github.com/DesktopECHO/ika" target="_blank">Github說明</a>，下載deb安裝。目前打包方法怪怪的，因為vibe-coding不成熟？竟然把Android映像檔塞在一個deb裡面。</p>
+<p>針對Ubuntu 26.04和Debian 13的用戶，需要用PPA或backports的套件庫，安裝最新版Mesa 26和Linux Kernel 7.0以上才能開機。</p>
+<p>Ika預設提供包含GApps的映像檔，內建Play商店。</p>
+<h2>3. 使用技巧
+<span>
+<a href="#3-%e4%bd%bf%e7%94%a8%e6%8a%80%e5%b7%a7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>安裝後Linux桌面會出現Ika Console圖示，點選啟動。在安裝APP後，所有的Android APP圖示會自動整合為一個資料夾。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4c32c0706e.webp">
+<p>也可以用指令啟動：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika start</span></span></code></pre></div></div>
+<p>關機：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika stop</span></span></code></pre></div></div>
+<p>調整虛擬機CPU核心數與RAM選項：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika options</span></span></code></pre></div></div>
+<p>預設啟動後是LineageOS 23 (Android 16) 系統。</p>
+<p>Ika與Linux桌面視窗的整合做的比Waydroid好，新安裝的Android APP會出現在Linux應用程式列表。點選APP圖示，每個APP能單獨打開並調整大小，就好像Linux原生程式的視窗一樣。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2473c812a4.webp">
+<p>在Ika Options裡面，還有做按鍵映射。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bbd6c87bb.webp">
+<p>Ika支援將Linux的WebCam轉發到虛擬機內部。</p>
+<p>Android的目錄會自動掛載到Linux的<code>/run/user/1000/ika/Android/</code>，方便傳檔。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c6a53553d7.webp">
+<p>不過一些遊戲APP觸控事件點擊沒反應，得用<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">Scrcpy</a>去控制。</p>
+<p>測試下來Ika流暢度要比Waydroid差些，它畢竟是虛擬機，比LXC容器慢，核心給越多越好。修改視窗大小，調降虛擬機解析度也有幫助。</p>
+<p>關閉Android的視窗，虛擬機仍會在背景執行，需要點選Ika Stop圖示才會關機。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ika-android-emulator/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b8b0232893.webp"></a></p>
+<p>這是一款適用於Linux的Android模擬器，叫做イカ，由DesktopECHO開發。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f6ec66472b.webp"></p>
+<p>Ika是日語花枝的意思。我看乾脆叫它花枝模擬器吧。好笑的是開發者是想取名為墨魚的日文，但是被Google翻譯誤導了zzzz</p>
+<p>有了Ika，就能在Linux系統執行Android系統，安裝APK。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-39cd2223fc.webp">
+<p>這並非基於QEMU，而是使用ChromeOS的Cuttlefish (CrosVM + KVM) 建立的方案。</p>
+<p>開源免費無廣告。</p>
+<p>我認為它提供的體驗還滿完整的。Ika安裝比Android-x86與BlissOS的虛擬機簡單許多，開箱即用不需要手動設定。支援Nvidia GPU。並且虛擬機與宿主機的隔離較好。</p>
+<p>不過畢竟是虛擬機，測試下來流暢度要比Waydroid差些。</p>
+<h2>1. 系統需求
+<span>
+<a href="#1-%e7%b3%bb%e7%b5%b1%e9%9c%80%e6%b1%82" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>x86或ARM架構的Linux發行版，需要支援KVM虛擬化</p>
+<p>Android需要Vulkan才有GPU加速，Ika現在支援Intel、Nvidia、AMD的顯卡。</p>
+<p>因為是虛擬機，建議在RAM 8GB以上電腦使用。並有4核心以上CPU。</p>
+<p>Ika支援X11與Wayland桌面環境。</p>
+<h2>2. 安裝Ika
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dika" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>作者DesktopECHO說本來是針對Macbook ARM平臺的Fedora Asahi Remix開發的，現在也可以在x86平臺的Linux使用。Windows的WSL亦可。</p>
+<p>參考<a href="https://github.com/DesktopECHO/ika" target="_blank">Github說明</a>，下載deb安裝。目前打包方法怪怪的，因為vibe-coding不成熟？竟然把Android映像檔塞在一個deb裡面。</p>
+<p>針對Ubuntu 26.04和Debian 13的用戶，需要用PPA或backports的套件庫，安裝最新版Mesa 26和Linux Kernel 7.0以上才能開機。</p>
+<p>Ika預設提供包含GApps的映像檔，內建Play商店。</p>
+<h2>3. 使用技巧
+<span>
+<a href="#3-%e4%bd%bf%e7%94%a8%e6%8a%80%e5%b7%a7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>安裝後Linux桌面會出現Ika Console圖示，點選啟動。在安裝APP後，所有的Android APP圖示會自動整合為一個資料夾。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4c32c0706e.webp">
+<p>也可以用指令啟動：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika start</span></span></code></pre></div></div>
+<p>關機：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika stop</span></span></code></pre></div></div>
+<p>調整虛擬機CPU核心數與RAM選項：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika options</span></span></code></pre></div></div>
+<p>預設啟動後是LineageOS 23 (Android 16) 系統。</p>
+<p>Ika與Linux桌面視窗的整合做的比Waydroid好，新安裝的Android APP會出現在Linux應用程式列表。點選APP圖示，每個APP能單獨打開並調整大小，就好像Linux原生程式的視窗一樣。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2473c812a4.webp">
+<p>在Ika Options裡面，還有做按鍵映射。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bbd6c87bb.webp">
+<p>Ika支援將Linux的WebCam轉發到虛擬機內部。</p>
+<p>Android的目錄會自動掛載到Linux的<code>/run/user/1000/ika/Android/</code>，方便傳檔。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c6a53553d7.webp">
+<p>不過一些遊戲APP觸控事件點擊沒反應，得用<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">Scrcpy</a>去控制。</p>
+<p>測試下來Ika流暢度要比Waydroid差些，它畢竟是虛擬機，比LXC容器慢，核心給越多越好。修改視窗大小，調降虛擬機解析度也有幫助。</p>
+<p>關閉Android的視窗，虛擬機仍會在背景執行，需要點選Ika Stop圖示才會關機。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ika-android-emulator/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b8b0232893.webp"></a></p>
+<p>這是一款適用於Linux的Android模擬器，叫做イカ，由DesktopECHO開發。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-f6ec66472b.webp"></p>
+<p>Ika是日語花枝的意思。我看乾脆叫它花枝模擬器吧。好笑的是開發者是想取名為墨魚的日文，但是被Google翻譯誤導了zzzz</p>
+<p>有了Ika，就能在Linux系統執行Android系統，安裝APK。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-39cd2223fc.webp">
+<p>這並非基於QEMU，而是使用ChromeOS的Cuttlefish (CrosVM + KVM) 建立的方案。</p>
+<p>開源免費無廣告。</p>
+<p>我認為它提供的體驗還滿完整的。Ika安裝比Android-x86與BlissOS的虛擬機簡單許多，開箱即用不需要手動設定。支援Nvidia GPU。並且虛擬機與宿主機的隔離較好。</p>
+<p>不過畢竟是虛擬機，測試下來流暢度要比Waydroid差些。</p>
+<h2>1. 系統需求
+<span>
+<a href="#1-%e7%b3%bb%e7%b5%b1%e9%9c%80%e6%b1%82" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>x86或ARM架構的Linux發行版，需要支援KVM虛擬化</p>
+<p>Android需要Vulkan才有GPU加速，Ika現在支援Intel、Nvidia、AMD的顯卡。</p>
+<p>因為是虛擬機，建議在RAM 8GB以上電腦使用。並有4核心以上CPU。</p>
+<p>Ika支援X11與Wayland桌面環境。</p>
+<h2>2. 安裝Ika
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dika" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>作者DesktopECHO說本來是針對Macbook ARM平臺的Fedora Asahi Remix開發的，現在也可以在x86平臺的Linux使用。Windows的WSL亦可。</p>
+<p>參考<a href="https://github.com/DesktopECHO/ika" target="_blank">Github說明</a>，下載deb安裝。目前打包方法怪怪的，因為vibe-coding不成熟？竟然把Android映像檔塞在一個deb裡面。</p>
+<p>針對Ubuntu 26.04和Debian 13的用戶，需要用PPA或backports的套件庫，安裝最新版Mesa 26和Linux Kernel 7.0以上才能開機。</p>
+<p>Ika預設提供包含GApps的映像檔，內建Play商店。</p>
+<h2>3. 使用技巧
+<span>
+<a href="#3-%e4%bd%bf%e7%94%a8%e6%8a%80%e5%b7%a7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>安裝後Linux桌面會出現Ika Console圖示，點選啟動。在安裝APP後，所有的Android APP圖示會自動整合為一個資料夾。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4c32c0706e.webp">
+<p>也可以用指令啟動：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika start</span></span></code></pre></div></div>
+<p>關機：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika stop</span></span></code></pre></div></div>
+<p>調整虛擬機CPU核心數與RAM選項：</p>
+<div><div><pre tabindex="0"><code data-lang="bash"><span><span>ika options</span></span></code></pre></div></div>
+<p>預設啟動後是LineageOS 23 (Android 16) 系統。</p>
+<p>Ika與Linux桌面視窗的整合做的比Waydroid好，新安裝的Android APP會出現在Linux應用程式列表。點選APP圖示，每個APP能單獨打開並調整大小，就好像Linux原生程式的視窗一樣。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-2473c812a4.webp">
+<p>在Ika Options裡面，還有做按鍵映射。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3bbd6c87bb.webp">
+<p>Ika支援將Linux的WebCam轉發到虛擬機內部。</p>
+<p>Android的目錄會自動掛載到Linux的<code>/run/user/1000/ika/Android/</code>，方便傳檔。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c6a53553d7.webp">
+<p>不過一些遊戲APP觸控事件點擊沒反應，得用<a href="https://ivonblog.com/posts/scrcpy-usage/" target="_blank">Scrcpy</a>去控制。</p>
+<p>測試下來Ika流暢度要比Waydroid差些，它畢竟是虛擬機，比LXC容器慢，核心給越多越好。修改視窗大小，調降虛擬機解析度也有幫助。</p>
+<p>關閉Android的視窗，虛擬機仍會在背景執行，需要點選Ika Stop圖示才會關機。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b8b0232893.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-b8b0232893.webp" medium="image"/>
+    <pubDate>Tue, 24 Nov 2026 23:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[用Andarium模擬器在iPhone & iPad安裝APK，免越獄]]></title>
+    <link>https://ivonblog.com/posts/andarium-ios-app/</link>
+    <itunes:title><![CDATA[用Andarium模擬器在iPhone & iPad安裝APK，免越獄]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/andarium-ios-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d6161f3c0.webp"></a></p>
+<p>Google工程師imxieyi製作了能在iPhone跑Android系統的APP「Andarium」。開源免費無廣告。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d433912a5c.webp"></p>
+<p>這個技術跟基於QEMU的UTM不太一樣，是透過原生編譯為arm64架構的User Mode Linux Kernel來執行Linux系統的，作者把它命名為Kernarium。並由此延伸出了能跑Android的Andarium，</p>
+<p>也就是說，你可以在iOS裝APK了。</p>
+<p>在iPhone 12 Mini安裝Android的F-Droid應用商店。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c4881e4f15.webp"></p>
+<p>免越獄免刷機免JIT，不是雲手機，全部在本機執行。</p>
+<p>iPhone和iPad都可以使用。</p>
+<p>在M2 iPad Air 6測試Android的影片示例
+</p><div>
+<iframe src="https://www.youtube.com/embed/7nTWR4wOiwc" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<h2>1. 下載Andarium
+<span>
+<a href="#1-%e4%b8%8b%e8%bc%89andarium" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Andarium需要iOS 27以上版本。建議使用8GB RAM以上的iPhone或iPad來跑。</p>
+<p>例如，我在M2 iPad Air測試是可以玩輕度3D遊戲。而在iPhone 12 Mini勉強進的了桌面而已，很容易因為RAM不足而崩潰。</p>
+<p>安裝Andarium，需要到<a href="https://github.com/imxieyi/Kernarium/releases" target="_blank">Github</a>下載IPA，並使用<a href="https://ivonblog.com/posts/ios-sideloading/" target="_blank">AltStore側載</a>。</p>
+<p>Andarium技術源自於Kernarium，因此目前作者是把它放在同一個儲存庫下載。Kernarium也能用來跑其他Linux發行版的虛擬機。</p>
+<p>注解：作者曾經讓Andarium成功上架App Store，不過因為在Twitter太紅引來關注，一天後就被Apple鐵拳下架了，參考<a href="https://v2ex.com/t/1258411" target="_blank">這篇推文</a>。在恢復前得用側載IPA的模式安裝。</p>
+<h2>2. 使用技巧
+<span>
+<a href="#2-%e4%bd%bf%e7%94%a8%e6%8a%80%e5%b7%a7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>初始化頁面。至少分配4GB RAM和4個vCPU給Android。儲存空間建議16GB以上，在那之下的很快就滿了。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fe880ecce7.webp"></p>
+<p>第一次初始化Android需要幾分鐘。預設打開的是什麼都沒有的LineageOS 24 (Android 17) 系統。</p>
+<p>因為版權因素，Andarium沒有內建Play商店，也沒有GMS服務。你得手動安裝APK應用商店，譬如F-Droid或ApkPure。或者用<a href="https://ivonblog.com/posts/how-to-install-aurora-store/" target="_blank">Aurora Store + microG</a> 下載Play商店的APP。</p>
+<p>你可以在iOS用Safari瀏覽器下載APK，再點Andarium畫面邊緣的懸浮按鈕，安裝APK。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-768a55d34c.webp"></p>
+<p>Andarium的Android虛擬機可以存取iOS的位置，能使用麥克風和揚聲器，能使用iOS相機拍照。支援GPU加速。螢幕會跟著自動旋轉。</p>
+<p>要匯入iOS的檔案的話，就是按畫面上的懸浮鈕，輸入到Android的目錄。</p>
+<p>如果覺得畫面lag的話，嘗試到Android系統設定 → 無障礙，減少模糊效果。</p>
+<p>理論上這個APP能用來雙開Line，Line不用GMS也能用。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/andarium-ios-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d6161f3c0.webp"></a></p>
+<p>Google工程師imxieyi製作了能在iPhone跑Android系統的APP「Andarium」。開源免費無廣告。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d433912a5c.webp"></p>
+<p>這個技術跟基於QEMU的UTM不太一樣，是透過原生編譯為arm64架構的User Mode Linux Kernel來執行Linux系統的，作者把它命名為Kernarium。並由此延伸出了能跑Android的Andarium，</p>
+<p>也就是說，你可以在iOS裝APK了。</p>
+<p>在iPhone 12 Mini安裝Android的F-Droid應用商店。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c4881e4f15.webp"></p>
+<p>免越獄免刷機免JIT，不是雲手機，全部在本機執行。</p>
+<p>iPhone和iPad都可以使用。</p>
+<p>在M2 iPad Air 6測試Android的影片示例
+</p><div>
+<iframe src="https://www.youtube.com/embed/7nTWR4wOiwc" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<h2>1. 下載Andarium
+<span>
+<a href="#1-%e4%b8%8b%e8%bc%89andarium" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Andarium需要iOS 27以上版本。建議使用8GB RAM以上的iPhone或iPad來跑。</p>
+<p>例如，我在M2 iPad Air測試是可以玩輕度3D遊戲。而在iPhone 12 Mini勉強進的了桌面而已，很容易因為RAM不足而崩潰。</p>
+<p>安裝Andarium，需要到<a href="https://github.com/imxieyi/Kernarium/releases" target="_blank">Github</a>下載IPA，並使用<a href="https://ivonblog.com/posts/ios-sideloading/" target="_blank">AltStore側載</a>。</p>
+<p>Andarium技術源自於Kernarium，因此目前作者是把它放在同一個儲存庫下載。Kernarium也能用來跑其他Linux發行版的虛擬機。</p>
+<p>注解：作者曾經讓Andarium成功上架App Store，不過因為在Twitter太紅引來關注，一天後就被Apple鐵拳下架了，參考<a href="https://v2ex.com/t/1258411" target="_blank">這篇推文</a>。在恢復前得用側載IPA的模式安裝。</p>
+<h2>2. 使用技巧
+<span>
+<a href="#2-%e4%bd%bf%e7%94%a8%e6%8a%80%e5%b7%a7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>初始化頁面。至少分配4GB RAM和4個vCPU給Android。儲存空間建議16GB以上，在那之下的很快就滿了。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fe880ecce7.webp"></p>
+<p>第一次初始化Android需要幾分鐘。預設打開的是什麼都沒有的LineageOS 24 (Android 17) 系統。</p>
+<p>因為版權因素，Andarium沒有內建Play商店，也沒有GMS服務。你得手動安裝APK應用商店，譬如F-Droid或ApkPure。或者用<a href="https://ivonblog.com/posts/how-to-install-aurora-store/" target="_blank">Aurora Store + microG</a> 下載Play商店的APP。</p>
+<p>你可以在iOS用Safari瀏覽器下載APK，再點Andarium畫面邊緣的懸浮按鈕，安裝APK。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-768a55d34c.webp"></p>
+<p>Andarium的Android虛擬機可以存取iOS的位置，能使用麥克風和揚聲器，能使用iOS相機拍照。支援GPU加速。螢幕會跟著自動旋轉。</p>
+<p>要匯入iOS的檔案的話，就是按畫面上的懸浮鈕，輸入到Android的目錄。</p>
+<p>如果覺得畫面lag的話，嘗試到Android系統設定 → 無障礙，減少模糊效果。</p>
+<p>理論上這個APP能用來雙開Line，Line不用GMS也能用。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/andarium-ios-app/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d6161f3c0.webp"></a></p>
+<p>Google工程師imxieyi製作了能在iPhone跑Android系統的APP「Andarium」。開源免費無廣告。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-d433912a5c.webp"></p>
+<p>這個技術跟基於QEMU的UTM不太一樣，是透過原生編譯為arm64架構的User Mode Linux Kernel來執行Linux系統的，作者把它命名為Kernarium。並由此延伸出了能跑Android的Andarium，</p>
+<p>也就是說，你可以在iOS裝APK了。</p>
+<p>在iPhone 12 Mini安裝Android的F-Droid應用商店。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c4881e4f15.webp"></p>
+<p>免越獄免刷機免JIT，不是雲手機，全部在本機執行。</p>
+<p>iPhone和iPad都可以使用。</p>
+<p>在M2 iPad Air 6測試Android的影片示例
+</p><div>
+<iframe src="https://www.youtube.com/embed/7nTWR4wOiwc" allowfullscreen="" frameborder="0">
+</iframe>
+</div>
+<h2>1. 下載Andarium
+<span>
+<a href="#1-%e4%b8%8b%e8%bc%89andarium" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Andarium需要iOS 27以上版本。建議使用8GB RAM以上的iPhone或iPad來跑。</p>
+<p>例如，我在M2 iPad Air測試是可以玩輕度3D遊戲。而在iPhone 12 Mini勉強進的了桌面而已，很容易因為RAM不足而崩潰。</p>
+<p>安裝Andarium，需要到<a href="https://github.com/imxieyi/Kernarium/releases" target="_blank">Github</a>下載IPA，並使用<a href="https://ivonblog.com/posts/ios-sideloading/" target="_blank">AltStore側載</a>。</p>
+<p>Andarium技術源自於Kernarium，因此目前作者是把它放在同一個儲存庫下載。Kernarium也能用來跑其他Linux發行版的虛擬機。</p>
+<p>注解：作者曾經讓Andarium成功上架App Store，不過因為在Twitter太紅引來關注，一天後就被Apple鐵拳下架了，參考<a href="https://v2ex.com/t/1258411" target="_blank">這篇推文</a>。在恢復前得用側載IPA的模式安裝。</p>
+<h2>2. 使用技巧
+<span>
+<a href="#2-%e4%bd%bf%e7%94%a8%e6%8a%80%e5%b7%a7" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>初始化頁面。至少分配4GB RAM和4個vCPU給Android。儲存空間建議16GB以上，在那之下的很快就滿了。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fe880ecce7.webp"></p>
+<p>第一次初始化Android需要幾分鐘。預設打開的是什麼都沒有的LineageOS 24 (Android 17) 系統。</p>
+<p>因為版權因素，Andarium沒有內建Play商店，也沒有GMS服務。你得手動安裝APK應用商店，譬如F-Droid或ApkPure。或者用<a href="https://ivonblog.com/posts/how-to-install-aurora-store/" target="_blank">Aurora Store + microG</a> 下載Play商店的APP。</p>
+<p>你可以在iOS用Safari瀏覽器下載APK，再點Andarium畫面邊緣的懸浮按鈕，安裝APK。
+<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-768a55d34c.webp"></p>
+<p>Andarium的Android虛擬機可以存取iOS的位置，能使用麥克風和揚聲器，能使用iOS相機拍照。支援GPU加速。螢幕會跟著自動旋轉。</p>
+<p>要匯入iOS的檔案的話，就是按畫面上的懸浮鈕，輸入到Android的目錄。</p>
+<p>如果覺得畫面lag的話，嘗試到Android系統設定 → 無障礙，減少模糊效果。</p>
+<p>理論上這個APP能用來雙開Line，Line不用GMS也能用。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d6161f3c0.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7d6161f3c0.webp" medium="image"/>
+    <pubDate>Tue, 24 Nov 2026 16:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[如何安裝Ladybird，體驗獨立開發的全新瀏覽器（Linux / macOS）]]></title>
+    <link>https://ivonblog.com/posts/ladybird-browser/</link>
+    <itunes:title><![CDATA[如何安裝Ladybird，體驗獨立開發的全新瀏覽器（Linux / macOS）]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ladybird-browser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ff9c5caee7.webp"></a></p>
+<p>Ladybird Browser (瓢蟲瀏覽器) 是一款從頭寫起的瀏覽器。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa81e2a8ee.webp">
+<h2>1. 簡介
+<span>
+<a href="#1-%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這可是用Rust + C++從頭寫起的瀏覽器呢，不基於Chromium也不使用Gecko更不是WebKit，與現有的瀏覽器擴充都不相容。</p>
+<p>Ladybird是獨立開發的開源專案，最初是Unix-like系統SerenityOS的瀏覽器，2019年後fork成爲獨立專案，移植到主流的Linux、Windows、macOS系統。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c66b76650b.webp">
+<p>Ladybird使用BSD授權。受FUTO與Proton贊助，核心自己寫，除了影像解碼之外儘量不依賴現有的外部函式庫。</p>
+<p>根據<a href="https://ladybird.org/" target="_blank">官網願景</a>，開發者希望有一款瀏覽器是真的把使用者放在第一位的。不學Arc Borwser搞AI，不像Brave搞加密貨幣，沒有像Firefox被Google收買內建搜尋引擎，專心做瀏覽器。</p>
+<p>說道獨立開發的前沿瀏覽器，會讓人想到Mozilla投資的Servo吧。但是Servo只能算引擎，Ladybird是要做一個完整的瀏覽器出來。</p>
+<h2>2. 安裝Ladybird
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dladybird" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Ladybird Browser於2026年夏天釋出第一個Alpha版本。</p>
+<p>原始碼版本庫：<a href="https://github.com/LadybirdBrowser/ladybird" target="_blank">https://github.com/LadybirdBrowser/ladybird</a> 是還有在更新。</p>
+<p>現在要體驗Ladybird可以去<a href="https://ladybird.org/download/" target="_blank">官網</a>下載，支援Linux與macOS系統。Linux版Ladybird提供原生與Flatpak套件。Ubuntu和Debian用戶依照指示從PPA安裝就可以了，日後會隨著APT自動更新。</p>
+<p>不需要使用unofficial build。但如果你需要的話，Arch Linux用戶可以使用AUR自動編譯最新版Ladybird：<a href="https://aur.archlinux.org/packages/ladybird" target="_blank">https://aur.archlinux.org/packages/ladybird</a>。其他Linux發行版的話試試這個AppImage版本：<a href="https://github.com/pkgforge-dev/ladybird-appimage" target="_blank">https://github.com/pkgforge-dev/ladybird-appimage</a>，下載之後點兩下啓動。</p>
+<h2>3. 簡評
+<span>
+<a href="#3-%e7%b0%a1%e8%a9%95" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>我在Debian 13測試，Ladybird版本<code>2026.47.7</code>，大約2026年11月發表的。</p>
+<p>一打開就有內建擋廣告功能。當然，Ladybird不相容Firefox與Chrome的擴充，這裡並非使用uBlock Origin，而是使用了一部分Brave開發的adblock-rust來擋廣告，支援自訂EasyList規則。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7645d50298.webp">
+<p>User Agent顯示爲Ladybird（<code>Mozilla/5.0 (X11; Linux x86_64) Ladybird/2026.47.7 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36</code>）</p>
+<p>Well shit，Fcitx5中文輸入法無法使用，應該是QT沒有編譯進去。iBus也沒反應。</p>
+<p>Youtube播放影片4K是可以的，但嚴重依賴CPU解碼。</p>
+<p>圖站的元素渲染肉眼可見的慢於Firefox和Chrome。</p>
+<p>Google Search大部分網站能打開，但少部分元素渲染錯誤。</p>
+<p>支援部分WebGL、WebRTC、WASM標準。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/ladybird-browser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ff9c5caee7.webp"></a></p>
+<p>Ladybird Browser (瓢蟲瀏覽器) 是一款從頭寫起的瀏覽器。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa81e2a8ee.webp">
+<h2>1. 簡介
+<span>
+<a href="#1-%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這可是用Rust + C++從頭寫起的瀏覽器呢，不基於Chromium也不使用Gecko更不是WebKit，與現有的瀏覽器擴充都不相容。</p>
+<p>Ladybird是獨立開發的開源專案，最初是Unix-like系統SerenityOS的瀏覽器，2019年後fork成爲獨立專案，移植到主流的Linux、Windows、macOS系統。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c66b76650b.webp">
+<p>Ladybird使用BSD授權。受FUTO與Proton贊助，核心自己寫，除了影像解碼之外儘量不依賴現有的外部函式庫。</p>
+<p>根據<a href="https://ladybird.org/" target="_blank">官網願景</a>，開發者希望有一款瀏覽器是真的把使用者放在第一位的。不學Arc Borwser搞AI，不像Brave搞加密貨幣，沒有像Firefox被Google收買內建搜尋引擎，專心做瀏覽器。</p>
+<p>說道獨立開發的前沿瀏覽器，會讓人想到Mozilla投資的Servo吧。但是Servo只能算引擎，Ladybird是要做一個完整的瀏覽器出來。</p>
+<h2>2. 安裝Ladybird
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dladybird" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Ladybird Browser於2026年夏天釋出第一個Alpha版本。</p>
+<p>原始碼版本庫：<a href="https://github.com/LadybirdBrowser/ladybird" target="_blank">https://github.com/LadybirdBrowser/ladybird</a> 是還有在更新。</p>
+<p>現在要體驗Ladybird可以去<a href="https://ladybird.org/download/" target="_blank">官網</a>下載，支援Linux與macOS系統。Linux版Ladybird提供原生與Flatpak套件。Ubuntu和Debian用戶依照指示從PPA安裝就可以了，日後會隨著APT自動更新。</p>
+<p>不需要使用unofficial build。但如果你需要的話，Arch Linux用戶可以使用AUR自動編譯最新版Ladybird：<a href="https://aur.archlinux.org/packages/ladybird" target="_blank">https://aur.archlinux.org/packages/ladybird</a>。其他Linux發行版的話試試這個AppImage版本：<a href="https://github.com/pkgforge-dev/ladybird-appimage" target="_blank">https://github.com/pkgforge-dev/ladybird-appimage</a>，下載之後點兩下啓動。</p>
+<h2>3. 簡評
+<span>
+<a href="#3-%e7%b0%a1%e8%a9%95" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>我在Debian 13測試，Ladybird版本<code>2026.47.7</code>，大約2026年11月發表的。</p>
+<p>一打開就有內建擋廣告功能。當然，Ladybird不相容Firefox與Chrome的擴充，這裡並非使用uBlock Origin，而是使用了一部分Brave開發的adblock-rust來擋廣告，支援自訂EasyList規則。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7645d50298.webp">
+<p>User Agent顯示爲Ladybird（<code>Mozilla/5.0 (X11; Linux x86_64) Ladybird/2026.47.7 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36</code>）</p>
+<p>Well shit，Fcitx5中文輸入法無法使用，應該是QT沒有編譯進去。iBus也沒反應。</p>
+<p>Youtube播放影片4K是可以的，但嚴重依賴CPU解碼。</p>
+<p>圖站的元素渲染肉眼可見的慢於Firefox和Chrome。</p>
+<p>Google Search大部分網站能打開，但少部分元素渲染錯誤。</p>
+<p>支援部分WebGL、WebRTC、WASM標準。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ladybird-browser/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ff9c5caee7.webp"></a></p>
+<p>Ladybird Browser (瓢蟲瀏覽器) 是一款從頭寫起的瀏覽器。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-fa81e2a8ee.webp">
+<h2>1. 簡介
+<span>
+<a href="#1-%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>這可是用Rust + C++從頭寫起的瀏覽器呢，不基於Chromium也不使用Gecko更不是WebKit，與現有的瀏覽器擴充都不相容。</p>
+<p>Ladybird是獨立開發的開源專案，最初是Unix-like系統SerenityOS的瀏覽器，2019年後fork成爲獨立專案，移植到主流的Linux、Windows、macOS系統。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-c66b76650b.webp">
+<p>Ladybird使用BSD授權。受FUTO與Proton贊助，核心自己寫，除了影像解碼之外儘量不依賴現有的外部函式庫。</p>
+<p>根據<a href="https://ladybird.org/" target="_blank">官網願景</a>，開發者希望有一款瀏覽器是真的把使用者放在第一位的。不學Arc Borwser搞AI，不像Brave搞加密貨幣，沒有像Firefox被Google收買內建搜尋引擎，專心做瀏覽器。</p>
+<p>說道獨立開發的前沿瀏覽器，會讓人想到Mozilla投資的Servo吧。但是Servo只能算引擎，Ladybird是要做一個完整的瀏覽器出來。</p>
+<h2>2. 安裝Ladybird
+<span>
+<a href="#2-%e5%ae%89%e8%a3%9dladybird" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Ladybird Browser於2026年夏天釋出第一個Alpha版本。</p>
+<p>原始碼版本庫：<a href="https://github.com/LadybirdBrowser/ladybird" target="_blank">https://github.com/LadybirdBrowser/ladybird</a> 是還有在更新。</p>
+<p>現在要體驗Ladybird可以去<a href="https://ladybird.org/download/" target="_blank">官網</a>下載，支援Linux與macOS系統。Linux版Ladybird提供原生與Flatpak套件。Ubuntu和Debian用戶依照指示從PPA安裝就可以了，日後會隨著APT自動更新。</p>
+<p>不需要使用unofficial build。但如果你需要的話，Arch Linux用戶可以使用AUR自動編譯最新版Ladybird：<a href="https://aur.archlinux.org/packages/ladybird" target="_blank">https://aur.archlinux.org/packages/ladybird</a>。其他Linux發行版的話試試這個AppImage版本：<a href="https://github.com/pkgforge-dev/ladybird-appimage" target="_blank">https://github.com/pkgforge-dev/ladybird-appimage</a>，下載之後點兩下啓動。</p>
+<h2>3. 簡評
+<span>
+<a href="#3-%e7%b0%a1%e8%a9%95" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>我在Debian 13測試，Ladybird版本<code>2026.47.7</code>，大約2026年11月發表的。</p>
+<p>一打開就有內建擋廣告功能。當然，Ladybird不相容Firefox與Chrome的擴充，這裡並非使用uBlock Origin，而是使用了一部分Brave開發的adblock-rust來擋廣告，支援自訂EasyList規則。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-7645d50298.webp">
+<p>User Agent顯示爲Ladybird（<code>Mozilla/5.0 (X11; Linux x86_64) Ladybird/2026.47.7 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36</code>）</p>
+<p>Well shit，Fcitx5中文輸入法無法使用，應該是QT沒有編譯進去。iBus也沒反應。</p>
+<p>Youtube播放影片4K是可以的，但嚴重依賴CPU解碼。</p>
+<p>圖站的元素渲染肉眼可見的慢於Firefox和Chrome。</p>
+<p>Google Search大部分網站能打開，但少部分元素渲染錯誤。</p>
+<p>支援部分WebGL、WebRTC、WASM標準。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ff9c5caee7.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-ff9c5caee7.webp" medium="image"/>
+    <pubDate>Tue, 24 Nov 2026 06:00:00 +0800</pubDate>
+  </item><item>
+    <title><![CDATA[想在電腦跑Android APP？介紹幾個Linux系統「Android手遊模擬器」的解決方案]]></title>
+    <link>https://ivonblog.com/posts/android-emulators-for-linux/</link>
+    <itunes:title><![CDATA[想在電腦跑Android APP？介紹幾個Linux系統「Android手遊模擬器」的解決方案]]></itunes:title>
+    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/android-emulators-for-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-44d03a6f66.webp"></a></p>
+<p>本文介紹Linux系統幾個免費的「Android模擬器」解決方案，讓您在Linux系統跑Android APP、玩手遊。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b859ceb749.webp"><figcaption>在Gentoo Linux的KDE Plasma桌面用Android-x86虛擬機玩FGO</figcaption>
+<h2>概論
+<span>
+<a href="#%e6%a6%82%e8%ab%96" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>市面上有很多商業Android模擬器，例如：BlueStacks藍疊、NOX夜神、LDPlayer雷電、MEmu逍遙、Google Play遊戲電腦版等等，花樣很多，不外乎就是能在x86電腦上玩x86或ARM架構的手機遊戲，甚至多開、掛機、鍵盤映射都不是難事。</p>
+<p>對比Windows系統為數眾多的Android模擬器，GNU/Linux系統 (Ubuntu、Fedora、Arch Linux、openSUSE、Gentoo，不包含ChromeOS) 的方案是少的可憐，Windows的著名Android模擬器多半沒有推出Linux版本。早期Linux只有「Genymotion」和「Android Studio」能用，而這二者基本是給開發人員用的，難以用來玩遊戲。</p>
+<p>另外，上面講的那些Windows系統的Android模擬器，即使用Wine依然是無法在Linux執行的。</p>
+<p>所幸近年來此情況有所改善，隨著LXC容器技術的Anbox和Waydroid出現，Linux便能執行Android APP了。利用Linux的QEMU/KVM技術，安裝高效率Android-x86虛擬機也是穩固可行的方案。</p>
+<p>現在，Linux用戶想在電腦上跑Android APP甚至打遊戲，可以找開源軟體組成的解決方案，達成類似「Android模擬器」的效果，順便擺脫商業Android模擬器的各種業配和廣告置入。</p>
+<h2>1. Waydroid
+<span>
+<a href="#1-waydroid" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Waydroid源自Canonical開發的Anbox，採用LXC技術，容器與Linux共用核心，執行Android系統。開發團隊同時也負責開發Bliss OS。</p>
+<p>至於Anbox基本上已經停止開發了，Waydroid取而代之，成為最知名的Anbox繼承者。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-511a0505f1.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：GPLv3</li>
+<li>LXC容器十分輕量，執行效率比虛擬機和模擬器高出許多，還可以有效利用電腦的GPU加速遊戲效能</li>
+<li>與Linux系統共用Android剪貼板，以視窗模式操作APP，宛如原生Linux應用一般的操作體驗，就像Microsoft的WSA那樣</li>
+<li>內建Google Play商店</li>
+<li>提供x86和ARM的映像檔，不論是x86電腦還是Raspberry Pi都可以部署</li>
+<li>跑Waydroid需要Wayland顯示協定的桌面</li>
+<li>Waydroid不方便多開，一台電腦只能安裝一個Android版本</li>
+<li>需要手動安裝ARM轉譯器</li>
+<li>目前不支援Nvidia GPU，僅支援Intel與AMD等使用Mesa開源驅動的GPU</li>
+</ul>
+<p>安裝教學請看<a href="https://ivonblog.com/posts/ubuntu-waydroid/" target="_blank">這裡</a>。</p>
+<h2>2. ReDroid
+<span>
+<a href="#2-redroid" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>透過Docker容器執行Android系統，再透過Scrcpy連線到桌面。開發者原意是在伺服器架設雲手機之用，但桌面用戶亦可以參考此方案。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ae9aa8448e.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：Apache</li>
+<li>提供x86和ARM架構的映像檔，不論是x86電腦還是Raspberry Pi都可以部署</li>
+<li>支援GPU硬體加速</li>
+<li>提供ARM轉譯器</li>
+<li>Google Play商店要自己裝</li>
+<li>Docker容器的特性使其能夠快速部署在伺服器上，並用Scrcpy遠端連線</li>
+<li>Docker容器資源佔用低，且容易複製，要多開是有可能的</li>
+<li>安裝過程略顯繁瑣，需要對Docker有一定操作知識才能用的好</li>
+<li>目前不支援Nvidia GPU，僅支援Intel與AMD等使用Mesa開源驅動的GPU</li>
+</ul>
+<p>安裝方式請看<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">ReDroid使用教學</a></p>
+<h2>3. Android-x86虛擬機
+<span>
+<a href="#3-android-x86%e8%99%9b%e6%93%ac%e6%a9%9f" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Android-x86虛擬機源自發展許久的同名專案，它能夠安裝到實體電腦，同樣的也可以安裝到虛擬機。</p>
+<p>不過，原版的Android-x86開發到Android 9便很少更新了。</p>
+<p>近年來有基於Android-x86的「Bliss OS」出現，更新十分積極，支援到Android 15。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1e0c36b6bf.webp">
+<p>特色如下：</p>
+<ul>
+<li>授權條款：Apache</li>
+<li>Android-x86是完整的作業系統，從Android 7 ～ Android 15皆有ISO</li>
+<li>幾乎是開源軟體組成的解決方案，系統乾淨無廣告</li>
+<li>可以部署在虛擬機，也可以安裝到實體機當主力系統，譬如Microsoft Surface</li>
+<li>支援ARM → x86架構轉譯，支援更多手機遊戲</li>
+<li>不用直通GPU也能用VirGL達成3D硬體加速，支援Intel、AMD、Nvidia GPU</li>
+<li>有多開的潛力</li>
+<li>內建Google Play商店</li>
+<li>虛擬機後端可以選用QEMU/KVM、VirtualBox、VMware等等</li>
+<li>因為是虛擬機，GPU加速能力有限</li>
+<li>只支援x86架構的電腦</li>
+</ul>
+<p>用QEMU/KVM跑Android-x86虛擬機的教學請看：<a href="https://ivonblog.com/posts/bliss-os-qemu-installation/" target="_blank">Bliss OS虛擬機安裝教學</a>。</p>
+<h2>4. Ika虛擬機
+<span>
+<a href="#4-ika%e8%99%9b%e6%93%ac%e6%a9%9f" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由DesktopECHO開發，結合crosvm所製作的Android虛擬機方案。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-90576a4f47.webp">
+<p>特色如下：</p>
+<ul>
+<li>授權條款：未定</li>
+<li>用crosvm與KVM跑Android虛擬機</li>
+<li>開箱即用的體驗</li>
+<li>可在虛擬機內存取Linux的WebCam</li>
+<li>自動掛載Linux目錄，與虛擬機共享檔案</li>
+<li>提供3D硬體加速，支援Intel、AMD、Nvidia GPU</li>
+<li>內建Google Play商店</li>
+<li>比較吃資源</li>
+</ul>
+<p>教學參考：<a href="https://ivonblog.com/posts/ika-android-emulator" target="_blank">Ika使用教學</a></p>
+<h2>5. Android Studio的AVD模擬器
+<span>
+<a href="#5-android-studio%e7%9a%84avd%e6%a8%a1%e6%93%ac%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Android Virtual Device，簡稱AVD，是Google官方開發的Android模擬器，隨附於Android Studio。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-686fc92980.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：專有軟體</li>
+<li>主要用於開發Android APP之用，相對其他方案來說比較成熟</li>
+<li>跨平台，同樣的一組軟體也能在Windows與macOS使用</li>
+<li>可以使用ADB和Root</li>
+<li>可模擬多款手機型號，技術上來說可以多開</li>
+<li>內建Google Play與ARM轉譯器libndk</li>
+<li>提供GPU圖形加速，支援Intel、AMD、Nvidia GPU。</li>
+<li>Android Studio執行時非常吃資源，不過AVD模擬器可以設定成不依賴Android Studio，獨立執行</li>
+<li>僅支援x86架構的電腦</li>
+</ul>
+<p>教學參考：<a href="https://ivonblog.com/posts/linux-android-studio-avd-as-a-gaming-emulator" target="_blank">Linux用Android Studio的AVD模擬器玩手遊的思路</a></p>
+<h2>6. Genymotion模擬器
+<span>
+<a href="#6-genymotion%e6%a8%a1%e6%93%ac%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>跨平台的商業Android模擬器。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3d3e0ea181.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：專有軟體</li>
+<li>安裝起來最無腦</li>
+<li>執行時依賴QEMU/KVM或VirtualBox</li>
+<li>提供各種手機機型模擬</li>
+<li>提供快捷的按鍵操作，方便截圖、錄影、模擬手勢</li>
+<li>內建ARM轉譯器</li>
+<li>支援Intel、AMD、Nvidia GPU圖形加速。</li>
+<li>需要註冊才能使用</li>
+<li>免費版的螢幕上會出現浮水印，妨礙使用，需要購買使用授權</li>
+<li>僅支援x86架構的電腦</li>
+</ul>
+<p>Linux版Genymotion安裝教學<a href="https://ivonblog.com/posts/genymotion-for-linux" target="_blank">見此</a></p>
+<h2>該選哪一個？
+<span>
+<a href="#%e8%a9%b2%e9%81%b8%e5%93%aa%e4%b8%80%e5%80%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果是Nvidia顯示卡用戶，沒有內顯且不想折騰的，你就只有Android Studio的AVD與Genymotion能選了。</p>
+<p>若是Intel與AMD顯示卡用戶，選擇就多了。在Linux的各種「Android模擬器」方案比較下來，Waydroid絕對是效能最高的。因為使用LXC容器技術，跟Linux共用核心，運算的時候幾乎沒有效能損失，Waydroid的效能好似在實體電腦安裝Android系統。</p>
+<p>對比Android Studio的AVD模擬器，或者Android-x86虛擬機方案，Waydroid的效能比他們高出許多。尤其對低規格的電腦來說，Waydroid是最為經濟的選擇。經過我Geekbench跑分測試，套一層虛擬化的Android效能，最多會損失將近一半的效能！這意味著虛擬機的效能需要分配更多CPU核心撐起來。要是電腦CPU只有4核心或更低，開Android-x86虛擬機就會吃光所有資源了！相較之下，Waydroid的資源佔用比較低。</p>
+<p>Android-x86虛擬機的圖形加速依賴VirGL達成，這個效能要比Android Studio的AVD模擬器弱一些。</p>
+<p>至於ReDroid是給進階玩家用的，適合想要遠端連線雲手機的玩家使用。</p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p><a href="https://ivonblog.com/posts/android-emulators-for-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-44d03a6f66.webp"></a></p>
+<p>本文介紹Linux系統幾個免費的「Android模擬器」解決方案，讓您在Linux系統跑Android APP、玩手遊。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b859ceb749.webp"><figcaption>在Gentoo Linux的KDE Plasma桌面用Android-x86虛擬機玩FGO</figcaption>
+<h2>概論
+<span>
+<a href="#%e6%a6%82%e8%ab%96" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>市面上有很多商業Android模擬器，例如：BlueStacks藍疊、NOX夜神、LDPlayer雷電、MEmu逍遙、Google Play遊戲電腦版等等，花樣很多，不外乎就是能在x86電腦上玩x86或ARM架構的手機遊戲，甚至多開、掛機、鍵盤映射都不是難事。</p>
+<p>對比Windows系統為數眾多的Android模擬器，GNU/Linux系統 (Ubuntu、Fedora、Arch Linux、openSUSE、Gentoo，不包含ChromeOS) 的方案是少的可憐，Windows的著名Android模擬器多半沒有推出Linux版本。早期Linux只有「Genymotion」和「Android Studio」能用，而這二者基本是給開發人員用的，難以用來玩遊戲。</p>
+<p>另外，上面講的那些Windows系統的Android模擬器，即使用Wine依然是無法在Linux執行的。</p>
+<p>所幸近年來此情況有所改善，隨著LXC容器技術的Anbox和Waydroid出現，Linux便能執行Android APP了。利用Linux的QEMU/KVM技術，安裝高效率Android-x86虛擬機也是穩固可行的方案。</p>
+<p>現在，Linux用戶想在電腦上跑Android APP甚至打遊戲，可以找開源軟體組成的解決方案，達成類似「Android模擬器」的效果，順便擺脫商業Android模擬器的各種業配和廣告置入。</p>
+<h2>1. Waydroid
+<span>
+<a href="#1-waydroid" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Waydroid源自Canonical開發的Anbox，採用LXC技術，容器與Linux共用核心，執行Android系統。開發團隊同時也負責開發Bliss OS。</p>
+<p>至於Anbox基本上已經停止開發了，Waydroid取而代之，成為最知名的Anbox繼承者。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-511a0505f1.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：GPLv3</li>
+<li>LXC容器十分輕量，執行效率比虛擬機和模擬器高出許多，還可以有效利用電腦的GPU加速遊戲效能</li>
+<li>與Linux系統共用Android剪貼板，以視窗模式操作APP，宛如原生Linux應用一般的操作體驗，就像Microsoft的WSA那樣</li>
+<li>內建Google Play商店</li>
+<li>提供x86和ARM的映像檔，不論是x86電腦還是Raspberry Pi都可以部署</li>
+<li>跑Waydroid需要Wayland顯示協定的桌面</li>
+<li>Waydroid不方便多開，一台電腦只能安裝一個Android版本</li>
+<li>需要手動安裝ARM轉譯器</li>
+<li>目前不支援Nvidia GPU，僅支援Intel與AMD等使用Mesa開源驅動的GPU</li>
+</ul>
+<p>安裝教學請看<a href="https://ivonblog.com/posts/ubuntu-waydroid/" target="_blank">這裡</a>。</p>
+<h2>2. ReDroid
+<span>
+<a href="#2-redroid" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>透過Docker容器執行Android系統，再透過Scrcpy連線到桌面。開發者原意是在伺服器架設雲手機之用，但桌面用戶亦可以參考此方案。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ae9aa8448e.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：Apache</li>
+<li>提供x86和ARM架構的映像檔，不論是x86電腦還是Raspberry Pi都可以部署</li>
+<li>支援GPU硬體加速</li>
+<li>提供ARM轉譯器</li>
+<li>Google Play商店要自己裝</li>
+<li>Docker容器的特性使其能夠快速部署在伺服器上，並用Scrcpy遠端連線</li>
+<li>Docker容器資源佔用低，且容易複製，要多開是有可能的</li>
+<li>安裝過程略顯繁瑣，需要對Docker有一定操作知識才能用的好</li>
+<li>目前不支援Nvidia GPU，僅支援Intel與AMD等使用Mesa開源驅動的GPU</li>
+</ul>
+<p>安裝方式請看<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">ReDroid使用教學</a></p>
+<h2>3. Android-x86虛擬機
+<span>
+<a href="#3-android-x86%e8%99%9b%e6%93%ac%e6%a9%9f" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Android-x86虛擬機源自發展許久的同名專案，它能夠安裝到實體電腦，同樣的也可以安裝到虛擬機。</p>
+<p>不過，原版的Android-x86開發到Android 9便很少更新了。</p>
+<p>近年來有基於Android-x86的「Bliss OS」出現，更新十分積極，支援到Android 15。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1e0c36b6bf.webp">
+<p>特色如下：</p>
+<ul>
+<li>授權條款：Apache</li>
+<li>Android-x86是完整的作業系統，從Android 7 ～ Android 15皆有ISO</li>
+<li>幾乎是開源軟體組成的解決方案，系統乾淨無廣告</li>
+<li>可以部署在虛擬機，也可以安裝到實體機當主力系統，譬如Microsoft Surface</li>
+<li>支援ARM → x86架構轉譯，支援更多手機遊戲</li>
+<li>不用直通GPU也能用VirGL達成3D硬體加速，支援Intel、AMD、Nvidia GPU</li>
+<li>有多開的潛力</li>
+<li>內建Google Play商店</li>
+<li>虛擬機後端可以選用QEMU/KVM、VirtualBox、VMware等等</li>
+<li>因為是虛擬機，GPU加速能力有限</li>
+<li>只支援x86架構的電腦</li>
+</ul>
+<p>用QEMU/KVM跑Android-x86虛擬機的教學請看：<a href="https://ivonblog.com/posts/bliss-os-qemu-installation/" target="_blank">Bliss OS虛擬機安裝教學</a>。</p>
+<h2>4. Ika虛擬機
+<span>
+<a href="#4-ika%e8%99%9b%e6%93%ac%e6%a9%9f" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由DesktopECHO開發，結合crosvm所製作的Android虛擬機方案。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-90576a4f47.webp">
+<p>特色如下：</p>
+<ul>
+<li>授權條款：未定</li>
+<li>用crosvm與KVM跑Android虛擬機</li>
+<li>開箱即用的體驗</li>
+<li>可在虛擬機內存取Linux的WebCam</li>
+<li>自動掛載Linux目錄，與虛擬機共享檔案</li>
+<li>提供3D硬體加速，支援Intel、AMD、Nvidia GPU</li>
+<li>內建Google Play商店</li>
+<li>比較吃資源</li>
+</ul>
+<p>教學參考：<a href="https://ivonblog.com/posts/ika-android-emulator" target="_blank">Ika使用教學</a></p>
+<h2>5. Android Studio的AVD模擬器
+<span>
+<a href="#5-android-studio%e7%9a%84avd%e6%a8%a1%e6%93%ac%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Android Virtual Device，簡稱AVD，是Google官方開發的Android模擬器，隨附於Android Studio。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-686fc92980.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：專有軟體</li>
+<li>主要用於開發Android APP之用，相對其他方案來說比較成熟</li>
+<li>跨平台，同樣的一組軟體也能在Windows與macOS使用</li>
+<li>可以使用ADB和Root</li>
+<li>可模擬多款手機型號，技術上來說可以多開</li>
+<li>內建Google Play與ARM轉譯器libndk</li>
+<li>提供GPU圖形加速，支援Intel、AMD、Nvidia GPU。</li>
+<li>Android Studio執行時非常吃資源，不過AVD模擬器可以設定成不依賴Android Studio，獨立執行</li>
+<li>僅支援x86架構的電腦</li>
+</ul>
+<p>教學參考：<a href="https://ivonblog.com/posts/linux-android-studio-avd-as-a-gaming-emulator" target="_blank">Linux用Android Studio的AVD模擬器玩手遊的思路</a></p>
+<h2>6. Genymotion模擬器
+<span>
+<a href="#6-genymotion%e6%a8%a1%e6%93%ac%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>跨平台的商業Android模擬器。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3d3e0ea181.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：專有軟體</li>
+<li>安裝起來最無腦</li>
+<li>執行時依賴QEMU/KVM或VirtualBox</li>
+<li>提供各種手機機型模擬</li>
+<li>提供快捷的按鍵操作，方便截圖、錄影、模擬手勢</li>
+<li>內建ARM轉譯器</li>
+<li>支援Intel、AMD、Nvidia GPU圖形加速。</li>
+<li>需要註冊才能使用</li>
+<li>免費版的螢幕上會出現浮水印，妨礙使用，需要購買使用授權</li>
+<li>僅支援x86架構的電腦</li>
+</ul>
+<p>Linux版Genymotion安裝教學<a href="https://ivonblog.com/posts/genymotion-for-linux" target="_blank">見此</a></p>
+<h2>該選哪一個？
+<span>
+<a href="#%e8%a9%b2%e9%81%b8%e5%93%aa%e4%b8%80%e5%80%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果是Nvidia顯示卡用戶，沒有內顯且不想折騰的，你就只有Android Studio的AVD與Genymotion能選了。</p>
+<p>若是Intel與AMD顯示卡用戶，選擇就多了。在Linux的各種「Android模擬器」方案比較下來，Waydroid絕對是效能最高的。因為使用LXC容器技術，跟Linux共用核心，運算的時候幾乎沒有效能損失，Waydroid的效能好似在實體電腦安裝Android系統。</p>
+<p>對比Android Studio的AVD模擬器，或者Android-x86虛擬機方案，Waydroid的效能比他們高出許多。尤其對低規格的電腦來說，Waydroid是最為經濟的選擇。經過我Geekbench跑分測試，套一層虛擬化的Android效能，最多會損失將近一半的效能！這意味著虛擬機的效能需要分配更多CPU核心撐起來。要是電腦CPU只有4核心或更低，開Android-x86虛擬機就會吃光所有資源了！相較之下，Waydroid的資源佔用比較低。</p>
+<p>Android-x86虛擬機的圖形加速依賴VirGL達成，這個效能要比Android Studio的AVD模擬器弱一些。</p>
+<p>至於ReDroid是給進階玩家用的，適合想要遠端連線雲手機的玩家使用。</p>]]>
+    </description>
+    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/android-emulators-for-linux/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-44d03a6f66.webp"></a></p>
+<p>本文介紹Linux系統幾個免費的「Android模擬器」解決方案，讓您在Linux系統跑Android APP、玩手遊。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b859ceb749.webp"><figcaption>在Gentoo Linux的KDE Plasma桌面用Android-x86虛擬機玩FGO</figcaption>
+<h2>概論
+<span>
+<a href="#%e6%a6%82%e8%ab%96" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>市面上有很多商業Android模擬器，例如：BlueStacks藍疊、NOX夜神、LDPlayer雷電、MEmu逍遙、Google Play遊戲電腦版等等，花樣很多，不外乎就是能在x86電腦上玩x86或ARM架構的手機遊戲，甚至多開、掛機、鍵盤映射都不是難事。</p>
+<p>對比Windows系統為數眾多的Android模擬器，GNU/Linux系統 (Ubuntu、Fedora、Arch Linux、openSUSE、Gentoo，不包含ChromeOS) 的方案是少的可憐，Windows的著名Android模擬器多半沒有推出Linux版本。早期Linux只有「Genymotion」和「Android Studio」能用，而這二者基本是給開發人員用的，難以用來玩遊戲。</p>
+<p>另外，上面講的那些Windows系統的Android模擬器，即使用Wine依然是無法在Linux執行的。</p>
+<p>所幸近年來此情況有所改善，隨著LXC容器技術的Anbox和Waydroid出現，Linux便能執行Android APP了。利用Linux的QEMU/KVM技術，安裝高效率Android-x86虛擬機也是穩固可行的方案。</p>
+<p>現在，Linux用戶想在電腦上跑Android APP甚至打遊戲，可以找開源軟體組成的解決方案，達成類似「Android模擬器」的效果，順便擺脫商業Android模擬器的各種業配和廣告置入。</p>
+<h2>1. Waydroid
+<span>
+<a href="#1-waydroid" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Waydroid源自Canonical開發的Anbox，採用LXC技術，容器與Linux共用核心，執行Android系統。開發團隊同時也負責開發Bliss OS。</p>
+<p>至於Anbox基本上已經停止開發了，Waydroid取而代之，成為最知名的Anbox繼承者。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-511a0505f1.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：GPLv3</li>
+<li>LXC容器十分輕量，執行效率比虛擬機和模擬器高出許多，還可以有效利用電腦的GPU加速遊戲效能</li>
+<li>與Linux系統共用Android剪貼板，以視窗模式操作APP，宛如原生Linux應用一般的操作體驗，就像Microsoft的WSA那樣</li>
+<li>內建Google Play商店</li>
+<li>提供x86和ARM的映像檔，不論是x86電腦還是Raspberry Pi都可以部署</li>
+<li>跑Waydroid需要Wayland顯示協定的桌面</li>
+<li>Waydroid不方便多開，一台電腦只能安裝一個Android版本</li>
+<li>需要手動安裝ARM轉譯器</li>
+<li>目前不支援Nvidia GPU，僅支援Intel與AMD等使用Mesa開源驅動的GPU</li>
+</ul>
+<p>安裝教學請看<a href="https://ivonblog.com/posts/ubuntu-waydroid/" target="_blank">這裡</a>。</p>
+<h2>2. ReDroid
+<span>
+<a href="#2-redroid" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>透過Docker容器執行Android系統，再透過Scrcpy連線到桌面。開發者原意是在伺服器架設雲手機之用，但桌面用戶亦可以參考此方案。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ae9aa8448e.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：Apache</li>
+<li>提供x86和ARM架構的映像檔，不論是x86電腦還是Raspberry Pi都可以部署</li>
+<li>支援GPU硬體加速</li>
+<li>提供ARM轉譯器</li>
+<li>Google Play商店要自己裝</li>
+<li>Docker容器的特性使其能夠快速部署在伺服器上，並用Scrcpy遠端連線</li>
+<li>Docker容器資源佔用低，且容易複製，要多開是有可能的</li>
+<li>安裝過程略顯繁瑣，需要對Docker有一定操作知識才能用的好</li>
+<li>目前不支援Nvidia GPU，僅支援Intel與AMD等使用Mesa開源驅動的GPU</li>
+</ul>
+<p>安裝方式請看<a href="https://ivonblog.com/posts/redroid-android-docker/" target="_blank">ReDroid使用教學</a></p>
+<h2>3. Android-x86虛擬機
+<span>
+<a href="#3-android-x86%e8%99%9b%e6%93%ac%e6%a9%9f" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Android-x86虛擬機源自發展許久的同名專案，它能夠安裝到實體電腦，同樣的也可以安裝到虛擬機。</p>
+<p>不過，原版的Android-x86開發到Android 9便很少更新了。</p>
+<p>近年來有基於Android-x86的「Bliss OS」出現，更新十分積極，支援到Android 15。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1e0c36b6bf.webp">
+<p>特色如下：</p>
+<ul>
+<li>授權條款：Apache</li>
+<li>Android-x86是完整的作業系統，從Android 7 ～ Android 15皆有ISO</li>
+<li>幾乎是開源軟體組成的解決方案，系統乾淨無廣告</li>
+<li>可以部署在虛擬機，也可以安裝到實體機當主力系統，譬如Microsoft Surface</li>
+<li>支援ARM → x86架構轉譯，支援更多手機遊戲</li>
+<li>不用直通GPU也能用VirGL達成3D硬體加速，支援Intel、AMD、Nvidia GPU</li>
+<li>有多開的潛力</li>
+<li>內建Google Play商店</li>
+<li>虛擬機後端可以選用QEMU/KVM、VirtualBox、VMware等等</li>
+<li>因為是虛擬機，GPU加速能力有限</li>
+<li>只支援x86架構的電腦</li>
+</ul>
+<p>用QEMU/KVM跑Android-x86虛擬機的教學請看：<a href="https://ivonblog.com/posts/bliss-os-qemu-installation/" target="_blank">Bliss OS虛擬機安裝教學</a>。</p>
+<h2>4. Ika虛擬機
+<span>
+<a href="#4-ika%e8%99%9b%e6%93%ac%e6%a9%9f" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>由DesktopECHO開發，結合crosvm所製作的Android虛擬機方案。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-90576a4f47.webp">
+<p>特色如下：</p>
+<ul>
+<li>授權條款：未定</li>
+<li>用crosvm與KVM跑Android虛擬機</li>
+<li>開箱即用的體驗</li>
+<li>可在虛擬機內存取Linux的WebCam</li>
+<li>自動掛載Linux目錄，與虛擬機共享檔案</li>
+<li>提供3D硬體加速，支援Intel、AMD、Nvidia GPU</li>
+<li>內建Google Play商店</li>
+<li>比較吃資源</li>
+</ul>
+<p>教學參考：<a href="https://ivonblog.com/posts/ika-android-emulator" target="_blank">Ika使用教學</a></p>
+<h2>5. Android Studio的AVD模擬器
+<span>
+<a href="#5-android-studio%e7%9a%84avd%e6%a8%a1%e6%93%ac%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>Android Virtual Device，簡稱AVD，是Google官方開發的Android模擬器，隨附於Android Studio。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-686fc92980.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：專有軟體</li>
+<li>主要用於開發Android APP之用，相對其他方案來說比較成熟</li>
+<li>跨平台，同樣的一組軟體也能在Windows與macOS使用</li>
+<li>可以使用ADB和Root</li>
+<li>可模擬多款手機型號，技術上來說可以多開</li>
+<li>內建Google Play與ARM轉譯器libndk</li>
+<li>提供GPU圖形加速，支援Intel、AMD、Nvidia GPU。</li>
+<li>Android Studio執行時非常吃資源，不過AVD模擬器可以設定成不依賴Android Studio，獨立執行</li>
+<li>僅支援x86架構的電腦</li>
+</ul>
+<p>教學參考：<a href="https://ivonblog.com/posts/linux-android-studio-avd-as-a-gaming-emulator" target="_blank">Linux用Android Studio的AVD模擬器玩手遊的思路</a></p>
+<h2>6. Genymotion模擬器
+<span>
+<a href="#6-genymotion%e6%a8%a1%e6%93%ac%e5%99%a8" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>跨平台的商業Android模擬器。
+</p>
+<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-3d3e0ea181.webp">
+<p>特色：</p>
+<ul>
+<li>授權條款：專有軟體</li>
+<li>安裝起來最無腦</li>
+<li>執行時依賴QEMU/KVM或VirtualBox</li>
+<li>提供各種手機機型模擬</li>
+<li>提供快捷的按鍵操作，方便截圖、錄影、模擬手勢</li>
+<li>內建ARM轉譯器</li>
+<li>支援Intel、AMD、Nvidia GPU圖形加速。</li>
+<li>需要註冊才能使用</li>
+<li>免費版的螢幕上會出現浮水印，妨礙使用，需要購買使用授權</li>
+<li>僅支援x86架構的電腦</li>
+</ul>
+<p>Linux版Genymotion安裝教學<a href="https://ivonblog.com/posts/genymotion-for-linux" target="_blank">見此</a></p>
+<h2>該選哪一個？
+<span>
+<a href="#%e8%a9%b2%e9%81%b8%e5%93%aa%e4%b8%80%e5%80%8b" aria-label="定位點">#</a>
+</span>
+</h2>
+<p>如果是Nvidia顯示卡用戶，沒有內顯且不想折騰的，你就只有Android Studio的AVD與Genymotion能選了。</p>
+<p>若是Intel與AMD顯示卡用戶，選擇就多了。在Linux的各種「Android模擬器」方案比較下來，Waydroid絕對是效能最高的。因為使用LXC容器技術，跟Linux共用核心，運算的時候幾乎沒有效能損失，Waydroid的效能好似在實體電腦安裝Android系統。</p>
+<p>對比Android Studio的AVD模擬器，或者Android-x86虛擬機方案，Waydroid的效能比他們高出許多。尤其對低規格的電腦來說，Waydroid是最為經濟的選擇。經過我Geekbench跑分測試，套一層虛擬化的Android效能，最多會損失將近一半的效能！這意味著虛擬機的效能需要分配更多CPU核心撐起來。要是電腦CPU只有4核心或更低，開Android-x86虛擬機就會吃光所有資源了！相較之下，Waydroid的資源佔用比較低。</p>
+<p>Android-x86虛擬機的圖形加速依賴VirGL達成，這個效能要比Android Studio的AVD模擬器弱一些。</p>
+<p>至於ReDroid是給進階玩家用的，適合想要遠端連線雲手機的玩家使用。</p>]]></content:encoded>
+    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-44d03a6f66.webp"/>
+          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-44d03a6f66.webp" medium="image"/>
+    <pubDate>Mon, 23 Nov 2026 16:00:00 +0800</pubDate>
+  </item><item>
     <title><![CDATA[參加臺灣Sony Xperia手機攝影賞得到兩次獎品]]></title>
     <link>https://ivonblog.com/posts/earned-sony-xperia-tw-photography-rewards/</link>
     <itunes:title><![CDATA[參加臺灣Sony Xperia手機攝影賞得到兩次獎品]]></itunes:title>
@@ -677,1217 +1598,5 @@
     <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-506402d262.webp"/>
           <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-506402d262.webp" medium="image"/>
     <pubDate>Sat, 14 Nov 2026 12:00:46 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[去成大參加Galgame愛好者的線下聚會]]></title>
-    <link>https://ivonblog.com/posts/ncku-galgame-literature-session-2026-11-13/</link>
-    <itunes:title><![CDATA[去成大參加Galgame愛好者的線下聚會]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/ncku-galgame-literature-session-2026-11-13/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eaa6859d69.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>去了 成功大學 + 清華大學 + Galgame同好會 合辦的聯合社課，第三彈。</p>
-<p>旮旯給木真的好有趣。國中生當媽媽…死館排不進十二神器….櫻小路露娜的狗。懂了。</p>
-<p>我請假了，以參加 日本文學學術研討會 （迫真） 的名義，向上級請假了。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b208b073b5.webp">
-<p>從高雄騎了兩小時到臺南了。</p>
-<h2>前
-<span>
-<a href="#%e5%89%8d" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>耳聞<a href="https://www.facebook.com/p/GalGame-%E5%90%8C%E5%A5%BD%E6%9C%83-61587255845771/?locale=zh_TW" target="_blank">Galgame同好會</a>在全臺辦了許多分享Galgame文化的講座課程，基本上都是免費參與的，外校生也可以去。</p>
-<p>最近很難得有南部場次所以就去了。</p>
-<p>在成大的學生活動中心，看到了那裡的動畫社和漫畫社的樣子，還有繪製看板娘。好好喔，這就是有獨立社辦的學校……。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d4b1ce3c13.webp"></p>
-<p>一進會議室，就看到一群人在唱日K，是《愛上火車》《蒼之彼方的四重奏》的主題曲。還有人穿著二階堂真紅與愛上火車八六的動漫潮T。恨帥潮。</p>
-<p>現場還有許多熱心支援的Galgame週邊讓人一飽眼福
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-bc4d971b13.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e44c5d02ca.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b2872a1f78.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7596da15db.webp">
-<p>包括嘉義市Galgame專賣店電波空間提供的收藏品
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c3f4cdc1de.webp">
-<p>以及臺灣、中國、日本等地的Galgame社刊
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f2e6276338.webp">
-<p>終於遇到了另一個Fumo持有者，我就上前請求合影。（很抱歉明明是Galgame的場子的，我卻讓我的東方兔兔Fumo亂入造成困擾）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-643d8b531e.webp">
-<p>在這裡看到很多喜歡Galgame的玩家，現場來了很多人呢，座位都不夠坐。60個人擠滿小小的會議室，來聽有趣的神人分享作品。參加這個活動還能獲得Discord小圈圈的加入權限。</p>
-<p>11/13，今天三個小時的議程，今天講了五個主題。</p>
-<p>以下討論的Galgame作品，除了12神器幾乎都有在Steam上架，有特價就買吧，你只需要額外打補丁就能玩了！</p>
-<h2>Galgame改動畫概觀
-<span>
-<a href="#galgame%e6%94%b9%e5%8b%95%e7%95%ab%e6%a6%82%e8%a7%80" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-436ad93504.webp">
-<p>因為Galgame有多條路線，文本量很大，相較於漫畫和小說作品，要改編成動畫很困難。即使一部Galgame原作劇本再怎麼好，也可能被動畫版毀掉。</p>
-<p>講者討論了Galgame改編動畫後成功與失敗的例子，譬如《緣之空》，還有我最喜歡的《命運石之門》。</p>
-<p>好的例子，看是要多線並進，還是整合成新故事。</p>
-<p>如果有經費的話，當然是像Key社的《Summer Pockets》或TypeMoon的《Fate》系列那樣精心製作最好。</p>
-<p>最壞的就是做成廢萌番，或者劇情不三不四。我現在才知道《Nekopara》原來有做一個跟原作無關的正常向動畫啊，明明原作都是在大爆射的說。</p>
-<p>誒～原來拔作島（抜きゲーみたいな島に住んでる貧乳はどうすりゃいいですか？）動畫的評價不好喔，我覺得用做愛當戰鬥方式的還滿好笑的說。</p>
-<p>最後，講者大膽預言2027年《千戀萬花》動畫化完蛋了！！！！！！因為給擦邊社做，可能不會很完美。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e47bddb24b.webp">
-<p>但我想說臺灣如果有代理上巴哈動畫瘋，週邊應該還是會賣的很好吧？</p>
-<h2>ATRI對玩家來說愛是什麼
-<span>
-<a href="#atri%e5%b0%8d%e7%8e%a9%e5%ae%b6%e4%be%86%e8%aa%aa%e6%84%9b%e6%98%af%e4%bb%80%e9%ba%bc" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4677477f5b.webp">
-<p>討論很有水準，講者分析了Galgame常見的主角特質，並使用生物與心理學理論分析了愛的產生因素。區分愛與喜歡。用不劇透的方式，來推坑作品。</p>
-<p>因為ATRI主角是機器人，講者自己做了AI Agent代操galgame，並要Gemini和Claude寫日記記錄遊戲感想，去感受愛為何物，所以是…….幻覺大賽。</p>
-<p>原來《ATRI -My Dear Moments-》劇情很短啊。</p>
-<p>其實我聽他繞了一大圈還是聽不懂在講什麼，看的出很愛作品，可是因為要防止劇透，無法分析文本，討論方向發散，就不好理解。</p>
-<p>不過我認為這種分析方式很有趣，我必可活用於下一次……。</p>
-<h2>女裝潛入系題材的Galgame
-<span>
-<a href="#%e5%a5%b3%e8%a3%9d%e6%bd%9b%e5%85%a5%e7%b3%bb%e9%a1%8c%e6%9d%90%e7%9a%84galgame" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-92ff747190.webp">
-<p>講者自稱是「櫻小路露娜的狗」。（流汗黃豆，我已經看到第三個人這樣講了，這到底是何魔力，我玩了近月系列遲早也會這樣說吧）</p>
-<p>女裝潛入系，指的是男性主角為了各種理由男扮女裝，潛入全女場所的達成目標的遊戲。這是很小眾的性癖。</p>
-<p>講者分析了常見的體裁，還有角色常見的表現，讓人知道女裝作品的看點為何。</p>
-<p>除了《近月少女的禮儀》之外還推薦了《Monkeys!¡》。</p>
-<p>從音符社（ensemble）一直能推出作品來看，雖然女裝潛入系冷門，還是有固定客群的。</p>
-<p>關於罪惡感部分，男主女裝潛入全女性環境，害怕被揭發，雖然帶有一點道德與性別認同問題，不過如果用LGBTQ的理論去理解就不那麼罪惡了吧？雖然想這樣說，但是這個思維過於跳躍我就沒提出來了。</p>
-<h2>十二神器簡介
-<span>
-<a href="#%e5%8d%81%e4%ba%8c%e7%a5%9e%e5%99%a8%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b478c35d51.webp">
-<p>介紹2010年代，中國大陸百度Galgame貼吧經典的「十二神器」和「十二魔器」列表的作品。</p>
-<p>十二神器這個列表玩梗成分居多，而且年代太久遠了，其實新世代的Galgame還有很多更神奇的作品。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-011ad2dce9.webp">
-<p>裡面的《素晴らしき日々～不連続存在～》雖然恐怖，其實文學手法很出色，值得遊玩。</p>
-<p>講者問在場有多少人玩過十二神器？蠻多舉手的。</p>
-<p>又問：那麼玩十二神器入坑的呢？手還很多舉著！原來有人是靠重口味獵奇作品入坑Galgame的啊？也許是《沙耶之歌》太有名了。我只知道《Euphoria》動畫的人體蜈蚣橋段不錯用，讓我想去玩原作。</p>
-<p>講者認為，因為日本的表界和裡界分很開，所以獵奇作品其實在裡界不是什麼少見的題材的說，不用大驚小怪。</p>
-<p>如果覺得「十二神器」太可怕，柚子社的「十二柚器」你就拿去吧！</p>
-<p>唉為什麼沒有人做十二幼器的列表……</p>
-<h2>田中羅蜜歐的劇本風格
-<span>
-<a href="#%e7%94%b0%e4%b8%ad%e7%be%85%e8%9c%9c%e6%ad%90%e7%9a%84%e5%8a%87%e6%9c%ac%e9%a2%a8%e6%a0%bc" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-30ad60fa0b.webp">
-<p>田中羅蜜歐 (田中ロミオ) 專職描寫孤獨，題材特殊創新，文筆很吃電波，看《CROSS†CHANNEL》和《家族計劃》的介紹還挺有趣的。</p>
-<p>沒想到居然有人跟我同樣看過《人類衰退之後》和《AURA ～魔龍院光牙最後的戰鬥～》這兩部作品。</p>
-<p>田中羅蜜歐的風格被虛淵玄說有比他更沉重的黑暗，連奈須蘑菇都對其讚譽有佳。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-14113ab211.webp">
-<p>然後講到了田中羅蜜歐擅長寫中學生媽媽角色，還有初潮play。謝謝，我完全玩明白了，馬上加入願望清單。</p>
-<h2>結
-<span>
-<a href="#%e7%b5%90" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>聽完之後，22:00點了，我就快速的騎回家了，看著府城燈火遠去。好冷。這就是羅百吉在<a href="https://www.youtube.com/watch?v=4jmZXcaBidE" target="_blank">Friday Night</a>裡面說的「半夜飆車回臺北，去可樂星球載妹妹」的感覺嗎。</p>
-<p>果然這種場合還是要廚力高的演講比較好，太多理論就不是很能聽的進去呢，但我還是欣賞他們的廚力，能這樣分析自己喜愛的作品。</p>
-<p>期待下一次活動。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/ncku-galgame-literature-session-2026-11-13/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eaa6859d69.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>去了 成功大學 + 清華大學 + Galgame同好會 合辦的聯合社課，第三彈。</p>
-<p>旮旯給木真的好有趣。國中生當媽媽…死館排不進十二神器….櫻小路露娜的狗。懂了。</p>
-<p>我請假了，以參加 日本文學學術研討會 （迫真） 的名義，向上級請假了。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b208b073b5.webp">
-<p>從高雄騎了兩小時到臺南了。</p>
-<h2>前
-<span>
-<a href="#%e5%89%8d" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>耳聞<a href="https://www.facebook.com/p/GalGame-%E5%90%8C%E5%A5%BD%E6%9C%83-61587255845771/?locale=zh_TW" target="_blank">Galgame同好會</a>在全臺辦了許多分享Galgame文化的講座課程，基本上都是免費參與的，外校生也可以去。</p>
-<p>最近很難得有南部場次所以就去了。</p>
-<p>在成大的學生活動中心，看到了那裡的動畫社和漫畫社的樣子，還有繪製看板娘。好好喔，這就是有獨立社辦的學校……。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d4b1ce3c13.webp"></p>
-<p>一進會議室，就看到一群人在唱日K，是《愛上火車》《蒼之彼方的四重奏》的主題曲。還有人穿著二階堂真紅與愛上火車八六的動漫潮T。恨帥潮。</p>
-<p>現場還有許多熱心支援的Galgame週邊讓人一飽眼福
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-bc4d971b13.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e44c5d02ca.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b2872a1f78.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7596da15db.webp">
-<p>包括嘉義市Galgame專賣店電波空間提供的收藏品
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c3f4cdc1de.webp">
-<p>以及臺灣、中國、日本等地的Galgame社刊
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f2e6276338.webp">
-<p>終於遇到了另一個Fumo持有者，我就上前請求合影。（很抱歉明明是Galgame的場子的，我卻讓我的東方兔兔Fumo亂入造成困擾）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-643d8b531e.webp">
-<p>在這裡看到很多喜歡Galgame的玩家，現場來了很多人呢，座位都不夠坐。60個人擠滿小小的會議室，來聽有趣的神人分享作品。參加這個活動還能獲得Discord小圈圈的加入權限。</p>
-<p>11/13，今天三個小時的議程，今天講了五個主題。</p>
-<p>以下討論的Galgame作品，除了12神器幾乎都有在Steam上架，有特價就買吧，你只需要額外打補丁就能玩了！</p>
-<h2>Galgame改動畫概觀
-<span>
-<a href="#galgame%e6%94%b9%e5%8b%95%e7%95%ab%e6%a6%82%e8%a7%80" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-436ad93504.webp">
-<p>因為Galgame有多條路線，文本量很大，相較於漫畫和小說作品，要改編成動畫很困難。即使一部Galgame原作劇本再怎麼好，也可能被動畫版毀掉。</p>
-<p>講者討論了Galgame改編動畫後成功與失敗的例子，譬如《緣之空》，還有我最喜歡的《命運石之門》。</p>
-<p>好的例子，看是要多線並進，還是整合成新故事。</p>
-<p>如果有經費的話，當然是像Key社的《Summer Pockets》或TypeMoon的《Fate》系列那樣精心製作最好。</p>
-<p>最壞的就是做成廢萌番，或者劇情不三不四。我現在才知道《Nekopara》原來有做一個跟原作無關的正常向動畫啊，明明原作都是在大爆射的說。</p>
-<p>誒～原來拔作島（抜きゲーみたいな島に住んでる貧乳はどうすりゃいいですか？）動畫的評價不好喔，我覺得用做愛當戰鬥方式的還滿好笑的說。</p>
-<p>最後，講者大膽預言2027年《千戀萬花》動畫化完蛋了！！！！！！因為給擦邊社做，可能不會很完美。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e47bddb24b.webp">
-<p>但我想說臺灣如果有代理上巴哈動畫瘋，週邊應該還是會賣的很好吧？</p>
-<h2>ATRI對玩家來說愛是什麼
-<span>
-<a href="#atri%e5%b0%8d%e7%8e%a9%e5%ae%b6%e4%be%86%e8%aa%aa%e6%84%9b%e6%98%af%e4%bb%80%e9%ba%bc" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4677477f5b.webp">
-<p>討論很有水準，講者分析了Galgame常見的主角特質，並使用生物與心理學理論分析了愛的產生因素。區分愛與喜歡。用不劇透的方式，來推坑作品。</p>
-<p>因為ATRI主角是機器人，講者自己做了AI Agent代操galgame，並要Gemini和Claude寫日記記錄遊戲感想，去感受愛為何物，所以是…….幻覺大賽。</p>
-<p>原來《ATRI -My Dear Moments-》劇情很短啊。</p>
-<p>其實我聽他繞了一大圈還是聽不懂在講什麼，看的出很愛作品，可是因為要防止劇透，無法分析文本，討論方向發散，就不好理解。</p>
-<p>不過我認為這種分析方式很有趣，我必可活用於下一次……。</p>
-<h2>女裝潛入系題材的Galgame
-<span>
-<a href="#%e5%a5%b3%e8%a3%9d%e6%bd%9b%e5%85%a5%e7%b3%bb%e9%a1%8c%e6%9d%90%e7%9a%84galgame" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-92ff747190.webp">
-<p>講者自稱是「櫻小路露娜的狗」。（流汗黃豆，我已經看到第三個人這樣講了，這到底是何魔力，我玩了近月系列遲早也會這樣說吧）</p>
-<p>女裝潛入系，指的是男性主角為了各種理由男扮女裝，潛入全女場所的達成目標的遊戲。這是很小眾的性癖。</p>
-<p>講者分析了常見的體裁，還有角色常見的表現，讓人知道女裝作品的看點為何。</p>
-<p>除了《近月少女的禮儀》之外還推薦了《Monkeys!¡》。</p>
-<p>從音符社（ensemble）一直能推出作品來看，雖然女裝潛入系冷門，還是有固定客群的。</p>
-<p>關於罪惡感部分，男主女裝潛入全女性環境，害怕被揭發，雖然帶有一點道德與性別認同問題，不過如果用LGBTQ的理論去理解就不那麼罪惡了吧？雖然想這樣說，但是這個思維過於跳躍我就沒提出來了。</p>
-<h2>十二神器簡介
-<span>
-<a href="#%e5%8d%81%e4%ba%8c%e7%a5%9e%e5%99%a8%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b478c35d51.webp">
-<p>介紹2010年代，中國大陸百度Galgame貼吧經典的「十二神器」和「十二魔器」列表的作品。</p>
-<p>十二神器這個列表玩梗成分居多，而且年代太久遠了，其實新世代的Galgame還有很多更神奇的作品。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-011ad2dce9.webp">
-<p>裡面的《素晴らしき日々～不連続存在～》雖然恐怖，其實文學手法很出色，值得遊玩。</p>
-<p>講者問在場有多少人玩過十二神器？蠻多舉手的。</p>
-<p>又問：那麼玩十二神器入坑的呢？手還很多舉著！原來有人是靠重口味獵奇作品入坑Galgame的啊？也許是《沙耶之歌》太有名了。我只知道《Euphoria》動畫的人體蜈蚣橋段不錯用，讓我想去玩原作。</p>
-<p>講者認為，因為日本的表界和裡界分很開，所以獵奇作品其實在裡界不是什麼少見的題材的說，不用大驚小怪。</p>
-<p>如果覺得「十二神器」太可怕，柚子社的「十二柚器」你就拿去吧！</p>
-<p>唉為什麼沒有人做十二幼器的列表……</p>
-<h2>田中羅蜜歐的劇本風格
-<span>
-<a href="#%e7%94%b0%e4%b8%ad%e7%be%85%e8%9c%9c%e6%ad%90%e7%9a%84%e5%8a%87%e6%9c%ac%e9%a2%a8%e6%a0%bc" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-30ad60fa0b.webp">
-<p>田中羅蜜歐 (田中ロミオ) 專職描寫孤獨，題材特殊創新，文筆很吃電波，看《CROSS†CHANNEL》和《家族計劃》的介紹還挺有趣的。</p>
-<p>沒想到居然有人跟我同樣看過《人類衰退之後》和《AURA ～魔龍院光牙最後的戰鬥～》這兩部作品。</p>
-<p>田中羅蜜歐的風格被虛淵玄說有比他更沉重的黑暗，連奈須蘑菇都對其讚譽有佳。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-14113ab211.webp">
-<p>然後講到了田中羅蜜歐擅長寫中學生媽媽角色，還有初潮play。謝謝，我完全玩明白了，馬上加入願望清單。</p>
-<h2>結
-<span>
-<a href="#%e7%b5%90" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>聽完之後，22:00點了，我就快速的騎回家了，看著府城燈火遠去。好冷。這就是羅百吉在<a href="https://www.youtube.com/watch?v=4jmZXcaBidE" target="_blank">Friday Night</a>裡面說的「半夜飆車回臺北，去可樂星球載妹妹」的感覺嗎。</p>
-<p>果然這種場合還是要廚力高的演講比較好，太多理論就不是很能聽的進去呢，但我還是欣賞他們的廚力，能這樣分析自己喜愛的作品。</p>
-<p>期待下一次活動。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/ncku-galgame-literature-session-2026-11-13/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eaa6859d69.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>去了 成功大學 + 清華大學 + Galgame同好會 合辦的聯合社課，第三彈。</p>
-<p>旮旯給木真的好有趣。國中生當媽媽…死館排不進十二神器….櫻小路露娜的狗。懂了。</p>
-<p>我請假了，以參加 日本文學學術研討會 （迫真） 的名義，向上級請假了。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b208b073b5.webp">
-<p>從高雄騎了兩小時到臺南了。</p>
-<h2>前
-<span>
-<a href="#%e5%89%8d" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>耳聞<a href="https://www.facebook.com/p/GalGame-%E5%90%8C%E5%A5%BD%E6%9C%83-61587255845771/?locale=zh_TW" target="_blank">Galgame同好會</a>在全臺辦了許多分享Galgame文化的講座課程，基本上都是免費參與的，外校生也可以去。</p>
-<p>最近很難得有南部場次所以就去了。</p>
-<p>在成大的學生活動中心，看到了那裡的動畫社和漫畫社的樣子，還有繪製看板娘。好好喔，這就是有獨立社辦的學校……。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d4b1ce3c13.webp"></p>
-<p>一進會議室，就看到一群人在唱日K，是《愛上火車》《蒼之彼方的四重奏》的主題曲。還有人穿著二階堂真紅與愛上火車八六的動漫潮T。恨帥潮。</p>
-<p>現場還有許多熱心支援的Galgame週邊讓人一飽眼福
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-bc4d971b13.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e44c5d02ca.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b2872a1f78.webp">
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7596da15db.webp">
-<p>包括嘉義市Galgame專賣店電波空間提供的收藏品
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-c3f4cdc1de.webp">
-<p>以及臺灣、中國、日本等地的Galgame社刊
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f2e6276338.webp">
-<p>終於遇到了另一個Fumo持有者，我就上前請求合影。（很抱歉明明是Galgame的場子的，我卻讓我的東方兔兔Fumo亂入造成困擾）
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-643d8b531e.webp">
-<p>在這裡看到很多喜歡Galgame的玩家，現場來了很多人呢，座位都不夠坐。60個人擠滿小小的會議室，來聽有趣的神人分享作品。參加這個活動還能獲得Discord小圈圈的加入權限。</p>
-<p>11/13，今天三個小時的議程，今天講了五個主題。</p>
-<p>以下討論的Galgame作品，除了12神器幾乎都有在Steam上架，有特價就買吧，你只需要額外打補丁就能玩了！</p>
-<h2>Galgame改動畫概觀
-<span>
-<a href="#galgame%e6%94%b9%e5%8b%95%e7%95%ab%e6%a6%82%e8%a7%80" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-436ad93504.webp">
-<p>因為Galgame有多條路線，文本量很大，相較於漫畫和小說作品，要改編成動畫很困難。即使一部Galgame原作劇本再怎麼好，也可能被動畫版毀掉。</p>
-<p>講者討論了Galgame改編動畫後成功與失敗的例子，譬如《緣之空》，還有我最喜歡的《命運石之門》。</p>
-<p>好的例子，看是要多線並進，還是整合成新故事。</p>
-<p>如果有經費的話，當然是像Key社的《Summer Pockets》或TypeMoon的《Fate》系列那樣精心製作最好。</p>
-<p>最壞的就是做成廢萌番，或者劇情不三不四。我現在才知道《Nekopara》原來有做一個跟原作無關的正常向動畫啊，明明原作都是在大爆射的說。</p>
-<p>誒～原來拔作島（抜きゲーみたいな島に住んでる貧乳はどうすりゃいいですか？）動畫的評價不好喔，我覺得用做愛當戰鬥方式的還滿好笑的說。</p>
-<p>最後，講者大膽預言2027年《千戀萬花》動畫化完蛋了！！！！！！因為給擦邊社做，可能不會很完美。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-e47bddb24b.webp">
-<p>但我想說臺灣如果有代理上巴哈動畫瘋，週邊應該還是會賣的很好吧？</p>
-<h2>ATRI對玩家來說愛是什麼
-<span>
-<a href="#atri%e5%b0%8d%e7%8e%a9%e5%ae%b6%e4%be%86%e8%aa%aa%e6%84%9b%e6%98%af%e4%bb%80%e9%ba%bc" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4677477f5b.webp">
-<p>討論很有水準，講者分析了Galgame常見的主角特質，並使用生物與心理學理論分析了愛的產生因素。區分愛與喜歡。用不劇透的方式，來推坑作品。</p>
-<p>因為ATRI主角是機器人，講者自己做了AI Agent代操galgame，並要Gemini和Claude寫日記記錄遊戲感想，去感受愛為何物，所以是…….幻覺大賽。</p>
-<p>原來《ATRI -My Dear Moments-》劇情很短啊。</p>
-<p>其實我聽他繞了一大圈還是聽不懂在講什麼，看的出很愛作品，可是因為要防止劇透，無法分析文本，討論方向發散，就不好理解。</p>
-<p>不過我認為這種分析方式很有趣，我必可活用於下一次……。</p>
-<h2>女裝潛入系題材的Galgame
-<span>
-<a href="#%e5%a5%b3%e8%a3%9d%e6%bd%9b%e5%85%a5%e7%b3%bb%e9%a1%8c%e6%9d%90%e7%9a%84galgame" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-92ff747190.webp">
-<p>講者自稱是「櫻小路露娜的狗」。（流汗黃豆，我已經看到第三個人這樣講了，這到底是何魔力，我玩了近月系列遲早也會這樣說吧）</p>
-<p>女裝潛入系，指的是男性主角為了各種理由男扮女裝，潛入全女場所的達成目標的遊戲。這是很小眾的性癖。</p>
-<p>講者分析了常見的體裁，還有角色常見的表現，讓人知道女裝作品的看點為何。</p>
-<p>除了《近月少女的禮儀》之外還推薦了《Monkeys!¡》。</p>
-<p>從音符社（ensemble）一直能推出作品來看，雖然女裝潛入系冷門，還是有固定客群的。</p>
-<p>關於罪惡感部分，男主女裝潛入全女性環境，害怕被揭發，雖然帶有一點道德與性別認同問題，不過如果用LGBTQ的理論去理解就不那麼罪惡了吧？雖然想這樣說，但是這個思維過於跳躍我就沒提出來了。</p>
-<h2>十二神器簡介
-<span>
-<a href="#%e5%8d%81%e4%ba%8c%e7%a5%9e%e5%99%a8%e7%b0%a1%e4%bb%8b" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b478c35d51.webp">
-<p>介紹2010年代，中國大陸百度Galgame貼吧經典的「十二神器」和「十二魔器」列表的作品。</p>
-<p>十二神器這個列表玩梗成分居多，而且年代太久遠了，其實新世代的Galgame還有很多更神奇的作品。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-011ad2dce9.webp">
-<p>裡面的《素晴らしき日々～不連続存在～》雖然恐怖，其實文學手法很出色，值得遊玩。</p>
-<p>講者問在場有多少人玩過十二神器？蠻多舉手的。</p>
-<p>又問：那麼玩十二神器入坑的呢？手還很多舉著！原來有人是靠重口味獵奇作品入坑Galgame的啊？也許是《沙耶之歌》太有名了。我只知道《Euphoria》動畫的人體蜈蚣橋段不錯用，讓我想去玩原作。</p>
-<p>講者認為，因為日本的表界和裡界分很開，所以獵奇作品其實在裡界不是什麼少見的題材的說，不用大驚小怪。</p>
-<p>如果覺得「十二神器」太可怕，柚子社的「十二柚器」你就拿去吧！</p>
-<p>唉為什麼沒有人做十二幼器的列表……</p>
-<h2>田中羅蜜歐的劇本風格
-<span>
-<a href="#%e7%94%b0%e4%b8%ad%e7%be%85%e8%9c%9c%e6%ad%90%e7%9a%84%e5%8a%87%e6%9c%ac%e9%a2%a8%e6%a0%bc" aria-label="定位點">#</a>
-</span>
-</h2>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-30ad60fa0b.webp">
-<p>田中羅蜜歐 (田中ロミオ) 專職描寫孤獨，題材特殊創新，文筆很吃電波，看《CROSS†CHANNEL》和《家族計劃》的介紹還挺有趣的。</p>
-<p>沒想到居然有人跟我同樣看過《人類衰退之後》和《AURA ～魔龍院光牙最後的戰鬥～》這兩部作品。</p>
-<p>田中羅蜜歐的風格被虛淵玄說有比他更沉重的黑暗，連奈須蘑菇都對其讚譽有佳。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-14113ab211.webp">
-<p>然後講到了田中羅蜜歐擅長寫中學生媽媽角色，還有初潮play。謝謝，我完全玩明白了，馬上加入願望清單。</p>
-<h2>結
-<span>
-<a href="#%e7%b5%90" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>聽完之後，22:00點了，我就快速的騎回家了，看著府城燈火遠去。好冷。這就是羅百吉在<a href="https://www.youtube.com/watch?v=4jmZXcaBidE" target="_blank">Friday Night</a>裡面說的「半夜飆車回臺北，去可樂星球載妹妹」的感覺嗎。</p>
-<p>果然這種場合還是要廚力高的演講比較好，太多理論就不是很能聽的進去呢，但我還是欣賞他們的廚力，能這樣分析自己喜愛的作品。</p>
-<p>期待下一次活動。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eaa6859d69.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-eaa6859d69.webp" medium="image"/>
-    <pubDate>Fri, 13 Nov 2026 23:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[老牌的自由軟體可能被AI生成的新開源軟體給取代嗎？]]></title>
-    <link>https://ivonblog.com/posts/can-ai-generated-software-replace-established-open-source-projects/</link>
-    <itunes:title><![CDATA[老牌的自由軟體可能被AI生成的新開源軟體給取代嗎？]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/can-ai-generated-software-replace-established-open-source-projects/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5e6cd53e7e.webp"></a></p>
-<p>老牌開源軟體可能被AI生成的新軟體給取代嗎？</p>
-<p>老東西，你的替身最沒用啦….。</p>
-<p>自從真的有開發者明目張膽的叫AI抄了一整套Adobe系列的軟體，我就在想這問題。</p>
-<p>附圖是在Linux系統，跑一個界面跟Photoshop一樣但不是Photoshop的軟體，可編輯PSD。這就是號稱整套模仿Adobe產品的ArtCraft，開源免費。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6b6aba5763.webp">
-<p>轉用Linux的用戶多半會遇到這種情況：發現常用的商業軟體沒有移植到Linux版，只有macOS和Windows版。有時用Wine也不見得跑的起來。而聰明的開發者就會自力更生做一套複製品出來，譬如LibreOffice對應Microsoft Office，GIMP或Krirta對應Photoshop。然而因為開源專案缺乏商業願景，人力不足，品質往往難以與商業軟體企及。光是要把UI/UX做好就絞盡腦汁了，還會隨機崩潰。然後工作流程還不一樣。你知道GIMP已經推出快30年了，可是在3.0版本以前，長久以來連CMYK印刷色都不支援吧？LibreOffice開Word文件依然會跑版。你可以怪說Microsoft刻意在OOXML裡面搞鬼，不過一般使用者哪在乎這麼多？</p>
-<p>老牌開源軟體，雖然透過時間建立了名聲，然而因為陳年累積下來的程式碼可能導致開發節奏漸趨保守，致使新進者要大刀闊斧的改革難以被接受。（注解：並非所有開源軟體都是這樣，像KDE家族的就很願意接受新點子）於是就會被銳意進取的新專案取代。看看Rust寫的uutils意圖取代GNU Coreutils就知道了吧。</p>
-<p>幾個月前，開發者Brandon Thomas使用AI做了一系列複製Adobe Photoshop、Illustrator、Lighttroom、Premiere的軟體，總稱為ArtCraft。雖然不是去反編譯Adobe軟體，它就是直白的給spec然後叫AI重新淨室實現，並且開源到Github免費給人下載，提供Linux、Windows、macOS版。</p>
-<p>ArtCraft在Linux還滿好安裝的，依照<a href="https://getartcraft.com/" target="_blank">官網指示</a>，新增Flatpak套件庫，安裝啟動器，就能下載PhotoCraft等應用程式了。作者也提供AppImage或deb套件。因為它是Rust寫的，在老電腦的啟動速度超級快。界面跟PhotoShop一樣。它不是致敬Adobe，就是整個叫AI照抄的！</p>
-<p>順帶一提Flathub曾經反AI專案上架，最近才軟化態度僅說要註明是否使用AI。</p>
-<p>在Linux需要用Photoshop的話，ArtCraft這個方案可以作為Wine以外的有力替代品。我們不知道業界會不會接受用這個取代Adobe，但對業餘用戶來說，ArtCraft可能足夠好用了。甚至Affinity也會感到威脅吧。</p>
-<p>ArtCraft目前bug還很多，會不會繼續發展要看未來。我目前還是繼續用GIMP。</p>
-<p>不幸的消息是，如果AI做的ArtCraft獲得大量認可，不是one hit wonder的話，那麼開源社群過去長期以來推薦的GIMP和Krita就GG了。</p>
-<p>他們功能本來就不是模仿Photoshop為主，需要重新適應流程，甚至有的功能是沒有的。縱然GIMP部分功能比Photoshop更好，但它無法得到業界認可。</p>
-<p>在堅持理想主義與實用下，人們很容易選擇後者。試想你有Steam後你還會想用Lutris玩遊戲嗎？Steam是專有軟體可是做的很好用啊！更別提ArtCraft「也」是跟GIMP一樣的開源軟體啊！</p>
-<p>更讓人擔憂的是沒人敢批評的房間大象正在被揭穿：很多開源的軟體其實很爛，但沒人敢真的說出來，就只能用著，搞不好我們因為自由軟體的政治正確，而使用某套軟體的堅定態度，要比業界對Windows上專有軟體的堅持要來的偏執。</p>
-<p>ArtCraft開發者最近又推出了模仿Microsoft Office的軟體。當被問及為何不貢獻現有的LibreOffice專案的時候，他在<a href="https://x.com/echelon/status/2109892625243189723" target="_blank">Twitter直言</a>LibreOffice爛死了，把他期末寫的四十頁essay吃了。</p>
-<p>還說一個軟體使用開源授權不代表它程式碼就比較好，更多的是服務於一個使命任務。</p>
-<p>言下之意是用AI推到重做一個比較快。</p>
-<p>雖然這只是一個新世代開發者的意見，但若越來越多人都這樣想的話，那就…</p>
-<p>當自由軟體與AI生成的開源軟體都具備開源授權時，我們還有什麼理由要求使用者堅持選擇老牌自由軟體？</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/can-ai-generated-software-replace-established-open-source-projects/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5e6cd53e7e.webp"></a></p>
-<p>老牌開源軟體可能被AI生成的新軟體給取代嗎？</p>
-<p>老東西，你的替身最沒用啦….。</p>
-<p>自從真的有開發者明目張膽的叫AI抄了一整套Adobe系列的軟體，我就在想這問題。</p>
-<p>附圖是在Linux系統，跑一個界面跟Photoshop一樣但不是Photoshop的軟體，可編輯PSD。這就是號稱整套模仿Adobe產品的ArtCraft，開源免費。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6b6aba5763.webp">
-<p>轉用Linux的用戶多半會遇到這種情況：發現常用的商業軟體沒有移植到Linux版，只有macOS和Windows版。有時用Wine也不見得跑的起來。而聰明的開發者就會自力更生做一套複製品出來，譬如LibreOffice對應Microsoft Office，GIMP或Krirta對應Photoshop。然而因為開源專案缺乏商業願景，人力不足，品質往往難以與商業軟體企及。光是要把UI/UX做好就絞盡腦汁了，還會隨機崩潰。然後工作流程還不一樣。你知道GIMP已經推出快30年了，可是在3.0版本以前，長久以來連CMYK印刷色都不支援吧？LibreOffice開Word文件依然會跑版。你可以怪說Microsoft刻意在OOXML裡面搞鬼，不過一般使用者哪在乎這麼多？</p>
-<p>老牌開源軟體，雖然透過時間建立了名聲，然而因為陳年累積下來的程式碼可能導致開發節奏漸趨保守，致使新進者要大刀闊斧的改革難以被接受。（注解：並非所有開源軟體都是這樣，像KDE家族的就很願意接受新點子）於是就會被銳意進取的新專案取代。看看Rust寫的uutils意圖取代GNU Coreutils就知道了吧。</p>
-<p>幾個月前，開發者Brandon Thomas使用AI做了一系列複製Adobe Photoshop、Illustrator、Lighttroom、Premiere的軟體，總稱為ArtCraft。雖然不是去反編譯Adobe軟體，它就是直白的給spec然後叫AI重新淨室實現，並且開源到Github免費給人下載，提供Linux、Windows、macOS版。</p>
-<p>ArtCraft在Linux還滿好安裝的，依照<a href="https://getartcraft.com/" target="_blank">官網指示</a>，新增Flatpak套件庫，安裝啟動器，就能下載PhotoCraft等應用程式了。作者也提供AppImage或deb套件。因為它是Rust寫的，在老電腦的啟動速度超級快。界面跟PhotoShop一樣。它不是致敬Adobe，就是整個叫AI照抄的！</p>
-<p>順帶一提Flathub曾經反AI專案上架，最近才軟化態度僅說要註明是否使用AI。</p>
-<p>在Linux需要用Photoshop的話，ArtCraft這個方案可以作為Wine以外的有力替代品。我們不知道業界會不會接受用這個取代Adobe，但對業餘用戶來說，ArtCraft可能足夠好用了。甚至Affinity也會感到威脅吧。</p>
-<p>ArtCraft目前bug還很多，會不會繼續發展要看未來。我目前還是繼續用GIMP。</p>
-<p>不幸的消息是，如果AI做的ArtCraft獲得大量認可，不是one hit wonder的話，那麼開源社群過去長期以來推薦的GIMP和Krita就GG了。</p>
-<p>他們功能本來就不是模仿Photoshop為主，需要重新適應流程，甚至有的功能是沒有的。縱然GIMP部分功能比Photoshop更好，但它無法得到業界認可。</p>
-<p>在堅持理想主義與實用下，人們很容易選擇後者。試想你有Steam後你還會想用Lutris玩遊戲嗎？Steam是專有軟體可是做的很好用啊！更別提ArtCraft「也」是跟GIMP一樣的開源軟體啊！</p>
-<p>更讓人擔憂的是沒人敢批評的房間大象正在被揭穿：很多開源的軟體其實很爛，但沒人敢真的說出來，就只能用著，搞不好我們因為自由軟體的政治正確，而使用某套軟體的堅定態度，要比業界對Windows上專有軟體的堅持要來的偏執。</p>
-<p>ArtCraft開發者最近又推出了模仿Microsoft Office的軟體。當被問及為何不貢獻現有的LibreOffice專案的時候，他在<a href="https://x.com/echelon/status/2109892625243189723" target="_blank">Twitter直言</a>LibreOffice爛死了，把他期末寫的四十頁essay吃了。</p>
-<p>還說一個軟體使用開源授權不代表它程式碼就比較好，更多的是服務於一個使命任務。</p>
-<p>言下之意是用AI推到重做一個比較快。</p>
-<p>雖然這只是一個新世代開發者的意見，但若越來越多人都這樣想的話，那就…</p>
-<p>當自由軟體與AI生成的開源軟體都具備開源授權時，我們還有什麼理由要求使用者堅持選擇老牌自由軟體？</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/can-ai-generated-software-replace-established-open-source-projects/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5e6cd53e7e.webp"></a></p>
-<p>老牌開源軟體可能被AI生成的新軟體給取代嗎？</p>
-<p>老東西，你的替身最沒用啦….。</p>
-<p>自從真的有開發者明目張膽的叫AI抄了一整套Adobe系列的軟體，我就在想這問題。</p>
-<p>附圖是在Linux系統，跑一個界面跟Photoshop一樣但不是Photoshop的軟體，可編輯PSD。這就是號稱整套模仿Adobe產品的ArtCraft，開源免費。
-</p>
-<img fetchpriority="low" src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-6b6aba5763.webp">
-<p>轉用Linux的用戶多半會遇到這種情況：發現常用的商業軟體沒有移植到Linux版，只有macOS和Windows版。有時用Wine也不見得跑的起來。而聰明的開發者就會自力更生做一套複製品出來，譬如LibreOffice對應Microsoft Office，GIMP或Krirta對應Photoshop。然而因為開源專案缺乏商業願景，人力不足，品質往往難以與商業軟體企及。光是要把UI/UX做好就絞盡腦汁了，還會隨機崩潰。然後工作流程還不一樣。你知道GIMP已經推出快30年了，可是在3.0版本以前，長久以來連CMYK印刷色都不支援吧？LibreOffice開Word文件依然會跑版。你可以怪說Microsoft刻意在OOXML裡面搞鬼，不過一般使用者哪在乎這麼多？</p>
-<p>老牌開源軟體，雖然透過時間建立了名聲，然而因為陳年累積下來的程式碼可能導致開發節奏漸趨保守，致使新進者要大刀闊斧的改革難以被接受。（注解：並非所有開源軟體都是這樣，像KDE家族的就很願意接受新點子）於是就會被銳意進取的新專案取代。看看Rust寫的uutils意圖取代GNU Coreutils就知道了吧。</p>
-<p>幾個月前，開發者Brandon Thomas使用AI做了一系列複製Adobe Photoshop、Illustrator、Lighttroom、Premiere的軟體，總稱為ArtCraft。雖然不是去反編譯Adobe軟體，它就是直白的給spec然後叫AI重新淨室實現，並且開源到Github免費給人下載，提供Linux、Windows、macOS版。</p>
-<p>ArtCraft在Linux還滿好安裝的，依照<a href="https://getartcraft.com/" target="_blank">官網指示</a>，新增Flatpak套件庫，安裝啟動器，就能下載PhotoCraft等應用程式了。作者也提供AppImage或deb套件。因為它是Rust寫的，在老電腦的啟動速度超級快。界面跟PhotoShop一樣。它不是致敬Adobe，就是整個叫AI照抄的！</p>
-<p>順帶一提Flathub曾經反AI專案上架，最近才軟化態度僅說要註明是否使用AI。</p>
-<p>在Linux需要用Photoshop的話，ArtCraft這個方案可以作為Wine以外的有力替代品。我們不知道業界會不會接受用這個取代Adobe，但對業餘用戶來說，ArtCraft可能足夠好用了。甚至Affinity也會感到威脅吧。</p>
-<p>ArtCraft目前bug還很多，會不會繼續發展要看未來。我目前還是繼續用GIMP。</p>
-<p>不幸的消息是，如果AI做的ArtCraft獲得大量認可，不是one hit wonder的話，那麼開源社群過去長期以來推薦的GIMP和Krita就GG了。</p>
-<p>他們功能本來就不是模仿Photoshop為主，需要重新適應流程，甚至有的功能是沒有的。縱然GIMP部分功能比Photoshop更好，但它無法得到業界認可。</p>
-<p>在堅持理想主義與實用下，人們很容易選擇後者。試想你有Steam後你還會想用Lutris玩遊戲嗎？Steam是專有軟體可是做的很好用啊！更別提ArtCraft「也」是跟GIMP一樣的開源軟體啊！</p>
-<p>更讓人擔憂的是沒人敢批評的房間大象正在被揭穿：很多開源的軟體其實很爛，但沒人敢真的說出來，就只能用著，搞不好我們因為自由軟體的政治正確，而使用某套軟體的堅定態度，要比業界對Windows上專有軟體的堅持要來的偏執。</p>
-<p>ArtCraft開發者最近又推出了模仿Microsoft Office的軟體。當被問及為何不貢獻現有的LibreOffice專案的時候，他在<a href="https://x.com/echelon/status/2109892625243189723" target="_blank">Twitter直言</a>LibreOffice爛死了，把他期末寫的四十頁essay吃了。</p>
-<p>還說一個軟體使用開源授權不代表它程式碼就比較好，更多的是服務於一個使命任務。</p>
-<p>言下之意是用AI推到重做一個比較快。</p>
-<p>雖然這只是一個新世代開發者的意見，但若越來越多人都這樣想的話，那就…</p>
-<p>當自由軟體與AI生成的開源軟體都具備開源授權時，我們還有什麼理由要求使用者堅持選擇老牌自由軟體？</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5e6cd53e7e.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-5e6cd53e7e.webp" medium="image"/>
-    <pubDate>Wed, 11 Nov 2026 11:00:46 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[射精初體驗 ～ 半強迫奪走處男的本子分享]]></title>
-    <link>https://ivonblog.com/posts/male-hajimete-no-ejaculation-doujinshi/</link>
-    <itunes:title><![CDATA[射精初體驗 ～ 半強迫奪走處男的本子分享]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/male-hajimete-no-ejaculation-doujinshi/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3f31aa8775.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>破女性處很爽，那有無想過男性破處的感覺呢？</p>
-<p>不管是哪個階段的男性，經歷射精初體驗，在有點被半強迫之下，奪去處男之身那一刻，總是無法回避的享有雄性繁殖本能的爽快，這過程可能是舒爽，也可能是畏懼，或是有點酸酸的尿尿感覺。</p>
-<p>總之，人生體驗過這種快感就回不去了。人生射精憂患始。。想要射精…！想要射精…！想要射精…！永遠都在期待下一次射精！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-25a58bf0f1.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5f55a493d1.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5261aa3419.webp"></p>
-<p>一開始，男性可能是渴望小穴的快感，然後是想要生殖的慾望，再後來才是追求愛情的糾纏。最後來才求安定下來。</p>
-<p>這過程都得在女性體內，包容男性的肉棒才能完成。所以，女性是偉大的。</p>
-<p>這種初體驗是不可能再有的，只能透過各種作品描寫來回味。</p>
-<p>不論是幾歲的階段經歷的第一次射精，下面就來展示看看幾本佳作。</p>
-<h2>無事精通
-<span>
-<a href="#%e7%84%a1%e4%ba%8b%e7%b2%be%e9%80%9a" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>先來個小菜</p>
-<p>jema繪製的「無事に精通」系列。強制小男孩隔空體驗第一次射精。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b350a4a511.webp"></p>
-<p>小男孩走在路上，看到性感女性就會不自覺勃起。說實話我覺得這一幕性興奮到射精前，身體整個被目光看到的奶子硬控的樣子，是最色的。小正太過於興奮導致先走汁提前偷跑了，足見巨乳女性的吸引力。雖然大腦不知道發生了什麼事，但是身體知道…眼前的是一名雌性，是可以受孕的…或者至少，是要興奮的對象~！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-31297240d8.webp"></p>
-<p>當然最後還是不自覺的射精了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4eacb5dc57.webp"></p>
-<p>小正太看到浜風巨乳乳牛裝太興奮，完全勃起到先走汁都滿出來了，意外看到全裸乳頭，就直接光速噴精（無事精通wwwww），意外的色情呀。真的有那種性感到完全不用外部刺激，雞雞就自動大爆射的對象嗎？這種「看到性感場面太興奮褲檔升旗，小孩子因為控制不住就射精」的性癖很有趣，不知道要用什麼tag才能描述，早洩又太籠統。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0cdaba0e2e.webp"></p>
-<p>有很多小男孩慘遭濱風毒手，光是看到身材就遺精了。就是這種出奇不易的射精才可怕，殺童貞於無形。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f161706055.webp"></p>
-<p>然後進入主菜。</p>
-<p>這裡剛好有三個不同階段的體驗。</p>
-<p>在這裡，射精初體驗的定義 = 男性無套射精在女性小穴內。否則夢遺早就把一堆人的處男的奪走了吧。而且這裡帶有一點半強迫的意味，就是非那麼主動上的，這樣的話初體驗所帶來的反差感會更大～。</p>
-<h2>小男孩的初體驗
-<span>
-<a href="#%e5%b0%8f%e7%94%b7%e5%ad%a9%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>小男孩：<code>[CHIBIKKO KINGDOM (けこちゃ)] 失恋鹿島の夏休み番外編～お姉ちゃんと海が嫌いなぼくの夏休み～ (艦隊これくしょん -艦これ-)</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d37a4a0aec.webp"></p>
-<p>在完全懵懂無知的狀態，只能憑雄性本能感受性愛。性成熟才剛開始，精子出現了，性器的外觀還不夠勇猛，但要感受射精這種超越一切事物的快感還是辦得到的。</p>
-<p>失戀的大姐姐，遇到了跟家人吵架的小男孩決定用身體安慰他。</p>
-<p>看到這個誰不會有反應呀~看來又是一個胸部星人，後面會有更舒服的部位呢。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b28bbc4fa0.webp"></p>
-<p>第一次就插入小穴是很困難的，所以巨乳大姐姐先用手打出來。噴的很遠呢，年輕真好。這種被引導下像是尿尿的酸酸溜溜射精感覺可說是人生只有一次喔。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5392be8105.webp"></p>
-<p>然後越戰越勇，瞬間就學會了各種交配體位。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-83467a6703.webp"></p>
-<p>小孩子還沒有覺醒生殖本能，不知道性愛意義為何，也沒有想讓女性懷孕的想法，就只能憑天賦扭動腰部。因為很爽，射精後可以得到像是運動大汗淋漓後取得第一名一樣單純的快樂。但年紀無法承受，腦袋會一片空白。並且難以持久，都是很快就射了，然後總彈藥量也不如大人多。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8948b3a9dc.webp"></p>
-<p>在家人不解的眼光下，在這裡，他獲得了安慰，也獲得了女性的認可————完成人生第一次射精的繁殖任務，從男子慢慢成為了男性。</p>
-<p>學到的大量性愛技巧……</p>
-<p>必可活用於下一次……！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-75820e1ff0.webp"></p>
-<p>男孩子之後遇到真正喜歡的女性，一定能發揮真本事的完成交配受孕的任務吧。</p>
-<p>現在什麼都不要思考，只要癱軟在充滿母性的胸部裡面就行了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-66e4204799.webp"></p>
-<p>在連續射精後，男孩腦中的雲霧瞬間清明（聖人模式啊！），想通了某些人生道理，決定與父母和解。</p>
-<h2>青年的初體驗
-<span>
-<a href="#%e9%9d%92%e5%b9%b4%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>青少年：<code>(C84) [ハイパーピンチ (clover)] サービスタイム (やはり俺の青春ラブコメはまちがっている。)</code> 雄性本能正盛的時候，對性有基礎認識。蛋蛋裡面儲備了大量精子，鞭毛快速的蠕動著，蓄勢待發準備尋找卵子。即使男性平常壓抑，也能在性交的時候展現驚人的爆發力。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7d032af834.webp"></p>
-<p>看到老女人興致勃勃的準備好幾盒的避孕套
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-29c6c108ae.webp"></p>
-<p>本來以為一下就結束了，沒想到這麼舒服~！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7f5df079a1.webp"></p>
-<p>體會到性交的快感後本能的學會了腰振。雖然隔著套子，但因為經驗不足，加上老女人的屁股十分的緊，總是一下就射了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f8ce785218.webp"></p>
-<p>所幸因為年輕，具有多次再裝填的連發能力，並對戴套逐漸熟練，所以年輕人是大有為啊，即使射了快10次還是性慾旺盛。逐漸的扭轉攻勢。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-57dfb73c46.webp"></p>
-<p>透過身體，逐漸認知到對方是雌性，以讓對方懷孕的思考下往子宮射精。在失去理智的時候依然惦記著繁衍後代啊。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-894100b65c.webp"></p>
-<h2>成年大叔的初體驗
-<span>
-<a href="#%e6%88%90%e5%b9%b4%e5%a4%a7%e5%8f%94%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>成年大叔：<code>(C99) [まんねんドコドコドンドドコ (とっととねろ太郎。)] POCKET BITCH (ポケットモンスター ソード・シールド)</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-593f73d7e2.webp"></p>
-<p>如果過了談戀愛的年紀卻沒太多經驗，突然碰到性愛會如何呢。有著結實的體魄，蛋蛋儲存的精液數量開始下降，但如果仍有在鍛鍊肉體，那麼品質依然是能保證的吧。</p>
-<p>「剛剛還對性愛毫無經驗的我，現在竟然在可愛年輕女孩子的小穴裡盡情無套射精…大腦都要麻痺了啊」</p>
-<p>一開始認知到對方是雌性，即使還不熟悉性交的意義但就是想射在裡面，一聽到允許內射，肉棒就變得非常的堅挺，大概是感受到某種血脈覺醒了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-298360a65d.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a174716424.webp"></p>
-<p>如果前面沒有先射過幾發小的，大齡處男一插入就秒射了吧。不過幸好還能展現男性雄風，在一陣滿足雙方的猛插後，才奮力射出陳年精液。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1f71cf4b88.webp"></p>
-<p>最後在讓對方懷孕的思考下往子宮射精，即使有吃避孕藥，還是潛意識希望對方能懷上自己的種。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6185a244bf.webp"></p>
-<h2>男性不論年紀就是想要射精
-<span>
-<a href="#%e7%94%b7%e6%80%a7%e4%b8%8d%e8%ab%96%e5%b9%b4%e7%b4%80%e5%b0%b1%e6%98%af%e6%83%b3%e8%a6%81%e5%b0%84%e7%b2%be" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>加碼甜點：</p>
-<p>誘惑處男射精，榨取高品質精液的。</p>
-<p><code>[狼狽亭 (atahuta)] たのしい精液牧場~繁殖編~ (ストライクウィッチーズ</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d6868bbfeb.webp"></p>
-<p>看來不論是哪個年紀的男人，聽到可以做愛就會產生強烈的慾望呢。而這裡的理論認為，處男因為繁殖機會少，蛋蛋就會加碼生產精子，提高受孕留種機率。即使那些精液最後都是被雌小鬼榨進一個又一個保險套裡面，只要繼續刺激，蛋蛋依然會持續生產精液。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2974f5120a.webp"></p>
-<p>不過這裡不太準確就是了，因為精子生產成熟需要三個月，不會受到當下刺激才大量生產。但是…想讓女性懷孕的生理慾望不變。</p>
-<p>直到女性能懷著自己寶寶，也要繼續勃起射精繼續播種的男人，才是達成了人生至高之成就吧。</p>
-<p>總而言之，男人的就是思維這麼簡單的生物，給他誘惑可以射精，就會乖乖聽女性的話了。直到射精之後將精力發洩完畢，又會繼續為了女人而奮鬥。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/male-hajimete-no-ejaculation-doujinshi/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3f31aa8775.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>破女性處很爽，那有無想過男性破處的感覺呢？</p>
-<p>不管是哪個階段的男性，經歷射精初體驗，在有點被半強迫之下，奪去處男之身那一刻，總是無法回避的享有雄性繁殖本能的爽快，這過程可能是舒爽，也可能是畏懼，或是有點酸酸的尿尿感覺。</p>
-<p>總之，人生體驗過這種快感就回不去了。人生射精憂患始。。想要射精…！想要射精…！想要射精…！永遠都在期待下一次射精！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-25a58bf0f1.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5f55a493d1.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5261aa3419.webp"></p>
-<p>一開始，男性可能是渴望小穴的快感，然後是想要生殖的慾望，再後來才是追求愛情的糾纏。最後來才求安定下來。</p>
-<p>這過程都得在女性體內，包容男性的肉棒才能完成。所以，女性是偉大的。</p>
-<p>這種初體驗是不可能再有的，只能透過各種作品描寫來回味。</p>
-<p>不論是幾歲的階段經歷的第一次射精，下面就來展示看看幾本佳作。</p>
-<h2>無事精通
-<span>
-<a href="#%e7%84%a1%e4%ba%8b%e7%b2%be%e9%80%9a" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>先來個小菜</p>
-<p>jema繪製的「無事に精通」系列。強制小男孩隔空體驗第一次射精。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b350a4a511.webp"></p>
-<p>小男孩走在路上，看到性感女性就會不自覺勃起。說實話我覺得這一幕性興奮到射精前，身體整個被目光看到的奶子硬控的樣子，是最色的。小正太過於興奮導致先走汁提前偷跑了，足見巨乳女性的吸引力。雖然大腦不知道發生了什麼事，但是身體知道…眼前的是一名雌性，是可以受孕的…或者至少，是要興奮的對象~！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-31297240d8.webp"></p>
-<p>當然最後還是不自覺的射精了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4eacb5dc57.webp"></p>
-<p>小正太看到浜風巨乳乳牛裝太興奮，完全勃起到先走汁都滿出來了，意外看到全裸乳頭，就直接光速噴精（無事精通wwwww），意外的色情呀。真的有那種性感到完全不用外部刺激，雞雞就自動大爆射的對象嗎？這種「看到性感場面太興奮褲檔升旗，小孩子因為控制不住就射精」的性癖很有趣，不知道要用什麼tag才能描述，早洩又太籠統。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0cdaba0e2e.webp"></p>
-<p>有很多小男孩慘遭濱風毒手，光是看到身材就遺精了。就是這種出奇不易的射精才可怕，殺童貞於無形。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f161706055.webp"></p>
-<p>然後進入主菜。</p>
-<p>這裡剛好有三個不同階段的體驗。</p>
-<p>在這裡，射精初體驗的定義 = 男性無套射精在女性小穴內。否則夢遺早就把一堆人的處男的奪走了吧。而且這裡帶有一點半強迫的意味，就是非那麼主動上的，這樣的話初體驗所帶來的反差感會更大～。</p>
-<h2>小男孩的初體驗
-<span>
-<a href="#%e5%b0%8f%e7%94%b7%e5%ad%a9%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>小男孩：<code>[CHIBIKKO KINGDOM (けこちゃ)] 失恋鹿島の夏休み番外編～お姉ちゃんと海が嫌いなぼくの夏休み～ (艦隊これくしょん -艦これ-)</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d37a4a0aec.webp"></p>
-<p>在完全懵懂無知的狀態，只能憑雄性本能感受性愛。性成熟才剛開始，精子出現了，性器的外觀還不夠勇猛，但要感受射精這種超越一切事物的快感還是辦得到的。</p>
-<p>失戀的大姐姐，遇到了跟家人吵架的小男孩決定用身體安慰他。</p>
-<p>看到這個誰不會有反應呀~看來又是一個胸部星人，後面會有更舒服的部位呢。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b28bbc4fa0.webp"></p>
-<p>第一次就插入小穴是很困難的，所以巨乳大姐姐先用手打出來。噴的很遠呢，年輕真好。這種被引導下像是尿尿的酸酸溜溜射精感覺可說是人生只有一次喔。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5392be8105.webp"></p>
-<p>然後越戰越勇，瞬間就學會了各種交配體位。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-83467a6703.webp"></p>
-<p>小孩子還沒有覺醒生殖本能，不知道性愛意義為何，也沒有想讓女性懷孕的想法，就只能憑天賦扭動腰部。因為很爽，射精後可以得到像是運動大汗淋漓後取得第一名一樣單純的快樂。但年紀無法承受，腦袋會一片空白。並且難以持久，都是很快就射了，然後總彈藥量也不如大人多。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8948b3a9dc.webp"></p>
-<p>在家人不解的眼光下，在這裡，他獲得了安慰，也獲得了女性的認可————完成人生第一次射精的繁殖任務，從男子慢慢成為了男性。</p>
-<p>學到的大量性愛技巧……</p>
-<p>必可活用於下一次……！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-75820e1ff0.webp"></p>
-<p>男孩子之後遇到真正喜歡的女性，一定能發揮真本事的完成交配受孕的任務吧。</p>
-<p>現在什麼都不要思考，只要癱軟在充滿母性的胸部裡面就行了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-66e4204799.webp"></p>
-<p>在連續射精後，男孩腦中的雲霧瞬間清明（聖人模式啊！），想通了某些人生道理，決定與父母和解。</p>
-<h2>青年的初體驗
-<span>
-<a href="#%e9%9d%92%e5%b9%b4%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>青少年：<code>(C84) [ハイパーピンチ (clover)] サービスタイム (やはり俺の青春ラブコメはまちがっている。)</code> 雄性本能正盛的時候，對性有基礎認識。蛋蛋裡面儲備了大量精子，鞭毛快速的蠕動著，蓄勢待發準備尋找卵子。即使男性平常壓抑，也能在性交的時候展現驚人的爆發力。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7d032af834.webp"></p>
-<p>看到老女人興致勃勃的準備好幾盒的避孕套
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-29c6c108ae.webp"></p>
-<p>本來以為一下就結束了，沒想到這麼舒服~！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7f5df079a1.webp"></p>
-<p>體會到性交的快感後本能的學會了腰振。雖然隔著套子，但因為經驗不足，加上老女人的屁股十分的緊，總是一下就射了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f8ce785218.webp"></p>
-<p>所幸因為年輕，具有多次再裝填的連發能力，並對戴套逐漸熟練，所以年輕人是大有為啊，即使射了快10次還是性慾旺盛。逐漸的扭轉攻勢。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-57dfb73c46.webp"></p>
-<p>透過身體，逐漸認知到對方是雌性，以讓對方懷孕的思考下往子宮射精。在失去理智的時候依然惦記著繁衍後代啊。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-894100b65c.webp"></p>
-<h2>成年大叔的初體驗
-<span>
-<a href="#%e6%88%90%e5%b9%b4%e5%a4%a7%e5%8f%94%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>成年大叔：<code>(C99) [まんねんドコドコドンドドコ (とっととねろ太郎。)] POCKET BITCH (ポケットモンスター ソード・シールド)</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-593f73d7e2.webp"></p>
-<p>如果過了談戀愛的年紀卻沒太多經驗，突然碰到性愛會如何呢。有著結實的體魄，蛋蛋儲存的精液數量開始下降，但如果仍有在鍛鍊肉體，那麼品質依然是能保證的吧。</p>
-<p>「剛剛還對性愛毫無經驗的我，現在竟然在可愛年輕女孩子的小穴裡盡情無套射精…大腦都要麻痺了啊」</p>
-<p>一開始認知到對方是雌性，即使還不熟悉性交的意義但就是想射在裡面，一聽到允許內射，肉棒就變得非常的堅挺，大概是感受到某種血脈覺醒了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-298360a65d.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a174716424.webp"></p>
-<p>如果前面沒有先射過幾發小的，大齡處男一插入就秒射了吧。不過幸好還能展現男性雄風，在一陣滿足雙方的猛插後，才奮力射出陳年精液。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1f71cf4b88.webp"></p>
-<p>最後在讓對方懷孕的思考下往子宮射精，即使有吃避孕藥，還是潛意識希望對方能懷上自己的種。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6185a244bf.webp"></p>
-<h2>男性不論年紀就是想要射精
-<span>
-<a href="#%e7%94%b7%e6%80%a7%e4%b8%8d%e8%ab%96%e5%b9%b4%e7%b4%80%e5%b0%b1%e6%98%af%e6%83%b3%e8%a6%81%e5%b0%84%e7%b2%be" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>加碼甜點：</p>
-<p>誘惑處男射精，榨取高品質精液的。</p>
-<p><code>[狼狽亭 (atahuta)] たのしい精液牧場~繁殖編~ (ストライクウィッチーズ</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d6868bbfeb.webp"></p>
-<p>看來不論是哪個年紀的男人，聽到可以做愛就會產生強烈的慾望呢。而這裡的理論認為，處男因為繁殖機會少，蛋蛋就會加碼生產精子，提高受孕留種機率。即使那些精液最後都是被雌小鬼榨進一個又一個保險套裡面，只要繼續刺激，蛋蛋依然會持續生產精液。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2974f5120a.webp"></p>
-<p>不過這裡不太準確就是了，因為精子生產成熟需要三個月，不會受到當下刺激才大量生產。但是…想讓女性懷孕的生理慾望不變。</p>
-<p>直到女性能懷著自己寶寶，也要繼續勃起射精繼續播種的男人，才是達成了人生至高之成就吧。</p>
-<p>總而言之，男人的就是思維這麼簡單的生物，給他誘惑可以射精，就會乖乖聽女性的話了。直到射精之後將精力發洩完畢，又會繼續為了女人而奮鬥。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/male-hajimete-no-ejaculation-doujinshi/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3f31aa8775.webp"></a></p>
-<a aria-hidden="true"></a>
-<div role="dialog" aria-modal="true" aria-labelledby="content-warning-title" aria-describedby="content-warning-description">
-<section>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-82a88b4950.png" alt="R-18 Icon">
-<h2>
-金、暴力、SEX！年齡驗證
-</h2>
-<p>
-本頁面含有成人、暴力、血腥內容，請問您是否已成年？若您尚未成年，請點選「否」離開本頁面。
-</p>
-<div>
-<a href="#content-warning-accepted" data-content-warning-accept="">Yes</a>
-<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-content-warning-decline="">No</a>
-</div>
-</section>
-</div>
-<p>破女性處很爽，那有無想過男性破處的感覺呢？</p>
-<p>不管是哪個階段的男性，經歷射精初體驗，在有點被半強迫之下，奪去處男之身那一刻，總是無法回避的享有雄性繁殖本能的爽快，這過程可能是舒爽，也可能是畏懼，或是有點酸酸的尿尿感覺。</p>
-<p>總之，人生體驗過這種快感就回不去了。人生射精憂患始。。想要射精…！想要射精…！想要射精…！永遠都在期待下一次射精！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-25a58bf0f1.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5f55a493d1.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5261aa3419.webp"></p>
-<p>一開始，男性可能是渴望小穴的快感，然後是想要生殖的慾望，再後來才是追求愛情的糾纏。最後來才求安定下來。</p>
-<p>這過程都得在女性體內，包容男性的肉棒才能完成。所以，女性是偉大的。</p>
-<p>這種初體驗是不可能再有的，只能透過各種作品描寫來回味。</p>
-<p>不論是幾歲的階段經歷的第一次射精，下面就來展示看看幾本佳作。</p>
-<h2>無事精通
-<span>
-<a href="#%e7%84%a1%e4%ba%8b%e7%b2%be%e9%80%9a" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>先來個小菜</p>
-<p>jema繪製的「無事に精通」系列。強制小男孩隔空體驗第一次射精。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b350a4a511.webp"></p>
-<p>小男孩走在路上，看到性感女性就會不自覺勃起。說實話我覺得這一幕性興奮到射精前，身體整個被目光看到的奶子硬控的樣子，是最色的。小正太過於興奮導致先走汁提前偷跑了，足見巨乳女性的吸引力。雖然大腦不知道發生了什麼事，但是身體知道…眼前的是一名雌性，是可以受孕的…或者至少，是要興奮的對象~！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-31297240d8.webp"></p>
-<p>當然最後還是不自覺的射精了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4eacb5dc57.webp"></p>
-<p>小正太看到浜風巨乳乳牛裝太興奮，完全勃起到先走汁都滿出來了，意外看到全裸乳頭，就直接光速噴精（無事精通wwwww），意外的色情呀。真的有那種性感到完全不用外部刺激，雞雞就自動大爆射的對象嗎？這種「看到性感場面太興奮褲檔升旗，小孩子因為控制不住就射精」的性癖很有趣，不知道要用什麼tag才能描述，早洩又太籠統。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-0cdaba0e2e.webp"></p>
-<p>有很多小男孩慘遭濱風毒手，光是看到身材就遺精了。就是這種出奇不易的射精才可怕，殺童貞於無形。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f161706055.webp"></p>
-<p>然後進入主菜。</p>
-<p>這裡剛好有三個不同階段的體驗。</p>
-<p>在這裡，射精初體驗的定義 = 男性無套射精在女性小穴內。否則夢遺早就把一堆人的處男的奪走了吧。而且這裡帶有一點半強迫的意味，就是非那麼主動上的，這樣的話初體驗所帶來的反差感會更大～。</p>
-<h2>小男孩的初體驗
-<span>
-<a href="#%e5%b0%8f%e7%94%b7%e5%ad%a9%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>小男孩：<code>[CHIBIKKO KINGDOM (けこちゃ)] 失恋鹿島の夏休み番外編～お姉ちゃんと海が嫌いなぼくの夏休み～ (艦隊これくしょん -艦これ-)</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d37a4a0aec.webp"></p>
-<p>在完全懵懂無知的狀態，只能憑雄性本能感受性愛。性成熟才剛開始，精子出現了，性器的外觀還不夠勇猛，但要感受射精這種超越一切事物的快感還是辦得到的。</p>
-<p>失戀的大姐姐，遇到了跟家人吵架的小男孩決定用身體安慰他。</p>
-<p>看到這個誰不會有反應呀~看來又是一個胸部星人，後面會有更舒服的部位呢。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-b28bbc4fa0.webp"></p>
-<p>第一次就插入小穴是很困難的，所以巨乳大姐姐先用手打出來。噴的很遠呢，年輕真好。這種被引導下像是尿尿的酸酸溜溜射精感覺可說是人生只有一次喔。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-5392be8105.webp"></p>
-<p>然後越戰越勇，瞬間就學會了各種交配體位。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-83467a6703.webp"></p>
-<p>小孩子還沒有覺醒生殖本能，不知道性愛意義為何，也沒有想讓女性懷孕的想法，就只能憑天賦扭動腰部。因為很爽，射精後可以得到像是運動大汗淋漓後取得第一名一樣單純的快樂。但年紀無法承受，腦袋會一片空白。並且難以持久，都是很快就射了，然後總彈藥量也不如大人多。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-8948b3a9dc.webp"></p>
-<p>在家人不解的眼光下，在這裡，他獲得了安慰，也獲得了女性的認可————完成人生第一次射精的繁殖任務，從男子慢慢成為了男性。</p>
-<p>學到的大量性愛技巧……</p>
-<p>必可活用於下一次……！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-75820e1ff0.webp"></p>
-<p>男孩子之後遇到真正喜歡的女性，一定能發揮真本事的完成交配受孕的任務吧。</p>
-<p>現在什麼都不要思考，只要癱軟在充滿母性的胸部裡面就行了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-66e4204799.webp"></p>
-<p>在連續射精後，男孩腦中的雲霧瞬間清明（聖人模式啊！），想通了某些人生道理，決定與父母和解。</p>
-<h2>青年的初體驗
-<span>
-<a href="#%e9%9d%92%e5%b9%b4%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>青少年：<code>(C84) [ハイパーピンチ (clover)] サービスタイム (やはり俺の青春ラブコメはまちがっている。)</code> 雄性本能正盛的時候，對性有基礎認識。蛋蛋裡面儲備了大量精子，鞭毛快速的蠕動著，蓄勢待發準備尋找卵子。即使男性平常壓抑，也能在性交的時候展現驚人的爆發力。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7d032af834.webp"></p>
-<p>看到老女人興致勃勃的準備好幾盒的避孕套
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-29c6c108ae.webp"></p>
-<p>本來以為一下就結束了，沒想到這麼舒服~！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-7f5df079a1.webp"></p>
-<p>體會到性交的快感後本能的學會了腰振。雖然隔著套子，但因為經驗不足，加上老女人的屁股十分的緊，總是一下就射了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f8ce785218.webp"></p>
-<p>所幸因為年輕，具有多次再裝填的連發能力，並對戴套逐漸熟練，所以年輕人是大有為啊，即使射了快10次還是性慾旺盛。逐漸的扭轉攻勢。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-57dfb73c46.webp"></p>
-<p>透過身體，逐漸認知到對方是雌性，以讓對方懷孕的思考下往子宮射精。在失去理智的時候依然惦記著繁衍後代啊。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-894100b65c.webp"></p>
-<h2>成年大叔的初體驗
-<span>
-<a href="#%e6%88%90%e5%b9%b4%e5%a4%a7%e5%8f%94%e7%9a%84%e5%88%9d%e9%ab%94%e9%a9%97" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>成年大叔：<code>(C99) [まんねんドコドコドンドドコ (とっととねろ太郎。)] POCKET BITCH (ポケットモンスター ソード・シールド)</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-593f73d7e2.webp"></p>
-<p>如果過了談戀愛的年紀卻沒太多經驗，突然碰到性愛會如何呢。有著結實的體魄，蛋蛋儲存的精液數量開始下降，但如果仍有在鍛鍊肉體，那麼品質依然是能保證的吧。</p>
-<p>「剛剛還對性愛毫無經驗的我，現在竟然在可愛年輕女孩子的小穴裡盡情無套射精…大腦都要麻痺了啊」</p>
-<p>一開始認知到對方是雌性，即使還不熟悉性交的意義但就是想射在裡面，一聽到允許內射，肉棒就變得非常的堅挺，大概是感受到某種血脈覺醒了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-298360a65d.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a174716424.webp"></p>
-<p>如果前面沒有先射過幾發小的，大齡處男一插入就秒射了吧。不過幸好還能展現男性雄風，在一陣滿足雙方的猛插後，才奮力射出陳年精液。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1f71cf4b88.webp"></p>
-<p>最後在讓對方懷孕的思考下往子宮射精，即使有吃避孕藥，還是潛意識希望對方能懷上自己的種。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-6185a244bf.webp"></p>
-<h2>男性不論年紀就是想要射精
-<span>
-<a href="#%e7%94%b7%e6%80%a7%e4%b8%8d%e8%ab%96%e5%b9%b4%e7%b4%80%e5%b0%b1%e6%98%af%e6%83%b3%e8%a6%81%e5%b0%84%e7%b2%be" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>加碼甜點：</p>
-<p>誘惑處男射精，榨取高品質精液的。</p>
-<p><code>[狼狽亭 (atahuta)] たのしい精液牧場~繁殖編~ (ストライクウィッチーズ</code>
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-d6868bbfeb.webp"></p>
-<p>看來不論是哪個年紀的男人，聽到可以做愛就會產生強烈的慾望呢。而這裡的理論認為，處男因為繁殖機會少，蛋蛋就會加碼生產精子，提高受孕留種機率。即使那些精液最後都是被雌小鬼榨進一個又一個保險套裡面，只要繼續刺激，蛋蛋依然會持續生產精液。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-2974f5120a.webp"></p>
-<p>不過這裡不太準確就是了，因為精子生產成熟需要三個月，不會受到當下刺激才大量生產。但是…想讓女性懷孕的生理慾望不變。</p>
-<p>直到女性能懷著自己寶寶，也要繼續勃起射精繼續播種的男人，才是達成了人生至高之成就吧。</p>
-<p>總而言之，男人的就是思維這麼簡單的生物，給他誘惑可以射精，就會乖乖聽女性的話了。直到射精之後將精力發洩完畢，又會繼續為了女人而奮鬥。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3f31aa8775.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-3f31aa8775.webp" medium="image"/>
-    <pubDate>Mon, 09 Nov 2026 21:00:00 +0800</pubDate>
-  </item><item>
-    <title><![CDATA[Sony手機原廠免費健檢活動 ～ 回娘家換電池維修記，優惠方案還算便宜]]></title>
-    <link>https://ivonblog.com/posts/xperia-10-v-sony-official-repair-experience/</link>
-    <itunes:title><![CDATA[Sony手機原廠免費健檢活動 ～ 回娘家換電池維修記，優惠方案還算便宜]]></itunes:title>
-    <itunes:author><![CDATA[infoivonblog.nkfjt@aleeas.com (Ivon Huang)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/xperia-10-v-sony-official-repair-experience/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4f0ee7bba4.webp"></a></p>
-<p>逐漸遠去的日常，回歸塵土的地獄。</p>
-<p>將Sony手機Xperia 10 V送原廠維修清潔，並以優惠價換電池的過程分享。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f91bbd7a2a.webp" alt="Sony免費手機健檢活動2026"></p>
-<h2>沉睡在悲傷的海洋中
-<span>
-<a href="#%e6%b2%89%e7%9d%a1%e5%9c%a8%e6%82%b2%e5%82%b7%e7%9a%84%e6%b5%b7%e6%b4%8b%e4%b8%ad" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>悲しい海に沈む……原來防水手機不能在水下拍照啊。</p>
-<p>你看到了吧，她們</p>
-<p>澤野弘之 - YouSeeBIGGIRL/T:T</p>
-<div>
-<iframe src="https://www.youtube.com/embed/vy63u2hKoPE" allowfullscreen="" frameborder="0">
-</iframe>
-</div>
-<p>察覺到手機不防水只防潑水：</p>
-<p>（吐舌敲頭）</p>
-<p>（綜藝摔）</p>
-<p>在測試防水訓練的時候，我有點慶幸手機終於壞了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ec00d63f0f.webp"></p>
-<p>因為看到有人拿黏土人去海邊，拍海浪沖刷的定格影像，還有在水下的波光粼粼的樣子，我就想說手機能否做到。海浪拍打需要抓時機，而且還得小心固定模型不要被浪捲走。但至少我已經知道把快門速度調快就能定格海浪。</p>
-<p>在中山大學旁邊的海灘，我最多只能拍到模型的腳部浸溼在水裡的樣子，而且還得捲褲子蹲下來。</p>
-<p>在家裡洗手檯的測試結果表明，不使用防水袋的場合，即使Xperia普遍具備IP68防水，但是在水下操作手機幾乎不可能。</p>
-<p>我以前第一次測試泡水性能的手機是Xperia Z2，隔了十年變Xperia 10 V和Xperia 1 III。的確，防水不代表它支援溼手觸控。Sony在推銷防水手機的伊始就建議不要在水下使用，更不可在海水這種高鹽度腐蝕性的水體操作。淺水拍照或許還行，若整個人潛下去很快就超過IP68 1.5公尺的測試深度了。這就得買專門的潛水用防水拍照機殼，iPhone有蠻多這種專門配件的。</p>
-<p>好吧，我只是要拍淡水，將模型插在水裡，水深應該不會超過50cm。那麼我要怎麼放手機的位置呢，是Xperia 1 III橫放整臺泡在水裡，還是倒立只有鏡頭下去。在水中，相機觸控按鈕是根本按不下去的，這能得用配備實體快門鍵的機種解決。但是還有看不到螢幕畫面的問題啊，水會折射光線，我又不可能用Type-C輸出監視螢幕的方式到另外一臺手機操作（Xperia 1有外部監視器App功能），這樣會被電死。我想，用另外一臺手機控制另一臺手機相機畫面的，還是只能用那個老招了吧：RustDesk。</p>
-<p>就是爲了拍這種效果的照片
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a558b6f68c.webp"></p>
-<p>在拍完之後，麻煩的是充電孔會有水分殘留，Android偵測到會拒絕充電，得用衛生紙捲成針狀慢慢吸出來。再放Youtube的Make water come out of phone speaker的音效好幾分鐘完成排水……。</p>
-<p>嘖，Xperia 10 V用了三年，防水功能已經開始衰退了，泡不到30秒，鏡頭竟然進水氣了。Xperia 1 III因為少用沒事。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-be9018893c.webp"></p>
-<p>以前不會這樣的！畢竟我還跟塔什干一起洗過澡的！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1b4ee1b089.webp"></p>
-<p>也許它會自己乾掉，幾小時過去了水珠減少了一點，但這代表它已經開始損壞了，恐怕之後已經不能承受高溫蒸汽的地方了，否則水氣會再度出現。</p>
-<p>不知道為什麼我有種罪惡的喜悅心情，之前買好多二手手機要替代你不成，用了那麼久還沒壞掉，為了製造合法換新手機的動力得加把勁啊，但裸機暴力使用，塑膠外殼也沒受什麼損傷，幾年前半泡水也沒怎樣，沒想到現在….終於要壞了。</p>
-<p>我總有「手機壞了？太好了終於能換新手機了」的念頭，勝過「靠北！手機壞了怎麼辦」的感覺。</p>
-<p>為什麼不換新機？還能用為什麼要換？總是囿於這種進退兩難的情緒。</p>
-<p>我要折磨你…到你說還不夠為止，呵呵，哈哈哈哈哈！←這什麼病嬌宣言。</p>
-<p>なにしてるの！你在說什麼啊Ivon！你知道如果Xperia 10 V真的掛掉，修也不划算的情況，2026年Sony的Xperi 10 VIII新機(6Gen3)至少也要18000元誒！</p>
-<p>可是…我還有買Xperia 10 VII和Xperia 5V的二手機選項…</p>
-<p>沒有可是！不要再買二手機了！</p>
-<p>雖然Google Pixel 10a是選項之一，可是我的手機螢幕不能有挖孔…還是只有Sony能買。</p>
-<p>或者…我接受沒耳機孔沒3.5mm耳機孔挖孔螢幕，全部用workarounds（耳機孔用USB DAC，挖孔螢幕靠軟體遮掉）解決，從這只有Sony能選的輪迴的詛咒解脫出來。</p>
-<h2>不會再有第二次
-<span>
-<a href="#%e4%b8%8d%e6%9c%83%e5%86%8d%e6%9c%89%e7%ac%ac%e4%ba%8c%e6%ac%a1" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>為什麼我以前那麼社恐呢，直到現在我跟人講話之前還得跟布偶講個30分鐘才能開口。開口了好不容易聊開了我又會容易亂講話，暴露太多自己的弱點，親暱生狎侮。讓我還原那天的感受吧，三年前，Xperia 5 II的綠線發作的<a href="https://ivonblog.com/posts/sony-xperia-5-ii-with-mod-lcd-display/" target="_blank">那一天</a>。</p>
-<p>就像聽到進擊的巨人說我鎧他超一樣震驚。</p>
-<p>四主無神的騎車在街上亂晃，要去SONY的原廠維修呢？還是怎麼辦法。因為我從沒遇過這種情況。自己的第一支真旗艦，這麼信賴的工具，突然就被宣判死亡。最後還是沒去，不知道為什麼不敢開口，是因為刷機過嗎，還是我覺得那是我的骨肉任何人都不準碰！包括解剖它！？</p>
-<p>換上Poco F1。再選定Xperia 10 V做暫時的替代品。</p>
-<p>如果當時直接送Sony原廠報價爭取看看免費綠線維修就好了，就不會有之後換LCD和買一堆手機的瞎操作。</p>
-<p>而這次Xperia 10 V壞了，我明明那麼討厭它，要它早點壞掉才好讓我從這三年的解脫出來，這次我不願放棄受潮的Xperia 10 V。</p>
-<p>所以我踏出了一步。</p>
-<p>趁著Sony搞手機免費健檢送7-11咖啡禮券的活動，親自走進Sony Mobile專賣店的大門。</p>
-<p>說實話我雙腿是發抖的，好想吐，為什麼我會在這裡，廚力這麼高到要親自去實體門市看產品。就像我換Xperia 10 V前也有去中華電信服務窗口特地要一支來摸看看一樣。</p>
-<p>哈啊…哈啊…哈啊。講話唯唯諾諾，那個…我是來…問健撿檢…服務的，請問…這個…要付費嗎？</p>
-<p>雖然是這樣謹慎的態度，但是看友善的店員幫忙測試手機基礎功能有無損壞的時候，因為Xperia現在的系統長的跟AOSP幾乎一模一樣，他看不出來我已經刷成了LineageOS，也不好奇為何Xperia 10 V有Android 17能用，我不禁在心理冷笑。不對，我不應該自負的以為自己什麼都懂。現在比較進步的是會有自我修正機制：好好說話，想下一步要說什麼。</p>
-<p>警告我Don’t act weird，不要脫口而出很宅的自作聰明的用語，當正常人一點。總算平安完成修繕，並順便去測試Xperia 10 VIII用起來怎樣。我用三年的Xperia 10 V鏡頭進水了（終於壞了）不值得修的話（忍受上限是3000元，然後店員還凹我用之前原本要用在Xperia 1 III的1299優惠方案換電池。他說用摸背板的就知道Xperia 10 V電池膨脹了！？雖然這續航力還有10小時SOT啦…），本來要買Xperia 5 V二手接替。</p>
-<p>可是實際去展售店摸Xperia 10 VIII之後，這台還是跟Xperia 10 V一樣輕，只是變胖了。鏡頭島沒有想像中那麼突。Xperia 10 VIII外觀手感比Xperia 1VIII好多了。IMX766的相機看起來沒那麼差。手機邊框太粗？傻傻的，厚邊框才給人安心感呀！手指有地方放！玻璃部分看起來不會那麼脆弱！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f1ee63e682.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-db0d66eb7b.webp"></p>
-<p>反正我已經習慣手動模式或開GCam了。本來我有考慮過Pixel 10a或Nothing 4a。但是手機螢幕不能有挖孔，且螢幕+機身不能大於6.3吋。如果找不到Xperia 10 VII初音綠色的全新庫存的話（專賣店真的都沒貨了，拍賣網站還有），預計下一臺就是它了。</p>
-<p>因為這是你開啟的故事啊，古利夏。</p>
-<h2>雖然刷機過還是給換電池
-<span>
-<a href="#%e9%9b%96%e7%84%b6%e5%88%b7%e6%a9%9f%e9%81%8e%e9%82%84%e6%98%af%e7%b5%a6%e6%8f%9b%e9%9b%bb%e6%b1%a0" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>浸水Xperia 10 V修回來了，歡迎歸隊，繼續戰。本來我已經做好要整臺換掉，花二萬買Xperia 10 VIII的覺悟了呢。</p>
-<p>本來它已經從地獄離開，我們卻又要把它拉回這個地獄。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4dae8f96a3.webp"></p>
-<p>把刷機過的Sony手機送回原廠維修，他們說無法回復原廠系統，但還是給我用優惠價格換電池了，不收額外費用。謝主隆恩。可是…繼續待在城牆裡，是沒有未來的啊。</p>
-<p>使用Sony官方提供的健檢服務（也就是過往的回娘家活動）更換了Xperia 10 V的電池，優惠價1299元。破保了也能給你換。並得到了一張7-11咖啡卷。感謝親切的Sony門市人員。</p>
-<p>說明：健檢服務本身是免費的，Sony Mobile的門市人員會對手機外觀做基本清潔。而換電池是送維修中心，Xperia 1 III（含）之後的機型提供限定優惠價格。這個活動幾乎每年都有，2026年的到11月30日爲止。</p>
-<p>Xperia 10 V用了三年還沒壞，我是因爲Xperia 10 V浸水順便去問維修價格的。本來Xperia 1 III也想換電池的，但是考慮到我只把它當拍照機用，SOT 剩5小時也不是那麼重要。</p>
-<p>本來是鏡頭有水珠，經過檢查疑似進水但氣密沒壞，不用換掉整個背板與鏡頭玻璃，只簡單清潔。</p>
-<p>剩下重塗防水膠的錢都算在換電池了吧。門市人員居然說用摸背板的就知道電池膨脹了，可是我看不到任何鼓起，健康度還有80%左右。SOT依然10小時以上啊。好吧就相信專業換吧。</p>
-<p>誒…Sony原廠維修工程師那麼兩光喔，他們發現我刷LineageOS，為了校正換電池結果，需要Sony原廠ROM，我在電話裡面說沒關係就把資料清除，結果沒辦法恢復原廠。</p>
-<p>那XDA的<a href="NewFlasher">NewFlasher</a>刷機工具是誰流出來的？Sony官方工具都被逆向了，他們連底層刷機的專用工具都沒有嗎。還原原廠系統不應該是最簡單的事情嗎？不，不能這麼說，也許是不想承擔變磚風險，他們不知道我究竟改了哪些地方，免得刷壞要賠一支新的，所以不使用過激手段恢復系統吧。</p>
-<p>所以就保持原樣下換電池，就這樣還不收額外費用並讓我用1299的優惠給Xperia 10 V 換電池呢。謝謝。</p>
-<p>嗯…好吧，修回來，我自行用NewFlasher刷回去原廠ROM，看電池健康度吧。</p>
-<p>啊啊，我應該先把手機刷回原廠再送修的嗎？以前把裝Linux的Modern 15筆電送修鍵盤的時候，也是刻意先灌回Windows的。</p>
-<p>在LineageOS系統設定，顯示目前電池容量是5095mAh，有這麼高嗎我沒印象？但是adb dumpsys寫的99%，充電循環次數0，應該就是全新電池了吧。雖然如此我還是先用NewFlasher刷回原廠觀察。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-28c2a0396e.webp"></p>
-<p>搞笑的是Sony的ROM根本沒地方看電池健康度多少，撥號<code>*#*#7378423#*#*</code>進工程模式也沒顯示容量。也許他們要用特殊App吧。</p>
-<p>另外Sony原廠系統…還是很卡，所以我測試確認後，又刷回LineageOS了。</p>
-<p>因爲Sony原廠系統已經沒未來了啊。舊機兩三年就EOL，停留在Android 15。LineageOS則能升級到Android 17，且每週都有更新。</p>
-<h2>暫時用iPhone，果然還是不喜歡iPhone
-<span>
-<a href="#%e6%9a%ab%e6%99%82%e7%94%a8iphone%e6%9e%9c%e7%84%b6%e9%82%84%e6%98%af%e4%b8%8d%e5%96%9c%e6%ad%a1iphone" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>俺は自由だ。</p>
-<p>這就是小手機的代價…。Xperia 10 V送修的這5天，我被迫用留守抽屜的iPhone 12 Mini當主力。Xperia 1 III是拍照專機，不可當手機使用。</p>
-<p>又體會到了，SOT不到3小時的機型啊。雖然小巧到幾乎放在口袋裡感覺不到任何重量，可是不夠安心啊。</p>
-<p>也許無法適應iOS拼音不如Fcitx5 RIME好用，我無法單手操作還是得雙手打。</p>
-<p>儘管寬度只有64mm比68mm窄。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-bb41f0e66d.webp"></p>
-<p>大概我買的親膚液態矽膠殼手感太詭異了。當移動的4G分享器還是會很快掉電，無法在外跑一整天。這個舊機型還在用Lightning害我得多帶一條非TypeC的線。這樣我的陣容就變成蘋果佔優了（Android + Android + iPad → iPhone + Android + iPad）我體會到了iOS跨裝置協作的便利。例如在iPhone 12 Mini寫行事曆的時候，旁邊iPad Air 6就能直接放大繼續。傳檔案有AirDrop也方便。只是，我行事曆本來就是透過Radicale的CalDAV跨平臺同步的，在Android與iOS之間本就能同步。</p>
-<p>又察覺到網頁對小螢幕裝置不友善的問題，Facebook網頁左右兩側的字都會被切掉。以前是4吋iPhone SE的Youtube字會被切掉，現在5吋的iPhone 12 Mini也被開發者嫌太小了嗎？當然可能是Firefox使用的WebKit有問題罷了，換到Safari網頁就正常…不對Facebook還是不正常，開發者忘卻小螢幕裝置了嗎。且Firefox比Chrome和Brave都異常耗電。看來Mozilla他們真的沒資源做舊機優化。嘛用Safari無法跨平臺同步又沒差，Android我也是用Titanium而已…Firefox就當作傳網頁接收器就好。</p>
-<p>iOS 27動畫基本還是流暢的就是RAM小殺背景嚴重。這個相機拍照很方便單手解決呢，顏色中立，夜拍品質還能看。尤其小機身騎車拿出來3秒內拍照就能完成。用Xperia 10 V的話我還得花十秒等對焦再手動校正吧。</p>
-<p>不過…我果然回不去小手機了，以前幻想能反主流的回去用小手機（我對小手機的偏執是這兩年才開始的。以前是逆來順受接受新機變大的事實。就單純想反主流吧），覺得Xperia XZ1 Compact是最好的，卻發現適應6吋螢幕/機身太久了。</p>
-<p>太小看了很吃力，太大拿了手會酸。</p>
-<p>所以Xperia 10 V快回來吧。</p>
-<p>接觸10年了，我還是覺得iPhone很難用，無法適應。</p>
-<p>Xperia 10 V送修的5天，我被迫用留守抽屜的iPhone 12 Mini認真當主力。我體會到了一點iOS跨裝置協作的便利，除此之外儘是不便。</p>
-<p>奇怪的是我覺得iPadOS還好夠用，可是iOS怎麼用怎麼不順手。我不會滑平板一整天，只有工作時會拿出來，但是手機會，所以要選得心應手的機種吧。Android手機 + iPad + Linux PC才是我比較習慣的工作方式。</p>
-<p>不用HyperOS和OriginOS那種充滿bloatware的系統，就連原生Android（LineageOS、Pixel、Sony）都比iOS好。雖然原生Android跟iOS比起來雖然一樣無趣，不過至少還有點自由的選擇，而不是用什麼都綁手綁腳的。</p>
-<p>大概我用法比較奇怪吧，我不是什麼都要用App的人，而是習慣看網頁，there’s an app for that的範式不適用於我。那麼瀏覽器多元化就很重要了。Android每個瀏覽器都會有不同的性能表現，Chromium主流，Firefox支援擴充。iOS主流被迫用WebKit就導致各個差異很小，能做的事情也會被WebKit的奇怪限制綁住，例如不能裝擴充，或者網頁只考慮Chrormium優化遇到WebKit的Bug就沒轍了。</p>
-<p>還有iOS萬年的詭異檔案管理邏輯，照片APP用數字而非日期命名檔案。每個APP之間容易隔離的太嚴重了。</p>
-<p>縱然iOS的動畫順暢，液態玻璃漂亮，可是在這些eye-candy之外還是覺得不如Android實用。</p>
-<p>iOS系統就是設計的綁手綁腳，如果沒有開放API，第三方APP都是次等公民。除非是專業軟體的殺手級APP，你總會覺得依賴Apple內建的最好。</p>
-<p>結果導致我現在與iOS系統深度整合的第三方APP只有Bitwarden做密碼管理，筆記用Joplin，其他全部用內建的了，例如行事曆是用內建的去連CalDAV，瀏覽器放棄Firefox用Safari了…….某種程度這也是iOS的好處，不用冒險去試用第三方APP，Apple自家APP的實現就「足夠」好用了。</p>
-<p>可是，就是說我沒有無腦到單純在滑手機能滿足的話，是不適合用iOS的。我想知道Root的原理，系統的運作方式。</p>
-<p>…老實說吧，我Android換iPhone無法適應，是因為沒有破解Youtube ReVanced，裝自訂瀏覽器擋廣告的能力，以及無法裝各種瑟瑟APP包括EhViewer，不能安裝各種盜版模擬器（我知道模擬器不算盜版可是你想想一堆人的ROM都去哪裡取得的）。</p>
-<p>都是因為這種不體面又現實的理由，才無法切換過去的吧。刷機和Root什麼的自由度只是其次的理由？大多數人只要拍照好不lag，能順暢玩主流遊戲，換iPhone求穩定哪是那麼難的事情。</p>
-<p>不過我也找到了自己的生存方法。要是哪天得被迫只能用iPhone（如MDM環境）。首先擋廣告的話有DNS的方案，不然就用Firefox去擋。瑟瑟APP的話，買個開發者憑證，自簽側載就解決了。最後刷機和Root的自由度…就算了吧。被馴化的我等，iOS即使被發現越獄漏洞也不知道實用用途了。</p>
-<p>但是在那天到來之前，我還是會選Android。</p>
-<p>我是…自由的。</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p><a href="https://ivonblog.com/posts/xperia-10-v-sony-official-repair-experience/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4f0ee7bba4.webp"></a></p>
-<p>逐漸遠去的日常，回歸塵土的地獄。</p>
-<p>將Sony手機Xperia 10 V送原廠維修清潔，並以優惠價換電池的過程分享。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f91bbd7a2a.webp" alt="Sony免費手機健檢活動2026"></p>
-<h2>沉睡在悲傷的海洋中
-<span>
-<a href="#%e6%b2%89%e7%9d%a1%e5%9c%a8%e6%82%b2%e5%82%b7%e7%9a%84%e6%b5%b7%e6%b4%8b%e4%b8%ad" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>悲しい海に沈む……原來防水手機不能在水下拍照啊。</p>
-<p>你看到了吧，她們</p>
-<p>澤野弘之 - YouSeeBIGGIRL/T:T</p>
-<div>
-<iframe src="https://www.youtube.com/embed/vy63u2hKoPE" allowfullscreen="" frameborder="0">
-</iframe>
-</div>
-<p>察覺到手機不防水只防潑水：</p>
-<p>（吐舌敲頭）</p>
-<p>（綜藝摔）</p>
-<p>在測試防水訓練的時候，我有點慶幸手機終於壞了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ec00d63f0f.webp"></p>
-<p>因為看到有人拿黏土人去海邊，拍海浪沖刷的定格影像，還有在水下的波光粼粼的樣子，我就想說手機能否做到。海浪拍打需要抓時機，而且還得小心固定模型不要被浪捲走。但至少我已經知道把快門速度調快就能定格海浪。</p>
-<p>在中山大學旁邊的海灘，我最多只能拍到模型的腳部浸溼在水裡的樣子，而且還得捲褲子蹲下來。</p>
-<p>在家裡洗手檯的測試結果表明，不使用防水袋的場合，即使Xperia普遍具備IP68防水，但是在水下操作手機幾乎不可能。</p>
-<p>我以前第一次測試泡水性能的手機是Xperia Z2，隔了十年變Xperia 10 V和Xperia 1 III。的確，防水不代表它支援溼手觸控。Sony在推銷防水手機的伊始就建議不要在水下使用，更不可在海水這種高鹽度腐蝕性的水體操作。淺水拍照或許還行，若整個人潛下去很快就超過IP68 1.5公尺的測試深度了。這就得買專門的潛水用防水拍照機殼，iPhone有蠻多這種專門配件的。</p>
-<p>好吧，我只是要拍淡水，將模型插在水裡，水深應該不會超過50cm。那麼我要怎麼放手機的位置呢，是Xperia 1 III橫放整臺泡在水裡，還是倒立只有鏡頭下去。在水中，相機觸控按鈕是根本按不下去的，這能得用配備實體快門鍵的機種解決。但是還有看不到螢幕畫面的問題啊，水會折射光線，我又不可能用Type-C輸出監視螢幕的方式到另外一臺手機操作（Xperia 1有外部監視器App功能），這樣會被電死。我想，用另外一臺手機控制另一臺手機相機畫面的，還是只能用那個老招了吧：RustDesk。</p>
-<p>就是爲了拍這種效果的照片
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a558b6f68c.webp"></p>
-<p>在拍完之後，麻煩的是充電孔會有水分殘留，Android偵測到會拒絕充電，得用衛生紙捲成針狀慢慢吸出來。再放Youtube的Make water come out of phone speaker的音效好幾分鐘完成排水……。</p>
-<p>嘖，Xperia 10 V用了三年，防水功能已經開始衰退了，泡不到30秒，鏡頭竟然進水氣了。Xperia 1 III因為少用沒事。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-be9018893c.webp"></p>
-<p>以前不會這樣的！畢竟我還跟塔什干一起洗過澡的！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1b4ee1b089.webp"></p>
-<p>也許它會自己乾掉，幾小時過去了水珠減少了一點，但這代表它已經開始損壞了，恐怕之後已經不能承受高溫蒸汽的地方了，否則水氣會再度出現。</p>
-<p>不知道為什麼我有種罪惡的喜悅心情，之前買好多二手手機要替代你不成，用了那麼久還沒壞掉，為了製造合法換新手機的動力得加把勁啊，但裸機暴力使用，塑膠外殼也沒受什麼損傷，幾年前半泡水也沒怎樣，沒想到現在….終於要壞了。</p>
-<p>我總有「手機壞了？太好了終於能換新手機了」的念頭，勝過「靠北！手機壞了怎麼辦」的感覺。</p>
-<p>為什麼不換新機？還能用為什麼要換？總是囿於這種進退兩難的情緒。</p>
-<p>我要折磨你…到你說還不夠為止，呵呵，哈哈哈哈哈！←這什麼病嬌宣言。</p>
-<p>なにしてるの！你在說什麼啊Ivon！你知道如果Xperia 10 V真的掛掉，修也不划算的情況，2026年Sony的Xperi 10 VIII新機(6Gen3)至少也要18000元誒！</p>
-<p>可是…我還有買Xperia 10 VII和Xperia 5V的二手機選項…</p>
-<p>沒有可是！不要再買二手機了！</p>
-<p>雖然Google Pixel 10a是選項之一，可是我的手機螢幕不能有挖孔…還是只有Sony能買。</p>
-<p>或者…我接受沒耳機孔沒3.5mm耳機孔挖孔螢幕，全部用workarounds（耳機孔用USB DAC，挖孔螢幕靠軟體遮掉）解決，從這只有Sony能選的輪迴的詛咒解脫出來。</p>
-<h2>不會再有第二次
-<span>
-<a href="#%e4%b8%8d%e6%9c%83%e5%86%8d%e6%9c%89%e7%ac%ac%e4%ba%8c%e6%ac%a1" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>為什麼我以前那麼社恐呢，直到現在我跟人講話之前還得跟布偶講個30分鐘才能開口。開口了好不容易聊開了我又會容易亂講話，暴露太多自己的弱點，親暱生狎侮。讓我還原那天的感受吧，三年前，Xperia 5 II的綠線發作的<a href="https://ivonblog.com/posts/sony-xperia-5-ii-with-mod-lcd-display/" target="_blank">那一天</a>。</p>
-<p>就像聽到進擊的巨人說我鎧他超一樣震驚。</p>
-<p>四主無神的騎車在街上亂晃，要去SONY的原廠維修呢？還是怎麼辦法。因為我從沒遇過這種情況。自己的第一支真旗艦，這麼信賴的工具，突然就被宣判死亡。最後還是沒去，不知道為什麼不敢開口，是因為刷機過嗎，還是我覺得那是我的骨肉任何人都不準碰！包括解剖它！？</p>
-<p>換上Poco F1。再選定Xperia 10 V做暫時的替代品。</p>
-<p>如果當時直接送Sony原廠報價爭取看看免費綠線維修就好了，就不會有之後換LCD和買一堆手機的瞎操作。</p>
-<p>而這次Xperia 10 V壞了，我明明那麼討厭它，要它早點壞掉才好讓我從這三年的解脫出來，這次我不願放棄受潮的Xperia 10 V。</p>
-<p>所以我踏出了一步。</p>
-<p>趁著Sony搞手機免費健檢送7-11咖啡禮券的活動，親自走進Sony Mobile專賣店的大門。</p>
-<p>說實話我雙腿是發抖的，好想吐，為什麼我會在這裡，廚力這麼高到要親自去實體門市看產品。就像我換Xperia 10 V前也有去中華電信服務窗口特地要一支來摸看看一樣。</p>
-<p>哈啊…哈啊…哈啊。講話唯唯諾諾，那個…我是來…問健撿檢…服務的，請問…這個…要付費嗎？</p>
-<p>雖然是這樣謹慎的態度，但是看友善的店員幫忙測試手機基礎功能有無損壞的時候，因為Xperia現在的系統長的跟AOSP幾乎一模一樣，他看不出來我已經刷成了LineageOS，也不好奇為何Xperia 10 V有Android 17能用，我不禁在心理冷笑。不對，我不應該自負的以為自己什麼都懂。現在比較進步的是會有自我修正機制：好好說話，想下一步要說什麼。</p>
-<p>警告我Don’t act weird，不要脫口而出很宅的自作聰明的用語，當正常人一點。總算平安完成修繕，並順便去測試Xperia 10 VIII用起來怎樣。我用三年的Xperia 10 V鏡頭進水了（終於壞了）不值得修的話（忍受上限是3000元，然後店員還凹我用之前原本要用在Xperia 1 III的1299優惠方案換電池。他說用摸背板的就知道Xperia 10 V電池膨脹了！？雖然這續航力還有10小時SOT啦…），本來要買Xperia 5 V二手接替。</p>
-<p>可是實際去展售店摸Xperia 10 VIII之後，這台還是跟Xperia 10 V一樣輕，只是變胖了。鏡頭島沒有想像中那麼突。Xperia 10 VIII外觀手感比Xperia 1VIII好多了。IMX766的相機看起來沒那麼差。手機邊框太粗？傻傻的，厚邊框才給人安心感呀！手指有地方放！玻璃部分看起來不會那麼脆弱！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f1ee63e682.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-db0d66eb7b.webp"></p>
-<p>反正我已經習慣手動模式或開GCam了。本來我有考慮過Pixel 10a或Nothing 4a。但是手機螢幕不能有挖孔，且螢幕+機身不能大於6.3吋。如果找不到Xperia 10 VII初音綠色的全新庫存的話（專賣店真的都沒貨了，拍賣網站還有），預計下一臺就是它了。</p>
-<p>因為這是你開啟的故事啊，古利夏。</p>
-<h2>雖然刷機過還是給換電池
-<span>
-<a href="#%e9%9b%96%e7%84%b6%e5%88%b7%e6%a9%9f%e9%81%8e%e9%82%84%e6%98%af%e7%b5%a6%e6%8f%9b%e9%9b%bb%e6%b1%a0" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>浸水Xperia 10 V修回來了，歡迎歸隊，繼續戰。本來我已經做好要整臺換掉，花二萬買Xperia 10 VIII的覺悟了呢。</p>
-<p>本來它已經從地獄離開，我們卻又要把它拉回這個地獄。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4dae8f96a3.webp"></p>
-<p>把刷機過的Sony手機送回原廠維修，他們說無法回復原廠系統，但還是給我用優惠價格換電池了，不收額外費用。謝主隆恩。可是…繼續待在城牆裡，是沒有未來的啊。</p>
-<p>使用Sony官方提供的健檢服務（也就是過往的回娘家活動）更換了Xperia 10 V的電池，優惠價1299元。破保了也能給你換。並得到了一張7-11咖啡卷。感謝親切的Sony門市人員。</p>
-<p>說明：健檢服務本身是免費的，Sony Mobile的門市人員會對手機外觀做基本清潔。而換電池是送維修中心，Xperia 1 III（含）之後的機型提供限定優惠價格。這個活動幾乎每年都有，2026年的到11月30日爲止。</p>
-<p>Xperia 10 V用了三年還沒壞，我是因爲Xperia 10 V浸水順便去問維修價格的。本來Xperia 1 III也想換電池的，但是考慮到我只把它當拍照機用，SOT 剩5小時也不是那麼重要。</p>
-<p>本來是鏡頭有水珠，經過檢查疑似進水但氣密沒壞，不用換掉整個背板與鏡頭玻璃，只簡單清潔。</p>
-<p>剩下重塗防水膠的錢都算在換電池了吧。門市人員居然說用摸背板的就知道電池膨脹了，可是我看不到任何鼓起，健康度還有80%左右。SOT依然10小時以上啊。好吧就相信專業換吧。</p>
-<p>誒…Sony原廠維修工程師那麼兩光喔，他們發現我刷LineageOS，為了校正換電池結果，需要Sony原廠ROM，我在電話裡面說沒關係就把資料清除，結果沒辦法恢復原廠。</p>
-<p>那XDA的<a href="NewFlasher">NewFlasher</a>刷機工具是誰流出來的？Sony官方工具都被逆向了，他們連底層刷機的專用工具都沒有嗎。還原原廠系統不應該是最簡單的事情嗎？不，不能這麼說，也許是不想承擔變磚風險，他們不知道我究竟改了哪些地方，免得刷壞要賠一支新的，所以不使用過激手段恢復系統吧。</p>
-<p>所以就保持原樣下換電池，就這樣還不收額外費用並讓我用1299的優惠給Xperia 10 V 換電池呢。謝謝。</p>
-<p>嗯…好吧，修回來，我自行用NewFlasher刷回去原廠ROM，看電池健康度吧。</p>
-<p>啊啊，我應該先把手機刷回原廠再送修的嗎？以前把裝Linux的Modern 15筆電送修鍵盤的時候，也是刻意先灌回Windows的。</p>
-<p>在LineageOS系統設定，顯示目前電池容量是5095mAh，有這麼高嗎我沒印象？但是adb dumpsys寫的99%，充電循環次數0，應該就是全新電池了吧。雖然如此我還是先用NewFlasher刷回原廠觀察。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-28c2a0396e.webp"></p>
-<p>搞笑的是Sony的ROM根本沒地方看電池健康度多少，撥號<code>*#*#7378423#*#*</code>進工程模式也沒顯示容量。也許他們要用特殊App吧。</p>
-<p>另外Sony原廠系統…還是很卡，所以我測試確認後，又刷回LineageOS了。</p>
-<p>因爲Sony原廠系統已經沒未來了啊。舊機兩三年就EOL，停留在Android 15。LineageOS則能升級到Android 17，且每週都有更新。</p>
-<h2>暫時用iPhone，果然還是不喜歡iPhone
-<span>
-<a href="#%e6%9a%ab%e6%99%82%e7%94%a8iphone%e6%9e%9c%e7%84%b6%e9%82%84%e6%98%af%e4%b8%8d%e5%96%9c%e6%ad%a1iphone" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>俺は自由だ。</p>
-<p>這就是小手機的代價…。Xperia 10 V送修的這5天，我被迫用留守抽屜的iPhone 12 Mini當主力。Xperia 1 III是拍照專機，不可當手機使用。</p>
-<p>又體會到了，SOT不到3小時的機型啊。雖然小巧到幾乎放在口袋裡感覺不到任何重量，可是不夠安心啊。</p>
-<p>也許無法適應iOS拼音不如Fcitx5 RIME好用，我無法單手操作還是得雙手打。</p>
-<p>儘管寬度只有64mm比68mm窄。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-bb41f0e66d.webp"></p>
-<p>大概我買的親膚液態矽膠殼手感太詭異了。當移動的4G分享器還是會很快掉電，無法在外跑一整天。這個舊機型還在用Lightning害我得多帶一條非TypeC的線。這樣我的陣容就變成蘋果佔優了（Android + Android + iPad → iPhone + Android + iPad）我體會到了iOS跨裝置協作的便利。例如在iPhone 12 Mini寫行事曆的時候，旁邊iPad Air 6就能直接放大繼續。傳檔案有AirDrop也方便。只是，我行事曆本來就是透過Radicale的CalDAV跨平臺同步的，在Android與iOS之間本就能同步。</p>
-<p>又察覺到網頁對小螢幕裝置不友善的問題，Facebook網頁左右兩側的字都會被切掉。以前是4吋iPhone SE的Youtube字會被切掉，現在5吋的iPhone 12 Mini也被開發者嫌太小了嗎？當然可能是Firefox使用的WebKit有問題罷了，換到Safari網頁就正常…不對Facebook還是不正常，開發者忘卻小螢幕裝置了嗎。且Firefox比Chrome和Brave都異常耗電。看來Mozilla他們真的沒資源做舊機優化。嘛用Safari無法跨平臺同步又沒差，Android我也是用Titanium而已…Firefox就當作傳網頁接收器就好。</p>
-<p>iOS 27動畫基本還是流暢的就是RAM小殺背景嚴重。這個相機拍照很方便單手解決呢，顏色中立，夜拍品質還能看。尤其小機身騎車拿出來3秒內拍照就能完成。用Xperia 10 V的話我還得花十秒等對焦再手動校正吧。</p>
-<p>不過…我果然回不去小手機了，以前幻想能反主流的回去用小手機（我對小手機的偏執是這兩年才開始的。以前是逆來順受接受新機變大的事實。就單純想反主流吧），覺得Xperia XZ1 Compact是最好的，卻發現適應6吋螢幕/機身太久了。</p>
-<p>太小看了很吃力，太大拿了手會酸。</p>
-<p>所以Xperia 10 V快回來吧。</p>
-<p>接觸10年了，我還是覺得iPhone很難用，無法適應。</p>
-<p>Xperia 10 V送修的5天，我被迫用留守抽屜的iPhone 12 Mini認真當主力。我體會到了一點iOS跨裝置協作的便利，除此之外儘是不便。</p>
-<p>奇怪的是我覺得iPadOS還好夠用，可是iOS怎麼用怎麼不順手。我不會滑平板一整天，只有工作時會拿出來，但是手機會，所以要選得心應手的機種吧。Android手機 + iPad + Linux PC才是我比較習慣的工作方式。</p>
-<p>不用HyperOS和OriginOS那種充滿bloatware的系統，就連原生Android（LineageOS、Pixel、Sony）都比iOS好。雖然原生Android跟iOS比起來雖然一樣無趣，不過至少還有點自由的選擇，而不是用什麼都綁手綁腳的。</p>
-<p>大概我用法比較奇怪吧，我不是什麼都要用App的人，而是習慣看網頁，there’s an app for that的範式不適用於我。那麼瀏覽器多元化就很重要了。Android每個瀏覽器都會有不同的性能表現，Chromium主流，Firefox支援擴充。iOS主流被迫用WebKit就導致各個差異很小，能做的事情也會被WebKit的奇怪限制綁住，例如不能裝擴充，或者網頁只考慮Chrormium優化遇到WebKit的Bug就沒轍了。</p>
-<p>還有iOS萬年的詭異檔案管理邏輯，照片APP用數字而非日期命名檔案。每個APP之間容易隔離的太嚴重了。</p>
-<p>縱然iOS的動畫順暢，液態玻璃漂亮，可是在這些eye-candy之外還是覺得不如Android實用。</p>
-<p>iOS系統就是設計的綁手綁腳，如果沒有開放API，第三方APP都是次等公民。除非是專業軟體的殺手級APP，你總會覺得依賴Apple內建的最好。</p>
-<p>結果導致我現在與iOS系統深度整合的第三方APP只有Bitwarden做密碼管理，筆記用Joplin，其他全部用內建的了，例如行事曆是用內建的去連CalDAV，瀏覽器放棄Firefox用Safari了…….某種程度這也是iOS的好處，不用冒險去試用第三方APP，Apple自家APP的實現就「足夠」好用了。</p>
-<p>可是，就是說我沒有無腦到單純在滑手機能滿足的話，是不適合用iOS的。我想知道Root的原理，系統的運作方式。</p>
-<p>…老實說吧，我Android換iPhone無法適應，是因為沒有破解Youtube ReVanced，裝自訂瀏覽器擋廣告的能力，以及無法裝各種瑟瑟APP包括EhViewer，不能安裝各種盜版模擬器（我知道模擬器不算盜版可是你想想一堆人的ROM都去哪裡取得的）。</p>
-<p>都是因為這種不體面又現實的理由，才無法切換過去的吧。刷機和Root什麼的自由度只是其次的理由？大多數人只要拍照好不lag，能順暢玩主流遊戲，換iPhone求穩定哪是那麼難的事情。</p>
-<p>不過我也找到了自己的生存方法。要是哪天得被迫只能用iPhone（如MDM環境）。首先擋廣告的話有DNS的方案，不然就用Firefox去擋。瑟瑟APP的話，買個開發者憑證，自簽側載就解決了。最後刷機和Root的自由度…就算了吧。被馴化的我等，iOS即使被發現越獄漏洞也不知道實用用途了。</p>
-<p>但是在那天到來之前，我還是會選Android。</p>
-<p>我是…自由的。</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p><a href="https://ivonblog.com/posts/xperia-10-v-sony-official-repair-experience/featured.webp" target="_blank"><img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4f0ee7bba4.webp"></a></p>
-<p>逐漸遠去的日常，回歸塵土的地獄。</p>
-<p>將Sony手機Xperia 10 V送原廠維修清潔，並以優惠價換電池的過程分享。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f91bbd7a2a.webp" alt="Sony免費手機健檢活動2026"></p>
-<h2>沉睡在悲傷的海洋中
-<span>
-<a href="#%e6%b2%89%e7%9d%a1%e5%9c%a8%e6%82%b2%e5%82%b7%e7%9a%84%e6%b5%b7%e6%b4%8b%e4%b8%ad" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>悲しい海に沈む……原來防水手機不能在水下拍照啊。</p>
-<p>你看到了吧，她們</p>
-<p>澤野弘之 - YouSeeBIGGIRL/T:T</p>
-<div>
-<iframe src="https://www.youtube.com/embed/vy63u2hKoPE" allowfullscreen="" frameborder="0">
-</iframe>
-</div>
-<p>察覺到手機不防水只防潑水：</p>
-<p>（吐舌敲頭）</p>
-<p>（綜藝摔）</p>
-<p>在測試防水訓練的時候，我有點慶幸手機終於壞了。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-ec00d63f0f.webp"></p>
-<p>因為看到有人拿黏土人去海邊，拍海浪沖刷的定格影像，還有在水下的波光粼粼的樣子，我就想說手機能否做到。海浪拍打需要抓時機，而且還得小心固定模型不要被浪捲走。但至少我已經知道把快門速度調快就能定格海浪。</p>
-<p>在中山大學旁邊的海灘，我最多只能拍到模型的腳部浸溼在水裡的樣子，而且還得捲褲子蹲下來。</p>
-<p>在家裡洗手檯的測試結果表明，不使用防水袋的場合，即使Xperia普遍具備IP68防水，但是在水下操作手機幾乎不可能。</p>
-<p>我以前第一次測試泡水性能的手機是Xperia Z2，隔了十年變Xperia 10 V和Xperia 1 III。的確，防水不代表它支援溼手觸控。Sony在推銷防水手機的伊始就建議不要在水下使用，更不可在海水這種高鹽度腐蝕性的水體操作。淺水拍照或許還行，若整個人潛下去很快就超過IP68 1.5公尺的測試深度了。這就得買專門的潛水用防水拍照機殼，iPhone有蠻多這種專門配件的。</p>
-<p>好吧，我只是要拍淡水，將模型插在水裡，水深應該不會超過50cm。那麼我要怎麼放手機的位置呢，是Xperia 1 III橫放整臺泡在水裡，還是倒立只有鏡頭下去。在水中，相機觸控按鈕是根本按不下去的，這能得用配備實體快門鍵的機種解決。但是還有看不到螢幕畫面的問題啊，水會折射光線，我又不可能用Type-C輸出監視螢幕的方式到另外一臺手機操作（Xperia 1有外部監視器App功能），這樣會被電死。我想，用另外一臺手機控制另一臺手機相機畫面的，還是只能用那個老招了吧：RustDesk。</p>
-<p>就是爲了拍這種效果的照片
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-a558b6f68c.webp"></p>
-<p>在拍完之後，麻煩的是充電孔會有水分殘留，Android偵測到會拒絕充電，得用衛生紙捲成針狀慢慢吸出來。再放Youtube的Make water come out of phone speaker的音效好幾分鐘完成排水……。</p>
-<p>嘖，Xperia 10 V用了三年，防水功能已經開始衰退了，泡不到30秒，鏡頭竟然進水氣了。Xperia 1 III因為少用沒事。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-be9018893c.webp"></p>
-<p>以前不會這樣的！畢竟我還跟塔什干一起洗過澡的！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-1b4ee1b089.webp"></p>
-<p>也許它會自己乾掉，幾小時過去了水珠減少了一點，但這代表它已經開始損壞了，恐怕之後已經不能承受高溫蒸汽的地方了，否則水氣會再度出現。</p>
-<p>不知道為什麼我有種罪惡的喜悅心情，之前買好多二手手機要替代你不成，用了那麼久還沒壞掉，為了製造合法換新手機的動力得加把勁啊，但裸機暴力使用，塑膠外殼也沒受什麼損傷，幾年前半泡水也沒怎樣，沒想到現在….終於要壞了。</p>
-<p>我總有「手機壞了？太好了終於能換新手機了」的念頭，勝過「靠北！手機壞了怎麼辦」的感覺。</p>
-<p>為什麼不換新機？還能用為什麼要換？總是囿於這種進退兩難的情緒。</p>
-<p>我要折磨你…到你說還不夠為止，呵呵，哈哈哈哈哈！←這什麼病嬌宣言。</p>
-<p>なにしてるの！你在說什麼啊Ivon！你知道如果Xperia 10 V真的掛掉，修也不划算的情況，2026年Sony的Xperi 10 VIII新機(6Gen3)至少也要18000元誒！</p>
-<p>可是…我還有買Xperia 10 VII和Xperia 5V的二手機選項…</p>
-<p>沒有可是！不要再買二手機了！</p>
-<p>雖然Google Pixel 10a是選項之一，可是我的手機螢幕不能有挖孔…還是只有Sony能買。</p>
-<p>或者…我接受沒耳機孔沒3.5mm耳機孔挖孔螢幕，全部用workarounds（耳機孔用USB DAC，挖孔螢幕靠軟體遮掉）解決，從這只有Sony能選的輪迴的詛咒解脫出來。</p>
-<h2>不會再有第二次
-<span>
-<a href="#%e4%b8%8d%e6%9c%83%e5%86%8d%e6%9c%89%e7%ac%ac%e4%ba%8c%e6%ac%a1" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>為什麼我以前那麼社恐呢，直到現在我跟人講話之前還得跟布偶講個30分鐘才能開口。開口了好不容易聊開了我又會容易亂講話，暴露太多自己的弱點，親暱生狎侮。讓我還原那天的感受吧，三年前，Xperia 5 II的綠線發作的<a href="https://ivonblog.com/posts/sony-xperia-5-ii-with-mod-lcd-display/" target="_blank">那一天</a>。</p>
-<p>就像聽到進擊的巨人說我鎧他超一樣震驚。</p>
-<p>四主無神的騎車在街上亂晃，要去SONY的原廠維修呢？還是怎麼辦法。因為我從沒遇過這種情況。自己的第一支真旗艦，這麼信賴的工具，突然就被宣判死亡。最後還是沒去，不知道為什麼不敢開口，是因為刷機過嗎，還是我覺得那是我的骨肉任何人都不準碰！包括解剖它！？</p>
-<p>換上Poco F1。再選定Xperia 10 V做暫時的替代品。</p>
-<p>如果當時直接送Sony原廠報價爭取看看免費綠線維修就好了，就不會有之後換LCD和買一堆手機的瞎操作。</p>
-<p>而這次Xperia 10 V壞了，我明明那麼討厭它，要它早點壞掉才好讓我從這三年的解脫出來，這次我不願放棄受潮的Xperia 10 V。</p>
-<p>所以我踏出了一步。</p>
-<p>趁著Sony搞手機免費健檢送7-11咖啡禮券的活動，親自走進Sony Mobile專賣店的大門。</p>
-<p>說實話我雙腿是發抖的，好想吐，為什麼我會在這裡，廚力這麼高到要親自去實體門市看產品。就像我換Xperia 10 V前也有去中華電信服務窗口特地要一支來摸看看一樣。</p>
-<p>哈啊…哈啊…哈啊。講話唯唯諾諾，那個…我是來…問健撿檢…服務的，請問…這個…要付費嗎？</p>
-<p>雖然是這樣謹慎的態度，但是看友善的店員幫忙測試手機基礎功能有無損壞的時候，因為Xperia現在的系統長的跟AOSP幾乎一模一樣，他看不出來我已經刷成了LineageOS，也不好奇為何Xperia 10 V有Android 17能用，我不禁在心理冷笑。不對，我不應該自負的以為自己什麼都懂。現在比較進步的是會有自我修正機制：好好說話，想下一步要說什麼。</p>
-<p>警告我Don’t act weird，不要脫口而出很宅的自作聰明的用語，當正常人一點。總算平安完成修繕，並順便去測試Xperia 10 VIII用起來怎樣。我用三年的Xperia 10 V鏡頭進水了（終於壞了）不值得修的話（忍受上限是3000元，然後店員還凹我用之前原本要用在Xperia 1 III的1299優惠方案換電池。他說用摸背板的就知道Xperia 10 V電池膨脹了！？雖然這續航力還有10小時SOT啦…），本來要買Xperia 5 V二手接替。</p>
-<p>可是實際去展售店摸Xperia 10 VIII之後，這台還是跟Xperia 10 V一樣輕，只是變胖了。鏡頭島沒有想像中那麼突。Xperia 10 VIII外觀手感比Xperia 1VIII好多了。IMX766的相機看起來沒那麼差。手機邊框太粗？傻傻的，厚邊框才給人安心感呀！手指有地方放！玻璃部分看起來不會那麼脆弱！
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-f1ee63e682.webp">
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-db0d66eb7b.webp"></p>
-<p>反正我已經習慣手動模式或開GCam了。本來我有考慮過Pixel 10a或Nothing 4a。但是手機螢幕不能有挖孔，且螢幕+機身不能大於6.3吋。如果找不到Xperia 10 VII初音綠色的全新庫存的話（專賣店真的都沒貨了，拍賣網站還有），預計下一臺就是它了。</p>
-<p>因為這是你開啟的故事啊，古利夏。</p>
-<h2>雖然刷機過還是給換電池
-<span>
-<a href="#%e9%9b%96%e7%84%b6%e5%88%b7%e6%a9%9f%e9%81%8e%e9%82%84%e6%98%af%e7%b5%a6%e6%8f%9b%e9%9b%bb%e6%b1%a0" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>浸水Xperia 10 V修回來了，歡迎歸隊，繼續戰。本來我已經做好要整臺換掉，花二萬買Xperia 10 VIII的覺悟了呢。</p>
-<p>本來它已經從地獄離開，我們卻又要把它拉回這個地獄。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-4dae8f96a3.webp"></p>
-<p>把刷機過的Sony手機送回原廠維修，他們說無法回復原廠系統，但還是給我用優惠價格換電池了，不收額外費用。謝主隆恩。可是…繼續待在城牆裡，是沒有未來的啊。</p>
-<p>使用Sony官方提供的健檢服務（也就是過往的回娘家活動）更換了Xperia 10 V的電池，優惠價1299元。破保了也能給你換。並得到了一張7-11咖啡卷。感謝親切的Sony門市人員。</p>
-<p>說明：健檢服務本身是免費的，Sony Mobile的門市人員會對手機外觀做基本清潔。而換電池是送維修中心，Xperia 1 III（含）之後的機型提供限定優惠價格。這個活動幾乎每年都有，2026年的到11月30日爲止。</p>
-<p>Xperia 10 V用了三年還沒壞，我是因爲Xperia 10 V浸水順便去問維修價格的。本來Xperia 1 III也想換電池的，但是考慮到我只把它當拍照機用，SOT 剩5小時也不是那麼重要。</p>
-<p>本來是鏡頭有水珠，經過檢查疑似進水但氣密沒壞，不用換掉整個背板與鏡頭玻璃，只簡單清潔。</p>
-<p>剩下重塗防水膠的錢都算在換電池了吧。門市人員居然說用摸背板的就知道電池膨脹了，可是我看不到任何鼓起，健康度還有80%左右。SOT依然10小時以上啊。好吧就相信專業換吧。</p>
-<p>誒…Sony原廠維修工程師那麼兩光喔，他們發現我刷LineageOS，為了校正換電池結果，需要Sony原廠ROM，我在電話裡面說沒關係就把資料清除，結果沒辦法恢復原廠。</p>
-<p>那XDA的<a href="NewFlasher">NewFlasher</a>刷機工具是誰流出來的？Sony官方工具都被逆向了，他們連底層刷機的專用工具都沒有嗎。還原原廠系統不應該是最簡單的事情嗎？不，不能這麼說，也許是不想承擔變磚風險，他們不知道我究竟改了哪些地方，免得刷壞要賠一支新的，所以不使用過激手段恢復系統吧。</p>
-<p>所以就保持原樣下換電池，就這樣還不收額外費用並讓我用1299的優惠給Xperia 10 V 換電池呢。謝謝。</p>
-<p>嗯…好吧，修回來，我自行用NewFlasher刷回去原廠ROM，看電池健康度吧。</p>
-<p>啊啊，我應該先把手機刷回原廠再送修的嗎？以前把裝Linux的Modern 15筆電送修鍵盤的時候，也是刻意先灌回Windows的。</p>
-<p>在LineageOS系統設定，顯示目前電池容量是5095mAh，有這麼高嗎我沒印象？但是adb dumpsys寫的99%，充電循環次數0，應該就是全新電池了吧。雖然如此我還是先用NewFlasher刷回原廠觀察。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-28c2a0396e.webp"></p>
-<p>搞笑的是Sony的ROM根本沒地方看電池健康度多少，撥號<code>*#*#7378423#*#*</code>進工程模式也沒顯示容量。也許他們要用特殊App吧。</p>
-<p>另外Sony原廠系統…還是很卡，所以我測試確認後，又刷回LineageOS了。</p>
-<p>因爲Sony原廠系統已經沒未來了啊。舊機兩三年就EOL，停留在Android 15。LineageOS則能升級到Android 17，且每週都有更新。</p>
-<h2>暫時用iPhone，果然還是不喜歡iPhone
-<span>
-<a href="#%e6%9a%ab%e6%99%82%e7%94%a8iphone%e6%9e%9c%e7%84%b6%e9%82%84%e6%98%af%e4%b8%8d%e5%96%9c%e6%ad%a1iphone" aria-label="定位點">#</a>
-</span>
-</h2>
-<p>俺は自由だ。</p>
-<p>這就是小手機的代價…。Xperia 10 V送修的這5天，我被迫用留守抽屜的iPhone 12 Mini當主力。Xperia 1 III是拍照專機，不可當手機使用。</p>
-<p>又體會到了，SOT不到3小時的機型啊。雖然小巧到幾乎放在口袋裡感覺不到任何重量，可是不夠安心啊。</p>
-<p>也許無法適應iOS拼音不如Fcitx5 RIME好用，我無法單手操作還是得雙手打。</p>
-<p>儘管寬度只有64mm比68mm窄。
-<img src="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/static.ivonblog.com-bb41f0e66d.webp"></p>
-<p>大概我買的親膚液態矽膠殼手感太詭異了。當移動的4G分享器還是會很快掉電，無法在外跑一整天。這個舊機型還在用Lightning害我得多帶一條非TypeC的線。這樣我的陣容就變成蘋果佔優了（Android + Android + iPad → iPhone + Android + iPad）我體會到了iOS跨裝置協作的便利。例如在iPhone 12 Mini寫行事曆的時候，旁邊iPad Air 6就能直接放大繼續。傳檔案有AirDrop也方便。只是，我行事曆本來就是透過Radicale的CalDAV跨平臺同步的，在Android與iOS之間本就能同步。</p>
-<p>又察覺到網頁對小螢幕裝置不友善的問題，Facebook網頁左右兩側的字都會被切掉。以前是4吋iPhone SE的Youtube字會被切掉，現在5吋的iPhone 12 Mini也被開發者嫌太小了嗎？當然可能是Firefox使用的WebKit有問題罷了，換到Safari網頁就正常…不對Facebook還是不正常，開發者忘卻小螢幕裝置了嗎。且Firefox比Chrome和Brave都異常耗電。看來Mozilla他們真的沒資源做舊機優化。嘛用Safari無法跨平臺同步又沒差，Android我也是用Titanium而已…Firefox就當作傳網頁接收器就好。</p>
-<p>iOS 27動畫基本還是流暢的就是RAM小殺背景嚴重。這個相機拍照很方便單手解決呢，顏色中立，夜拍品質還能看。尤其小機身騎車拿出來3秒內拍照就能完成。用Xperia 10 V的話我還得花十秒等對焦再手動校正吧。</p>
-<p>不過…我果然回不去小手機了，以前幻想能反主流的回去用小手機（我對小手機的偏執是這兩年才開始的。以前是逆來順受接受新機變大的事實。就單純想反主流吧），覺得Xperia XZ1 Compact是最好的，卻發現適應6吋螢幕/機身太久了。</p>
-<p>太小看了很吃力，太大拿了手會酸。</p>
-<p>所以Xperia 10 V快回來吧。</p>
-<p>接觸10年了，我還是覺得iPhone很難用，無法適應。</p>
-<p>Xperia 10 V送修的5天，我被迫用留守抽屜的iPhone 12 Mini認真當主力。我體會到了一點iOS跨裝置協作的便利，除此之外儘是不便。</p>
-<p>奇怪的是我覺得iPadOS還好夠用，可是iOS怎麼用怎麼不順手。我不會滑平板一整天，只有工作時會拿出來，但是手機會，所以要選得心應手的機種吧。Android手機 + iPad + Linux PC才是我比較習慣的工作方式。</p>
-<p>不用HyperOS和OriginOS那種充滿bloatware的系統，就連原生Android（LineageOS、Pixel、Sony）都比iOS好。雖然原生Android跟iOS比起來雖然一樣無趣，不過至少還有點自由的選擇，而不是用什麼都綁手綁腳的。</p>
-<p>大概我用法比較奇怪吧，我不是什麼都要用App的人，而是習慣看網頁，there’s an app for that的範式不適用於我。那麼瀏覽器多元化就很重要了。Android每個瀏覽器都會有不同的性能表現，Chromium主流，Firefox支援擴充。iOS主流被迫用WebKit就導致各個差異很小，能做的事情也會被WebKit的奇怪限制綁住，例如不能裝擴充，或者網頁只考慮Chrormium優化遇到WebKit的Bug就沒轍了。</p>
-<p>還有iOS萬年的詭異檔案管理邏輯，照片APP用數字而非日期命名檔案。每個APP之間容易隔離的太嚴重了。</p>
-<p>縱然iOS的動畫順暢，液態玻璃漂亮，可是在這些eye-candy之外還是覺得不如Android實用。</p>
-<p>iOS系統就是設計的綁手綁腳，如果沒有開放API，第三方APP都是次等公民。除非是專業軟體的殺手級APP，你總會覺得依賴Apple內建的最好。</p>
-<p>結果導致我現在與iOS系統深度整合的第三方APP只有Bitwarden做密碼管理，筆記用Joplin，其他全部用內建的了，例如行事曆是用內建的去連CalDAV，瀏覽器放棄Firefox用Safari了…….某種程度這也是iOS的好處，不用冒險去試用第三方APP，Apple自家APP的實現就「足夠」好用了。</p>
-<p>可是，就是說我沒有無腦到單純在滑手機能滿足的話，是不適合用iOS的。我想知道Root的原理，系統的運作方式。</p>
-<p>…老實說吧，我Android換iPhone無法適應，是因為沒有破解Youtube ReVanced，裝自訂瀏覽器擋廣告的能力，以及無法裝各種瑟瑟APP包括EhViewer，不能安裝各種盜版模擬器（我知道模擬器不算盜版可是你想想一堆人的ROM都去哪裡取得的）。</p>
-<p>都是因為這種不體面又現實的理由，才無法切換過去的吧。刷機和Root什麼的自由度只是其次的理由？大多數人只要拍照好不lag，能順暢玩主流遊戲，換iPhone求穩定哪是那麼難的事情。</p>
-<p>不過我也找到了自己的生存方法。要是哪天得被迫只能用iPhone（如MDM環境）。首先擋廣告的話有DNS的方案，不然就用Firefox去擋。瑟瑟APP的話，買個開發者憑證，自簽側載就解決了。最後刷機和Root的自由度…就算了吧。被馴化的我等，iOS即使被發現越獄漏洞也不知道實用用途了。</p>
-<p>但是在那天到來之前，我還是會選Android。</p>
-<p>我是…自由的。</p>]]></content:encoded>
-    <itunes:image href="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4f0ee7bba4.webp"/>
-          <media:content url="https://democwise2016.github.io/action-RSS-Fulltext-20240420/file-cache/ivonblog.com-4f0ee7bba4.webp" medium="image"/>
-    <pubDate>Sat, 07 Nov 2026 17:00:00 +0800</pubDate>
   </item></channel>
 </rss>
