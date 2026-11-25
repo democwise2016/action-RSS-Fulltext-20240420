@@ -30,6 +30,228 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[【茶包射手日記】修正 Linux 網卡驅動程式 Bug]]></title>
+    <link>https://blog.darkthread.net/blog/fix-linux-igc-module/</link>
+    <itunes:title><![CDATA[【茶包射手日記】修正 Linux 網卡驅動程式 Bug]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>做夢也沒想過，我居然能找出 Linux 網卡驅動程式的 Bug 並修好它，AI Coding 時代什麼都變可能了。</p> <p>這個年代 Ethernet 網卡是個人電腦的標準配備，幾乎所有主機板都有內建，特地買 PCI-E 網卡所為何來？答案是「硬體時間戳」(Hardware Timestamp，以下簡稱硬時戳)。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639312132037397955.jpg"></p> <p>用 Wireshark 或 tcpdump 之類的抓封包軟體，每個封包都會有收到時間，時間戳則可分為硬體時間戳與軟體時間戳兩種，差別在於記錄時機。有些較高級的網卡晶片有內建硬體時鐘 (PHC，PTP Hardware Clock)，將封包傳給電腦時會註記 PHC 時間；若網卡不支援硬時戳，作業系統會在讀取到封包資料時用系統時鐘押上軟時戳，問題是從收到封包，再經過 DMA 資料傳送、等待系統中斷觸發、CPU 排程等過程，中間會有一段延遲，而延遲長度會隨系統負載變動，誤差和抖動 (Jitter) 通常在數微秒到數十微秒間，系統忙碌時可能更大。因此，若對精確度有較高要求，要靠硬時戳才能達到奈秒至數十奈秒等級。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639312132039303534.webp"></p> <p>在 Linux 使用 <code>ethtool -T</code> 可以查網卡晶片是否支援硬時戳，像是較平價的 Realtek 晶片通常就只能用軟時戳：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639312132041481133.webp"></p> <p>而我買的這塊 I226-V 便有支援硬時戳：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639312132043399199.webp"></p> <p>只是不幸地，裝好網卡正想用 <code>tcpdump -j adapter_unsynced --time-stamp-precision nano</code> 指令開心體驗硬時戳的奈秒級精確度，馬上被澆了一頭冷水。</p> <p>我用網路線將主機的內建網卡 eno1 跟 I226-V enp2s0 串起來，從 eno1 發出 arping 廣播讓 I226-V 接收(測試程式 arp-test.sh 如下)，得到奇怪的數字。</p> <pre><code>#!/bin/bash
+# 先在 enp2s0 以網卡硬體時間戳 (PHC) 收 5 個 ARP 封包，
+# 再從 eno1 以 arping 廣播 5 個 ARP，觀察兩邊時間差
+# 背景啟動 tcpdump，收滿 5 個 ARP 自動結束
+sudo tcpdump -i enp2s0 -j adapter_unsynced --time-stamp-precision nano -tt -n -c 5 arp &amp;
+TCPDUMP_PID=$!
+sleep 2   # 等 tcpdump 就緒再開始送封包
+# 讀取 PHC 目前時間，當作對照基準
+sudo phc_ctl /dev/ptp0 get
+# 從 eno1 送出 5 個 ARP（-0 以 0.0.0.0 為來源，間隔 0.2 秒）
+sudo arping -i eno1 -0 -c 5 -W 0.2 10.99.0.2
+# 等 tcpdump 收完 5 個封包再結束
+wait $TCPDUMP_PID
+</code></pre> <pre><code>4294836075.092230144 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092226048 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092221952 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092217856 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092213760 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+</code></pre> <p>封包實際間隔 0.2 秒，時間戳卻只差 4096 ns，而且是固定遞減 4096，完全不合理!</p> <p>跟 AI 一起討論兼除錯數小時，見識好多高級 Linux 技巧，檢查驅動程式、網卡韌體版本、寫 Python 直接讀取 PHC 時間... 結論是網卡 PHC 功能正常，應是 kernel 軟體 bug，不是晶片或硬體問題，取時間戳時錯讀到 RX buffer 的位址而不是時間的值。</p> <p>總之，AI 不但查了原始碼、還追到開源專案 Issue (有人提過此問題及修改建議，但還沒被納入)，建議幾種修改方向：改 I226-V 驅動程式 igc、改 Linux Kernel、寫客製版 libpcap，其中改 igc 驅動只要改 5 行程式碼，又可一次解決多個問題，是上策。雖然修改 Linux 驅動程式聽起來非常艱深複雜，但我只負責監工，二話不說立刻開幹。基本上就是把 igc_main.c 兩處改掉，問題就修好了：</p> <pre><code>if (ctx-&gt;rx_ts) {
+skb_shinfo(skb)-&gt;tx_flags |= SKBTX_HW_TSTAMP_NETDEV;
+skb_hwtstamps(skb)-&gt;netdev_data = ctx-&gt;rx_ts;
+}
+</code></pre> <p>改成</p> <pre><code>if (ctx-&gt;rx_ts) {
+struct igc_adapter *adapter = netdev_priv(rx_ring-&gt;netdev);
+skb_hwtstamps(skb)-&gt;hwtstamp =
+igc_ptp_rx_pktstamp(adapter, ctx-&gt;rx_ts-&gt;timer0);
+}
+</code></pre> <p>重新編譯好 igc.ko，用以下方法換掉原本的 igc 驅動模組：</p> <pre><code># ── 暫時切換（重開機後恢復）──
+# 換修正版
+sudo rmmod igc &amp;&amp; sudo insmod ~/lab/igc-fix/src/igc.ko
+# 換回原版（安裝到 updates/ 之前，也可用 sudo rmmod igc &amp;&amp; sudo modprobe igc）
+sudo rmmod igc &amp;&amp; sudo insmod /lib/modules/$(uname -r)/kernel/drivers/net/ethernet/intel/igc/igc.ko.xz
+# 檢查目前載入版本
+cat /sys/module/igc/taint      # 顯示 OE 是修改版，空白是原版
+# 切換後硬體時間戳設定會被重設
+sudo hwstamp_ctl -i enp2s0 -r 1
+# ── 設定開機使用修正版 ──
+sudo mkdir -p /lib/modules/$(uname -r)/updates
+sudo cp ~/lab/igc-fix/src/igc.ko /lib/modules/$(uname -r)/updates/
+# 掃描 /lib/modules/$(uname -r)/ 底下所有模組，重建索引檔（updates/ 優先於 kernel/）
+sudo depmod -a
+# 建立 /etc/initramfs-tools/hooks/zz-exclude-igc，把 igc 排除在 initramfs 外
+# （MODULES=most 照路徑複製 kernel/drivers/net/ethernet/，不看 updates/，
+#   不排除的話開機時會先從 initramfs 載入原版）
+sudo update-initramfs -u -k $(uname -r)
+lsinitramfs /boot/initrd.img-$(uname -r) | grep igc   # 應該沒有輸出
+# 開機流程：initramfs 裡沒有 igc → 根檔案系統掛載後，PCI 偵測到 I226 → udev 拿到 modalias
+#   → modprobe 查 modules.alias 得到 igc → 查 modules.dep 得到 updates/igc.ko → 載入修改版
+# 重開機後用 cat /sys/module/igc/taint 確認是 OE
+# ── 恢復成原版 ──
+sudo rm /lib/modules/$(uname -r)/updates/igc.ko /etc/initramfs-tools/hooks/zz-exclude-igc
+sudo depmod -a &amp;&amp; sudo update-initramfs -u -k $(uname -r)
+# 注意：kernel 更新後，新版本的 /lib/modules/&lt;新版本&gt;/updates/ 裡沒有修改版，
+# 要用新版 kernel 的原始碼重新編譯，再重做上面的步驟。
+</code></pre> <p>/etc/initramfs-tools/hooks/zz-exclude-igc 內容如下</p> <pre><code>#!/bin/sh
+# Keep igc out of the initramfs so it is loaded after the real root is
+# mounted, where modprobe resolves it to the patched /lib/modules/*/updates/igc.ko
+# (MODULES=most copies =drivers/net/ethernet by path and ignores updates/).
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in
+prereqs) prereqs; exit 0 ;;
+esac
+rm -rf "${DESTDIR}/lib/modules/${version}/kernel/drivers/net/ethernet/intel/igc"
+</code></pre> <p>修正後，I226-V 的硬時戳終於正常了，arp-test.sh 正確測得間隔為 0.2 秒。(灑花)</p> <pre><code>1795483832.747679849 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483832.948066764 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.148557699 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.349012067 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.549397087 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+</code></pre> <p data-slug="fix-linux-igc-module" data-fbimg="https://i.postimg.cc/Vkd2Y6qH/image.png#1024#576"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>做夢也沒想過，我居然能找出 Linux 網卡驅動程式的 Bug 並修好它，AI Coding 時代什麼都變可能了。</p> <p>這個年代 Ethernet 網卡是個人電腦的標準配備，幾乎所有主機板都有內建，特地買 PCI-E 網卡所為何來？答案是「硬體時間戳」(Hardware Timestamp，以下簡稱硬時戳)。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639312132037397955.jpg"></p> <p>用 Wireshark 或 tcpdump 之類的抓封包軟體，每個封包都會有收到時間，時間戳則可分為硬體時間戳與軟體時間戳兩種，差別在於記錄時機。有些較高級的網卡晶片有內建硬體時鐘 (PHC，PTP Hardware Clock)，將封包傳給電腦時會註記 PHC 時間；若網卡不支援硬時戳，作業系統會在讀取到封包資料時用系統時鐘押上軟時戳，問題是從收到封包，再經過 DMA 資料傳送、等待系統中斷觸發、CPU 排程等過程，中間會有一段延遲，而延遲長度會隨系統負載變動，誤差和抖動 (Jitter) 通常在數微秒到數十微秒間，系統忙碌時可能更大。因此，若對精確度有較高要求，要靠硬時戳才能達到奈秒至數十奈秒等級。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639312132039303534.webp"></p> <p>在 Linux 使用 <code>ethtool -T</code> 可以查網卡晶片是否支援硬時戳，像是較平價的 Realtek 晶片通常就只能用軟時戳：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639312132041481133.webp"></p> <p>而我買的這塊 I226-V 便有支援硬時戳：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639312132043399199.webp"></p> <p>只是不幸地，裝好網卡正想用 <code>tcpdump -j adapter_unsynced --time-stamp-precision nano</code> 指令開心體驗硬時戳的奈秒級精確度，馬上被澆了一頭冷水。</p> <p>我用網路線將主機的內建網卡 eno1 跟 I226-V enp2s0 串起來，從 eno1 發出 arping 廣播讓 I226-V 接收(測試程式 arp-test.sh 如下)，得到奇怪的數字。</p> <pre><code>#!/bin/bash
+# 先在 enp2s0 以網卡硬體時間戳 (PHC) 收 5 個 ARP 封包，
+# 再從 eno1 以 arping 廣播 5 個 ARP，觀察兩邊時間差
+# 背景啟動 tcpdump，收滿 5 個 ARP 自動結束
+sudo tcpdump -i enp2s0 -j adapter_unsynced --time-stamp-precision nano -tt -n -c 5 arp &amp;
+TCPDUMP_PID=$!
+sleep 2   # 等 tcpdump 就緒再開始送封包
+# 讀取 PHC 目前時間，當作對照基準
+sudo phc_ctl /dev/ptp0 get
+# 從 eno1 送出 5 個 ARP（-0 以 0.0.0.0 為來源，間隔 0.2 秒）
+sudo arping -i eno1 -0 -c 5 -W 0.2 10.99.0.2
+# 等 tcpdump 收完 5 個封包再結束
+wait $TCPDUMP_PID
+</code></pre> <pre><code>4294836075.092230144 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092226048 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092221952 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092217856 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092213760 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+</code></pre> <p>封包實際間隔 0.2 秒，時間戳卻只差 4096 ns，而且是固定遞減 4096，完全不合理!</p> <p>跟 AI 一起討論兼除錯數小時，見識好多高級 Linux 技巧，檢查驅動程式、網卡韌體版本、寫 Python 直接讀取 PHC 時間... 結論是網卡 PHC 功能正常，應是 kernel 軟體 bug，不是晶片或硬體問題，取時間戳時錯讀到 RX buffer 的位址而不是時間的值。</p> <p>總之，AI 不但查了原始碼、還追到開源專案 Issue (有人提過此問題及修改建議，但還沒被納入)，建議幾種修改方向：改 I226-V 驅動程式 igc、改 Linux Kernel、寫客製版 libpcap，其中改 igc 驅動只要改 5 行程式碼，又可一次解決多個問題，是上策。雖然修改 Linux 驅動程式聽起來非常艱深複雜，但我只負責監工，二話不說立刻開幹。基本上就是把 igc_main.c 兩處改掉，問題就修好了：</p> <pre><code>if (ctx-&gt;rx_ts) {
+skb_shinfo(skb)-&gt;tx_flags |= SKBTX_HW_TSTAMP_NETDEV;
+skb_hwtstamps(skb)-&gt;netdev_data = ctx-&gt;rx_ts;
+}
+</code></pre> <p>改成</p> <pre><code>if (ctx-&gt;rx_ts) {
+struct igc_adapter *adapter = netdev_priv(rx_ring-&gt;netdev);
+skb_hwtstamps(skb)-&gt;hwtstamp =
+igc_ptp_rx_pktstamp(adapter, ctx-&gt;rx_ts-&gt;timer0);
+}
+</code></pre> <p>重新編譯好 igc.ko，用以下方法換掉原本的 igc 驅動模組：</p> <pre><code># ── 暫時切換（重開機後恢復）──
+# 換修正版
+sudo rmmod igc &amp;&amp; sudo insmod ~/lab/igc-fix/src/igc.ko
+# 換回原版（安裝到 updates/ 之前，也可用 sudo rmmod igc &amp;&amp; sudo modprobe igc）
+sudo rmmod igc &amp;&amp; sudo insmod /lib/modules/$(uname -r)/kernel/drivers/net/ethernet/intel/igc/igc.ko.xz
+# 檢查目前載入版本
+cat /sys/module/igc/taint      # 顯示 OE 是修改版，空白是原版
+# 切換後硬體時間戳設定會被重設
+sudo hwstamp_ctl -i enp2s0 -r 1
+# ── 設定開機使用修正版 ──
+sudo mkdir -p /lib/modules/$(uname -r)/updates
+sudo cp ~/lab/igc-fix/src/igc.ko /lib/modules/$(uname -r)/updates/
+# 掃描 /lib/modules/$(uname -r)/ 底下所有模組，重建索引檔（updates/ 優先於 kernel/）
+sudo depmod -a
+# 建立 /etc/initramfs-tools/hooks/zz-exclude-igc，把 igc 排除在 initramfs 外
+# （MODULES=most 照路徑複製 kernel/drivers/net/ethernet/，不看 updates/，
+#   不排除的話開機時會先從 initramfs 載入原版）
+sudo update-initramfs -u -k $(uname -r)
+lsinitramfs /boot/initrd.img-$(uname -r) | grep igc   # 應該沒有輸出
+# 開機流程：initramfs 裡沒有 igc → 根檔案系統掛載後，PCI 偵測到 I226 → udev 拿到 modalias
+#   → modprobe 查 modules.alias 得到 igc → 查 modules.dep 得到 updates/igc.ko → 載入修改版
+# 重開機後用 cat /sys/module/igc/taint 確認是 OE
+# ── 恢復成原版 ──
+sudo rm /lib/modules/$(uname -r)/updates/igc.ko /etc/initramfs-tools/hooks/zz-exclude-igc
+sudo depmod -a &amp;&amp; sudo update-initramfs -u -k $(uname -r)
+# 注意：kernel 更新後，新版本的 /lib/modules/&lt;新版本&gt;/updates/ 裡沒有修改版，
+# 要用新版 kernel 的原始碼重新編譯，再重做上面的步驟。
+</code></pre> <p>/etc/initramfs-tools/hooks/zz-exclude-igc 內容如下</p> <pre><code>#!/bin/sh
+# Keep igc out of the initramfs so it is loaded after the real root is
+# mounted, where modprobe resolves it to the patched /lib/modules/*/updates/igc.ko
+# (MODULES=most copies =drivers/net/ethernet by path and ignores updates/).
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in
+prereqs) prereqs; exit 0 ;;
+esac
+rm -rf "${DESTDIR}/lib/modules/${version}/kernel/drivers/net/ethernet/intel/igc"
+</code></pre> <p>修正後，I226-V 的硬時戳終於正常了，arp-test.sh 正確測得間隔為 0.2 秒。(灑花)</p> <pre><code>1795483832.747679849 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483832.948066764 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.148557699 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.349012067 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.549397087 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+</code></pre> <p data-slug="fix-linux-igc-module" data-fbimg="https://i.postimg.cc/Vkd2Y6qH/image.png#1024#576"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>做夢也沒想過，我居然能找出 Linux 網卡驅動程式的 Bug 並修好它，AI Coding 時代什麼都變可能了。</p> <p>這個年代 Ethernet 網卡是個人電腦的標準配備，幾乎所有主機板都有內建，特地買 PCI-E 網卡所為何來？答案是「硬體時間戳」(Hardware Timestamp，以下簡稱硬時戳)。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639312132037397955.jpg"></p> <p>用 Wireshark 或 tcpdump 之類的抓封包軟體，每個封包都會有收到時間，時間戳則可分為硬體時間戳與軟體時間戳兩種，差別在於記錄時機。有些較高級的網卡晶片有內建硬體時鐘 (PHC，PTP Hardware Clock)，將封包傳給電腦時會註記 PHC 時間；若網卡不支援硬時戳，作業系統會在讀取到封包資料時用系統時鐘押上軟時戳，問題是從收到封包，再經過 DMA 資料傳送、等待系統中斷觸發、CPU 排程等過程，中間會有一段延遲，而延遲長度會隨系統負載變動，誤差和抖動 (Jitter) 通常在數微秒到數十微秒間，系統忙碌時可能更大。因此，若對精確度有較高要求，要靠硬時戳才能達到奈秒至數十奈秒等級。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639312132039303534.webp"></p> <p>在 Linux 使用 <code>ethtool -T</code> 可以查網卡晶片是否支援硬時戳，像是較平價的 Realtek 晶片通常就只能用軟時戳：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639312132041481133.webp"></p> <p>而我買的這塊 I226-V 便有支援硬時戳：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639312132043399199.webp"></p> <p>只是不幸地，裝好網卡正想用 <code>tcpdump -j adapter_unsynced --time-stamp-precision nano</code> 指令開心體驗硬時戳的奈秒級精確度，馬上被澆了一頭冷水。</p> <p>我用網路線將主機的內建網卡 eno1 跟 I226-V enp2s0 串起來，從 eno1 發出 arping 廣播讓 I226-V 接收(測試程式 arp-test.sh 如下)，得到奇怪的數字。</p> <pre><code>#!/bin/bash
+# 先在 enp2s0 以網卡硬體時間戳 (PHC) 收 5 個 ARP 封包，
+# 再從 eno1 以 arping 廣播 5 個 ARP，觀察兩邊時間差
+# 背景啟動 tcpdump，收滿 5 個 ARP 自動結束
+sudo tcpdump -i enp2s0 -j adapter_unsynced --time-stamp-precision nano -tt -n -c 5 arp &amp;
+TCPDUMP_PID=$!
+sleep 2   # 等 tcpdump 就緒再開始送封包
+# 讀取 PHC 目前時間，當作對照基準
+sudo phc_ctl /dev/ptp0 get
+# 從 eno1 送出 5 個 ARP（-0 以 0.0.0.0 為來源，間隔 0.2 秒）
+sudo arping -i eno1 -0 -c 5 -W 0.2 10.99.0.2
+# 等 tcpdump 收完 5 個封包再結束
+wait $TCPDUMP_PID
+</code></pre> <pre><code>4294836075.092230144 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092226048 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092221952 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092217856 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+4294836075.092213760 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+</code></pre> <p>封包實際間隔 0.2 秒，時間戳卻只差 4096 ns，而且是固定遞減 4096，完全不合理!</p> <p>跟 AI 一起討論兼除錯數小時，見識好多高級 Linux 技巧，檢查驅動程式、網卡韌體版本、寫 Python 直接讀取 PHC 時間... 結論是網卡 PHC 功能正常，應是 kernel 軟體 bug，不是晶片或硬體問題，取時間戳時錯讀到 RX buffer 的位址而不是時間的值。</p> <p>總之，AI 不但查了原始碼、還追到開源專案 Issue (有人提過此問題及修改建議，但還沒被納入)，建議幾種修改方向：改 I226-V 驅動程式 igc、改 Linux Kernel、寫客製版 libpcap，其中改 igc 驅動只要改 5 行程式碼，又可一次解決多個問題，是上策。雖然修改 Linux 驅動程式聽起來非常艱深複雜，但我只負責監工，二話不說立刻開幹。基本上就是把 igc_main.c 兩處改掉，問題就修好了：</p> <pre><code>if (ctx-&gt;rx_ts) {
+skb_shinfo(skb)-&gt;tx_flags |= SKBTX_HW_TSTAMP_NETDEV;
+skb_hwtstamps(skb)-&gt;netdev_data = ctx-&gt;rx_ts;
+}
+</code></pre> <p>改成</p> <pre><code>if (ctx-&gt;rx_ts) {
+struct igc_adapter *adapter = netdev_priv(rx_ring-&gt;netdev);
+skb_hwtstamps(skb)-&gt;hwtstamp =
+igc_ptp_rx_pktstamp(adapter, ctx-&gt;rx_ts-&gt;timer0);
+}
+</code></pre> <p>重新編譯好 igc.ko，用以下方法換掉原本的 igc 驅動模組：</p> <pre><code># ── 暫時切換（重開機後恢復）──
+# 換修正版
+sudo rmmod igc &amp;&amp; sudo insmod ~/lab/igc-fix/src/igc.ko
+# 換回原版（安裝到 updates/ 之前，也可用 sudo rmmod igc &amp;&amp; sudo modprobe igc）
+sudo rmmod igc &amp;&amp; sudo insmod /lib/modules/$(uname -r)/kernel/drivers/net/ethernet/intel/igc/igc.ko.xz
+# 檢查目前載入版本
+cat /sys/module/igc/taint      # 顯示 OE 是修改版，空白是原版
+# 切換後硬體時間戳設定會被重設
+sudo hwstamp_ctl -i enp2s0 -r 1
+# ── 設定開機使用修正版 ──
+sudo mkdir -p /lib/modules/$(uname -r)/updates
+sudo cp ~/lab/igc-fix/src/igc.ko /lib/modules/$(uname -r)/updates/
+# 掃描 /lib/modules/$(uname -r)/ 底下所有模組，重建索引檔（updates/ 優先於 kernel/）
+sudo depmod -a
+# 建立 /etc/initramfs-tools/hooks/zz-exclude-igc，把 igc 排除在 initramfs 外
+# （MODULES=most 照路徑複製 kernel/drivers/net/ethernet/，不看 updates/，
+#   不排除的話開機時會先從 initramfs 載入原版）
+sudo update-initramfs -u -k $(uname -r)
+lsinitramfs /boot/initrd.img-$(uname -r) | grep igc   # 應該沒有輸出
+# 開機流程：initramfs 裡沒有 igc → 根檔案系統掛載後，PCI 偵測到 I226 → udev 拿到 modalias
+#   → modprobe 查 modules.alias 得到 igc → 查 modules.dep 得到 updates/igc.ko → 載入修改版
+# 重開機後用 cat /sys/module/igc/taint 確認是 OE
+# ── 恢復成原版 ──
+sudo rm /lib/modules/$(uname -r)/updates/igc.ko /etc/initramfs-tools/hooks/zz-exclude-igc
+sudo depmod -a &amp;&amp; sudo update-initramfs -u -k $(uname -r)
+# 注意：kernel 更新後，新版本的 /lib/modules/&lt;新版本&gt;/updates/ 裡沒有修改版，
+# 要用新版 kernel 的原始碼重新編譯，再重做上面的步驟。
+</code></pre> <p>/etc/initramfs-tools/hooks/zz-exclude-igc 內容如下</p> <pre><code>#!/bin/sh
+# Keep igc out of the initramfs so it is loaded after the real root is
+# mounted, where modprobe resolves it to the patched /lib/modules/*/updates/igc.ko
+# (MODULES=most copies =drivers/net/ethernet by path and ignores updates/).
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in
+prereqs) prereqs; exit 0 ;;
+esac
+rm -rf "${DESTDIR}/lib/modules/${version}/kernel/drivers/net/ethernet/intel/igc"
+</code></pre> <p>修正後，I226-V 的硬時戳終於正常了，arp-test.sh 正確測得間隔為 0.2 秒。(灑花)</p> <pre><code>1795483832.747679849 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483832.948066764 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.148557699 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.349012067 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+1795483833.549397087 ARP, Request who-has 10.99.0.2 tell 0.0.0.0, length 46
+</code></pre> <p data-slug="fix-linux-igc-module" data-fbimg="https://i.postimg.cc/Vkd2Y6qH/image.png#1024#576"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639312132037397955.jpg"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639312132037397955.jpg" medium="image"/>
+    <pubDate>Wed, 25 Nov 2026 14:15:37 GMT</pubDate>
+  </item><item>
     <title><![CDATA[2026 重回創世紀 IV (攜械入宋?)]]></title>
     <link>https://blog.darkthread.net/blog/revisit-ultima-4/</link>
     <itunes:title><![CDATA[2026 重回創世紀 IV (攜械入宋?)]]></itunes:title>
@@ -1233,38 +1455,5 @@ return "DIRECT";
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639281884222074003.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639281884222074003.webp" medium="image"/>
     <pubDate>Wed, 21 Oct 2026 14:05:09 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[【茶包射手日記】VSCode Github Copilot Agent 找不到 OpenSpec / Node.js]]></title>
-    <link>https://blog.darkthread.net/blog/pwsh-profile-issue-in-vscode/</link>
-    <itunes:title><![CDATA[【茶包射手日記】VSCode Github Copilot Agent 找不到 OpenSpec / Node.js]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>開始在 AI Coding 應用 <a href="https://kaochenlong.com/sdd-spec-driven-development">OpenSpec</a>，有個小困擾是每次 Github Copilot Chat 視窗下達 /opsx-propose 等指令時，Agent 起手式會用 openspec CLI 查詢，但總會回報找不到 openspec 再冰雪聰明地現場下載，最近還是不辱使命達成任務。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp"></p> <p>不過，這樣是 Token、時間與頻寬的三重浪費，開發機有裝 OpenSpec，手動開 PowerShell 下 <code>openspec --version</code> 沒問題，為什麼 Agent 找不到？</p> <p>經過一番調查，學到一些 VSCode 與 PowerShell 環境整合的冷知識。平平是在 VSCode 使用 PowerShell，手動開啟終端跟由 Agent 開啟，環境是有差異的。</p> <p>從 Agent 開啟的 PowerShell Extension 終端機執行 <code>[Environment]::CommandLine</code>，由 PowerShell 啟動參數可發現一些特別之處：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281345593185017.webp"></p> <p><code>-NoProfile</code> 指定不要載入使用者 Profile，而依據<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#profile-types-and-locations">文件</a>，VSCode 會載入 <code>$PSHOME\Microsoft.VSCode_profile.ps1</code>(全域適用) 及 <code>$HOME\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code> (使用者自訂) 二處的 Profile，這部分由 <code>c:\Users\&lt;user&gt;\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1</code> 負責處理。</p> <p>而這就是 Agent 找不到 Node.js 或 openspec 的原因，我<a href="/blog/win-nodejs-setup-2026/">用 fnm 管理 Node.js 版本</a>，它會在使用者 Profile <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.PowerShell_profile.ps1</code> 加入 <code>fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression</code> 設定 PATH 及相關環境變數，VSCode 自己的 Profile 沒有這段，便無法啟用 fnm 找到 Node.js 及透過 npm 安裝的 OpenSpec。</p> <p>解決方法可以建立一份 <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code>，加入要給 AI Agent 用的相關設定。(包含 <code>fnm env --use-on-cd --shell powershell ...</code>) 或是將 <code>fnm env...</code> 設定搬到 <code>$HOME\Documents\PowerShell\profile.ps1</code>。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281345595077129.webp"></p> <p>(還有另一種狀況，若 fnm 是用 winget 安裝，系統可透過 <code>C:\Users\&lt;user&gt;\AppData\Local\WinGet\Links\fnm.exe</code> 找到 fnm，此時 Microsoft.PowerShell_profile.ps1 不需要 <code>fnm env...</code> 但有呼叫 <code>OpenSpecCompletion.ps1</code>，依相同原則處理即可。)</p> <p>調整後，Agent 開啟的 Terminal 就能順利找到 Node.exe 或 openspec 了。BUT! 問題並沒有完全解決...</p> <p>在 Chat 視窗叫 Agent 執行 <code>openspec list --json</code> 還是會出現找不到 openspec：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281345596959634.webp"></p> <p>原因是 Agent 透過 <code>run_in_terminal</code> 之類的工具呼叫的 pwsh 會加 -NoProfile，卻不像 PowerShell Extension 終端執行 <code>PowerShellEditorServices.psd1</code>，因此不會載入 <code>Microsoft.VSCode_profile.ps1</code>。</p> <p>評估了一下，只好再退到更底層，在 PATH 加上 fnm 預設存放 node.exe、openspec.cmd 的目錄：</p> <pre><code># fnm's data dir: FNM_DIR if set, else %APPDATA%\fnm (run `fnm env` to confirm)
-$fnmDir = if ($env:FNM_DIR) { $env:FNM_DIR } else { "$env:APPDATA\fnm" }
-Test-Path "$fnmDir\aliases\default
-ode.exe"   # should be True
-$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-[Environment]::SetEnvironmentVariable('Path', "$fnmDir\aliases\default;$userPath", 'User')
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639281345598955085.webp"></p> <p>再試一次，這回總算能直接在 Agent 裡執行 openspec CLI 了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639281345600767875.webp"></p> <p data-slug="pwsh-profile-issue-in-vscode" data-title-en="Why Can’t Copilot Agent Find OpenSpec? VS Code, PowerShell -NoProfile and the fnm PATH Pitfall" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">GitHub Copilot Agent in VS Code couldn’t find the openspec CLI because its PowerShell sessions run with -NoProfile, which skips the fnm setup. A VS Code profile fixes the extension terminal, but run_in_terminal still fails. Adding fnm’s default alias directory to the user PATH finally solves it.</p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>開始在 AI Coding 應用 <a href="https://kaochenlong.com/sdd-spec-driven-development">OpenSpec</a>，有個小困擾是每次 Github Copilot Chat 視窗下達 /opsx-propose 等指令時，Agent 起手式會用 openspec CLI 查詢，但總會回報找不到 openspec 再冰雪聰明地現場下載，最近還是不辱使命達成任務。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp"></p> <p>不過，這樣是 Token、時間與頻寬的三重浪費，開發機有裝 OpenSpec，手動開 PowerShell 下 <code>openspec --version</code> 沒問題，為什麼 Agent 找不到？</p> <p>經過一番調查，學到一些 VSCode 與 PowerShell 環境整合的冷知識。平平是在 VSCode 使用 PowerShell，手動開啟終端跟由 Agent 開啟，環境是有差異的。</p> <p>從 Agent 開啟的 PowerShell Extension 終端機執行 <code>[Environment]::CommandLine</code>，由 PowerShell 啟動參數可發現一些特別之處：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281345593185017.webp"></p> <p><code>-NoProfile</code> 指定不要載入使用者 Profile，而依據<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#profile-types-and-locations">文件</a>，VSCode 會載入 <code>$PSHOME\Microsoft.VSCode_profile.ps1</code>(全域適用) 及 <code>$HOME\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code> (使用者自訂) 二處的 Profile，這部分由 <code>c:\Users\&lt;user&gt;\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1</code> 負責處理。</p> <p>而這就是 Agent 找不到 Node.js 或 openspec 的原因，我<a href="/blog/win-nodejs-setup-2026/">用 fnm 管理 Node.js 版本</a>，它會在使用者 Profile <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.PowerShell_profile.ps1</code> 加入 <code>fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression</code> 設定 PATH 及相關環境變數，VSCode 自己的 Profile 沒有這段，便無法啟用 fnm 找到 Node.js 及透過 npm 安裝的 OpenSpec。</p> <p>解決方法可以建立一份 <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code>，加入要給 AI Agent 用的相關設定。(包含 <code>fnm env --use-on-cd --shell powershell ...</code>) 或是將 <code>fnm env...</code> 設定搬到 <code>$HOME\Documents\PowerShell\profile.ps1</code>。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281345595077129.webp"></p> <p>(還有另一種狀況，若 fnm 是用 winget 安裝，系統可透過 <code>C:\Users\&lt;user&gt;\AppData\Local\WinGet\Links\fnm.exe</code> 找到 fnm，此時 Microsoft.PowerShell_profile.ps1 不需要 <code>fnm env...</code> 但有呼叫 <code>OpenSpecCompletion.ps1</code>，依相同原則處理即可。)</p> <p>調整後，Agent 開啟的 Terminal 就能順利找到 Node.exe 或 openspec 了。BUT! 問題並沒有完全解決...</p> <p>在 Chat 視窗叫 Agent 執行 <code>openspec list --json</code> 還是會出現找不到 openspec：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281345596959634.webp"></p> <p>原因是 Agent 透過 <code>run_in_terminal</code> 之類的工具呼叫的 pwsh 會加 -NoProfile，卻不像 PowerShell Extension 終端執行 <code>PowerShellEditorServices.psd1</code>，因此不會載入 <code>Microsoft.VSCode_profile.ps1</code>。</p> <p>評估了一下，只好再退到更底層，在 PATH 加上 fnm 預設存放 node.exe、openspec.cmd 的目錄：</p> <pre><code># fnm's data dir: FNM_DIR if set, else %APPDATA%\fnm (run `fnm env` to confirm)
-$fnmDir = if ($env:FNM_DIR) { $env:FNM_DIR } else { "$env:APPDATA\fnm" }
-Test-Path "$fnmDir\aliases\default
-ode.exe"   # should be True
-$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-[Environment]::SetEnvironmentVariable('Path', "$fnmDir\aliases\default;$userPath", 'User')
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639281345598955085.webp"></p> <p>再試一次，這回總算能直接在 Agent 裡執行 openspec CLI 了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639281345600767875.webp"></p> <p data-slug="pwsh-profile-issue-in-vscode" data-title-en="Why Can’t Copilot Agent Find OpenSpec? VS Code, PowerShell -NoProfile and the fnm PATH Pitfall" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">GitHub Copilot Agent in VS Code couldn’t find the openspec CLI because its PowerShell sessions run with -NoProfile, which skips the fnm setup. A VS Code profile fixes the extension terminal, but run_in_terminal still fails. Adding fnm’s default alias directory to the user PATH finally solves it.</p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>開始在 AI Coding 應用 <a href="https://kaochenlong.com/sdd-spec-driven-development">OpenSpec</a>，有個小困擾是每次 Github Copilot Chat 視窗下達 /opsx-propose 等指令時，Agent 起手式會用 openspec CLI 查詢，但總會回報找不到 openspec 再冰雪聰明地現場下載，最近還是不辱使命達成任務。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp"></p> <p>不過，這樣是 Token、時間與頻寬的三重浪費，開發機有裝 OpenSpec，手動開 PowerShell 下 <code>openspec --version</code> 沒問題，為什麼 Agent 找不到？</p> <p>經過一番調查，學到一些 VSCode 與 PowerShell 環境整合的冷知識。平平是在 VSCode 使用 PowerShell，手動開啟終端跟由 Agent 開啟，環境是有差異的。</p> <p>從 Agent 開啟的 PowerShell Extension 終端機執行 <code>[Environment]::CommandLine</code>，由 PowerShell 啟動參數可發現一些特別之處：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281345593185017.webp"></p> <p><code>-NoProfile</code> 指定不要載入使用者 Profile，而依據<a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.6&amp;WT.mc_id=DOP-MVP-37580#profile-types-and-locations">文件</a>，VSCode 會載入 <code>$PSHOME\Microsoft.VSCode_profile.ps1</code>(全域適用) 及 <code>$HOME\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code> (使用者自訂) 二處的 Profile，這部分由 <code>c:\Users\&lt;user&gt;\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1</code> 負責處理。</p> <p>而這就是 Agent 找不到 Node.js 或 openspec 的原因，我<a href="/blog/win-nodejs-setup-2026/">用 fnm 管理 Node.js 版本</a>，它會在使用者 Profile <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.PowerShell_profile.ps1</code> 加入 <code>fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression</code> 設定 PATH 及相關環境變數，VSCode 自己的 Profile 沒有這段，便無法啟用 fnm 找到 Node.js 及透過 npm 安裝的 OpenSpec。</p> <p>解決方法可以建立一份 <code>C:\Users\&lt;user&gt;\Documents\PowerShell\Microsoft.VSCode_profile.ps1</code>，加入要給 AI Agent 用的相關設定。(包含 <code>fnm env --use-on-cd --shell powershell ...</code>) 或是將 <code>fnm env...</code> 設定搬到 <code>$HOME\Documents\PowerShell\profile.ps1</code>。<br> <img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281345595077129.webp"></p> <p>(還有另一種狀況，若 fnm 是用 winget 安裝，系統可透過 <code>C:\Users\&lt;user&gt;\AppData\Local\WinGet\Links\fnm.exe</code> 找到 fnm，此時 Microsoft.PowerShell_profile.ps1 不需要 <code>fnm env...</code> 但有呼叫 <code>OpenSpecCompletion.ps1</code>，依相同原則處理即可。)</p> <p>調整後，Agent 開啟的 Terminal 就能順利找到 Node.exe 或 openspec 了。BUT! 問題並沒有完全解決...</p> <p>在 Chat 視窗叫 Agent 執行 <code>openspec list --json</code> 還是會出現找不到 openspec：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281345596959634.webp"></p> <p>原因是 Agent 透過 <code>run_in_terminal</code> 之類的工具呼叫的 pwsh 會加 -NoProfile，卻不像 PowerShell Extension 終端執行 <code>PowerShellEditorServices.psd1</code>，因此不會載入 <code>Microsoft.VSCode_profile.ps1</code>。</p> <p>評估了一下，只好再退到更底層，在 PATH 加上 fnm 預設存放 node.exe、openspec.cmd 的目錄：</p> <pre><code># fnm's data dir: FNM_DIR if set, else %APPDATA%\fnm (run `fnm env` to confirm)
-$fnmDir = if ($env:FNM_DIR) { $env:FNM_DIR } else { "$env:APPDATA\fnm" }
-Test-Path "$fnmDir\aliases\default
-ode.exe"   # should be True
-$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-[Environment]::SetEnvironmentVariable('Path', "$fnmDir\aliases\default;$userPath", 'User')
-</code></pre> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig5_639281345598955085.webp"></p> <p>再試一次，這回總算能直接在 Agent 裡執行 openspec CLI 了。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig6_639281345600767875.webp"></p> <p data-slug="pwsh-profile-issue-in-vscode" data-title-en="Why Can’t Copilot Agent Find OpenSpec? VS Code, PowerShell -NoProfile and the fnm PATH Pitfall" data-catg=".NET" data-fbimg="https://cdn.pixabay.com/photo/2016/10/18/06/03/run-1749410_960_720.jpg#960#720">GitHub Copilot Agent in VS Code couldn’t find the openspec CLI because its PowerShell sessions run with -NoProfile, which skips the fnm setup. A VS Code profile fixes the extension terminal, but run_in_terminal still fails. Adding fnm’s default alias directory to the user PATH finally solves it.</p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639281345591136733.webp" medium="image"/>
-    <pubDate>Tue, 20 Oct 2026 23:08:12 GMT</pubDate>
   </item></channel>
 </rss>
