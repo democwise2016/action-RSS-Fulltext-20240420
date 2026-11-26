@@ -30,6 +30,99 @@
     </itunes:owner>
     <itunes:image href="https://blog.darkthread.net/img/icon512x512.png"/>
 <item>
+    <title><![CDATA[網卡的硬體時戳精確度有多高？來做個實驗吧]]></title>
+    <link>https://blog.darkthread.net/blog/nic-hardware-timestamp-experiment/</link>
+    <itunes:title><![CDATA[網卡的硬體時戳精確度有多高？來做個實驗吧]]></itunes:title>
+    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
+    <itunes:summary>
+      <![CDATA[<p>昨天<a href="/blog/fix-linux-igc-module/">提到</a>支援硬時戳(Hardware Timestamp)的網路卡可在接收封包的瞬間記下時間，將 Wireshark/tcpdump 側錄封包的精確度從軟時戳的微秒等級提升到奈秒等級。(奈秒有多小？網路線每多一公尺傳輸時間便會多 5ns)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639312132039303534.webp"></p> <p>既然有硬時戳網卡還花功夫修好驅動程式的 Bug，自然要親眼看看奈秒級精確度長點見識，才不枉此行。</p> <p>這塊超出我的知識範圍，但 AI 大神教了一招簡單有效的測試法，用 <a href="https://docs.kernel.org/networking/pktgen.html">pktgen</a> 核心模組 (Linux 用來產生高流量封包測試網路效能與驅動程式的工具) 連續無間隔傳送封包，再用 tcpdump 擷取封包觀察時間間隔。為排除 Switch (網路交換器) 的干擾，網路線將 eno1 (主機內建網卡) 與 enp2s0 (I226-V，支援硬時戳) 直接串起來，寫一小段腳本從 eno1 不間斷送出 10 萬個 Ethernet 64 bytes UDP 封包，以 1Gbps 網速計算，64 bytes Data Frame 加上 8 bytes Preamble 和 12 bytes Inter-Frame Gap，封包間隔的理論值約為 84 x 8 x 1ns = 672ns。</p> <pre><code>#!/bin/bash
+# 使用 Linux 核心內建的 pktgen 模組，從 eno1 高速送出 10 萬個最小乙太網路封包 (64 bytes)
+# 傳輸時間：100Mbps 約 6720ns、1Gbps 約 672ns、10Gbps 約 67.2ns
+# 載入 pktgen 核心模組，載入後會產生 /proc/net/pktgen/ 控制介面
+sudo modprobe pktgen
+# 設定 CPU 0 的 pktgen 執行緒：先清除既有綁定的網卡，再加入 eno1
+echo "rem_device_all"  | sudo tee /proc/net/pktgen/kpktgend_0
+echo "add_device eno1" | sudo tee /proc/net/pktgen/kpktgend_0
+# eno1 的 pktgen 參數設定檔
+PG=/proc/net/pktgen/eno1
+echo "count 100000"            | sudo tee $PG   # 總共送 10 萬個封包
+echo "pkt_size 60"             | sudo tee $PG   # 加上 FCS 實際為 64 bytes
+echo "delay 0"                 | sudo tee $PG   # 封包間不加延遲，盡可能全速送出
+echo "dst 10.99.0.2"           | sudo tee $PG   # 任意 IP 即可
+echo "dst_mac 00:11:22:33:44:55" | sudo tee $PG   # enp2s0 的 MAC 地址
+# 開始送出封包；指令會阻塞直到全部送完
+echo "start" | sudo tee /proc/net/pktgen/pgctrl
+</code></pre> <p>用 tcpdump 在 enp2s0 分別以硬時戳及軟時戳同時擷取封包 10 秒，藉以比較二者差異：</p> <pre><code>#!/bin/bash
+# 硬體時間戳，網卡收到時以 PHC(PTP Hardware Clock) 為準
+# 精準到 ns，接收緩衝區 256M，聽 UDP port 9 的封包，收 10 秒
+sudo timeout -s INT 10 tcpdump -i enp2s0 -j adapter_unsynced --time-stamp-precision nano \
+-B 262144 -w hw.pcap 'udp port 9' &amp;
+# 軟體時間戳，kernel 收到封包時以系統時鐘為準
+sudo timeout -s INT 10 tcpdump -i enp2s0 -j host --time-stamp-precision nano \
+-B 262144 -w sw.pcap 'udp port 9' &amp;
+sleep 2   # 等 tcpdump 就緒再返回，讓 run.sh 開始送封包
+</code></pre> <p>分析 hw.pcap 與 sw.pcap 二者的封包間隔，分佈如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639312990527373269.webp"></p> <p>下表為封包間隔百分位數(單位: ns)</p> <table><thead><tr><th></th><th>min</th><th>p50</th><th>p95</th><th>p99</th></tr></thead><tbody><tr><td>hw</td><td>707</td><td>720</td><td>730</td><td>4,690.7</td></tr><tr><td>sw</td><td>24</td><td>33</td><td>5,810</td><td>21,901.3</td></tr></tbody></table> <p>硬時戳記錄的間隔接近理想值 672ns，p95 為 730ns，只比 p50 多 10 ns，到 p99 才跳到約 4.7 µs，95% 的封包間隔都很穩定。</p> <p>而軟時戳的間隔分佈明顯分成多個尖峰 (注意 Y 軸已取對數，p50 峰值是 p95 的近 10 倍)，作業系統讀取時會一次讀取 RX Ring 中的 8 個封包，處理一個約 30ns。網卡累積 8 個封包才通知主機，大約是 8 × 720 ns ≈ 5.8 µs 接近 p95 的數字。由此可知軟時戳的時間與真實情況有很大誤差，這也就是硬時戳存在的理由。</p> <p data-slug="nic-hardware-timestamp-experiment" data-fbimg="https://cdn.pixabay.com/photo/2015/07/13/15/24/traffic-843309_960_720.jpg#960#720"> </p>]]>
+    </itunes:summary>
+    <description>
+      <![CDATA[<p>昨天<a href="/blog/fix-linux-igc-module/">提到</a>支援硬時戳(Hardware Timestamp)的網路卡可在接收封包的瞬間記下時間，將 Wireshark/tcpdump 側錄封包的精確度從軟時戳的微秒等級提升到奈秒等級。(奈秒有多小？網路線每多一公尺傳輸時間便會多 5ns)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639312132039303534.webp"></p> <p>既然有硬時戳網卡還花功夫修好驅動程式的 Bug，自然要親眼看看奈秒級精確度長點見識，才不枉此行。</p> <p>這塊超出我的知識範圍，但 AI 大神教了一招簡單有效的測試法，用 <a href="https://docs.kernel.org/networking/pktgen.html">pktgen</a> 核心模組 (Linux 用來產生高流量封包測試網路效能與驅動程式的工具) 連續無間隔傳送封包，再用 tcpdump 擷取封包觀察時間間隔。為排除 Switch (網路交換器) 的干擾，網路線將 eno1 (主機內建網卡) 與 enp2s0 (I226-V，支援硬時戳) 直接串起來，寫一小段腳本從 eno1 不間斷送出 10 萬個 Ethernet 64 bytes UDP 封包，以 1Gbps 網速計算，64 bytes Data Frame 加上 8 bytes Preamble 和 12 bytes Inter-Frame Gap，封包間隔的理論值約為 84 x 8 x 1ns = 672ns。</p> <pre><code>#!/bin/bash
+# 使用 Linux 核心內建的 pktgen 模組，從 eno1 高速送出 10 萬個最小乙太網路封包 (64 bytes)
+# 傳輸時間：100Mbps 約 6720ns、1Gbps 約 672ns、10Gbps 約 67.2ns
+# 載入 pktgen 核心模組，載入後會產生 /proc/net/pktgen/ 控制介面
+sudo modprobe pktgen
+# 設定 CPU 0 的 pktgen 執行緒：先清除既有綁定的網卡，再加入 eno1
+echo "rem_device_all"  | sudo tee /proc/net/pktgen/kpktgend_0
+echo "add_device eno1" | sudo tee /proc/net/pktgen/kpktgend_0
+# eno1 的 pktgen 參數設定檔
+PG=/proc/net/pktgen/eno1
+echo "count 100000"            | sudo tee $PG   # 總共送 10 萬個封包
+echo "pkt_size 60"             | sudo tee $PG   # 加上 FCS 實際為 64 bytes
+echo "delay 0"                 | sudo tee $PG   # 封包間不加延遲，盡可能全速送出
+echo "dst 10.99.0.2"           | sudo tee $PG   # 任意 IP 即可
+echo "dst_mac 00:11:22:33:44:55" | sudo tee $PG   # enp2s0 的 MAC 地址
+# 開始送出封包；指令會阻塞直到全部送完
+echo "start" | sudo tee /proc/net/pktgen/pgctrl
+</code></pre> <p>用 tcpdump 在 enp2s0 分別以硬時戳及軟時戳同時擷取封包 10 秒，藉以比較二者差異：</p> <pre><code>#!/bin/bash
+# 硬體時間戳，網卡收到時以 PHC(PTP Hardware Clock) 為準
+# 精準到 ns，接收緩衝區 256M，聽 UDP port 9 的封包，收 10 秒
+sudo timeout -s INT 10 tcpdump -i enp2s0 -j adapter_unsynced --time-stamp-precision nano \
+-B 262144 -w hw.pcap 'udp port 9' &amp;
+# 軟體時間戳，kernel 收到封包時以系統時鐘為準
+sudo timeout -s INT 10 tcpdump -i enp2s0 -j host --time-stamp-precision nano \
+-B 262144 -w sw.pcap 'udp port 9' &amp;
+sleep 2   # 等 tcpdump 就緒再返回，讓 run.sh 開始送封包
+</code></pre> <p>分析 hw.pcap 與 sw.pcap 二者的封包間隔，分佈如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639312990527373269.webp"></p> <p>下表為封包間隔百分位數(單位: ns)</p> <table><thead><tr><th></th><th>min</th><th>p50</th><th>p95</th><th>p99</th></tr></thead><tbody><tr><td>hw</td><td>707</td><td>720</td><td>730</td><td>4,690.7</td></tr><tr><td>sw</td><td>24</td><td>33</td><td>5,810</td><td>21,901.3</td></tr></tbody></table> <p>硬時戳記錄的間隔接近理想值 672ns，p95 為 730ns，只比 p50 多 10 ns，到 p99 才跳到約 4.7 µs，95% 的封包間隔都很穩定。</p> <p>而軟時戳的間隔分佈明顯分成多個尖峰 (注意 Y 軸已取對數，p50 峰值是 p95 的近 10 倍)，作業系統讀取時會一次讀取 RX Ring 中的 8 個封包，處理一個約 30ns。網卡累積 8 個封包才通知主機，大約是 8 × 720 ns ≈ 5.8 µs 接近 p95 的數字。由此可知軟時戳的時間與真實情況有很大誤差，這也就是硬時戳存在的理由。</p> <p data-slug="nic-hardware-timestamp-experiment" data-fbimg="https://cdn.pixabay.com/photo/2015/07/13/15/24/traffic-843309_960_720.jpg#960#720"> </p>]]>
+    </description>
+    <content:encoded><![CDATA[<p>昨天<a href="/blog/fix-linux-igc-module/">提到</a>支援硬時戳(Hardware Timestamp)的網路卡可在接收封包的瞬間記下時間，將 Wireshark/tcpdump 側錄封包的精確度從軟時戳的微秒等級提升到奈秒等級。(奈秒有多小？網路線每多一公尺傳輸時間便會多 5ns)</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639312132039303534.webp"></p> <p>既然有硬時戳網卡還花功夫修好驅動程式的 Bug，自然要親眼看看奈秒級精確度長點見識，才不枉此行。</p> <p>這塊超出我的知識範圍，但 AI 大神教了一招簡單有效的測試法，用 <a href="https://docs.kernel.org/networking/pktgen.html">pktgen</a> 核心模組 (Linux 用來產生高流量封包測試網路效能與驅動程式的工具) 連續無間隔傳送封包，再用 tcpdump 擷取封包觀察時間間隔。為排除 Switch (網路交換器) 的干擾，網路線將 eno1 (主機內建網卡) 與 enp2s0 (I226-V，支援硬時戳) 直接串起來，寫一小段腳本從 eno1 不間斷送出 10 萬個 Ethernet 64 bytes UDP 封包，以 1Gbps 網速計算，64 bytes Data Frame 加上 8 bytes Preamble 和 12 bytes Inter-Frame Gap，封包間隔的理論值約為 84 x 8 x 1ns = 672ns。</p> <pre><code>#!/bin/bash
+# 使用 Linux 核心內建的 pktgen 模組，從 eno1 高速送出 10 萬個最小乙太網路封包 (64 bytes)
+# 傳輸時間：100Mbps 約 6720ns、1Gbps 約 672ns、10Gbps 約 67.2ns
+# 載入 pktgen 核心模組，載入後會產生 /proc/net/pktgen/ 控制介面
+sudo modprobe pktgen
+# 設定 CPU 0 的 pktgen 執行緒：先清除既有綁定的網卡，再加入 eno1
+echo "rem_device_all"  | sudo tee /proc/net/pktgen/kpktgend_0
+echo "add_device eno1" | sudo tee /proc/net/pktgen/kpktgend_0
+# eno1 的 pktgen 參數設定檔
+PG=/proc/net/pktgen/eno1
+echo "count 100000"            | sudo tee $PG   # 總共送 10 萬個封包
+echo "pkt_size 60"             | sudo tee $PG   # 加上 FCS 實際為 64 bytes
+echo "delay 0"                 | sudo tee $PG   # 封包間不加延遲，盡可能全速送出
+echo "dst 10.99.0.2"           | sudo tee $PG   # 任意 IP 即可
+echo "dst_mac 00:11:22:33:44:55" | sudo tee $PG   # enp2s0 的 MAC 地址
+# 開始送出封包；指令會阻塞直到全部送完
+echo "start" | sudo tee /proc/net/pktgen/pgctrl
+</code></pre> <p>用 tcpdump 在 enp2s0 分別以硬時戳及軟時戳同時擷取封包 10 秒，藉以比較二者差異：</p> <pre><code>#!/bin/bash
+# 硬體時間戳，網卡收到時以 PHC(PTP Hardware Clock) 為準
+# 精準到 ns，接收緩衝區 256M，聽 UDP port 9 的封包，收 10 秒
+sudo timeout -s INT 10 tcpdump -i enp2s0 -j adapter_unsynced --time-stamp-precision nano \
+-B 262144 -w hw.pcap 'udp port 9' &amp;
+# 軟體時間戳，kernel 收到封包時以系統時鐘為準
+sudo timeout -s INT 10 tcpdump -i enp2s0 -j host --time-stamp-precision nano \
+-B 262144 -w sw.pcap 'udp port 9' &amp;
+sleep 2   # 等 tcpdump 就緒再返回，讓 run.sh 開始送封包
+</code></pre> <p>分析 hw.pcap 與 sw.pcap 二者的封包間隔，分佈如下：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639312990527373269.webp"></p> <p>下表為封包間隔百分位數(單位: ns)</p> <table><thead><tr><th></th><th>min</th><th>p50</th><th>p95</th><th>p99</th></tr></thead><tbody><tr><td>hw</td><td>707</td><td>720</td><td>730</td><td>4,690.7</td></tr><tr><td>sw</td><td>24</td><td>33</td><td>5,810</td><td>21,901.3</td></tr></tbody></table> <p>硬時戳記錄的間隔接近理想值 672ns，p95 為 730ns，只比 p50 多 10 ns，到 p99 才跳到約 4.7 µs，95% 的封包間隔都很穩定。</p> <p>而軟時戳的間隔分佈明顯分成多個尖峰 (注意 Y 軸已取對數，p50 峰值是 p95 的近 10 倍)，作業系統讀取時會一次讀取 RX Ring 中的 8 個封包，處理一個約 30ns。網卡累積 8 個封包才通知主機，大約是 8 × 720 ns ≈ 5.8 µs 接近 p95 的數字。由此可知軟時戳的時間與真實情況有很大誤差，這也就是硬時戳存在的理由。</p> <p data-slug="nic-hardware-timestamp-experiment" data-fbimg="https://cdn.pixabay.com/photo/2015/07/13/15/24/traffic-843309_960_720.jpg#960#720"> </p>]]></content:encoded>
+    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig2_639312132039303534.webp"/>
+          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig2_639312132039303534.webp" medium="image"/>
+    <pubDate>Thu, 26 Nov 2026 14:07:24 GMT</pubDate>
+  </item><item>
     <title><![CDATA[【茶包射手日記】修正 Linux 網卡驅動程式 Bug]]></title>
     <link>https://blog.darkthread.net/blog/fix-linux-igc-module/</link>
     <itunes:title><![CDATA[【茶包射手日記】修正 Linux 網卡驅動程式 Bug]]></itunes:title>
@@ -1440,20 +1533,5 @@ return "DIRECT";
     <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639282737447782757.webp"/>
           <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639282737447782757.webp" medium="image"/>
     <pubDate>Thu, 22 Oct 2026 02:22:12 GMT</pubDate>
-  </item><item>
-    <title><![CDATA[HiNet 連不到百度 CDN]]></title>
-    <link>https://blog.darkthread.net/blog/hinet-2-baidu-cdn/</link>
-    <itunes:title><![CDATA[HiNet 連不到百度 CDN]]></itunes:title>
-    <itunes:author><![CDATA[service@darkthread.net (Jeffrey Lee)]]></itunes:author>
-    <itunes:summary>
-      <![CDATA[<p>發現家裡光世代連不上百度網盤，標題有出來但網頁一片空白。小閃光說很早之前就有發現，改用手機上網可避開問題。我試了用 FireFox VPN 連也是正常的，推測是中華電信的問題。</p> <p>用 F12 追了一下，發現網頁要用的 js/css 都放在百度 CDN 主機 <code>nd-static.bdstatic.com</code>、<code>staticiot.cdn.bcebos.com</code>，相關 HTTP 請求有去無回：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281884222074003.webp"></p> <p>用 Test-NetConnection 試連兩台主機的 443 Port 不通(延伸閱讀：<a href="/blog/ps-test-netconnection/">Windows 測試 TCP 連線，比 Telnet 更好的方法</a>)，以 nd-static.bdstatic.com 為例，用 HiNet DNS 168.95.1.1 及 Google DNS 8.8.8.8 查詢，IP 均為 182.61.128.141。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281884224436310.webp"></p> <p>Trace Route 182.61.128.141 不通。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281884227232839.webp"></p> <p>問 AI 學到一個好用服務 <a href="https://ping.pe/">ping.pe</a>，一次從 50 個國家 170 個位置測試 ping 及 tracert 的結果，算是再確認是 HiNet 的問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281884231757961.webp"></p> <p>雖然證據明確，但蠻奇怪的在網上沒查到相關討論，已反映給客服，有什麼訊息再更新。</p> <p data-slug="hinet-2-baidu-cdn" data-fbimg="https://cdn.pixabay.com/photo/2021/04/13/09/50/road-6175186_1280.jpg#1280#720"> </p>]]>
-    </itunes:summary>
-    <description>
-      <![CDATA[<p>發現家裡光世代連不上百度網盤，標題有出來但網頁一片空白。小閃光說很早之前就有發現，改用手機上網可避開問題。我試了用 FireFox VPN 連也是正常的，推測是中華電信的問題。</p> <p>用 F12 追了一下，發現網頁要用的 js/css 都放在百度 CDN 主機 <code>nd-static.bdstatic.com</code>、<code>staticiot.cdn.bcebos.com</code>，相關 HTTP 請求有去無回：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281884222074003.webp"></p> <p>用 Test-NetConnection 試連兩台主機的 443 Port 不通(延伸閱讀：<a href="/blog/ps-test-netconnection/">Windows 測試 TCP 連線，比 Telnet 更好的方法</a>)，以 nd-static.bdstatic.com 為例，用 HiNet DNS 168.95.1.1 及 Google DNS 8.8.8.8 查詢，IP 均為 182.61.128.141。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281884224436310.webp"></p> <p>Trace Route 182.61.128.141 不通。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281884227232839.webp"></p> <p>問 AI 學到一個好用服務 <a href="https://ping.pe/">ping.pe</a>，一次從 50 個國家 170 個位置測試 ping 及 tracert 的結果，算是再確認是 HiNet 的問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281884231757961.webp"></p> <p>雖然證據明確，但蠻奇怪的在網上沒查到相關討論，已反映給客服，有什麼訊息再更新。</p> <p data-slug="hinet-2-baidu-cdn" data-fbimg="https://cdn.pixabay.com/photo/2021/04/13/09/50/road-6175186_1280.jpg#1280#720"> </p>]]>
-    </description>
-    <content:encoded><![CDATA[<p>發現家裡光世代連不上百度網盤，標題有出來但網頁一片空白。小閃光說很早之前就有發現，改用手機上網可避開問題。我試了用 FireFox VPN 連也是正常的，推測是中華電信的問題。</p> <p>用 F12 追了一下，發現網頁要用的 js/css 都放在百度 CDN 主機 <code>nd-static.bdstatic.com</code>、<code>staticiot.cdn.bcebos.com</code>，相關 HTTP 請求有去無回：</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig1_639281884222074003.webp"></p> <p>用 Test-NetConnection 試連兩台主機的 443 Port 不通(延伸閱讀：<a href="/blog/ps-test-netconnection/">Windows 測試 TCP 連線，比 Telnet 更好的方法</a>)，以 nd-static.bdstatic.com 為例，用 HiNet DNS 168.95.1.1 及 Google DNS 8.8.8.8 查詢，IP 均為 182.61.128.141。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig2_639281884224436310.webp"></p> <p>Trace Route 182.61.128.141 不通。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig3_639281884227232839.webp"></p> <p>問 AI 學到一個好用服務 <a href="https://ping.pe/">ping.pe</a>，一次從 50 個國家 170 個位置測試 ping 及 tracert 的結果，算是再確認是 HiNet 的問題。</p> <p><img src="https://blog.darkthread.net/Posts/files/2026/Fig4_639281884231757961.webp"></p> <p>雖然證據明確，但蠻奇怪的在網上沒查到相關討論，已反映給客服，有什麼訊息再更新。</p> <p data-slug="hinet-2-baidu-cdn" data-fbimg="https://cdn.pixabay.com/photo/2021/04/13/09/50/road-6175186_1280.jpg#1280#720"> </p>]]></content:encoded>
-    <itunes:image href="https://blog.darkthread.net/Posts/files/2026/Fig1_639281884222074003.webp"/>
-          <media:content url="https://blog.darkthread.net/Posts/files/2026/Fig1_639281884222074003.webp" medium="image"/>
-    <pubDate>Wed, 21 Oct 2026 14:05:09 GMT</pubDate>
   </item></channel>
 </rss>
